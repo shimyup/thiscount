@@ -194,6 +194,7 @@ class Letter {
   int ratingCount;
   final int paperStyle;
   final int fontStyle;
+  final String? deliveryEmoji; // 유저가 고른 배송 이모티콘 (없으면 운송수단 기본값)
 
   Letter({
     required this.id,
@@ -226,6 +227,7 @@ class Letter {
     this.ratingCount = 0,
     this.paperStyle = 0,
     this.fontStyle = 0,
+    this.deliveryEmoji,
   }) : reportedBy = reportedBy ?? {};
 
   double get avgRating => ratingCount > 0 ? ratingTotal / ratingCount : 0.0;
@@ -401,6 +403,7 @@ class Letter {
     'ratingCount': ratingCount,
     'paperStyle': paperStyle,
     'fontStyle': fontStyle,
+    if (deliveryEmoji != null) 'deliveryEmoji': deliveryEmoji,
   };
 
   static Letter fromJson(Map<String, dynamic> j) => Letter(
@@ -446,6 +449,7 @@ class Letter {
     ratingCount: j['ratingCount'] as int? ?? 0,
     paperStyle: j['paperStyle'] as int? ?? 0,
     fontStyle: j['fontStyle'] as int? ?? 0,
+    deliveryEmoji: j['deliveryEmoji'] as String?,
   );
 }
 

@@ -1118,7 +1118,10 @@ class _TransportMarker extends StatelessWidget {
         final isNearby = letter.status == DeliveryStatus.nearYou;
         final phase = (pulseController.value * 2 * pi) % (2 * pi);
         final pulse = (sin(phase) * 0.5 + 0.5);
-        final emoji = isNearby ? '📩' : letter.currentTransport.emoji;
+        // 유저가 고른 이모티콘 우선 사용, 없으면 운송수단 기본 이모티콘
+        final emoji = isNearby
+            ? '📩'
+            : (letter.deliveryEmoji ?? letter.currentTransport.emoji);
         final color = isNearby
             ? AppColors.gold
             : letter.currentTransport == TransportMode.truck

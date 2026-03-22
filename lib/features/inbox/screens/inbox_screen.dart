@@ -1185,13 +1185,18 @@ class _SentDetailSheet extends StatelessWidget {
                 letter.senderCountryFlag,
                 style: const TextStyle(fontSize: 28),
               ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8),
-                child: Icon(
-                  Icons.flight_rounded,
-                  color: AppColors.teal,
-                  size: 18,
-                ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: letter.deliveryEmoji != null
+                    ? Text(
+                        letter.deliveryEmoji!,
+                        style: const TextStyle(fontSize: 20),
+                      )
+                    : const Icon(
+                        Icons.flight_rounded,
+                        color: AppColors.teal,
+                        size: 18,
+                      ),
               ),
               Text(
                 letter.destinationCountryFlag,

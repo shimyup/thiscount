@@ -952,7 +952,8 @@ class AppState extends ChangeNotifier {
     required String destinationFlag,
     required double destLat,
     required double destLng,
-    String? destCityName, // compose 화면에서 이미 선택된 도시명 (재랜덤 방지)
+    String? destCityName,  // compose 화면에서 이미 선택된 도시명 (재랜덤 방지)
+    String? deliveryEmoji, // 유저가 고른 배송 이모티콘
     String? socialLink,
     bool useShip = false,
     int paperStyle = 0,
@@ -1054,6 +1055,7 @@ class AppState extends ChangeNotifier {
       estimatedTotalMinutes: totalMin,
       paperStyle: paperStyle,
       fontStyle: fontStyle,
+      deliveryEmoji: deliveryEmoji,
     );
 
     _worldLetters.add(letter);
