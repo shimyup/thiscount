@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>개인정보 처리방침 — LetterGo</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #21262d;
+      --teal: #2ec4b6;
+      --teal-dim: rgba(46,196,182,0.12);
+      --text: #e6edf3;
+      --text-sub: #8b949e;
+      --text-muted: #484f58;
+      --radius: 12px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, 'Pretendard', 'Apple SD Gothic Neo', BlinkMacSystemFont,
+        'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* ── hero ── */
+    .hero {
+      background: linear-gradient(160deg, #0d1117 0%, #0d2230 60%, #0d1117 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 64px 24px 48px;
+      text-align: center;
+    }
+    .hero .logo { font-size: 48px; margin-bottom: 12px; }
+    .hero h1 {
+      font-size: clamp(22px, 5vw, 32px);
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+    .hero p {
+      margin-top: 10px;
+      color: var(--text-sub);
+      font-size: 14px;
+    }
+    .badge {
+      display: inline-block;
+      margin-top: 18px;
+      padding: 5px 14px;
+      border-radius: 999px;
+      background: var(--teal-dim);
+      border: 1px solid rgba(46,196,182,0.3);
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ── layout ── */
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    /* ── lang toggle ── */
+    .lang-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 40px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+    }
+    .lang-btn {
+      padding: 6px 16px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-sub);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .lang-btn.active {
+      background: var(--teal-dim);
+      border-color: rgba(46,196,182,0.3);
+      color: var(--teal);
+    }
+    .lang-section { display: none; }
+    .lang-section.visible { display: block; }
+
+    /* ── sections ── */
+    .section {
+      margin-bottom: 36px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 18px 20px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-icon { font-size: 20px; }
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--teal);
+      letter-spacing: 0.3px;
+    }
+    .section-body {
+      padding: 18px 20px 20px;
+    }
+    .section-body p, .section-body li {
+      font-size: 14px;
+      color: var(--text-sub);
+      line-height: 1.75;
+    }
+    .section-body ul {
+      padding-left: 18px;
+      list-style: disc;
+    }
+    .section-body ul li { margin-bottom: 4px; }
+    .section-body .highlight {
+      margin-top: 10px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: var(--teal-dim);
+      border-left: 3px solid var(--teal);
+      font-size: 13px;
+      color: var(--text);
+    }
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .tag {
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: #1c2333;
+      border: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text);
+    }
+    .tag.optional {
+      border-color: rgba(46,196,182,0.3);
+      color: var(--teal);
+    }
+
+    /* ── table ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+    th {
+      background: #1c2333;
+      color: var(--text-sub);
+      font-weight: 600;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 10px 14px;
+      color: var(--text-sub);
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: none; }
+
+    /* ── contact ── */
+    .contact-box {
+      margin-top: 40px;
+      padding: 24px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(46,196,182,0.25);
+      background: var(--teal-dim);
+      text-align: center;
+    }
+    .contact-box h3 { font-size: 15px; color: var(--teal); margin-bottom: 8px; }
+    .contact-box p { font-size: 13px; color: var(--text-sub); }
+    .contact-box a { color: var(--teal); text-decoration: none; }
+    .contact-box a:hover { text-decoration: underline; }
+
+    /* ── footer ── */
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 480px) {
+      .hero { padding: 48px 20px 36px; }
+      .section-body { padding: 14px 16px 16px; }
+      th, td { padding: 8px 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="logo">✉️</div>
+  <h1>개인정보 처리방침</h1>
+  <p>LetterGo — Privacy Policy</p>
+  <span class="badge">최종 업데이트: 2025년 1월 1일</span>
+</div>
+
+<div class="container">
+
+  <!-- Language Toggle -->
+  <div class="lang-toggle">
+    <button class="lang-btn active" onclick="switchLang('ko')">한국어</button>
+    <button class="lang-btn" onclick="switchLang('en')">English</button>
+  </div>
+
+  <!-- ═══════════════════════════════ 한국어 ═══════════════════════════════ -->
+  <div id="lang-ko" class="lang-section visible">
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">📌</span>
+        <span class="section-title">1. 개요</span>
+      </div>
+      <div class="section-body">
+        <p>
+          <strong>LetterGo</strong>(이하 "서비스")는 전 세계 사용자들이 익명으로 편지를 보내고 받을 수 있는
+          글로벌 소셜 서비스입니다. 본 방침은 서비스 이용 과정에서 수집되는 개인정보의 처리 방법을
+          설명합니다.
+        </p>
+        <div class="highlight">
+          LetterGo는 사용자의 개인정보를 최소한으로 수집하며, 수집된 정보를 제3자에게 판매하거나
+          무단으로 공유하지 않습니다.
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">📋</span>
+        <span class="section-title">2. 수집하는 개인정보 항목</span>
+      </div>
+      <div class="section-body">
+        <table>
+          <tr>
+            <th>항목</th>
+            <th>수집 방식</th>
+            <th>필수/선택</th>
+          </tr>
+          <tr>
+            <td>이메일 주소</td>
+            <td>회원가입 시 직접 입력</td>
+            <td><span class="tag">필수</span></td>
+          </tr>
+          <tr>
+            <td>닉네임</td>
+            <td>회원가입 시 직접 입력</td>
+            <td><span class="tag">필수</span></td>
+          </tr>
+          <tr>
+            <td>국가</td>
+            <td>회원가입 시 선택</td>
+            <td><span class="tag">필수</span></td>
+          </tr>
+          <tr>
+            <td>위치 정보 (GPS)</td>
+            <td>앱 실행 시 기기에서 수집 (도시·구 단위 정밀도)</td>
+            <td><span class="tag">필수</span></td>
+          </tr>
+          <tr>
+            <td>SNS 링크</td>
+            <td>프로필 설정 시 직접 입력</td>
+            <td><span class="tag optional">선택</span></td>
+          </tr>
+          <tr>
+            <td>편지 내용</td>
+            <td>편지 작성 시</td>
+            <td><span class="tag">서비스 이용 시</span></td>
+          </tr>
+        </table>
+        <div class="highlight" style="margin-top:14px;">
+          위치 정보는 편지 발송·수신 및 지도 기능을 위해서만 사용되며, 정확한 주소 대신
+          도시·구 단위로 처리됩니다.
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">🎯</span>
+        <span class="section-title">3. 개인정보 수집 및 이용 목적</span>
+      </div>
+      <div class="section-body">
+        <ul>
+          <li>회원 식별 및 계정 관리</li>
+          <li>편지 발송 및 수신 서비스 제공</li>
+          <li>지도 기반 위치 서비스 (배송 경로 시각화)</li>
+          <li>팔로우·팔로워 등 소셜 기능 제공</li>
+          <li>서비스 품질 개선 및 통계 분석</li>
+          <li>불법·부적절한 콘텐츠 모니터링</li>
+          <li>고객 문의 응대</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">⏱️</span>
+        <span class="section-title">4. 개인정보 보유 및 이용 기간</span>
+      </div>
+      <div class="section-body">
+        <table>
+          <tr>
+            <th>항목</th>
+            <th>보유 기간</th>
+          </tr>
+          <tr>
+            <td>계정 정보 (이메일, 닉네임, 국가)</td>
+            <td>회원 탈퇴 시까지</td>
+          </tr>
+          <tr>
+            <td>편지 내용</td>
+            <td>편지 읽음 처리 후 30일, 또는 탈퇴 시 즉시 삭제</td>
+          </tr>
+          <tr>
+            <td>위치 정보</td>
+            <td>세션 종료 시 삭제 (서버에 저장하지 않음)</td>
+          </tr>
+        </table>
+        <div class="highlight" style="margin-top:14px;">
+          회원 탈퇴 시 이메일을 제외한 모든 개인정보는 즉시 삭제됩니다.
+          이메일은 탈퇴 후 30일간 부정 재가입 방지 목적으로 보관 후 삭제됩니다.
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">🔗</span>
+        <span class="section-title">5. 제3자 제공 및 처리 위탁</span>
+      </div>
+      <div class="section-body">
+        <p>LetterGo는 원칙적으로 수집된 개인정보를 제3자에게 제공하지 않습니다.<br/>
+        단, 서비스 운영을 위해 아래 업체에 처리를 위탁합니다.</p>
+        <table style="margin-top:12px;">
+          <tr>
+            <th>수탁 업체</th>
+            <th>위탁 업무</th>
+            <th>보유 기간</th>
+          </tr>
+          <tr>
+            <td>Google Firebase</td>
+            <td>데이터베이스 저장, 인증, 푸시 알림</td>
+            <td>위탁 계약 종료 시</td>
+          </tr>
+          <tr>
+            <td>Stadia Maps</td>
+            <td>지도 타일 제공 (위치 정보 미전송)</td>
+            <td>해당 없음</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">🛡️</span>
+        <span class="section-title">6. 개인정보 보호 조치</span>
+      </div>
+      <div class="section-body">
+        <ul>
+          <li>전송 구간 암호화 (HTTPS/TLS 1.2 이상)</li>
+          <li>비밀번호 단방향 암호화 저장 (Firebase Auth)</li>
+          <li>위치 정보 서버 비저장 (기기 내 처리)</li>
+          <li>접근 권한 최소화 원칙 적용</li>
+          <li>내부 개인정보 취급자 최소화 및 접근 로그 관리</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">👤</span>
+        <span class="section-title">7. 이용자의 권리</span>
+      </div>
+      <div class="section-body">
+        <p>이용자는 언제든지 아래 권리를 행사할 수 있습니다.</p>
+        <ul style="margin-top:10px;">
+          <li><strong>열람권</strong> — 본인 정보 확인 요청</li>
+          <li><strong>정정·삭제권</strong> — 잘못된 정보 정정 또는 삭제 요청</li>
+          <li><strong>처리 정지권</strong> — 개인정보 처리 중단 요청</li>
+          <li><strong>회원 탈퇴</strong> — 앱 내 설정 → 계정 관리 → 회원탈퇴</li>
+        </ul>
+        <div class="highlight" style="margin-top:12px;">
+          권리 행사는 아래 연락처를 통해 요청하실 수 있으며, 10일 이내 처리합니다.
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">🍪</span>
+        <span class="section-title">8. 쿠키 및 분석 도구</span>
+      </div>
+      <div class="section-body">
+        <p>
+          LetterGo 앱은 쿠키를 사용하지 않습니다. 앱 내 기기 로컬 저장소(SharedPreferences)를
+          이용해 설정 및 세션 정보를 저장하며, 이 데이터는 기기 밖으로 전송되지 않습니다.
+        </p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">👶</span>
+        <span class="section-title">9. 아동 개인정보 보호</span>
+      </div>
+      <div class="section-body">
+        <p>
+          LetterGo는 만 14세 미만의 아동으로부터 의도적으로 개인정보를 수집하지 않습니다.
+          만 14세 미만임을 확인한 경우 해당 계정과 정보를 즉시 삭제합니다.
+        </p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">📝</span>
+        <span class="section-title">10. 개인정보 처리방침 변경</span>
+      </div>
+      <div class="section-body">
+        <p>
+          본 방침이 변경될 경우 앱 내 공지사항 및 본 페이지를 통해 최소 7일 전에 사전 안내합니다.
+          중요 변경사항은 앱 푸시 알림으로도 별도 고지합니다.
+        </p>
+      </div>
+    </div>
+
+    <!-- 연락처 -->
+    <div class="contact-box">
+      <h3>📬 개인정보 보호 담당자</h3>
+      <p>개인정보 관련 문의·열람·정정·삭제 요청</p>
+      <p style="margin-top:8px;">
+        이메일: <a href="mailto:privacy@lettergo.app">privacy@lettergo.app</a>
+      </p>
+    </div>
+
+  </div><!-- /lang-ko -->
+
+  <!-- ═══════════════════════════════ English ═══════════════════════════════ -->
+  <div id="lang-en" class="lang-section">
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">📌</span>
+        <span class="section-title">1. Overview</span>
+      </div>
+      <div class="section-body">
+        <p>
+          <strong>LetterGo</strong> is a global social service where users worldwide can
+          anonymously send and receive letters. This policy explains how personal information
+          collected through the service is handled.
+        </p>
+        <div class="highlight">
+          LetterGo collects only the minimum necessary personal information and does not
+          sell or share it with third parties without authorization.
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">📋</span>
+        <span class="section-title">2. Information We Collect</span>
+      </div>
+      <div class="section-body">
+        <table>
+          <tr><th>Item</th><th>Method</th><th>Required</th></tr>
+          <tr><td>Email address</td><td>Provided at sign-up</td><td><span class="tag">Required</span></td></tr>
+          <tr><td>Nickname</td><td>Provided at sign-up</td><td><span class="tag">Required</span></td></tr>
+          <tr><td>Country</td><td>Selected at sign-up</td><td><span class="tag">Required</span></td></tr>
+          <tr><td>Location (GPS)</td><td>Device, city/district precision</td><td><span class="tag">Required</span></td></tr>
+          <tr><td>SNS link</td><td>Optional profile setting</td><td><span class="tag optional">Optional</span></td></tr>
+          <tr><td>Letter content</td><td>When composing letters</td><td><span class="tag">Service use</span></td></tr>
+        </table>
+        <div class="highlight" style="margin-top:14px;">
+          Location data is used only for letter delivery and map features, and is processed
+          at city/district level — not exact address.
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">🎯</span>
+        <span class="section-title">3. How We Use Your Information</span>
+      </div>
+      <div class="section-body">
+        <ul>
+          <li>User identification and account management</li>
+          <li>Providing letter sending and receiving services</li>
+          <li>Map-based location services (delivery route visualization)</li>
+          <li>Social features (follow/follower system)</li>
+          <li>Service improvement and statistical analysis</li>
+          <li>Monitoring for illegal or inappropriate content</li>
+          <li>Customer support</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">⏱️</span>
+        <span class="section-title">4. Retention Period</span>
+      </div>
+      <div class="section-body">
+        <table>
+          <tr><th>Item</th><th>Retention Period</th></tr>
+          <tr><td>Account info (email, nickname, country)</td><td>Until account deletion</td></tr>
+          <tr><td>Letter content</td><td>30 days after read, or deleted upon account deletion</td></tr>
+          <tr><td>Location data</td><td>Deleted when session ends (not stored on servers)</td></tr>
+        </table>
+        <div class="highlight" style="margin-top:14px;">
+          Upon account deletion, all personal information except email is deleted immediately.
+          Email is retained for 30 days to prevent fraudulent re-registration, then deleted.
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">🔗</span>
+        <span class="section-title">5. Third-Party Sharing & Processors</span>
+      </div>
+      <div class="section-body">
+        <p>LetterGo does not sell personal information to third parties.<br/>
+        The following processors are used to operate the service:</p>
+        <table style="margin-top:12px;">
+          <tr><th>Processor</th><th>Purpose</th><th>Retention</th></tr>
+          <tr><td>Google Firebase</td><td>Database, authentication, push notifications</td><td>Until contract ends</td></tr>
+          <tr><td>Stadia Maps</td><td>Map tile delivery (no location data sent)</td><td>N/A</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">🛡️</span>
+        <span class="section-title">6. Security Measures</span>
+      </div>
+      <div class="section-body">
+        <ul>
+          <li>Encrypted transmission (HTTPS / TLS 1.2+)</li>
+          <li>One-way encrypted password storage (Firebase Auth)</li>
+          <li>Location data not stored on servers (processed on device)</li>
+          <li>Principle of minimum access rights</li>
+          <li>Internal access logging and minimized data handlers</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">👤</span>
+        <span class="section-title">7. Your Rights</span>
+      </div>
+      <div class="section-body">
+        <ul>
+          <li><strong>Right to access</strong> — Request to view your personal information</li>
+          <li><strong>Right to rectification/erasure</strong> — Request correction or deletion</li>
+          <li><strong>Right to restrict processing</strong> — Request to stop processing</li>
+          <li><strong>Account deletion</strong> — App Settings → Account Management → Delete Account</li>
+        </ul>
+        <div class="highlight" style="margin-top:12px;">
+          You may exercise these rights via the contact below. Requests are processed within 10 business days.
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">👶</span>
+        <span class="section-title">8. Children's Privacy</span>
+      </div>
+      <div class="section-body">
+        <p>
+          LetterGo does not knowingly collect personal information from children under 13
+          (or 14 in South Korea). If we become aware of such collection, we will delete
+          the account and information immediately.
+        </p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">📝</span>
+        <span class="section-title">9. Policy Changes</span>
+      </div>
+      <div class="section-body">
+        <p>
+          If this policy is updated, we will notify users at least 7 days in advance via
+          in-app notice and this page. Significant changes will also be notified via
+          push notification.
+        </p>
+      </div>
+    </div>
+
+    <div class="contact-box">
+      <h3>📬 Privacy Contact</h3>
+      <p>Questions, access, correction, or deletion requests</p>
+      <p style="margin-top:8px;">
+        Email: <a href="mailto:privacy@lettergo.app">privacy@lettergo.app</a>
+      </p>
+    </div>
+
+  </div><!-- /lang-en -->
+
+</div><!-- /container -->
+
+<footer>
+  © 2025 LetterGo. All rights reserved.<br/>
+  <a href="privacy.html" style="color: #484f58; text-decoration: none;">개인정보 처리방침</a>
+</footer>
+
+<script>
+  function switchLang(lang) {
+    document.querySelectorAll('.lang-section').forEach(el => el.classList.remove('visible'));
+    document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('lang-' + lang).classList.add('visible');
+    event.target.classList.add('active');
+  }
+</script>
+
+</body>
+</html>
