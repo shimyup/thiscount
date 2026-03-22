@@ -220,12 +220,12 @@
 
   <!-- Language Toggle -->
   <div class="lang-toggle">
-    <button class="lang-btn active" onclick="switchLang('ko')">한국어</button>
-    <button class="lang-btn" onclick="switchLang('en')">English</button>
+    <button class="lang-btn" data-lang="ko" onclick="switchLang('ko')">한국어</button>
+    <button class="lang-btn" data-lang="en" onclick="switchLang('en')">English</button>
   </div>
 
   <!-- ═══════════════════════════════ 한국어 ═══════════════════════════════ -->
-  <div id="lang-ko" class="lang-section visible">
+  <div id="lang-ko" class="lang-section">
 
     <div class="section">
       <div class="section-header">
@@ -633,12 +633,30 @@
 </footer>
 
 <script>
-  function switchLang(lang) {
+  function applyLang(lang) {
     document.querySelectorAll('.lang-section').forEach(el => el.classList.remove('visible'));
     document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById('lang-' + lang).classList.add('visible');
-    event.target.classList.add('active');
+    const section = document.getElementById('lang-' + lang);
+    if (section) section.classList.add('visible');
+    const btn = document.querySelector('.lang-btn[data-lang="' + lang + '"]');
+    if (btn) btn.classList.add('active');
   }
+
+  function switchLang(lang) {
+    // URL 파라미터도 갱신 (뒤로가기 시 유지)
+    const url = new URL(window.location);
+    url.searchParams.set('lang', lang);
+    history.replaceState(null, '', url);
+    applyLang(lang);
+  }
+
+  // 페이지 로드 시 URL 파라미터로 언어 자동 결정
+  // ?lang=en → 영어, ?lang=ko 또는 파라미터 없음 → 한국어
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+    const lang = params.get('lang') === 'en' ? 'en' : 'ko';
+    applyLang(lang);
+  })();
 </script>
 
 </body>
