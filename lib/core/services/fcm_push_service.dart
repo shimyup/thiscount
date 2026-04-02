@@ -1,10 +1,8 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
-import '../config/firebase_config.dart';
 
 /// FCM HTTP API를 통한 푸시 알림 서비스
-/// Firebase Admin SDK 없이 HTTP API로 푸시 전송
+/// 보안상 서버 키는 앱 클라이언트에 두면 안 되므로, 클라이언트 직접 전송을 비활성화한다.
+/// 실제 푸시는 서버(Cloud Functions/백엔드)에서만 발송해야 한다.
 class FcmPushService {
   // ── 특정 디바이스에 알림 전송 ─────────────────────────────────────────────
   static Future<bool> sendToDevice({
@@ -14,31 +12,9 @@ class FcmPushService {
     Map<String, dynamic>? data,
     required String serverKey, // Firebase 서버 키 (레거시 API)
   }) async {
-    if (!FirebaseConfig.kFirebaseEnabled) return false;
-    try {
-      final res = await http
-          .post(
-            Uri.parse('https://fcm.googleapis.com/fcm/send'),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'key=$serverKey',
-            },
-            body: jsonEncode({
-              'to': deviceToken,
-              'notification': {
-                'title': title,
-                'body': body,
-                'sound': 'default',
-              },
-              'data': data ?? {},
-              'priority': 'high',
-            }),
-          )
-          .timeout(const Duration(seconds: 10));
-      return res.statusCode == 200;
-    } catch (e, st) {
-      debugPrint('[FCMPush] 에러: $e\n$st');
-    }
+    debugPrint(
+      '[FCMPush] blocked on client: use server-side push sender only.',
+    );
     return false;
   }
 

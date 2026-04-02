@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SECRETS_DIR="${SECRETS_DIR:-$ROOT_DIR/../.secrets/message_in_a_bottle}"
+SECRETS_DIR="${SECRETS_DIR:-$ROOT_DIR/../.secrets/lettergo}"
 
 ANDROID_SRC="$ROOT_DIR/android/app/google-services.json"
 IOS_SRC="$ROOT_DIR/ios/Runner/GoogleService-Info.plist"
@@ -19,7 +19,7 @@ Usage:
 
 Environment:
   SECRETS_DIR  External secrets directory
-               (default: ../.secrets/message_in_a_bottle)
+               (default: ../.secrets/lettergo)
 USAGE
 }
 

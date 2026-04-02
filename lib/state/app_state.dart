@@ -32,6 +32,13 @@ enum InviteCodeApplyResult {
   networkError,
 }
 
+enum BrandExtraVerificationResult {
+  success,
+  alreadyProcessed,
+  serverUnavailable,
+  networkError,
+}
+
 // ── 지도에 표시할 실제 회원 타워 데이터 ────────────────────────────────────────
 class MapUser {
   final String id;
@@ -112,8 +119,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// 티어별 쿨다운: 프리미엄/브랜드 10분, 무료 60분
   Duration get _nearbyPickupCooldown =>
       (_currentUser.isPremium || _currentUser.isBrand)
-          ? const Duration(minutes: 10)
-          : const Duration(minutes: 60);
+      ? const Duration(minutes: 10)
+      : const Duration(minutes: 60);
 
   DateTime? _lastNearbyPickupAt;
 
@@ -148,6 +155,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   static const int _dailyLimitPremium = 30;
   static const int _dailyLimitBrand = 200;
   static const int _dailyPremiumExpressLimit = 3;
+  static const Duration _readLetterRetention = Duration(days: 30);
 
   int _dailySentCount = 0;
   String _dailySentDateKey = _dateKey(DateTime.now());
@@ -259,7 +267,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   /// DM 사용 불가 사유 메시지
   String get dmUnavailableMessage {
-    if (_currentUser.isBrand) return '브랜드 계정은 DM을 사용할 수 없어요.\n편지 발송을 통해 수신자와 소통해보세요.';
+    if (_currentUser.isBrand)
+      return '브랜드 계정은 DM을 사용할 수 없어요.\n편지 발송을 통해 수신자와 소통해보세요.';
     return '빠른 편지(DM)는 프리미엄 회원 전용이에요.\n프리미엄으로 업그레이드하면 DM 이용 및 하루 $_dailyLimitPremium통 발송이 가능해요.';
   }
 
@@ -282,6 +291,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   String get myInviteCode =>
       _inviteCode.isNotEmpty ? _inviteCode : _deriveInviteCode();
+
+  bool get isBrandExtraServerVerificationReady =>
+      FirebaseConfig.kFirebaseEnabled &&
+      FirebaseAuthService.isSignedIn &&
+      _currentUser.id != 'guest';
+
+  String get brandExtraServerVerificationUnavailableMessage =>
+      '서버 검증이 활성화되지 않아 추가 발송권 구매를 완료할 수 없어요.\n로그인 상태와 Firebase 설정을 확인해주세요.';
 
   String _deriveInviteCode() {
     final seed = (_currentUser.id.isNotEmpty && _currentUser.id != 'guest')
@@ -569,7 +586,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         for (final seg in letter.segments) {
           seg.progress = 1.0;
         }
-        letter.currentSegmentIndex = letter.segments.isEmpty ? 0 : letter.segments.length - 1;
+        letter.currentSegmentIndex = letter.segments.isEmpty
+            ? 0
+            : letter.segments.length - 1;
         letter.arrivalTime = now;
       }
     }
@@ -797,6 +816,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     );
   }
 
+  bool _purgeExpiredReadLetters() {
+    final now = DateTime.now();
+    final before = _inbox.length;
+    _inbox.removeWhere((letter) {
+      if (letter.status != DeliveryStatus.read) return false;
+      final baseTime = letter.readAt ?? letter.arrivedAt ?? letter.sentAt;
+      return now.difference(baseTime) >= _readLetterRetention;
+    });
+    return _inbox.length != before;
+  }
+
   void _rolloverDailySendCounterIfNeeded() {
     final todayKey = _dateKey(DateTime.now());
     if (_dailySentDateKey != todayKey) {
@@ -965,10 +995,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     Future(() async {
       final prefs = await SharedPreferences.getInstance();
       final key = await _getOrCreateEncKey();
+      _purgeExpiredReadLetters();
 
       // mock 편지(senderId: 'mock_...')는 저장 제외 — 디버그 테스트 데이터가 실 데이터에 섞이지 않도록
-      final realInbox = _inbox.where((l) => !l.senderId.startsWith('mock_')).toList();
-      final realSent  = _sent.where((l)  => !l.senderId.startsWith('mock_')).toList();
+      final realInbox = _inbox
+          .where((l) => !l.senderId.startsWith('mock_'))
+          .toList();
+      final realSent = _sent
+          .where((l) => !l.senderId.startsWith('mock_'))
+          .toList();
 
       prefs.setString(
         'inbox',
@@ -980,7 +1015,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       );
       // 배송 중인 incoming 편지 (daily 포함) 저장 — mock 제외
       final incomingInTransit = _worldLetters
-          .where((l) => l.id.startsWith('daily_') && !l.senderId.startsWith('mock_'))
+          .where(
+            (l) => l.id.startsWith('daily_') && !l.senderId.startsWith('mock_'),
+          )
           .toList();
       prefs.setString(
         'worldLettersIncoming',
@@ -1046,10 +1083,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         _lastNearbyPickupAt?.millisecondsSinceEpoch ?? 0,
       );
       // 줍기 완료 편지 ID 목록 저장
-      prefs.setStringList(
-        'myPickedUpLetterIds',
-        _myPickedUpLetterIds.toList(),
-      );
+      prefs.setStringList('myPickedUpLetterIds', _myPickedUpLetterIds.toList());
     });
   }
 
@@ -1249,6 +1283,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final pickedIds = prefs.getStringList('myPickedUpLetterIds') ?? [];
     _myPickedUpLetterIds.addAll(pickedIds);
 
+    final purgedExpiredReadLetters = _purgeExpiredReadLetters();
+
     // 활동 점수 복원
     final scoreJson = prefs.getString('activityScore');
     if (scoreJson != null) {
@@ -1300,6 +1336,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // (kDebugMode 빌드에서 mock 데이터가 실 계정에 노출되지 않도록)
     _worldLetters.removeWhere((l) => l.senderId.startsWith('mock_'));
     _inbox.removeWhere((l) => l.senderId.startsWith('mock_'));
+
+    if (purgedExpiredReadLetters) {
+      _saveToPrefs();
+    }
 
     await _ensureInviteIdentityOnServer();
     notifyListeners();
@@ -1436,6 +1476,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           },
           'inviteCode': {'stringValue': myInviteCode},
           'inviteRewardCredits': {'integerValue': '$_inviteRewardCredits'},
+          'brandExtraMonthlyQuota': {
+            'integerValue': '$_brandExtraMonthlyQuota',
+          },
           if (_appliedInviteCode != null)
             'inviteAppliedCode': {'stringValue': _appliedInviteCode!},
           if (_lastInviteRewardAt != null)
@@ -1470,6 +1513,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           'username': _currentUser.username,
           'inviteCode': myInviteCode,
           'inviteRewardCredits': _inviteRewardCredits,
+          'brandExtraMonthlyQuota': _brandExtraMonthlyQuota,
           if (_appliedInviteCode != null)
             'inviteAppliedCode': _appliedInviteCode!,
           'updatedAt': DateTime.now().toIso8601String(),
@@ -1484,12 +1528,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         _inviteCode = serverInviteCode;
       }
       final serverCredits = data['inviteRewardCredits'] as int? ?? 0;
+      final serverBrandExtraQuota = data['brandExtraMonthlyQuota'] as int? ?? 0;
       final serverAppliedCode = (data['inviteAppliedCode'] as String?)?.trim();
       final rewardAtRaw = data['inviteRewardAt'] as String?;
 
       var changed = false;
       if (_inviteRewardCredits != serverCredits) {
         _inviteRewardCredits = serverCredits;
+        changed = true;
+      }
+      if (_brandExtraMonthlyQuota != serverBrandExtraQuota) {
+        _brandExtraMonthlyQuota = serverBrandExtraQuota;
         changed = true;
       }
       final normalizedApplied =
@@ -1512,7 +1561,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       }
 
       if (serverInviteCode == null || serverInviteCode.isEmpty) {
-        await FirestoreService.setDocument(path, {'inviteCode': myInviteCode});
+        await FirestoreService.setDocument(path, {
+          'inviteCode': myInviteCode,
+          'brandExtraMonthlyQuota': _brandExtraMonthlyQuota,
+        });
       }
 
       if (changed) {
@@ -3104,7 +3156,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     );
     if (totalMs <= 0 || totalMin <= 0) return false;
 
-    final elapsedMsRaw = (now.difference(letter.sentAt).inMilliseconds * _adminSpeedMultiplier).round();
+    final elapsedMsRaw =
+        (now.difference(letter.sentAt).inMilliseconds * _adminSpeedMultiplier)
+            .round();
     final elapsedMs = elapsedMsRaw.clamp(0, totalMs);
     final ratio = elapsedMs / totalMs;
     final targetMin = ratio * totalMin;
@@ -3386,18 +3440,20 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // 주소 조회: 편지 저장 후 비동기 업데이트 (앱 종료 시에도 편지 유지)
     unawaited(
       GeocodingService.getDisplayAddress(
-        finalLat,
-        finalLng,
-        languageCode: _currentUser.languageCode,
-      ).then((addr) {
-        if (addr != null) {
-          letter.destinationDisplayAddress = addr;
-          _saveToPrefs();
-          notifyListeners();
-        }
-      }).catchError((Object _) {
-        // 주소 조회 실패는 무시 (표시용 데이터, 발송에 영향 없음)
-      }),
+            finalLat,
+            finalLng,
+            languageCode: _currentUser.languageCode,
+          )
+          .then((addr) {
+            if (addr != null) {
+              letter.destinationDisplayAddress = addr;
+              _saveToPrefs();
+              notifyListeners();
+            }
+          })
+          .catchError((Object _) {
+            // 주소 조회 실패는 무시 (표시용 데이터, 발송에 영향 없음)
+          }),
     );
     return true;
   }
@@ -3539,14 +3595,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       // 주소 조회: 저장 후 비동기 업데이트 (앱 종료 시에도 편지 유지)
       unawaited(
         GeocodingService.getDisplayAddress(
-          cityLat,
-          cityLng,
-          languageCode: _currentUser.languageCode,
-        ).then((addr) {
-          if (addr != null) {
-            letter.destinationDisplayAddress = addr;
-          }
-        }).catchError((Object _) {}),
+              cityLat,
+              cityLng,
+              languageCode: _currentUser.languageCode,
+            )
+            .then((addr) {
+              if (addr != null) {
+                letter.destinationDisplayAddress = addr;
+              }
+            })
+            .catchError((Object _) {}),
       );
     }
 
@@ -4124,17 +4182,75 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   bool isDMPartnerBlocked(String partnerId) =>
       _blockedSenderIds.contains(partnerId);
 
-  // ── 브랜드 추가 발송권 구매 ────────────────────────────────────────────────
-  /// 브랜드 전용: 추가 발송권 구매 (1000통 단위, 15000원)
-  Future<bool> purchaseBrandExtraQuota() async {
+  // ── 브랜드 추가 발송권 서버 검증 + 지급 ─────────────────────────────────────
+  /// 결제 건별 transactionId를 Firestore에 1회성으로 기록한 뒤에만 발송권을 지급.
+  Future<BrandExtraVerificationResult> verifyAndGrantBrandExtraQuota({
+    required String transactionId,
+    required String productId,
+    required int quotaAmount,
+    String? purchaseDateIso,
+    String? appUserId,
+  }) async {
+    if (!isBrandMember) return BrandExtraVerificationResult.networkError;
+    if (!isBrandExtraServerVerificationReady) {
+      return BrandExtraVerificationResult.serverUnavailable;
+    }
+
+    final nowIso = DateTime.now().toIso8601String();
+    final claimDocId = _toSafeDocId(
+      'brandextra:${_currentUser.id}:$transactionId',
+    );
+    final claimResult = await FirestoreService.createDocumentIfAbsent(
+      'purchaseClaims/$claimDocId',
+      {
+        'type': 'brand_extra_quota',
+        'userId': _currentUser.id,
+        'appUserId': appUserId ?? '',
+        'transactionId': transactionId,
+        'productId': productId,
+        'quotaAmount': quotaAmount,
+        'purchaseDate': purchaseDateIso ?? '',
+        'createdAt': nowIso,
+      },
+    );
+
+    if (claimResult == CreateDocumentResult.alreadyExists) {
+      return BrandExtraVerificationResult.alreadyProcessed;
+    }
+    if (claimResult == CreateDocumentResult.error) {
+      return BrandExtraVerificationResult.networkError;
+    }
+
+    _brandExtraMonthlyQuota += quotaAmount;
+    _saveToPrefs();
+    notifyListeners();
+
+    final synced =
+        await FirestoreService.setDocument('users/${_currentUser.id}', {
+          'brandExtraMonthlyQuota': _brandExtraMonthlyQuota,
+          'lastBrandExtraTransactionId': transactionId,
+          'lastBrandExtraPurchaseAt': purchaseDateIso ?? nowIso,
+          'updatedAt': nowIso,
+        });
+    if (!synced) {
+      debugPrint(
+        '[BrandExtra] server sync failed after verified claim: tx=$transactionId',
+      );
+    }
+    return BrandExtraVerificationResult.success;
+  }
+
+  /// 디버그/테스트 모드 전용 로컬 지급
+  Future<bool> grantBrandExtraQuotaLocally({int quotaAmount = 1000}) async {
     if (!isBrandMember) return false;
-    // 결제는 PurchaseService.buyBrandExtra()에서 RevenueCat을 통해 처리됨.
-    // 이 함수는 결제 성공 콜백으로만 호출 → 즉시 쿼터 지급이 맞음.
-    _brandExtraMonthlyQuota += 1000;
+    _brandExtraMonthlyQuota += quotaAmount;
     _saveToPrefs();
     notifyListeners();
     return true;
   }
+
+  String _toSafeDocId(String raw) =>
+      base64Url.encode(utf8.encode(raw)).replaceAll('=', '');
 
   @override
   void dispose() {

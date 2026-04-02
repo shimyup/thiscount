@@ -493,8 +493,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       if (letter.status == DeliveryStatus.delivered &&
           !letter.isReadByRecipient) {
         final destLoc = letter.destinationLocation;
-        final isBrandLetter =
-            letter.senderTier == LetterSenderTier.brand;
+        final isBrandLetter = letter.senderTier == LetterSenderTier.brand;
         markers.add(
           Marker(
             point: ll.LatLng(destLoc.latitude, destLoc.longitude),
@@ -516,8 +515,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       // nearYou: 미열람 마커와 동일한 스타일로 표시
       if (letter.status == DeliveryStatus.nearYou) {
         final destLoc = letter.destinationLocation;
-        final isBrandLetter =
-            letter.senderTier == LetterSenderTier.brand;
+        final isBrandLetter = letter.senderTier == LetterSenderTier.brand;
         markers.add(
           Marker(
             point: ll.LatLng(destLoc.latitude, destLoc.longitude),
@@ -823,8 +821,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 child: _DisambiguationTile(
                   icon: '📮',
                   title: '${l.senderCountryFlag} ${l.senderCountry}에서 온 편지',
-                  subtitle:
-                      '${l.readCount}/${l.maxReaders}명 읽음 · 탭해서 수령',
+                  subtitle: '${l.readCount}/${l.maxReaders}명 읽음 · 탭해서 수령',
                   onTap: () {
                     Navigator.pop(ctx);
                     _onLetterTap(ctx, l, state);
@@ -1693,6 +1690,7 @@ class _TransportMarker extends StatelessWidget {
 class _UnreadDeliveredMarker extends StatelessWidget {
   final Letter letter;
   final AnimationController pulseController;
+
   /// 지도를 보는 유저가 프리미엄/브랜드 회원인지 여부
   /// true  → 브랜드 편지: 📪 + 발신자 ID 표시
   /// false → 브랜드 편지: 💌 (프리미엄과 동일하게 표시)
@@ -1718,7 +1716,8 @@ class _UnreadDeliveredMarker extends StatelessWidget {
         // 프리미엄/브랜드 뷰어에게만 브랜드 편지 구분 표시
         // 무료 뷰어에게는 브랜드 편지도 💌 (프리미엄과 동일)
         final showAsBrand = isBrandSender && viewerIsPremiumOrBrand;
-        final showAsPremium = isPremiumSender || (isBrandSender && !viewerIsPremiumOrBrand);
+        final showAsPremium =
+            isPremiumSender || (isBrandSender && !viewerIsPremiumOrBrand);
 
         // 등급별 글로우 색상
         final glowColor = showAsBrand
@@ -1735,7 +1734,11 @@ class _UnreadDeliveredMarker extends StatelessWidget {
             : AppColors.bgCard.withValues(alpha: 0.92);
 
         // 이모지: 브랜드(프리미엄 뷰어)=📪, 프리미엄/브랜드(무료뷰어)=💌, 일반=📮
-        final mailEmoji = showAsBrand ? '📪' : showAsPremium ? '💌' : '📮';
+        final mailEmoji = showAsBrand
+            ? '📪'
+            : showAsPremium
+            ? '💌'
+            : '📮';
 
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -2903,7 +2906,12 @@ class _MyTowerMarker extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(tier.emoji, style: const TextStyle(fontSize: 18)),
-                    Text(flag, style: const TextStyle(fontSize: 12)),
+                    Text(
+                      pendingLetterCount > 0 ? '📮' : flag,
+                      style: TextStyle(
+                        fontSize: pendingLetterCount > 0 ? 13 : 12,
+                      ),
+                    ),
                     Text(
                       '${floors}F',
                       style: TextStyle(
@@ -2919,25 +2927,29 @@ class _MyTowerMarker extends StatelessWidget {
             // 📮 뱃지: 타워 위치에 겹친 편지가 있을 때 우상단에 표시
             if (pendingLetterCount > 0)
               Positioned(
-                top: 0,
-                right: 0,
+                top: -5,
+                right: -8,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 5,
-                    vertical: 2,
+                    horizontal: 6,
+                    vertical: 3,
                   ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFF6B35),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: AppColors.bgCard,
-                      width: 1.5,
-                    ),
+                    border: Border.all(color: AppColors.bgCard, width: 1.8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.22),
+                        blurRadius: 5,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
                   ),
                   child: Text(
-                    '📮$pendingLetterCount',
+                    '$pendingLetterCount',
                     style: const TextStyle(
-                      fontSize: 9,
+                      fontSize: 10,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
                     ),

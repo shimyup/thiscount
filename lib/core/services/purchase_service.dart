@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,6 +10,8 @@ import '../../state/app_state.dart';
 import '../config/app_keys.dart';
 
 enum ScheduledPlanTarget { free, brand }
+
+enum PurchaseOperation { premium, brand, giftCard, brandExtra, restore }
 
 // ── RevenueCat API Keys ─────────────────────────────────────────────────────
 // 빌드 시 dart-define 으로 주입:
@@ -78,8 +81,16 @@ class PurchaseService extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   bool _initialized = false;
+  Future<void>? _initializationFuture;
+  bool _isRevenueCatConfigured = false;
+  bool _customerInfoListenerAttached = false;
   String? _activeAppUserId;
   SharedPreferences? _prefs; // 캐시 — getInstance() 반복 호출 방지
+  PurchaseOperation? _activeOperation;
+
+  PurchaseOperation? get activeOperation => _activeOperation;
+  bool isOperationInProgress(PurchaseOperation operation) =>
+      _loading && _activeOperation == operation;
 
   static const FlutterSecureStorage _secure = FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
@@ -127,6 +138,7 @@ class PurchaseService extends ChangeNotifier {
 
   // RevenueCat Offering (실제 가격 포함)
   Offerings? _offerings;
+  final Map<String, StoreProduct> _storeProductsById = {};
   DateTime? _nextBillingDate;
   DateTime? get nextBillingDate => _nextBillingDate;
 
@@ -191,35 +203,67 @@ class PurchaseService extends ChangeNotifier {
     }
 
     try {
-      await Purchases.setLogLevel(kDebugMode ? LogLevel.debug : LogLevel.error);
-
-      final config = PurchasesConfiguration(
-        defaultTargetPlatform == TargetPlatform.android
-            ? _RcKeys.android
-            : _RcKeys.ios,
-      );
-      await Purchases.configure(config);
-
-      // 구매 업데이트 리스너
-      Purchases.addCustomerInfoUpdateListener(_onCustomerInfoUpdated);
-
-      // 현재 상태 로드
-      final info = await Purchases.getCustomerInfo();
-      _applyCustomerInfo(info);
-      await _persistBillingDateToPrefs();
-      final prefs = await _getPrefs();
-      await _loadAndApplyScheduledPlanChange(prefs);
-
-      // Offering 로드 (실제 스토어 가격)
-      try {
-        _offerings = await Purchases.getOfferings();
-      } on PlatformException catch (e) {
-        debugPrint('[PurchaseService] Offering 로드 실패: $e');
-      }
+      await _ensureRevenueCatConfigured();
     } on PlatformException catch (e) {
       debugPrint('[PurchaseService] RC 초기화 실패: $e');
       await _initFromPrefs(); // 폴백
+    } catch (e) {
+      debugPrint('[PurchaseService] RC 초기화 실패(unknown): $e');
+      await _initFromPrefs(); // 폴백
     }
+  }
+
+  Future<bool> _ensureRevenueCatConfigured() async {
+    if (_isTestMode) return true;
+    if (_isRevenueCatConfigured) return true;
+    if (!_isRcKeyConfiguredForCurrentPlatform) return false;
+
+    if (_initializationFuture != null) {
+      await _initializationFuture!;
+      return _isRevenueCatConfigured;
+    }
+
+    _initializationFuture = _configureRevenueCatInternal();
+    try {
+      await _initializationFuture!;
+    } finally {
+      _initializationFuture = null;
+    }
+
+    return _isRevenueCatConfigured;
+  }
+
+  Future<void> _configureRevenueCatInternal() async {
+    await Purchases.setLogLevel(kDebugMode ? LogLevel.debug : LogLevel.error);
+    final config = PurchasesConfiguration(
+      defaultTargetPlatform == TargetPlatform.android
+          ? _RcKeys.android
+          : _RcKeys.ios,
+    );
+    try {
+      await Purchases.configure(config);
+    } on PlatformException catch (e) {
+      final msg = (e.message ?? '').toLowerCase();
+      if (!msg.contains('already configured')) rethrow;
+    }
+
+    if (!_customerInfoListenerAttached) {
+      Purchases.addCustomerInfoUpdateListener(_onCustomerInfoUpdated);
+      _customerInfoListenerAttached = true;
+    }
+
+    final info = await Purchases.getCustomerInfo();
+    _applyCustomerInfo(info);
+    await _persistBillingDateToPrefs();
+    final prefs = await _getPrefs();
+    await _loadAndApplyScheduledPlanChange(prefs);
+
+    try {
+      _offerings = await Purchases.getOfferings();
+    } on PlatformException catch (e) {
+      debugPrint('[PurchaseService] Offering 로드 실패: $e');
+    }
+    _isRevenueCatConfigured = true;
   }
 
   void _onCustomerInfoUpdated(CustomerInfo info) {
@@ -347,7 +391,7 @@ class PurchaseService extends ChangeNotifier {
 
   // ── Premium 구매 ────────────────────────────────────────────────────────
   Future<bool> buyPremium() async {
-    _setLoading(true);
+    _startLoading(PurchaseOperation.premium);
     if (!_isTestMode && !_isRcKeyConfiguredForCurrentPlatform) {
       _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
       return false;
@@ -365,17 +409,24 @@ class PurchaseService extends ChangeNotifier {
     }
 
     try {
-      final pkg = await _resolvePackage(PurchaseProductIds.premiumMonthly);
-      if (pkg == null) {
-        _setError('상품 정보를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.');
+      final ready = await _ensureRevenueCatConfigured();
+      if (!ready) {
+        _setError('결제 서비스 연결 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
         return false;
       }
-      final result = await Purchases.purchasePackage(pkg);
+      final result = await _purchaseByPackageOrStoreProduct(
+        PurchaseProductIds.premiumMonthly,
+        preferNonSubscription: false,
+      );
+      if (result == null) {
+        _setProductResolveError(PurchaseProductIds.premiumMonthly);
+        return false;
+      }
       _applyCustomerInfo(result);
       final prefs = await _getPrefs();
       await _persistBillingDateToPrefs();
       await _clearScheduledPlanChange(prefs);
-      _setLoading(false);
+      _stopLoading();
       return _isPremium;
     } on PlatformException catch (e) {
       _handlePlatformException(e);
@@ -385,7 +436,7 @@ class PurchaseService extends ChangeNotifier {
 
   // ── Brand 구매 ──────────────────────────────────────────────────────────
   Future<bool> buyBrand() async {
-    _setLoading(true);
+    _startLoading(PurchaseOperation.brand);
     if (!_isTestMode && !_isRcKeyConfiguredForCurrentPlatform) {
       _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
       return false;
@@ -402,17 +453,24 @@ class PurchaseService extends ChangeNotifier {
     }
 
     try {
-      final pkg = await _resolvePackage(PurchaseProductIds.brandMonthly);
-      if (pkg == null) {
-        _setError('상품 정보를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.');
+      final ready = await _ensureRevenueCatConfigured();
+      if (!ready) {
+        _setError('결제 서비스 연결 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
         return false;
       }
-      final result = await Purchases.purchasePackage(pkg);
+      final result = await _purchaseByPackageOrStoreProduct(
+        PurchaseProductIds.brandMonthly,
+        preferNonSubscription: false,
+      );
+      if (result == null) {
+        _setProductResolveError(PurchaseProductIds.brandMonthly);
+        return false;
+      }
       _applyCustomerInfo(result);
       final prefs = await _getPrefs();
       await _persistBillingDateToPrefs();
       await _clearScheduledPlanChange(prefs);
-      _setLoading(false);
+      _stopLoading();
       return _isBrand;
     } on PlatformException catch (e) {
       _handlePlatformException(e);
@@ -424,7 +482,7 @@ class PurchaseService extends ChangeNotifier {
   // 실제 결제는 구매자가 처리하고, 코드를 받아서 수신자가 사용하는 형태
   // 테스트 모드에서는 구매자 자신의 계정에 영향 없이 코드만 생성
   Future<bool> buyGiftCard() async {
-    _setLoading(true);
+    _startLoading(PurchaseOperation.giftCard);
     if (!_isTestMode && !_isRcKeyConfiguredForCurrentPlatform) {
       _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
       return false;
@@ -437,15 +495,23 @@ class PurchaseService extends ChangeNotifier {
     }
 
     try {
-      final pkg = await _resolvePackage(PurchaseProductIds.giftCard);
-      if (pkg == null) {
-        _setError('상품 정보를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.');
+      final ready = await _ensureRevenueCatConfigured();
+      if (!ready) {
+        _setError('결제 서비스 연결 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
+        return false;
+      }
+      final result = await _purchaseByPackageOrStoreProduct(
+        PurchaseProductIds.giftCard,
+        preferNonSubscription: true,
+      );
+      if (result == null) {
+        _setProductResolveError(PurchaseProductIds.giftCard);
         return false;
       }
       // 선물권은 구매자 자신의 entitlement를 활성화하지 않음
       // RevenueCat에서 선물권 상품이 non-consumable 또는 소모성으로 설정되어 있어야 함
-      await Purchases.purchasePackage(pkg);
-      _setLoading(false);
+      _applyCustomerInfo(result);
+      _stopLoading();
       return true;
     } on PlatformException catch (e) {
       _handlePlatformException(e);
@@ -456,31 +522,80 @@ class PurchaseService extends ChangeNotifier {
   // ── 브랜드 추가 발송권 구매 (소모성 상품 1,000통 ₩15,000) ──────────────────
   Future<bool> buyBrandExtra(AppState appState) async {
     if (!appState.isBrandMember) return false;
-    _setLoading(true);
+    _startLoading(PurchaseOperation.brandExtra);
     if (!_isTestMode && !_isRcKeyConfiguredForCurrentPlatform) {
       _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
+      return false;
+    }
+    if (!_isTestMode && !appState.isBrandExtraServerVerificationReady) {
+      _setError(appState.brandExtraServerVerificationUnavailableMessage);
       return false;
     }
 
     // 디버그 빌드 or RevenueCat 미연동 → 테스트 모드
     if (_isTestMode) {
       return await _fakePurchase(() async {
-        await appState.purchaseBrandExtraQuota();
+        await appState.grantBrandExtraQuotaLocally(quotaAmount: 1000);
       });
     }
 
     try {
-      final pkg = await _resolvePackage(PurchaseProductIds.brandExtra1000);
-      if (pkg == null) {
-        _setError('상품 정보를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.');
+      final ready = await _ensureRevenueCatConfigured();
+      if (!ready) {
+        _setError('결제 서비스 연결 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
         return false;
       }
-      // 소모성 상품: purchaseProduct 사용
-      await Purchases.purchasePackage(pkg);
-      // 구매 성공 → 발송 쿼터 1,000통 추가
-      await appState.purchaseBrandExtraQuota();
-      _setLoading(false);
-      return true;
+      final purchaseInfo = await _purchaseByPackageOrStoreProduct(
+        PurchaseProductIds.brandExtra1000,
+        preferNonSubscription: true,
+      );
+      if (purchaseInfo == null) {
+        _setProductResolveError(PurchaseProductIds.brandExtra1000);
+        return false;
+      }
+      final triedTransactionIds = <String>{};
+
+      Future<bool> tryVerifyFrom(CustomerInfo info) async {
+        final txCandidates = _brandExtraTransactionsNewestFirst(
+          info,
+          excludeTransactionIds: triedTransactionIds,
+        );
+        if (txCandidates.isEmpty) return false;
+
+        for (final tx in txCandidates) {
+          triedTransactionIds.add(tx.transactionIdentifier);
+          final verifyResult = await appState.verifyAndGrantBrandExtraQuota(
+            transactionId: tx.transactionIdentifier,
+            productId: tx.productIdentifier,
+            quotaAmount: 1000,
+            purchaseDateIso: tx.purchaseDate,
+            appUserId: _activeAppUserId,
+          );
+          if (verifyResult == BrandExtraVerificationResult.success) {
+            _stopLoading();
+            return true;
+          }
+          if (verifyResult == BrandExtraVerificationResult.serverUnavailable) {
+            _setError(appState.brandExtraServerVerificationUnavailableMessage);
+            return false;
+          }
+          if (verifyResult == BrandExtraVerificationResult.networkError) {
+            _setError('결제 검증 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+            return false;
+          }
+          // alreadyProcessed: 다음 후보 transaction으로 재시도
+        }
+        return false;
+      }
+
+      if (await tryVerifyFrom(purchaseInfo)) return true;
+
+      // 구매 직후 CustomerInfo 반영 지연 대비 1회 재조회
+      final refreshedInfo = await Purchases.getCustomerInfo();
+      if (await tryVerifyFrom(refreshedInfo)) return true;
+
+      _setError('결제는 완료됐지만 서버 검증을 완료하지 못했습니다. 고객센터에 문의해주세요.');
+      return false;
     } on PlatformException catch (e) {
       _handlePlatformException(e);
       return false;
@@ -488,11 +603,11 @@ class PurchaseService extends ChangeNotifier {
   }
 
   // ── 구매 복원 ───────────────────────────────────────────────────────────
-  Future<void> restorePurchases() async {
-    _setLoading(true);
+  Future<bool> restorePurchases() async {
+    _startLoading(PurchaseOperation.restore);
     if (!_isTestMode && !_isRcKeyConfiguredForCurrentPlatform) {
       _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
-      return;
+      return false;
     }
 
     if (_isTestMode) {
@@ -503,17 +618,24 @@ class PurchaseService extends ChangeNotifier {
         PrefKeys.purchaseNextBillingDate,
       );
       await _loadAndApplyScheduledPlanChange(prefs);
-      _setLoading(false);
-      return;
+      _stopLoading();
+      return true;
     }
 
     try {
+      final ready = await _ensureRevenueCatConfigured();
+      if (!ready) {
+        _setError('결제 서비스 연결 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
+        return false;
+      }
       final info = await Purchases.restorePurchases();
       _applyCustomerInfo(info);
       await _persistBillingDateToPrefs();
-      _setLoading(false);
+      _stopLoading();
+      return true;
     } on PlatformException catch (e) {
-      _setError(e.message ?? '복원 중 오류가 발생했습니다.');
+      _handlePlatformException(e);
+      return false;
     }
   }
 
@@ -553,7 +675,7 @@ class PurchaseService extends ChangeNotifier {
 
     // 테스트 모드: 즉시 브랜드로 업그레이드 (발송 한도는 AppState에서 계정별로 제한)
     if (_isTestMode) {
-      _setLoading(true);
+      _startLoading(PurchaseOperation.brand);
       await _fakePurchase(() async {
         final prefs = await _getPrefs();
         _isBrand = true;
@@ -656,6 +778,16 @@ class PurchaseService extends ChangeNotifier {
       _activeAppUserId = normalizedUserId;
       return;
     }
+    try {
+      if (!await _ensureRevenueCatConfigured()) {
+        _activeAppUserId = normalizedUserId;
+        return;
+      }
+    } on PlatformException catch (e) {
+      debugPrint('[PurchaseService] 사용자 식별 동기화 준비 실패: $e');
+      _activeAppUserId = normalizedUserId;
+      return;
+    }
 
     try {
       if (normalizedUserId == null) {
@@ -696,12 +828,20 @@ class PurchaseService extends ChangeNotifier {
   /// Offering에서 productId에 맞는 Package 찾기
   Package? _findPackage(String productId) {
     if (_offerings == null) return null;
-    final offering =
-        _offerings!.getOffering(_RcOfferings.defaultOffering) ??
-        _offerings!.current;
-    if (offering == null) return null;
-    for (final pkg in offering.availablePackages) {
-      if (pkg.storeProduct.identifier == productId) return pkg;
+
+    final candidates = <Offering>[
+      if (_offerings!.getOffering(_RcOfferings.defaultOffering) != null)
+        _offerings!.getOffering(_RcOfferings.defaultOffering)!,
+      if (_offerings!.current != null) _offerings!.current!,
+      ..._offerings!.all.values,
+    ];
+
+    final visited = <String>{};
+    for (final offering in candidates) {
+      if (!visited.add(offering.identifier)) continue;
+      for (final pkg in offering.availablePackages) {
+        if (pkg.storeProduct.identifier == productId) return pkg;
+      }
     }
     return null;
   }
@@ -720,24 +860,123 @@ class PurchaseService extends ChangeNotifier {
     }
   }
 
+  Future<CustomerInfo?> _purchaseByPackageOrStoreProduct(
+    String productId, {
+    required bool preferNonSubscription,
+  }) async {
+    final pkg = await _resolvePackage(productId);
+    if (pkg != null) {
+      return Purchases.purchasePackage(pkg);
+    }
+
+    final storeProduct = await _resolveStoreProduct(
+      productId,
+      preferNonSubscription: preferNonSubscription,
+    );
+    if (storeProduct == null) return null;
+    return Purchases.purchaseStoreProduct(storeProduct);
+  }
+
+  Future<StoreProduct?> _resolveStoreProduct(
+    String productId, {
+    required bool preferNonSubscription,
+  }) async {
+    final cached = _storeProductsById[productId];
+    if (cached != null) return cached;
+    if (_isTestMode) return null;
+
+    final categories = preferNonSubscription
+        ? const <ProductCategory>[
+            ProductCategory.nonSubscription,
+            ProductCategory.subscription,
+          ]
+        : const <ProductCategory>[
+            ProductCategory.subscription,
+            ProductCategory.nonSubscription,
+          ];
+
+    for (final category in categories) {
+      try {
+        final products = await Purchases.getProducts([
+          productId,
+        ], productCategory: category);
+        for (final product in products) {
+          if (product.identifier == productId) {
+            _storeProductsById[productId] = product;
+            return product;
+          }
+        }
+      } on PlatformException catch (e) {
+        debugPrint(
+          '[PurchaseService] StoreProduct 조회 실패 ($productId/${category.name}): $e',
+        );
+      }
+    }
+    return null;
+  }
+
+  List<StoreTransaction> _brandExtraTransactionsNewestFirst(
+    CustomerInfo info, {
+    required Set<String> excludeTransactionIds,
+  }) {
+    final txs = info.nonSubscriptionTransactions.where((tx) {
+      if (tx.productIdentifier != PurchaseProductIds.brandExtra1000) {
+        return false;
+      }
+      if (tx.transactionIdentifier.isEmpty) return false;
+      if (excludeTransactionIds.contains(tx.transactionIdentifier))
+        return false;
+      return true;
+    }).toList();
+
+    txs.sort((a, b) {
+      final bMillis =
+          DateTime.tryParse(b.purchaseDate)?.millisecondsSinceEpoch ?? 0;
+      final aMillis =
+          DateTime.tryParse(a.purchaseDate)?.millisecondsSinceEpoch ?? 0;
+      return bMillis.compareTo(aMillis);
+    });
+    return txs;
+  }
+
   /// 테스트 모드용 가짜 구매
   Future<bool> _fakePurchase(Future<void> Function() action) async {
     await Future.delayed(const Duration(milliseconds: 800));
     await action();
-    _setLoading(false);
+    _stopLoading();
     return true;
   }
 
-  void _setLoading(bool v) {
-    _loading = v;
-    if (v) _errorMessage = null;
+  void _startLoading(PurchaseOperation operation) {
+    _loading = true;
+    _activeOperation = operation;
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  void _stopLoading() {
+    _loading = false;
+    _activeOperation = null;
     notifyListeners();
   }
 
   void _setError(String msg) {
     _loading = false;
+    _activeOperation = null;
     _errorMessage = msg;
     notifyListeners();
+  }
+
+  void _setProductResolveError(String productId) {
+    if (kDebugMode) {
+      _setError(
+        '상품 정보를 불러올 수 없습니다. '
+        '(product: $productId)\n'
+        'RevenueCat Offering(default)과 App Store 상품 연결 상태를 확인해주세요.',
+      );
+      return;
+    }
+    _setError('상품 정보를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.');
   }
 
   /// purchases_flutter v8에서는 PurchasesErrorCode가 enum이라 직접 throw되지 않음.
@@ -747,7 +986,7 @@ class PurchaseService extends ChangeNotifier {
     final codeInt = int.tryParse(e.code);
     // 사용자 취소 (PurchasesErrorCode.purchaseCancelledError.index == 1)
     if (codeInt == PurchasesErrorCode.purchaseCancelledError.index) {
-      _setLoading(false);
+      _stopLoading();
       return;
     }
     // 그 외 에러: 코드 → 사람이 읽을 수 있는 메시지로 변환
@@ -763,19 +1002,32 @@ class PurchaseService extends ChangeNotifier {
   }
 
   String _rcErrorMessage(PurchasesErrorCode code) {
+    // 한국어 / 영어 메시지 (유저 언어 설정에 따라 시스템 locale 사용)
+    final isKo =
+        WidgetsBinding.instance.platformDispatcher.locale.languageCode == 'ko';
     switch (code) {
       case PurchasesErrorCode.networkError:
-        return '네트워크 오류가 발생했습니다. 연결을 확인해주세요.';
+        return isKo
+            ? '네트워크 오류가 발생했습니다. 연결을 확인해주세요.'
+            : 'Network error. Please check your connection.';
       case PurchasesErrorCode.purchaseNotAllowedError:
-        return '이 기기에서 구매가 허용되지 않습니다.';
+        return isKo
+            ? '이 기기에서 구매가 허용되지 않습니다.'
+            : 'Purchases are not allowed on this device.';
       case PurchasesErrorCode.purchaseInvalidError:
-        return '구매 정보가 올바르지 않습니다.';
+        return isKo ? '구매 정보가 올바르지 않습니다.' : 'Invalid purchase information.';
       case PurchasesErrorCode.productNotAvailableForPurchaseError:
-        return '현재 구매할 수 없는 상품입니다.';
+        return isKo
+            ? '현재 구매할 수 없는 상품입니다.'
+            : 'This product is currently unavailable.';
       case PurchasesErrorCode.storeProblemError:
-        return 'App Store 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+        return isKo
+            ? 'App Store 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+            : 'Store error. Please try again later.';
       default:
-        return '구매 중 오류가 발생했습니다. 다시 시도해주세요.';
+        return isKo
+            ? '구매 중 오류가 발생했습니다. 다시 시도해주세요.'
+            : 'Purchase failed. Please try again.';
     }
   }
 }

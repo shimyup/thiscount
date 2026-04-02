@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:geolocator/geolocator.dart';
@@ -196,9 +195,6 @@ class _LoginTabState extends State<_LoginTab> {
 
   static const _kRememberMe = 'login_remember_me';
   static const _kSavedUsername = 'login_saved_username';
-  static const _kSavedPasswordLegacy = 'login_saved_password';
-  static const _kSavedPasswordSecure = 'login_saved_password_secure';
-  static const _secureStorage = FlutterSecureStorage();
 
   @override
   void initState() {
@@ -209,22 +205,15 @@ class _LoginTabState extends State<_LoginTab> {
   Future<void> _loadSavedCredentials() async {
     final prefs = await SharedPreferences.getInstance();
     final remember = prefs.getBool(_kRememberMe) ?? false;
+    // 보안 강화를 위해 비밀번호 자동저장은 중단. 기존 저장본도 즉시 삭제.
+    await prefs.remove('login_saved_password');
+    await prefs.remove('login_saved_password_secure');
     if (!remember) return;
     final username = prefs.getString(_kSavedUsername) ?? '';
-    var password = await _secureStorage.read(key: _kSavedPasswordSecure) ?? '';
-    if (password.isEmpty) {
-      final legacyPassword = prefs.getString(_kSavedPasswordLegacy) ?? '';
-      if (legacyPassword.isNotEmpty) {
-        password = legacyPassword;
-        await _secureStorage.write(key: _kSavedPasswordSecure, value: password);
-        await prefs.remove(_kSavedPasswordLegacy);
-      }
-    }
     if (username.isNotEmpty && mounted) {
       setState(() {
         _rememberMe = true;
         _usernameCtrl.text = username;
-        _passCtrl.text = password;
       });
     }
   }
@@ -234,16 +223,14 @@ class _LoginTabState extends State<_LoginTab> {
     if (_rememberMe) {
       await prefs.setBool(_kRememberMe, true);
       await prefs.setString(_kSavedUsername, _usernameCtrl.text.trim());
-      await _secureStorage.write(
-        key: _kSavedPasswordSecure,
-        value: _passCtrl.text,
-      );
-      await prefs.remove(_kSavedPasswordLegacy);
+      // 비밀번호는 보관하지 않고 아이디만 기억.
+      await prefs.remove('login_saved_password');
+      await prefs.remove('login_saved_password_secure');
     } else {
       await prefs.remove(_kRememberMe);
       await prefs.remove(_kSavedUsername);
-      await prefs.remove(_kSavedPasswordLegacy);
-      await _secureStorage.delete(key: _kSavedPasswordSecure);
+      await prefs.remove('login_saved_password');
+      await prefs.remove('login_saved_password_secure');
     }
   }
 
@@ -681,7 +668,7 @@ class _LoginTabState extends State<_LoginTab> {
                               ),
                               if (pwOk) ...[
                                 const SizedBox(height: 10),
-                                // 임시 비밀번호 표시
+                                // 보안 정책: 릴리즈 빌드에서는 임시 비밀번호 평문 미노출
                                 Container(
                                   width: double.infinity,
                                   padding: const EdgeInsets.all(12),
@@ -701,7 +688,7 @@ class _LoginTabState extends State<_LoginTab> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       const Text(
-                                        '임시 비밀번호',
+                                        '비밀번호 재설정 완료',
                                         style: TextStyle(
                                           color: AppColors.textMuted,
                                           fontSize: 11,
@@ -709,16 +696,26 @@ class _LoginTabState extends State<_LoginTab> {
                                         ),
                                       ),
                                       const SizedBox(height: 4),
-                                      Text(
-                                        pwResult['tempPassword'] as String? ??
-                                            '',
-                                        style: const TextStyle(
-                                          color: AppColors.teal,
-                                          fontSize: 17,
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: 1.0,
+                                      if (kDebugMode)
+                                        Text(
+                                          pwResult['tempPassword'] as String? ??
+                                              '',
+                                          style: const TextStyle(
+                                            color: AppColors.teal,
+                                            fontSize: 17,
+                                            fontWeight: FontWeight.w700,
+                                            letterSpacing: 1.0,
+                                          ),
+                                        )
+                                      else
+                                        const Text(
+                                          '보안을 위해 임시 비밀번호는 화면에 표시되지 않습니다.',
+                                          style: TextStyle(
+                                            color: AppColors.textPrimary,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
-                                      ),
                                       const SizedBox(height: 6),
                                       Text(
                                         '${pwResult['expiresInMinutes']}분 후 만료 · 로그인 후 반드시 변경해주세요',
@@ -863,9 +860,13 @@ class _LoginTabState extends State<_LoginTab> {
                   ),
                   content: Text(
                     ok
-                        ? '임시 비밀번호: ${result['tempPassword']}\n'
-                              '${result['expiresInMinutes']}분 후 만료됩니다.\n'
-                              '로그인 후 반드시 변경해주세요.'
+                        ? (kDebugMode
+                              ? '임시 비밀번호: ${result['tempPassword']}\n'
+                                    '${result['expiresInMinutes']}분 후 만료됩니다.\n'
+                                    '로그인 후 반드시 변경해주세요.'
+                              : '${result['expiresInMinutes']}분 후 만료됩니다.\n'
+                                    '보안을 위해 임시 비밀번호는 화면에 표시되지 않습니다.\n'
+                                    '로그인 후 반드시 변경해주세요.')
                         : (result['error'] ?? '오류가 발생했습니다.'),
                     style: TextStyle(
                       color: ok ? AppColors.teal : AppColors.error,
@@ -1432,7 +1433,7 @@ class _SignupTabState extends State<_SignupTab> {
           const SizedBox(height: 32),
 
           // 개발용: OTP 코드 표시 (배포 시 이 블록 제거)
-          if (_devOtpCode != null) ...[
+          if (kDebugMode && _devOtpCode != null) ...[
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),

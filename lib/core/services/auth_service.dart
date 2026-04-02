@@ -3,8 +3,11 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+import '../config/firebase_config.dart';
+import 'firebase_auth_service.dart';
 import 'purchase_service.dart';
 
 class AuthService {
@@ -416,6 +419,7 @@ class AuthService {
   /// 로그아웃
   static Future<void> logout() async {
     await _writeSecure(_keyIsLoggedIn, 'false');
+    FirebaseAuthService.signOut();
     await PurchaseService().syncUserIdentity();
   }
 
@@ -494,10 +498,28 @@ class AuthService {
 
   // Delete account
   static Future<void> deleteAccount() async {
+    await _deleteRemoteAccountDataBestEffort();
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
+    FirebaseAuthService.signOut();
     await _secure.deleteAll();
     await PurchaseService().syncUserIdentity();
+  }
+
+  // 회원탈퇴 시 원격 사용자 문서 정리 (실패해도 로컬 탈퇴는 진행)
+  static Future<void> _deleteRemoteAccountDataBestEffort() async {
+    final userId = (await _readSecure(_keyUserId))?.trim() ?? '';
+    if (userId.isEmpty) return;
+    if (!FirebaseConfig.kFirebaseEnabled) return;
+
+    try {
+      final userDocUri = Uri.parse(
+        '${FirebaseConfig.firestoreBase}/users/$userId',
+      ).replace(queryParameters: {'key': FirebaseConfig.apiKey});
+      await http.delete(userDocUri).timeout(const Duration(seconds: 8));
+    } catch (e, st) {
+      debugPrint('[AuthService] remote delete warning: $e\n$st');
+    }
   }
 
   // Check onboarding completion (v2 = with country selection)

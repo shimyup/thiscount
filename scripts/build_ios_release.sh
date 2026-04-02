@@ -3,7 +3,6 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="${ENV_FILE:-$ROOT_DIR/.env.local}"
-ANDROID_GOOGLE_SERVICES="$ROOT_DIR/android/app/google-services.json"
 PRECHECK_SCRIPT="$ROOT_DIR/scripts/release_preflight.sh"
 
 if [[ -f "$ENV_FILE" ]]; then
@@ -25,8 +24,8 @@ require_var() {
 require_var FIREBASE_PROJECT_ID
 require_var FIREBASE_API_KEY
 require_var FIREBASE_STORAGE_BUCKET
-require_var REVENUECAT_ANDROID_KEY
 require_var REVENUECAT_IOS_KEY
+require_var REVENUECAT_ANDROID_KEY
 
 if [[ -x "$PRECHECK_SCRIPT" ]]; then
   "$PRECHECK_SCRIPT"
@@ -35,17 +34,12 @@ else
   exit 1
 fi
 
-if [[ ! -f "$ANDROID_GOOGLE_SERVICES" ]]; then
-  echo "[secrets] android/app/google-services.json is missing."
-  echo "[secrets] run: ./scripts/manage_firebase_secrets.sh restore"
-fi
-
 DART_DEFINES=(
   "--dart-define=FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}"
   "--dart-define=FIREBASE_API_KEY=${FIREBASE_API_KEY}"
   "--dart-define=FIREBASE_STORAGE_BUCKET=${FIREBASE_STORAGE_BUCKET}"
-  "--dart-define=REVENUECAT_ANDROID_KEY=${REVENUECAT_ANDROID_KEY}"
   "--dart-define=REVENUECAT_IOS_KEY=${REVENUECAT_IOS_KEY}"
+  "--dart-define=REVENUECAT_ANDROID_KEY=${REVENUECAT_ANDROID_KEY}"
 )
 
 if [[ -n "${STADIA_MAPS_API_KEY:-}" ]]; then
@@ -53,4 +47,4 @@ if [[ -n "${STADIA_MAPS_API_KEY:-}" ]]; then
 fi
 
 cd "$ROOT_DIR"
-flutter build apk --release "${DART_DEFINES[@]}" "$@"
+flutter build ios --release --no-codesign "${DART_DEFINES[@]}" "$@"

@@ -48,6 +48,15 @@ class PremiumScreen extends StatelessWidget {
         final isBrand = purchase.isBrand || state.currentUser.isBrand;
         final isFree = !isPremium && !isBrand;
         final l = AppL10n.of(state.currentUser.languageCode);
+        final isBuyingPremium = purchase.isOperationInProgress(
+          PurchaseOperation.premium,
+        );
+        final isBuyingBrand = purchase.isOperationInProgress(
+          PurchaseOperation.brand,
+        );
+        final isRestoring = purchase.isOperationInProgress(
+          PurchaseOperation.restore,
+        );
         final autoRenewDateText = purchase.nextBillingDate != null
             ? _formatDate(purchase.nextBillingDate!)
             : null;
@@ -220,7 +229,7 @@ class PremiumScreen extends StatelessWidget {
                             await purchase.scheduleDowngradeToFree();
                           }
                         },
-                  loading: purchase.loading && !isFree,
+                  loading: false,
                   color: AppColors.textMuted,
                   actionLabel: '다운그레이드',
                 ),
@@ -257,7 +266,7 @@ class PremiumScreen extends StatelessWidget {
                             message: bought ? null : purchase.errorMessage,
                           );
                         },
-                  loading: purchase.loading,
+                  loading: isBuyingPremium,
                   color: AppColors.gold,
                   actionLabel: isBrand ? '다운그레이드 불가' : '구독 시작 하기',
                 ),
@@ -310,7 +319,7 @@ class PremiumScreen extends StatelessWidget {
                             message: bought ? null : purchase.errorMessage,
                           );
                         },
-                  loading: purchase.loading,
+                  loading: isBuyingBrand,
                   color: const Color(0xFFFF8A5C),
                   actionLabel: isPremium ? '브랜드 변경 예약' : '구독 시작 하기',
                 ),
@@ -367,9 +376,71 @@ class PremiumScreen extends StatelessWidget {
                   child: TextButton(
                     onPressed: purchase.loading
                         ? null
-                        : () => purchase.restorePurchases(),
+                        : () async {
+                            final shouldRestore = await showDialog<bool>(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                backgroundColor: AppColors.bgCard,
+                                title: const Text(
+                                  '구매 복원',
+                                  style: TextStyle(
+                                    color: AppColors.textPrimary,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                content: const Text(
+                                  'iOS에서는 복원 시 Apple 계정 로그인 창이 표시될 수 있습니다.\n동일 Apple ID로 구매한 내역만 복원됩니다.',
+                                  style: TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 13,
+                                    height: 1.5,
+                                  ),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx, false),
+                                    child: const Text(
+                                      '취소',
+                                      style: TextStyle(
+                                        color: AppColors.textMuted,
+                                      ),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx, true),
+                                    child: const Text(
+                                      '복원',
+                                      style: TextStyle(
+                                        color: AppColors.teal,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (shouldRestore != true) return;
+                            final restored = await purchase.restorePurchases();
+                            if (!context.mounted) return;
+                            if (restored) {
+                              _showPurchaseResultToast(
+                                context,
+                                success: true,
+                                message: '구매 내역을 복원했습니다.',
+                              );
+                            } else if (purchase.errorMessage != null) {
+                              _showPurchaseResultToast(
+                                context,
+                                success: false,
+                                message: purchase.errorMessage,
+                              );
+                            }
+                          },
                     child: Text(
-                      l.premiumRestorePurchase,
+                      isRestoring
+                          ? '${l.premiumRestorePurchase}...'
+                          : l.premiumRestorePurchase,
                       style: const TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 13,
@@ -753,6 +824,9 @@ class _GiftCardTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    final isBuyingGift = purchase.isOperationInProgress(
+      PurchaseOperation.giftCard,
+    );
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -838,7 +912,8 @@ class _GiftCardTile extends StatelessWidget {
                       if (!ok || !context.mounted) return;
                     }
                     final success = await purchase.buyGiftCard();
-                    if (success && context.mounted) {
+                    if (!context.mounted) return;
+                    if (success) {
                       // 선물 코드 생성 (실제 서비스에서는 서버에서 발급)
                       final ts = DateTime.now().millisecondsSinceEpoch;
                       final code =
@@ -847,6 +922,14 @@ class _GiftCardTile extends StatelessWidget {
                         context: context,
                         barrierDismissible: false,
                         builder: (_) => _GiftCardSuccessDialog(code: code),
+                      );
+                    } else if (purchase.errorMessage != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(purchase.errorMessage!),
+                          backgroundColor: AppColors.error,
+                          behavior: SnackBarBehavior.floating,
+                        ),
                       );
                     }
                   },
@@ -858,10 +941,22 @@ class _GiftCardTile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            child: Text(
-              l.premiumBuyBtn,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-            ),
+            child: isBuyingGift
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : Text(
+                    l.premiumBuyBtn,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
           ),
         ],
       ),
@@ -1680,6 +1775,9 @@ class _BrandExtraTileState extends State<_BrandExtraTile> {
   Widget build(BuildContext context) {
     return Consumer<AppState>(
       builder: (ctx, appState, _) {
+        final isBuyingBrandExtra = widget.purchase.isOperationInProgress(
+          PurchaseOperation.brandExtra,
+        );
         final extraPacks = appState.brandExtraMonthlyQuota ~/ 1000;
         final monthlyTotal = 10000 + appState.brandExtraMonthlyQuota;
         final remaining = appState.remainingMonthlySendCount;
@@ -1856,7 +1954,7 @@ class _BrandExtraTileState extends State<_BrandExtraTile> {
                       ),
                       elevation: 0,
                     ),
-                    child: (widget.purchase.loading || _buying)
+                    child: (isBuyingBrandExtra || _buying)
                         ? const SizedBox(
                             width: 18,
                             height: 18,

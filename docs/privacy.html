@@ -213,7 +213,7 @@
   <div class="logo">✉️</div>
   <h1>개인정보 처리방침</h1>
   <p>LetterGo — Privacy Policy</p>
-  <span class="badge">최종 업데이트: 2025년 1월 1일</span>
+  <span class="badge">최종 업데이트: 2026년 4월 2일</span>
 </div>
 
 <div class="container">
@@ -275,7 +275,7 @@
           <tr>
             <td>위치 정보 (GPS)</td>
             <td>앱 실행 시 기기에서 수집 (도시·구 단위 정밀도)</td>
-            <td><span class="tag">필수</span></td>
+            <td><span class="tag optional">선택</span></td>
           </tr>
           <tr>
             <td>SNS 링크</td>
@@ -334,12 +334,12 @@
           </tr>
           <tr>
             <td>위치 정보</td>
-            <td>세션 종료 시 삭제 (서버에 저장하지 않음)</td>
+            <td>회원 탈퇴 시까지 또는 사용자가 권한 철회 시까지</td>
           </tr>
         </table>
         <div class="highlight" style="margin-top:14px;">
-          회원 탈퇴 시 이메일을 제외한 모든 개인정보는 즉시 삭제됩니다.
-          이메일은 탈퇴 후 30일간 부정 재가입 방지 목적으로 보관 후 삭제됩니다.
+          회원 탈퇴 요청 시 로컬 데이터는 즉시 삭제되며,
+          서버 데이터는 처리 절차에 따라 순차 삭제됩니다.
         </div>
       </div>
     </div>
@@ -365,7 +365,7 @@
           </tr>
           <tr>
             <td>Stadia Maps</td>
-            <td>지도 타일 제공 (위치 정보 미전송)</td>
+            <td>지도 타일 제공 (지도 요청 좌표/네트워크 메타데이터 처리 가능)</td>
             <td>해당 없음</td>
           </tr>
         </table>
@@ -380,8 +380,8 @@
       <div class="section-body">
         <ul>
           <li>전송 구간 암호화 (HTTPS/TLS 1.2 이상)</li>
-          <li>비밀번호 단방향 암호화 저장 (Firebase Auth)</li>
-          <li>위치 정보 서버 비저장 (기기 내 처리)</li>
+          <li>비밀번호 해시 기반 저장 (SHA-256)</li>
+          <li>위치 정보 최소 수집 및 접근 권한 통제</li>
           <li>접근 권한 최소화 원칙 적용</li>
           <li>내부 개인정보 취급자 최소화 및 접근 로그 관리</li>
         </ul>
@@ -489,7 +489,7 @@
           <tr><td>Email address</td><td>Provided at sign-up</td><td><span class="tag">Required</span></td></tr>
           <tr><td>Nickname</td><td>Provided at sign-up</td><td><span class="tag">Required</span></td></tr>
           <tr><td>Country</td><td>Selected at sign-up</td><td><span class="tag">Required</span></td></tr>
-          <tr><td>Location (GPS)</td><td>Device, city/district precision</td><td><span class="tag">Required</span></td></tr>
+          <tr><td>Location (GPS)</td><td>Device, city/district precision</td><td><span class="tag optional">Optional</span></td></tr>
           <tr><td>SNS link</td><td>Optional profile setting</td><td><span class="tag optional">Optional</span></td></tr>
           <tr><td>Letter content</td><td>When composing letters</td><td><span class="tag">Service use</span></td></tr>
         </table>
@@ -528,11 +528,11 @@
           <tr><th>Item</th><th>Retention Period</th></tr>
           <tr><td>Account info (email, nickname, country)</td><td>Until account deletion</td></tr>
           <tr><td>Letter content</td><td>30 days after read, or deleted upon account deletion</td></tr>
-          <tr><td>Location data</td><td>Deleted when session ends (not stored on servers)</td></tr>
+          <tr><td>Location data</td><td>Until account deletion or permission withdrawal</td></tr>
         </table>
         <div class="highlight" style="margin-top:14px;">
-          Upon account deletion, all personal information except email is deleted immediately.
-          Email is retained for 30 days to prevent fraudulent re-registration, then deleted.
+          Upon account deletion, local data is removed immediately.
+          Server-side data is deleted through the service deletion process.
         </div>
       </div>
     </div>
@@ -548,7 +548,7 @@
         <table style="margin-top:12px;">
           <tr><th>Processor</th><th>Purpose</th><th>Retention</th></tr>
           <tr><td>Google Firebase</td><td>Database, authentication, push notifications</td><td>Until contract ends</td></tr>
-          <tr><td>Stadia Maps</td><td>Map tile delivery (no location data sent)</td><td>N/A</td></tr>
+          <tr><td>Stadia Maps</td><td>Map tile delivery (map request coordinates/network metadata may be processed)</td><td>N/A</td></tr>
         </table>
       </div>
     </div>
@@ -561,8 +561,8 @@
       <div class="section-body">
         <ul>
           <li>Encrypted transmission (HTTPS / TLS 1.2+)</li>
-          <li>One-way encrypted password storage (Firebase Auth)</li>
-          <li>Location data not stored on servers (processed on device)</li>
+          <li>Password hash storage (SHA-256)</li>
+          <li>Minimum collection of location data and access control</li>
           <li>Principle of minimum access rights</li>
           <li>Internal access logging and minimized data handlers</li>
         </ul>
@@ -628,7 +628,7 @@
 </div><!-- /container -->
 
 <footer>
-  © 2025 LetterGo. All rights reserved.<br/>
+  © 2026 LetterGo. All rights reserved.<br/>
   <a href="privacy.html" style="color: #484f58; text-decoration: none;">개인정보 처리방침</a>
 </footer>
 

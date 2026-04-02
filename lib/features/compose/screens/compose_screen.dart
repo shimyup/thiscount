@@ -470,6 +470,7 @@ class _ComposeScreenState extends State<ComposeScreen>
           SnackBar(
             content: Text(
               '⚡🌍 특송+대량! ${_bulkTargets.length}개 나라 × $_expressCount주소 = 총 ${totalSent}통 즉시 발송!',
+              style: const TextStyle(color: Colors.white),
             ),
             backgroundColor: const Color(0xFF1A1A2A),
             behavior: SnackBarBehavior.floating,
@@ -516,8 +517,9 @@ class _ComposeScreenState extends State<ComposeScreen>
           SnackBar(
             content: Text(
               '🌍  총 ${totalSent}통의 편지가 ${_bulkTargets.length}개 나라로 출발했어요!',
+              style: const TextStyle(color: Colors.white),
             ),
-            backgroundColor: AppColors.bgCard,
+            backgroundColor: const Color(0xFF111827),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -633,23 +635,29 @@ class _ComposeScreenState extends State<ComposeScreen>
                     Text(
                       mainMsg,
                       style: const TextStyle(
-                        color: AppColors.textPrimary,
+                        color: Colors.white,
                         fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       estLabel,
                       style: const TextStyle(
-                        color: AppColors.textSecondary,
+                        color: Color(0xFFE5E7EB),
                         fontSize: 12,
                       ),
                     ),
                   ],
                 )
-              : Text(mainMsg),
-          backgroundColor: AppColors.bgCard,
+              : Text(
+                  mainMsg,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+          backgroundColor: const Color(0xFF111827),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -665,6 +673,10 @@ class _ComposeScreenState extends State<ComposeScreen>
           SnackBar(
             content: Text(
               '⚡ 오늘 특급 배송 ${state.premiumExpressDailyLimit}통을 모두 사용했어요. 내일 다시 사용할 수 있어요.',
+              style: const TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             backgroundColor: AppColors.gold.withValues(alpha: 0.92),
             behavior: SnackBarBehavior.floating,

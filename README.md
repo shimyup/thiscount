@@ -1,4 +1,4 @@
-# Message in a Bottle
+# LetterGo
 
 Flutter mobile app for global letter exchange, map-based delivery tracking, and profile/tower progression.
 
@@ -45,7 +45,7 @@ Both scripts load `.env.local` and inject `--dart-define` values automatically.
   - `./scripts/manage_firebase_secrets.sh status`
 
 Default vault path:
-- `../.secrets/message_in_a_bottle`
+- `../.secrets/lettergo`
 
 Sensitive files managed:
 - `android/app/google-services.json`
@@ -73,3 +73,13 @@ Pipeline steps:
 - `docs/marketing/value-props.md`
 - `docs/marketing/campaign-calendar.md`
 - `docs/marketing/aso-copy-ko-en.md`
+
+## Release Docs
+
+- `docs/release/store-launch-checklist.md`
+- `docs/release/pre-release-readiness-2026-04-01.md`
+- `docs/release/app-store-review-notes.md`
+- `docs/release/play-data-safety-draft.md`
+- `docs/support.html`
+- `docs/terms.html`
+- `docs/privacy.html`

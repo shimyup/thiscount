@@ -17,6 +17,7 @@ migrate_working_dir/
 *.ipr
 *.iws
 .idea/
+.claude/
 
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line
@@ -61,3 +62,6 @@ scripts/*.txt
 scripts/*.zip
 !scripts/*.py
 !scripts/*.sh
+
+# Local screenshot captures (keep only curated ready assets in git)
+docs/marketing/screenshots/raw/
