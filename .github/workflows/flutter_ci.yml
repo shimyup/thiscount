@@ -1,0 +1,36 @@
+name: flutter-ci
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Security audit
+        run: |
+          chmod +x scripts/security_audit.sh
+          ./scripts/security_audit.sh
+
+      - name: Unit and widget tests
+        run: flutter test
+
+      - name: Static analysis (soft gate)
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Android debug build
+        run: flutter build apk --debug

@@ -3,34 +3,63 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>고객 지원 — LetterGo</title>
+  <title>Letter Go Support</title>
   <style>
-    :root{--bg:#0d1117;--surface:#161b22;--border:#21262d;--teal:#2ec4b6;--teal-dim:rgba(46,196,182,.12);--text:#e6edf3;--text-sub:#8b949e;--text-muted:#484f58;--radius:12px}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{font-family:-apple-system,'Pretendard','Apple SD Gothic Neo',BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;min-height:100vh}.hero{background:linear-gradient(160deg,#0d1117 0%,#0d2230 60%,#0d1117 100%);border-bottom:1px solid var(--border);padding:64px 24px 48px;text-align:center}.hero .logo{font-size:48px;margin-bottom:12px}.hero h1{font-size:clamp(22px,5vw,32px);font-weight:700;letter-spacing:-.5px;color:var(--text)}.hero p{margin-top:10px;color:var(--text-sub);font-size:14px}.badge{display:inline-block;margin-top:18px;padding:5px 14px;border-radius:999px;background:var(--teal-dim);border:1px solid rgba(46,196,182,.3);color:var(--teal);font-size:12px;font-weight:600}.container{max-width:760px;margin:0 auto;padding:48px 24px 80px}.lang-toggle{display:flex;gap:8px;margin-bottom:40px;border-bottom:1px solid var(--border);padding-bottom:20px}.lang-btn{padding:6px 16px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-sub);font-size:13px;cursor:pointer;transition:all .15s}.lang-btn.active{background:var(--teal-dim);border-color:rgba(46,196,182,.3);color:var(--teal)}.lang-section{display:none}.lang-section.visible{display:block}.section{margin-bottom:36px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}.section-header{display:flex;align-items:center;gap:10px;padding:18px 20px 16px;border-bottom:1px solid var(--border)}.section-icon{font-size:20px}.section-title{font-size:15px;font-weight:700;color:var(--teal);letter-spacing:.3px}.section-body{padding:18px 20px 20px}.section-body p,.section-body li{font-size:14px;color:var(--text-sub);line-height:1.75}.section-body ul{padding-left:18px;list-style:disc}.section-body ul li{margin-bottom:4px}.faq-item{border-bottom:1px solid var(--border);padding:16px 20px}.faq-item:last-child{border-bottom:none}.faq-q{font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px}.faq-a{font-size:13px;color:var(--text-sub);line-height:1.7}.contact-box{margin-top:40px;padding:24px;border-radius:var(--radius);border:1px solid rgba(46,196,182,.25);background:var(--teal-dim);text-align:center}.contact-box h3{font-size:15px;color:var(--teal);margin-bottom:8px}.contact-box p{font-size:13px;color:var(--text-sub)}.contact-box a{color:var(--teal);text-decoration:none}.contact-box a:hover{text-decoration:underline}footer{text-align:center;padding:24px;font-size:12px;color:var(--text-muted);border-top:1px solid var(--border)}footer a{color:var(--text-muted);text-decoration:none}footer a:hover{text-decoration:underline}@media(max-width:480px){.hero{padding:48px 20px 36px}.section-body{padding:14px 16px 16px}}
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple SD Gothic Neo", sans-serif;
+      background: #0d1421;
+      color: #e8edf7;
+      line-height: 1.7;
+    }
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 48px 20px 64px;
+    }
+    .card {
+      background: #131d2e;
+      border: 1px solid #24324a;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    h1 { margin: 0 0 10px; font-size: 28px; }
+    h2 { margin: 0 0 8px; font-size: 18px; color: #ffcf5a; }
+    p { margin: 0 0 8px; color: #c6d2e6; }
+    ul { margin: 0; padding-left: 18px; color: #c6d2e6; }
+    a { color: #6dd7ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .muted { color: #8fa1be; font-size: 13px; }
   </style>
 </head>
 <body>
-<div class="hero"><div class="logo">✉️</div><h1>고객 지원</h1><p>LetterGo — Customer Support</p><span class="badge">도움이 필요하신가요?</span></div>
-<div class="container">
-<div class="lang-toggle"><button class="lang-btn" data-lang="ko" onclick="switchLang('ko')">한국어</button><button class="lang-btn" data-lang="en" onclick="switchLang('en')">English</button></div>
-<div id="lang-ko" class="lang-section">
-<div class="section"><div class="section-header"><span class="section-icon">❓</span><span class="section-title">자주 묻는 질문</span></div>
-<div class="faq-item"><div class="faq-q">Q. 편지를 보냈는데 언제 도착하나요?</div><div class="faq-a">편지는 실제 거리 기반으로 지도 위를 이동합니다. 가까운 나라는 수 시간, 먼 나라는 하루 이상 걸릴 수 있습니다. 도착 시 푸시 알림으로 안내드립니다.</div></div>
-<div class="faq-item"><div class="faq-q">Q. 내 위치가 다른 사람에게 공개되나요?</div><div class="faq-a">아닙니다. 위치 정보는 도시/구 단위로만 처리되며, 정확한 주소는 절대 노출되지 않습니다.</div></div>
-<div class="faq-item"><div class="faq-q">Q. 프리미엄 구독을 해지하려면 어떻게 하나요?</div><div class="faq-a">iOS: 설정 &gt; Apple ID &gt; 구독에서 해지<br/>Android: Google Play &gt; 구독에서 해지<br/>앱 내 설정에서도 구독 관리 페이지로 이동할 수 있습니다.</div></div>
-<div class="faq-item"><div class="faq-q">Q. 부적절한 편지를 받았어요.</div><div class="faq-a">편지 상세 화면에서 "신고" 버튼을 눌러주세요. 검토 후 해당 사용자에게 적절한 조치를 취합니다.</div></div>
-<div class="faq-item"><div class="faq-q">Q. 계정을 삭제하고 싶어요.</div><div class="faq-a">앱 내 설정 &gt; 계정 관리 &gt; 회원탈퇴에서 직접 삭제할 수 있습니다. 탈퇴 시 이메일을 제외한 모든 정보가 즉시 삭제됩니다.</div></div></div>
-<div class="section"><div class="section-header"><span class="section-icon">🔧</span><span class="section-title">문제 해결</span></div><div class="section-body"><ul><li><strong>위치를 찾을 수 없음</strong> — 기기 설정에서 위치 서비스가 켜져 있는지 확인하고, LetterGo에 위치 권한을 허용해주세요.</li><li><strong>알림이 오지 않음</strong> — 기기 설정 &gt; 알림에서 LetterGo 알림이 허용되어 있는지 확인해주세요.</li><li><strong>앱이 느리거나 멈춤</strong> — 앱을 최신 버전으로 업데이트해주세요.</li><li><strong>로그인이 안 됨</strong> — 이메일과 비밀번호를 다시 확인해주세요.</li></ul></div></div>
-<div class="contact-box"><h3>📬 문의하기</h3><p>위 내용으로 해결되지 않으셨나요?<br/>아래 이메일로 문의해주시면 영업일 기준 2일 이내 답변드립니다.</p><p style="margin-top:12px;">이메일: <a href="mailto:ceo@airony.xyz">ceo@airony.xyz</a></p></div></div>
-<div id="lang-en" class="lang-section">
-<div class="section"><div class="section-header"><span class="section-icon">❓</span><span class="section-title">Frequently Asked Questions</span></div>
-<div class="faq-item"><div class="faq-q">Q. When will my letter arrive?</div><div class="faq-a">Letters travel on the map based on real-world distance. Nearby countries may take a few hours, while faraway ones can take a day or more.</div></div>
-<div class="faq-item"><div class="faq-q">Q. Is my location shared with others?</div><div class="faq-a">No. Location data is processed at city/district level only — your exact address is never exposed.</div></div>
-<div class="faq-item"><div class="faq-q">Q. How do I cancel my Premium subscription?</div><div class="faq-a">iOS: Settings &gt; Apple ID &gt; Subscriptions<br/>Android: Google Play &gt; Subscriptions</div></div>
-<div class="faq-item"><div class="faq-q">Q. I received an inappropriate letter.</div><div class="faq-a">Tap the "Report" button on the letter detail screen. We will review and take appropriate action.</div></div>
-<div class="faq-item"><div class="faq-q">Q. I want to delete my account.</div><div class="faq-a">Go to Settings &gt; Account Management &gt; Delete Account. All info except email is deleted immediately.</div></div></div>
-<div class="section"><div class="section-header"><span class="section-icon">🔧</span><span class="section-title">Troubleshooting</span></div><div class="section-body"><ul><li><strong>Location not found</strong> — Make sure Location Services are enabled and LetterGo has location permission.</li><li><strong>Not receiving notifications</strong> — Check device Settings &gt; Notifications.</li><li><strong>App is slow or freezing</strong> — Update the app to the latest version.</li><li><strong>Cannot log in</strong> — Double-check your email and password.</li></ul></div></div>
-<div class="contact-box"><h3>📬 Contact Us</h3><p>Couldn't find what you need?<br/>Email us and we'll respond within 2 business days.</p><p style="margin-top:12px;">Email: <a href="mailto:ceo@airony.xyz">ceo@airony.xyz</a></p></div></div>
-</div>
-<footer>&copy; 2025 LetterGo. All rights reserved.<br/><a href="privacy.html">개인정보 처리방침</a> &nbsp;|&nbsp; <a href="support.html">고객 지원</a></footer>
-<script>function applyLang(l){document.querySelectorAll('.lang-section').forEach(e=>e.classList.remove('visible'));document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));var s=document.getElementById('lang-'+l);if(s)s.classList.add('visible');var b=document.querySelector('.lang-btn[data-lang="'+l+'"]');if(b)b.classList.add('active')}function switchLang(l){var u=new URL(window.location);u.searchParams.set('lang',l);history.replaceState(null,'',u);applyLang(l)}(function(){var p=new URLSearchParams(window.location.search);applyLang(p.get('lang')==='en'?'en':'ko')})()</script>
-</body></html>
+  <div class="wrap">
+    <h1>Letter Go 지원센터</h1>
+    <p>앱 사용 중 문제, 결제 이슈, 계정 문의를 도와드립니다.</p>
+
+    <div class="card">
+      <h2>문의 방법</h2>
+      <p>이메일 문의: <a href="mailto:ceo@airony.xyz">ceo@airony.xyz</a></p>
+      <p class="muted">운영 시간: 평일 10:00 - 18:00 (KST)</p>
+    </div>
+
+    <div class="card">
+      <h2>빠른 확인 항목</h2>
+      <ul>
+        <li>결제 오류: 앱 재실행 후 구매 복원을 먼저 시도해주세요.</li>
+        <li>상품 정보 미노출: 네트워크 상태와 앱 최신 버전 여부를 확인해주세요.</li>
+        <li>지도가 현지어로 보이는 경우: 타일 제공자 정책에 따라 언어 혼합이 발생할 수 있습니다.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>정책 문서</h2>
+      <p><a href="./privacy.html">개인정보 처리방침</a></p>
+      <p><a href="./terms.html">이용약관</a></p>
+    </div>
+
+    <p class="muted">Last updated: 2026-04-01</p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,4261 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import '../models/letter.dart';
+import '../models/user_profile.dart';
+import '../core/config/app_keys.dart';
+import '../core/config/firebase_config.dart';
+import '../core/localization/language_config.dart';
+import '../core/data/country_cities.dart';
+import '../core/services/notification_service.dart';
+import '../core/services/geocoding_service.dart';
+import '../core/services/firestore_service.dart';
+import '../core/services/firebase_auth_service.dart';
+import '../core/theme/time_theme.dart';
+import '../models/direct_message.dart';
+
+enum DisplayThemeMode { auto, light, dark }
+
+enum InviteCodeApplyResult {
+  success,
+  invalid,
+  self,
+  alreadyUsed,
+  serverUnavailable,
+  networkError,
+}
+
+enum BrandExtraVerificationResult {
+  success,
+  alreadyProcessed,
+  serverUnavailable,
+  networkError,
+}
+
+// ── 지도에 표시할 실제 회원 타워 데이터 ────────────────────────────────────────
+class MapUser {
+  final String id;
+  final String flag;
+  final double lat;
+  final double lng;
+  final TowerTier tier;
+  final int floors;
+  final int rank;
+  final String? username;
+  final String? towerName; // 사용자 지정 타워 이름
+
+  const MapUser({
+    required this.id,
+    required this.flag,
+    required this.lat,
+    required this.lng,
+    required this.tier,
+    required this.floors,
+    required this.rank,
+    this.username,
+    this.towerName,
+  });
+
+  MapUser copyWith({int? rank}) => MapUser(
+    id: id,
+    flag: flag,
+    lat: lat,
+    lng: lng,
+    tier: tier,
+    floors: floors,
+    rank: rank ?? this.rank,
+    username: username,
+    towerName: towerName,
+  );
+}
+
+class AppState extends ChangeNotifier with WidgetsBindingObserver {
+  // ── 현재 유저 ──────────────────────────────────────────────────────────────
+  UserProfile _currentUser = UserProfile(
+    id: 'guest',
+    username: 'Guest',
+    country: '대한민국',
+    countryFlag: '🇰🇷',
+    latitude: 37.5665,
+    longitude: 126.9780,
+  );
+
+  UserProfile get currentUser => _currentUser;
+
+  // ── 지도 위 다른 회원 타워 (Firestore 실시간) ──────────────────────────────
+  List<MapUser> _mapUsers = [];
+  List<MapUser> get mapUsers => List.unmodifiable(_mapUsers);
+  DateTime? _lastMapUsersFetchedAt;
+  bool _isFetchingMapUsers = false;
+  static const Duration _mapUsersMinRefreshInterval = Duration(minutes: 10);
+  static const int _mapUsersPageSize = 100;
+  static const int _mapUsersMaxPages = 2;
+  static const int _mapUsersMaxCount = 180;
+
+  // ── 지도 위 편지들 ──────────────────────────────────────────────────────────
+  final List<Letter> _worldLetters = [];
+  List<Letter> get worldLetters => List.unmodifiable(_worldLetters);
+
+  // ── 내 받은 편지함 ──────────────────────────────────────────────────────────
+  final List<Letter> _inbox = [];
+  List<Letter> get inbox => List.unmodifiable(_inbox);
+
+  // ── 내가 보낸 편지 ──────────────────────────────────────────────────────────
+  final List<Letter> _sent = [];
+  List<Letter> get sent => List.unmodifiable(_sent);
+
+  // ── 2km 이내 편지 ─────────────────────────────────────────────────────────
+  List<Letter> get nearbyLetters =>
+      _worldLetters.where((l) => l.status == DeliveryStatus.nearYou).toList();
+
+  // ── 주변 편지 줍기 제한 (무료: 1시간, 프리미엄: 10분, 선착순) ─────────────
+  /// 티어별 쿨다운: 프리미엄/브랜드 10분, 무료 60분
+  Duration get _nearbyPickupCooldown =>
+      (_currentUser.isPremium || _currentUser.isBrand)
+      ? const Duration(minutes: 10)
+      : const Duration(minutes: 60);
+
+  DateTime? _lastNearbyPickupAt;
+
+  /// 현재 유저가 이미 줍기한 편지 ID 집합 (동일 편지 중복 줍기 방지)
+  final Set<String> _myPickedUpLetterIds = {};
+
+  /// 다음 줍기 가능까지 남은 시간 (null = 바로 가능)
+  Duration? get nearbyPickupRemainingCooldown {
+    if (_lastNearbyPickupAt == null) return null;
+    final elapsed = DateTime.now().difference(_lastNearbyPickupAt!);
+    if (elapsed >= _nearbyPickupCooldown) return null;
+    return _nearbyPickupCooldown - elapsed;
+  }
+
+  /// 현재 유저의 쿨다운 시간 (UI 표시용)
+  Duration get pickupCooldownDuration => _nearbyPickupCooldown;
+
+  // ── SharedPreferences 암호화 ─────────────────────────────────────────────
+  static const _secure = FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+  );
+  static const _encKeyName = 'sp_enc_key_v1';
+  static Uint8List? _encKey; // 32바이트 XOR 키 (앱 최초 실행 시 생성)
+
+  // ── 편지 교환 잠금 해제 카운터 ────────────────────────────────────────────
+  int _sentSinceLastUnlock = 0;
+  int get sentSinceLastUnlock => _sentSinceLastUnlock;
+  bool get canViewNextLetter => _sentSinceLastUnlock >= 3;
+
+  // ── 일일 발송 제한 ────────────────────────────────────────────────────────
+  static const int _dailyLimitFree = 3;
+  static const int _dailyLimitPremium = 30;
+  static const int _dailyLimitBrand = 200;
+  static const int _dailyPremiumExpressLimit = 3;
+  static const Duration _readLetterRetention = Duration(days: 30);
+
+  int _dailySentCount = 0;
+  String _dailySentDateKey = _dateKey(DateTime.now());
+  int _dailyPremiumExpressSentCount = 0;
+  String _dailyPremiumExpressDateKey = _dateKey(DateTime.now());
+
+  // ── 월간 발송 제한 ────────────────────────────────────────────────────────
+  static const int _monthlyLimitFree = 100;
+  static const int _monthlyLimitPremium = 500;
+  static const int _monthlyLimitBrand = 10000;
+
+  int _monthlySentCount = 0;
+  String _monthlyDateKey = _monthKey(DateTime.now());
+
+  // ── DM 쿼터 (프리미엄 전용, DM 10회 = 편지 1통 차감) ──────────────────────
+  static const int _dmPerLetterQuota = 10; // DM 몇 회당 편지 1통 차감
+  int _pendingDMCount = 0; // 마지막 차감 이후 보낸 DM 수
+
+  // ── 브랜드 추가 구매 월간 발송권 ───────────────────────────────────────────
+  int _brandExtraMonthlyQuota = 0;
+  int _inviteRewardCredits = 0;
+  String _inviteCode = '';
+  String? _appliedInviteCode;
+  DateTime? _lastInviteRewardAt;
+
+  bool get isGeneralMember => !_currentUser.isPremium && !_currentUser.isBrand;
+  bool get isBrandMember => _currentUser.isBrand;
+
+  // 테스트 모드에서 shimyup@gmail.com 외 브랜드 계정은 발송 한도를 프리미엄 수준으로 제한
+  bool get _isTestLimitedBrand {
+    if (!kDebugMode) return false;
+    if (!isBrandMember) return false;
+    final email = _currentUser.email?.toLowerCase() ?? '';
+    return email != DebugConstants.testBrandEmail;
+  }
+
+  int get dailySendLimit {
+    if (isBrandMember) {
+      return _isTestLimitedBrand ? _dailyLimitPremium : _dailyLimitBrand;
+    }
+    if (!isGeneralMember) return _dailyLimitPremium;
+    // 이벤트 모드: 무료 유저도 프리미엄 한도 적용
+    if (_adminEventMode) return _dailyLimitPremium;
+    return _dailyLimitFree;
+  }
+
+  int get todaySentCount {
+    _rolloverDailySendCounterIfNeeded();
+    return _dailySentCount;
+  }
+
+  int get remainingDailySendCount {
+    _rolloverDailySendCounterIfNeeded();
+    return (dailySendLimit - _dailySentCount).clamp(0, dailySendLimit);
+  }
+
+  bool get hasRemainingDailyQuota =>
+      remainingDailySendCount > 0 || _inviteRewardCredits > 0;
+
+  int get monthlySendLimit {
+    if (isBrandMember) {
+      return _isTestLimitedBrand
+          ? _monthlyLimitPremium
+          : _monthlyLimitBrand + _brandExtraMonthlyQuota;
+    }
+    if (!isGeneralMember) return _monthlyLimitPremium;
+    // 이벤트 모드: 무료 유저도 프리미엄 월간 한도 적용
+    if (_adminEventMode) return _monthlyLimitPremium;
+    return _monthlyLimitFree;
+  }
+
+  int get remainingMonthlySendCount {
+    _rolloverMonthlySendCounterIfNeeded();
+    return (monthlySendLimit - _monthlySentCount).clamp(0, monthlySendLimit);
+  }
+
+  bool get hasRemainingMonthlyQuota => remainingMonthlySendCount > 0;
+
+  int get brandExtraMonthlyQuota => _brandExtraMonthlyQuota;
+  int get inviteRewardCredits => _inviteRewardCredits;
+  bool get hasAppliedInviteCode => (_appliedInviteCode?.isNotEmpty ?? false);
+  String? get appliedInviteCode => _appliedInviteCode;
+  DateTime? get lastInviteRewardAt => _lastInviteRewardAt;
+
+  int get premiumExpressDailyLimit => _dailyPremiumExpressLimit;
+  int get todayPremiumExpressSentCount {
+    _rolloverDailyPremiumExpressCounterIfNeeded();
+    return _dailyPremiumExpressSentCount;
+  }
+
+  int get remainingPremiumExpressCount {
+    if (_currentUser.isBrand) return 9999;
+    if (!_currentUser.isPremium) return 0;
+    _rolloverDailyPremiumExpressCounterIfNeeded();
+    return (_dailyPremiumExpressLimit - _dailyPremiumExpressSentCount).clamp(
+      0,
+      _dailyPremiumExpressLimit,
+    );
+  }
+
+  bool get canUsePremiumExpress {
+    if (_currentUser.isBrand) return true;
+    return remainingPremiumExpressCount > 0;
+  }
+
+  // ── DM 권한 (프리미엄 전용) ─────────────────────────────────────────────────
+  /// DM은 프리미엄 회원만 사용 가능. 무료·브랜드 계정은 불가.
+  bool get canUseDM => _currentUser.isPremium && !_currentUser.isBrand;
+
+  /// DM 사용 불가 사유 메시지
+  String get dmUnavailableMessage {
+    if (_currentUser.isBrand)
+      return '브랜드 계정은 DM을 사용할 수 없어요.\n편지 발송을 통해 수신자와 소통해보세요.';
+    return '빠른 편지(DM)는 프리미엄 회원 전용이에요.\n프리미엄으로 업그레이드하면 DM 이용 및 하루 $_dailyLimitPremium통 발송이 가능해요.';
+  }
+
+  /// DM 몇 회당 편지 1통 차감하는지 (외부 노출용)
+  int get dmPerLetterQuota => _dmPerLetterQuota;
+
+  /// 다음 편지 쿼터 차감까지 남은 DM 횟수
+  int get dmCountUntilNextQuotaDeduction =>
+      _dmPerLetterQuota - (_pendingDMCount % _dmPerLetterQuota);
+
+  String get premiumExpressLimitExceededMessage =>
+      '프리미엄 특급 배송은 하루 $_dailyPremiumExpressLimit통까지 가능해요.';
+
+  String get imageLimitExceededMessage {
+    if (_currentUser.isBrand) {
+      return '오늘 이미지 편지 한도($_dailyImageLetterLimitBrand통)에 도달했어요. 내일 다시 시도해주세요.';
+    }
+    return '오늘 이미지 편지 한도($_dailyImageLetterLimit통)에 도달했어요. 내일 다시 시도해주세요.';
+  }
+
+  String get myInviteCode =>
+      _inviteCode.isNotEmpty ? _inviteCode : _deriveInviteCode();
+
+  bool get isBrandExtraServerVerificationReady =>
+      FirebaseConfig.kFirebaseEnabled &&
+      FirebaseAuthService.isSignedIn &&
+      _currentUser.id != 'guest';
+
+  String get brandExtraServerVerificationUnavailableMessage =>
+      '서버 검증이 활성화되지 않아 추가 발송권 구매를 완료할 수 없어요.\n로그인 상태와 Firebase 설정을 확인해주세요.';
+
+  String _deriveInviteCode() {
+    final seed = (_currentUser.id.isNotEmpty && _currentUser.id != 'guest')
+        ? _currentUser.id
+        : _currentUser.username;
+    var hash = 2166136261;
+    for (final codeUnit in seed.codeUnits) {
+      hash ^= codeUnit;
+      hash = (hash * 16777619) & 0x7fffffff;
+    }
+    return hash.toRadixString(36).toUpperCase().padLeft(6, '0').substring(0, 6);
+  }
+
+  Future<InviteCodeApplyResult> applyInviteCode(String rawCode) async {
+    final code = rawCode.trim().toUpperCase();
+    final validPattern = RegExp(r'^[A-Z0-9]{6}$');
+    if (!validPattern.hasMatch(code)) {
+      return InviteCodeApplyResult.invalid;
+    }
+    if (hasAppliedInviteCode) {
+      return InviteCodeApplyResult.alreadyUsed;
+    }
+    if (code == myInviteCode) {
+      return InviteCodeApplyResult.self;
+    }
+
+    if (!FirebaseConfig.kFirebaseEnabled || _currentUser.id == 'guest') {
+      return InviteCodeApplyResult.serverUnavailable;
+    }
+    if (!FirebaseAuthService.isSignedIn) {
+      return InviteCodeApplyResult.serverUnavailable;
+    }
+
+    await _ensureInviteIdentityOnServer();
+
+    final inviterDocs = await FirestoreService.queryWhereEquals(
+      collectionId: 'users',
+      field: 'inviteCode',
+      value: code,
+      limit: 1,
+    );
+    if (inviterDocs.isEmpty) return InviteCodeApplyResult.invalid;
+
+    final inviterDoc = inviterDocs.first;
+    final inviterName = inviterDoc['name'] as String? ?? '';
+    final inviterId = inviterName.split('/').last;
+    if (inviterId.isEmpty) return InviteCodeApplyResult.invalid;
+    if (inviterId == _currentUser.id) return InviteCodeApplyResult.self;
+
+    final claimResult = await FirestoreService.createDocumentIfAbsent(
+      'inviteClaims/${_currentUser.id}',
+      {
+        'claimerId': _currentUser.id,
+        'inviterId': inviterId,
+        'inviteCode': code,
+        'createdAt': DateTime.now().toIso8601String(),
+      },
+    );
+    if (claimResult == CreateDocumentResult.alreadyExists) {
+      return InviteCodeApplyResult.alreadyUsed;
+    }
+    if (claimResult == CreateDocumentResult.error) {
+      return InviteCodeApplyResult.networkError;
+    }
+
+    final nowIso = DateTime.now().toIso8601String();
+    final myDoc = await FirestoreService.getDocument(
+      'users/${_currentUser.id}',
+    );
+    final inviterUserDoc = await FirestoreService.getDocument(
+      'users/$inviterId',
+    );
+    if (myDoc == null || inviterUserDoc == null) {
+      return InviteCodeApplyResult.networkError;
+    }
+
+    final myData = FirestoreService.fromFirestoreDoc(myDoc);
+    final inviterData = FirestoreService.fromFirestoreDoc(inviterUserDoc);
+
+    final myCredits = (myData['inviteRewardCredits'] as int? ?? 0) + 5;
+    final inviterCredits =
+        (inviterData['inviteRewardCredits'] as int? ?? 0) + 5;
+
+    final updatedMine =
+        await FirestoreService.setDocument('users/${_currentUser.id}', {
+          'inviteAppliedCode': code,
+          'inviteRewardCredits': myCredits,
+          'inviteRewardAt': nowIso,
+        });
+    final updatedInviter = await FirestoreService.setDocument(
+      'users/$inviterId',
+      {'inviteRewardCredits': inviterCredits, 'inviteRewardAt': nowIso},
+    );
+
+    if (!updatedMine || !updatedInviter) {
+      return InviteCodeApplyResult.networkError;
+    }
+
+    _appliedInviteCode = code;
+    _inviteRewardCredits = myCredits;
+    _lastInviteRewardAt = DateTime.now();
+    _saveToPrefs();
+    notifyListeners();
+    return InviteCodeApplyResult.success;
+  }
+
+  bool get useValueBasedPremiumCopy {
+    final seed = (_currentUser.id.isNotEmpty && _currentUser.id != 'guest')
+        ? _currentUser.id
+        : _currentUser.username;
+    var hash = 0;
+    for (final codeUnit in seed.codeUnits) {
+      hash = ((hash * 31) + codeUnit) & 0x7fffffff;
+    }
+    return hash.isEven;
+  }
+
+  String get dailyLimitExceededMessage {
+    if (isGeneralMember) {
+      if (useValueBasedPremiumCopy) {
+        return '오늘 무료 한도($_dailyLimitFree통)를 모두 사용했어요.\n프리미엄(월 ₩4,900)으로 업그레이드하면 하루 $_dailyLimitPremium통까지 보내서 답장 기회를 최대 10배까지 넓힐 수 있어요.';
+      }
+      return '무료 회원은 하루 $_dailyLimitFree통까지 발송할 수 있어요.\n프리미엄(월 ₩4,900)으로 업그레이드하면 하루 $_dailyLimitPremium통 발송 가능해요!';
+    }
+    if (isBrandMember) {
+      return '오늘 브랜드 발송 한도($_dailyLimitBrand통)에 도달했어요. 추가 발송권(1,000통 ₩15,000)을 구매하거나 내일 다시 시도해주세요.';
+    }
+    return '오늘 프리미엄 발송 한도($_dailyLimitPremium통)에 도달했어요. 내일 다시 시도해주세요.';
+  }
+
+  String get monthlyLimitExceededMessage {
+    if (isGeneralMember) {
+      if (useValueBasedPremiumCopy) {
+        return '이번 달 무료 한도($_monthlyLimitFree통)를 모두 사용했어요.\n프리미엄으로 전환하면 월 $_monthlyLimitPremium통까지 발송 가능해서 더 많은 국가와 연결을 만들 수 있어요.';
+      }
+      return '이번 달 발송 한도($_monthlyLimitFree통)에 도달했어요.\n프리미엄으로 업그레이드하면 월 $_monthlyLimitPremium통 발송 가능해요!';
+    }
+    if (isBrandMember) {
+      final total = _monthlyLimitBrand + _brandExtraMonthlyQuota;
+      return '이번 달 브랜드 발송 한도(${total}통)에 도달했어요.\n추가 발송권(1,000통 ₩15,000)을 구매하세요.';
+    }
+    return '이번 달 프리미엄 발송 한도($_monthlyLimitPremium통)에 도달했어요. DM 쿼터 포함 기준입니다.';
+  }
+
+  // ── 이미지/링크 편지 일일 한도 (프리미엄 20통, 브랜드 300통, 무료 0통) ────────
+  static const int _dailyImageLetterLimit = 20; // 프리미엄 한도
+  static const int _dailyImageLetterLimitBrand = 300; // 브랜드 한도
+  int _dailyImageSentCount = 0;
+  String _dailyImageDateKey = _dateKey(DateTime.now());
+
+  bool get hasRemainingImageQuota {
+    _rolloverDailyImageCounterIfNeeded();
+    if (!_currentUser.isPremium && !_currentUser.isBrand) return false;
+    final limit = _currentUser.isBrand
+        ? _dailyImageLetterLimitBrand
+        : _dailyImageLetterLimit;
+    return _dailyImageSentCount < limit;
+  }
+
+  int get remainingImageQuota {
+    _rolloverDailyImageCounterIfNeeded();
+    final limit = _currentUser.isBrand
+        ? _dailyImageLetterLimitBrand
+        : _dailyImageLetterLimit;
+    return (limit - _dailyImageSentCount).clamp(0, limit);
+  }
+
+  // ── 프로필 설정 제한 ───────────────────────────────────────────────────────
+  static const int _nicknameCooldownMonths = 3;
+  DateTime? _lastNicknameChangedAt;
+  DateTime? get lastNicknameChangedAt => _lastNicknameChangedAt;
+  DateTime? get nextNicknameChangeAvailableAt {
+    final last = _lastNicknameChangedAt;
+    if (last == null) return null;
+    return _addMonths(last, _nicknameCooldownMonths);
+  }
+
+  bool canChangeNicknameNow() {
+    final next = nextNicknameChangeAvailableAt;
+    if (next == null) return true;
+    return !DateTime.now().isBefore(next);
+  }
+
+  int get nicknameChangeRemainingDays {
+    final next = nextNicknameChangeAvailableAt;
+    if (next == null) return 0;
+    final now = DateTime.now();
+    if (!now.isBefore(next)) return 0;
+    final remaining = next.difference(now);
+    return (remaining.inMinutes / Duration.minutesPerDay).ceil();
+  }
+
+  // ── 화면 테마 모드 (자동/밝은/다크) ────────────────────────────────────────
+  DisplayThemeMode _displayThemeMode = DisplayThemeMode.auto;
+  DisplayThemeMode get displayThemeMode => _displayThemeMode;
+  TimeOfDayPeriod get activeTimePeriod {
+    switch (_displayThemeMode) {
+      case DisplayThemeMode.light:
+        return TimeOfDayPeriod.day;
+      case DisplayThemeMode.dark:
+        return TimeOfDayPeriod.night;
+      case DisplayThemeMode.auto:
+        return TimeTheme.getPeriodForCountry(_currentUser.country);
+    }
+  }
+
+  String get displayThemeModeLabel {
+    switch (_displayThemeMode) {
+      case DisplayThemeMode.auto:
+        return '자동 (시간대)';
+      case DisplayThemeMode.light:
+        return '밝은 모드';
+      case DisplayThemeMode.dark:
+        return '다크 모드';
+    }
+  }
+
+  // ── 배송 중 편지 수 ────────────────────────────────────────────────────────
+  int get totalInTransitCount =>
+      _worldLetters.where((l) => l.status == DeliveryStatus.inTransit).length;
+
+  // ── 알림 ─────────────────────────────────────────────────────────────────
+  // computed getter — 항상 실제 inbox 상태 기준
+  int get unreadCount =>
+      _inbox.where((l) => l.status == DeliveryStatus.delivered).length;
+
+  bool _hasNearbyAlert = false;
+  bool get hasNearbyAlert => _hasNearbyAlert;
+
+  // ── 딜리버리 타이머 ─────────────────────────────────────────────────────────
+  Timer? _deliveryTimer;
+
+  // ── 사용된 배송지 (나라 → 도시 키 Set, 중복 방지) ──────────────────────────
+  final Map<String, Set<String>> _usedDestinations = {};
+
+  // ── 차단된 발신자 (3회 이상 신고) ────────────────────────────────────────
+  final Set<String> _blockedSenderIds = {};
+  Set<String> get blockedSenderIds => Set.unmodifiable(_blockedSenderIds);
+
+  // ── 관리자 전용: 이벤트 모드 & 배송 속도 배율 ──────────────────────────────
+  bool _adminEventMode = false;
+  double _adminSpeedMultiplier = 1.0;
+
+  bool get adminEventMode => _adminEventMode;
+  double get adminSpeedMultiplier => _adminSpeedMultiplier;
+
+  /// 이벤트 모드: 무료 유저 일일/월간 한도를 프리미엄 수준으로 임시 상향
+  void setAdminEventMode(bool value) {
+    _adminEventMode = value;
+    notifyListeners();
+  }
+
+  /// 배송 속도 배율 (1.0 = 기본, 10.0 = 10배속, 100.0 = 100배속)
+  void setAdminSpeedMultiplier(double value) {
+    _adminSpeedMultiplier = value.clamp(1.0, 1000.0);
+    notifyListeners();
+  }
+
+  // ── 관리자 전용: 통계 ──────────────────────────────────────────────────────
+  int get adminTotalSent => _sent.length;
+  int get adminInboxCount => _inbox.length;
+  int get adminInTransitCount =>
+      _worldLetters.where((l) => l.status == DeliveryStatus.inTransit).length;
+  int get adminBlockedCount => _blockedSenderIds.length;
+  int get adminReportedCount =>
+      _worldLetters.where((l) => l.reportCount > 0).toList().length +
+      _inbox.where((l) => l.reportCount > 0).toList().length;
+  List<Letter> get adminReportedLetters {
+    final seen = <String>{};
+    final result = <Letter>[];
+    for (final l in [..._worldLetters, ..._inbox]) {
+      if (l.reportCount > 0 && seen.add(l.id)) result.add(l);
+    }
+    result.sort((a, b) => b.reportCount.compareTo(a.reportCount));
+    return result;
+  }
+
+  // ── 관리자 전용: 조작 도구 ─────────────────────────────────────────────────
+  /// 이동 중인 모든 편지를 즉시 도착으로 강제 처리
+  void adminForceDeliverAll() {
+    final now = DateTime.now();
+    for (final letter in _worldLetters) {
+      if (letter.status == DeliveryStatus.inTransit ||
+          letter.status == DeliveryStatus.nearYou) {
+        for (final seg in letter.segments) {
+          seg.progress = 1.0;
+        }
+        letter.currentSegmentIndex = letter.segments.isEmpty
+            ? 0
+            : letter.segments.length - 1;
+        letter.arrivalTime = now;
+      }
+    }
+    notifyListeners();
+    _saveToPrefs();
+  }
+
+  /// 일일 발송 카운터 리셋
+  void adminResetDailyCount() {
+    _dailySentCount = 0;
+    _dailySentDateKey = _dateKey(DateTime.now());
+    _dailyPremiumExpressSentCount = 0;
+    _dailyPremiumExpressDateKey = _dateKey(DateTime.now());
+    notifyListeners();
+    _saveToPrefs();
+  }
+
+  /// 월간 발송 카운터 리셋
+  void adminResetMonthlyCount() {
+    _monthlySentCount = 0;
+    _monthlyDateKey = _monthKey(DateTime.now());
+    notifyListeners();
+    _saveToPrefs();
+  }
+
+  /// 차단 목록 전체 초기화
+  void adminClearBlockList() {
+    _blockedSenderIds.clear();
+    notifyListeners();
+    _saveToPrefs();
+  }
+
+  /// 특정 발신자 차단 해제
+  void adminUnblockSender(String senderId) {
+    _blockedSenderIds.remove(senderId);
+    notifyListeners();
+    _saveToPrefs();
+  }
+
+  /// 특정 편지의 신고 카운터 초기화 (관리자 검토 후 클리어)
+  void adminClearLetterReport(String letterId) {
+    for (final l in [..._worldLetters, ..._inbox]) {
+      if (l.id == letterId) {
+        l.reportCount = 0;
+        l.reportedBy.clear();
+        break;
+      }
+    }
+    notifyListeners();
+    _saveToPrefs();
+  }
+
+  /// 편지함 전체 비우기 (받은 편지)
+  void adminClearInbox() {
+    _inbox.clear();
+    notifyListeners();
+    _saveToPrefs();
+  }
+
+  /// 활동 점수 리셋
+  void adminResetActivityScore() {
+    _currentUser.activityScore.receivedCount = 0;
+    _currentUser.activityScore.replyCount = 0;
+    _currentUser.activityScore.sentCount = 0;
+    _currentUser.activityScore.likeCount = 0;
+    _currentUser.activityScore.ratingTotal = 0;
+    _currentUser.activityScore.ratingCount = 0;
+    notifyListeners();
+    _saveToPrefs();
+  }
+
+  /// 발신자 수동 차단 (관리자)
+  void adminBlockSender(String senderId) {
+    _blockedSenderIds.add(senderId);
+    _worldLetters.removeWhere((l) => l.senderId == senderId);
+    _inbox.removeWhere((l) => l.senderId == senderId);
+    notifyListeners();
+    _saveToPrefs();
+  }
+
+  /// 시스템 편지를 받은 편지함에 직접 추가
+  void adminAddSystemLetter(String content) {
+    final now = DateTime.now();
+    final originLoc = LatLng(_currentUser.latitude, _currentUser.longitude);
+    final letter = Letter(
+      id: 'system_${now.millisecondsSinceEpoch}',
+      senderId: 'system',
+      senderName: '📮 Message in a Bottle',
+      senderCountry: '관리자',
+      senderCountryFlag: '🌐',
+      content: content,
+      originLocation: originLoc,
+      destinationLocation: originLoc,
+      destinationCountry: _currentUser.country,
+      destinationCountryFlag: _currentUser.countryFlag,
+      segments: [],
+      currentSegmentIndex: 0,
+      status: DeliveryStatus.delivered,
+      sentAt: now,
+      arrivedAt: now,
+      estimatedTotalMinutes: 0,
+      isAnonymous: false,
+      senderTier: LetterSenderTier.brand,
+    );
+    _inbox.insert(0, letter);
+    notifyListeners();
+    _saveToPrefs();
+  }
+
+  // ── DM/채팅 시스템 ─────────────────────────────────────────────────────────
+  final Map<String, ChatSession> _chatSessions = {};
+  Map<String, ChatSession> get chatSessions => Map.unmodifiable(_chatSessions);
+  final Map<String, List<DirectMessage>> _dmMessages = {};
+  int get totalDMUnread =>
+      _chatSessions.values.fold(0, (s, c) => s + c.unreadCount);
+
+  // ── 국가 목록 (좌표 포함) ──────────────────────────────────────────────────
+  static const List<Map<String, String>> countries = [
+    {'name': '대한민국', 'flag': '🇰🇷', 'lat': '37.5665', 'lng': '126.9780'},
+    {'name': '일본', 'flag': '🇯🇵', 'lat': '35.6762', 'lng': '139.6503'},
+    {'name': '미국', 'flag': '🇺🇸', 'lat': '40.7128', 'lng': '-74.0060'},
+    {'name': '프랑스', 'flag': '🇫🇷', 'lat': '48.8566', 'lng': '2.3522'},
+    {'name': '영국', 'flag': '🇬🇧', 'lat': '51.5074', 'lng': '-0.1278'},
+    {'name': '독일', 'flag': '🇩🇪', 'lat': '52.5200', 'lng': '13.4050'},
+    {'name': '이탈리아', 'flag': '🇮🇹', 'lat': '41.9028', 'lng': '12.4964'},
+    {'name': '스페인', 'flag': '🇪🇸', 'lat': '40.4168', 'lng': '-3.7038'},
+    {'name': '브라질', 'flag': '🇧🇷', 'lat': '-15.7801', 'lng': '-47.9292'},
+    {'name': '인도', 'flag': '🇮🇳', 'lat': '28.6139', 'lng': '77.2090'},
+    {'name': '중국', 'flag': '🇨🇳', 'lat': '39.9042', 'lng': '116.4074'},
+    {'name': '호주', 'flag': '🇦🇺', 'lat': '-33.8688', 'lng': '151.2093'},
+    {'name': '캐나다', 'flag': '🇨🇦', 'lat': '45.4215', 'lng': '-75.6919'},
+    {'name': '멕시코', 'flag': '🇲🇽', 'lat': '19.4326', 'lng': '-99.1332'},
+    {'name': '아르헨티나', 'flag': '🇦🇷', 'lat': '-34.6037', 'lng': '-58.3816'},
+    {'name': '러시아', 'flag': '🇷🇺', 'lat': '55.7558', 'lng': '37.6176'},
+    {'name': '터키', 'flag': '🇹🇷', 'lat': '41.0082', 'lng': '28.9784'},
+    {'name': '이집트', 'flag': '🇪🇬', 'lat': '30.0444', 'lng': '31.2357'},
+    {'name': '남아프리카', 'flag': '🇿🇦', 'lat': '-25.7479', 'lng': '28.2293'},
+    {'name': '태국', 'flag': '🇹🇭', 'lat': '13.7563', 'lng': '100.5018'},
+    {'name': '네덜란드', 'flag': '🇳🇱', 'lat': '52.3676', 'lng': '4.9041'},
+    {'name': '스웨덴', 'flag': '🇸🇪', 'lat': '59.3293', 'lng': '18.0686'},
+    {'name': '노르웨이', 'flag': '🇳🇴', 'lat': '59.9139', 'lng': '10.7522'},
+    {'name': '포르투갈', 'flag': '🇵🇹', 'lat': '38.7223', 'lng': '-9.1393'},
+    {'name': '인도네시아', 'flag': '🇮🇩', 'lat': '-6.2088', 'lng': '106.8456'},
+    {'name': '말레이시아', 'flag': '🇲🇾', 'lat': '3.1390', 'lng': '101.6869'},
+    {'name': '싱가포르', 'flag': '🇸🇬', 'lat': '1.3521', 'lng': '103.8198'},
+    {'name': '뉴질랜드', 'flag': '🇳🇿', 'lat': '-36.8485', 'lng': '174.7633'},
+    {'name': '필리핀', 'flag': '🇵🇭', 'lat': '14.5995', 'lng': '120.9842'},
+    {'name': '베트남', 'flag': '🇻🇳', 'lat': '21.0285', 'lng': '105.8542'},
+    {'name': '우크라이나', 'flag': '🇺🇦', 'lat': '50.4501', 'lng': '30.5234'},
+    {'name': '폴란드', 'flag': '🇵🇱', 'lat': '52.2297', 'lng': '21.0122'},
+    {'name': '체코', 'flag': '🇨🇿', 'lat': '50.0755', 'lng': '14.4378'},
+    {'name': '헝가리', 'flag': '🇭🇺', 'lat': '47.4979', 'lng': '19.0402'},
+    {'name': '그리스', 'flag': '🇬🇷', 'lat': '37.9838', 'lng': '23.7275'},
+    {'name': '이스라엘', 'flag': '🇮🇱', 'lat': '31.7683', 'lng': '35.2137'},
+    {'name': '사우디아라비아', 'flag': '🇸🇦', 'lat': '24.7136', 'lng': '46.6753'},
+    {'name': 'UAE', 'flag': '🇦🇪', 'lat': '25.2048', 'lng': '55.2708'},
+    {'name': '파키스탄', 'flag': '🇵🇰', 'lat': '33.6844', 'lng': '73.0479'},
+    {'name': '방글라데시', 'flag': '🇧🇩', 'lat': '23.8103', 'lng': '90.4125'},
+    {'name': '나이지리아', 'flag': '🇳🇬', 'lat': '9.0579', 'lng': '7.4951'},
+    {'name': '케냐', 'flag': '🇰🇪', 'lat': '-1.2921', 'lng': '36.8219'},
+    {'name': '에티오피아', 'flag': '🇪🇹', 'lat': '9.0320', 'lng': '38.7469'},
+    {'name': '모로코', 'flag': '🇲🇦', 'lat': '33.9716', 'lng': '-6.8498'},
+    {'name': '콜롬비아', 'flag': '🇨🇴', 'lat': '4.7110', 'lng': '-74.0721'},
+    {'name': '페루', 'flag': '🇵🇪', 'lat': '-12.0464', 'lng': '-77.0428'},
+    {'name': '칠레', 'flag': '🇨🇱', 'lat': '-33.4489', 'lng': '-70.6693'},
+    {'name': '덴마크', 'flag': '🇩🇰', 'lat': '55.6761', 'lng': '12.5683'},
+    {'name': '핀란드', 'flag': '🇫🇮', 'lat': '60.1699', 'lng': '24.9384'},
+    {'name': '오스트리아', 'flag': '🇦🇹', 'lat': '48.2082', 'lng': '16.3738'},
+  ];
+
+  // ── 랜덤 목적지 선택 ───────────────────────────────────────────────────────
+  static Map<String, String> randomDestination({String? excludeCountry}) {
+    final rng = Random();
+    final pool = countries.where((c) => c['name'] != excludeCountry).toList();
+    return pool[rng.nextInt(pool.length)];
+  }
+
+  AppState() {
+    WidgetsBinding.instance.addObserver(this);
+    // 목업 데이터는 디버그 빌드에서만 초기화 (릴리즈 빌드에서는 실 데이터만 사용)
+    if (kDebugMode) _initMockData();
+    _startDeliverySimulation();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // 포그라운드 복귀 → 타이머 재시작
+      if (_deliveryTimer == null || !_deliveryTimer!.isActive) {
+        _startDeliverySimulation();
+      }
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      // 백그라운드 진입 → 타이머 정지
+      _deliveryTimer?.cancel();
+      _deliveryTimer = null;
+    }
+  }
+
+  static String _dateKey(DateTime dt) {
+    final y = dt.year.toString().padLeft(4, '0');
+    final m = dt.month.toString().padLeft(2, '0');
+    final d = dt.day.toString().padLeft(2, '0');
+    return '$y-$m-$d';
+  }
+
+  static String _monthKey(DateTime dt) =>
+      '${dt.year}-${dt.month.toString().padLeft(2, '0')}';
+
+  static DateTime _addMonths(DateTime date, int monthsToAdd) {
+    final monthIndex = date.month - 1 + monthsToAdd;
+    final year = date.year + (monthIndex ~/ 12);
+    final month = (monthIndex % 12) + 1;
+    final lastDayOfTargetMonth = DateTime(year, month + 1, 0).day;
+    final day = min(date.day, lastDayOfTargetMonth);
+    return DateTime(
+      year,
+      month,
+      day,
+      date.hour,
+      date.minute,
+      date.second,
+      date.millisecond,
+      date.microsecond,
+    );
+  }
+
+  bool _purgeExpiredReadLetters() {
+    final now = DateTime.now();
+    final before = _inbox.length;
+    _inbox.removeWhere((letter) {
+      if (letter.status != DeliveryStatus.read) return false;
+      final baseTime = letter.readAt ?? letter.arrivedAt ?? letter.sentAt;
+      return now.difference(baseTime) >= _readLetterRetention;
+    });
+    return _inbox.length != before;
+  }
+
+  void _rolloverDailySendCounterIfNeeded() {
+    final todayKey = _dateKey(DateTime.now());
+    if (_dailySentDateKey != todayKey) {
+      _dailySentDateKey = todayKey;
+      _dailySentCount = 0;
+    }
+  }
+
+  void _rolloverMonthlySendCounterIfNeeded() {
+    final thisMonthKey = _monthKey(DateTime.now());
+    if (_monthlyDateKey != thisMonthKey) {
+      _monthlyDateKey = thisMonthKey;
+      _monthlySentCount = 0;
+      // 브랜드 추가 발송권은 유료 구매 상품이므로 월 초에 리셋하지 않음
+    }
+  }
+
+  void _rolloverDailyPremiumExpressCounterIfNeeded() {
+    final todayKey = _dateKey(DateTime.now());
+    if (_dailyPremiumExpressDateKey != todayKey) {
+      _dailyPremiumExpressDateKey = todayKey;
+      _dailyPremiumExpressSentCount = 0;
+    }
+  }
+
+  bool _canSendLetterByDailyLimit() {
+    _rolloverDailySendCounterIfNeeded();
+    _rolloverMonthlySendCounterIfNeeded();
+    final hasBaseQuota =
+        _dailySentCount < dailySendLimit &&
+        _monthlySentCount < monthlySendLimit;
+    if (hasBaseQuota) return true;
+    return _inviteRewardCredits > 0;
+  }
+
+  bool _canUseExpressMode() {
+    if (_currentUser.isBrand) return true;
+    if (!_currentUser.isPremium) return false;
+    _rolloverDailyPremiumExpressCounterIfNeeded();
+    return _dailyPremiumExpressSentCount < _dailyPremiumExpressLimit;
+  }
+
+  void _consumeDailyQuota() {
+    _rolloverDailySendCounterIfNeeded();
+    _rolloverMonthlySendCounterIfNeeded();
+    final hasBaseQuota =
+        _dailySentCount < dailySendLimit &&
+        _monthlySentCount < monthlySendLimit;
+    if (hasBaseQuota) {
+      _dailySentCount++;
+      _monthlySentCount++;
+      return;
+    }
+    if (_inviteRewardCredits > 0) {
+      _inviteRewardCredits--;
+    }
+  }
+
+  void _consumeExpressQuotaIfNeeded(bool isExpress) {
+    if (!isExpress) return;
+    if (_currentUser.isBrand) return;
+    if (!_currentUser.isPremium) return;
+    _rolloverDailyPremiumExpressCounterIfNeeded();
+    _dailyPremiumExpressSentCount++;
+  }
+
+  void _rolloverDailyImageCounterIfNeeded() {
+    final todayKey = _dateKey(DateTime.now());
+    if (_dailyImageDateKey != todayKey) {
+      _dailyImageDateKey = todayKey;
+      _dailyImageSentCount = 0;
+    }
+  }
+
+  bool _canSendImageLetter() {
+    _rolloverDailyImageCounterIfNeeded();
+    if (!_currentUser.isPremium && !_currentUser.isBrand)
+      return false; // 무료: 불가
+    final limit = _currentUser.isBrand
+        ? _dailyImageLetterLimitBrand
+        : _dailyImageLetterLimit;
+    return _dailyImageSentCount < limit;
+  }
+
+  void _consumeImageQuota() {
+    _rolloverDailyImageCounterIfNeeded();
+    _dailyImageSentCount++;
+  }
+
+  // ── 타워 스킨 업데이트 ────────────────────────────────────────────────────
+  void updateTowerSkin({String? color, String? accentEmoji}) {
+    if (color != null) _currentUser.towerColor = color;
+    if (accentEmoji != null) _currentUser.towerAccentEmoji = accentEmoji;
+    _saveToPrefs();
+    notifyListeners();
+  }
+
+  // ── 브랜드 계정 설정 ──────────────────────────────────────────────────────
+  void setBrandAccount({required bool isBrand, String? brandName}) {
+    _currentUser.isBrand = isBrand;
+    if (brandName != null) _currentUser.brandName = brandName;
+    _saveToPrefs();
+    notifyListeners();
+  }
+
+  // ── 프리미엄 상태 동기화 (PurchaseService → AppState) ────────────────────
+  void syncPremiumStatus({required bool isPremium, required bool isBrand}) {
+    bool changed = false;
+    if (_currentUser.isPremium != isPremium) {
+      _currentUser.isPremium = isPremium;
+      changed = true;
+    }
+    if (_currentUser.isBrand != isBrand) {
+      _currentUser.isBrand = isBrand;
+      changed = true;
+    }
+    if (changed) notifyListeners();
+  }
+
+  // ── SharedPreferences 저장 ─────────────────────────────────────────────────
+  // ── 암호화 헬퍼: 앱 고유 키(SecureStorage) + XOR 치환 ─────────────────────
+  static Future<Uint8List> _getOrCreateEncKey() async {
+    if (_encKey != null) return _encKey!;
+    final stored = await _secure.read(key: _encKeyName);
+    if (stored != null && stored.length == 64) {
+      _encKey = Uint8List.fromList(
+        List.generate(
+          32,
+          (i) => int.parse(stored.substring(i * 2, i * 2 + 2), radix: 16),
+        ),
+      );
+      return _encKey!;
+    }
+    // 최초 실행: 32바이트 랜덤 키 생성
+    final rng = Random.secure();
+    final key = Uint8List.fromList(List.generate(32, (_) => rng.nextInt(256)));
+    final hex = key.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    await _secure.write(key: _encKeyName, value: hex);
+    _encKey = key;
+    return _encKey!;
+  }
+
+  static String _encryptStr(String plain, Uint8List key) {
+    final input = utf8.encode(plain);
+    final output = Uint8List(input.length);
+    for (var i = 0; i < input.length; i++) {
+      output[i] = input[i] ^ key[i % key.length];
+    }
+    return base64Encode(output);
+  }
+
+  static String _decryptStr(String cipher, Uint8List key) {
+    try {
+      final input = base64Decode(cipher);
+      final output = Uint8List(input.length);
+      for (var i = 0; i < input.length; i++) {
+        output[i] = input[i] ^ key[i % key.length];
+      }
+      return utf8.decode(output);
+    } catch (_) {
+      return cipher; // 구버전 평문 데이터 호환
+    }
+  }
+
+  void _saveToPrefs() {
+    Future(() async {
+      final prefs = await SharedPreferences.getInstance();
+      final key = await _getOrCreateEncKey();
+      _purgeExpiredReadLetters();
+
+      // mock 편지(senderId: 'mock_...')는 저장 제외 — 디버그 테스트 데이터가 실 데이터에 섞이지 않도록
+      final realInbox = _inbox
+          .where((l) => !l.senderId.startsWith('mock_'))
+          .toList();
+      final realSent = _sent
+          .where((l) => !l.senderId.startsWith('mock_'))
+          .toList();
+
+      prefs.setString(
+        'inbox',
+        _encryptStr(jsonEncode(realInbox.map((l) => l.toJson()).toList()), key),
+      );
+      prefs.setString(
+        'sent',
+        _encryptStr(jsonEncode(realSent.map((l) => l.toJson()).toList()), key),
+      );
+      // 배송 중인 incoming 편지 (daily 포함) 저장 — mock 제외
+      final incomingInTransit = _worldLetters
+          .where(
+            (l) => l.id.startsWith('daily_') && !l.senderId.startsWith('mock_'),
+          )
+          .toList();
+      prefs.setString(
+        'worldLettersIncoming',
+        _encryptStr(
+          jsonEncode(incomingInTransit.map((l) => l.toJson()).toList()),
+          key,
+        ),
+      );
+      prefs.setStringList('blocked', _blockedSenderIds.toList());
+      prefs.setInt('sentSinceLastUnlock', _sentSinceLastUnlock);
+      prefs.setInt('dailySentCount', _dailySentCount);
+      prefs.setString('dailySentDateKey', _dailySentDateKey);
+      prefs.setInt(
+        PrefKeys.dailyPremiumExpressSentCount,
+        _dailyPremiumExpressSentCount,
+      );
+      prefs.setString(
+        PrefKeys.dailyPremiumExpressDateKey,
+        _dailyPremiumExpressDateKey,
+      );
+      prefs.setInt('dailyImageSentCount', _dailyImageSentCount);
+      prefs.setString('dailyImageDateKey', _dailyImageDateKey);
+      prefs.setInt('monthlySentCount', _monthlySentCount);
+      prefs.setString('monthlyDateKey', _monthlyDateKey);
+      prefs.setInt('pendingDMCount', _pendingDMCount);
+      prefs.setInt(PrefKeys.brandExtraMonthlyQuota, _brandExtraMonthlyQuota);
+      prefs.setInt(PrefKeys.inviteRewardCredits, _inviteRewardCredits);
+      prefs.setString(PrefKeys.inviteCode, myInviteCode);
+      prefs.setString(PrefKeys.inviteAppliedCode, _appliedInviteCode ?? '');
+      prefs.setInt(
+        PrefKeys.inviteRewardAtEpochMs,
+        _lastInviteRewardAt?.millisecondsSinceEpoch ?? 0,
+      );
+      prefs.setString(PrefKeys.towerColor, _currentUser.towerColor);
+      if (_currentUser.towerAccentEmoji != null) {
+        prefs.setString(
+          PrefKeys.towerAccentEmoji,
+          _currentUser.towerAccentEmoji!,
+        );
+      }
+      prefs.setBool(PrefKeys.isBrand, _currentUser.isBrand);
+      if (_currentUser.brandName != null) {
+        prefs.setString(PrefKeys.brandName, _currentUser.brandName!);
+      }
+      prefs.setString(
+        'activityScore',
+        jsonEncode(_currentUser.activityScore.toJson()),
+      );
+      prefs.setString(
+        PrefKeys.profileImagePath,
+        _currentUser.profileImagePath ?? '',
+      );
+      prefs.setInt(
+        'nicknameChangedAtEpochMs',
+        _lastNicknameChangedAt?.millisecondsSinceEpoch ?? 0,
+      );
+      prefs.setString('displayThemeMode', _displayThemeMode.name);
+      // 타워 이름 / 언어 코드 영속 저장
+      prefs.setString('customTowerName', _currentUser.customTowerName ?? '');
+      prefs.setString('languageCode', _currentUser.languageCode);
+      prefs.setInt(
+        'lastNearbyPickupAtMs',
+        _lastNearbyPickupAt?.millisecondsSinceEpoch ?? 0,
+      );
+      // 줍기 완료 편지 ID 목록 저장
+      prefs.setStringList('myPickedUpLetterIds', _myPickedUpLetterIds.toList());
+    });
+  }
+
+  // ── SharedPreferences 복원 (main.dart에서 앱 시작 시 호출) ─────────────────
+  Future<void> loadFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final encKey = await _getOrCreateEncKey(); // 복호화 키 로드
+
+    // 받은 편지함 복원
+    final inboxJsonRaw = prefs.getString('inbox');
+    if (inboxJsonRaw != null) {
+      final inboxJson = _decryptStr(inboxJsonRaw, encKey);
+      _inbox.clear();
+      for (final j in jsonDecode(inboxJson) as List) {
+        try {
+          _inbox.add(Letter.fromJson(j as Map<String, dynamic>));
+        } catch (_) {}
+      }
+    }
+    // 디버그 모드: 사진 예시 편지가 없으면 추가 (inbox 유무와 무관하게 항상 체크)
+    if (kDebugMode && !_inbox.any((l) => l.id == 'inbox4_photo')) {
+      _inbox.add(
+        _makeMockLetter(
+          id: 'inbox4_photo',
+          senderName: 'Sofia M.',
+          senderCountry: '미국',
+          senderFlag: '🇺🇸',
+          content:
+              'Hello from New York! 🗽\n\n오늘 센트럴 파크에서 찍은 사진을 보내드려요. 벚꽃이 한창이라 정말 아름답답니다. 언젠가 뉴욕에 오시면 꼭 봄에 오세요.\n\nI hope this little piece of my world finds you well. 당신의 일상도 이렇게 아름다우면 좋겠어요 🌸',
+          fromCountry: '미국',
+          fromLat: 40.7851,
+          fromLng: -73.9683,
+          toCountry: '대한민국',
+          toLat: 37.5665,
+          toLng: 126.9780,
+          segProgress: [1.0, 1.0, 1.0],
+          segIdx: 2,
+          status: DeliveryStatus.delivered,
+          hoursAgo: 6,
+          imageUrl:
+              'https://images.unsplash.com/photo-1534430480872-3498386e7856?w=800&q=80',
+          socialLink: 'https://instagram.com/sofia.nyc',
+          isAnonymous: false,
+          paperStyle: 2,
+        ),
+      );
+    }
+
+    // 보낸 편지 복원
+    final sentJsonRaw = prefs.getString('sent');
+    if (sentJsonRaw != null) {
+      final decoded = jsonDecode(_decryptStr(sentJsonRaw, encKey)) as List;
+      if (decoded.isNotEmpty) {
+        // 실제 유저가 보낸 편지가 있으면 목업 제거 후 복원
+        _sent.clear();
+        // worldLetters에서 mock sent 편지도 제거
+        _worldLetters.removeWhere((l) => l.id.startsWith('sent_mock'));
+        for (final j in decoded) {
+          try {
+            final letter = Letter.fromJson(j as Map<String, dynamic>);
+            if (letter.id.startsWith('sent_mock')) continue; // 과거 목업 데이터 정리
+            if (letter.senderId == _currentUser.id &&
+                letter.segments.isNotEmpty) {
+              final first = letter.segments.first;
+              letter.segments[0] = RouteSegment(
+                from: first.from,
+                to: first.to,
+                mode: first.mode,
+                fromName: '내 위치',
+                toName: first.toName,
+                fromType: first.fromType,
+                toType: first.toType,
+                estimatedMinutes: first.estimatedMinutes,
+                progress: first.progress,
+              );
+            }
+            if (letter.senderId == _currentUser.id &&
+                letter.senderCountry == letter.destinationCountry &&
+                letter.segments.isNotEmpty) {
+              final domesticMin = _estimateDomesticDeliveryMinutes(
+                letter.originLocation,
+                letter.destinationLocation,
+              );
+              _rebalanceSegmentEstimatedMinutes(letter.segments, domesticMin);
+              letter.arrivalTime = letter.sentAt.add(
+                Duration(minutes: domesticMin),
+              );
+            }
+            _sent.add(letter);
+            // 배송 중인 편지는 worldLetters에도 추가
+            if (letter.status == DeliveryStatus.inTransit ||
+                letter.status == DeliveryStatus.nearYou) {
+              _worldLetters.add(letter);
+            }
+          } catch (_) {}
+        }
+      }
+      // decoded가 비어있으면 mock sent 편지를 그대로 유지
+    }
+
+    // 배송 중인 incoming 편지 복원 (daily 등 worldLetters)
+    final incomingJsonRaw = prefs.getString('worldLettersIncoming');
+    if (incomingJsonRaw != null) {
+      for (final j
+          in jsonDecode(_decryptStr(incomingJsonRaw, encKey)) as List) {
+        try {
+          final letter = Letter.fromJson(j as Map<String, dynamic>);
+          // 이미 worldLetters에 없는 경우에만 추가
+          if (!_worldLetters.any((l) => l.id == letter.id) &&
+              !_inbox.any((l) => l.id == letter.id)) {
+            _worldLetters.add(letter);
+          }
+        } catch (_) {}
+      }
+    }
+
+    // 차단 목록 복원
+    _blockedSenderIds.clear();
+    _blockedSenderIds.addAll(prefs.getStringList('blocked') ?? []);
+
+    // 잠금 해제 카운터 복원
+    _sentSinceLastUnlock = prefs.getInt('sentSinceLastUnlock') ?? 0;
+    _dailySentCount = prefs.getInt('dailySentCount') ?? 0;
+    _dailySentDateKey =
+        prefs.getString('dailySentDateKey') ?? _dateKey(DateTime.now());
+    _rolloverDailySendCounterIfNeeded();
+    _dailyPremiumExpressSentCount =
+        prefs.getInt(PrefKeys.dailyPremiumExpressSentCount) ?? 0;
+    _dailyPremiumExpressDateKey =
+        prefs.getString(PrefKeys.dailyPremiumExpressDateKey) ??
+        _dateKey(DateTime.now());
+    _rolloverDailyPremiumExpressCounterIfNeeded();
+    _dailyImageSentCount = prefs.getInt('dailyImageSentCount') ?? 0;
+    _dailyImageDateKey =
+        prefs.getString('dailyImageDateKey') ?? _dateKey(DateTime.now());
+    _rolloverDailyImageCounterIfNeeded();
+    _monthlySentCount = prefs.getInt('monthlySentCount') ?? 0;
+    _monthlyDateKey =
+        prefs.getString('monthlyDateKey') ?? _monthKey(DateTime.now());
+    _pendingDMCount = prefs.getInt('pendingDMCount') ?? 0;
+    _brandExtraMonthlyQuota =
+        prefs.getInt(PrefKeys.brandExtraMonthlyQuota) ?? 0;
+    _inviteRewardCredits = prefs.getInt(PrefKeys.inviteRewardCredits) ?? 0;
+    final restoredOwnInviteCode = prefs.getString(PrefKeys.inviteCode);
+    _inviteCode =
+        (restoredOwnInviteCode != null && restoredOwnInviteCode.isNotEmpty)
+        ? restoredOwnInviteCode
+        : _deriveInviteCode();
+    final restoredInviteCode = prefs.getString(PrefKeys.inviteAppliedCode);
+    _appliedInviteCode =
+        (restoredInviteCode != null && restoredInviteCode.isNotEmpty)
+        ? restoredInviteCode
+        : null;
+    final inviteRewardAtMs = prefs.getInt(PrefKeys.inviteRewardAtEpochMs) ?? 0;
+    _lastInviteRewardAt = inviteRewardAtMs > 0
+        ? DateTime.fromMillisecondsSinceEpoch(inviteRewardAtMs)
+        : null;
+    _rolloverMonthlySendCounterIfNeeded();
+    _currentUser.towerColor = prefs.getString(PrefKeys.towerColor) ?? '#FFD700';
+    _currentUser.towerAccentEmoji = prefs.getString(PrefKeys.towerAccentEmoji);
+    _currentUser.isBrand = prefs.getBool(PrefKeys.isBrand) ?? false;
+    _currentUser.isPremium = prefs.getBool(PrefKeys.purchaseIsPremium) ?? false;
+    _currentUser.brandName = prefs.getString(PrefKeys.brandName);
+    final profileImagePath = prefs.getString(PrefKeys.profileImagePath);
+    _currentUser.profileImagePath = (profileImagePath?.isNotEmpty ?? false)
+        ? profileImagePath
+        : null;
+    final nicknameChangedAtEpochMs =
+        prefs.getInt('nicknameChangedAtEpochMs') ?? 0;
+    _lastNicknameChangedAt = nicknameChangedAtEpochMs > 0
+        ? DateTime.fromMillisecondsSinceEpoch(nicknameChangedAtEpochMs)
+        : null;
+    final displayThemeModeRaw = prefs.getString('displayThemeMode');
+    _displayThemeMode = DisplayThemeMode.values.firstWhere(
+      (m) => m.name == displayThemeModeRaw,
+      orElse: () => DisplayThemeMode.auto,
+    );
+
+    // 타워 이름 복원
+    final savedTowerName = prefs.getString('customTowerName') ?? '';
+    if (savedTowerName.isNotEmpty) {
+      _currentUser.customTowerName = savedTowerName;
+    }
+    // 언어 코드 복원 (빈 값이면 country에서 재파생)
+    final savedLangCode = prefs.getString('languageCode') ?? '';
+    if (savedLangCode.isNotEmpty) {
+      _currentUser.languageCode = savedLangCode;
+    }
+
+    // 주변 편지 줍기 쿨다운 복원
+    final lastPickupMs = prefs.getInt('lastNearbyPickupAtMs') ?? 0;
+    _lastNearbyPickupAt = lastPickupMs > 0
+        ? DateTime.fromMillisecondsSinceEpoch(lastPickupMs)
+        : null;
+
+    // 이미 줍기한 편지 ID 목록 복원
+    final pickedIds = prefs.getStringList('myPickedUpLetterIds') ?? [];
+    _myPickedUpLetterIds.addAll(pickedIds);
+
+    final purgedExpiredReadLetters = _purgeExpiredReadLetters();
+
+    // 활동 점수 복원
+    final scoreJson = prefs.getString('activityScore');
+    if (scoreJson != null) {
+      try {
+        final score = ActivityScore.fromJson(
+          jsonDecode(scoreJson) as Map<String, dynamic>,
+        );
+        _currentUser.activityScore.receivedCount = score.receivedCount;
+        _currentUser.activityScore.replyCount = score.replyCount;
+        _currentUser.activityScore.sentCount = score.sentCount;
+        _currentUser.activityScore.likeCount = score.likeCount;
+        _currentUser.activityScore.ratingTotal = score.ratingTotal;
+        _currentUser.activityScore.ratingCount = score.ratingCount;
+      } catch (_) {}
+    }
+
+    // DM/채팅 복원
+    final chatJson = prefs.getString('chatSessions');
+    if (chatJson != null) {
+      _chatSessions.clear();
+      final map = jsonDecode(chatJson) as Map<String, dynamic>;
+      for (final entry in map.entries) {
+        try {
+          _chatSessions[entry.key] = ChatSession.fromJson(
+            entry.value as Map<String, dynamic>,
+          );
+        } catch (_) {}
+      }
+    }
+    final dmJson = prefs.getString('dmMessages');
+    if (dmJson != null) {
+      _dmMessages.clear();
+      final map = jsonDecode(dmJson) as Map<String, dynamic>;
+      for (final entry in map.entries) {
+        try {
+          _dmMessages[entry.key] = (entry.value as List)
+              .map((j) => DirectMessage.fromJson(j as Map<String, dynamic>))
+              .toList();
+        } catch (_) {}
+      }
+    }
+
+    if (kDebugMode) {
+      await _checkAndDeliverDailyLetter();
+      await sendTestWorldLetters();
+    }
+
+    // _initMockData()가 추가한 mock 편지 정리 — 실제 사용자 데이터 로드 후 제거
+    // (kDebugMode 빌드에서 mock 데이터가 실 계정에 노출되지 않도록)
+    _worldLetters.removeWhere((l) => l.senderId.startsWith('mock_'));
+    _inbox.removeWhere((l) => l.senderId.startsWith('mock_'));
+
+    if (purgedExpiredReadLetters) {
+      _saveToPrefs();
+    }
+
+    await _ensureInviteIdentityOnServer();
+    notifyListeners();
+  }
+
+  // ── 유저 세팅 (로그인/회원가입 후) ────────────────────────────────────────
+  void setUser({
+    required String id,
+    required String username,
+    required String country,
+    required String countryFlag,
+    bool isPremium = false,
+    String? socialLink,
+    String? languageCode,
+    double? latitude,
+    double? longitude,
+  }) {
+    final resolvedLanguageCode =
+        (languageCode != null && languageCode.isNotEmpty)
+        ? languageCode
+        : (_currentUser.languageCode.isNotEmpty
+              ? _currentUser.languageCode
+              : LanguageConfig.getLanguageCode(country));
+    _currentUser = UserProfile(
+      id: id,
+      username: username,
+      country: country,
+      countryFlag: countryFlag,
+      isPremium: isPremium,
+      socialLink: socialLink,
+      profileImagePath: _currentUser.profileImagePath,
+      languageCode: resolvedLanguageCode,
+      latitude: latitude ?? 37.5665,
+      longitude: longitude ?? 126.9780,
+      activityScore: _currentUser.activityScore, // 기존 점수 유지 (초기값 하드코딩 제거)
+    );
+    _dailySentCount = 0;
+    _dailySentDateKey = _dateKey(DateTime.now());
+    _inviteCode = _deriveInviteCode();
+    notifyListeners();
+    // Firestore에 내 정보 저장 + 다른 회원 타워 불러오기
+    _saveUserToFirestore();
+    unawaited(_ensureInviteIdentityOnServer());
+    fetchMapUsers(force: true);
+  }
+
+  // ── 위치 업데이트 ─────────────────────────────────────────────────────────
+  void updateUserLocation(double lat, double lng) {
+    _currentUser.latitude = lat;
+    _currentUser.longitude = lng;
+    notifyListeners();
+    _saveUserToFirestore(); // 위치 변경 시 Firestore 업데이트
+  }
+
+  // ── 타워 이름 업데이트 ─────────────────────────────────────────────────────
+  void updateTowerName(String? name) {
+    _currentUser.customTowerName = name?.trim().isEmpty == true
+        ? null
+        : name?.trim();
+    notifyListeners();
+    _saveToPrefs(); // 로컬 영속 저장 (업데이트 후에도 유지)
+    _saveUserToFirestore();
+  }
+
+  // ── 닉네임/SNS 업데이트 (설정 화면에서 호출) ─────────────────────────────
+  bool updateUsername(String name) {
+    if (!canChangeNicknameNow()) return false;
+    _currentUser.username = name;
+    _lastNicknameChangedAt = DateTime.now();
+    _saveToPrefs();
+    notifyListeners();
+    return true;
+  }
+
+  void updateSocialLink(String? link) {
+    _currentUser.socialLink = link;
+    _saveToPrefs();
+    notifyListeners();
+  }
+
+  void updateProfileImage(String? path) {
+    _currentUser.profileImagePath = path;
+    _saveToPrefs();
+    notifyListeners();
+  }
+
+  void updateDisplayThemeMode(DisplayThemeMode mode) {
+    if (_displayThemeMode == mode) return;
+    _displayThemeMode = mode;
+    _saveToPrefs();
+    notifyListeners();
+  }
+
+  void updatePrivacySettings({bool? isUsernamePublic, bool? isSnsPublic}) {
+    _currentUser.isUsernamePublic =
+        isUsernamePublic ?? _currentUser.isUsernamePublic;
+    _currentUser.isSnsPublic = isSnsPublic ?? _currentUser.isSnsPublic;
+    _saveToPrefs();
+    _saveUserToFirestore();
+    notifyListeners();
+  }
+
+  // ── Firestore: 내 정보 저장/업데이트 ──────────────────────────────────────
+  Future<void> _saveUserToFirestore() async {
+    if (_currentUser.id == 'guest') return;
+    if (!FirebaseConfig.kFirebaseEnabled) return;
+    try {
+      final url = Uri.parse(
+        '${FirebaseConfig.firestoreBase}/users/${_currentUser.id}'
+        '?key=${FirebaseConfig.apiKey}',
+      );
+      final body = jsonEncode({
+        'fields': {
+          'id': {'stringValue': _currentUser.id},
+          'username': {'stringValue': _currentUser.username},
+          'countryFlag': {'stringValue': _currentUser.countryFlag},
+          'country': {'stringValue': _currentUser.country},
+          'latitude': {'doubleValue': _currentUser.latitude},
+          'longitude': {'doubleValue': _currentUser.longitude},
+          'isUsernamePublic': {'booleanValue': _currentUser.isUsernamePublic},
+          // 지도 노출은 명시적 opt-in 필드로 관리
+          'isMapPublic': {'booleanValue': _currentUser.isUsernamePublic},
+          'receivedCount': {
+            'integerValue': '${_currentUser.activityScore.receivedCount}',
+          },
+          'replyCount': {
+            'integerValue': '${_currentUser.activityScore.replyCount}',
+          },
+          'sentCount': {
+            'integerValue': '${_currentUser.activityScore.sentCount}',
+          },
+          'likeCount': {
+            'integerValue': '${_currentUser.activityScore.likeCount}',
+          },
+          'inviteCode': {'stringValue': myInviteCode},
+          'inviteRewardCredits': {'integerValue': '$_inviteRewardCredits'},
+          'brandExtraMonthlyQuota': {
+            'integerValue': '$_brandExtraMonthlyQuota',
+          },
+          if (_appliedInviteCode != null)
+            'inviteAppliedCode': {'stringValue': _appliedInviteCode!},
+          if (_lastInviteRewardAt != null)
+            'inviteRewardAt': {
+              'timestampValue': _lastInviteRewardAt!.toUtc().toIso8601String(),
+            },
+          'updatedAt': {'stringValue': DateTime.now().toIso8601String()},
+          if (_currentUser.customTowerName != null)
+            'customTowerName': {'stringValue': _currentUser.customTowerName!},
+        },
+      });
+      await http.patch(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: body,
+      );
+    } catch (e) {
+      debugPrint('[Firestore] user save error: $e');
+    }
+  }
+
+  Future<void> _ensureInviteIdentityOnServer() async {
+    if (_currentUser.id == 'guest') return;
+    if (!FirebaseConfig.kFirebaseEnabled) return;
+    if (!FirebaseAuthService.isSignedIn) return;
+    try {
+      final path = 'users/${_currentUser.id}';
+      final doc = await FirestoreService.getDocument(path);
+      if (doc == null) {
+        await FirestoreService.setDocument(path, {
+          'id': _currentUser.id,
+          'username': _currentUser.username,
+          'inviteCode': myInviteCode,
+          'inviteRewardCredits': _inviteRewardCredits,
+          'brandExtraMonthlyQuota': _brandExtraMonthlyQuota,
+          if (_appliedInviteCode != null)
+            'inviteAppliedCode': _appliedInviteCode!,
+          'updatedAt': DateTime.now().toIso8601String(),
+        });
+        _saveToPrefs();
+        return;
+      }
+
+      final data = FirestoreService.fromFirestoreDoc(doc);
+      final serverInviteCode = (data['inviteCode'] as String?)?.trim();
+      if (serverInviteCode != null && serverInviteCode.isNotEmpty) {
+        _inviteCode = serverInviteCode;
+      }
+      final serverCredits = data['inviteRewardCredits'] as int? ?? 0;
+      final serverBrandExtraQuota = data['brandExtraMonthlyQuota'] as int? ?? 0;
+      final serverAppliedCode = (data['inviteAppliedCode'] as String?)?.trim();
+      final rewardAtRaw = data['inviteRewardAt'] as String?;
+
+      var changed = false;
+      if (_inviteRewardCredits != serverCredits) {
+        _inviteRewardCredits = serverCredits;
+        changed = true;
+      }
+      if (_brandExtraMonthlyQuota != serverBrandExtraQuota) {
+        _brandExtraMonthlyQuota = serverBrandExtraQuota;
+        changed = true;
+      }
+      final normalizedApplied =
+          (serverAppliedCode != null && serverAppliedCode.isNotEmpty)
+          ? serverAppliedCode
+          : null;
+      if (_appliedInviteCode != normalizedApplied) {
+        _appliedInviteCode = normalizedApplied;
+        changed = true;
+      }
+      if (rewardAtRaw != null && rewardAtRaw.isNotEmpty) {
+        final parsed = DateTime.tryParse(rewardAtRaw)?.toLocal();
+        if (parsed != null &&
+            (_lastInviteRewardAt == null ||
+                _lastInviteRewardAt!.millisecondsSinceEpoch !=
+                    parsed.millisecondsSinceEpoch)) {
+          _lastInviteRewardAt = parsed;
+          changed = true;
+        }
+      }
+
+      if (serverInviteCode == null || serverInviteCode.isEmpty) {
+        await FirestoreService.setDocument(path, {
+          'inviteCode': myInviteCode,
+          'brandExtraMonthlyQuota': _brandExtraMonthlyQuota,
+        });
+      }
+
+      if (changed) {
+        _saveToPrefs();
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[Invite] _ensureInviteIdentityOnServer error: $e');
+    }
+  }
+
+  // ── 하루 1편지 자동 수신 (테스터·데모용) ──────────────────────────────
+  Future<void> _checkAndDeliverDailyLetter() async {
+    final todayKey = _dateKey(DateTime.now());
+    final prefs = await SharedPreferences.getInstance();
+    final lastKey = prefs.getString('dailyLetterKey_v2') ?? '';
+    if (lastKey == todayKey) return; // 오늘 이미 수신됨
+    await prefs.setString('dailyLetterKey_v2', todayKey);
+
+    final rng = Random();
+    final senders = [
+      {
+        'name': 'Maria G.',
+        'country': '스페인',
+        'flag': '🇪🇸',
+        'lat': 40.4168,
+        'lng': -3.7038,
+        'content':
+            'Desde la Plaza Mayor de Madrid, te escribo esta carta. Hoy asistí a un espectáculo de flamenco y sentí cómo el ritmo del baile me llenaba el alma. Hay algo mágico en esta ciudad que nunca deja de sorprenderme. ¿Cómo estás tú, al otro lado del mundo?',
+      },
+      {
+        'name': 'Dmitri V.',
+        'country': '러시아',
+        'flag': '🇷🇺',
+        'lat': 55.7558,
+        'lng': 37.6176,
+        'content':
+            'Привет из Москвы! Сегодня выпал первый снег, и Красная площадь стала похожа на сказку. Купола собора Василия Блаженного сверкают под белым покровом. Я сижу у окна с горячим чаем и думаю о незнакомцах по всему свету. Как ты?',
+      },
+      {
+        'name': 'Yuki T.',
+        'country': '일본',
+        'flag': '🇯🇵',
+        'lat': 35.6762,
+        'lng': 139.6503,
+        'content':
+            '東京の小さなカフェからこの手紙を書いています。今日は窓の外の景色がとても美しく、つい見とれてしまいました。遠い場所に住む見知らぬあなたに、この穏やかな瞬間を届けたくて。お元気でいますか？',
+      },
+      {
+        'name': 'Amara D.',
+        'country': '남아프리카',
+        'flag': '🇿🇦',
+        'lat': -26.2041,
+        'lng': 28.0473,
+        'content':
+            "Writing to you from Johannesburg as the golden sunset paints the sky in shades of orange and pink. South Africa holds such breathtaking beauty — the wide savanna, the warmth of its people, the stories in every corner. I hope this letter finds you well, wherever you are.",
+      },
+      {
+        'name': 'Lucas B.',
+        'country': '브라질',
+        'flag': '🇧🇷',
+        'lat': -23.5505,
+        'lng': -46.6333,
+        'content':
+            'Olá! Escrevo esta carta das ruas vibrantes de São Paulo. A cidade pulsa com vida, música e alegria em cada esquina. Há algo especial em imaginar que estas palavras vão viajar até você do outro lado do mundo. Como vai você por aí?',
+      },
+      {
+        'name': 'Priya S.',
+        'country': '인도',
+        'flag': '🇮🇳',
+        'lat': 28.6139,
+        'lng': 77.2090,
+        'content':
+            'नमस्ते! नई दिल्ली से आपको यह पत्र लिख रही हूँ। शाम की हवा में चमेली की खुशबू घुली हुई है और मन में बड़ी शांति है। दुनिया के किसी कोने में बैठे आपसे यह पल साझा करना चाहती थी। आप कैसे हैं?',
+      },
+      {
+        'name': 'Chloe M.',
+        'country': '프랑스',
+        'flag': '🇫🇷',
+        'lat': 48.8566,
+        'lng': 2.3522,
+        'content':
+            "Bonjour depuis Paris ! Je t'écris depuis les bords de la Seine, où les lumières de la ville se reflètent doucement sur l'eau. Aujourd'hui, j'ai admiré la Joconde au Louvre — ce sourire mystérieux reste gravé dans ma mémoire. Comment vas-tu, de l'autre côté du monde ?",
+      },
+      {
+        'name': 'James O.',
+        'country': '영국',
+        'flag': '🇬🇧',
+        'lat': 51.5074,
+        'lng': -0.1278,
+        'content':
+            'Greetings from foggy London! There is something rather poetic about writing to a complete stranger on a grey afternoon, with a warm cup of tea in hand and the Thames quietly flowing outside. I do hope your day is going splendidly, wherever you may be.',
+      },
+      {
+        'name': 'Elena K.',
+        'country': '그리스',
+        'flag': '🇬🇷',
+        'lat': 37.9838,
+        'lng': 23.7275,
+        'content':
+            'Γεια σου από τη Σαντορίνη! Κάθομαι κάτω από τον γαλάζιο τρούλο και κοιτώ αναλογιστικά το Αιγαίο. Ο κόσμος είναι τόσο μεγάλος, αλλά μια επιστολή μπορεί να φέρει δύο ψυχές κοντά. Ελπίζω η μέρα σου να είναι γεμάτη φως. Πώς είσαι;',
+      },
+      {
+        'name': 'Tariq A.',
+        'country': '이집트',
+        'flag': '🇪🇬',
+        'lat': 30.0444,
+        'lng': 31.2357,
+        'content':
+            'مرحباً من القاهرة! أكتب إليك في فجر هادئ والأهرامات تلوح في الأفق، شاهدةً على آلاف السنين. هناك شيء ما في هذا المنظر يجعلني أفكر في الغرباء الذين يعيشون في أجزاء أخرى من العالم. كيف حالك في مكانك البعيد؟',
+      },
+      {
+        'name': 'Mei L.',
+        'country': '중국',
+        'flag': '🇨🇳',
+        'lat': 39.9042,
+        'lng': 116.4074,
+        'content':
+            '你好！我在北京故宫附近给你写这封信。春风带着历史的气息轻轻拂过，让人心旷神怡。希望这封漂洋过海的信，能为你带来来自东方的一份温暖与问候。你还好吗？',
+      },
+      {
+        'name': 'Oliver H.',
+        'country': '호주',
+        'flag': '🇦🇺',
+        'lat': -33.8688,
+        'lng': 151.2093,
+        'content':
+            "G'day from Sydney Harbour! Today I took a yacht out on the water and came across a pod of dolphins leaping alongside the bow. Reckon that was the highlight of my week! Hope wherever you are, you're finding your own little moments of magic too.",
+      },
+      {
+        'name': 'Sofia R.',
+        'country': '이탈리아',
+        'flag': '🇮🇹',
+        'lat': 41.9028,
+        'lng': 12.4964,
+        'content':
+            'Ciao da Roma! Stasera ho passeggiato tra i vicoli della città eterna e ho gettato una moneta nella Fontana di Trevi. Ho espresso un desiderio: che questa lettera raggiunga qualcuno che ne aveva bisogno. Come stai, amico lontano?',
+      },
+      {
+        'name': 'Hana W.',
+        'country': '태국',
+        'flag': '🇹🇭',
+        'lat': 13.7563,
+        'lng': 100.5018,
+        'content':
+            'สวัสดีจากกรุงเทพฯ! ฉันนั่งเขียนจดหมายนี้ใกล้วัดทอง แสงอาทิตย์ยามเย็นสาดกระทบยอดปรางค์ทำให้ทุกอย่างดูสวยงามราวกับฝัน อยากแบ่งปันความสงบนี้ให้คุณบ้าง คุณเป็นยังไงบ้างในวันนี้?',
+      },
+      {
+        'name': 'Ananya P.',
+        'country': '인도네시아',
+        'flag': '🇮🇩',
+        'lat': -8.4095,
+        'lng': 115.1889,
+        'content':
+            'Halo dari Bali! Aku menulis surat ini sambil memandangi terasering sawah yang hijau membentang hingga ke bukit. Dunia ini begitu indah dan aku merasa sangat beruntung bisa menikmatinya setiap hari. Semoga kamu juga baik-baik saja di sana, ya.',
+      },
+      {
+        'name': 'Jake M.',
+        'country': '미국',
+        'flag': '🇺🇸',
+        'lat': 40.7128,
+        'lng': -74.0060,
+        'content':
+            'Hey there from New York City! I\'m sitting on the steps of the Met, watching the whole world walk by. Every face has a story, every hurried step carries a dream. In this city of eight million, it\'s easy to feel both lost and found at once. Hope you\'re doing well out there.',
+      },
+      {
+        'name': 'Klaus W.',
+        'country': '독일',
+        'flag': '🇩🇪',
+        'lat': 52.5200,
+        'lng': 13.4050,
+        'content':
+            'Guten Tag aus Berlin! Ich schreibe dir von der Spree, während die Herbstblätter wie goldene Briefe vom Himmel fallen. Diese Stadt trägt die Geschichte Europas in jedem Stein. Manchmal halte ich inne und denke an all die Menschen, die ich nie kennenlernen werde. Wie geht es dir?',
+      },
+      {
+        'name': 'Emily C.',
+        'country': '캐나다',
+        'flag': '🇨🇦',
+        'lat': 43.6532,
+        'lng': -79.3832,
+        'content':
+            'Hello from Toronto! The maple trees have turned into a sea of red and amber, and I\'ve been walking through the leaves all morning. Canada is a country of quiet wonders — frozen lakes, endless forests, and the kindest strangers. Sending you some of this autumn warmth.',
+      },
+      {
+        'name': 'Diego R.',
+        'country': '멕시코',
+        'flag': '🇲🇽',
+        'lat': 19.4326,
+        'lng': -99.1332,
+        'content':
+            '¡Hola desde la Ciudad de México! Estoy sentado en el Zócalo mientras el mariachi llena el aire con su melodía. Los colores de esta ciudad — los murales, los mercados, las flores — son un festín para los ojos. Espero que este mensaje te llegue con todo el sabor de México. ¿Cómo estás?',
+      },
+      {
+        'name': 'Kemal A.',
+        'country': '터키',
+        'flag': '🇹🇷',
+        'lat': 41.0082,
+        'lng': 28.9784,
+        'content':
+            'Merhaba İstanbul\'dan! Boğaz\'da iki kıtanın buluştuğu noktada oturmuş, sana bu mektubu yazıyorum. Şehrin sesi, seyyar satıcıların bağrışları ve uzaktan gelen ezan sesiyle harmanlı. Dünyanın bir başka köşesinde yaşayan sana buradan selam yolluyorum. Nasılsın?',
+      },
+      {
+        'name': 'Valentina M.',
+        'country': '아르헨티나',
+        'flag': '🇦🇷',
+        'lat': -34.6037,
+        'lng': -58.3816,
+        'content':
+            '¡Buenas desde Buenos Aires! Esta noche fui a una milonga y el tango me envolvió como ningún otro baile puede hacerlo. Hay algo en los pasos del tango que habla de amor, de pérdida, de esperanza. Quería compartir este momento con alguien del otro lado del mundo. ¿Cómo estás tú?',
+      },
+      {
+        'name': 'Ana L.',
+        'country': '포르투갈',
+        'flag': '🇵🇹',
+        'lat': 38.7169,
+        'lng': -9.1399,
+        'content':
+            'Olá de Lisboa! Estou sentada num café a ouvir fado enquanto o sol se põe sobre o rio Tejo. Há uma palavra portuguesa — saudade — que não tem tradução, mas que sinto agora ao escrever-te. É a melancolia doce de tudo o que foi ou poderia ser. Espero que estejas bem, amigo distante.',
+      },
+      {
+        'name': 'Lars B.',
+        'country': '스웨덴',
+        'flag': '🇸🇪',
+        'lat': 59.3293,
+        'lng': 18.0686,
+        'content':
+            'Hej från Stockholm! Det är midnattssol och himlen är aldrig helt mörk den här årstiden. Jag sitter vid vattnet och funderar på hur stor världen egentligen är. Det finns något magiskt med att skicka ett brev till någon man aldrig träffat. Hur mår du, var du än är?',
+      },
+      {
+        'name': 'Nguyen T.',
+        'country': '베트남',
+        'flag': '🇻🇳',
+        'lat': 21.0285,
+        'lng': 105.8542,
+        'content':
+            'Xin chào từ Hà Nội! Tôi đang ngồi bên hồ Hoàn Kiếm, nhìn mặt hồ gợn sóng trong buổi sáng sớm. Mùi cà phê trứng thơm nồng từ quán nhỏ bên cạnh cứ vấn vương. Tôi muốn gửi đến bạn một chút bình yên của buổi sáng Hà Nội hôm nay. Bạn có khỏe không?',
+      },
+      {
+        'name': 'Aisha M.',
+        'country': '나이지리아',
+        'flag': '🇳🇬',
+        'lat': 6.5244,
+        'lng': 3.3792,
+        'content':
+            'Hello from Lagos! This city never sleeps — it hums, it dances, it shouts with life at every hour. I am writing to you from my balcony as the sun rises over the lagoon, painting everything in shades of copper and gold. Africa has a pulse unlike anywhere else. How are you, friend?',
+      },
+      {
+        'name': 'Amina K.',
+        'country': '케냐',
+        'flag': '🇰🇪',
+        'lat': -1.2921,
+        'lng': 36.8219,
+        'content':
+            'Jambo kutoka Nairobi! Asubuhi hii nilikuwa bustanini nikitazama ndege wa rangi mbalimbali wakizunguka. Kenya ni nchi ya maajabu — misitu, savana, na watu wenye moyo mkunjufu. Nilitaka kukushirikisha furaha hii ndogo. Je, uko salama?',
+      },
+      {
+        'name': 'Carlos P.',
+        'country': '페루',
+        'flag': '🇵🇪',
+        'lat': -13.1631,
+        'lng': -72.5450,
+        'content':
+            '¡Saludos desde Machu Picchu! Estoy entre las ruinas de los incas, donde las nubes rozan las piedras antiguas y el silencio habla más fuerte que las palabras. Subir aquí fue como tocar el cielo con las manos. Quería compartir este instante suspendido en el tiempo contigo. ¿Cómo estás?',
+      },
+      {
+        'name': 'Fatima Z.',
+        'country': '모로코',
+        'flag': '🇲🇦',
+        'lat': 34.0209,
+        'lng': -6.8416,
+        'content':
+            'مرحباً من الرباط! أجلس في حديقة القصبة والياسمين يملأ الهواء برائحته الزكية. المغرب بلد الألوان والروائح والحكايات القديمة. أريد أن أهديك لحظة من هذا الهدوء الجميل. كيف حالك في مكانك البعيد؟',
+      },
+      {
+        'name': 'Pita F.',
+        'country': '뉴질랜드',
+        'flag': '🇳🇿',
+        'lat': -36.8485,
+        'lng': 174.7633,
+        'content':
+            'Kia ora from Auckland! I\'ve just come back from a hike along the Waitakere ranges, and my heart is still full of green hills and crashing waves. New Zealand is like a dream you don\'t want to wake from. I hope this letter carries a little of that wonder to wherever you are. How\'s life treating you?',
+      },
+      {
+        'name': 'Marcin W.',
+        'country': '폴란드',
+        'flag': '🇵🇱',
+        'lat': 52.2297,
+        'lng': 21.0122,
+        'content':
+            'Witaj z Warszawy! Siedzę przy Wiśle i patrzę, jak miasto odbija się w spokojnej wodzie. Warszawa nosi w sobie blizny historii, ale też niesamowitą siłę odrodzenia. Jest coś pięknego w wysyłaniu listu do kogoś, kogo nigdy nie spotkałem. Jak się masz po tamtej stronie świata?',
+      },
+    ];
+
+    // ── 하루 3통: 서로 다른 나라에서 발송 ──
+    final koreaCities = CountryCities.cities['대한민국'] ?? [];
+    final shuffledSenders = List.of(senders)..shuffle(rng);
+    final pickedThree = shuffledSenders.take(3).toList();
+
+    for (int i = 0; i < pickedThree.length; i++) {
+      final picked = pickedThree[i];
+      final randomKorCity = koreaCities[rng.nextInt(koreaCities.length)];
+      final toLat = (randomKorCity['lat'] as num).toDouble();
+      final toLng = (randomKorCity['lng'] as num).toDouble();
+
+      final letterId = 'daily_${todayKey}_${i}_${rng.nextInt(9999)}';
+
+      final letter = _makeMockLetter(
+        id: letterId,
+        senderName: picked['name'] as String,
+        senderCountry: picked['country'] as String,
+        senderFlag: picked['flag'] as String,
+        content: picked['content'] as String,
+        fromCountry: picked['country'] as String,
+        fromLat: (picked['lat'] as num).toDouble(),
+        fromLng: (picked['lng'] as num).toDouble(),
+        toCountry: '대한민국',
+        toLat: toLat,
+        toLng: toLng,
+        segProgress: [0.0, 0.0, 0.0],
+        segIdx: 0,
+        status: DeliveryStatus.inTransit,
+        hoursAgo: 0,
+      );
+      _worldLetters.add(letter);
+    }
+    _saveToPrefs();
+    notifyListeners();
+  }
+
+  // ── 테스트용: 30개국에서 한국으로 편지 일괄 발송 ──────────────────────────
+  Future<void> sendTestWorldLetters() async {
+    final prefs = await SharedPreferences.getInstance();
+    final doneKey = prefs.getBool('testWorldLetters_v3') ?? false;
+    if (doneKey) return;
+    await prefs.setBool('testWorldLetters_v3', true);
+
+    final rng = Random();
+    final koreaCitiesAll = CountryCities.cities['대한민국'] ?? [];
+
+    final allSenders = [
+      {
+        'name': 'Maria G.',
+        'country': '스페인',
+        'flag': '🇪🇸',
+        'lat': 40.4168,
+        'lng': -3.7038,
+        'content':
+            'Desde la Plaza Mayor de Madrid, te escribo esta carta. Hoy asistí a un espectáculo de flamenco y sentí cómo el ritmo del baile me llenaba el alma. Hay algo mágico en esta ciudad que nunca deja de sorprenderme. ¿Cómo estás tú, al otro lado del mundo?',
+      },
+      {
+        'name': 'Dmitri V.',
+        'country': '러시아',
+        'flag': '🇷🇺',
+        'lat': 55.7558,
+        'lng': 37.6176,
+        'content':
+            'Привет из Москвы! Сегодня выпал первый снег, и Красная площадь стала похожа на сказку. Купола собора Василия Блаженного сверкают под белым покровом. Я сижу у окна с горячим чаем и думаю о незнакомцах по всему свету. Как ты?',
+      },
+      {
+        'name': 'Yuki T.',
+        'country': '일본',
+        'flag': '🇯🇵',
+        'lat': 35.6762,
+        'lng': 139.6503,
+        'content':
+            '東京の小さなカフェからこの手紙を書いています。今日は窓の外の景色がとても美しく、つい見とれてしまいました。遠い場所に住む見知らぬあなたに、この穏やかな瞬間を届けたくて。お元気でいますか？',
+      },
+      {
+        'name': 'Amara D.',
+        'country': '남아프리카',
+        'flag': '🇿🇦',
+        'lat': -26.2041,
+        'lng': 28.0473,
+        'content':
+            "Writing to you from Johannesburg as the golden sunset paints the sky in shades of orange and pink. South Africa holds such breathtaking beauty — the wide savanna, the warmth of its people, the stories in every corner. I hope this letter finds you well, wherever you are.",
+      },
+      {
+        'name': 'Lucas B.',
+        'country': '브라질',
+        'flag': '🇧🇷',
+        'lat': -23.5505,
+        'lng': -46.6333,
+        'content':
+            'Olá! Escrevo esta carta das ruas vibrantes de São Paulo. A cidade pulsa com vida, música e alegria em cada esquina. Há algo especial em imaginar que estas palavras vão viajar até você do outro lado do mundo. Como vai você por aí?',
+      },
+      {
+        'name': 'Priya S.',
+        'country': '인도',
+        'flag': '🇮🇳',
+        'lat': 28.6139,
+        'lng': 77.2090,
+        'content':
+            'नमस्ते! नई दिल्ली से आपको यह पत्र लिख रही हूँ। शाम की हवा में चमेली की खुशबू घुली हुई है और मन में बड़ी शांति है। दुनिया के किसी कोने में बैठे आपसे यह पल साझा करना चाहती थी। आप कैसे हैं?',
+      },
+      {
+        'name': 'Chloe M.',
+        'country': '프랑스',
+        'flag': '🇫🇷',
+        'lat': 48.8566,
+        'lng': 2.3522,
+        'content':
+            "Bonjour depuis Paris ! Je t'écris depuis les bords de la Seine, où les lumières de la ville se reflètent doucement sur l'eau. Aujourd'hui, j'ai admiré la Joconde au Louvre — ce sourire mystérieux reste gravé dans ma mémoire. Comment vas-tu, de l'autre côté du monde ?",
+      },
+      {
+        'name': 'James O.',
+        'country': '영국',
+        'flag': '🇬🇧',
+        'lat': 51.5074,
+        'lng': -0.1278,
+        'content':
+            'Greetings from foggy London! There is something rather poetic about writing to a complete stranger on a grey afternoon, with a warm cup of tea in hand and the Thames quietly flowing outside. I do hope your day is going splendidly, wherever you may be.',
+      },
+      {
+        'name': 'Elena K.',
+        'country': '그리스',
+        'flag': '🇬🇷',
+        'lat': 37.9838,
+        'lng': 23.7275,
+        'content':
+            'Γεια σου από τη Σαντορίνη! Κάθομαι κάτω από τον γαλάζιο τρούλο και κοιτώ αναλογιστικά το Αιγαίο. Ο κόσμος είναι τόσο μεγάλος, αλλά μια επιστολή μπορεί να φέρει δύο ψυχές κοντά. Ελπίζω η μέρα σου να είναι γεμάτη φως. Πώς είσαι;',
+      },
+      {
+        'name': 'Tariq A.',
+        'country': '이집트',
+        'flag': '🇪🇬',
+        'lat': 30.0444,
+        'lng': 31.2357,
+        'content':
+            'مرحباً من القاهرة! أكتب إليك في فجر هادئ والأهرامات تلوح في الأفق، شاهدةً على آلاف السنين. هناك شيء ما في هذا المنظر يجعلني أفكر في الغرباء الذين يعيشون في أجزاء أخرى من العالم. كيف حالك في مكانك البعيد؟',
+      },
+      {
+        'name': 'Mei L.',
+        'country': '중국',
+        'flag': '🇨🇳',
+        'lat': 39.9042,
+        'lng': 116.4074,
+        'content':
+            '你好！我在北京故宫附近给你写这封信。春风带着历史的气息轻轻拂过，让人心旷神怡。希望这封漂洋过海的信，能为你带来来自东方的一份温暖与问候。你还好吗？',
+      },
+      {
+        'name': 'Oliver H.',
+        'country': '호주',
+        'flag': '🇦🇺',
+        'lat': -33.8688,
+        'lng': 151.2093,
+        'content':
+            "G'day from Sydney Harbour! Today I took a yacht out on the water and came across a pod of dolphins leaping alongside the bow. Reckon that was the highlight of my week! Hope wherever you are, you're finding your own little moments of magic too.",
+      },
+      {
+        'name': 'Sofia R.',
+        'country': '이탈리아',
+        'flag': '🇮🇹',
+        'lat': 41.9028,
+        'lng': 12.4964,
+        'content':
+            'Ciao da Roma! Stasera ho passeggiato tra i vicoli della città eterna e ho gettato una moneta nella Fontana di Trevi. Ho espresso un desiderio: che questa lettera raggiunga qualcuno che ne aveva bisogno. Come stai, amico lontano?',
+      },
+      {
+        'name': 'Hana W.',
+        'country': '태국',
+        'flag': '🇹🇭',
+        'lat': 13.7563,
+        'lng': 100.5018,
+        'content':
+            'สวัสดีจากกรุงเทพฯ! ฉันนั่งเขียนจดหมายนี้ใกล้วัดทอง แสงอาทิตย์ยามเย็นสาดกระทบยอดปรางค์ทำให้ทุกอย่างดูสวยงามราวกับฝัน อยากแบ่งปันความสงบนี้ให้คุณบ้าง คุณเป็นยังไงบ้างในวันนี้?',
+      },
+      {
+        'name': 'Ananya P.',
+        'country': '인도네시아',
+        'flag': '🇮🇩',
+        'lat': -8.4095,
+        'lng': 115.1889,
+        'content':
+            'Halo dari Bali! Aku menulis surat ini sambil memandangi terasering sawah yang hijau membentang hingga ke bukit. Dunia ini begitu indah dan aku merasa sangat beruntung bisa menikmatinya setiap hari. Semoga kamu juga baik-baik saja di sana, ya.',
+      },
+      {
+        'name': 'Jake M.',
+        'country': '미국',
+        'flag': '🇺🇸',
+        'lat': 40.7128,
+        'lng': -74.0060,
+        'content':
+            'Hey there from New York City! I\'m sitting on the steps of the Met, watching the whole world walk by. Every face has a story, every hurried step carries a dream. In this city of eight million, it\'s easy to feel both lost and found at once. Hope you\'re doing well out there.',
+      },
+      {
+        'name': 'Klaus W.',
+        'country': '독일',
+        'flag': '🇩🇪',
+        'lat': 52.5200,
+        'lng': 13.4050,
+        'content':
+            'Guten Tag aus Berlin! Ich schreibe dir von der Spree, während die Herbstblätter wie goldene Briefe vom Himmel fallen. Diese Stadt trägt die Geschichte Europas in jedem Stein. Manchmal halte ich inne und denke an all die Menschen, die ich nie kennenlernen werde. Wie geht es dir?',
+      },
+      {
+        'name': 'Emily C.',
+        'country': '캐나다',
+        'flag': '🇨🇦',
+        'lat': 43.6532,
+        'lng': -79.3832,
+        'content':
+            'Hello from Toronto! The maple trees have turned into a sea of red and amber, and I\'ve been walking through the leaves all morning. Canada is a country of quiet wonders — frozen lakes, endless forests, and the kindest strangers. Sending you some of this autumn warmth.',
+      },
+      {
+        'name': 'Diego R.',
+        'country': '멕시코',
+        'flag': '🇲🇽',
+        'lat': 19.4326,
+        'lng': -99.1332,
+        'content':
+            '¡Hola desde la Ciudad de México! Estoy sentado en el Zócalo mientras el mariachi llena el aire con su melodía. Los colores de esta ciudad — los murales, los mercados, las flores — son un festín para los ojos. Espero que este mensaje te llegue con todo el sabor de México. ¿Cómo estás?',
+      },
+      {
+        'name': 'Kemal A.',
+        'country': '터키',
+        'flag': '🇹🇷',
+        'lat': 41.0082,
+        'lng': 28.9784,
+        'content':
+            'Merhaba İstanbul\'dan! Boğaz\'da iki kıtanın buluştuğu noktada oturmuş, sana bu mektubu yazıyorum. Şehrin sesi, seyyar satıcıların bağrışları ve uzaktan gelen ezan sesiyle harmanlı. Dünyanın bir başka köşesinde yaşayan sana buradan selam yolluyorum. Nasılsın?',
+      },
+      {
+        'name': 'Valentina M.',
+        'country': '아르헨티나',
+        'flag': '🇦🇷',
+        'lat': -34.6037,
+        'lng': -58.3816,
+        'content':
+            '¡Buenas desde Buenos Aires! Esta noche fui a una milonga y el tango me envolvió como ningún otro baile puede hacerlo. Hay algo en los pasos del tango que habla de amor, de pérdida, de esperanza. Quería compartir este momento con alguien del otro lado del mundo. ¿Cómo estás tú?',
+      },
+      {
+        'name': 'Ana L.',
+        'country': '포르투갈',
+        'flag': '🇵🇹',
+        'lat': 38.7169,
+        'lng': -9.1399,
+        'content':
+            'Olá de Lisboa! Estou sentada num café a ouvir fado enquanto o sol se põe sobre o rio Tejo. Há uma palavra portuguesa — saudade — que não tem tradução, mas que sinto agora ao escrever-te. É a melancolia doce de tudo o que foi ou poderia ser. Espero que estejas bem, amigo distante.',
+      },
+      {
+        'name': 'Lars B.',
+        'country': '스웨덴',
+        'flag': '🇸🇪',
+        'lat': 59.3293,
+        'lng': 18.0686,
+        'content':
+            'Hej från Stockholm! Det är midnattssol och himlen är aldrig helt mörk den här årstiden. Jag sitter vid vattnet och funderar på hur stor världen egentligen är. Det finns något magiskt med att skicka ett brev till någon man aldrig träffat. Hur mår du, var du än är?',
+      },
+      {
+        'name': 'Nguyen T.',
+        'country': '베트남',
+        'flag': '🇻🇳',
+        'lat': 21.0285,
+        'lng': 105.8542,
+        'content':
+            'Xin chào từ Hà Nội! Tôi đang ngồi bên hồ Hoàn Kiếm, nhìn mặt hồ gợn sóng trong buổi sáng sớm. Mùi cà phê trứng thơm nồng từ quán nhỏ bên cạnh cứ vấn vương. Tôi muốn gửi đến bạn một chút bình yên của buổi sáng Hà Nội hôm nay. Bạn có khỏe không?',
+      },
+      {
+        'name': 'Aisha M.',
+        'country': '나이지리아',
+        'flag': '🇳🇬',
+        'lat': 6.5244,
+        'lng': 3.3792,
+        'content':
+            'Hello from Lagos! This city never sleeps — it hums, it dances, it shouts with life at every hour. I am writing to you from my balcony as the sun rises over the lagoon, painting everything in shades of copper and gold. Africa has a pulse unlike anywhere else. How are you, friend?',
+      },
+      {
+        'name': 'Amina K.',
+        'country': '케냐',
+        'flag': '🇰🇪',
+        'lat': -1.2921,
+        'lng': 36.8219,
+        'content':
+            'Jambo kutoka Nairobi! Asubuhi hii nilikuwa bustanini nikitazama ndege wa rangi mbalimbali wakizunguka. Kenya ni nchi ya maajabu — misitu, savana, na watu wenye moyo mkunjufu. Nilitaka kukushirikisha furaha hii ndogo. Je, uko salama?',
+      },
+      {
+        'name': 'Carlos P.',
+        'country': '페루',
+        'flag': '🇵🇪',
+        'lat': -13.1631,
+        'lng': -72.5450,
+        'content':
+            '¡Saludos desde Machu Picchu! Estoy entre las ruinas de los incas, donde las nubes rozan las piedras antiguas y el silencio habla más fuerte que las palabras. Subir aquí fue como tocar el cielo con las manos. Quería compartir este instante suspendido en el tiempo contigo. ¿Cómo estás?',
+      },
+      {
+        'name': 'Fatima Z.',
+        'country': '모로코',
+        'flag': '🇲🇦',
+        'lat': 34.0209,
+        'lng': -6.8416,
+        'content':
+            'مرحباً من الرباط! أجلس في حديقة القصبة والياسمين يملأ الهواء برائحته الزكية. المغرب بلد الألوان والروائح والحكايات القديمة. أريد أن أهديك لحظة من هذا الهدوء الجميل. كيف حالك في مكانك البعيد؟',
+      },
+      {
+        'name': 'Pita F.',
+        'country': '뉴질랜드',
+        'flag': '🇳🇿',
+        'lat': -36.8485,
+        'lng': 174.7633,
+        'content':
+            'Kia ora from Auckland! I\'ve just come back from a hike along the Waitakere ranges, and my heart is still full of green hills and crashing waves. New Zealand is like a dream you don\'t want to wake from. I hope this letter carries a little of that wonder to wherever you are. How\'s life treating you?',
+      },
+      {
+        'name': 'Marcin W.',
+        'country': '폴란드',
+        'flag': '🇵🇱',
+        'lat': 52.2297,
+        'lng': 21.0122,
+        'content':
+            'Witaj z Warszawy! Siedzę przy Wiśle i patrzę, jak miasto odbija się w spokojnej wodzie. Warszawa nosi w sobie blizny historii, ale też niesamowitą siłę odrodzenia. Jest coś pięknego w wysyłaniu listu do kogoś, kogo nigdy nie spotkałem. Jak się masz po tamtej stronie świata?',
+      },
+    ];
+
+    for (int i = 0; i < allSenders.length; i++) {
+      final s = allSenders[i];
+      final letterId = 'world_test_v3_$i';
+      // 각 편지마다 다른 한국 랜덤 주소로 발송
+      final korCity = koreaCitiesAll[rng.nextInt(koreaCitiesAll.length)];
+      final toLat = (korCity['lat'] as num).toDouble();
+      final toLng = (korCity['lng'] as num).toDouble();
+      final letter = _makeMockLetter(
+        id: letterId,
+        senderName: s['name'] as String,
+        senderCountry: s['country'] as String,
+        senderFlag: s['flag'] as String,
+        content: s['content'] as String,
+        fromCountry: s['country'] as String,
+        fromLat: (s['lat'] as num).toDouble(),
+        fromLng: (s['lng'] as num).toDouble(),
+        toCountry: '대한민국',
+        toLat: toLat,
+        toLng: toLng,
+        segProgress: [rng.nextDouble() * 0.8, 0.0, 0.0],
+        segIdx: 0,
+        status: DeliveryStatus.inTransit,
+        hoursAgo: rng.nextInt(48),
+      );
+      _worldLetters.add(letter);
+    }
+    _saveToPrefs();
+    notifyListeners();
+  }
+
+  // ── Firestore: 지도 회원 타워 불러오기 ────────────────────────────────────
+  Future<void> fetchMapUsers({bool force = false}) async {
+    if (!FirebaseConfig.kFirebaseEnabled) {
+      // Firebase 비활성 시에도 데모 타워 표시
+      if (_mapUsers.isEmpty) {
+        final demoUsers = _buildDemoMapUsers();
+        demoUsers.sort((a, b) => b.floors.compareTo(a.floors));
+        _mapUsers = demoUsers
+            .asMap()
+            .entries
+            .map((e) => e.value.copyWith(rank: e.key + 1))
+            .toList();
+        notifyListeners();
+      }
+      return;
+    }
+    if (_isFetchingMapUsers) return;
+    final now = DateTime.now();
+    if (!force &&
+        _lastMapUsersFetchedAt != null &&
+        _mapUsers.isNotEmpty &&
+        now.difference(_lastMapUsersFetchedAt!) < _mapUsersMinRefreshInterval) {
+      return;
+    }
+
+    _isFetchingMapUsers = true;
+    try {
+      double parseDouble(Map<String, dynamic> fields, String key) {
+        final f = fields[key];
+        if (f == null) return 0.0;
+        final v = f as Map<String, dynamic>;
+        return (v['doubleValue'] as num?)?.toDouble() ??
+            double.tryParse(v['integerValue']?.toString() ?? '') ??
+            0.0;
+      }
+
+      int parseInt(Map<String, dynamic> fields, String key) {
+        final f = fields[key];
+        if (f == null) return 0;
+        final v = f as Map<String, dynamic>;
+        return int.tryParse(v['integerValue']?.toString() ?? '') ??
+            (v['doubleValue'] as num?)?.toInt() ??
+            0;
+      }
+
+      String parseString(
+        Map<String, dynamic> fields,
+        String key, {
+        String fallback = '',
+      }) {
+        final f = fields[key];
+        if (f is! Map) return fallback;
+        final v = Map<String, dynamic>.from(f);
+        final value =
+            (v['stringValue'] ??
+                    v['integerValue'] ??
+                    v['doubleValue'] ??
+                    v['timestampValue'] ??
+                    fallback)
+                .toString()
+                .trim();
+        return value;
+      }
+
+      bool parseBool(
+        Map<String, dynamic> fields,
+        String key, {
+        bool fallback = false,
+      }) {
+        final f = fields[key];
+        if (f is! Map) return fallback;
+        final v = Map<String, dynamic>.from(f);
+        final raw = v['boolValue'];
+        if (raw is bool) return raw;
+        if (raw is String) return raw.toLowerCase() == 'true';
+        return fallback;
+      }
+
+      String extractDocId(
+        Map<String, dynamic> doc,
+        Map<String, dynamic> fields,
+      ) {
+        final fromField = parseString(fields, 'id');
+        if (fromField.isNotEmpty) return fromField;
+        final fullName = (doc['name'] ?? '').toString().trim();
+        if (fullName.isEmpty) return '';
+        return fullName.split('/').last.trim();
+      }
+
+      final users = <MapUser>[];
+      final seenUserIds = <String>{};
+      String? nextPageToken;
+      int fetchedPageCount = 0;
+
+      String buildUsersListUrl(String pageToken) {
+        final params = <String>[
+          'key=${Uri.encodeQueryComponent(FirebaseConfig.apiKey)}',
+          'pageSize=$_mapUsersPageSize',
+          // 필수 필드만 요청해서 데이터 노출 범위 최소화
+          'mask.fieldPaths=id',
+          'mask.fieldPaths=countryFlag',
+          'mask.fieldPaths=latitude',
+          'mask.fieldPaths=longitude',
+          'mask.fieldPaths=isMapPublic',
+          'mask.fieldPaths=isUsernamePublic',
+          'mask.fieldPaths=username',
+          'mask.fieldPaths=receivedCount',
+          'mask.fieldPaths=replyCount',
+          'mask.fieldPaths=sentCount',
+          'mask.fieldPaths=likeCount',
+          'mask.fieldPaths=customTowerName',
+        ];
+        if (pageToken.isNotEmpty) {
+          params.add('pageToken=${Uri.encodeQueryComponent(pageToken)}');
+        }
+        return '${FirebaseConfig.firestoreBase}/users?${params.join('&')}';
+      }
+
+      do {
+        fetchedPageCount++;
+        final pageToken = nextPageToken?.trim() ?? '';
+        final url = Uri.parse(buildUsersListUrl(pageToken));
+
+        final res = await http.get(url).timeout(const Duration(seconds: 8));
+        if (res.statusCode != 200) {
+          debugPrint('[Firestore] fetchMapUsers http ${res.statusCode}');
+          break;
+        }
+
+        final data = jsonDecode(res.body) as Map<String, dynamic>;
+        final docs = (data['documents'] as List?) ?? const [];
+
+        for (final raw in docs.whereType<Map>()) {
+          try {
+            final doc = Map<String, dynamic>.from(raw);
+            final fields = (doc['fields'] as Map<String, dynamic>?) ?? {};
+            final id = extractDocId(doc, fields);
+            if (id.isEmpty || id == _currentUser.id || !seenUserIds.add(id)) {
+              continue;
+            }
+
+            final isMapPublic = parseBool(
+              fields,
+              'isMapPublic',
+              fallback: parseBool(fields, 'isUsernamePublic', fallback: true),
+            );
+            if (!isMapPublic) continue;
+
+            final lat = parseDouble(fields, 'latitude');
+            final lng = parseDouble(fields, 'longitude');
+            if (lat == 0.0 && lng == 0.0) continue;
+
+            final flag = parseString(fields, 'countryFlag', fallback: '🌍');
+            final isPublic = parseBool(
+              fields,
+              'isUsernamePublic',
+              fallback: false,
+            );
+            final usernameRaw = parseString(fields, 'username');
+            final username = usernameRaw.isEmpty ? null : usernameRaw;
+
+            final score = ActivityScore(
+              receivedCount: parseInt(fields, 'receivedCount'),
+              replyCount: parseInt(fields, 'replyCount'),
+              sentCount: parseInt(fields, 'sentCount'),
+              likeCount: parseInt(fields, 'likeCount'),
+            );
+
+            final towerNameRaw = parseString(fields, 'customTowerName');
+            final towerName = towerNameRaw.isEmpty ? null : towerNameRaw;
+
+            users.add(
+              MapUser(
+                id: id,
+                flag: flag,
+                lat: lat,
+                lng: lng,
+                tier: score.tier,
+                floors: score.towerFloors,
+                rank: 0,
+                username: isPublic ? username : null,
+                towerName: towerName,
+              ),
+            );
+            if (users.length >= _mapUsersMaxCount) break;
+          } catch (_) {}
+        }
+
+        nextPageToken = (data['nextPageToken'] ?? '').toString().trim();
+      } while (nextPageToken.isNotEmpty &&
+          fetchedPageCount < _mapUsersMaxPages &&
+          users.length < _mapUsersMaxCount);
+
+      // 항상 데모 타워 표시 (실제 유저가 없는 나라만)
+      if (true) {
+        // ── 가상 회원 데이터 추가 (20개국 데모) ──────────────────────────
+        final demoUsers = _buildDemoMapUsers();
+        // 이미 실제 유저가 있는 나라의 데모 유저는 제외 (중복 방지)
+        final realCountryFlags = users.map((u) => u.flag).toSet();
+        for (final demo in demoUsers) {
+          if (!realCountryFlags.contains(demo.flag)) {
+            users.add(demo);
+          }
+        }
+      }
+
+      // floors 내림차순 정렬 → 랭킹 부여
+      users.sort((a, b) => b.floors.compareTo(a.floors));
+      _mapUsers = users
+          .asMap()
+          .entries
+          .map((e) => e.value.copyWith(rank: e.key + 1))
+          .toList();
+      _lastMapUsersFetchedAt = DateTime.now();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[Firestore] fetchMapUsers error: $e');
+      // ── 오류 발생 시에도 데모 타워는 항상 표시 ──────────────────────────
+      if (_mapUsers.isEmpty) {
+        try {
+          final demoUsers = _buildDemoMapUsers();
+          demoUsers.sort((a, b) => b.floors.compareTo(a.floors));
+          _mapUsers = demoUsers
+              .asMap()
+              .entries
+              .map((e) => e.value.copyWith(rank: e.key + 1))
+              .toList();
+          notifyListeners();
+        } catch (_) {}
+      }
+    } finally {
+      _isFetchingMapUsers = false;
+    }
+  }
+
+  // ── 가상 회원 20개국 데이터 ──────────────────────────────────────────────
+  List<MapUser> _buildDemoMapUsers() {
+    return [
+      MapUser(
+        id: 'demo_us',
+        flag: '🇺🇸',
+        lat: 40.7128,
+        lng: -74.0060,
+        tier: TowerTier.skyscraper,
+        floors: 33,
+        rank: 0,
+        username: 'NYC_Writer',
+      ),
+      MapUser(
+        id: 'demo_jp',
+        flag: '🇯🇵',
+        lat: 35.6762,
+        lng: 139.6503,
+        tier: TowerTier.supertall,
+        floors: 42,
+        rank: 0,
+        username: 'TokyoPen',
+      ),
+      MapUser(
+        id: 'demo_gb',
+        flag: '🇬🇧',
+        lat: 51.5074,
+        lng: -0.1278,
+        tier: TowerTier.office,
+        floors: 24,
+        rank: 0,
+        username: 'LondonInk',
+      ),
+      MapUser(
+        id: 'demo_fr',
+        flag: '🇫🇷',
+        lat: 48.8566,
+        lng: 2.3522,
+        tier: TowerTier.building,
+        floors: 18,
+        rank: 0,
+        username: 'ParisDreamer',
+      ),
+      MapUser(
+        id: 'demo_de',
+        flag: '🇩🇪',
+        lat: 52.5200,
+        lng: 13.4050,
+        tier: TowerTier.house,
+        floors: 8,
+        rank: 0,
+        username: 'BerlinWords',
+      ),
+      MapUser(
+        id: 'demo_au',
+        flag: '🇦🇺',
+        lat: -33.8688,
+        lng: 151.2093,
+        tier: TowerTier.building,
+        floors: 16,
+        rank: 0,
+        username: 'SydneyWriter',
+      ),
+      MapUser(
+        id: 'demo_br',
+        flag: '🇧🇷',
+        lat: -23.5505,
+        lng: -46.6333,
+        tier: TowerTier.cottage,
+        floors: 3,
+        rank: 0,
+        username: 'Rio_Letters',
+      ),
+      MapUser(
+        id: 'demo_in',
+        flag: '🇮🇳',
+        lat: 28.6139,
+        lng: 77.2090,
+        tier: TowerTier.townhouse,
+        floors: 12,
+        rank: 0,
+        username: 'DelhiPen',
+      ),
+      MapUser(
+        id: 'demo_cn',
+        flag: '🇨🇳',
+        lat: 39.9042,
+        lng: 116.4074,
+        tier: TowerTier.skyscraper,
+        floors: 35,
+        rank: 0,
+        username: 'BeijingQuill',
+      ),
+      MapUser(
+        id: 'demo_ru',
+        flag: '🇷🇺',
+        lat: 55.7558,
+        lng: 37.6176,
+        tier: TowerTier.office,
+        floors: 22,
+        rank: 0,
+        username: 'MoscowMemo',
+      ),
+      MapUser(
+        id: 'demo_it',
+        flag: '🇮🇹',
+        lat: 41.9028,
+        lng: 12.4964,
+        tier: TowerTier.townhouse,
+        floors: 11,
+        rank: 0,
+        username: 'RomaPenna',
+      ),
+      MapUser(
+        id: 'demo_es',
+        flag: '🇪🇸',
+        lat: 40.4168,
+        lng: -3.7038,
+        tier: TowerTier.house,
+        floors: 7,
+        rank: 0,
+        username: 'MadridLetras',
+      ),
+      MapUser(
+        id: 'demo_ca',
+        flag: '🇨🇦',
+        lat: 45.4215,
+        lng: -75.6919,
+        tier: TowerTier.building,
+        floors: 19,
+        rank: 0,
+        username: 'CanadaInk',
+      ),
+      MapUser(
+        id: 'demo_mx',
+        flag: '🇲🇽',
+        lat: 19.4326,
+        lng: -99.1332,
+        tier: TowerTier.cottage,
+        floors: 4,
+        rank: 0,
+        username: 'MexicoPluma',
+      ),
+      MapUser(
+        id: 'demo_za',
+        flag: '🇿🇦',
+        lat: -26.2041,
+        lng: 28.0473,
+        tier: TowerTier.house,
+        floors: 9,
+        rank: 0,
+        username: 'CapePenman',
+      ),
+      MapUser(
+        id: 'demo_th',
+        flag: '🇹🇭',
+        lat: 13.7563,
+        lng: 100.5018,
+        tier: TowerTier.townhouse,
+        floors: 13,
+        rank: 0,
+        username: 'BangkokScribe',
+      ),
+      MapUser(
+        id: 'demo_eg',
+        flag: '🇪🇬',
+        lat: 30.0444,
+        lng: 31.2357,
+        tier: TowerTier.cottage,
+        floors: 5,
+        rank: 0,
+        username: 'CairoLetters',
+      ),
+      MapUser(
+        id: 'demo_gr',
+        flag: '🇬🇷',
+        lat: 37.9838,
+        lng: 23.7275,
+        tier: TowerTier.house,
+        floors: 6,
+        rank: 0,
+        username: 'AthensWriter',
+      ),
+      MapUser(
+        id: 'demo_id',
+        flag: '🇮🇩',
+        lat: -8.4095,
+        lng: 115.1889,
+        tier: TowerTier.cottage,
+        floors: 3,
+        rank: 0,
+        username: 'BaliWords',
+      ),
+      MapUser(
+        id: 'demo_tr',
+        flag: '🇹🇷',
+        lat: 41.0082,
+        lng: 28.9784,
+        tier: TowerTier.townhouse,
+        floors: 10,
+        rank: 0,
+        username: 'IstanbulMemo',
+      ),
+      MapUser(
+        id: 'demo_ar',
+        flag: '🇦🇷',
+        lat: -34.6037,
+        lng: -58.3816,
+        tier: TowerTier.house,
+        floors: 7,
+        rank: 0,
+        username: 'BsAsWriter',
+      ),
+      MapUser(
+        id: 'demo_pt',
+        flag: '🇵🇹',
+        lat: 38.7169,
+        lng: -9.1399,
+        tier: TowerTier.cottage,
+        floors: 5,
+        rank: 0,
+        username: 'LisbonPen',
+      ),
+      MapUser(
+        id: 'demo_se',
+        flag: '🇸🇪',
+        lat: 59.3293,
+        lng: 18.0686,
+        tier: TowerTier.building,
+        floors: 15,
+        rank: 0,
+        username: 'StockholmInk',
+      ),
+      MapUser(
+        id: 'demo_vn',
+        flag: '🇻🇳',
+        lat: 21.0285,
+        lng: 105.8542,
+        tier: TowerTier.townhouse,
+        floors: 11,
+        rank: 0,
+        username: 'HanoiQuill',
+      ),
+      MapUser(
+        id: 'demo_ng',
+        flag: '🇳🇬',
+        lat: 6.5244,
+        lng: 3.3792,
+        tier: TowerTier.house,
+        floors: 8,
+        rank: 0,
+        username: 'LagosLetters',
+      ),
+      MapUser(
+        id: 'demo_ke',
+        flag: '🇰🇪',
+        lat: -1.2921,
+        lng: 36.8219,
+        tier: TowerTier.cottage,
+        floors: 4,
+        rank: 0,
+        username: 'NairobiWords',
+      ),
+      MapUser(
+        id: 'demo_pe',
+        flag: '🇵🇪',
+        lat: -13.1631,
+        lng: -72.5450,
+        tier: TowerTier.house,
+        floors: 6,
+        rank: 0,
+        username: 'MachuScribe',
+      ),
+      MapUser(
+        id: 'demo_ma',
+        flag: '🇲🇦',
+        lat: 34.0209,
+        lng: -6.8416,
+        tier: TowerTier.cottage,
+        floors: 4,
+        rank: 0,
+        username: 'RabatPen',
+      ),
+      MapUser(
+        id: 'demo_nz',
+        flag: '🇳🇿',
+        lat: -36.8485,
+        lng: 174.7633,
+        tier: TowerTier.building,
+        floors: 14,
+        rank: 0,
+        username: 'AucklandInk',
+      ),
+      MapUser(
+        id: 'demo_pl',
+        flag: '🇵🇱',
+        lat: 52.2297,
+        lng: 21.0122,
+        tier: TowerTier.townhouse,
+        floors: 12,
+        rank: 0,
+        username: 'WarsawWriter',
+      ),
+    ];
+  }
+
+  // ── 목업 데이터 초기화 ─────────────────────────────────────────────────────
+  void _initMockData() {
+    final letters = [
+      _makeMockLetter(
+        id: 'l1',
+        senderName: 'Emma W.',
+        senderCountry: '영국',
+        senderFlag: '🇬🇧',
+        content:
+            '비가 내리는 런던의 카페에서 이 편지를 씁니다. 오늘따라 낯선 곳의 낯선 누군가와 연결되고 싶었어요. 당신은 지금 어디에 있나요?',
+        fromCountry: '영국',
+        fromLat: 51.5074,
+        fromLng: -0.1278,
+        toCountry: '대한민국',
+        toLat: 37.5665,
+        toLng: 126.9780,
+        segProgress: [1.0, 1.0, 0.7],
+        segIdx: 2,
+        status: DeliveryStatus.inTransit,
+        hoursAgo: 5,
+      ),
+      _makeMockLetter(
+        id: 'l2',
+        senderName: 'Kenji M.',
+        senderCountry: '일본',
+        senderFlag: '🇯🇵',
+        content:
+            '桜の季節が来ました。벚꽃이 피는 계절이 왔습니다. 도쿄의 봄은 정말 아름다워요. 세상 어딘가의 당신에게도 봄이 오길 바랍니다.',
+        fromCountry: '일본',
+        fromLat: 35.6762,
+        fromLng: 139.6503,
+        toCountry: '프랑스',
+        toLat: 48.8566,
+        toLng: 2.3522,
+        segProgress: [1.0, 0.45, 0.0],
+        segIdx: 1,
+        status: DeliveryStatus.inTransit,
+        hoursAgo: 3,
+      ),
+      _makeMockLetter(
+        id: 'l3',
+        senderName: 'Sofia R.',
+        senderCountry: '이탈리아',
+        senderFlag: '🇮🇹',
+        content:
+            'Ciao! 로마의 트레비 분수 앞에서 동전을 던지며 이 편지를 씁니다. 소원은 비밀이에요. 당신의 소원은 무엇인가요?',
+        fromCountry: '이탈리아',
+        fromLat: 41.9028,
+        fromLng: 12.4964,
+        toCountry: '미국',
+        toLat: 40.7128,
+        toLng: -74.0060,
+        segProgress: [0.6, 0.0, 0.0],
+        segIdx: 0,
+        status: DeliveryStatus.inTransit,
+        hoursAgo: 1,
+      ),
+      _makeMockLetter(
+        id: 'l4',
+        senderName: 'Carlos M.',
+        senderCountry: '멕시코',
+        senderFlag: '🇲🇽',
+        content: '¡Hola! 멕시코시티의 밤은 형형색색의 불빛으로 가득합니다. 언젠가 이곳에 꼭 와보세요!',
+        fromCountry: '멕시코',
+        fromLat: 19.4326,
+        fromLng: -99.1332,
+        toCountry: '호주',
+        toLat: -33.8688,
+        toLng: 151.2093,
+        segProgress: [1.0, 0.62, 0.0],
+        segIdx: 1,
+        status: DeliveryStatus.inTransit,
+        hoursAgo: 4,
+      ),
+      _makeMockLetter(
+        id: 'l7',
+        senderName: 'Liam O.',
+        senderCountry: '호주',
+        senderFlag: '🇦🇺',
+        content:
+            'G\'day! 시드니 오페라 하우스 앞에서 씁니다. 남반구의 하늘은 북반구와 별자리가 달라요. 같은 하늘 아래 다른 별을 보고 있다는 게 신기하지 않나요?',
+        fromCountry: '호주',
+        fromLat: -33.8688,
+        fromLng: 151.2093,
+        toCountry: '대한민국',
+        toLat: 37.5665,
+        toLng: 126.9780,
+        segProgress: [1.0, 1.0, 0.95],
+        segIdx: 2,
+        status: DeliveryStatus.nearYou,
+        hoursAgo: 6,
+      ),
+    ];
+
+    _worldLetters.addAll(letters);
+
+    // 도착 후 미열람 편지 마커 테스트용 (delivered + !isReadByRecipient → 📮 마커)
+    final deliveredMock = _makeMockLetter(
+      id: 'l_delivered_test',
+      senderName: 'Mia Chen',
+      senderCountry: '대만',
+      senderFlag: '🇹🇼',
+      content: '타이베이에서 보내는 편지입니다. 잘 도착했으면 좋겠어요!',
+      fromCountry: '대만',
+      fromLat: 25.0330,
+      fromLng: 121.5654,
+      toCountry: '대한민국',
+      toLat: 35.1796,
+      toLng: 129.0756,
+      segProgress: [1.0, 1.0, 1.0],
+      segIdx: 2,
+      status: DeliveryStatus.delivered,
+      hoursAgo: 2,
+    );
+    _worldLetters.add(deliveredMock);
+
+    // 받은 편지함
+    final inbox1 = _makeMockLetter(
+      id: 'inbox1',
+      senderName: 'Alex K.',
+      senderCountry: '독일',
+      senderFlag: '🇩🇪',
+      content:
+          'Guten Tag! 베를린의 브란덴부르크 문 앞에서 씁니다. 역사의 무게가 느껴지는 이곳에서, 당신에게 안녕을 전합니다.',
+      fromCountry: '독일',
+      fromLat: 52.5200,
+      fromLng: 13.4050,
+      toCountry: '대한민국',
+      toLat: 37.5665,
+      toLng: 126.9780,
+      segProgress: [1.0, 1.0, 1.0],
+      segIdx: 2,
+      status: DeliveryStatus.delivered,
+      hoursAgo: 12,
+    );
+    _inbox.add(inbox1);
+
+    // 번역 테스트용: 일본어 편지
+    final inbox2 = _makeMockLetter(
+      id: 'inbox2',
+      senderName: 'Hana T.',
+      senderCountry: '일본',
+      senderFlag: '🇯🇵',
+      content:
+          '桜が満開の京都から手紙を送ります。今年の春は特別に美しいです。嵐山の竹林を歩きながら、遠くにいる誰かと繋がりたいと思いました。あなたの街では今、どんな季節ですか？いつかお互いの国を訪れてみたいですね。',
+      fromCountry: '일본',
+      fromLat: 35.0116,
+      fromLng: 135.7681,
+      toCountry: '대한민국',
+      toLat: 37.5665,
+      toLng: 126.9780,
+      segProgress: [1.0, 1.0, 1.0],
+      segIdx: 2,
+      status: DeliveryStatus.delivered,
+      hoursAgo: 18,
+    );
+    _inbox.add(inbox2);
+
+    // 번역 테스트용: 프랑스어 편지
+    final inbox3 = _makeMockLetter(
+      id: 'inbox3',
+      senderName: 'Marie L.',
+      senderCountry: '프랑스',
+      senderFlag: '🇫🇷',
+      content:
+          'Bonjour depuis Paris ! Je t\'écris depuis un café près de la Seine, avec une tasse de café au lait. La tour Eiffel scintille ce soir et je me sens inspirée. La vie est tellement belle quand on prend le temps de la regarder. Comment vas-tu de ton côté du monde ?',
+      fromCountry: '프랑스',
+      fromLat: 48.8566,
+      fromLng: 2.3522,
+      toCountry: '대한민국',
+      toLat: 37.5665,
+      toLng: 126.9780,
+      segProgress: [1.0, 1.0, 1.0],
+      segIdx: 2,
+      status: DeliveryStatus.delivered,
+      hoursAgo: 24,
+    );
+    _inbox.add(inbox3);
+
+    // 📸 사진 + 링크 첨부 예시 편지 (미국) — 마지막에 추가해서 목록 최상단에 표시
+    final inbox4 = _makeMockLetter(
+      id: 'inbox4_photo',
+      senderName: 'Sofia M.',
+      senderCountry: '미국',
+      senderFlag: '🇺🇸',
+      content:
+          'Hello from New York! 🗽\n\n오늘 센트럴 파크에서 찍은 사진을 보내드려요. 벚꽃이 한창이라 정말 아름답답니다. 언젠가 뉴욕에 오시면 꼭 봄에 오세요.\n\nI hope this little piece of my world finds you well. 당신의 일상도 이렇게 아름다우면 좋겠어요 🌸',
+      fromCountry: '미국',
+      fromLat: 40.7851,
+      fromLng: -73.9683,
+      toCountry: '대한민국',
+      toLat: 37.5665,
+      toLng: 126.9780,
+      segProgress: [1.0, 1.0, 1.0],
+      segIdx: 2,
+      status: DeliveryStatus.delivered,
+      hoursAgo: 6,
+      imageUrl:
+          'https://images.unsplash.com/photo-1534430480872-3498386e7856?w=800&q=80',
+      socialLink: 'https://instagram.com/sofia.nyc',
+      isAnonymous: false,
+      paperStyle: 2,
+    );
+    _inbox.add(inbox4);
+
+    // 보낸 편지 목업은 실제 출발지 오해를 줄이기 위해 제거
+  }
+
+  Letter _makeMockLetter({
+    required String id,
+    required String senderName,
+    required String senderCountry,
+    required String senderFlag,
+    required String content,
+    required String fromCountry,
+    required double fromLat,
+    required double fromLng,
+    required String toCountry,
+    required double toLat,
+    required double toLng,
+    required List<double> segProgress,
+    required int segIdx,
+    required DeliveryStatus status,
+    required int hoursAgo,
+    String? destinationCity,
+    String? imageUrl,
+    String? socialLink,
+    bool isAnonymous = true,
+    int paperStyle = 0,
+    int fontStyle = 0,
+  }) {
+    final fromCity = LatLng(fromLat, fromLng);
+    final toCity = LatLng(toLat, toLng);
+    final segments = LogisticsHubs.buildRoute(
+      fromCountry: fromCountry,
+      fromCity: fromCity,
+      toCountry: toCountry,
+      toCity: toCity,
+    );
+
+    // 구간 진행도 적용
+    for (int i = 0; i < segments.length && i < segProgress.length; i++) {
+      segments[i].progress = segProgress[i];
+    }
+
+    final totalMin = segments.fold<int>(
+      0,
+      (s, seg) => s + seg.estimatedMinutes,
+    );
+
+    return Letter(
+      id: id,
+      senderId: 'mock_$senderName',
+      senderName: senderName,
+      senderCountry: senderCountry,
+      senderCountryFlag: senderFlag,
+      content: content,
+      originLocation: fromCity,
+      destinationLocation: toCity,
+      destinationCountry: toCountry,
+      destinationCountryFlag: countries.firstWhere(
+        (c) => c['name'] == toCountry,
+        orElse: () => {'flag': '🌍'},
+      )['flag']!,
+      destinationCity: destinationCity,
+      segments: segments,
+      currentSegmentIndex: segIdx.clamp(0, segments.length - 1),
+      status: status,
+      sentAt: DateTime.now().subtract(Duration(hours: hoursAgo)),
+      arrivalTime:
+          status == DeliveryStatus.inTransit || status == DeliveryStatus.nearYou
+          ? DateTime.now()
+                .subtract(Duration(hours: hoursAgo))
+                .add(Duration(minutes: totalMin))
+          : null,
+      arrivedAt:
+          status == DeliveryStatus.delivered || status == DeliveryStatus.read
+          ? DateTime.now().subtract(const Duration(hours: 1))
+          : null,
+      estimatedTotalMinutes: totalMin,
+      imageUrl: imageUrl,
+      socialLink: socialLink,
+      isAnonymous: isAnonymous,
+      paperStyle: paperStyle,
+      fontStyle: fontStyle,
+    );
+  }
+
+  // ── 배송 시뮬레이션 ────────────────────────────────────────────────────────
+  void _startDeliverySimulation() {
+    _deliveryTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      bool changed = false;
+      final now = DateTime.now();
+      final List<Letter> dailyToInbox = [];
+
+      for (final letter in _worldLetters) {
+        // deliveredFar 편지: 유저가 2km 이내로 이동하면 nearYou로 변경
+        if (letter.status == DeliveryStatus.deliveredFar) {
+          final dist = letter.destinationLocation.distanceTo(
+            LatLng(_currentUser.latitude, _currentUser.longitude),
+          );
+          if (dist <= 2000) {
+            letter.status = DeliveryStatus.nearYou;
+            _hasNearbyAlert = true;
+            _triggerNearbyNotification(letter);
+            changed = true;
+          }
+          continue;
+        }
+
+        // nearYou 편지: 유저가 2km 밖으로 이동하면 deliveredFar로 되돌림
+        if (letter.status == DeliveryStatus.nearYou) {
+          final dist = letter.destinationLocation.distanceTo(
+            LatLng(_currentUser.latitude, _currentUser.longitude),
+          );
+          if (dist > 2000) {
+            letter.status = DeliveryStatus.deliveredFar;
+            changed = true;
+          }
+          continue;
+        }
+
+        if (letter.status != DeliveryStatus.inTransit) continue;
+
+        if (_syncLetterProgressWithClock(letter, now)) {
+          changed = true;
+        }
+
+        final arrived = letter.arrivalTime != null
+            ? !now.isBefore(letter.arrivalTime!)
+            : letter.overallProgress >= 0.999;
+
+        if (arrived) {
+          // daily_ 편지: 거리와 무관하게 자동으로 inbox로 이동
+          if (letter.id.startsWith('daily_')) {
+            letter.status = DeliveryStatus.delivered;
+            letter.arrivedAt ??= now;
+            dailyToInbox.add(letter);
+            changed = true;
+            continue;
+          }
+          // 내 위치 2km 이내인지 확인
+          final dist = letter.destinationLocation.distanceTo(
+            LatLng(_currentUser.latitude, _currentUser.longitude),
+          );
+          if (dist <= 2000) {
+            // 실제 2km 이내
+            letter.status = DeliveryStatus.nearYou;
+            _hasNearbyAlert = true;
+            _triggerNearbyNotification(letter);
+          } else {
+            // 2km 밖에 있으면 deliveredFar (지도에 표시되지만 열 수 없음)
+            letter.status = DeliveryStatus.deliveredFar;
+            NotificationService.showLetterArrivedNotification(
+              senderCountry: letter.senderCountry,
+              senderFlag: letter.senderCountryFlag,
+            );
+          }
+          letter.arrivedAt ??= now;
+          changed = true;
+        }
+      }
+
+      // daily 편지: worldLetters → inbox 이동
+      for (final l in dailyToInbox) {
+        _worldLetters.removeWhere((x) => x.id == l.id);
+        _inbox.add(l);
+        _currentUser.activityScore.receivedCount++;
+        NotificationService.showLetterArrivedNotification(
+          senderCountry: l.senderCountry,
+          senderFlag: l.senderCountryFlag,
+        );
+      }
+      if (dailyToInbox.isNotEmpty) {
+        _saveToPrefs();
+        changed = true;
+      }
+
+      if (changed) notifyListeners();
+    });
+  }
+
+  bool _syncLetterProgressWithClock(Letter letter, DateTime now) {
+    if (letter.segments.isEmpty) {
+      // 세그먼트 없는 편지: estimatedTotalMinutes 기반으로 arrivalTime 설정
+      if (letter.arrivalTime == null && letter.estimatedTotalMinutes > 0) {
+        letter.arrivalTime = letter.sentAt.add(
+          Duration(minutes: letter.estimatedTotalMinutes.clamp(1, 999999)),
+        );
+        return true;
+      }
+      return false;
+    }
+
+    if (letter.arrivalTime == null) {
+      letter.arrivalTime = letter.sentAt.add(
+        Duration(minutes: letter.estimatedTotalMinutes.clamp(1, 999999)),
+      );
+    }
+
+    final eta = letter.arrivalTime!;
+    final totalMs = eta.difference(letter.sentAt).inMilliseconds;
+    final totalMin = letter.segments.fold<int>(
+      0,
+      (s, seg) => s + (seg.estimatedMinutes <= 0 ? 1 : seg.estimatedMinutes),
+    );
+    if (totalMs <= 0 || totalMin <= 0) return false;
+
+    final elapsedMsRaw =
+        (now.difference(letter.sentAt).inMilliseconds * _adminSpeedMultiplier)
+            .round();
+    final elapsedMs = elapsedMsRaw.clamp(0, totalMs);
+    final ratio = elapsedMs / totalMs;
+    final targetMin = ratio * totalMin;
+
+    bool changed = false;
+    var accMin = 0.0;
+    var newSegmentIndex = 0;
+
+    for (int i = 0; i < letter.segments.length; i++) {
+      final seg = letter.segments[i];
+      final segMin = (seg.estimatedMinutes <= 0 ? 1 : seg.estimatedMinutes)
+          .toDouble();
+      final segStart = accMin;
+      final segEnd = accMin + segMin;
+      double nextProgress;
+
+      if (targetMin <= segStart) {
+        nextProgress = 0.0;
+      } else if (targetMin >= segEnd) {
+        nextProgress = 1.0;
+        if (i < letter.segments.length - 1) {
+          newSegmentIndex = i + 1;
+        } else {
+          newSegmentIndex = i;
+        }
+      } else {
+        nextProgress = (targetMin - segStart) / segMin;
+        newSegmentIndex = i;
+      }
+
+      nextProgress = nextProgress.clamp(0.0, 1.0);
+      if ((seg.progress - nextProgress).abs() > 1e-6) {
+        seg.progress = nextProgress;
+        changed = true;
+      }
+      accMin = segEnd;
+    }
+
+    if (letter.currentSegmentIndex != newSegmentIndex) {
+      letter.currentSegmentIndex = newSegmentIndex;
+      changed = true;
+    }
+    return changed;
+  }
+
+  // ── 근처 도착 알림 트리거 ────────────────────────────────────────────────────
+  Future<void> _triggerNearbyNotification(Letter letter) async {
+    // 편지 도착 햅틱 (medium vibration)
+    HapticFeedback.mediumImpact();
+    final prefs = await SharedPreferences.getInstance();
+    final notifyEnabled = prefs.getBool('notify_nearby') ?? true;
+    if (!notifyEnabled) return;
+    NotificationService.showNearbyLetterNotification(
+      title: '📩 편지가 근처에 있어요!',
+      body:
+          '${letter.senderCountryFlag} ${letter.senderCountry}에서 온 편지가 2km 이내에 도착했어요',
+    );
+  }
+
+  // 총 예상 시간과 구간 합계 시간을 일치시켜, ETA/진행률/실제 도착 시점이 어긋나지 않게 맞춘다.
+  void _rebalanceSegmentEstimatedMinutes(
+    List<RouteSegment> segments,
+    int totalMin,
+  ) {
+    if (segments.isEmpty) return;
+    if (totalMin <= 0) return;
+
+    final count = segments.length;
+    if (count == 1) {
+      segments.first.estimatedMinutes = totalMin;
+      return;
+    }
+
+    final original = segments
+        .map((s) => s.estimatedMinutes <= 0 ? 1 : s.estimatedMinutes)
+        .toList();
+    final originalTotal = original.fold<int>(0, (sum, v) => sum + v);
+
+    if (originalTotal == totalMin) return;
+
+    final ratio = totalMin / originalTotal;
+    for (var i = 0; i < segments.length; i++) {
+      final scaled = (original[i] * ratio).round();
+      segments[i].estimatedMinutes = scaled < 1 ? 1 : scaled;
+    }
+
+    var adjustedTotal = segments.fold<int>(
+      0,
+      (sum, s) => sum + s.estimatedMinutes,
+    );
+    var diff = totalMin - adjustedTotal;
+    var idx = 0;
+    while (diff != 0 && idx < 10000) {
+      final target = segments[idx % count];
+      if (diff > 0) {
+        target.estimatedMinutes += 1;
+        diff -= 1;
+      } else if (target.estimatedMinutes > 1) {
+        target.estimatedMinutes -= 1;
+        diff += 1;
+      }
+      idx++;
+    }
+  }
+
+  // ── 국내(같은 나라) 배송 시간 추정: 도로 이동 기준 ─────────────────────────
+  int _estimateDomesticDeliveryMinutes(LatLng from, LatLng to) {
+    final distanceKm = from.distanceTo(to) / 1000;
+    if (distanceKm <= 0.5) return 8;
+
+    double avgSpeedKmh;
+    int handlingMin;
+    if (distanceKm <= 20) {
+      avgSpeedKmh = 35;
+      handlingMin = 8;
+    } else if (distanceKm <= 80) {
+      avgSpeedKmh = 50;
+      handlingMin = 15;
+    } else if (distanceKm <= 250) {
+      avgSpeedKmh = 65;
+      handlingMin = 25;
+    } else {
+      avgSpeedKmh = 75;
+      handlingMin = 35;
+    }
+
+    final driveMin = (distanceKm / avgSpeedKmh * 60).round();
+    return (driveMin + handlingMin).clamp(10, 720);
+  }
+
+  // ── 편지 발송 ─────────────────────────────────────────────────────────────
+  Future<bool> sendLetter({
+    required String content,
+    required String destinationCountry,
+    required String destinationFlag,
+    required double destLat,
+    required double destLng,
+    String? destCityName, // compose 화면에서 이미 선택된 도시명 (재랜덤 방지)
+    String? deliveryEmoji, // 유저가 고른 배송 이모티콘
+    String? socialLink,
+    bool useShip = false,
+    int paperStyle = 0,
+    int fontStyle = 0,
+    String? imageUrl, // 첨부 이미지 경로 (프리미엄)
+    bool isExpress = false, // 프리미엄/브랜드 특급 배송
+  }) async {
+    if (!_canSendLetterByDailyLimit()) {
+      return false;
+    }
+    if (isExpress && !_canUseExpressMode()) {
+      return false;
+    }
+    // 이미지 편지 한도 체크
+    if (imageUrl != null && !_canSendImageLetter()) {
+      return false;
+    }
+
+    final id = 'sent_${DateTime.now().millisecondsSinceEpoch}';
+    final fromCity = LatLng(_currentUser.latitude, _currentUser.longitude);
+
+    double finalLat;
+    double finalLng;
+    String? toCityName;
+
+    if (destCityName != null && destCityName.isNotEmpty) {
+      // compose 화면에서 이미 선택된 도시 그대로 사용 → "서울→서울" 방지
+      finalLat = destLat;
+      finalLng = destLng;
+      toCityName = destCityName;
+      _usedDestinations[destinationCountry] ??= {};
+      _usedDestinations[destinationCountry]!.add(
+        CountryCities.cityKey(destinationCountry, destCityName),
+      );
+    } else {
+      // 도시 미선택일 경우: 나라별 랜덤 도시 선택 (중복 방지)
+      _usedDestinations[destinationCountry] ??= {};
+      final cityData = CountryCities.randomCityWithOffset(
+        destinationCountry,
+        usedCityKeys: _usedDestinations[destinationCountry],
+        languageCode: _currentUser.languageCode,
+      );
+      if (cityData != null) {
+        finalLat = (cityData['lat'] as num).toDouble();
+        finalLng = (cityData['lng'] as num).toDouble();
+        toCityName = cityData['name'] as String?; // 도시명만 사용 (번지수 제외)
+        _usedDestinations[destinationCountry]!.add(
+          CountryCities.cityKey(destinationCountry, cityData['name'] as String),
+        );
+      } else {
+        // 2차: LandAddressGenerator — 육지 경계 박스 내 랜덤 좌표
+        final landAddr = LandAddressGenerator.generate(
+          excludeCountry: _currentUser.country,
+        );
+        finalLat = (landAddr['lat'] as num).toDouble();
+        finalLng = (landAddr['lng'] as num).toDouble();
+      }
+    }
+    final toCity = LatLng(finalLat, finalLng);
+
+    final isDomestic = _currentUser.country == destinationCountry;
+    final segments = LogisticsHubs.buildRoute(
+      fromCountry: _currentUser.country,
+      fromCity: fromCity,
+      toCountry: destinationCountry,
+      toCity: toCity,
+      fromCityName: '내 위치',
+      preferAir: !useShip,
+      toCityName: toCityName,
+    );
+
+    final segMin = segments.fold<int>(0, (s, seg) => s + seg.estimatedMinutes);
+    final int totalMin;
+    if (isExpress) {
+      totalMin = _currentUser.isBrand ? 5 : 20;
+    } else if (isDomestic) {
+      final domesticMin = _estimateDomesticDeliveryMinutes(fromCity, toCity);
+      totalMin = max(segMin, domesticMin);
+    } else {
+      // 국제 배송은 공항 허브 기반 계산과 세그먼트 계산 중 더 큰 값 사용
+      final startHubInfo = LogisticsHubs.findNearestHub(fromCity);
+      final endHubInfo = LogisticsHubs.findNearestHub(toCity);
+      final deliveryMin = LogisticsHubs.calculateDeliveryTime(
+        from: fromCity,
+        startHub: startHubInfo.coords,
+        endHub: endHubInfo.coords,
+        destination: toCity,
+      );
+      totalMin = max(segMin, deliveryMin);
+    }
+    _rebalanceSegmentEstimatedMinutes(segments, totalMin);
+
+    final now = DateTime.now();
+    final letter = Letter(
+      id: id,
+      senderId: _currentUser.id,
+      senderName: _currentUser.username,
+      senderCountry: _currentUser.country,
+      senderCountryFlag: _currentUser.countryFlag,
+      content: content,
+      originLocation: fromCity,
+      destinationLocation: toCity,
+      destinationCountry: destinationCountry,
+      destinationCountryFlag: destinationFlag,
+      destinationCity: toCityName,
+      destinationDisplayAddress: null,
+      segments: segments,
+      currentSegmentIndex: 0,
+      status: DeliveryStatus.inTransit,
+      sentAt: now,
+      arrivalTime: now.add(Duration(minutes: totalMin)),
+      socialLink: socialLink,
+      estimatedTotalMinutes: totalMin,
+      paperStyle: paperStyle,
+      fontStyle: fontStyle,
+      deliveryEmoji: deliveryEmoji,
+      imageUrl: imageUrl,
+      letterType: isExpress
+          ? (_currentUser.isBrand
+                ? LetterType.brandExpress
+                : LetterType.express)
+          : LetterType.normal,
+      senderIsBrand: _currentUser.isBrand,
+      senderTier: _currentUser.isBrand
+          ? LetterSenderTier.brand
+          : _currentUser.isPremium
+          ? LetterSenderTier.premium
+          : LetterSenderTier.free,
+    );
+
+    _worldLetters.add(letter);
+    _sent.add(letter);
+    _consumeDailyQuota();
+    if (imageUrl != null) _consumeImageQuota();
+    _consumeExpressQuotaIfNeeded(isExpress);
+    _currentUser.activityScore.sentCount++;
+    _sentSinceLastUnlock++;
+    notifyListeners();
+    _saveToPrefs();
+    // 주소 조회: 편지 저장 후 비동기 업데이트 (앱 종료 시에도 편지 유지)
+    unawaited(
+      GeocodingService.getDisplayAddress(
+            finalLat,
+            finalLng,
+            languageCode: _currentUser.languageCode,
+          )
+          .then((addr) {
+            if (addr != null) {
+              letter.destinationDisplayAddress = addr;
+              _saveToPrefs();
+              notifyListeners();
+            }
+          })
+          .catchError((Object _) {
+            // 주소 조회 실패는 무시 (표시용 데이터, 발송에 영향 없음)
+          }),
+    );
+    return true;
+  }
+
+  // ── 브랜드 대량 발송 ──────────────────────────────────────────────────────
+  /// 브랜드 계정 전용: 동일 내용을 복수 나라에 지정 횟수만큼 발송
+  /// [targets] : [{'country':..,'flag':..,'lat':..,'lng':..}] 목록
+  /// [sendCount]: 나라당 발송 횟수
+  /// returns: 실제 발송된 편지 수 (한도 초과 시 부분 발송)
+  Future<int> sendBulkLetter({
+    required String content,
+    required List<Map<String, dynamic>> targets,
+    required int sendCount,
+    String? socialLink,
+    String? imageUrl,
+    int paperStyle = 0,
+    int fontStyle = 0,
+  }) async {
+    if (!_currentUser.isBrand) return 0;
+    int sent = 0;
+    for (final target in targets) {
+      for (int i = 0; i < sendCount; i++) {
+        if (!_canSendLetterByDailyLimit()) break;
+        if (imageUrl != null && !_canSendImageLetter()) break;
+        final ok = await sendLetter(
+          content: content,
+          destinationCountry: target['country'] as String,
+          destinationFlag: target['flag'] as String,
+          destLat: (target['lat'] as num).toDouble(),
+          destLng: (target['lng'] as num).toDouble(),
+          socialLink: socialLink,
+          imageUrl: imageUrl,
+          paperStyle: paperStyle,
+          fontStyle: fontStyle,
+        );
+        if (ok) sent++;
+      }
+    }
+    return sent;
+  }
+
+  // ── 브랜드 특송 (즉시 다중 주소 발송) ─────────────────────────────────────
+  /// 브랜드 계정 전용: 선택한 나라의 랜덤 주소 [count]개에 즉시(5분) 발송
+  /// returns: 실제 발송된 편지 수
+  Future<int> sendBrandExpressBlast({
+    required String content,
+    required String destinationCountry,
+    required String destinationFlag,
+    int count = 5,
+    String? deliveryEmoji,
+    String? socialLink,
+    int paperStyle = 0,
+    int fontStyle = 0,
+    String? imageUrl,
+  }) async {
+    if (!_currentUser.isBrand) return 0;
+
+    const expressTotalMin = 5; // 특송: 5분 즉시 배송
+    final now = DateTime.now();
+    final fromCity = LatLng(_currentUser.latitude, _currentUser.longitude);
+    final usedCityKeys = <String>{};
+    int sent = 0;
+
+    for (int i = 0; i < count; i++) {
+      if (!_canSendLetterByDailyLimit()) break;
+
+      var cityData = CountryCities.randomCityWithOffset(
+        destinationCountry,
+        usedCityKeys: usedCityKeys,
+        languageCode: _currentUser.languageCode,
+      );
+      if (cityData == null) {
+        if (usedCityKeys.isEmpty) break; // 해당 국가 도시 데이터 없음
+        usedCityKeys.clear(); // 모든 도시 소진 → 중복 허용으로 재시도
+        cityData = CountryCities.randomCityWithOffset(
+          destinationCountry,
+          usedCityKeys: usedCityKeys,
+          languageCode: _currentUser.languageCode,
+        );
+        if (cityData == null) break;
+      }
+
+      final cityName = cityData['name'] as String? ?? '';
+      usedCityKeys.add(CountryCities.cityKey(destinationCountry, cityName));
+
+      final cityLat = (cityData['lat'] as num).toDouble();
+      final cityLng = (cityData['lng'] as num).toDouble();
+      final toCity = LatLng(cityLat, cityLng);
+
+      final segments = LogisticsHubs.buildRoute(
+        fromCountry: _currentUser.country,
+        fromCity: fromCity,
+        toCountry: destinationCountry,
+        toCity: toCity,
+        fromCityName: '내 위치',
+        preferAir: true,
+        toCityName: cityName,
+      );
+      _rebalanceSegmentEstimatedMinutes(segments, expressTotalMin);
+
+      final id = 'bx_${now.millisecondsSinceEpoch}_$i';
+      final letter = Letter(
+        id: id,
+        senderId: _currentUser.id,
+        senderName: _currentUser.username,
+        senderCountry: _currentUser.country,
+        senderCountryFlag: _currentUser.countryFlag,
+        content: content,
+        originLocation: fromCity,
+        destinationLocation: toCity,
+        destinationCountry: destinationCountry,
+        destinationCountryFlag: destinationFlag,
+        destinationCity: cityName,
+        destinationDisplayAddress: null,
+        segments: segments,
+        currentSegmentIndex: 0,
+        status: DeliveryStatus.inTransit,
+        sentAt: now,
+        arrivalTime: now.add(const Duration(minutes: expressTotalMin)),
+        estimatedTotalMinutes: expressTotalMin,
+        letterType: LetterType.brandExpress,
+        deliveryEmoji: deliveryEmoji,
+        socialLink: socialLink,
+        paperStyle: paperStyle,
+        fontStyle: fontStyle,
+        imageUrl: imageUrl,
+        senderIsBrand: true,
+        senderTier: LetterSenderTier.brand,
+        isAnonymous: false,
+      );
+
+      _worldLetters.add(letter);
+      _sent.add(letter);
+      _consumeDailyQuota();
+      if (imageUrl != null) _consumeImageQuota();
+      _currentUser.activityScore.sentCount++;
+      _sentSinceLastUnlock++;
+      sent++;
+      // 주소 조회: 저장 후 비동기 업데이트 (앱 종료 시에도 편지 유지)
+      unawaited(
+        GeocodingService.getDisplayAddress(
+              cityLat,
+              cityLng,
+              languageCode: _currentUser.languageCode,
+            )
+            .then((addr) {
+              if (addr != null) {
+                letter.destinationDisplayAddress = addr;
+              }
+            })
+            .catchError((Object _) {}),
+      );
+    }
+
+    if (sent > 0) {
+      notifyListeners();
+      _saveToPrefs();
+    }
+    return sent;
+  }
+
+  // ── 편지 습득 ─────────────────────────────────────────────────────────────
+  /// 반환값: null = 성공, 非null = 실패 사유 메시지
+  /// [distanceCheck] false로 설정하면 거리 검증 없이 습득 (테스트/관리자용)
+  String? pickUpLetter(String letterId, {bool distanceCheck = true}) {
+    // ① 쿨다운 체크 (무료: 1시간, 프리미엄/브랜드: 10분)
+    final remaining = nearbyPickupRemainingCooldown;
+    if (remaining != null) {
+      final mins = remaining.inMinutes;
+      final secs = remaining.inSeconds % 60;
+      final timeStr = mins > 0 ? '$mins분 $secs초' : '$secs초';
+      final tier = (_currentUser.isPremium || _currentUser.isBrand)
+          ? '프리미엄 10분'
+          : '일반 1시간';
+      return '⏳ $timeStr 후 줍기 가능 ($tier 쿨다운)';
+    }
+
+    // ② 이미 내가 읽은 편지인지 확인
+    if (_myPickedUpLetterIds.contains(letterId)) {
+      return '이미 읽은 편지예요 📖';
+    }
+
+    // ③ 편지 존재 여부
+    final idx = _worldLetters.indexWhere((l) => l.id == letterId);
+    if (idx == -1) return '누군가 이미 가져간 편지예요 😢';
+
+    final letter = _worldLetters[idx];
+
+    // ④ 최대 읽기 인원 초과 확인 (같은 지역 최대 3명)
+    if (letter.readCount >= letter.maxReaders) {
+      return '이미 ${letter.maxReaders}명이 읽은 편지예요 📪';
+    }
+
+    // ⑤ 거리 재검증: 편지 목적지와 현재 유저 위치 간 Haversine 거리
+    if (distanceCheck) {
+      final dist = letter.destinationLocation.distanceTo(
+        LatLng(_currentUser.latitude, _currentUser.longitude),
+      );
+      if (dist > 2000) return '📍 편지 수령지 2km 이내에 있어야 받을 수 있어요';
+    }
+
+    // ⑥ 수령 처리: readCount 증가 후 inbox에 복사본 추가
+    letter.readCount++;
+    _myPickedUpLetterIds.add(letterId);
+
+    // 인박스용 독립 복사본 (status/arrivedAt 새로 설정)
+    final inboxCopy = letter.clone()
+      ..status = DeliveryStatus.delivered
+      ..arrivedAt = DateTime.now();
+
+    _inbox.add(inboxCopy);
+
+    // 최대 읽기 인원 도달 시 지도에서 제거
+    if (letter.readCount >= letter.maxReaders) {
+      _worldLetters.removeAt(idx);
+    }
+
+    _currentUser.activityScore.receivedCount++;
+    _lastNearbyPickupAt = DateTime.now(); // 쿨다운 시작
+    NotificationService.showLetterArrivedNotification(
+      senderCountry: letter.senderCountry,
+      senderFlag: letter.senderCountryFlag,
+    );
+    notifyListeners();
+    _saveToPrefs();
+
+    // ⑦ Firestore 클레임 등록 (Firebase 활성화 시, 선착순 기록)
+    if (FirebaseConfig.kFirebaseEnabled) {
+      _claimLetterOnFirestore(letter.id);
+    }
+
+    return null; // 성공
+  }
+
+  /// Firestore에 편지 클레임을 등록 (선착순 기록용, 비동기 fire-and-forget)
+  Future<void> _claimLetterOnFirestore(String letterId) async {
+    try {
+      final url = Uri.parse(
+        '${FirebaseConfig.firestoreBase}/claimedLetters/$letterId'
+        '?currentDocument.exists=false',
+      );
+      await http
+          .patch(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'fields': {
+                'claimedBy': {'stringValue': _currentUser.id},
+                'claimedAt': {
+                  'timestampValue': DateTime.now().toUtc().toIso8601String(),
+                },
+              },
+            }),
+          )
+          .timeout(const Duration(seconds: 5));
+    } catch (e) {
+      debugPrint('[pickUp] _claimLetterOnFirestore error: $e');
+    }
+  }
+
+  // ── 편지 삭제 ─────────────────────────────────────────────────────────────
+  void deleteFromInbox(String letterId) {
+    final before = _inbox.length;
+    _inbox.removeWhere((l) => l.id == letterId);
+    if (_inbox.length < before) {
+      notifyListeners();
+      _saveToPrefs();
+    }
+  }
+
+  void deleteFromSent(String letterId) {
+    final before = _sent.length;
+    _sent.removeWhere((l) => l.id == letterId);
+    // 지도에서도 제거 (inTransit 상태인 경우)
+    _worldLetters.removeWhere((l) => l.id == letterId);
+    if (_sent.length < before) {
+      notifyListeners();
+      _saveToPrefs();
+    }
+  }
+
+  // ── 편지 읽기 ─────────────────────────────────────────────────────────────
+  void readLetter(String letterId) {
+    final idx = _inbox.indexWhere((l) => l.id == letterId);
+    if (idx == -1) return;
+    final letter = _inbox[idx];
+    if (letter.status == DeliveryStatus.delivered) {
+      letter.status = DeliveryStatus.read;
+      letter.readAt = DateTime.now();
+      // 데모: 일부 보낸 편지를 읽음 처리 (랜덤)
+      if (_sent.isNotEmpty) {
+        final rng = Random();
+        if (rng.nextBool()) {
+          final sentIdx = rng.nextInt(_sent.length);
+          _sent[sentIdx].isReadByRecipient = true;
+        }
+      }
+      notifyListeners();
+      _saveToPrefs();
+    }
+  }
+
+  // ── 잠금 해제 소비 ────────────────────────────────────────────────────────
+  void consumeLetterUnlock() {
+    _sentSinceLastUnlock = 0;
+    notifyListeners();
+  }
+
+  // ── 보낸 편지 읽음 처리 ──────────────────────────────────────────────────
+  void markLetterReadByRecipient(String letterId) {
+    final idx = _sent.indexWhere((l) => l.id == letterId);
+    if (idx == -1) return;
+    _sent[idx].isReadByRecipient = true;
+    notifyListeners();
+  }
+
+  // ── 답장 ─────────────────────────────────────────────────────────────────
+  Future<bool> replyToLetter({
+    required String originalLetterId,
+    required String content,
+  }) async {
+    final idx = _inbox.indexWhere((l) => l.id == originalLetterId);
+    if (idx < 0) return false;
+    final original = _inbox[idx];
+    final sent = await sendLetter(
+      content: content,
+      destinationCountry: original.senderCountry,
+      destinationFlag: original.senderCountryFlag,
+      destLat: original.originLocation.latitude,
+      destLng: original.originLocation.longitude,
+    );
+    if (sent) {
+      _currentUser.activityScore.replyCount++;
+      // 원본 편지에 답장 완료 표시 (1회 제한)
+      original.hasReplied = true;
+      _saveToPrefs();
+      notifyListeners();
+    }
+    return sent;
+  }
+
+  // ── 팔로우 시스템 ──────────────────────────────────────────────────────────
+  void followUser(
+    String userId,
+    String username, {
+    String country = '',
+    String flag = '🌍',
+  }) {
+    if (_currentUser.followingIds.contains(userId)) return;
+    _currentUser.followingIds.add(userId);
+
+    // Create or update chat session
+    if (!_chatSessions.containsKey(userId)) {
+      _chatSessions[userId] = ChatSession(
+        partnerId: userId,
+        partnerName: username,
+        partnerCountry: country,
+        partnerFlag: flag,
+        status:
+            ChatStatus.pendingAgreement, // Simulate mutual follow immediately
+      );
+    } else {
+      _chatSessions[userId]!.status = ChatStatus.pendingAgreement;
+    }
+    notifyListeners();
+    _saveDMToPrefs();
+  }
+
+  void unfollowUser(String userId) {
+    _currentUser.followingIds.remove(userId);
+    _chatSessions.remove(userId);
+    notifyListeners();
+    _saveDMToPrefs();
+  }
+
+  bool isFollowing(String userId) => _currentUser.followingIds.contains(userId);
+
+  ChatStatus? getChatStatus(String userId) => _chatSessions[userId]?.status;
+
+  void acceptChatInvite(String partnerId) {
+    if (_chatSessions.containsKey(partnerId)) {
+      _chatSessions[partnerId]!.status = ChatStatus.chatting;
+      if (!_dmMessages.containsKey(partnerId)) {
+        _dmMessages[partnerId] = [];
+      }
+      notifyListeners();
+      _saveDMToPrefs();
+    }
+  }
+
+  void declineChatInvite(String partnerId) {
+    _chatSessions[partnerId]?.status = ChatStatus.followed;
+    notifyListeners();
+    _saveDMToPrefs();
+  }
+
+  /// DM 발송. 프리미엄만 가능; DM 10회마다 편지 쿼터 1통 차감.
+  /// 반환값: true = 성공, false = 쿼터 부족 또는 권한 없음
+  bool sendDM(String partnerId, String content) {
+    // ① 권한 체크: 프리미엄만 가능
+    if (!canUseDM) return false;
+
+    // ② 발송 가능 여부 체크 (DM 10회 = 편지 1통 쿼터 차감 시점)
+    // 이번 DM이 10의 배수가 되면 편지 쿼터 1통 차감
+    final nextPending = _pendingDMCount + 1;
+    if (nextPending >= _dmPerLetterQuota) {
+      // 편지 쿼터 차감 필요 — 일일·월간 모두 체크
+      // _canSendLetterByDailyLimit()은 일일+월간 동시 체크
+      if (!_canSendLetterByDailyLimit()) {
+        return false; // 쿼터 없으면 DM 차단
+      }
+      _pendingDMCount = 0;
+      _dailySentCount++;
+      _monthlySentCount++;
+      _sentSinceLastUnlock++;
+      _saveToPrefs();
+    } else {
+      _pendingDMCount = nextPending;
+      _saveToPrefs();
+    }
+
+    if (!_dmMessages.containsKey(partnerId)) {
+      _dmMessages[partnerId] = [];
+    }
+    final msg = DirectMessage(
+      id: 'dm_${DateTime.now().millisecondsSinceEpoch}',
+      senderId: _currentUser.id,
+      senderName: _currentUser.username,
+      content: content,
+      sentAt: DateTime.now(),
+      isRead: false,
+    );
+    _dmMessages[partnerId]!.add(msg);
+
+    // Simulate partner reply after 3 seconds
+    Future.delayed(const Duration(seconds: 3), () {
+      if (_chatSessions.containsKey(partnerId)) {
+        final session = _chatSessions[partnerId]!;
+        final replies = [
+          '정말요? 저도 그렇게 생각해요! 😊',
+          '편지로 이렇게 대화할 수 있다니 신기해요',
+          '언젠가 직접 만날 수 있으면 좋겠어요 ✨',
+          '당신의 이야기가 궁금해요. 더 들려주세요!',
+          '저도 비슷한 경험이 있어요. 공감이 가네요',
+          '와, 정말요? 그 나라는 어때요?',
+          '너무 좋은 말이에요. 감사해요 💌',
+        ];
+        final reply = DirectMessage(
+          id: 'dm_reply_${DateTime.now().millisecondsSinceEpoch}',
+          senderId: partnerId,
+          senderName: session.partnerName,
+          content: replies[DateTime.now().millisecond % replies.length],
+          sentAt: DateTime.now(),
+          isRead: false,
+        );
+        _dmMessages[partnerId]!.add(reply);
+        session.unreadCount++;
+        NotificationService.showDMArrivedNotification(
+          senderName: session.partnerName,
+          message: reply.content,
+        );
+        notifyListeners();
+        _saveDMToPrefs();
+      }
+    });
+
+    notifyListeners();
+    _saveDMToPrefs();
+    return true;
+  }
+
+  List<DirectMessage> getDMConversation(String partnerId) {
+    return List.unmodifiable(_dmMessages[partnerId] ?? []);
+  }
+
+  void markDMsRead(String partnerId) {
+    if (_dmMessages.containsKey(partnerId)) {
+      for (final m in _dmMessages[partnerId]!) {
+        m.isRead = true;
+      }
+    }
+    if (_chatSessions.containsKey(partnerId)) {
+      _chatSessions[partnerId]!.unreadCount = 0;
+    }
+    notifyListeners();
+    _saveDMToPrefs();
+  }
+
+  void _saveDMToPrefs() {
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setString(
+        'chatSessions',
+        jsonEncode(_chatSessions.map((k, v) => MapEntry(k, v.toJson()))),
+      );
+      prefs.setString(
+        'dmMessages',
+        jsonEncode(
+          _dmMessages.map(
+            (k, v) => MapEntry(k, v.map((m) => m.toJson()).toList()),
+          ),
+        ),
+      );
+    });
+  }
+
+  // ── 익스프레스 편지 발송 (팔로우한 사용자 전용) ────────────────────────────
+  Future<bool> sendExpressLetter({
+    required String content,
+    required String recipientId,
+    required String recipientName,
+    required String destinationCountry,
+    required String destinationFlag,
+    required double destLat,
+    required double destLng,
+  }) async {
+    if (!_canSendLetterByDailyLimit()) {
+      return false;
+    }
+
+    final id = 'express_${DateTime.now().millisecondsSinceEpoch}';
+    final fromCity = LatLng(_currentUser.latitude, _currentUser.longitude);
+    final toCity = LatLng(destLat, destLng);
+
+    // 현지 언어 3단계 표시 주소 (표시 전용)
+    final displayAddr = await GeocodingService.getDisplayAddress(
+      destLat,
+      destLng,
+      languageCode: _currentUser.languageCode,
+    );
+
+    final segments = LogisticsHubs.buildRoute(
+      fromCountry: _currentUser.country,
+      fromCity: fromCity,
+      toCountry: destinationCountry,
+      toCity: toCity,
+      fromCityName: '내 위치',
+      preferAir: true,
+      toCityName: null,
+    );
+    final expressTotalMin = _currentUser.isBrand ? 5 : 20;
+    _rebalanceSegmentEstimatedMinutes(segments, expressTotalMin);
+    final now = DateTime.now();
+    final letter = Letter(
+      id: id,
+      senderId: _currentUser.id,
+      senderName: _currentUser.username,
+      senderCountry: _currentUser.country,
+      senderCountryFlag: _currentUser.countryFlag,
+      content: content,
+      originLocation: fromCity,
+      destinationLocation: toCity,
+      destinationCountry: destinationCountry,
+      destinationCountryFlag: destinationFlag,
+      destinationDisplayAddress: displayAddr,
+      segments: segments,
+      currentSegmentIndex: 0,
+      status: DeliveryStatus.inTransit,
+      sentAt: now,
+      arrivalTime: now.add(Duration(minutes: expressTotalMin)),
+      estimatedTotalMinutes: expressTotalMin,
+      letterType: _currentUser.isBrand
+          ? LetterType.brandExpress
+          : LetterType.express,
+    );
+    _worldLetters.add(letter);
+    _sent.add(letter);
+    _consumeDailyQuota();
+    _consumeExpressQuotaIfNeeded(true);
+    _sentSinceLastUnlock++;
+    notifyListeners();
+    _saveToPrefs();
+    return true;
+  }
+
+  // ── 프로필 업데이트 ────────────────────────────────────────────────────────
+  void updateProfile({
+    String? username,
+    String? country,
+    String? countryFlag,
+    String? socialLink,
+    String? email,
+  }) {
+    if (username != null && username.isNotEmpty)
+      _currentUser.username = username;
+    if (country != null) _currentUser.country = country;
+    if (countryFlag != null) _currentUser.countryFlag = countryFlag;
+    if (socialLink != null) _currentUser.socialLink = socialLink;
+    if (email != null) _currentUser.email = email;
+    notifyListeners();
+  }
+
+  // ── 알림 초기화 ────────────────────────────────────────────────────────────
+  void clearNearbyAlert() {
+    _hasNearbyAlert = false;
+    notifyListeners();
+  }
+
+  // ── 편지 신고 ─────────────────────────────────────────────────────────────
+  void reportLetter(String letterId, String reporterId) {
+    final idx = _worldLetters.indexWhere((l) => l.id == letterId);
+    if (idx == -1) return;
+    final letter = _worldLetters[idx];
+    if (letter.reportedBy.contains(reporterId)) return; // 이미 신고함
+    letter.reportedBy.add(reporterId);
+    letter.reportCount++;
+    if (letter.reportCount >= 3) {
+      _blockedSenderIds.add(letter.senderId);
+      _worldLetters.removeWhere((l) => l.senderId == letter.senderId);
+      _inbox.removeWhere((l) => l.senderId == letter.senderId);
+    }
+    notifyListeners();
+    _saveToPrefs();
+  }
+
+  // ── 편지 좋아요 ───────────────────────────────────────────────────────────
+  void likeLetter(String letterId) {
+    for (final letter in [..._worldLetters, ..._inbox]) {
+      if (letter.id == letterId) {
+        letter.likeCount++;
+        if (letter.senderId == _currentUser.id) {
+          _currentUser.activityScore.likeCount++;
+        }
+        notifyListeners();
+        _saveToPrefs();
+        return;
+      }
+    }
+  }
+
+  // ── 편지 별점 ─────────────────────────────────────────────────────────────
+  void rateLetter(String letterId, int rating) {
+    // rating: 1~5
+    final validRating = rating.clamp(1, 5);
+    for (final letter in [..._worldLetters, ..._inbox]) {
+      if (letter.id == letterId) {
+        letter.ratingTotal += validRating;
+        letter.ratingCount++;
+        if (letter.senderId == _currentUser.id) {
+          _currentUser.activityScore.ratingTotal += validRating;
+          _currentUser.activityScore.ratingCount++;
+        }
+        notifyListeners();
+        _saveToPrefs();
+        return;
+      }
+    }
+  }
+
+  void updateRating(String letterId, int oldStars, int newStars) {
+    // inbox에서 찾기
+    final inboxIdx = _inbox.indexWhere((l) => l.id == letterId);
+    if (inboxIdx != -1) {
+      final letter = _inbox[inboxIdx];
+      // 이전 별점 제거, 새 별점 추가
+      letter.ratingTotal = (letter.ratingTotal - oldStars + newStars).clamp(
+        0,
+        999999,
+      );
+      notifyListeners();
+      _saveToPrefs();
+      return;
+    }
+    // worldLetters에서 찾기
+    final worldIdx = _worldLetters.indexWhere((l) => l.id == letterId);
+    if (worldIdx != -1) {
+      final letter = _worldLetters[worldIdx];
+      letter.ratingTotal = (letter.ratingTotal - oldStars + newStars).clamp(
+        0,
+        999999,
+      );
+      notifyListeners();
+      _saveToPrefs();
+    }
+  }
+
+  // ── Geocoding 누락 주소 보완 ──────────────────────────────────────────────
+  /// 이미 로드된 편지 중 destinationDisplayAddress 가 null 인 편지에 대해
+  /// 백그라운드로 주소를 조회하여 채워 넣습니다.
+  /// (앱 시작 후 또는 편지 목록 갱신 후 한 번 호출하면 됨)
+  Future<void> fillMissingDisplayAddresses() async {
+    final targets = [
+      ..._worldLetters.where((l) => l.destinationDisplayAddress == null),
+      ..._sent.where((l) => l.destinationDisplayAddress == null),
+    ];
+    if (targets.isEmpty) return;
+    for (final letter in targets) {
+      final addr = await GeocodingService.getDisplayAddress(
+        letter.destinationLocation.latitude,
+        letter.destinationLocation.longitude,
+        languageCode: _currentUser.languageCode,
+      );
+      if (addr != null) {
+        letter.destinationDisplayAddress = addr;
+      }
+    }
+    notifyListeners();
+  }
+
+  // ── 차단 여부 확인 ────────────────────────────────────────────────────────
+  bool isSenderBlocked(String senderId) => _blockedSenderIds.contains(senderId);
+
+  // ── DM 발송자 차단 ────────────────────────────────────────────────────────
+  /// DM 화면에서 상대방을 차단. 해당 세션과 메시지를 모두 제거.
+  void blockDMSender(String partnerId) {
+    _blockedSenderIds.add(partnerId);
+    _chatSessions.remove(partnerId);
+    _dmMessages.remove(partnerId);
+    // 차단된 사용자가 보낸 편지도 inbox / worldLetters 에서 제거
+    _inbox.removeWhere((l) => l.senderId == partnerId);
+    _worldLetters.removeWhere((l) => l.senderId == partnerId);
+    notifyListeners();
+    _saveToPrefs();
+    _saveDMToPrefs();
+  }
+
+  // ── DM 발송자 신고 ────────────────────────────────────────────────────────
+  /// DM 화면에서 상대방을 신고. 신고 후 자동 차단.
+  /// [reason]: 신고 사유 (스팸, 욕설, 불법정보, 기타)
+  void reportDMSender(String partnerId, String reason) {
+    // 실제 서버 연동 시 Firestore에 신고 기록 저장 필요
+    // 로컬에서는 즉시 차단 처리
+    blockDMSender(partnerId);
+  }
+
+  // ── DM 파트너 차단 여부 확인 ─────────────────────────────────────────────
+  bool isDMPartnerBlocked(String partnerId) =>
+      _blockedSenderIds.contains(partnerId);
+
+  // ── 브랜드 추가 발송권 서버 검증 + 지급 ─────────────────────────────────────
+  /// 결제 건별 transactionId를 Firestore에 1회성으로 기록한 뒤에만 발송권을 지급.
+  Future<BrandExtraVerificationResult> verifyAndGrantBrandExtraQuota({
+    required String transactionId,
+    required String productId,
+    required int quotaAmount,
+    String? purchaseDateIso,
+    String? appUserId,
+  }) async {
+    if (!isBrandMember) return BrandExtraVerificationResult.networkError;
+    if (!isBrandExtraServerVerificationReady) {
+      return BrandExtraVerificationResult.serverUnavailable;
+    }
+
+    final nowIso = DateTime.now().toIso8601String();
+    final claimDocId = _toSafeDocId(
+      'brandextra:${_currentUser.id}:$transactionId',
+    );
+    final claimResult = await FirestoreService.createDocumentIfAbsent(
+      'purchaseClaims/$claimDocId',
+      {
+        'type': 'brand_extra_quota',
+        'userId': _currentUser.id,
+        'appUserId': appUserId ?? '',
+        'transactionId': transactionId,
+        'productId': productId,
+        'quotaAmount': quotaAmount,
+        'purchaseDate': purchaseDateIso ?? '',
+        'createdAt': nowIso,
+      },
+    );
+
+    if (claimResult == CreateDocumentResult.alreadyExists) {
+      return BrandExtraVerificationResult.alreadyProcessed;
+    }
+    if (claimResult == CreateDocumentResult.error) {
+      return BrandExtraVerificationResult.networkError;
+    }
+
+    _brandExtraMonthlyQuota += quotaAmount;
+    _saveToPrefs();
+    notifyListeners();
+
+    final synced =
+        await FirestoreService.setDocument('users/${_currentUser.id}', {
+          'brandExtraMonthlyQuota': _brandExtraMonthlyQuota,
+          'lastBrandExtraTransactionId': transactionId,
+          'lastBrandExtraPurchaseAt': purchaseDateIso ?? nowIso,
+          'updatedAt': nowIso,
+        });
+    if (!synced) {
+      debugPrint(
+        '[BrandExtra] server sync failed after verified claim: tx=$transactionId',
+      );
+    }
+    return BrandExtraVerificationResult.success;
+  }
+
+  /// 디버그/테스트 모드 전용 로컬 지급
+  Future<bool> grantBrandExtraQuotaLocally({int quotaAmount = 1000}) async {
+    if (!isBrandMember) return false;
+    _brandExtraMonthlyQuota += quotaAmount;
+    _saveToPrefs();
+    notifyListeners();
+    return true;
+  }
+
+  String _toSafeDocId(String raw) =>
+      base64Url.encode(utf8.encode(raw)).replaceAll('=', '');
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _deliveryTimer?.cancel();
+    super.dispose();
+  }
+}
