@@ -203,7 +203,7 @@ class _GlobalDriftAppState extends State<GlobalDriftApp> {
       child: Consumer<AppState>(
         builder: (context, state, _) {
           return MaterialApp(
-            title: 'Message in a Bottle',
+            title: 'Letter Go',
             debugShowCheckedModeBanner: false,
             theme: _buildTheme(state),
             initialRoute: _getInitialRoute(),
