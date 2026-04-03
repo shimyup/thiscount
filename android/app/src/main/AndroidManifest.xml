@@ -6,6 +6,10 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <!-- 진동 (알림음 보조) -->
     <uses-permission android:name="android.permission.VIBRATE"/>
+    <!-- 갤러리 접근 (Android 12 이하) -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
+    <!-- 갤러리 접근 (Android 13+) -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
     <application
         android:usesCleartextTraffic="false"
         android:label="Letter Go"

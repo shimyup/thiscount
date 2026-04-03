@@ -12,6 +12,8 @@
 	<string>프로필 사진을 변경하려면 사진 라이브러리 접근이 필요합니다.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>선택한 프로필 사진을 앱에 저장하기 위해 권한이 필요합니다.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>편지에 첨부할 사진을 촬영하기 위해 카메라 접근이 필요합니다.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
