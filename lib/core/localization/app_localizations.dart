@@ -53,6 +53,10 @@ class AppL10n {
   String _t(Map<String, String> translations) =>
       translations[languageCode] ?? translations['en'] ?? '';
 
+  /// Quick Korean/English toggle for inline UI strings.
+  /// Returns [ko] when the current language is Korean, otherwise [en].
+  String koEn(String ko, String en) => languageCode == 'ko' ? ko : en;
+
   // ── App-wide ──────────────────────────────────────────────────────────────
   String get appName => _t({
     'ko': 'Message in a Bottle',

@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/purchase_service.dart';
@@ -31,6 +32,9 @@ class _TowerScreenState extends State<TowerScreen>
 
   // 레벨업 감지용 이전 단계 추적
   TowerTier? _prevTier;
+
+  AppL10n _l10n(BuildContext context) =>
+      AppL10n.of(context.read<AppState>().currentUser.languageCode);
 
   @override
   void initState() {
@@ -75,6 +79,7 @@ class _TowerScreenState extends State<TowerScreen>
   Widget build(BuildContext context) {
     return Consumer2<AppState, PurchaseService>(
       builder: (context, state, purchase, _) {
+        final l = _l10n(context);
         final user = state.currentUser;
         final score = user.activityScore;
         final hasPremium =
@@ -113,9 +118,9 @@ class _TowerScreenState extends State<TowerScreen>
                   shaderCallback: (b) => const LinearGradient(
                     colors: [AppColors.goldLight, AppColors.gold],
                   ).createShader(b),
-                  child: const Text(
-                    '내 타워',
-                    style: TextStyle(
+                  child: Text(
+                    l.koEn('내 타워', 'My Tower'),
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
@@ -170,9 +175,9 @@ class _TowerScreenState extends State<TowerScreen>
                   TextButton.icon(
                     onPressed: () => _showTowerCustomizer(context, state),
                     icon: const Text('🎨', style: TextStyle(fontSize: 14)),
-                    label: const Text(
-                      '꾸미기',
-                      style: TextStyle(
+                    label: Text(
+                      l.koEn('꾸미기', 'Customize'),
+                      style: const TextStyle(
                         color: AppColors.gold,
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -448,10 +453,10 @@ class _TowerScreenState extends State<TowerScreen>
                   right: 0,
                   child: AnimatedBuilder(
                     animation: _glowController,
-                    builder: (_, __) => Column(
+                    builder: (animCtx, __) => Column(
                       children: [
                         Text(
-                          'ARCHITECT OF WORDS',
+                          _l10n(animCtx).koEn('글자의 건축가', 'ARCHITECT OF WORDS'),
                           style: TextStyle(
                             color: tierColor.withValues(
                               alpha: 0.5 + _glow.value * 0.3,
@@ -599,7 +604,10 @@ class _TowerScreenState extends State<TowerScreen>
                                   child: Text(
                                     user.customTowerName?.isNotEmpty == true
                                         ? user.customTowerName!
-                                        : '타워 이름을 설정해보세요',
+                                        : _l10n(ctx).koEn(
+                                            '타워 이름을 설정해보세요',
+                                            'Set your tower name',
+                                          ),
                                     style: TextStyle(
                                       color:
                                           user.customTowerName?.isNotEmpty ==
@@ -723,13 +731,14 @@ class _TowerScreenState extends State<TowerScreen>
 
   // ── 활동 통계 그리드 ─────────────────────────────────────────────────────────
   Widget _buildStatsGrid(BuildContext ctx, ActivityScore score) {
+    final l = _l10n(ctx);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '활동 통계',
+            l.koEn('활동 통계', 'Activity Stats'),
             style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
               color: AppColors.textSecondary,
               letterSpacing: 1.0,
@@ -743,7 +752,7 @@ class _TowerScreenState extends State<TowerScreen>
                 child: _StatCard(
                   emoji: '📬',
                   value: '${score.receivedCount}',
-                  label: '받은 편지',
+                  label: l.koEn('받은 편지', 'Received'),
                   contribution: score.receivedCount * 1.2,
                   color: AppColors.gold,
                 ),
@@ -753,7 +762,7 @@ class _TowerScreenState extends State<TowerScreen>
                 child: _StatCard(
                   emoji: '💌',
                   value: '${score.replyCount}',
-                  label: '답장',
+                  label: l.koEn('답장', 'Replies'),
                   contribution: score.replyCount * 2.0,
                   color: AppColors.teal,
                 ),
@@ -763,7 +772,7 @@ class _TowerScreenState extends State<TowerScreen>
                 child: _StatCard(
                   emoji: '📤',
                   value: '${score.sentCount}',
-                  label: '보낸 편지',
+                  label: l.koEn('보낸 편지', 'Sent'),
                   contribution: score.sentCount * 0.8,
                   color: AppColors.success,
                 ),
@@ -780,6 +789,7 @@ class _TowerScreenState extends State<TowerScreen>
 
   // ── 10단계 타워 게이지 ────────────────────────────────────────────────────────
   Widget _buildTierGauge(BuildContext ctx, ActivityScore score) {
+    final l = _l10n(ctx);
     final tier = score.tier;
     final tierColor = _communityTierColor(tier);
     final progress = score.tierProgress;
@@ -817,7 +827,10 @@ class _TowerScreenState extends State<TowerScreen>
                         ),
                       ),
                       Text(
-                        '${tier.tierNumber}단계 / 10단계',
+                        l.koEn(
+                          '${tier.tierNumber}단계 / 10단계',
+                          'Level ${tier.tierNumber} / 10',
+                        ),
                         style: const TextStyle(
                           color: AppColors.textMuted,
                           fontSize: 10,
@@ -838,9 +851,9 @@ class _TowerScreenState extends State<TowerScreen>
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                  const Text(
-                    '활동 점수',
-                    style: TextStyle(color: AppColors.textMuted, fontSize: 10),
+                  Text(
+                    l.koEn('활동 점수', 'Activity Score'),
+                    style: const TextStyle(color: AppColors.textMuted, fontSize: 10),
                   ),
                 ],
               ),
@@ -903,14 +916,20 @@ class _TowerScreenState extends State<TowerScreen>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '${score.tierMin.toInt()}점',
+                  l.koEn(
+                    '${score.tierMin.toInt()}점',
+                    '${score.tierMin.toInt()} pts',
+                  ),
                   style: const TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 10,
                   ),
                 ),
                 Text(
-                  '다음 단계: ${score.tierMax.toInt()}점 (${((1 - progress) * (score.tierMax - score.tierMin)).toStringAsFixed(1)}점 필요)',
+                  l.koEn(
+                    '다음 단계: ${score.tierMax.toInt()}점 (${((1 - progress) * (score.tierMax - score.tierMin)).toStringAsFixed(1)}점 필요)',
+                    'Next level: ${score.tierMax.toInt()} pts (${((1 - progress) * (score.tierMax - score.tierMin)).toStringAsFixed(1)} pts needed)',
+                  ),
                   style: TextStyle(
                     color: tierColor.withValues(alpha: 0.8),
                     fontSize: 10,
@@ -928,7 +947,7 @@ class _TowerScreenState extends State<TowerScreen>
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
-                '✨ 최고 등급 달성!',
+                l.koEn('✨ 최고 등급 달성!', '✨ Max rank achieved!'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: tierColor,
@@ -940,7 +959,10 @@ class _TowerScreenState extends State<TowerScreen>
           ],
           const SizedBox(height: 6),
           Text(
-            '공식: (받은 편지 × 1.2) + (답장 × 2.0) + (보낸 편지 × 0.8)',
+            l.koEn(
+              '공식: (받은 편지 × 1.2) + (답장 × 2.0) + (보낸 편지 × 0.8)',
+              'Formula: (Received × 1.2) + (Replies × 2.0) + (Sent × 0.8)',
+            ),
             style: const TextStyle(
               color: AppColors.textMuted,
               fontSize: 10,
@@ -954,6 +976,7 @@ class _TowerScreenState extends State<TowerScreen>
 
   // ── 레벨업 가이드 ────────────────────────────────────────────────────────────
   Widget _buildLevelUpGuide(BuildContext ctx, ActivityScore score) {
+    final l = _l10n(ctx);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
@@ -977,7 +1000,7 @@ class _TowerScreenState extends State<TowerScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '다음 목표',
+                    l.koEn('다음 목표', 'Next Goal'),
                     style: Theme.of(
                       ctx,
                     ).textTheme.labelSmall?.copyWith(color: AppColors.gold),
@@ -1002,62 +1025,63 @@ class _TowerScreenState extends State<TowerScreen>
 
   // ── 성취 배지 ────────────────────────────────────────────────────────────────
   Widget _buildAchievements(BuildContext ctx, ActivityScore score) {
+    final l = _l10n(ctx);
     final achievements = [
       // ── 편지 활동 ──────────────────────────────────────────
       _Achievement(
         emoji: '🌱',
-        title: '첫 발걸음',
-        desc: '첫 편지 보내기',
+        title: l.koEn('첫 발걸음', 'First Step'),
+        desc: l.koEn('첫 편지 보내기', 'Send first letter'),
         unlocked: score.sentCount >= 1,
       ),
       _Achievement(
         emoji: '📬',
-        title: '편지 수집가',
-        desc: '편지 5개 받기',
+        title: l.koEn('편지 수집가', 'Letter Collector'),
+        desc: l.koEn('편지 5개 받기', 'Receive 5 letters'),
         unlocked: score.receivedCount >= 5,
       ),
       _Achievement(
         emoji: '💌',
-        title: '소통의 달인',
-        desc: '답장 3개 보내기',
+        title: l.koEn('소통의 달인', 'Conversation Pro'),
+        desc: l.koEn('답장 3개 보내기', 'Send 3 replies'),
         unlocked: score.replyCount >= 3,
       ),
       _Achievement(
         emoji: '🌍',
-        title: '세계 여행자',
-        desc: '편지 10개 보내기',
+        title: l.koEn('세계 여행자', 'World Traveler'),
+        desc: l.koEn('편지 10개 보내기', 'Send 10 letters'),
         unlocked: score.sentCount >= 10,
       ),
       // ── 타워 단계 달성 ──────────────────────────────────────
       _Achievement(
         emoji: '🏡',
-        title: '마을집 건축',
-        desc: '타워 3단계 달성', // house (15점)
+        title: l.koEn('마을집 건축', 'House Builder'),
+        desc: l.koEn('타워 3단계 달성', 'Reach tower level 3'),
         unlocked: score.towerHeight >= 15,
       ),
       _Achievement(
         emoji: '🏢',
-        title: '빌딩 건축가',
-        desc: '타워 5단계 달성', // building (50점)
+        title: l.koEn('빌딩 건축가', 'Building Architect'),
+        desc: l.koEn('타워 5단계 달성', 'Reach tower level 5'),
         unlocked: score.towerHeight >= 50,
       ),
       _Achievement(
         emoji: '🏙️',
-        title: '마천루',
-        desc: '타워 7단계 달성', // skyscraper (120점)
+        title: l.koEn('마천루', 'Skyscraper'),
+        desc: l.koEn('타워 7단계 달성', 'Reach tower level 7'),
         unlocked: score.towerHeight >= 120,
       ),
       // ── 인기·특별 ──────────────────────────────────────────
       _Achievement(
         emoji: '❤️',
-        title: '인기 편지꾼',
-        desc: '좋아요 10개 받기',
+        title: l.koEn('인기 편지꾼', 'Popular Sender'),
+        desc: l.koEn('좋아요 10개 받기', 'Receive 10 likes'),
         unlocked: score.likeCount >= 10,
       ),
       _Achievement(
         emoji: '🗼',
-        title: '전설의 랜드마크',
-        desc: '타워 최고 단계 달성', // landmark (330점)
+        title: l.koEn('전설의 랜드마크', 'Legendary Landmark'),
+        desc: l.koEn('타워 최고 단계 달성', 'Reach max tower level'),
         unlocked: score.towerHeight >= 330,
       ),
     ];
@@ -1068,7 +1092,7 @@ class _TowerScreenState extends State<TowerScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '성취 배지',
+            l.koEn('성취 배지', 'Achievement Badges'),
             style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
               color: AppColors.textSecondary,
               letterSpacing: 1.0,
@@ -1093,6 +1117,7 @@ class _TowerScreenState extends State<TowerScreen>
   }
 
   Widget _buildCommunityTowers(BuildContext ctx, AppState state) {
+    final l = _l10n(ctx);
     // Mock community members with usernames
     final members = [
       {
@@ -1100,56 +1125,56 @@ class _TowerScreenState extends State<TowerScreen>
         'name': 'Kenji M.',
         'floors': 83,
         'tier': TowerTier.landmark,
-        'label': '랜드마크',
+        'label': l.koEn('랜드마크', 'Landmark'),
       },
       {
         'flag': '🇧🇷',
         'name': 'Luis G.',
         'floors': 67,
         'tier': TowerTier.landmark,
-        'label': '랜드마크',
+        'label': l.koEn('랜드마크', 'Landmark'),
       },
       {
         'flag': '🇨🇳',
         'name': 'Mei L.',
         'floors': 55,
         'tier': TowerTier.skyscraper,
-        'label': '마천루',
+        'label': l.koEn('마천루', 'Skyscraper'),
       },
       {
         'flag': '🇺🇸',
         'name': 'Tom H.',
         'floors': 47,
         'tier': TowerTier.skyscraper,
-        'label': '마천루',
+        'label': l.koEn('마천루', 'Skyscraper'),
       },
       {
         'flag': '🇫🇷',
         'name': 'Nina S.',
         'floors': 31,
         'tier': TowerTier.building,
-        'label': '빌딩',
+        'label': l.koEn('빌딩', 'Building'),
       },
       {
         'flag': '🇬🇧',
         'name': 'Emma W.',
         'floors': 22,
         'tier': TowerTier.building,
-        'label': '빌딩',
+        'label': l.koEn('빌딩', 'Building'),
       },
       {
         'flag': '🇩🇪',
         'name': 'Hana B.',
         'floors': 12,
         'tier': TowerTier.house,
-        'label': '마을집',
+        'label': l.koEn('마을집', 'House'),
       },
       {
         'flag': '🇰🇷',
-        'name': '익명 유저',
+        'name': l.koEn('익명 유저', 'Anonymous User'),
         'floors': 5,
         'tier': TowerTier.cottage,
-        'label': '오두막',
+        'label': l.koEn('오두막', 'Cottage'),
       },
     ];
     final myScore = state.currentUser.activityScore;
@@ -1158,9 +1183,9 @@ class _TowerScreenState extends State<TowerScreen>
         members.where((m) => (m['floors'] as int) > myFloors).length + 1;
 
     String rankLabel(int rank) {
-      if (rank == 1) return '🥇';
-      if (rank == 2) return '🥈';
-      if (rank == 3) return '🥉';
+      if (rank == 1) return l.koEn('🥇 1위', '🥇 #1');
+      if (rank == 2) return l.koEn('🥈 2위', '🥈 #2');
+      if (rank == 3) return l.koEn('🥉 3위', '🥉 #3');
       return '#$rank';
     }
 
@@ -1172,7 +1197,7 @@ class _TowerScreenState extends State<TowerScreen>
           Row(
             children: [
               Text(
-                '🌍 세계 랭킹',
+                l.koEn('🌍 세계 랭킹', '🌍 World Ranking'),
                 style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
                   color: AppColors.textSecondary,
                   letterSpacing: 1.0,
@@ -1193,7 +1218,7 @@ class _TowerScreenState extends State<TowerScreen>
                   ),
                 ),
                 child: Text(
-                  '내 순위 ${myRank}위',
+                  l.koEn('내 순위 ${myRank}위', 'My rank #$myRank'),
                   style: const TextStyle(
                     color: AppColors.gold,
                     fontSize: 11,
@@ -1449,12 +1474,12 @@ class _TowerScreenState extends State<TowerScreen>
     final towerH = (60 + floors * 4.0).clamp(60.0, 240.0);
 
     final rankLabel = rank == 1
-        ? '🥇 1위'
+        ? _l10n(ctx).koEn('🥇 1위', '🥇 #1')
         : rank == 2
-        ? '🥈 2위'
+        ? _l10n(ctx).koEn('🥈 2위', '🥈 #2')
         : rank == 3
-        ? '🥉 3위'
-        : '🌍 ${rank}위';
+        ? _l10n(ctx).koEn('🥉 3위', '🥉 #3')
+        : _l10n(ctx).koEn('🌍 ${rank}위', '🌍 #$rank');
 
     showModalBottomSheet(
       context: ctx,
@@ -1574,9 +1599,9 @@ class _TowerScreenState extends State<TowerScreen>
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
-                          '세계 랭킹',
-                          style: TextStyle(
+                        Text(
+                          _l10n(ctx).koEn('세계 랭킹', 'World Ranking'),
+                          style: const TextStyle(
                             color: AppColors.textMuted,
                             fontSize: 11,
                           ),
@@ -1608,9 +1633,9 @@ class _TowerScreenState extends State<TowerScreen>
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
-                          '건물 층수',
-                          style: TextStyle(
+                        Text(
+                          _l10n(ctx).koEn('건물 층수', 'Floors'),
+                          style: const TextStyle(
                             color: AppColors.textMuted,
                             fontSize: 11,
                           ),
@@ -1636,9 +1661,9 @@ class _TowerScreenState extends State<TowerScreen>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        '타워 높이',
-                        style: TextStyle(
+                      Text(
+                        _l10n(ctx).koEn('타워 높이', 'Tower Height'),
+                        style: const TextStyle(
                           color: AppColors.textMuted,
                           fontSize: 12,
                         ),
@@ -1680,7 +1705,7 @@ class _TowerScreenState extends State<TowerScreen>
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                child: const Text('닫기'),
+                child: Text(_l10n(ctx).koEn('닫기', 'Close')),
               ),
             ),
           ],
@@ -1691,6 +1716,7 @@ class _TowerScreenState extends State<TowerScreen>
 
   // ignore: unused_element
   void _showEditProfile(BuildContext ctx, AppState state) {
+    final l = _l10n(ctx);
     final nameCtrl = TextEditingController(text: state.currentUser.username);
     final _socialInitial = state.currentUser.socialLink ?? '';
     final socialCtrl = TextEditingController.fromValue(
@@ -1730,14 +1756,14 @@ class _TowerScreenState extends State<TowerScreen>
                 ),
               ),
               const SizedBox(height: 20),
-              Text('프로필 수정', style: Theme.of(ctx).textTheme.titleLarge),
+              Text(l.koEn('프로필 수정', 'Edit Profile'), style: Theme.of(ctx).textTheme.titleLarge),
               const SizedBox(height: 20),
               TextField(
                 controller: nameCtrl,
                 style: const TextStyle(color: AppColors.textPrimary),
-                decoration: const InputDecoration(
-                  labelText: '닉네임',
-                  prefixIcon: Icon(
+                decoration: InputDecoration(
+                  labelText: l.koEn('닉네임', 'Nickname'),
+                  prefixIcon: const Icon(
                     Icons.person_rounded,
                     color: AppColors.gold,
                     size: 18,
@@ -1748,9 +1774,9 @@ class _TowerScreenState extends State<TowerScreen>
               TextField(
                 controller: socialCtrl,
                 style: const TextStyle(color: AppColors.textPrimary),
-                decoration: const InputDecoration(
-                  labelText: 'SNS 링크 (선택)',
-                  prefixIcon: Icon(
+                decoration: InputDecoration(
+                  labelText: l.koEn('SNS 링크 (선택)', 'SNS Link (Optional)'),
+                  prefixIcon: const Icon(
                     Icons.link_rounded,
                     color: AppColors.teal,
                     size: 18,
@@ -1781,7 +1807,7 @@ class _TowerScreenState extends State<TowerScreen>
                     );
                     if (ctx.mounted) Navigator.pop(ctx);
                   },
-                  child: const Text('저장'),
+                  child: Text(l.koEn('저장', 'Save')),
                 ),
               ),
             ],
@@ -1793,6 +1819,7 @@ class _TowerScreenState extends State<TowerScreen>
 
   // ── 타워 스킨 커스터마이저 ──────────────────────────────────────────────────
   void _showTowerCustomizer(BuildContext ctx, AppState state) {
+    final l = _l10n(ctx);
     final purchase = ctx.read<PurchaseService>();
     final hasPremium =
         purchase.isPremium ||
@@ -1824,19 +1851,22 @@ class _TowerScreenState extends State<TowerScreen>
               ),
               const Text('🎨', style: TextStyle(fontSize: 48)),
               const SizedBox(height: 12),
-              const Text(
-                '타워 커스텀',
-                style: TextStyle(
+              Text(
+                l.koEn('타워 커스텀', 'Tower Customization'),
+                style: const TextStyle(
                   color: AppColors.gold,
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                '색상과 장식 이모지로\n내 타워를 꾸밀 수 있어요.\n\nPremium 전용 기능이에요.',
+              Text(
+                l.koEn(
+                  '색상과 장식 이모지로\n내 타워를 꾸밀 수 있어요.\n\nPremium 전용 기능이에요.',
+                  'Customize your tower with colors and accent emojis.\n\nPremium only feature.',
+                ),
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 13,
                   height: 1.6,
@@ -1861,9 +1891,9 @@ class _TowerScreenState extends State<TowerScreen>
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: const Text(
-                    '👑 프리미엄 시작하기',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+                  child: Text(
+                    l.koEn('👑 프리미엄 시작하기', '👑 Start Premium'),
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
                   ),
                 ),
               ),
@@ -1935,9 +1965,9 @@ class _TowerScreenState extends State<TowerScreen>
                   ),
                 ),
               ),
-              const Text(
-                '🎨  타워 꾸미기',
-                style: TextStyle(
+              Text(
+                l.koEn('🎨  타워 꾸미기', '🎨  Customize Tower'),
+                style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 17,
                   fontWeight: FontWeight.w800,
@@ -1945,8 +1975,8 @@ class _TowerScreenState extends State<TowerScreen>
               ),
               const SizedBox(height: 20),
               // 색상 선택
-              const Text(
-                '글로우 색상',
+              Text(
+                l.koEn('글로우 색상', 'Glow Color'),
                 style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 13,
@@ -1988,9 +2018,9 @@ class _TowerScreenState extends State<TowerScreen>
               ),
               const SizedBox(height: 20),
               // 장식 이모지 선택
-              const Text(
-                '장식 이모지',
-                style: TextStyle(
+              Text(
+                l.koEn('장식 이모지', 'Accent Emoji'),
+                style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -2078,9 +2108,9 @@ class _TowerScreenState extends State<TowerScreen>
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: const Text(
-                    '저장하기',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+                  child: Text(
+                    l.koEn('저장하기', 'Save Changes'),
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
                   ),
                 ),
               ),
@@ -2092,6 +2122,7 @@ class _TowerScreenState extends State<TowerScreen>
   }
 
   void _showMoreMenu(BuildContext ctx, AppState state) {
+    final l = _l10n(ctx);
     showModalBottomSheet(
       context: ctx,
       backgroundColor: AppColors.bgCard,
@@ -2116,9 +2147,9 @@ class _TowerScreenState extends State<TowerScreen>
                 Icons.settings_rounded,
                 color: AppColors.textSecondary,
               ),
-              title: const Text(
-                '설정',
-                style: TextStyle(color: AppColors.textPrimary),
+              title: Text(
+                l.koEn('설정', 'Settings'),
+                style: const TextStyle(color: AppColors.textPrimary),
               ),
               onTap: () {
                 Navigator.pop(ctx);
@@ -2131,12 +2162,15 @@ class _TowerScreenState extends State<TowerScreen>
             const Divider(color: Color(0xFF1F2D44)),
             ListTile(
               leading: const Icon(Icons.mail_rounded, color: AppColors.teal),
-              title: const Text(
-                '받은 편지 관리',
-                style: TextStyle(color: AppColors.textPrimary),
+              title: Text(
+                l.koEn('받은 편지 관리', 'Manage Received'),
+                style: const TextStyle(color: AppColors.textPrimary),
               ),
               subtitle: Text(
-                '총 ${state.inbox.length}통',
+                l.koEn(
+                  '총 ${state.inbox.length}통',
+                  'Total ${state.inbox.length}',
+                ),
                 style: const TextStyle(
                   color: AppColors.textMuted,
                   fontSize: 12,
@@ -2149,12 +2183,12 @@ class _TowerScreenState extends State<TowerScreen>
             ),
             ListTile(
               leading: const Icon(Icons.send_rounded, color: AppColors.gold),
-              title: const Text(
-                '보낸 편지 관리',
-                style: TextStyle(color: AppColors.textPrimary),
+              title: Text(
+                l.koEn('보낸 편지 관리', 'Manage Sent'),
+                style: const TextStyle(color: AppColors.textPrimary),
               ),
               subtitle: Text(
-                '총 ${state.sent.length}통',
+                l.koEn('총 ${state.sent.length}통', 'Total ${state.sent.length}'),
                 style: const TextStyle(
                   color: AppColors.textMuted,
                   fontSize: 12,
@@ -2171,9 +2205,9 @@ class _TowerScreenState extends State<TowerScreen>
                 Icons.logout_rounded,
                 color: AppColors.textMuted,
               ),
-              title: const Text(
-                '로그아웃',
-                style: TextStyle(color: AppColors.textSecondary),
+              title: Text(
+                l.koEn('로그아웃', 'Log Out'),
+                style: const TextStyle(color: AppColors.textSecondary),
               ),
               onTap: () {
                 Navigator.pop(ctx);
@@ -2185,9 +2219,9 @@ class _TowerScreenState extends State<TowerScreen>
                 Icons.delete_forever_rounded,
                 color: AppColors.error,
               ),
-              title: const Text(
-                '회원탈퇴',
-                style: TextStyle(color: AppColors.error),
+              title: Text(
+                l.koEn('회원탈퇴', 'Delete Account'),
+                style: const TextStyle(color: AppColors.error),
               ),
               onTap: () {
                 Navigator.pop(ctx);
@@ -2206,6 +2240,7 @@ class _TowerScreenState extends State<TowerScreen>
     AppState state, {
     bool showSent = false,
   }) {
+    final l10n = _l10n(ctx);
     final letters = showSent
         ? state.sent.reversed.toList()
         : state.inbox.reversed.toList();
@@ -2229,8 +2264,14 @@ class _TowerScreenState extends State<TowerScreen>
                 children: [
                   Text(
                     showSent
-                        ? '📤 보낸 편지 (${letters.length})'
-                        : '📬 받은 편지 (${letters.length})',
+                        ? l10n.koEn(
+                            '📤 보낸 편지 (${letters.length})',
+                            '📤 Sent (${letters.length})',
+                          )
+                        : l10n.koEn(
+                            '📬 받은 편지 (${letters.length})',
+                            '📬 Received (${letters.length})',
+                          ),
                     style: const TextStyle(
                       color: AppColors.textPrimary,
                       fontWeight: FontWeight.w700,
@@ -2242,10 +2283,10 @@ class _TowerScreenState extends State<TowerScreen>
             ),
             Expanded(
               child: letters.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Text(
-                        '편지가 없습니다',
-                        style: TextStyle(color: AppColors.textMuted),
+                        l10n.koEn('편지가 없습니다', 'No letters'),
+                        style: const TextStyle(color: AppColors.textMuted),
                       ),
                     )
                   : ListView.builder(
@@ -2279,7 +2320,10 @@ class _TowerScreenState extends State<TowerScreen>
                                       showSent
                                           ? '→ ${l.destinationCountry}'
                                           : (l.isAnonymous
-                                                ? '익명의 편지'
+                                                ? l10n.koEn(
+                                                    '익명의 편지',
+                                                    'Anonymous Letter',
+                                                  )
                                                 : l.senderName),
                                       style: const TextStyle(
                                         color: AppColors.textPrimary,
@@ -2328,9 +2372,9 @@ class _TowerScreenState extends State<TowerScreen>
                                     ),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
-                                  child: const Text(
-                                    '읽음',
-                                    style: TextStyle(
+                                  child: Text(
+                                    l10n.koEn('읽음', 'Read'),
+                                    style: const TextStyle(
                                       color: AppColors.teal,
                                       fontSize: 10,
                                       fontWeight: FontWeight.w600,
@@ -2350,25 +2394,32 @@ class _TowerScreenState extends State<TowerScreen>
   }
 
   void _confirmDeleteAccount(BuildContext ctx) {
+    final l = _l10n(ctx);
     showDialog(
       context: ctx,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.bgCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text(
-          '회원탈퇴',
-          style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w700),
+        title: Text(
+          l.koEn('회원탈퇴', 'Delete Account'),
+          style: const TextStyle(
+            color: AppColors.error,
+            fontWeight: FontWeight.w700,
+          ),
         ),
-        content: const Text(
-          '탈퇴하면 모든 데이터가 삭제되며 복구할 수 없습니다.\n정말 탈퇴하시겠습니까?',
-          style: TextStyle(color: AppColors.textSecondary),
+        content: Text(
+          l.koEn(
+            '탈퇴하면 모든 데이터가 삭제되며 복구할 수 없습니다.\n정말 탈퇴하시겠습니까?',
+            'Deleting your account removes all data permanently.\nDo you want to continue?',
+          ),
+          style: const TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              '취소',
-              style: TextStyle(color: AppColors.textMuted),
+            child: Text(
+              l.koEn('취소', 'Cancel'),
+              style: const TextStyle(color: AppColors.textMuted),
             ),
           ),
           ElevatedButton(
@@ -2379,7 +2430,10 @@ class _TowerScreenState extends State<TowerScreen>
               Navigator.of(ctx).pushNamedAndRemoveUntil('/auth', (_) => false);
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('탈퇴하기', style: TextStyle(color: Colors.white)),
+            child: Text(
+              l.koEn('탈퇴하기', 'Delete Account'),
+              style: const TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -2387,25 +2441,29 @@ class _TowerScreenState extends State<TowerScreen>
   }
 
   void _confirmLogout(BuildContext ctx) {
+    final l = _l10n(ctx);
     showDialog(
       context: ctx,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.bgCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text(
-          '로그아웃',
-          style: TextStyle(color: AppColors.textPrimary),
+        title: Text(
+          l.koEn('로그아웃', 'Log Out'),
+          style: const TextStyle(color: AppColors.textPrimary),
         ),
-        content: const Text(
-          '정말 로그아웃 하시겠어요?\n편지와 타워 데이터는 유지됩니다.',
-          style: TextStyle(color: AppColors.textSecondary),
+        content: Text(
+          l.koEn(
+            '정말 로그아웃 하시겠어요?\n편지와 타워 데이터는 유지됩니다.',
+            'Do you want to log out?\nYour letters and tower data will stay saved.',
+          ),
+          style: const TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              '취소',
-              style: TextStyle(color: AppColors.textMuted),
+            child: Text(
+              l.koEn('취소', 'Cancel'),
+              style: const TextStyle(color: AppColors.textMuted),
             ),
           ),
           TextButton(
@@ -2417,9 +2475,9 @@ class _TowerScreenState extends State<TowerScreen>
                 ).pushNamedAndRemoveUntil('/auth', (_) => false);
               }
             },
-            child: const Text(
-              '로그아웃',
-              style: TextStyle(
+            child: Text(
+              l.koEn('로그아웃', 'Log Out'),
+              style: const TextStyle(
                 color: AppColors.error,
                 fontWeight: FontWeight.w700,
               ),
@@ -2475,7 +2533,14 @@ class _StatCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '+${contribution.toStringAsFixed(1)}점',
+            AppL10n.of(
+              context.select<AppState, String>(
+                (s) => s.currentUser.languageCode,
+              ),
+            ).koEn(
+              '+${contribution.toStringAsFixed(1)}점',
+              '+${contribution.toStringAsFixed(1)} pts',
+            ),
             style: TextStyle(
               color: color.withValues(alpha: 0.7),
               fontSize: 10,
