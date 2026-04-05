@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../core/theme/app_theme.dart';
+import '../core/localization/app_localizations.dart';
 import '../state/app_state.dart';
 import '../features/map/screens/world_map_screen.dart';
 import '../features/compose/screens/compose_screen.dart';
@@ -11,7 +12,8 @@ import '../features/profile/profile_screen.dart';
 import 'offline_banner.dart';
 
 class MainScaffold extends StatefulWidget {
-  const MainScaffold({super.key});
+  final int initialIndex;
+  const MainScaffold({super.key, this.initialIndex = 0});
 
   @override
   State<MainScaffold> createState() => _MainScaffoldState();
@@ -19,7 +21,7 @@ class MainScaffold extends StatefulWidget {
 
 class _MainScaffoldState extends State<MainScaffold>
     with TickerProviderStateMixin {
-  int _currentIndex = 0;
+  late int _currentIndex = widget.initialIndex;
 
   late final List<Widget> _pages = [
     WorldMapScreen(onGoToInbox: () => setState(() => _currentIndex = 1)),
@@ -85,6 +87,10 @@ class _MainScaffoldState extends State<MainScaffold>
     final badgeCount = context.select<AppState, int>(
       (s) => s.unreadCount + s.totalDMUnread,
     );
+    final langCode = context.select<AppState, String>(
+      (s) => s.currentUser.languageCode,
+    );
+    final l = AppL10n.of(langCode);
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(
@@ -100,7 +106,7 @@ class _MainScaffoldState extends State<MainScaffold>
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(context, badgeCount),
+      bottomNavigationBar: _buildBottomNav(context, badgeCount, l),
           floatingActionButton: AnimatedBuilder(
             animation: Listenable.merge([_fabPulse, _fabTapController]),
             builder: (_, __) => GestureDetector(
@@ -143,7 +149,7 @@ class _MainScaffoldState extends State<MainScaffold>
         );
   }
 
-  Widget _buildBottomNav(BuildContext ctx, int badgeCount) {
+  Widget _buildBottomNav(BuildContext ctx, int badgeCount, AppL10n l) {
     return Container(
       decoration: BoxDecoration(
         color: AppTimeColors.of(ctx).bgDeep,
@@ -186,7 +192,7 @@ class _MainScaffoldState extends State<MainScaffold>
                   Expanded(
                     child: _NavItem(
                       icon: Icons.public_rounded,
-                      label: '지도',
+                      label: l.map,
                       isSelected: _currentIndex == 0,
                       onTap: () => setState(() => _currentIndex = 0),
                     ),
@@ -194,7 +200,7 @@ class _MainScaffoldState extends State<MainScaffold>
                   Expanded(
                     child: _NavItemWithBadge(
                       icon: Icons.mail_rounded,
-                      label: '편지함',
+                      label: l.inbox,
                       isSelected: _currentIndex == 1,
                       badgeCount: badgeCount,
                       onTap: () => setState(() => _currentIndex = 1),
@@ -204,7 +210,7 @@ class _MainScaffoldState extends State<MainScaffold>
                   Expanded(
                     child: _NavItem(
                       icon: Icons.apartment_rounded,
-                      label: '타워',
+                      label: l.navTower,
                       isSelected: _currentIndex == 2,
                       onTap: () => setState(() => _currentIndex = 2),
                     ),
@@ -212,7 +218,7 @@ class _MainScaffoldState extends State<MainScaffold>
                   Expanded(
                     child: _NavItem(
                       icon: Icons.person_rounded,
-                      label: '프로필',
+                      label: l.profile,
                       isSelected: _currentIndex == 3,
                       onTap: () => setState(() => _currentIndex = 3),
                     ),

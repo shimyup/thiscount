@@ -8,6 +8,8 @@ import 'package:latlong2/latlong.dart' as ll;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/config/map_config.dart';
+import '../../../core/localization/app_localizations.dart';
+import '../../../core/localization/country_names.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/time_theme.dart';
 import '../../../models/letter.dart';
@@ -82,6 +84,8 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   Widget build(BuildContext context) {
     return Consumer<AppState>(
       builder: (context, state, _) {
+        final l10n = AppL10n.of(state.currentUser.languageCode);
+        final langCode = state.currentUser.languageCode;
         // 지도 표시: 배송중 + nearYou + deliveredFar + 도착했지만 아직 열리지 않은 편지
         // inbox에 있는 delivered(수령 후 미열람) 편지도 📮 마커로 지도에 표시
         final inboxDelivered = state.inbox
@@ -175,6 +179,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                     markers: _buildMapTowerMarkers(
                       context,
                       state,
+                      l10n,
                       showLabels: _showTowerLabels,
                     ),
                   ),
@@ -183,7 +188,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   valueListenable: _tickNotifier,
                   builder: (context, tick, child) {
                     return MarkerLayer(
-                      markers: _buildLetterMarkers(letters, state),
+                      markers: _buildLetterMarkers(letters, state, l10n, langCode),
                     );
                   },
                 ),
@@ -229,6 +234,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
               left: 0,
               right: 0,
               child: _MapHeader(
+                l10n: l10n,
                 showNearbyOnly: _showNearbyOnly,
                 letterCount: state.worldLetters.length,
                 nearbyCount: state.nearbyLetters.length,
@@ -251,6 +257,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 left: 16,
                 right: 16,
                 child: _NearbyAlertBanner(
+                  l10n: l10n,
                   count: state.nearbyLetters.length,
                   onTap: () {
                     setState(() => _showNearbyOnly = true);
@@ -274,7 +281,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 children: [
                   _MapQuickActionButton(
                     icon: Icons.public_rounded,
-                    tooltip: '전체보기',
+                    tooltip: l10n.mapViewAll,
                     onTap: () {
                       setState(() => _showNearbyOnly = false);
                       _mapController.move(
@@ -289,13 +296,13 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   const SizedBox(height: 10),
                   _MapQuickActionButton(
                     icon: Icons.add_rounded,
-                    tooltip: '확대',
+                    tooltip: l10n.mapZoomIn,
                     onTap: () => _zoomBy(1.0),
                   ),
                   const SizedBox(height: 10),
                   _MapQuickActionButton(
                     icon: Icons.remove_rounded,
-                    tooltip: '축소',
+                    tooltip: l10n.mapZoomOut,
                     onTap: () => _zoomBy(-1.0),
                   ),
                   const SizedBox(height: 10),
@@ -313,6 +320,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
               left: 16,
               right: 16,
               child: _StatsBar(
+                l10n: l10n,
                 state: state,
                 mapController: _mapController,
                 userLat: state.currentUser.latitude,
@@ -442,7 +450,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   }
 
   // ── 편지 마커 ────────────────────────────────────────────────────────────────
-  List<Marker> _buildLetterMarkers(List<Letter> letters, AppState state) {
+  List<Marker> _buildLetterMarkers(List<Letter> letters, AppState state, AppL10n l10n, String langCode) {
     final markers = <Marker>[];
 
     // 내 타워 마커 (탭하면 내 랭킹 정보 or 겹친 편지 disambiguation)
@@ -471,8 +479,10 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   context,
                   state,
                   overlappingLetters,
+                  l10n,
+                  langCode,
                 )
-              : _showMyTowerInfo(context, state),
+              : _showMyTowerInfo(context, state, l10n),
           child: _MyTowerMarker(
             tier: state.currentUser.activityScore.tier,
             flag: state.currentUser.countryFlag,
@@ -500,7 +510,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
             width: 40,
             height: isBrandLetter && viewerIsPremiumOrBrand ? 62 : 48,
             child: GestureDetector(
-              onTap: () => _onLetterTap(context, letter, state),
+              onTap: () => _onLetterTap(context, letter, state, l10n, langCode),
               child: _UnreadDeliveredMarker(
                 letter: letter,
                 pulseController: _pulseController,
@@ -522,7 +532,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
             width: 40,
             height: isBrandLetter && viewerIsPremiumOrBrand ? 62 : 48,
             child: GestureDetector(
-              onTap: () => _onLetterTap(context, letter, state),
+              onTap: () => _onLetterTap(context, letter, state, l10n, langCode),
               child: _UnreadDeliveredMarker(
                 letter: letter,
                 pulseController: _pulseController,
@@ -547,7 +557,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
           width: letter.status == DeliveryStatus.deliveredFar ? 48 : 36,
           height: letter.status == DeliveryStatus.deliveredFar ? 48 : 36,
           child: GestureDetector(
-            onTap: () => _onLetterTap(context, letter, state),
+            onTap: () => _onLetterTap(context, letter, state, l10n, langCode),
             child: _TransportMarker(
               letter: letter,
               pulseController: _pulseController,
@@ -605,7 +615,8 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   // ── 지도 타워 마커 (내 타워 + 다른 회원) ─────────────────────────────────────
   List<Marker> _buildMapTowerMarkers(
     BuildContext context,
-    AppState state, {
+    AppState state,
+    AppL10n l10n, {
     required bool showLabels,
   }) {
     final markers = <Marker>[];
@@ -632,7 +643,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
           width: hasLabel ? 72 : 52,
           height: hasLabel ? 82 : 64,
           child: GestureDetector(
-            onTap: () => _showMapTowerDetail(context, u, null),
+            onTap: () => _showMapTowerDetail(context, u, null, l10n),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -753,15 +764,15 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     return higherCount + 1;
   }
 
-  String _rankLabel(int rank) {
-    if (rank == 1) return '🥇 1위';
-    if (rank == 2) return '🥈 2위';
-    if (rank == 3) return '🥉 3위';
-    return '🌍 ${rank}위';
+  String _rankLabel(int rank, AppL10n l10n) {
+    if (rank == 1) return '🥇 ${l10n.mapRankN(1)}';
+    if (rank == 2) return '🥈 ${l10n.mapRankN(2)}';
+    if (rank == 3) return '🥉 ${l10n.mapRankN(3)}';
+    return '🌍 ${l10n.mapRankN(rank)}';
   }
 
-  void _showMyTowerInfo(BuildContext ctx, AppState state) {
-    _showMapTowerDetail(ctx, null, state);
+  void _showMyTowerInfo(BuildContext ctx, AppState state, AppL10n l10n) {
+    _showMapTowerDetail(ctx, null, state, l10n);
   }
 
   /// 타워 위치에 편지 마커가 겹쳤을 때 — 타워 보기 / 편지 선택 disambiguation
@@ -769,6 +780,8 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     BuildContext ctx,
     AppState state,
     List<Letter> letters,
+    AppL10n l10n,
+    String langCode,
   ) {
     showModalBottomSheet(
       context: ctx,
@@ -793,9 +806,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const Text(
-              '이 위치에 무엇이 있나요?',
-              style: TextStyle(
+            Text(
+              l10n.mapWhatsHere,
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
@@ -805,12 +818,12 @@ class _WorldMapScreenState extends State<WorldMapScreen>
             // 내 타워 버튼
             _DisambiguationTile(
               icon: state.currentUser.activityScore.tier.emoji,
-              title: '내 타워',
+              title: l10n.mapMyTower,
               subtitle:
-                  '${state.currentUser.activityScore.towerFloors}층 · ${state.currentUser.activityScore.tier.label}',
+                  '${state.currentUser.activityScore.towerFloors}${l10n.mapFloorUnit} · ${state.currentUser.activityScore.tier.label}',
               onTap: () {
                 Navigator.pop(ctx);
-                _showMyTowerInfo(ctx, state);
+                _showMyTowerInfo(ctx, state, l10n);
               },
             ),
             const SizedBox(height: 8),
@@ -820,11 +833,11 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 padding: const EdgeInsets.only(bottom: 8),
                 child: _DisambiguationTile(
                   icon: '📮',
-                  title: '${l.senderCountryFlag} ${l.senderCountry}에서 온 편지',
-                  subtitle: '${l.readCount}/${l.maxReaders}명 읽음 · 탭해서 수령',
+                  title: '${l.senderCountryFlag} ${l10n.mapLetterFrom(CountryL10n.localizedName(l.senderCountry, langCode))}',
+                  subtitle: l10n.mapReadCountTapToPickUp(l.readCount, l.maxReaders),
                   onTap: () {
                     Navigator.pop(ctx);
-                    _onLetterTap(ctx, l, state);
+                    _onLetterTap(ctx, l, state, l10n, langCode);
                   },
                 ),
               ),
@@ -839,6 +852,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     BuildContext ctx,
     MapUser? other,
     AppState? myState,
+    AppL10n l10n,
   ) {
     // 데이터 추출 (다른 유저 or 내 타워)
     final flag = other?.flag ?? (myState?.currentUser.countryFlag ?? '🏠');
@@ -851,7 +865,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     final username = other?.username ?? myState?.currentUser.username;
     final towerName = other?.towerName ?? myState?.currentUser.customTowerName;
     final tierColor = _towerTierColor(tier);
-    final rankLabel = _rankLabel(rank);
+    final rankLabel = _rankLabel(rank, l10n);
     final towerH = (60 + floors * 4.0).clamp(60.0, 240.0);
 
     showModalBottomSheet(
@@ -983,7 +997,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                         ],
                         const SizedBox(height: 4),
                         Text(
-                          other == null ? '내 타워' : '커뮤니티 타워',
+                          other == null ? l10n.mapMyTower : l10n.mapCommunityTower,
                           style: const TextStyle(
                             color: AppColors.textMuted,
                             fontSize: 11,
@@ -1021,9 +1035,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                             ),
                           ),
                           const SizedBox(height: 3),
-                          const Text(
-                            '세계 랭킹',
-                            style: TextStyle(
+                          Text(
+                            l10n.mapWorldRanking,
+                            style: const TextStyle(
                               color: AppColors.textMuted,
                               fontSize: 10,
                             ),
@@ -1055,9 +1069,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                             ),
                           ),
                           const SizedBox(height: 3),
-                          const Text(
-                            '건물 층수',
-                            style: TextStyle(
+                          Text(
+                            l10n.mapBuildingFloors,
+                            style: const TextStyle(
                               color: AppColors.textMuted,
                               fontSize: 10,
                             ),
@@ -1083,9 +1097,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          '타워 높이',
-                          style: TextStyle(
+                        Text(
+                          l10n.mapTowerHeight,
+                          style: const TextStyle(
                             color: AppColors.textMuted,
                             fontSize: 11,
                           ),
@@ -1127,7 +1141,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text('닫기'),
+                  child: Text(l10n.mapClose),
                 ),
               ),
             ],
@@ -1137,25 +1151,25 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     );
   }
 
-  void _onLetterTap(BuildContext ctx, Letter letter, AppState state) {
+  void _onLetterTap(BuildContext ctx, Letter letter, AppState state, AppL10n l10n, String langCode) {
     if (letter.status == DeliveryStatus.nearYou) {
-      _showPickupDialog(ctx, letter, state);
+      _showPickupDialog(ctx, letter, state, l10n, langCode);
     } else if (letter.status == DeliveryStatus.deliveredFar) {
-      _showDeliveredFarDialog(ctx, letter);
+      _showDeliveredFarDialog(ctx, letter, l10n);
     } else {
-      _showTransitInfo(ctx, letter);
+      _showTransitInfo(ctx, letter, l10n);
     }
   }
 
-  void _showDeliveredFarDialog(BuildContext ctx, Letter letter) {
+  void _showDeliveredFarDialog(BuildContext ctx, Letter letter, AppL10n l10n) {
     showDialog(
       context: ctx,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.bgCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        content: const Text(
-          '📬 편지가 도착했어요!\n이 위치를 직접 방문해야 열어볼 수 있어요.',
-          style: TextStyle(
+        content: Text(
+          '📬 ${l10n.mapLetterArrivedVisitToOpen}',
+          style: const TextStyle(
             color: AppColors.textPrimary,
             fontSize: 15,
             height: 1.6,
@@ -1167,19 +1181,21 @@ class _WorldMapScreenState extends State<WorldMapScreen>
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.gold),
-            child: const Text('닫기', style: TextStyle(color: AppColors.bgDeep)),
+            child: Text(l10n.mapClose, style: const TextStyle(color: AppColors.bgDeep)),
           ),
         ],
       ),
     );
   }
 
-  void _showPickupDialog(BuildContext ctx, Letter letter, AppState state) {
+  void _showPickupDialog(BuildContext ctx, Letter letter, AppState state, AppL10n l10n, String langCode) {
     showModalBottomSheet(
       context: ctx,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (_) => _PickupSheet(
+        l10n: l10n,
+        langCode: langCode,
         letter: letter,
         onPickup: () {
           final error = state.pickUpLetter(letter.id);
@@ -1188,7 +1204,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
             ScaffoldMessenger.of(ctx).showSnackBar(
               SnackBar(
                 content: Text(
-                  '📩  ${letter.senderCountryFlag} ${letter.senderCountry}에서 온 편지를 받았어요!',
+                  '📩  ${letter.senderCountryFlag} ${l10n.mapReceivedLetterFrom(CountryL10n.localizedName(letter.senderCountry, langCode))}',
                 ),
                 backgroundColor: AppColors.bgCard,
                 behavior: SnackBarBehavior.floating,
@@ -1214,12 +1230,12 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     );
   }
 
-  void _showTransitInfo(BuildContext ctx, Letter letter) {
+  void _showTransitInfo(BuildContext ctx, Letter letter, AppL10n l10n) {
     showModalBottomSheet(
       context: ctx,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => _TransitInfoSheet(letter: letter),
+      builder: (_) => _TransitInfoSheet(l10n: l10n, letter: letter),
     );
   }
 
@@ -1245,6 +1261,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -1252,23 +1269,22 @@ class _WorldMapScreenState extends State<WorldMapScreen>
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          title: const Text(
-            '📍 위치 권한 필요',
-            style: TextStyle(
+          title: Text(
+            '📍 ${l10n.mapLocationPermissionNeeded}',
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
           ),
-          content: const Text(
-            'LetterGo는 편지를 보내고 받기 위해 위치 권한이 필요합니다.\n'
-            '설정 앱에서 위치 권한을 "앱 사용 중 허용" 으로 변경해주세요.',
-            style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.6),
+          content: Text(
+            l10n.mapLocationPermissionDesc,
+            style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.6),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('나중에', style: TextStyle(color: Colors.grey)),
+              child: Text(l10n.mapLater, style: const TextStyle(color: Colors.grey)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -1282,9 +1298,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 Navigator.pop(ctx);
                 Geolocator.openAppSettings();
               },
-              child: const Text(
-                '설정 열기',
-                style: TextStyle(fontWeight: FontWeight.w700),
+              child: Text(
+                l10n.mapOpenSettings,
+                style: const TextStyle(fontWeight: FontWeight.w700),
               ),
             ),
           ],
@@ -1364,6 +1380,7 @@ class _MyLocationButtonState extends State<_MyLocationButton> {
   bool _loading = false;
 
   Future<void> _goToMyLocation(BuildContext context) async {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     setState(() => _loading = true);
     try {
       var permission = await Geolocator.checkPermission();
@@ -1374,9 +1391,9 @@ class _MyLocationButtonState extends State<_MyLocationButton> {
           permission == LocationPermission.denied) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('위치 권한이 필요합니다. 설정에서 허용해주세요.'),
-              backgroundColor: Color(0xFF1F2D44),
+            SnackBar(
+              content: Text(l10n.mapLocationPermissionRequired),
+              backgroundColor: const Color(0xFF1F2D44),
             ),
           );
         }
@@ -1392,9 +1409,9 @@ class _MyLocationButtonState extends State<_MyLocationButton> {
     } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('위치를 가져올 수 없어요. 잠시 후 다시 시도해주세요.'),
-            backgroundColor: Color(0xFF1F2D44),
+          SnackBar(
+            content: Text(l10n.mapCannotGetLocation),
+            backgroundColor: const Color(0xFF1F2D44),
           ),
         );
       }
@@ -1832,6 +1849,7 @@ class _UnreadDeliveredMarker extends StatelessWidget {
 
 // ── 상단 헤더 ──────────────────────────────────────────────────────────────────
 class _MapHeader extends StatelessWidget {
+  final AppL10n l10n;
   final bool showNearbyOnly;
   final int letterCount;
   final int nearbyCount;
@@ -1846,6 +1864,7 @@ class _MapHeader extends StatelessWidget {
   final VoidCallback onToggleNearby;
 
   const _MapHeader({
+    required this.l10n,
     required this.showNearbyOnly,
     required this.letterCount,
     required this.nearbyCount,
@@ -1863,13 +1882,13 @@ class _MapHeader extends StatelessWidget {
   String get _periodLabel {
     switch (period) {
       case TimeOfDayPeriod.morning:
-        return '🌅 새벽';
+        return '🌅 ${l10n.mapDawn}';
       case TimeOfDayPeriod.day:
-        return '☀️ 낮';
+        return '☀️ ${l10n.mapDay}';
       case TimeOfDayPeriod.evening:
-        return '🌆 저녁';
+        return '🌆 ${l10n.mapEvening}';
       case TimeOfDayPeriod.night:
-        return '🌙 밤';
+        return '🌙 ${l10n.mapNight}';
     }
   }
 
@@ -1877,8 +1896,8 @@ class _MapHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final timeColors = AppTimeColors.of(context);
     final socialProofLabel = mapUsersCount > 0
-        ? 'LIVE ${mapUsersCount}명 탐색 중 · 방금 ${inTransitCount}통 이동'
-        : 'LIVE 데이터 동기화 중';
+        ? 'LIVE ${l10n.mapLiveExploring(mapUsersCount, inTransitCount)}'
+        : 'LIVE ${l10n.mapSyncingData}';
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -2026,16 +2045,16 @@ class _MapHeader extends StatelessWidget {
                     if (isUnifiedLanguageMode)
                       _MapMetaChip(
                         icon: Icons.translate_rounded,
-                        text: '지도 언어: $mapLanguageLabel',
+                        text: '${l10n.mapMapLanguage}: $mapLanguageLabel',
                       ),
                     _MapMetaChip(
                       icon: Icons.layers_rounded,
                       text:
-                          '$mapProviderLabel · 줌 ${currentZoom.toStringAsFixed(1)}',
+                          '$mapProviderLabel · ${l10n.mapZoom} ${currentZoom.toStringAsFixed(1)}',
                     ),
                     _MapMetaChip(
                       icon: Icons.location_city_rounded,
-                      text: showTowerLabels ? '타워 라벨 ON' : '타워 라벨 OFF',
+                      text: showTowerLabels ? '${l10n.mapTowerLabel} ON' : '${l10n.mapTowerLabel} OFF',
                     ),
                   ],
                 ),
@@ -2048,7 +2067,7 @@ class _MapHeader extends StatelessWidget {
                       color: AppColors.teal,
                       active: !showNearbyOnly,
                       onTap: onToggleNearby,
-                      tooltip: '배송중 편지',
+                      tooltip: l10n.mapInTransitLetters,
                     ),
                     const SizedBox(width: 6),
                     _StatChip(
@@ -2056,7 +2075,7 @@ class _MapHeader extends StatelessWidget {
                       color: AppColors.gold,
                       active: showNearbyOnly,
                       onTap: onToggleNearby,
-                      tooltip: '2km 근처',
+                      tooltip: l10n.mapNearby2km,
                     ),
                     const SizedBox(width: 6),
                     _StatChip(
@@ -2064,7 +2083,7 @@ class _MapHeader extends StatelessWidget {
                       color: AppColors.textMuted,
                       active: false,
                       onTap: null,
-                      tooltip: '전체 편지',
+                      tooltip: l10n.mapAllLetters,
                     ),
                   ],
                 ),
@@ -2206,9 +2225,10 @@ class _StatChip extends StatelessWidget {
 
 // ── 근처 알림 배너 ─────────────────────────────────────────────────────────────
 class _NearbyAlertBanner extends StatelessWidget {
+  final AppL10n l10n;
   final int count;
   final VoidCallback onTap;
-  const _NearbyAlertBanner({required this.count, required this.onTap});
+  const _NearbyAlertBanner({required this.l10n, required this.count, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -2227,7 +2247,7 @@ class _NearbyAlertBanner extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                '편지 $count개가 근처에 도착했어요!  탭해서 확인',
+                l10n.mapNearbyLettersArrived(count),
                 style: const TextStyle(
                   color: AppColors.gold,
                   fontSize: 13,
@@ -2249,9 +2269,11 @@ class _NearbyAlertBanner extends StatelessWidget {
 
 // ── 픽업 시트 ──────────────────────────────────────────────────────────────────
 class _PickupSheet extends StatelessWidget {
+  final AppL10n l10n;
+  final String langCode;
   final Letter letter;
   final VoidCallback onPickup;
-  const _PickupSheet({required this.letter, required this.onPickup});
+  const _PickupSheet({required this.l10n, required this.langCode, required this.letter, required this.onPickup});
 
   @override
   Widget build(BuildContext context) {
@@ -2269,7 +2291,7 @@ class _PickupSheet extends StatelessWidget {
           const Text('📩', style: TextStyle(fontSize: 40)),
           const SizedBox(height: 12),
           Text(
-            '${letter.senderCountryFlag} ${letter.senderCountry}에서 온 편지',
+            '${letter.senderCountryFlag} ${l10n.mapLetterFrom(CountryL10n.localizedName(letter.senderCountry, langCode))}',
             style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 16,
@@ -2295,8 +2317,8 @@ class _PickupSheet extends StatelessWidget {
                 ),
                 elevation: 0,
               ),
-              child: const Text(
-                '편지 수령하기',
+              child: Text(
+                l10n.mapPickUpLetter,
                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
               ),
             ),
@@ -2309,8 +2331,9 @@ class _PickupSheet extends StatelessWidget {
 
 // ── 배송 중 정보 시트 (전체 구간 경로 표시) ────────────────────────────────────
 class _TransitInfoSheet extends StatelessWidget {
+  final AppL10n l10n;
   final Letter letter;
-  const _TransitInfoSheet({required this.letter});
+  const _TransitInfoSheet({required this.l10n, required this.letter});
 
   Color _segColor(bool isDone, bool isActive) {
     if (isDone) return AppColors.textMuted;
@@ -2319,9 +2342,9 @@ class _TransitInfoSheet extends StatelessWidget {
   }
 
   String _durLabel(int minutes) {
-    if (minutes < 60) return '${minutes}분';
+    if (minutes < 60) return l10n.mapMinutes(minutes);
     final h = (minutes / 60).round();
-    return '약 ${h}시간';
+    return l10n.mapAboutHours(h);
   }
 
   @override
@@ -2387,7 +2410,7 @@ class _TransitInfoSheet extends StatelessWidget {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        '현재: ${seg.fromName} → ${(seg == letter.segments.last && letter.destinationDisplayAddress != null) ? letter.destinationDisplayAddress! : seg.toName}',
+                        '${l10n.mapCurrent}: ${seg.fromName} → ${(seg == letter.segments.last && letter.destinationDisplayAddress != null) ? letter.destinationDisplayAddress! : seg.toName}',
                         style: const TextStyle(
                           color: AppColors.textMuted,
                           fontSize: 12,
@@ -2414,7 +2437,7 @@ class _TransitInfoSheet extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '전체 진행률 ${(letter.overallProgress * 100).round()}%',
+                  '${l10n.mapOverallProgress} ${(letter.overallProgress * 100).round()}%',
                   style: const TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 11,
@@ -2445,9 +2468,9 @@ class _TransitInfoSheet extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             // 구간별 경로 목록
-            const Text(
-              '배송 경로',
-              style: TextStyle(
+            Text(
+              l10n.mapDeliveryRoute,
+              style: const TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -2553,9 +2576,9 @@ class _TransitInfoSheet extends StatelessWidget {
                             color: AppColors.teal.withValues(alpha: 0.4),
                           ),
                         ),
-                        child: const Text(
-                          '이동중',
-                          style: TextStyle(
+                        child: Text(
+                          l10n.mapMoving,
+                          style: const TextStyle(
                             color: AppColors.teal,
                             fontSize: 9,
                             fontWeight: FontWeight.w700,
@@ -2575,6 +2598,7 @@ class _TransitInfoSheet extends StatelessWidget {
 
 // ── 하단 통계 바 (인터랙티브 네비게이션) ────────────────────────────────────────
 class _StatsBar extends StatelessWidget {
+  final AppL10n l10n;
   final AppState state;
   final MapController mapController;
   final double userLat;
@@ -2584,6 +2608,7 @@ class _StatsBar extends StatelessWidget {
   final VoidCallback? onGoToInbox;
 
   const _StatsBar({
+    required this.l10n,
     required this.state,
     required this.mapController,
     required this.userLat,
@@ -2617,7 +2642,7 @@ class _StatsBar extends StatelessWidget {
           _StatBtn(
             icon: '✈️',
             value: '${state.totalInTransitCount}',
-            label: '전체 편지',
+            label: l10n.mapAllLetters,
             onTap: onShowAll,
           ),
           _Divider(),
@@ -2625,7 +2650,7 @@ class _StatsBar extends StatelessWidget {
           _StatBtn(
             icon: '📍',
             value: '${state.nearbyLetters.length}',
-            label: '근처',
+            label: l10n.mapNearby,
             onTap: onShowNearby,
           ),
           _Divider(),
@@ -2633,7 +2658,7 @@ class _StatsBar extends StatelessWidget {
           _StatBtn(
             icon: '📬',
             value: '${state.inbox.length}',
-            label: '받은 편지',
+            label: l10n.mapReceivedLetters,
             onTap: onGoToInbox,
             highlight: state.unreadCount > 0,
             badge: state.unreadCount > 0 ? '${state.unreadCount}' : null,
@@ -2643,7 +2668,7 @@ class _StatsBar extends StatelessWidget {
           _StatBtn(
             icon: '✍️',
             value: '${state.sent.length}',
-            label: '보낸 편지',
+            label: l10n.mapSentLetters,
             onTap: onGoToInbox,
           ),
         ],

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/localization/app_localizations.dart';
+import '../../../core/localization/country_names.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../models/letter.dart';
 import '../../../models/direct_message.dart';
@@ -27,59 +29,8 @@ class _InboxScreenState extends State<InboxScreen>
   bool _searchMode = false;
   final TextEditingController _searchController = TextEditingController();
 
-  // 국가명 검색 별칭 (한국어, 영어, 현지어 모두 매칭)
-  static const Map<String, List<String>> _countryAliases = {
-    '대한민국': ['korea', 'south korea', 'kr', '한국'],
-    '일본': ['japan', 'jp', '日本', 'nihon'],
-    '미국': ['usa', 'united states', 'america', 'us'],
-    '프랑스': ['france', 'fr', 'français'],
-    '영국': ['uk', 'united kingdom', 'england', 'britain'],
-    '독일': ['germany', 'de', 'deutschland'],
-    '이탈리아': ['italy', 'it', 'italia'],
-    '스페인': ['spain', 'es', 'españa'],
-    '브라질': ['brazil', 'br', 'brasil'],
-    '인도': ['india', 'in'],
-    '중국': ['china', 'cn', '中国', 'zhongguo'],
-    '호주': ['australia', 'au'],
-    '캐나다': ['canada', 'ca'],
-    '멕시코': ['mexico', 'mx', 'méxico'],
-    '아르헨티나': ['argentina', 'ar'],
-    '러시아': ['russia', 'ru', 'россия'],
-    '터키': ['turkey', 'tr', 'türkiye'],
-    '이집트': ['egypt', 'eg', 'مصر'],
-    '남아프리카': ['south africa', 'za'],
-    '태국': ['thailand', 'th', 'ประเทศไทย'],
-    '네덜란드': ['netherlands', 'nl', 'holland'],
-    '스웨덴': ['sweden', 'se', 'sverige'],
-    '노르웨이': ['norway', 'no', 'norge'],
-    '포르투갈': ['portugal', 'pt'],
-    '인도네시아': ['indonesia', 'id'],
-    '말레이시아': ['malaysia', 'my'],
-    '싱가포르': ['singapore', 'sg'],
-    '뉴질랜드': ['new zealand', 'nz'],
-    '필리핀': ['philippines', 'ph'],
-    '베트남': ['vietnam', 'vn', 'việt nam'],
-    '그리스': ['greece', 'gr', 'hellas'],
-    '이스라엘': ['israel', 'il'],
-    '사우디아라비아': ['saudi arabia', 'sa', 'saudi'],
-    'UAE': ['uae', 'united arab emirates', 'dubai', '아랍에미리트'],
-    '파키스탄': ['pakistan', 'pk'],
-    '방글라데시': ['bangladesh', 'bd'],
-    '나이지리아': ['nigeria', 'ng'],
-    '케냐': ['kenya', 'ke'],
-    '에티오피아': ['ethiopia', 'et'],
-    '모로코': ['morocco', 'ma', 'maroc'],
-    '콜롬비아': ['colombia', 'co'],
-    '페루': ['peru', 'pe'],
-    '칠레': ['chile', 'cl'],
-    '덴마크': ['denmark', 'dk', 'danmark'],
-    '핀란드': ['finland', 'fi', 'suomi'],
-    '오스트리아': ['austria', 'at', 'österreich'],
-    '폴란드': ['poland', 'pl', 'polska'],
-    '체코': ['czech', 'cz', 'czechia', 'česká'],
-    '헝가리': ['hungary', 'hu', 'magyarország'],
-    '우크라이나': ['ukraine', 'ua', 'україна'],
-  };
+  AppL10n _l10n(BuildContext context) =>
+      AppL10n.of(context.read<AppState>().currentUser.languageCode);
 
   List<Letter> _applySearch(List<Letter> letters) {
     final q = _searchQuery.trim().toLowerCase();
@@ -88,12 +39,8 @@ class _InboxScreenState extends State<InboxScreen>
       if (l.content.toLowerCase().contains(q)) return true;
       if (l.senderCountry.toLowerCase().contains(q)) return true;
       if (l.senderCountryFlag.contains(q)) return true;
-      // 별칭 검색
-      final aliases = _countryAliases[l.senderCountry] ?? [];
-      if (aliases.any(
-        (a) => a.toLowerCase().contains(q) || q.contains(a.toLowerCase()),
-      ))
-        return true;
+      // 별칭 검색 (CountryL10n: 14개 언어 전체 매칭)
+      if (CountryL10n.matchesSearch(l.senderCountry, q)) return true;
       return false;
     }).toList();
   }
@@ -223,6 +170,7 @@ class _InboxScreenState extends State<InboxScreen>
   }
 
   Widget _buildHeader(BuildContext ctx, AppState state) {
+    final l10n = AppL10n.of(state.currentUser.languageCode);
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
       child: Column(
@@ -237,9 +185,9 @@ class _InboxScreenState extends State<InboxScreen>
                       shaderCallback: (b) => const LinearGradient(
                         colors: [AppColors.goldLight, AppColors.gold],
                       ).createShader(b),
-                      child: const Text(
-                        '편지함',
-                        style: TextStyle(
+                      child: Text(
+                        l10n.inbox,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 26,
                           fontWeight: FontWeight.w800,
@@ -258,7 +206,7 @@ class _InboxScreenState extends State<InboxScreen>
                     ),
                     const SizedBox(height: 1),
                     Text(
-                      '총 ${state.inbox.length}통 받음',
+                      l10n.inboxTotalReceived(state.inbox.length),
                       style: const TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 13,
@@ -345,7 +293,7 @@ class _InboxScreenState extends State<InboxScreen>
                       ),
                       onChanged: (v) => setState(() => _searchQuery = v),
                       decoration: InputDecoration(
-                        hintText: '내용, 나라, 이모지 검색...',
+                        hintText: l10n.inboxSearchHint,
                         hintStyle: const TextStyle(
                           color: AppColors.textMuted,
                           fontSize: 13,
@@ -417,10 +365,10 @@ class _InboxScreenState extends State<InboxScreen>
           fontWeight: FontWeight.w500,
           fontSize: 14,
         ),
-        tabs: const [
-          Tab(text: '📬 받은'),
-          Tab(text: '📤 보낸'),
-          Tab(text: '💬 DM'),
+        tabs: [
+          Tab(text: '📬 ${_l10n(context).inboxTabReceived}'),
+          Tab(text: '📤 ${_l10n(context).inboxTabSent}'),
+          Tab(text: '💬 ${_l10n(context).inboxTabDM}'),
         ],
       ),
     );
@@ -429,9 +377,10 @@ class _InboxScreenState extends State<InboxScreen>
   void _openLetter(BuildContext ctx, Letter letter, AppState state) {
     // Block opening deliveredFar letters
     if (letter.status == DeliveryStatus.deliveredFar) {
+      final l10n = _l10n(ctx);
       ScaffoldMessenger.of(ctx).showSnackBar(
         SnackBar(
-          content: const Text('이 편지는 현지에서만 열어볼 수 있어요'),
+          content: Text(l10n.inboxLocalOnly),
           backgroundColor: AppColors.bgCard,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -472,21 +421,22 @@ class _InboxScreenState extends State<InboxScreen>
   }
 
   void _showChainRuleDialog(BuildContext ctx, AppState state) {
+    final l10n = _l10n(ctx);
     final remaining = 3 - state.sentSinceLastUnlock;
     showDialog(
       context: ctx,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.bgCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          '📬 편지 잠금',
-          style: TextStyle(color: AppColors.textPrimary),
+        title: Text(
+          '📬 ${l10n.inboxLetterLocked}',
+          style: const TextStyle(color: AppColors.textPrimary),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              '다음 편지를 읽으려면 편지를 $remaining개 더 보내야 합니다.',
+              l10n.inboxSendMoreToRead(remaining),
               style: const TextStyle(color: AppColors.textSecondary),
             ),
             const SizedBox(height: 16),
@@ -501,7 +451,7 @@ class _InboxScreenState extends State<InboxScreen>
             ),
             const SizedBox(height: 8),
             Text(
-              '${state.sentSinceLastUnlock}/3 편지 발송',
+              l10n.inboxLettersSent(state.sentSinceLastUnlock, 3),
               style: const TextStyle(
                 color: AppColors.gold,
                 fontSize: 13,
@@ -514,7 +464,7 @@ class _InboxScreenState extends State<InboxScreen>
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.gold),
-            child: const Text('확인', style: TextStyle(color: AppColors.bgDeep)),
+            child: Text(l10n.inboxConfirm, style: const TextStyle(color: AppColors.bgDeep)),
           ),
         ],
       ),
@@ -528,22 +478,23 @@ void _confirmDelete(
   String letterId, {
   required bool isInbox,
 }) {
+  final l10n = AppL10n.of(state.currentUser.languageCode);
   showDialog(
     context: ctx,
     builder: (_) => AlertDialog(
       backgroundColor: AppColors.bgCard,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: const Text(
-        '편지 삭제',
-        style: TextStyle(
+      title: Text(
+        l10n.inboxDeleteTitle,
+        style: const TextStyle(
           color: AppColors.textPrimary,
           fontSize: 16,
           fontWeight: FontWeight.w700,
         ),
       ),
-      content: const Text(
-        '이 편지를 삭제하시겠어요?\n삭제된 편지는 복구할 수 없어요.',
-        style: TextStyle(
+      content: Text(
+        l10n.inboxDeleteBody,
+        style: const TextStyle(
           color: AppColors.textSecondary,
           fontSize: 13,
           height: 1.6,
@@ -552,7 +503,7 @@ void _confirmDelete(
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx),
-          child: const Text('취소', style: TextStyle(color: AppColors.textMuted)),
+          child: Text(l10n.inboxCancel, style: const TextStyle(color: AppColors.textMuted)),
         ),
         TextButton(
           onPressed: () {
@@ -562,9 +513,9 @@ void _confirmDelete(
             else
               state.deleteFromSent(letterId);
           },
-          child: const Text(
-            '삭제',
-            style: TextStyle(
+          child: Text(
+            l10n.inboxDelete,
+            style: const TextStyle(
               color: AppColors.error,
               fontWeight: FontWeight.w700,
             ),
@@ -597,6 +548,7 @@ class _InboxTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     final unread = letters
         .where((l) => l.status == DeliveryStatus.delivered)
         .toList();
@@ -608,11 +560,11 @@ class _InboxTab extends StatelessWidget {
           onChanged: onFilterChanged,
         ),
         if (letters.isEmpty)
-          const Expanded(
+          Expanded(
             child: _EmptyState(
               emoji: '📭',
-              title: '조건에 맞는 받은 편지가 없어요',
-              subtitle: '필터를 바꾸거나 지도에서 새 편지를 찾아보세요!',
+              title: l10n.inboxEmptyReceived,
+              subtitle: l10n.inboxEmptyReceivedSub,
             ),
           )
         else ...[
@@ -636,7 +588,7 @@ class _InboxTab extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '다음 편지를 읽으려면 ${3 - sentSinceLastUnlock}개 더 보내야 해요',
+                          l10n.inboxSendMoreToRead(3 - sentSinceLastUnlock),
                           style: const TextStyle(
                             color: AppColors.gold,
                             fontSize: 13,
@@ -692,18 +644,18 @@ class _InboxTab extends StatelessWidget {
                       color: const Color(0xFF8B1A1A),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Column(
+                    child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.delete_forever_rounded,
                           color: Colors.white,
                           size: 24,
                         ),
-                        SizedBox(height: 2),
+                        const SizedBox(height: 2),
                         Text(
-                          '삭제',
-                          style: TextStyle(
+                          l10n.inboxDelete,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -720,28 +672,28 @@ class _InboxTab extends StatelessWidget {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            title: const Text(
-                              '편지 삭제',
-                              style: TextStyle(color: Colors.white),
+                            title: Text(
+                              l10n.inboxDeleteTitle,
+                              style: const TextStyle(color: Colors.white),
                             ),
-                            content: const Text(
-                              '이 편지를 삭제하면 복구할 수 없어요.\n정말 삭제할까요?',
-                              style: TextStyle(color: Color(0xFF8899AA)),
+                            content: Text(
+                              l10n.inboxDeleteConfirm,
+                              style: const TextStyle(color: Color(0xFF8899AA)),
                             ),
                             actions: [
                               TextButton(
                                 onPressed: () =>
                                     Navigator.pop(dialogCtx, false),
-                                child: const Text(
-                                  '취소',
-                                  style: TextStyle(color: Color(0xFF8899AA)),
+                                child: Text(
+                                  l10n.inboxCancel,
+                                  style: const TextStyle(color: Color(0xFF8899AA)),
                                 ),
                               ),
                               TextButton(
                                 onPressed: () => Navigator.pop(dialogCtx, true),
-                                child: const Text(
-                                  '삭제',
-                                  style: TextStyle(color: Color(0xFFFF6B6B)),
+                                child: Text(
+                                  l10n.inboxDelete,
+                                  style: const TextStyle(color: Color(0xFFFF6B6B)),
                                 ),
                               ),
                             ],
@@ -753,7 +705,7 @@ class _InboxTab extends StatelessWidget {
                     ctx.read<AppState>().deleteFromInbox(letter.id);
                     ScaffoldMessenger.of(ctx).showSnackBar(
                       SnackBar(
-                        content: const Text('편지가 삭제되었어요'),
+                        content: Text(l10n.inboxDeleted),
                         backgroundColor: const Color(0xFF1A2332),
                         behavior: SnackBarBehavior.floating,
                         shape: RoundedRectangleBorder(
@@ -798,6 +750,7 @@ class _SentTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     return Column(
       children: [
         _LetterFilterBar(
@@ -805,11 +758,11 @@ class _SentTab extends StatelessWidget {
           onChanged: onFilterChanged,
         ),
         if (letters.isEmpty)
-          const Expanded(
+          Expanded(
             child: _EmptyState(
               emoji: '📮',
-              title: '조건에 맞는 보낸 편지가 없어요',
-              subtitle: '필터를 바꾸거나 새 편지를 보내보세요!',
+              title: l10n.inboxEmptySent,
+              subtitle: l10n.inboxEmptySentSub,
             ),
           )
         else
@@ -829,18 +782,18 @@ class _SentTab extends StatelessWidget {
                       color: const Color(0xFF8B1A1A),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Column(
+                    child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.delete_forever_rounded,
                           color: Colors.white,
                           size: 24,
                         ),
-                        SizedBox(height: 2),
+                        const SizedBox(height: 2),
                         Text(
-                          '삭제',
-                          style: TextStyle(
+                          l10n.inboxDelete,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -857,28 +810,28 @@ class _SentTab extends StatelessWidget {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            title: const Text(
-                              '편지 삭제',
-                              style: TextStyle(color: Colors.white),
+                            title: Text(
+                              l10n.inboxDeleteTitle,
+                              style: const TextStyle(color: Colors.white),
                             ),
-                            content: const Text(
-                              '이 편지를 삭제하면 복구할 수 없어요.\n정말 삭제할까요?',
-                              style: TextStyle(color: Color(0xFF8899AA)),
+                            content: Text(
+                              l10n.inboxDeleteConfirm,
+                              style: const TextStyle(color: Color(0xFF8899AA)),
                             ),
                             actions: [
                               TextButton(
                                 onPressed: () =>
                                     Navigator.pop(dialogCtx, false),
-                                child: const Text(
-                                  '취소',
-                                  style: TextStyle(color: Color(0xFF8899AA)),
+                                child: Text(
+                                  l10n.inboxCancel,
+                                  style: const TextStyle(color: Color(0xFF8899AA)),
                                 ),
                               ),
                               TextButton(
                                 onPressed: () => Navigator.pop(dialogCtx, true),
-                                child: const Text(
-                                  '삭제',
-                                  style: TextStyle(color: Color(0xFFFF6B6B)),
+                                child: Text(
+                                  l10n.inboxDelete,
+                                  style: const TextStyle(color: Color(0xFFFF6B6B)),
                                 ),
                               ),
                             ],
@@ -890,7 +843,7 @@ class _SentTab extends StatelessWidget {
                     ctx.read<AppState>().deleteFromSent(letter.id);
                     ScaffoldMessenger.of(ctx).showSnackBar(
                       SnackBar(
-                        content: const Text('편지가 삭제되었어요'),
+                        content: Text(l10n.inboxDeleted),
                         backgroundColor: const Color(0xFF1A2332),
                         behavior: SnackBarBehavior.floating,
                         shape: RoundedRectangleBorder(
@@ -960,6 +913,7 @@ class _LetterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     return GestureDetector(
       onTap: onTap,
       child: Stack(
@@ -1024,9 +978,9 @@ class _LetterCard extends StatelessWidget {
                             child: Text(
                               isInbox
                                   ? (letter.isAnonymous
-                                        ? '익명의 편지'
+                                        ? l10n.inboxAnonymousLetter
                                         : letter.senderName)
-                                  : '→ ${letter.destinationCountry}',
+                                  : '→ ${CountryL10n.localizedName(letter.destinationCountry, l10n.languageCode)}',
                               style: TextStyle(
                                 color: _isUnread
                                     ? AppColors.textPrimary
@@ -1116,9 +1070,7 @@ class _LetterCard extends StatelessWidget {
                         children: [
                           // 발송지
                           Text(
-                            isInbox
-                                ? '${letter.senderCountryFlag} ${letter.senderCountry}'
-                                : '${letter.senderCountryFlag} ${letter.senderCountry}',
+                            '${letter.senderCountryFlag} ${CountryL10n.localizedName(letter.senderCountry, l10n.languageCode)}',
                             style: const TextStyle(
                               color: AppColors.textMuted,
                               fontSize: 11,
@@ -1137,9 +1089,9 @@ class _LetterCard extends StatelessWidget {
                                 color: AppColors.teal.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: const Text(
-                                '✓ 읽음',
-                                style: TextStyle(
+                              child: Text(
+                                '✓ ${l10n.inboxRead}',
+                                style: const TextStyle(
                                   color: AppColors.teal,
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
@@ -1167,7 +1119,7 @@ class _LetterCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          '${letter.currentTransport.emoji} ${(letter.overallProgress * 100).toStringAsFixed(0)}% · ${letter.etaLabel} 예상',
+                          '${letter.currentTransport.emoji} ${(letter.overallProgress * 100).toStringAsFixed(0)}% · ${letter.etaLabel} ${l10n.inboxEta}',
                           style: const TextStyle(
                             color: AppColors.teal,
                             fontSize: 10,
@@ -1189,15 +1141,15 @@ class _LetterCard extends StatelessWidget {
                   color: AppColors.bgDeep.withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Center(
+                child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('🔒', style: TextStyle(fontSize: 24)),
-                      SizedBox(height: 4),
+                      const Text('🔒', style: TextStyle(fontSize: 24)),
+                      const SizedBox(height: 4),
                       Text(
-                        '편지 3개 발송 후 열기',
-                        style: TextStyle(
+                        l10n.inboxSend3ToOpen,
+                        style: const TextStyle(
                           color: AppColors.gold,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -1243,15 +1195,15 @@ class _LetterCard extends StatelessWidget {
                   color: AppColors.bgDeep.withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Center(
+                child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('📬', style: TextStyle(fontSize: 24)),
-                      SizedBox(height: 4),
+                      const Text('📬', style: TextStyle(fontSize: 24)),
+                      const SizedBox(height: 4),
                       Text(
-                        '현지에서만 열어볼 수 있어요',
-                        style: TextStyle(
+                        l10n.inboxLocalOnly,
+                        style: const TextStyle(
                           color: AppColors.warning,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -1274,23 +1226,24 @@ class _LetterFilterBar extends StatelessWidget {
 
   const _LetterFilterBar({required this.activeFilter, required this.onChanged});
 
-  String _label(LetterFilterType type) {
+  String _label(LetterFilterType type, AppL10n l10n) {
     switch (type) {
       case LetterFilterType.all:
-        return '전체';
+        return l10n.inboxFilterAll;
       case LetterFilterType.read:
-        return '읽음';
+        return l10n.inboxRead;
       case LetterFilterType.inTransit:
-        return '배송중';
+        return l10n.inboxFilterInTransit;
       case LetterFilterType.waitingPickup:
-        return '수령대기';
+        return l10n.inboxFilterWaiting;
       case LetterFilterType.brand:
-        return '🏢 브랜드';
+        return '🏢 ${l10n.inboxFilterBrand}';
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     return SizedBox(
       height: 42,
       child: ListView(
@@ -1302,7 +1255,7 @@ class _LetterFilterBar extends StatelessWidget {
             padding: const EdgeInsets.only(right: 8),
             child: ChoiceChip(
               label: Text(
-                _label(type),
+                _label(type, l10n),
                 style: TextStyle(
                   color: selected ? AppColors.bgDeep : AppColors.textSecondary,
                   fontSize: 12,
@@ -1338,6 +1291,7 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     Color color;
     String label;
 
@@ -1345,20 +1299,20 @@ class _StatusBadge extends StatelessWidget {
       switch (status) {
         case DeliveryStatus.inTransit:
           color = AppColors.teal;
-          label = '✈️ 배송 중';
+          label = '✈️ ${l10n.inboxStatusInTransit}';
           break;
         case DeliveryStatus.nearYou:
           color = AppColors.gold;
-          label = '📍 도착 근처';
+          label = '📍 ${l10n.inboxStatusNearby}';
           break;
         case DeliveryStatus.deliveredFar:
           color = AppColors.warning;
-          label = '📬 수령 대기';
+          label = '📬 ${l10n.inboxStatusWaiting}';
           break;
         case DeliveryStatus.delivered:
         case DeliveryStatus.read:
           color = AppColors.success;
-          label = '✅ 전달 완료';
+          label = '✅ ${l10n.inboxStatusDelivered}';
           break;
         default:
           color = AppColors.textMuted;
@@ -1368,15 +1322,15 @@ class _StatusBadge extends StatelessWidget {
       switch (status) {
         case DeliveryStatus.deliveredFar:
           color = AppColors.warning;
-          label = '📬 수령 대기';
+          label = '📬 ${l10n.inboxStatusWaiting}';
           break;
         case DeliveryStatus.delivered:
           color = AppColors.gold;
-          label = '📩 새 편지';
+          label = '📩 ${l10n.inboxStatusNewLetter}';
           break;
         case DeliveryStatus.read:
           color = AppColors.textMuted;
-          label = '✓ 읽음';
+          label = '✓ ${l10n.inboxRead}';
           break;
         default:
           color = AppColors.textMuted;
@@ -1448,6 +1402,7 @@ class _SentDetailSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(24),
@@ -1513,7 +1468,7 @@ class _SentDetailSheet extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '→ ${letter.destinationCountry}',
+                      '→ ${CountryL10n.localizedName(letter.destinationCountry, l10n.languageCode)}',
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     if (letter.destinationCity != null &&
@@ -1569,7 +1524,7 @@ class _SentDetailSheet extends StatelessWidget {
                 ),
               ),
               Text(
-                '예상 ${letter.etaLabel} 남음',
+                l10n.inboxEtaRemaining(letter.etaLabel),
                 style: const TextStyle(
                   color: AppColors.textMuted,
                   fontSize: 11,
@@ -1606,14 +1561,14 @@ class _SentDetailSheet extends StatelessWidget {
                     color: AppColors.teal.withValues(alpha: 0.4),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.map_rounded, color: AppColors.teal, size: 18),
-                    SizedBox(width: 6),
+                    const Icon(Icons.map_rounded, color: AppColors.teal, size: 18),
+                    const SizedBox(width: 6),
                     Text(
-                      '🗺️ 지도에서 배송 추적',
-                      style: TextStyle(
+                      '🗺️ ${l10n.inboxTrackOnMap}',
+                      style: const TextStyle(
                         color: AppColors.teal,
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
@@ -1716,6 +1671,7 @@ class _DMTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AppState>(
       builder: (ctx, state, _) {
+        final l10n = AppL10n.of(state.currentUser.languageCode);
         final sessions =
             state.chatSessions.values
                 .where(
@@ -1733,17 +1689,17 @@ class _DMTab extends StatelessWidget {
               children: [
                 const Text('💬', style: TextStyle(fontSize: 48)),
                 const SizedBox(height: 16),
-                const Text(
-                  '아직 DM 대화가 없어요',
-                  style: TextStyle(color: AppColors.textMuted, fontSize: 16),
+                Text(
+                  l10n.inboxNoDM,
+                  style: const TextStyle(color: AppColors.textMuted, fontSize: 16),
                 ),
                 const SizedBox(height: 8),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 40),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: Text(
-                    '받은 편지에서 발신자를 팔로우하면\n맞팔 시 DM 대화가 시작돼요',
+                    l10n.inboxNoDMSub,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: AppColors.textMuted,
                       fontSize: 13,
                       height: 1.6,
@@ -1775,16 +1731,16 @@ class _DMTab extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       title: Text(
-                        '${session.partnerFlag} ${session.partnerName}님과 대화',
+                        '${session.partnerFlag} ${l10n.inboxDMChatWith(session.partnerName)}',
                         style: const TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      content: const Text(
-                        '빠른 1:1 편지 대화를 시작하시겠어요?\n배송 없이 즉시 전달됩니다.',
-                        style: TextStyle(
+                      content: Text(
+                        l10n.inboxDMStartPrompt,
+                        style: const TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 13,
                           height: 1.6,
@@ -1796,9 +1752,9 @@ class _DMTab extends StatelessWidget {
                             Navigator.pop(ctx);
                             state.declineChatInvite(session.partnerId);
                           },
-                          child: const Text(
-                            '취소',
-                            style: TextStyle(color: AppColors.textMuted),
+                          child: Text(
+                            l10n.inboxCancel,
+                            style: const TextStyle(color: AppColors.textMuted),
                           ),
                         ),
                         TextButton(
@@ -1816,9 +1772,9 @@ class _DMTab extends StatelessWidget {
                               ),
                             );
                           },
-                          child: const Text(
-                            '대화 시작',
-                            style: TextStyle(
+                          child: Text(
+                            l10n.inboxStartChat,
+                            style: const TextStyle(
                               color: AppColors.teal,
                               fontWeight: FontWeight.w700,
                             ),
@@ -1896,9 +1852,9 @@ class _DMTab extends StatelessWidget {
                                     ),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
-                                  child: const Text(
-                                    '초대',
-                                    style: TextStyle(
+                                  child: Text(
+                                    l10n.inboxInvite,
+                                    style: const TextStyle(
                                       color: AppColors.gold,
                                       fontSize: 10,
                                       fontWeight: FontWeight.w700,
@@ -1911,8 +1867,8 @@ class _DMTab extends StatelessWidget {
                           Text(
                             lastMsg?.content ??
                                 (session.status == ChatStatus.pendingAgreement
-                                    ? '맞팔로우! 대화를 시작해보세요'
-                                    : '대화를 시작해보세요'),
+                                    ? l10n.inboxMutualFollow
+                                    : l10n.inboxStartConversation),
                             style: const TextStyle(
                               color: AppColors.textMuted,
                               fontSize: 12,
@@ -1968,13 +1924,15 @@ class _FollowListTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    final isFollowing = title == l10n.inboxFollowing;
     if (userIds.isEmpty) {
       return _EmptyState(
-        emoji: title == '팔로잉' ? '🔭' : '🌟',
-        title: title == '팔로잉' ? '팔로잉 중인 유저가 없어요' : '아직 팔로워가 없어요',
-        subtitle: title == '팔로잉'
-            ? '편지를 읽고 발신자를 팔로우 해보세요!'
-            : '편지를 더 보내면 팔로워가 생겨요!',
+        emoji: isFollowing ? '🔭' : '🌟',
+        title: isFollowing ? l10n.inboxNoFollowing : l10n.inboxNoFollowers,
+        subtitle: isFollowing
+            ? l10n.inboxNoFollowingSub
+            : l10n.inboxNoFollowersSub,
       );
     }
 

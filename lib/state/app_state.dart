@@ -13,6 +13,7 @@ import '../models/user_profile.dart';
 import '../core/config/app_keys.dart';
 import '../core/config/firebase_config.dart';
 import '../core/localization/language_config.dart';
+import '../core/localization/app_localizations.dart';
 import '../core/data/country_cities.dart';
 import '../core/services/notification_service.dart';
 import '../core/services/geocoding_service.dart';
@@ -88,6 +89,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   );
 
   UserProfile get currentUser => _currentUser;
+
+  /// Localization helper — uses the current user's language code.
+  AppL10n get _l10n => AppL10n.of(_currentUser.languageCode);
 
   // ── 지도 위 다른 회원 타워 (Firestore 실시간) ──────────────────────────────
   List<MapUser> _mapUsers = [];
@@ -268,8 +272,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// DM 사용 불가 사유 메시지
   String get dmUnavailableMessage {
     if (_currentUser.isBrand)
-      return '브랜드 계정은 DM을 사용할 수 없어요.\n편지 발송을 통해 수신자와 소통해보세요.';
-    return '빠른 편지(DM)는 프리미엄 회원 전용이에요.\n프리미엄으로 업그레이드하면 DM 이용 및 하루 $_dailyLimitPremium통 발송이 가능해요.';
+      return _l10n.stateDmUnavailableBrand;
+    return _l10n.stateDmUnavailableFree(_dailyLimitPremium);
   }
 
   /// DM 몇 회당 편지 1통 차감하는지 (외부 노출용)
@@ -280,13 +284,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       _dmPerLetterQuota - (_pendingDMCount % _dmPerLetterQuota);
 
   String get premiumExpressLimitExceededMessage =>
-      '프리미엄 특급 배송은 하루 $_dailyPremiumExpressLimit통까지 가능해요.';
+      _l10n.statePremiumExpressLimitExceeded(_dailyPremiumExpressLimit);
 
   String get imageLimitExceededMessage {
     if (_currentUser.isBrand) {
-      return '오늘 이미지 편지 한도($_dailyImageLetterLimitBrand통)에 도달했어요. 내일 다시 시도해주세요.';
+      return _l10n.stateImageLimitExceeded(_dailyImageLetterLimitBrand);
     }
-    return '오늘 이미지 편지 한도($_dailyImageLetterLimit통)에 도달했어요. 내일 다시 시도해주세요.';
+    return _l10n.stateImageLimitExceeded(_dailyImageLetterLimit);
   }
 
   String get myInviteCode =>
@@ -298,7 +302,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       _currentUser.id != 'guest';
 
   String get brandExtraServerVerificationUnavailableMessage =>
-      '서버 검증이 활성화되지 않아 추가 발송권 구매를 완료할 수 없어요.\n로그인 상태와 Firebase 설정을 확인해주세요.';
+      _l10n.stateBrandExtraVerificationUnavailable;
 
   String _deriveInviteCode() {
     final seed = (_currentUser.id.isNotEmpty && _currentUser.id != 'guest')
@@ -419,28 +423,28 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   String get dailyLimitExceededMessage {
     if (isGeneralMember) {
       if (useValueBasedPremiumCopy) {
-        return '오늘 무료 한도($_dailyLimitFree통)를 모두 사용했어요.\n프리미엄(월 ₩4,900)으로 업그레이드하면 하루 $_dailyLimitPremium통까지 보내서 답장 기회를 최대 10배까지 넓힐 수 있어요.';
+        return _l10n.stateDailyLimitFreeValueCopy(_dailyLimitFree, _dailyLimitPremium);
       }
-      return '무료 회원은 하루 $_dailyLimitFree통까지 발송할 수 있어요.\n프리미엄(월 ₩4,900)으로 업그레이드하면 하루 $_dailyLimitPremium통 발송 가능해요!';
+      return _l10n.stateDailyLimitFree(_dailyLimitFree, _dailyLimitPremium);
     }
     if (isBrandMember) {
-      return '오늘 브랜드 발송 한도($_dailyLimitBrand통)에 도달했어요. 추가 발송권(1,000통 ₩15,000)을 구매하거나 내일 다시 시도해주세요.';
+      return _l10n.stateDailyLimitBrand(_dailyLimitBrand);
     }
-    return '오늘 프리미엄 발송 한도($_dailyLimitPremium통)에 도달했어요. 내일 다시 시도해주세요.';
+    return _l10n.stateDailyLimitPremium(_dailyLimitPremium);
   }
 
   String get monthlyLimitExceededMessage {
     if (isGeneralMember) {
       if (useValueBasedPremiumCopy) {
-        return '이번 달 무료 한도($_monthlyLimitFree통)를 모두 사용했어요.\n프리미엄으로 전환하면 월 $_monthlyLimitPremium통까지 발송 가능해서 더 많은 국가와 연결을 만들 수 있어요.';
+        return _l10n.stateMonthlyLimitFreeValueCopy(_monthlyLimitFree, _monthlyLimitPremium);
       }
-      return '이번 달 발송 한도($_monthlyLimitFree통)에 도달했어요.\n프리미엄으로 업그레이드하면 월 $_monthlyLimitPremium통 발송 가능해요!';
+      return _l10n.stateMonthlyLimitFree(_monthlyLimitFree, _monthlyLimitPremium);
     }
     if (isBrandMember) {
       final total = _monthlyLimitBrand + _brandExtraMonthlyQuota;
-      return '이번 달 브랜드 발송 한도(${total}통)에 도달했어요.\n추가 발송권(1,000통 ₩15,000)을 구매하세요.';
+      return _l10n.stateMonthlyLimitBrand(total);
     }
-    return '이번 달 프리미엄 발송 한도($_monthlyLimitPremium통)에 도달했어요. DM 쿼터 포함 기준입니다.';
+    return _l10n.stateMonthlyLimitPremium(_monthlyLimitPremium);
   }
 
   // ── 이미지/링크 편지 일일 한도 (프리미엄 20통, 브랜드 300통, 무료 0통) ────────
@@ -508,11 +512,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   String get displayThemeModeLabel {
     switch (_displayThemeMode) {
       case DisplayThemeMode.auto:
-        return '자동 (시간대)';
+        return _l10n.stateThemeAuto;
       case DisplayThemeMode.light:
-        return '밝은 모드';
+        return _l10n.stateThemeLight;
       case DisplayThemeMode.dark:
-        return '다크 모드';
+        return _l10n.stateThemeDark;
     }
   }
 
@@ -677,7 +681,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       id: 'system_${now.millisecondsSinceEpoch}',
       senderId: 'system',
       senderName: '📮 Message in a Bottle',
-      senderCountry: '관리자',
+      senderCountry: _l10n.stateAdmin,
       senderCountryFlag: '🌐',
       content: content,
       originLocation: originLoc,
@@ -1152,7 +1156,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
                 from: first.from,
                 to: first.to,
                 mode: first.mode,
-                fromName: '내 위치',
+                fromName: _l10n.stateMyLocation,
                 toName: first.toName,
                 fromType: first.fromType,
                 toType: first.toType,
@@ -3212,9 +3216,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final notifyEnabled = prefs.getBool('notify_nearby') ?? true;
     if (!notifyEnabled) return;
     NotificationService.showNearbyLetterNotification(
-      title: '📩 편지가 근처에 있어요!',
+      title: _l10n.stateNearbyNotificationTitle,
       body:
-          '${letter.senderCountryFlag} ${letter.senderCountry}에서 온 편지가 2km 이내에 도착했어요',
+          _l10n.stateNearbyNotificationBody(letter.senderCountryFlag, letter.senderCountry),
     );
   }
 
@@ -3364,7 +3368,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       fromCity: fromCity,
       toCountry: destinationCountry,
       toCity: toCity,
-      fromCityName: '내 위치',
+      fromCityName: _l10n.stateMyLocation,
       preferAir: !useShip,
       toCityName: toCityName,
     );
@@ -3548,7 +3552,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         fromCity: fromCity,
         toCountry: destinationCountry,
         toCity: toCity,
-        fromCityName: '내 위치',
+        fromCityName: _l10n.stateMyLocation,
         preferAir: true,
         toCityName: cityName,
       );
@@ -3624,27 +3628,29 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (remaining != null) {
       final mins = remaining.inMinutes;
       final secs = remaining.inSeconds % 60;
-      final timeStr = mins > 0 ? '$mins분 $secs초' : '$secs초';
+      final timeStr = mins > 0
+          ? _l10n.stateMinSec(mins, secs)
+          : _l10n.stateSec(secs);
       final tier = (_currentUser.isPremium || _currentUser.isBrand)
-          ? '프리미엄 10분'
-          : '일반 1시간';
-      return '⏳ $timeStr 후 줍기 가능 ($tier 쿨다운)';
+          ? _l10n.stateTierPremium10min
+          : _l10n.stateTierFree1hour;
+      return _l10n.statePickupCooldown(timeStr, tier);
     }
 
     // ② 이미 내가 읽은 편지인지 확인
     if (_myPickedUpLetterIds.contains(letterId)) {
-      return '이미 읽은 편지예요 📖';
+      return _l10n.stateAlreadyRead;
     }
 
     // ③ 편지 존재 여부
     final idx = _worldLetters.indexWhere((l) => l.id == letterId);
-    if (idx == -1) return '누군가 이미 가져간 편지예요 😢';
+    if (idx == -1) return _l10n.stateAlreadyTaken;
 
     final letter = _worldLetters[idx];
 
     // ④ 최대 읽기 인원 초과 확인 (같은 지역 최대 3명)
     if (letter.readCount >= letter.maxReaders) {
-      return '이미 ${letter.maxReaders}명이 읽은 편지예요 📪';
+      return _l10n.stateMaxReadersReached(letter.maxReaders);
     }
 
     // ⑤ 거리 재검증: 편지 목적지와 현재 유저 위치 간 Haversine 거리
@@ -3652,7 +3658,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       final dist = letter.destinationLocation.distanceTo(
         LatLng(_currentUser.latitude, _currentUser.longitude),
       );
-      if (dist > 2000) return '📍 편지 수령지 2km 이내에 있어야 받을 수 있어요';
+      if (dist > 2000) return _l10n.stateDistanceTooFar;
     }
 
     // ⑥ 수령 처리: readCount 증가 후 inbox에 복사본 추가
@@ -3892,14 +3898,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     Future.delayed(const Duration(seconds: 3), () {
       if (_chatSessions.containsKey(partnerId)) {
         final session = _chatSessions[partnerId]!;
+        final l10n = _l10n;
         final replies = [
-          '정말요? 저도 그렇게 생각해요! 😊',
-          '편지로 이렇게 대화할 수 있다니 신기해요',
-          '언젠가 직접 만날 수 있으면 좋겠어요 ✨',
-          '당신의 이야기가 궁금해요. 더 들려주세요!',
-          '저도 비슷한 경험이 있어요. 공감이 가네요',
-          '와, 정말요? 그 나라는 어때요?',
-          '너무 좋은 말이에요. 감사해요 💌',
+          l10n.stateDmReply1,
+          l10n.stateDmReply2,
+          l10n.stateDmReply3,
+          l10n.stateDmReply4,
+          l10n.stateDmReply5,
+          l10n.stateDmReply6,
+          l10n.stateDmReply7,
         ];
         final reply = DirectMessage(
           id: 'dm_reply_${DateTime.now().millisecondsSinceEpoch}',
@@ -3989,7 +3996,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       fromCity: fromCity,
       toCountry: destinationCountry,
       toCity: toCity,
-      fromCityName: '내 위치',
+      fromCityName: _l10n.stateMyLocation,
       preferAir: true,
       toCityName: null,
     );

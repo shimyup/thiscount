@@ -181,6 +181,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 selectedCountry: _selectedCountry,
                 selectedFlag: _selectedFlag,
                 countries: _popularCountries,
+                l: _l,
                 onCountrySelected: (name, flag, lang) {
                   setState(() {
                     _selectedCountry = name;
@@ -222,7 +223,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 gradient: const [Color(0xFF0A1628), Color(0xFF162040)],
               ),
               // Page 6: Premium 소개
-              const _PremiumPage(),
+              _PremiumPage(l: _l),
             ],
           ),
           // Top skip button (only show after page 0)
@@ -323,12 +324,14 @@ class _CountrySelectionPage extends StatefulWidget {
   final String selectedCountry;
   final String selectedFlag;
   final List<Map<String, String>> countries;
+  final AppL10n l;
   final void Function(String name, String flag, String lang) onCountrySelected;
 
   const _CountrySelectionPage({
     required this.selectedCountry,
     required this.selectedFlag,
     required this.countries,
+    required this.l,
     required this.onCountrySelected,
   });
 
@@ -369,18 +372,18 @@ class _CountrySelectionPageState extends State<_CountrySelectionPage> {
             children: [
               const Text('🌍', style: TextStyle(fontSize: 48)),
               const SizedBox(height: 16),
-              const Text(
-                'Where are you from?',
-                style: TextStyle(
+              Text(
+                widget.l.onboardingCountryTitle,
+                style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 24,
                   fontWeight: FontWeight.w800,
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
-                '거주 국가를 선택하면 앱이 해당 언어로 표시됩니다',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              Text(
+                widget.l.onboardingCountrySubtitle,
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
               ),
               const SizedBox(height: 20),
               // Search field
@@ -394,16 +397,16 @@ class _CountrySelectionPageState extends State<_CountrySelectionPage> {
                   controller: _searchCtrl,
                   style: const TextStyle(color: AppColors.textPrimary),
                   onChanged: (v) => setState(() => _query = v),
-                  decoration: const InputDecoration(
-                    hintText: 'Search country...',
-                    hintStyle: TextStyle(color: AppColors.textMuted),
-                    prefixIcon: Icon(
+                  decoration: InputDecoration(
+                    hintText: widget.l.onboardingSearchCountry,
+                    hintStyle: const TextStyle(color: AppColors.textMuted),
+                    prefixIcon: const Icon(
                       Icons.search_rounded,
                       color: AppColors.textMuted,
                       size: 20,
                     ),
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
               ),
@@ -620,39 +623,40 @@ class _LocationPermissionPage extends StatelessWidget {
 
 // ── Premium 소개 페이지 ──────────────────────────────────────────────────────
 class _PremiumPage extends StatelessWidget {
-  const _PremiumPage();
+  final AppL10n l;
+  const _PremiumPage({required this.l});
 
   @override
   Widget build(BuildContext context) {
     const gradient = [Color(0xFF0B0618), Color(0xFF1A0B2E)];
 
     // 무료 기능
-    const freeFeatures = [
-      '하루 3통 편지 발송 (월 100통)',
-      '기본 타워 스킨',
-      '받은 편지함 / DM',
-      '세계 지도 열람',
+    final freeFeatures = [
+      l.onboardingFreeFeat1,
+      l.onboardingFreeFeat2,
+      l.onboardingFreeFeat3,
+      l.onboardingFreeFeat4,
     ];
 
     // 프리미엄 전용 기능 (실제 한도와 동일하게 유지)
     final premiumFeatures = [
       {
         'emoji': '✉️',
-        'text': '하루 30통 편지 · 월 500통',
+        'text': l.onboardingPremiumFeat1,
         'color': const Color(0xFFFF6B9D),
       },
-      {'emoji': '📸', 'text': '이미지+링크 첨부 (하루 20통)', 'color': AppColors.teal},
-      {'emoji': '⚡', 'text': '특급 배송 (하루 3통)', 'color': AppColors.gold},
-      {'emoji': '🗼', 'text': '커스텀 타워 스킨', 'color': const Color(0xFFFF8A5C)},
+      {'emoji': '📸', 'text': l.onboardingPremiumFeat2, 'color': AppColors.teal},
+      {'emoji': '⚡', 'text': l.onboardingPremiumFeat3, 'color': AppColors.gold},
+      {'emoji': '🗼', 'text': l.onboardingPremiumFeat4, 'color': const Color(0xFFFF8A5C)},
     ];
-    const socialProofStats = [
-      {'label': '활성 유저', 'value': '42K+'},
-      {'label': '누적 편지', 'value': '128K+'},
-      {'label': '연결 국가', 'value': '164개국'},
+    final socialProofStats = [
+      {'label': l.onboardingStatActiveUsers, 'value': '42K+'},
+      {'label': l.onboardingStatTotalLetters, 'value': '128K+'},
+      {'label': l.onboardingStatCountries, 'value': l.onboardingStatCountriesValue},
     ];
-    const socialProofReviews = [
-      '“일주일 만에 11개국에서 답장을 받았어요.”',
-      '“사진 편지 기능 덕분에 답장률이 확실히 올라갔어요.”',
+    final socialProofReviews = [
+      l.onboardingReview1,
+      l.onboardingReview2,
     ];
 
     return Container(
@@ -705,10 +709,10 @@ class _PremiumPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      '더 넓은 세계로\n편지를 보내보세요',
+                    Text(
+                      l.onboardingPremiumTitle,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 24,
                         fontWeight: FontWeight.w800,
@@ -716,10 +720,10 @@ class _PremiumPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      '프리미엄으로 업그레이드하고\n특별한 편지 경험을 즐겨보세요',
+                    Text(
+                      l.onboardingPremiumSubtitle,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 13,
                         height: 1.6,
@@ -853,9 +857,9 @@ class _PremiumPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           RichText(
-                            text: const TextSpan(
+                            text: TextSpan(
                               children: [
-                                TextSpan(
+                                const TextSpan(
                                   text: '₩4,900',
                                   style: TextStyle(
                                     color: AppColors.gold,
@@ -864,8 +868,8 @@ class _PremiumPage extends StatelessWidget {
                                   ),
                                 ),
                                 TextSpan(
-                                  text: '/월',
-                                  style: TextStyle(
+                                  text: l.onboardingPerMonth,
+                                  style: const TextStyle(
                                     color: AppColors.textSecondary,
                                     fontSize: 12,
                                   ),
@@ -921,9 +925,9 @@ class _PremiumPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      '🌍 실사용 지표',
-                      style: TextStyle(
+                    Text(
+                      '🌍 ${l.onboardingLiveStats}',
+                      style: const TextStyle(
                         color: AppColors.teal,
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
@@ -990,14 +994,14 @@ class _PremiumPage extends StatelessWidget {
                     color: AppColors.textMuted.withValues(alpha: 0.15),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Text('💡', style: TextStyle(fontSize: 16)),
-                    SizedBox(width: 10),
+                    const Text('💡', style: TextStyle(fontSize: 16)),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        '지금 무료로 시작하고, 언제든지 업그레이드할 수 있어요.',
-                        style: TextStyle(
+                        l.onboardingFreeStartHint,
+                        style: const TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 12,
                           height: 1.6,

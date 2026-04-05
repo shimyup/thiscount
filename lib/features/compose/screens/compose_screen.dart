@@ -7,6 +7,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../core/localization/app_localizations.dart';
+import '../../../core/localization/country_names.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/letter_style.dart';
 import '../../../core/data/country_cities.dart';
@@ -174,8 +176,8 @@ class _ComposeScreenState extends State<ComposeScreen>
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: const Text(
-                  '🔗 링크는 본문에 직접 삽입할 수 없어요.\n아래 링크 첨부 기능을 사용해주세요.',
+                content: Text(
+                  AppL10n.of(context.read<AppState>().currentUser.languageCode).composeLinkNotAllowed,
                 ),
                 backgroundColor: const Color(0xFF1F2D44),
                 behavior: SnackBarBehavior.floating,
@@ -248,9 +250,9 @@ class _ComposeScreenState extends State<ComposeScreen>
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.bgCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        content: const Text(
-          '이전에 작성하던 편지가 있어요. 이어 작성할까요?',
-          style: TextStyle(color: AppColors.textPrimary),
+        content: Text(
+          AppL10n.of(context.read<AppState>().currentUser.languageCode).composeDraftFound,
+          style: const TextStyle(color: AppColors.textPrimary),
         ),
         actions: [
           TextButton(
@@ -258,9 +260,9 @@ class _ComposeScreenState extends State<ComposeScreen>
               _clearDraft();
               Navigator.pop(ctx);
             },
-            child: const Text(
-              '버리기',
-              style: TextStyle(color: AppColors.textMuted),
+            child: Text(
+              AppL10n.of(context.read<AppState>().currentUser.languageCode).composeDiscard,
+              style: const TextStyle(color: AppColors.textMuted),
             ),
           ),
           TextButton(
@@ -271,7 +273,7 @@ class _ComposeScreenState extends State<ComposeScreen>
               });
               Navigator.pop(ctx);
             },
-            child: const Text('이어 쓰기', style: TextStyle(color: AppColors.teal)),
+            child: Text(AppL10n.of(context.read<AppState>().currentUser.languageCode).composeContinueWriting, style: const TextStyle(color: AppColors.teal)),
           ),
         ],
       ),
@@ -328,19 +330,20 @@ class _ComposeScreenState extends State<ComposeScreen>
         state.currentUser.isPremium ||
         state.currentUser.isBrand;
     if (!hasPremium) {
+      final _l = AppL10n.of(context.read<AppState>().currentUser.languageCode);
       PremiumGateSheet.show(
         context,
-        featureName: '📸 사진 첨부',
+        featureName: '📸 ${_l.composePhotoAttach}',
         featureEmoji: '📸',
-        description: '편지에 사진 1장을 첨부할 수 있어요.\n프리미엄 회원은 하루 20통까지 이미지 편지 발송 가능.',
+        description: _l.composePhotoAttachDesc,
       );
       return;
     }
     if (!state.hasRemainingImageQuota) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('오늘 이미지 편지 한도(20통)에 도달했어요. 내일 다시 시도해주세요.'),
-          backgroundColor: Color(0xFF1F2D44),
+        SnackBar(
+          content: Text(AppL10n.of(context.read<AppState>().currentUser.languageCode).composeImageLimitReached),
+          backgroundColor: const Color(0xFF1F2D44),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -408,17 +411,18 @@ class _ComposeScreenState extends State<ComposeScreen>
   }
 
   Future<void> _onSend(AppState state) async {
+    final l10n = AppL10n.of(state.currentUser.languageCode);
     final content = _contentController.text.trim();
     if (content.isEmpty) {
-      _showError('편지 내용을 작성해주세요 ✍️');
+      _showError(l10n.composeEmptyError);
       return;
     }
     if (content.length < 20) {
-      _showError('편지는 최소 20자 이상 작성해주세요 ✍️ (현재 ${content.length}자)');
+      _showError(l10n.composeMinLengthError(content.length));
       return;
     }
     if (_hasBannedWords(content)) {
-      _showError('부적절한 표현이 포함되어 있어요 🚫');
+      _showError(l10n.composeBannedWordError);
       return;
     }
     if (!state.hasRemainingDailyQuota) {
@@ -437,7 +441,7 @@ class _ComposeScreenState extends State<ComposeScreen>
     // ── 특송 + 대량 동시 모드 ──────────────────────────────────────────────
     if (_isExpressMode && _isBulkMode && state.currentUser.isBrand) {
       if (_bulkTargets.isEmpty) {
-        _showError('발송할 나라를 최소 1개 선택해주세요 🌍');
+        _showError(l10n.composeSelectCountryError);
         return;
       }
       FocusScope.of(context).unfocus();
@@ -469,7 +473,7 @@ class _ComposeScreenState extends State<ComposeScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '⚡🌍 특송+대량! ${_bulkTargets.length}개 나라 × $_expressCount주소 = 총 ${totalSent}통 즉시 발송!',
+              l10n.composeExpressBulkSent(_bulkTargets.length, _expressCount, totalSent),
               style: const TextStyle(color: Colors.white),
             ),
             backgroundColor: const Color(0xFF1A1A2A),
@@ -487,7 +491,7 @@ class _ComposeScreenState extends State<ComposeScreen>
     // ── 대량 발송 모드 ─────────────────────────────────────────────────────
     if (_isBulkMode && state.currentUser.isBrand) {
       if (_bulkTargets.isEmpty) {
-        _showError('발송할 나라를 최소 1개 선택해주세요 🌍');
+        _showError(l10n.composeSelectCountryError);
         return;
       }
       // 키보드 해제
@@ -516,7 +520,7 @@ class _ComposeScreenState extends State<ComposeScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '🌍  총 ${totalSent}통의 편지가 ${_bulkTargets.length}개 나라로 출발했어요!',
+              l10n.composeBulkSent(totalSent, _bulkTargets.length),
               style: const TextStyle(color: Colors.white),
             ),
             backgroundColor: const Color(0xFF111827),
@@ -607,24 +611,26 @@ class _ComposeScreenState extends State<ComposeScreen>
       }
       final lastLetter = state.sent.isNotEmpty ? state.sent.last : null;
       final estMin = lastLetter?.estimatedTotalMinutes ?? 0;
+      final langCode = state.currentUser.languageCode;
+      final localCountry = CountryL10n.localizedName(_selectedCountry, langCode);
       final String estLabel = _isReply || estMin <= 0
           ? ''
           : estMin < 60
-          ? '약 ${estMin}분 후 도착 예정'
+          ? l10n.composeEstMinutes(estMin)
           : estMin < 1440
-          ? '약 ${(estMin / 60).ceil()}시간 후 도착 예정'
-          : '약 ${(estMin / 1440).ceil()}일 후 도착 예정';
+          ? l10n.composeEstHours((estMin / 60).ceil())
+          : l10n.composeEstDays((estMin / 1440).ceil());
       final String mainMsg = _isReply
-          ? '💌  답장이 ${widget.replyToName}에게 출발했어요!'
+          ? l10n.composeReplySent(widget.replyToName ?? '')
           : useExpressSingle
           ? (_isRandom
                 ? state.currentUser.isBrand
-                      ? '⚡ 특급 편지가 5분 내 세계 어딘가로 출발했어요!'
-                      : '⚡ 특급 편지가 20분 내 세계 어딘가로 출발했어요!'
-                : '⚡ 특급 편지가 $_selectedFlag $_selectedCountry로 출발했어요!')
+                      ? l10n.composeExpressSentRandomBrand
+                      : l10n.composeExpressSentRandomPremium
+                : l10n.composeExpressSentTo(_selectedFlag, localCountry))
           : _isRandom
-          ? '✈️  편지가 세상 어딘가로 출발했어요! 🌍'
-          : '✈️  편지가 $_selectedFlag $_selectedCountry로 출발했어요!';
+          ? l10n.composeLetterSentRandom
+          : l10n.composeLetterSentTo(_selectedFlag, localCountry);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: estLabel.isNotEmpty
@@ -672,7 +678,7 @@ class _ComposeScreenState extends State<ComposeScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '⚡ 오늘 특급 배송 ${state.premiumExpressDailyLimit}통을 모두 사용했어요. 내일 다시 사용할 수 있어요.',
+              l10n.composeExpressLimitUsed(state.premiumExpressDailyLimit),
               style: const TextStyle(
                 color: Colors.black,
                 fontWeight: FontWeight.w600,
@@ -826,6 +832,7 @@ class _ComposeScreenState extends State<ComposeScreen>
   }
 
   Widget _buildHeader(BuildContext ctx, AppState state) {
+    final l10n = AppL10n.of(state.currentUser.languageCode);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Row(
@@ -839,7 +846,7 @@ class _ComposeScreenState extends State<ComposeScreen>
           ),
           Expanded(
             child: Text(
-              _isReply ? '💌  답장 쓰기' : '✍️  편지 쓰기',
+              _isReply ? '💌  ${l10n.composeWriteReply}' : '✍️  ${l10n.writeLetter}',
               textAlign: TextAlign.center,
               style: Theme.of(
                 ctx,
@@ -853,6 +860,8 @@ class _ComposeScreenState extends State<ComposeScreen>
   }
 
   Widget _buildDestinationCard(AppState state, bool hasPremium) {
+    final l10n = AppL10n.of(state.currentUser.languageCode);
+    final langCode = state.currentUser.languageCode;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -867,8 +876,8 @@ class _ComposeScreenState extends State<ComposeScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── 라벨 ──────────────────────────────────────────────────
-          const Text(
-            '✈️  편지를 보낼 목적지',
+          Text(
+            '✈️  ${l10n.composeDestination}',
             style: TextStyle(
               color: AppColors.textMuted,
               fontSize: 11,
@@ -906,7 +915,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '랜덤',
+                          l10n.composeRandom,
                           style: TextStyle(
                             color: _isRandom
                                 ? AppColors.gold
@@ -917,7 +926,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '세계 어딘가로',
+                          l10n.composeSomewhereInWorld,
                           style: TextStyle(
                             color: _isRandom
                                 ? AppColors.gold.withValues(alpha: 0.7)
@@ -956,7 +965,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          !_isRandom ? _selectedCountry : '나라 선택',
+                          !_isRandom ? CountryL10n.localizedName(_selectedCountry, langCode) : l10n.selectCountry,
                           style: TextStyle(
                             color: !_isRandom
                                 ? AppColors.gold
@@ -969,7 +978,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          !_isRandom ? '탭해서 변경' : '직접 선택하기',
+                          !_isRandom ? l10n.composeTapToChange : l10n.composeChooseDirectly,
                           style: TextStyle(
                             color: !_isRandom
                                 ? AppColors.gold.withValues(alpha: 0.7)
@@ -1027,11 +1036,11 @@ class _ComposeScreenState extends State<ComposeScreen>
                       child: Text(
                         state.currentUser.isBrand
                             ? (_isExpressMode
-                                  ? '⚡ 브랜드 특급 배송 ON · 5분 내 도착'
-                                  : '⚡ 브랜드 특급 배송 (5분 즉시 배송)')
+                                  ? '⚡ ${l10n.composeBrandExpressOn}'
+                                  : '⚡ ${l10n.composeBrandExpress}')
                             : (_isExpressMode
-                                  ? '⚡ 프리미엄 특급 배송 ON · ${state.todayPremiumExpressSentCount}/${state.premiumExpressDailyLimit}통 사용'
-                                  : '⚡ 프리미엄 특급 배송 (하루 ${state.premiumExpressDailyLimit}통)'),
+                                  ? '⚡ ${l10n.composePremiumExpressOn(state.todayPremiumExpressSentCount, state.premiumExpressDailyLimit)}'
+                                  : '⚡ ${l10n.composePremiumExpress(state.premiumExpressDailyLimit)}'),
                         style: TextStyle(
                           color: _isExpressMode
                               ? AppColors.gold
@@ -1064,10 +1073,9 @@ class _ComposeScreenState extends State<ComposeScreen>
             GestureDetector(
               onTap: () => PremiumGateSheet.show(
                 context,
-                featureName: '⚡ 특급 배송',
+                featureName: '⚡ ${l10n.composeExpressDelivery}',
                 featureEmoji: '⚡',
-                description:
-                    '특급 배송은 Premium 전용 기능이에요.\n업그레이드하면 하루 3통까지 즉시 배송할 수 있어요.',
+                description: l10n.composeExpressDeliveryDesc,
               ),
               child: Container(
                 padding: const EdgeInsets.symmetric(
@@ -1081,17 +1089,17 @@ class _ComposeScreenState extends State<ComposeScreen>
                     color: AppColors.textMuted.withValues(alpha: 0.24),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.lock_rounded,
                       size: 16,
                       color: AppColors.textMuted,
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '⚡ 특급 배송 (Premium 하루 3통)',
+                        '⚡ ${l10n.composeExpressLocked}',
                         style: TextStyle(
                           color: AppColors.textMuted,
                           fontSize: 12,
@@ -1117,6 +1125,7 @@ class _ComposeScreenState extends State<ComposeScreen>
   }
 
   Widget _buildLuckyLetterButton() {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     return GestureDetector(
       onTap: _applyLuckyLetter,
       child: AnimatedContainer(
@@ -1148,7 +1157,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _isLuckyLetter ? '행운의 편지 적용됨 · 탭하면 다른 글귀로' : '행운의 편지로 보내기',
+                    _isLuckyLetter ? l10n.composeLuckyApplied : l10n.composeLuckySend,
                     style: TextStyle(
                       color: _isLuckyLetter
                           ? const Color(0xFFFFD700)
@@ -1160,8 +1169,8 @@ class _ComposeScreenState extends State<ComposeScreen>
                   const SizedBox(height: 2),
                   Text(
                     _isLuckyLetter
-                        ? '내용을 직접 수정하거나 그대로 발송할 수 있어요'
-                        : '좋은 글귀가 자동으로 채워져요 · 수정도 가능해요',
+                        ? l10n.composeLuckyAppliedSub
+                        : l10n.composeLuckySendSub,
                     style: const TextStyle(
                       color: AppColors.textMuted,
                       fontSize: 11,
@@ -1186,6 +1195,7 @@ class _ComposeScreenState extends State<ComposeScreen>
   }
 
   Widget _buildLetterBody() {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     final paper = LetterStyles.paper(_paperStyle);
     final font = LetterStyles.font(_fontStyle);
     return ClipRRect(
@@ -1227,8 +1237,8 @@ class _ComposeScreenState extends State<ComposeScreen>
                         const SizedBox(width: 8),
                         Text(
                           _isReply
-                              ? '${widget.replyToName}에게 답장'
-                              : '이 편지는 세상 어딘가로 흘러갑니다',
+                              ? l10n.composeReplyTo(widget.replyToName ?? '')
+                              : l10n.composeLetterFlows,
                           style: TextStyle(
                             color: paper.inkColor.withValues(alpha: 0.5),
                             fontSize: 12,
@@ -1252,7 +1262,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                                       style: TextStyle(fontSize: 11),
                                     ),
                                     Text(
-                                      '최소 20자 필요 (${20 - _charCount}자 더)',
+                                      l10n.composeMinCharsNeeded(20 - _charCount),
                                       style: const TextStyle(
                                         color: AppColors.warning,
                                         fontSize: 11,
@@ -1268,8 +1278,8 @@ class _ComposeScreenState extends State<ComposeScreen>
                                       '✅ ',
                                       style: TextStyle(fontSize: 11),
                                     ),
-                                    const Text(
-                                      '최소 글자수 충족',
+                                    Text(
+                                      l10n.composeMinCharsMet,
                                       style: TextStyle(
                                         color: AppColors.teal,
                                         fontSize: 11,
@@ -1301,7 +1311,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                 maxLength: _maxChars,
                 style: font.textStyle.copyWith(color: paper.inkColor),
                 decoration: InputDecoration(
-                  hintText: '안녕하세요, 처음 뵙겠어요.\n저는 지금 이 편지를 쓰고 있는...',
+                  hintText: l10n.composeHint,
                   hintStyle: TextStyle(
                     color: paper.inkColor.withValues(alpha: 0.35),
                     fontSize: 15,
@@ -1324,14 +1334,15 @@ class _ComposeScreenState extends State<ComposeScreen>
   }
 
   Widget _buildSocialToggle({required bool hasPremium}) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     // 비프리미엄: 잠금 상태 UI 표시
     if (!hasPremium) {
       return GestureDetector(
         onTap: () => PremiumGateSheet.show(
           context,
-          featureName: '🔗 링크 첨부',
+          featureName: '🔗 ${l10n.composeLinkAttach}',
           featureEmoji: '🔗',
-          description: 'SNS, 블로그 링크를 편지에 첨부할 수 있어요.\n프리미엄·브랜드 회원 전용 기능이에요.',
+          description: l10n.composeLinkAttachDesc,
         ),
         child: Container(
           padding: const EdgeInsets.all(13),
@@ -1349,14 +1360,14 @@ class _ComposeScreenState extends State<ComposeScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'SNS 링크 첨부',
+                      l10n.composeSnsLinkAttach,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontSize: 13,
                         color: AppColors.textMuted,
                       ),
                     ),
-                    const Text(
-                      'Premium · Brand 전용',
+                    Text(
+                      l10n.composePremiumBrandOnly,
                       style: TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 11,
@@ -1411,13 +1422,13 @@ class _ComposeScreenState extends State<ComposeScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'SNS 링크 첨부 (선택)',
+                    l10n.composeSnsLinkOptional,
                     style: Theme.of(
                       context,
                     ).textTheme.titleMedium?.copyWith(fontSize: 13),
                   ),
-                  const Text(
-                    'Instagram, X 등 — 연결을 원할 때만',
+                  Text(
+                    l10n.composeSnsLinkSub,
                     style: TextStyle(color: AppColors.textMuted, fontSize: 11),
                   ),
                 ],
@@ -1468,6 +1479,7 @@ class _ComposeScreenState extends State<ComposeScreen>
   }
 
   Widget _buildAnonymousToggle(AppState state) {
+    final l10n = AppL10n.of(state.currentUser.languageCode);
     final isBrand = state.currentUser.isBrand;
     // 브랜드 계정은 익명 발송 불가 — 강제로 false 유지
     if (isBrand && _isAnonymous) {
@@ -1482,7 +1494,7 @@ class _ComposeScreenState extends State<ComposeScreen>
             ? () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: const Text('🏢 브랜드 계정은 익명 발송이 비활성화됩니다'),
+                    content: Text('🏢 ${l10n.composeBrandNoAnonymous}'),
                     backgroundColor: const Color(0xFF1F2D44),
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
@@ -1517,18 +1529,18 @@ class _ComposeScreenState extends State<ComposeScreen>
                   children: [
                     Text(
                       isBrand
-                          ? '이름 공개 (브랜드 필수)'
-                          : (_isAnonymous ? '익명으로 발송' : '이름 공개'),
+                          ? l10n.composeNamePublicBrand
+                          : (_isAnonymous ? l10n.composeSendAnonymous : l10n.composeNamePublic),
                       style: Theme.of(
                         context,
                       ).textTheme.titleMedium?.copyWith(fontSize: 13),
                     ),
                     Text(
                       isBrand
-                          ? '브랜드 계정은 익명 발송을 사용할 수 없어요'
+                          ? l10n.composeBrandNoAnonymousSub
                           : (_isAnonymous
-                                ? '수신자가 발신자를 볼 수 없어요'
-                                : '수신자가 닉네임을 볼 수 있어요'),
+                                ? l10n.composeAnonymousSub
+                                : l10n.composeNamePublicSub),
                       style: const TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 11,
@@ -1556,6 +1568,7 @@ class _ComposeScreenState extends State<ComposeScreen>
 
   // ── 브랜드 대량 발송 토글 ────────────────────────────────────────────────
   Widget _buildBulkModeToggle() {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     // 특송 ON이면 gold, 대량만 ON이면 orange, OFF면 기본
     final activeColor = (_isBulkMode && _isExpressMode)
         ? const Color(0xFFFFD700)
@@ -1593,7 +1606,7 @@ class _ComposeScreenState extends State<ComposeScreen>
               child: Row(
                 children: [
                   Text(
-                    _isBulkMode ? '🌍 대량 발송 ON' : '🌍 대량 발송 (Brand 전용)',
+                    _isBulkMode ? '🌍 ${l10n.composeBulkOn}' : '🌍 ${l10n.composeBulkBrandOnly}',
                     style: TextStyle(
                       color: _isBulkMode ? activeColor : AppColors.textMuted,
                       fontSize: 12,
@@ -1614,8 +1627,8 @@ class _ComposeScreenState extends State<ComposeScreen>
                           color: const Color(0xFFFFD700).withValues(alpha: 0.6),
                         ),
                       ),
-                      child: const Text(
-                        '⚡ 5분 내 발송',
+                      child: Text(
+                        '⚡ ${l10n.composeWithin5Min}',
                         style: TextStyle(
                           color: Color(0xFFFFD700),
                           fontSize: 10,
@@ -1647,6 +1660,7 @@ class _ComposeScreenState extends State<ComposeScreen>
 
   // ── 브랜드 특송 토글 ─────────────────────────────────────────────────────
   Widget _buildExpressToggle() {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     return GestureDetector(
       onTap: () => setState(() => _isExpressMode = !_isExpressMode),
       child: Container(
@@ -1675,8 +1689,8 @@ class _ComposeScreenState extends State<ComposeScreen>
             Expanded(
               child: Text(
                 _isExpressMode
-                    ? '⚡ 특송 모드 ON — 선택한 나라에 즉시 다중 발송'
-                    : '⚡ 특송 모드 (Brand 전용 · 5분 즉시 배송)',
+                    ? '⚡ ${l10n.composeExpressModeOn}'
+                    : '⚡ ${l10n.composeExpressModeBrand}',
                 style: TextStyle(
                   color: _isExpressMode
                       ? const Color(0xFFFFD700)
@@ -1700,6 +1714,8 @@ class _ComposeScreenState extends State<ComposeScreen>
 
   // ── 브랜드 특송 패널 ─────────────────────────────────────────────────────
   Widget _buildExpressPanel() {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    final langCode = context.read<AppState>().currentUser.languageCode;
     final allCountries = AppState.countries;
     return Container(
       padding: const EdgeInsets.all(14),
@@ -1714,28 +1730,28 @@ class _ComposeScreenState extends State<ComposeScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 헤더
-          const Row(
+          Row(
             children: [
               Text(
-                '⚡ 특송 설정',
-                style: TextStyle(
+                '⚡ ${l10n.composeExpressSettings}',
+                style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              SizedBox(width: 6),
+              const SizedBox(width: 6),
               Text(
-                '선택 나라의 랜덤 주소로 5분 안에 즉시 발송',
-                style: TextStyle(color: AppColors.textMuted, fontSize: 11),
+                l10n.composeExpressSettingsSub,
+                style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
               ),
             ],
           ),
           const SizedBox(height: 12),
           // 나라 선택
-          const Text(
-            '발송 나라',
-            style: TextStyle(
+          Text(
+            l10n.composeTargetCountry,
+            style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 11,
               fontWeight: FontWeight.w600,
@@ -1781,7 +1797,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                       ),
                     ),
                     child: Text(
-                      '$flag $name',
+                      '$flag ${CountryL10n.localizedName(name, langCode)}',
                       style: TextStyle(
                         fontSize: 10,
                         color: selected
@@ -1802,9 +1818,9 @@ class _ComposeScreenState extends State<ComposeScreen>
           // 발송 수 선택
           Row(
             children: [
-              const Text(
-                '발송 주소 수',
-                style: TextStyle(
+              Text(
+                l10n.composeAddressCount,
+                style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
@@ -1837,7 +1853,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    '$_expressCount 개',
+                    l10n.composeCountUnit(_expressCount),
                     style: const TextStyle(
                       color: Color(0xFFFFD700),
                       fontSize: 14,
@@ -1873,8 +1889,8 @@ class _ComposeScreenState extends State<ComposeScreen>
           const SizedBox(height: 8),
           Text(
             _selectedCountry.isNotEmpty
-                ? '⚡ $_selectedFlag $_selectedCountry 내 $_expressCount개 랜덤 주소로 5분 내 즉시 배송'
-                : '위에서 나라를 선택해주세요',
+                ? l10n.composeExpressSummary(_selectedFlag, CountryL10n.localizedName(_selectedCountry, langCode), _expressCount)
+                : l10n.composeSelectCountryAbove,
             style: TextStyle(
               color: _selectedCountry.isNotEmpty
                   ? const Color(0xFFFFD700).withValues(alpha: 0.85)
@@ -1890,6 +1906,8 @@ class _ComposeScreenState extends State<ComposeScreen>
 
   // ── 브랜드 대량 발송 패널 ────────────────────────────────────────────────
   Widget _buildBulkSendPanel(AppState state) {
+    final l10n = AppL10n.of(state.currentUser.languageCode);
+    final langCode = state.currentUser.languageCode;
     final allCountries = AppState.countries;
     final panelColor = _isExpressMode
         ? const Color(0xFFFFD700)
@@ -1941,8 +1959,8 @@ class _ComposeScreenState extends State<ComposeScreen>
                       children: [
                         Text(
                           _isExpressMode
-                              ? '⚡ 특송 ON — 5분 내 즉시 발송'
-                              : '⚡ 특송 모드 (Brand 전용)',
+                              ? '⚡ ${l10n.composeExpressOnShort}'
+                              : '⚡ ${l10n.composeExpressModeBrand}',
                           style: TextStyle(
                             color: _isExpressMode
                                 ? const Color(0xFFFFD700)
@@ -1952,8 +1970,8 @@ class _ComposeScreenState extends State<ComposeScreen>
                           ),
                         ),
                         if (_isExpressMode)
-                          const Text(
-                            '선택한 각 나라의 랜덤 주소로 5분 안에 즉시 배송',
+                          Text(
+                            l10n.composeExpressDeliveryEachCountry,
                             style: TextStyle(
                               color: Color(0xFFFFD700),
                               fontSize: 10,
@@ -1977,9 +1995,9 @@ class _ComposeScreenState extends State<ComposeScreen>
             const SizedBox(height: 10),
             Row(
               children: [
-                const Text(
-                  '⚡ 나라당 발송 주소 수',
-                  style: TextStyle(
+                Text(
+                  '⚡ ${l10n.composeAddressPerCountry}',
+                  style: const TextStyle(
                     color: Color(0xFFFFD700),
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -2010,7 +2028,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: Text(
-                    '$_expressCount 개',
+                    l10n.composeCountUnit(_expressCount),
                     style: const TextStyle(
                       color: Color(0xFFFFD700),
                       fontSize: 13,
@@ -2046,9 +2064,9 @@ class _ComposeScreenState extends State<ComposeScreen>
           // 헤더
           Row(
             children: [
-              const Text(
-                '🌍 발송 나라 선택',
-                style: TextStyle(
+              Text(
+                '🌍 ${l10n.composeSelectTargetCountry}',
+                style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -2056,7 +2074,7 @@ class _ComposeScreenState extends State<ComposeScreen>
               ),
               const Spacer(),
               Text(
-                '${_bulkTargets.length}개 선택',
+                l10n.composeSelectedCount(_bulkTargets.length),
                 style: TextStyle(
                   color: panelColor,
                   fontSize: 12,
@@ -2110,7 +2128,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                       Text(c['flag']!, style: const TextStyle(fontSize: 14)),
                       const SizedBox(width: 5),
                       Text(
-                        c['name']!,
+                        CountryL10n.localizedName(c['name']!, langCode),
                         style: TextStyle(
                           color: selected
                               ? const Color(0xFFFF8A5C)
@@ -2131,9 +2149,9 @@ class _ComposeScreenState extends State<ComposeScreen>
           // 나라당 발송 횟수
           Row(
             children: [
-              const Text(
-                '📮 나라당 발송 횟수',
-                style: TextStyle(
+              Text(
+                '📮 ${l10n.composeSendPerCountry}',
+                style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -2211,8 +2229,8 @@ class _ComposeScreenState extends State<ComposeScreen>
                 children: [
                   Text(
                     _isExpressMode
-                        ? '⚡ 총 ${_bulkTargets.length * _expressCount}통 즉시 발송 · ${_bulkTargets.length}개 나라 × $_expressCount주소씩'
-                        : '📬 총 ${_bulkTargets.length * _bulkSendCount}통 발송 예정 · ${_bulkTargets.length}개 나라 × $_bulkSendCount통씩',
+                        ? l10n.composeBulkExpressSummary(_bulkTargets.length * _expressCount, _bulkTargets.length, _expressCount)
+                        : l10n.composeBulkSendSummary(_bulkTargets.length * _bulkSendCount, _bulkTargets.length, _bulkSendCount),
                     style: TextStyle(
                       color: _isExpressMode
                           ? const Color(0xFFFFD700)
@@ -2223,9 +2241,9 @@ class _ComposeScreenState extends State<ComposeScreen>
                   ),
                   if (_isExpressMode) ...[
                     const SizedBox(height: 2),
-                    const Text(
-                      '⏱ 발송 후 5분 내 수신자 편지함에 도착',
-                      style: TextStyle(color: Color(0xFFFFD700), fontSize: 10),
+                    Text(
+                      '⏱ ${l10n.composeDeliveryIn5Min}',
+                      style: const TextStyle(color: Color(0xFFFFD700), fontSize: 10),
                     ),
                   ],
                 ],
@@ -2242,6 +2260,7 @@ class _ComposeScreenState extends State<ComposeScreen>
     required bool hasPremium,
     required PurchaseService purchase,
   }) {
+    final l10n = AppL10n.of(state.currentUser.languageCode);
     final isPremium = hasPremium;
     final hasImage = _imageFilePath != null;
     final color = hasImage
@@ -2283,12 +2302,12 @@ class _ComposeScreenState extends State<ComposeScreen>
             Expanded(
               child: Text(
                 _isCompressingImage
-                    ? '이미지 처리 중...'
+                    ? l10n.composeImageProcessing
                     : hasImage
-                    ? '사진 첨부됨 (탭해서 변경)'
+                    ? l10n.composePhotoAttached
                     : isPremium
-                    ? '📸 사진 첨부 (프리미엄 · 1일 20통)'
-                    : '📸 사진 첨부 — Premium 전용',
+                    ? '📸 ${l10n.composePhotoAttachPremium}'
+                    : '📸 ${l10n.composePhotoAttachLocked}',
                 style: TextStyle(
                   color: color,
                   fontSize: 12,
@@ -2317,7 +2336,7 @@ class _ComposeScreenState extends State<ComposeScreen>
               ),
             if (isPremium && !_isCompressingImage)
               Text(
-                '${state.remainingImageQuota}통 남음',
+                l10n.composeQuotaRemaining(state.remainingImageQuota),
                 style: const TextStyle(
                   color: AppColors.textMuted,
                   fontSize: 11,
@@ -2362,6 +2381,7 @@ class _ComposeScreenState extends State<ComposeScreen>
   }
 
   Widget _buildStyleBar() {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     final paper = LetterStyles.paper(_paperStyle);
     final font = LetterStyles.font(_fontStyle);
     return Row(
@@ -2507,7 +2527,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                     ),
                     const SizedBox(width: 2),
                     Text(
-                      _categoryEmojis.isNotEmpty ? '꾸미는 중' : '꾸미기',
+                      _categoryEmojis.isNotEmpty ? l10n.composeDecorating : l10n.composeDecorate,
                       style: TextStyle(
                         color: _categoryEmojis.isNotEmpty
                             ? AppColors.gold
@@ -2636,6 +2656,7 @@ class _ComposeScreenState extends State<ComposeScreen>
   ];
 
   void _showEmojiPicker() {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     int tabIndex = 0;
     showModalBottomSheet(
       context: context,
@@ -2649,7 +2670,7 @@ class _ComposeScreenState extends State<ComposeScreen>
             AppColors.teal,
             const Color(0xFF60A5FA),
           ];
-          final tabLabel = ['🛣️ 육지', '✈️ 항공', '🌊 바다'];
+          final tabLabel = ['🛣️ ${l10n.composeLand}', '✈️ ${l10n.composeAir}', '🌊 ${l10n.composeSea}'];
           final selectedInTab = _categoryEmojis[tabIndex];
 
           return Container(
@@ -2677,21 +2698,21 @@ class _ComposeScreenState extends State<ComposeScreen>
                     children: [
                       const Text('🎨', style: TextStyle(fontSize: 20)),
                       const SizedBox(width: 8),
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '배송 이모티콘 꾸미기',
-                              style: TextStyle(
+                              l10n.composeEmojiDecorate,
+                              style: const TextStyle(
                                 color: AppColors.textPrimary,
                                 fontWeight: FontWeight.w700,
                                 fontSize: 15,
                               ),
                             ),
                             Text(
-                              '각 카테고리에서 1개씩 조합 선택 가능',
-                              style: TextStyle(
+                              l10n.composeEmojiDecorateSub,
+                              style: const TextStyle(
                                 color: AppColors.textMuted,
                                 fontSize: 11,
                               ),
@@ -2709,8 +2730,8 @@ class _ComposeScreenState extends State<ComposeScreen>
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                             minimumSize: Size.zero,
                           ),
-                          child: const Text(
-                            '초기화',
+                          child: Text(
+                            l10n.composeReset,
                             style: TextStyle(
                               color: AppColors.textMuted,
                               fontSize: 12,
@@ -2746,8 +2767,8 @@ class _ComposeScreenState extends State<ComposeScreen>
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
-                          '선택 조합  ',
+                        Text(
+                          '${l10n.composeSelectedCombo}  ',
                           style: TextStyle(
                             color: AppColors.textMuted,
                             fontSize: 12,
@@ -2963,7 +2984,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                             const SizedBox(width: 8),
                           ],
                           Text(
-                            _categoryEmojis.isNotEmpty ? '조합 완료 ✓' : '선택 없이 닫기',
+                            _categoryEmojis.isNotEmpty ? l10n.composeComboDone : l10n.composeCloseNoSelection,
                             style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
@@ -2984,6 +3005,7 @@ class _ComposeScreenState extends State<ComposeScreen>
   }
 
   void _showPaperPicker() {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -3007,10 +3029,10 @@ class _ComposeScreenState extends State<ComposeScreen>
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.only(bottom: 12),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
                 child: Text(
-                  '편지지 선택',
+                  l10n.composePaperSelect,
                   style: TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 16,
@@ -3077,10 +3099,10 @@ class _ComposeScreenState extends State<ComposeScreen>
                   children: [
                     const Text('🔒', style: TextStyle(fontSize: 20)),
                     const SizedBox(width: 12),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        '더 많은 편지지 (PRO)',
-                        style: TextStyle(
+                        l10n.composeMorePaperPro,
+                        style: const TextStyle(
                           color: AppColors.textMuted,
                           fontSize: 14,
                         ),
@@ -3095,8 +3117,8 @@ class _ComposeScreenState extends State<ComposeScreen>
                         color: AppColors.gold.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Text(
-                        '추후 제공',
+                      child: Text(
+                        l10n.composeComingSoon,
                         style: TextStyle(
                           color: AppColors.gold,
                           fontSize: 10,
@@ -3115,6 +3137,7 @@ class _ComposeScreenState extends State<ComposeScreen>
   }
 
   void _showFontPicker() {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -3135,10 +3158,10 @@ class _ComposeScreenState extends State<ComposeScreen>
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.only(bottom: 12),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
               child: Text(
-                '폰트 선택',
+                l10n.composeFontSelect,
                 style: TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 16,
@@ -3184,7 +3207,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                               ),
                             ),
                             Text(
-                              '가나다라마바사 Aa Bb',
+                              l10n.composeFontPreview,
                               style: f.textStyle.copyWith(
                                 color: AppColors.textSecondary,
                                 fontSize: 12,
@@ -3217,10 +3240,10 @@ class _ComposeScreenState extends State<ComposeScreen>
                 children: [
                   const Text('🔒', style: TextStyle(fontSize: 20)),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      '더 많은 폰트 / 텍스트 효과 (PRO)',
-                      style: TextStyle(
+                      l10n.composeMoreFontPro,
+                      style: const TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 14,
                       ),
@@ -3235,8 +3258,8 @@ class _ComposeScreenState extends State<ComposeScreen>
                       color: AppColors.gold.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Text(
-                      '추후 제공',
+                    child: Text(
+                      l10n.composeComingSoon,
                       style: TextStyle(
                         color: AppColors.gold,
                         fontSize: 10,
@@ -3254,6 +3277,7 @@ class _ComposeScreenState extends State<ComposeScreen>
   }
 
   Widget _buildSendButton(AppState state) {
+    final l10n = AppL10n.of(state.currentUser.languageCode);
     final canSend =
         !_isSending && _charCount >= 1 && state.hasRemainingDailyQuota;
     final expressQuotaSuffix =
@@ -3262,17 +3286,17 @@ class _ComposeScreenState extends State<ComposeScreen>
             !_isBulkMode &&
             !state.currentUser.isBrand &&
             state.currentUser.isPremium)
-        ? ' · 특급 ${state.todayPremiumExpressSentCount}/${state.premiumExpressDailyLimit}통'
+        ? ' · ${l10n.composeExpressQuota(state.todayPremiumExpressSentCount, state.premiumExpressDailyLimit)}'
         : '';
     final rewardSuffix = state.inviteRewardCredits > 0
-        ? ' · 보너스 ${state.inviteRewardCredits}통'
+        ? ' · ${l10n.composeBonus(state.inviteRewardCredits)}'
         : '';
     final quotaText =
         (state.isGeneralMember
-            ? '오늘 발송 ${state.todaySentCount}/${state.dailySendLimit}통 · 남은 ${state.remainingDailySendCount}통'
+            ? l10n.composeQuotaGeneral(state.todaySentCount, state.dailySendLimit, state.remainingDailySendCount)
             : state.isBrandMember
-            ? '브랜드 · 오늘 ${state.todaySentCount}/${state.dailySendLimit}통 · 남은 ${state.remainingMonthlySendCount}통/월'
-            : '프리미엄 · 오늘 ${state.todaySentCount}/${state.dailySendLimit}통 · 남은 ${state.remainingMonthlySendCount}통/월') +
+            ? l10n.composeQuotaBrand(state.todaySentCount, state.dailySendLimit, state.remainingMonthlySendCount)
+            : l10n.composeQuotaPremium(state.todaySentCount, state.dailySendLimit, state.remainingMonthlySendCount)) +
         expressQuotaSuffix +
         rewardSuffix;
     return Container(
@@ -3327,10 +3351,10 @@ class _ComposeScreenState extends State<ComposeScreen>
                   const SizedBox(width: 10),
                   Text(
                     _isReply
-                        ? '답장 보내기'
+                        ? l10n.composeSendReply
                         : _isRandom
-                        ? '편지 보내기 → 🌍'
-                        : '편지 보내기 → $_selectedFlag',
+                        ? '${l10n.sendLetter} → 🌍'
+                        : '${l10n.sendLetter} → $_selectedFlag',
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -3386,6 +3410,7 @@ class _SendingOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     return Positioned.fill(
       child: Container(
         color: AppColors.bgDeep.withValues(
@@ -3408,8 +3433,8 @@ class _SendingOverlay extends StatelessWidget {
               const SizedBox(height: 20),
               Opacity(
                 opacity: progress,
-                child: const Text(
-                  '편지가 출발합니다...',
+                child: Text(
+                  l10n.composeLetterDeparting,
                   style: TextStyle(
                     color: AppColors.gold,
                     fontSize: 20,
@@ -3447,9 +3472,11 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    final langCode = context.read<AppState>().currentUser.languageCode;
     final filtered = AppState.countries
         .where(
-          (c) => c['name']!.contains(_search) || c['flag']!.contains(_search),
+          (c) => c['name']!.contains(_search) || c['flag']!.contains(_search) || CountryL10n.localizedName(c['name']!, langCode).toLowerCase().contains(_search.toLowerCase()),
         )
         .toList();
 
@@ -3475,7 +3502,7 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             child: Text(
-              '목적지 선택',
+              l10n.composeSelectDestination,
               style: Theme.of(context).textTheme.titleLarge,
             ),
           ),
@@ -3511,22 +3538,22 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '🌍 랜덤으로 보내기',
-                            style: TextStyle(
+                            '🌍 ${l10n.composeSendRandom}',
+                            style: const TextStyle(
                               color: AppColors.gold,
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          SizedBox(height: 2),
+                          const SizedBox(height: 2),
                           Text(
-                            '세계 어딘가 알 수 없는 곳으로 출발 · 발송 후 배송지 공개',
-                            style: TextStyle(
+                            l10n.composeSendRandomSub,
+                            style: const TextStyle(
                               color: AppColors.textMuted,
                               fontSize: 11,
                             ),
@@ -3554,10 +3581,10 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
                     color: AppColors.textMuted.withValues(alpha: 0.2),
                   ),
                 ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Text(
-                    '또는 나라 직접 선택',
+                    l10n.composeOrSelectCountry,
                     style: TextStyle(color: AppColors.textMuted, fontSize: 11),
                   ),
                 ),
@@ -3575,7 +3602,7 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
               onChanged: (v) => setState(() => _search = v),
               style: const TextStyle(color: AppColors.textPrimary),
               decoration: InputDecoration(
-                hintText: '🔍  나라 검색...',
+                hintText: '🔍  ${l10n.composeSearchCountry}',
                 prefixIcon: const Icon(
                   Icons.search_rounded,
                   color: AppColors.textMuted,
@@ -3609,7 +3636,7 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
                     style: const TextStyle(fontSize: 26),
                   ),
                   title: Text(
-                    c['name']!,
+                    CountryL10n.localizedName(c['name']!, langCode),
                     style: TextStyle(
                       color: isCurrent ? AppColors.gold : AppColors.textPrimary,
                       fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w500,

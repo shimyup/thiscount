@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
@@ -9,10 +10,19 @@ import 'package:geolocator/geolocator.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/localization/language_config.dart';
+import '../../../core/localization/app_localizations.dart';
+import '../../../core/localization/country_names.dart';
 import '../../../core/config/app_links.dart';
 import '../../../state/app_state.dart';
 import '../../../core/services/purchase_service.dart';
 import 'package:provider/provider.dart';
+
+/// Returns device language code, restricted to the 14 supported languages.
+String _deviceLangCode() {
+  final code = ui.PlatformDispatcher.instance.locale.languageCode;
+  const supported = {'ko','en','ja','zh','fr','de','es','pt','ru','tr','ar','it','hi','th'};
+  return supported.contains(code) ? code : 'en';
+}
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -97,7 +107,7 @@ class _AuthScreenState extends State<AuthScreen>
         ),
         const SizedBox(height: 6),
         Text(
-          '세상 어딘가의 당신에게',
+          AppL10n.of(_deviceLangCode()).tagline,
           style: TextStyle(
             color: AppColors.textMuted.withValues(alpha: 0.8),
             fontSize: 13,
@@ -132,9 +142,9 @@ class _AuthScreenState extends State<AuthScreen>
           fontWeight: FontWeight.w500,
           fontSize: 14,
         ),
-        tabs: const [
-          Tab(text: '🔑  로그인'),
-          Tab(text: '✨  회원가입'),
+        tabs: [
+          Tab(text: AppL10n.of(_deviceLangCode()).authTabLogin),
+          Tab(text: AppL10n.of(_deviceLangCode()).authTabSignup),
         ],
       ),
     );
@@ -270,6 +280,7 @@ class _LoginTabState extends State<_LoginTab> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(_deviceLangCode());
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
       child: Column(
@@ -278,15 +289,15 @@ class _LoginTabState extends State<_LoginTab> {
           if (_error != null) _ErrorBanner(message: _error!),
           _InputField(
             controller: _usernameCtrl,
-            label: '닉네임(아이디)',
+            label: l10n.authNicknameId,
             hint: 'Traveler_42',
             icon: Icons.person_rounded,
           ),
           const SizedBox(height: 14),
           _InputField(
             controller: _passCtrl,
-            label: '비밀번호',
-            hint: '6자 이상',
+            label: l10n.password,
+            hint: l10n.authPasswordHint,
             icon: Icons.lock_rounded,
             obscureText: _obscurePass,
             suffixIcon: IconButton(
@@ -329,9 +340,9 @@ class _LoginTabState extends State<_LoginTab> {
                       : null,
                 ),
                 const SizedBox(width: 10),
-                const Text(
-                  '아이디 · 비밀번호 기억하기',
-                  style: TextStyle(
+                Text(
+                  l10n.authRememberMe,
+                  style: const TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 13,
                   ),
@@ -341,7 +352,7 @@ class _LoginTabState extends State<_LoginTab> {
           ),
           const SizedBox(height: 20),
           _AuthButton(
-            label: '로그인',
+            label: l10n.login,
             emoji: '🔑',
             isLoading: _isLoading,
             onTap: _login,
@@ -352,7 +363,7 @@ class _LoginTabState extends State<_LoginTab> {
               TextSpan(
                 children: [
                   TextSpan(
-                    text: '아이디 찾기',
+                    text: l10n.findId,
                     style: const TextStyle(
                       color: AppColors.gold,
                       fontSize: 13,
@@ -366,7 +377,7 @@ class _LoginTabState extends State<_LoginTab> {
                     style: TextStyle(color: AppColors.textMuted, fontSize: 13),
                   ),
                   TextSpan(
-                    text: '비밀번호 찾기',
+                    text: l10n.resetPassword,
                     style: const TextStyle(
                       color: AppColors.teal,
                       fontSize: 13,
@@ -382,7 +393,7 @@ class _LoginTabState extends State<_LoginTab> {
           const SizedBox(height: 8),
           Center(
             child: Text(
-              '처음이신가요? 회원가입 탭에서 계정을 만들어보세요.',
+              l10n.authNewUserHint,
               style: TextStyle(
                 color: AppColors.textMuted.withValues(alpha: 0.7),
                 fontSize: 12,
@@ -469,6 +480,7 @@ class _LoginTabState extends State<_LoginTab> {
   void _showFindIdDialog() {
     final emailCtrl = TextEditingController();
     bool isLoading = false;
+    final l10n = AppL10n.of(_deviceLangCode());
 
     showDialog(
       context: context,
@@ -478,8 +490,8 @@ class _LoginTabState extends State<_LoginTab> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          title: const Text(
-            '아이디 찾기',
+          title: Text(
+            l10n.findId,
             style: TextStyle(
               color: AppColors.textPrimary,
               fontSize: 18,
@@ -490,9 +502,9 @@ class _LoginTabState extends State<_LoginTab> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                '가입 시 등록한 이메일을 입력하면\n아이디와 임시 비밀번호를 발급해 드립니다.',
-                style: TextStyle(
+              Text(
+                l10n.authFindIdDesc,
+                style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 13,
                   height: 1.6,
@@ -507,7 +519,7 @@ class _LoginTabState extends State<_LoginTab> {
                   fontSize: 14,
                 ),
                 decoration: InputDecoration(
-                  hintText: '가입 이메일',
+                  hintText: l10n.authRegisteredEmail,
                   hintStyle: const TextStyle(color: AppColors.textMuted),
                   prefixIcon: const Icon(
                     Icons.email_outlined,
@@ -535,9 +547,9 @@ class _LoginTabState extends State<_LoginTab> {
           actions: [
             TextButton(
               onPressed: isLoading ? null : () => Navigator.pop(dialogCtx),
-              child: const Text(
-                '취소',
-                style: TextStyle(color: AppColors.textMuted),
+              child: Text(
+                l10n.authCancel,
+                style: const TextStyle(color: AppColors.textMuted),
               ),
             ),
             ElevatedButton(
@@ -571,12 +583,12 @@ class _LoginTabState extends State<_LoginTab> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            title: const Text(
-                              '찾기 실패',
-                              style: TextStyle(color: AppColors.textPrimary),
+                            title: Text(
+                              l10n.authFindFailed,
+                              style: const TextStyle(color: AppColors.textPrimary),
                             ),
                             content: Text(
-                              idResult['error'] ?? '해당 이메일로 가입된 계정을 찾을 수 없습니다.',
+                              idResult['error'] ?? l10n.authNoAccountForEmail,
                               style: const TextStyle(
                                 color: AppColors.error,
                                 fontSize: 13,
@@ -585,9 +597,9 @@ class _LoginTabState extends State<_LoginTab> {
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context),
-                                child: const Text(
-                                  '확인',
-                                  style: TextStyle(color: AppColors.textMuted),
+                                child: Text(
+                                  l10n.authConfirm,
+                                  style: const TextStyle(color: AppColors.textMuted),
                                 ),
                               ),
                             ],
@@ -617,9 +629,9 @@ class _LoginTabState extends State<_LoginTab> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          title: const Text(
-                            '계정 정보 확인',
-                            style: TextStyle(
+                          title: Text(
+                            l10n.authAccountInfo,
+                            style: const TextStyle(
                               color: AppColors.textPrimary,
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
@@ -645,9 +657,9 @@ class _LoginTabState extends State<_LoginTab> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
-                                      '아이디',
-                                      style: TextStyle(
+                                    Text(
+                                      l10n.authId,
+                                      style: const TextStyle(
                                         color: AppColors.textMuted,
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
@@ -687,9 +699,9 @@ class _LoginTabState extends State<_LoginTab> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      const Text(
-                                        '비밀번호 재설정 완료',
-                                        style: TextStyle(
+                                      Text(
+                                        l10n.authPasswordResetDone,
+                                        style: const TextStyle(
                                           color: AppColors.textMuted,
                                           fontSize: 11,
                                           fontWeight: FontWeight.w600,
@@ -708,9 +720,9 @@ class _LoginTabState extends State<_LoginTab> {
                                           ),
                                         )
                                       else
-                                        const Text(
-                                          '보안을 위해 임시 비밀번호는 화면에 표시되지 않습니다.',
-                                          style: TextStyle(
+                                        Text(
+                                          l10n.authTempPasswordHidden,
+                                          style: const TextStyle(
                                             color: AppColors.textPrimary,
                                             fontSize: 12,
                                             fontWeight: FontWeight.w600,
@@ -718,7 +730,7 @@ class _LoginTabState extends State<_LoginTab> {
                                         ),
                                       const SizedBox(height: 6),
                                       Text(
-                                        '${pwResult['expiresInMinutes']}분 후 만료 · 로그인 후 반드시 변경해주세요',
+                                        l10n.authTempPasswordExpiry(pwResult['expiresInMinutes']),
                                         style: const TextStyle(
                                           color: AppColors.textMuted,
                                           fontSize: 10,
@@ -733,9 +745,9 @@ class _LoginTabState extends State<_LoginTab> {
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context),
-                              child: const Text(
-                                '확인',
-                                style: TextStyle(color: AppColors.textMuted),
+                              child: Text(
+                                l10n.authConfirm,
+                                style: const TextStyle(color: AppColors.textMuted),
                               ),
                             ),
                           ],
@@ -751,9 +763,9 @@ class _LoginTabState extends State<_LoginTab> {
                         color: Color(0xFF0D1421),
                       ),
                     )
-                  : const Text(
-                      '찾기',
-                      style: TextStyle(fontWeight: FontWeight.w700),
+                  : Text(
+                      l10n.authFind,
+                      style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
             ),
           ],
@@ -765,28 +777,29 @@ class _LoginTabState extends State<_LoginTab> {
   void _showResetPasswordDialog() {
     final usernameCtrl = TextEditingController();
     final emailCtrl = TextEditingController();
+    final l10n = AppL10n.of(_deviceLangCode());
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.bgCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          '비밀번호 찾기',
-          style: TextStyle(color: AppColors.textPrimary, fontSize: 18),
+        title: Text(
+          l10n.resetPassword,
+          style: const TextStyle(color: AppColors.textPrimary, fontSize: 18),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              '닉네임과 가입 이메일을 입력하면 임시 비밀번호를 발급합니다.',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            Text(
+              l10n.authResetPasswordDesc,
+              style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: usernameCtrl,
               style: const TextStyle(color: AppColors.textPrimary),
               decoration: InputDecoration(
-                hintText: '닉네임(아이디)',
+                hintText: l10n.authNicknameId,
                 hintStyle: const TextStyle(color: AppColors.textMuted),
                 filled: true,
                 fillColor: AppColors.bgSurface,
@@ -810,7 +823,7 @@ class _LoginTabState extends State<_LoginTab> {
               keyboardType: TextInputType.emailAddress,
               style: const TextStyle(color: AppColors.textPrimary),
               decoration: InputDecoration(
-                hintText: '가입 이메일 (필수)',
+                hintText: l10n.authRegisteredEmailRequired,
                 hintStyle: const TextStyle(color: AppColors.textMuted),
                 filled: true,
                 fillColor: AppColors.bgSurface,
@@ -833,9 +846,9 @@ class _LoginTabState extends State<_LoginTab> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              '취소',
-              style: TextStyle(color: AppColors.textMuted),
+            child: Text(
+              l10n.authCancel,
+              style: const TextStyle(color: AppColors.textMuted),
             ),
           ),
           ElevatedButton(
@@ -855,19 +868,19 @@ class _LoginTabState extends State<_LoginTab> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   title: Text(
-                    ok ? '임시 비밀번호 발급' : '찾기 실패',
+                    ok ? l10n.authTempPasswordIssued : l10n.authFindFailed,
                     style: const TextStyle(color: AppColors.textPrimary),
                   ),
                   content: Text(
                     ok
                         ? (kDebugMode
-                              ? '임시 비밀번호: ${result['tempPassword']}\n'
-                                    '${result['expiresInMinutes']}분 후 만료됩니다.\n'
-                                    '로그인 후 반드시 변경해주세요.'
-                              : '${result['expiresInMinutes']}분 후 만료됩니다.\n'
-                                    '보안을 위해 임시 비밀번호는 화면에 표시되지 않습니다.\n'
-                                    '로그인 후 반드시 변경해주세요.')
-                        : (result['error'] ?? '오류가 발생했습니다.'),
+                              ? '${l10n.authTempPasswordLabel}: ${result['tempPassword']}\n'
+                                    '${l10n.authExpiresInMinutes(result['expiresInMinutes'])}\n'
+                                    '${l10n.authMustChangeAfterLogin}'
+                              : '${l10n.authExpiresInMinutes(result['expiresInMinutes'])}\n'
+                                    '${l10n.authTempPasswordHidden}\n'
+                                    '${l10n.authMustChangeAfterLogin}')
+                        : (result['error'] ?? l10n.authErrorOccurred),
                     style: TextStyle(
                       color: ok ? AppColors.teal : AppColors.error,
                     ),
@@ -875,14 +888,14 @@ class _LoginTabState extends State<_LoginTab> {
                   actions: [
                     ElevatedButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('확인'),
+                      child: Text(l10n.authConfirm),
                     ),
                   ],
                 ),
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.teal),
-            child: const Text('발급', style: TextStyle(color: AppColors.bgDeep)),
+            child: Text(l10n.authIssue, style: const TextStyle(color: AppColors.bgDeep)),
           ),
         ],
       ),
@@ -988,16 +1001,20 @@ class _SignupTabState extends State<_SignupTab> {
     super.dispose();
   }
 
+  String get _langCode => LanguageConfig.getLanguageCode(_selectedCountry);
+  AppL10n get _l10n => AppL10n.of(_langCode);
+
   /// Step 1: 폼 검증 후 OTP 발송 화면으로 전환
   Future<void> _signUp() async {
+    final l10n = _l10n;
     if (!_agreePrivacy) {
-      setState(() => _error = '개인정보 처리방침에 동의해야 가입할 수 있습니다.');
+      setState(() => _error = l10n.authMustAgreePrivacy);
       return;
     }
     // 폼 기본 검증
     final emailVal = _emailCtrl.text.trim();
     if (emailVal.isEmpty) {
-      setState(() => _error = '이메일을 입력해주세요.');
+      setState(() => _error = l10n.authEnterEmail);
       return;
     }
     final emailErr = AuthService.validateEmail(emailVal);
@@ -1007,7 +1024,7 @@ class _SignupTabState extends State<_SignupTab> {
     }
     final taken = await AuthService.isEmailTaken(emailVal);
     if (taken) {
-      setState(() => _error = '이미 가입된 이메일입니다.');
+      setState(() => _error = l10n.authEmailTaken);
       return;
     }
 
@@ -1025,8 +1042,8 @@ class _SignupTabState extends State<_SignupTab> {
       setState(() {
         _isLoading = false;
         _error = cooldown > 0
-            ? '잠시 후 다시 시도해주세요. (${cooldown}초 후 재시도 가능)'
-            : '인증 코드 요청 횟수를 초과했습니다. 잠시 후 다시 시도해주세요.';
+            ? l10n.authOtpRetryLater(cooldown)
+            : l10n.authOtpLimitExceeded;
       });
       return;
     }
@@ -1047,7 +1064,7 @@ class _SignupTabState extends State<_SignupTab> {
     final otpVal = _otpCtrl.text.trim();
 
     if (otpVal.length != 6) {
-      setState(() => _otpError = '6자리 코드를 입력해주세요.');
+      setState(() => _otpError = _l10n.authEnterOtpCode);
       return;
     }
 
@@ -1096,8 +1113,8 @@ class _SignupTabState extends State<_SignupTab> {
       final cooldown = AuthService.otpCooldownSecondsRemaining;
       setState(() {
         _otpError = cooldown > 0
-            ? '${cooldown}초 후 재발송 가능합니다.'
-            : '인증 코드 요청 횟수를 초과했습니다. 잠시 후 다시 시도해주세요.';
+            ? _l10n.authOtpResendWait(cooldown)
+            : _l10n.authOtpLimitExceeded;
       });
       return;
     }
@@ -1149,12 +1166,12 @@ class _SignupTabState extends State<_SignupTab> {
     if (!granted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('위치 권한이 거부되었습니다.\n설정 → 앱 → 위치에서 허용해주세요.'),
+          content: Text(_l10n.authLocationDenied),
           backgroundColor: AppColors.bgCard,
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 4),
           action: SnackBarAction(
-            label: '설정 열기',
+            label: _l10n.authOpenSettings,
             textColor: AppColors.teal,
             onPressed: () => Geolocator.openAppSettings(),
           ),
@@ -1173,6 +1190,7 @@ class _SignupTabState extends State<_SignupTab> {
   }
 
   Widget _buildSignupForm(BuildContext context) {
+    final l10n = _l10n;
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
       child: Column(
@@ -1183,7 +1201,7 @@ class _SignupTabState extends State<_SignupTab> {
           // ── 1. 이메일 ──────────────────────────────────────────────────────
           _InputField(
             controller: _emailCtrl,
-            label: '이메일',
+            label: l10n.email,
             hint: 'example@email.com',
             icon: Icons.email_rounded,
             keyboardType: TextInputType.emailAddress,
@@ -1193,21 +1211,21 @@ class _SignupTabState extends State<_SignupTab> {
           // ── 2. 아이디 ──────────────────────────────────────────────────────
           _InputField(
             controller: _usernameCtrl,
-            label: '아이디',
-            hint: 'traveler42   (영문 시작, 영문·숫자·_ 2~20자)',
+            label: l10n.authId,
+            hint: l10n.authUsernameHint,
             icon: Icons.person_rounded,
           ),
           if (_usernameError != null)
             _FieldError(message: _usernameError!)
           else if (_usernameTaken)
-            _FieldError(message: '이미 사용 중인 아이디입니다. 다른 아이디를 입력해주세요.'),
+            _FieldError(message: l10n.authUsernameTaken),
           const SizedBox(height: 12),
 
           // ── 3. 비밀번호 ────────────────────────────────────────────────────
           _InputField(
             controller: _passCtrl,
-            label: '비밀번호',
-            hint: 'Pass123   (영문+숫자 포함 6~12자)',
+            label: l10n.password,
+            hint: l10n.authPasswordHintSignup,
             icon: Icons.lock_rounded,
             obscureText: _obscurePass,
             suffixIcon: IconButton(
@@ -1255,15 +1273,15 @@ class _SignupTabState extends State<_SignupTab> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          '거주 국가',
-                          style: TextStyle(
+                        Text(
+                          l10n.authResidenceCountry,
+                          style: const TextStyle(
                             color: AppColors.textMuted,
                             fontSize: 11,
                           ),
                         ),
                         Text(
-                          _selectedCountry,
+                          CountryL10n.localizedName(_selectedCountry, _langCode),
                           style: const TextStyle(
                             color: AppColors.textPrimary,
                             fontWeight: FontWeight.w600,
@@ -1287,7 +1305,7 @@ class _SignupTabState extends State<_SignupTab> {
           // ── 5. SNS 링크 ────────────────────────────────────────────────────
           _InputField(
             controller: _socialCtrl,
-            label: 'SNS 링크 (선택)',
+            label: l10n.authSnsLink,
             hint: 'https://instagram.com/...',
             icon: Icons.link_rounded,
             keyboardType: TextInputType.url,
@@ -1299,9 +1317,9 @@ class _SignupTabState extends State<_SignupTab> {
             checked: _agreePrivacy,
             icon: Icons.shield_outlined,
             iconColor: AppColors.teal,
-            title: '(필수) 개인정보 처리방침',
-            linkLabel: '내용 보기',
-            description: '수집 항목: 이메일·닉네임·국가·위치(도시 단위)\n목적: 서비스 제공, 계정 관리',
+            title: l10n.authPrivacyRequired,
+            linkLabel: l10n.authViewContent,
+            description: l10n.authPrivacyDesc,
             onCheckChanged: (v) => setState(() => _agreePrivacy = v ?? false),
             onLinkTap: _openPrivacyPolicy,
           ),
@@ -1314,23 +1332,21 @@ class _SignupTabState extends State<_SignupTab> {
                 ? Icons.location_on_rounded
                 : Icons.location_off_rounded,
             iconColor: _locationGranted ? AppColors.teal : AppColors.textMuted,
-            title: '(선택) 현재 위치 사용 동의',
-            description:
-                '가입 후 편지 발송 시점에도 위치 권한을 요청할 수 있어요.\n'
-                '지금 동의하면 위치 기반 기능을 바로 사용할 수 있습니다.',
+            title: l10n.authLocationOptional,
+            description: l10n.authLocationDesc,
             statusWidget: _locationGranted
-                ? const Row(
+                ? Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.check_circle_rounded,
                         color: AppColors.teal,
                         size: 14,
                       ),
-                      SizedBox(width: 4),
+                      const SizedBox(width: 4),
                       Text(
-                        '허용됨',
-                        style: TextStyle(color: AppColors.teal, fontSize: 11),
+                        l10n.authGranted,
+                        style: const TextStyle(color: AppColors.teal, fontSize: 11),
                       ),
                     ],
                   )
@@ -1341,7 +1357,7 @@ class _SignupTabState extends State<_SignupTab> {
 
           // ── 가입하기 버튼 ─────────────────────────────────────────────────
           _AuthButton(
-            label: '가입하기',
+            label: l10n.authSignupButton,
             emoji: '✨',
             isLoading: _isLoading,
             enabled: _canSignUp,
@@ -1353,6 +1369,7 @@ class _SignupTabState extends State<_SignupTab> {
   }
 
   Widget _buildOtpScreen(BuildContext context) {
+    final l10n = _l10n;
     final email = _emailCtrl.text.trim();
     final expired = _otpCountdown <= 0;
 
@@ -1380,7 +1397,7 @@ class _SignupTabState extends State<_SignupTab> {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  '이메일 입력으로 돌아가기',
+                  l10n.authBackToEmail,
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 13,
@@ -1409,9 +1426,9 @@ class _SignupTabState extends State<_SignupTab> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  '이메일 인증',
-                  style: TextStyle(
+                Text(
+                  l10n.authEmailVerification,
+                  style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
@@ -1419,7 +1436,7 @@ class _SignupTabState extends State<_SignupTab> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '$email\n으로 인증 코드를 발송했습니다.',
+                  l10n.authOtpSent(email),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: AppColors.textSecondary,
@@ -1525,7 +1542,7 @@ class _SignupTabState extends State<_SignupTab> {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '${(_otpCountdown ~/ 60).toString().padLeft(2, '0')}:${(_otpCountdown % 60).toString().padLeft(2, '0')} 후 만료',
+                  l10n.authExpiresIn('${(_otpCountdown ~/ 60).toString().padLeft(2, '0')}:${(_otpCountdown % 60).toString().padLeft(2, '0')}'),
                   style: const TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 12,
@@ -1536,7 +1553,7 @@ class _SignupTabState extends State<_SignupTab> {
               GestureDetector(
                 onTap: _resendOtp,
                 child: Text(
-                  expired ? '코드 재발송' : '재발송',
+                  expired ? l10n.authResendCode : l10n.authResend,
                   style: TextStyle(
                     color: expired ? AppColors.teal : AppColors.textSecondary,
                     fontSize: 12,
@@ -1572,9 +1589,9 @@ class _SignupTabState extends State<_SignupTab> {
                         color: Colors.white,
                       ),
                     )
-                  : const Text(
-                      '인증 완료 · 가입하기',
-                      style: TextStyle(
+                  : Text(
+                      l10n.authVerifyAndSignup,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
@@ -1586,7 +1603,7 @@ class _SignupTabState extends State<_SignupTab> {
             const SizedBox(height: 12),
             Center(
               child: Text(
-                '인증 코드가 만료되었습니다. 재발송을 눌러주세요.',
+                l10n.authOtpExpired,
                 style: TextStyle(color: Colors.red.shade400, fontSize: 12),
               ),
             ),
@@ -1613,69 +1630,70 @@ class _SignupTabState extends State<_SignupTab> {
   }
 
   void _showPrivacyPolicy() {
+    final l10n = _l10n;
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.bgCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          '개인정보 처리방침',
-          style: TextStyle(color: AppColors.textPrimary),
+        title: Text(
+          l10n.authPrivacyPolicy,
+          style: const TextStyle(color: AppColors.textPrimary),
         ),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
+            children: [
               Text(
-                '1. 수집 항목',
-                style: TextStyle(
+                l10n.authPrivacySec1Title,
+                style: const TextStyle(
                   color: AppColors.gold,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
-                '이메일, 닉네임, 국가, SNS 링크(선택)',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                l10n.authPrivacySec1Body,
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               Text(
-                '2. 수집 목적',
-                style: TextStyle(
+                l10n.authPrivacySec2Title,
+                style: const TextStyle(
                   color: AppColors.gold,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
-                '서비스 제공, 편지 발송 및 수신, 계정 관리',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                l10n.authPrivacySec2Body,
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               Text(
-                '3. 보유 기간',
-                style: TextStyle(
+                l10n.authPrivacySec3Title,
+                style: const TextStyle(
                   color: AppColors.gold,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
-                '회원 탈퇴 시까지 (탈퇴 즉시 모든 데이터 삭제)',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                l10n.authPrivacySec3Body,
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               Text(
-                '4. 제3자 제공',
-                style: TextStyle(
+                l10n.authPrivacySec4Title,
+                style: const TextStyle(
                   color: AppColors.gold,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
-                '수집된 개인정보는 제3자에게 제공되지 않습니다.',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                l10n.authPrivacySec4Body,
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
               ),
             ],
           ),
@@ -1687,16 +1705,16 @@ class _SignupTabState extends State<_SignupTab> {
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.teal),
-            child: const Text(
-              '동의하기',
-              style: TextStyle(color: AppColors.bgDeep),
+            child: Text(
+              l10n.authAgree,
+              style: const TextStyle(color: AppColors.bgDeep),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              '닫기',
-              style: TextStyle(color: AppColors.textMuted),
+            child: Text(
+              l10n.authClose,
+              style: const TextStyle(color: AppColors.textMuted),
             ),
           ),
         ],
@@ -1705,6 +1723,7 @@ class _SignupTabState extends State<_SignupTab> {
   }
 
   void _pickCountry() {
+    final l10n = _l10n;
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.bgCard,
@@ -1722,7 +1741,7 @@ class _SignupTabState extends State<_SignupTab> {
                   children: [
                     Expanded(
                       child: Text(
-                        '거주 국가 선택',
+                        l10n.authSelectResidenceCountry,
                         style: const TextStyle(
                           color: AppColors.textPrimary,
                           fontWeight: FontWeight.w700,
@@ -1756,10 +1775,10 @@ class _SignupTabState extends State<_SignupTab> {
                   children: [
                     const Text('🌐', style: TextStyle(fontSize: 16)),
                     const SizedBox(width: 8),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        '선택한 나라의 언어로 앱이 표시됩니다',
-                        style: TextStyle(
+                        l10n.languageNotice,
+                        style: const TextStyle(
                           color: AppColors.gold,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
@@ -1780,7 +1799,7 @@ class _SignupTabState extends State<_SignupTab> {
                         style: const TextStyle(fontSize: 24),
                       ),
                       title: Text(
-                        c['name']!,
+                        CountryL10n.localizedName(c['name']!, _langCode),
                         style: const TextStyle(color: AppColors.textPrimary),
                       ),
                       subtitle: Text(
@@ -1806,7 +1825,7 @@ class _SignupTabState extends State<_SignupTab> {
                         // 언어 안내 스낵바
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('🌐 언어가 $langName(으)로 설정됩니다'),
+                            content: Text(l10n.authLanguageSet(langName)),
                             backgroundColor: AppColors.bgCard,
                             behavior: SnackBarBehavior.floating,
                             duration: const Duration(seconds: 2),
@@ -2052,7 +2071,7 @@ class _ConsentCard extends StatelessWidget {
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
-                  '동의합니다',
+                  AppL10n.of(_deviceLangCode()).authIAgree,
                   style: TextStyle(
                     color: checked
                         ? AppColors.textPrimary

@@ -4,6 +4,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../core/localization/app_localizations.dart';
+import '../../../core/localization/country_names.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/purchase_service.dart';
@@ -59,6 +61,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // ── SNS 링크 수정 ──────────────────────────────────────────────────────────
   void _editSnsLink(BuildContext ctx, AppState state) {
+    final _pl = AppL10n.of(state.currentUser.languageCode);
     final _initialText = state.currentUser.socialLink ?? '';
     final ctrl = TextEditingController.fromValue(
       TextEditingValue(
@@ -71,9 +74,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.bgCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'SNS 링크 수정',
-          style: TextStyle(color: AppColors.textPrimary),
+        title: Text(
+          _pl.profileSnsLinkEdit,
+          style: const TextStyle(color: AppColors.textPrimary),
         ),
         content: TextField(
           controller: ctrl,
@@ -93,9 +96,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              '취소',
-              style: TextStyle(color: AppColors.textMuted),
+            child: Text(
+              _pl.cancel,
+              style: const TextStyle(color: AppColors.textMuted),
             ),
           ),
           TextButton(
@@ -105,7 +108,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               state.updateSocialLink(link.isEmpty ? null : link);
               if (ctx.mounted) Navigator.pop(ctx);
             },
-            child: const Text('저장', style: TextStyle(color: AppColors.teal)),
+            child: Text(_pl.save, style: const TextStyle(color: AppColors.teal)),
           ),
         ],
       ),
@@ -113,6 +116,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _changeProfileImage(BuildContext ctx, AppState state) async {
+    final _pl = AppL10n.of(state.currentUser.languageCode);
     await showModalBottomSheet<void>(
       context: ctx,
       backgroundColor: AppColors.bgCard,
@@ -131,9 +135,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Icons.photo_library_rounded,
                     color: AppColors.teal,
                   ),
-                  title: const Text(
-                    '앨범에서 선택',
-                    style: TextStyle(color: AppColors.textPrimary),
+                  title: Text(
+                    _pl.profileSelectFromAlbum,
+                    style: const TextStyle(color: AppColors.textPrimary),
                   ),
                   onTap: () async {
                     Navigator.pop(sheetCtx);
@@ -164,7 +168,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         if (await oldFile.exists()) await oldFile.delete();
                       } catch (_) {}
                     }
-                    if (mounted) _showSnack(ctx, '프로필 사진이 변경되었습니다');
+                    if (mounted) _showSnack(ctx, _pl.profilePhotoChanged);
                   },
                 ),
                 ListTile(
@@ -172,9 +176,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Icons.delete_outline_rounded,
                     color: AppColors.error,
                   ),
-                  title: const Text(
-                    '기본 아바타로 변경',
-                    style: TextStyle(color: AppColors.textPrimary),
+                  title: Text(
+                    _pl.profileChangeToDefaultAvatar,
+                    style: const TextStyle(color: AppColors.textPrimary),
                   ),
                   onTap: () async {
                     Navigator.pop(sheetCtx);
@@ -186,7 +190,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         if (await oldFile.exists()) await oldFile.delete();
                       } catch (_) {}
                     }
-                    if (mounted) _showSnack(ctx, '기본 아바타로 변경되었습니다');
+                    if (mounted) _showSnack(ctx, _pl.profileDefaultAvatarChanged);
                   },
                 ),
               ],
@@ -198,6 +202,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _showThemeModeSelector(BuildContext ctx, AppState state) async {
+    final _pl = AppL10n.of(state.currentUser.languageCode);
     await showModalBottomSheet<void>(
       context: ctx,
       backgroundColor: AppColors.bgCard,
@@ -211,11 +216,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Text(
-                    '화면 모드 선택',
-                    style: TextStyle(
+                    _pl.profileSelectDisplayMode,
+                    style: const TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -230,13 +235,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     state.updateDisplayThemeMode(v);
                     Navigator.pop(sheetCtx);
                   },
-                  title: const Text(
-                    '자동 (시간대)',
-                    style: TextStyle(color: AppColors.textPrimary),
+                  title: Text(
+                    _pl.profileAutoTimezone,
+                    style: const TextStyle(color: AppColors.textPrimary),
                   ),
-                  subtitle: const Text(
-                    '국가 시간에 따라 낮/밤 테마 자동 변경',
-                    style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                  subtitle: Text(
+                    _pl.profileAutoTimezoneDesc,
+                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
                   ),
                   activeColor: AppColors.gold,
                 ),
@@ -248,13 +253,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     state.updateDisplayThemeMode(v);
                     Navigator.pop(sheetCtx);
                   },
-                  title: const Text(
-                    '밝은 모드',
-                    style: TextStyle(color: AppColors.textPrimary),
+                  title: Text(
+                    _pl.profileLightMode,
+                    style: const TextStyle(color: AppColors.textPrimary),
                   ),
-                  subtitle: const Text(
-                    '항상 낮 테마로 표시',
-                    style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                  subtitle: Text(
+                    _pl.profileLightModeDesc,
+                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
                   ),
                   activeColor: AppColors.gold,
                 ),
@@ -266,13 +271,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     state.updateDisplayThemeMode(v);
                     Navigator.pop(sheetCtx);
                   },
-                  title: const Text(
-                    '다크 모드',
-                    style: TextStyle(color: AppColors.textPrimary),
+                  title: Text(
+                    _pl.profileDarkMode,
+                    style: const TextStyle(color: AppColors.textPrimary),
                   ),
-                  subtitle: const Text(
-                    '항상 밤 테마로 표시',
-                    style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                  subtitle: Text(
+                    _pl.profileDarkModeDesc,
+                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
                   ),
                   activeColor: AppColors.gold,
                 ),
@@ -286,6 +291,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // ── 비밀번호 변경 ──────────────────────────────────────────────────────────
   void _changePassword(BuildContext ctx) {
+    final _pl = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
     final oldCtrl = TextEditingController();
     final newCtrl = TextEditingController();
     final confirmCtrl = TextEditingController();
@@ -294,36 +300,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.bgCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          '비밀번호 변경',
-          style: TextStyle(color: AppColors.textPrimary),
+        title: Text(
+          _pl.profileChangePassword,
+          style: const TextStyle(color: AppColors.textPrimary),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _pwField(oldCtrl, '현재 비밀번호'),
+            _pwField(oldCtrl, _pl.profileCurrentPassword),
             const SizedBox(height: 12),
-            _pwField(newCtrl, '새 비밀번호 (6자 이상)'),
+            _pwField(newCtrl, _pl.profileNewPassword),
             const SizedBox(height: 12),
-            _pwField(confirmCtrl, '새 비밀번호 확인'),
+            _pwField(confirmCtrl, _pl.profileConfirmPassword),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              '취소',
-              style: TextStyle(color: AppColors.textMuted),
+            child: Text(
+              _pl.cancel,
+              style: const TextStyle(color: AppColors.textMuted),
             ),
           ),
           TextButton(
             onPressed: () async {
               if (newCtrl.text.length < 6) {
-                _showSnack(ctx, '비밀번호는 6자 이상이어야 합니다');
+                _showSnack(ctx, _pl.profilePasswordMinLength);
                 return;
               }
               if (newCtrl.text != confirmCtrl.text) {
-                _showSnack(ctx, '새 비밀번호가 일치하지 않습니다');
+                _showSnack(ctx, _pl.profilePasswordMismatch);
                 return;
               }
               final user = await AuthService.getCurrentUser();
@@ -333,16 +339,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 password: oldCtrl.text,
               );
               if (err != null) {
-                if (ctx.mounted) _showSnack(ctx, '현재 비밀번호가 올바르지 않습니다');
+                if (ctx.mounted) _showSnack(ctx, _pl.profileCurrentPasswordWrong);
                 return;
               }
               await AuthService.updatePassword(newCtrl.text);
               if (ctx.mounted) {
                 Navigator.pop(ctx);
-                _showSnack(ctx, '비밀번호가 변경되었습니다 ✓');
+                _showSnack(ctx, _pl.profilePasswordChanged);
               }
             },
-            child: const Text('변경', style: TextStyle(color: AppColors.teal)),
+            child: Text(_pl.change, style: const TextStyle(color: AppColors.teal)),
           ),
         ],
       ),
@@ -402,25 +408,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // ── 로그아웃 ───────────────────────────────────────────────────────────────
   void _confirmLogout(BuildContext ctx) {
+    final _pl = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
     showDialog(
       context: ctx,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.bgCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          '로그아웃',
-          style: TextStyle(color: AppColors.textPrimary),
+        title: Text(
+          _pl.logout,
+          style: const TextStyle(color: AppColors.textPrimary),
         ),
-        content: const Text(
-          '정말 로그아웃 하시겠어요?',
-          style: TextStyle(color: AppColors.textSecondary),
+        content: Text(
+          _pl.profileLogoutMsg,
+          style: const TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              '취소',
-              style: TextStyle(color: AppColors.textMuted),
+            child: Text(
+              _pl.cancel,
+              style: const TextStyle(color: AppColors.textMuted),
             ),
           ),
           TextButton(
@@ -432,7 +439,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ).pushNamedAndRemoveUntil('/auth', (_) => false);
               }
             },
-            child: const Text('로그아웃', style: TextStyle(color: AppColors.error)),
+            child: Text(_pl.logout, style: const TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -441,22 +448,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // ── 회원탈퇴 ───────────────────────────────────────────────────────────────
   void _confirmDeleteAccount(BuildContext ctx) {
+    final _dl = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
     showDialog(
       context: ctx,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.bgCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('회원탈퇴', style: TextStyle(color: AppColors.error)),
-        content: const Text(
-          '계정을 삭제하면 모든 편지와 데이터가 영구적으로 사라집니다.\n정말 탈퇴하시겠어요?',
-          style: TextStyle(color: AppColors.textSecondary),
+        title: Text(_dl.deleteAccount, style: const TextStyle(color: AppColors.error)),
+        content: Text(
+          _dl.profileDeleteAccountMsg,
+          style: const TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              '취소',
-              style: TextStyle(color: AppColors.textMuted),
+            child: Text(
+              _dl.cancel,
+              style: const TextStyle(color: AppColors.textMuted),
             ),
           ),
           TextButton(
@@ -468,7 +476,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ).pushNamedAndRemoveUntil('/auth', (_) => false);
               }
             },
-            child: const Text('탈퇴', style: TextStyle(color: AppColors.error)),
+            child: Text(_dl.withdraw, style: const TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -477,6 +485,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // ── 우표 앨범 배너 ────────────────────────────────────────────────────────
   Widget _buildStampAlbumBanner(BuildContext ctx, AppState state) {
+    final _sbl = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
     // 수집된 국가 수 계산
     final countrySet = <String>{};
     for (final l in state.inbox) {
@@ -534,8 +543,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 3),
                   Text(
                     countryCount > 0
-                        ? '$countryCount개국 우표 수집됨'
-                        : '아직 수집된 우표 없음',
+                        ? _sbl.profileStampCollected(countryCount)
+                        : _sbl.profileNoStamps,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14,
@@ -656,6 +665,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     AppState state,
     UserProfile user,
   ) {
+    final _fl = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
     return DefaultTabController(
       length: 2,
       child: Container(
@@ -676,8 +686,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 fontSize: 13,
               ),
               tabs: [
-                Tab(text: '👥 팔로잉 ${user.followingIds.length}'),
-                Tab(text: '🌟 팔로워 ${user.followerIds.length}'),
+                Tab(text: '👥 ${_fl.profileFollowing} ${user.followingIds.length}'),
+                Tab(text: '🌟 ${_fl.profileFollowers} ${user.followerIds.length}'),
               ],
             ),
             SizedBox(
@@ -687,12 +697,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: TabBarView(
                 children: [
                   _FollowListContent(
-                    title: '팔로잉',
+                    title: _fl.profileFollowing,
+                    emptyMsg: _fl.profileNoFollowing,
                     userIds: user.followingIds,
                     sessions: state.chatSessions,
                   ),
                   _FollowListContent(
-                    title: '팔로워',
+                    title: _fl.profileFollowers,
+                    emptyMsg: _fl.profileNoFollowers,
                     userIds: user.followerIds,
                     sessions: state.chatSessions,
                   ),
@@ -710,6 +722,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Consumer2<AppState, PurchaseService>(
       builder: (ctx, state, purchase, _) {
         final user = state.currentUser;
+        final _lc = user.languageCode;
+        final _l = AppL10n.of(_lc);
 
         return Scaffold(
           backgroundColor: AppTimeColors.of(ctx).bgDeep,
@@ -739,10 +753,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           _buildFollowSection(ctx, state, user),
                           const SizedBox(height: 10),
                           // ── 계정 ──
-                          _settingsGroup('계정', [
+                          _settingsGroup(_l.profileAccountSection, [
                             _groupTile(
                               icon: Icons.person_rounded,
-                              label: '닉네임',
+                              label: _l.profileNickname,
                               trailing: Text(
                                 user.username,
                                 style: const TextStyle(
@@ -754,11 +768,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             _groupTile(
                               icon: Icons.location_city_rounded,
-                              label: '타워 이름',
+                              label: _l.profileTowerName,
                               trailing: Text(
                                 user.customTowerName?.isNotEmpty == true
                                     ? user.customTowerName!
-                                    : '미설정',
+                                    : _l.profileNotSet,
                                 style: const TextStyle(
                                   color: AppColors.textMuted,
                                   fontSize: 14,
@@ -770,11 +784,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             _groupTile(
                               icon: Icons.account_circle_rounded,
-                              label: '프로필 사진',
+                              label: _l.profilePhoto,
                               trailing: Text(
                                 user.profileImagePath?.isNotEmpty == true
-                                    ? '설정됨'
-                                    : '기본',
+                                    ? _l.profilePhotoSet
+                                    : _l.profilePhotoDefault,
                                 style: const TextStyle(
                                   color: AppColors.textMuted,
                                   fontSize: 14,
@@ -784,11 +798,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             _groupTile(
                               icon: Icons.link_rounded,
-                              label: 'SNS 링크',
+                              label: _l.profileSnsLink,
                               trailing: Text(
                                 user.socialLink?.isNotEmpty == true
                                     ? user.socialLink!
-                                    : '미설정',
+                                    : _l.profileNotSet,
                                 style: const TextStyle(
                                   color: AppColors.textMuted,
                                   fontSize: 13,
@@ -800,17 +814,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             _groupTile(
                               icon: Icons.lock_outline_rounded,
-                              label: '비밀번호 변경',
+                              label: _l.profileChangePassword,
                               onTap: () => _changePassword(ctx),
                               isLast: true,
                             ),
                           ]),
                           // ── 공개 설정 ──
-                          _settingsGroup('공개 설정', [
+                          _settingsGroup(_l.profilePrivacySection, [
                             _groupSwitchTile(
                               icon: Icons.badge_rounded,
-                              label: '닉네임 공개',
-                              subtitle: '다른 사용자에게 닉네임 표시',
+                              label: _l.profileNicknamePublic,
+                              subtitle: _l.profileNicknamePublicDesc,
                               value: user.isUsernamePublic,
                               onChanged: (v) => state.updatePrivacySettings(
                                 isUsernamePublic: v,
@@ -818,8 +832,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             _groupSwitchTile(
                               icon: Icons.link_rounded,
-                              label: 'SNS 링크 공개',
-                              subtitle: '편지에 SNS 링크 노출 허용',
+                              label: _l.profileSnsLinkPublic,
+                              subtitle: _l.profileSnsPublicDesc,
                               value: user.isSnsPublic,
                               onChanged: (v) =>
                                   state.updatePrivacySettings(isSnsPublic: v),
@@ -827,21 +841,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ]),
                           // ── 알림 ──
-                          _settingsGroup('알림', [
+                          _settingsGroup(_l.profileNotificationSection, [
                             _groupSwitchTile(
                               icon: Icons.notifications_active_rounded,
-                              label: '근처 편지 알림',
-                              subtitle: '2km 이내에 편지가 도착하면 알림',
+                              label: _l.profileNearbyNotification,
+                              subtitle: _l.profileNearbyNotificationDesc,
                               value: _notifyNearby,
                               onChanged: _setNotifyNearby,
                               isLast: true,
                             ),
                           ]),
                           // ── 화면 ──
-                          _settingsGroup('화면', [
+                          _settingsGroup(_l.profileDisplaySection, [
                             _groupTile(
                               icon: Icons.brightness_6_rounded,
-                              label: '화면 모드',
+                              label: _l.profileDisplayMode,
                               trailing: Text(
                                 state.displayThemeModeLabel,
                                 style: const TextStyle(
@@ -854,10 +868,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ]),
                           // ── 앱 정보 ──
-                          _settingsGroup('앱 정보', [
+                          _settingsGroup(_l.profileAppInfoSection, [
                             _groupTile(
                               icon: Icons.info_outline_rounded,
-                              label: '버전',
+                              label: _l.profileVersion,
                               trailing: const Text(
                                 '1.0.0',
                                 style: TextStyle(
@@ -868,9 +882,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             _groupTile(
                               icon: Icons.public_rounded,
-                              label: '나라',
+                              label: _l.profileCountry,
                               trailing: Text(
-                                '${user.countryFlag} ${user.country}',
+                                '${user.countryFlag} ${CountryL10n.localizedName(user.country, _lc)}',
                                 style: const TextStyle(
                                   color: AppColors.textMuted,
                                   fontSize: 14,
@@ -880,17 +894,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ]),
                           // ── 계정 관리 ──
-                          _settingsGroup('계정 관리', [
+                          _settingsGroup(_l.profileAccountManageSection, [
                             _groupTile(
                               icon: Icons.logout_rounded,
-                              label: '로그아웃',
+                              label: _l.logout,
                               iconColor: AppColors.textSecondary,
                               labelColor: AppColors.textSecondary,
                               onTap: () => _confirmLogout(ctx),
                             ),
                             _groupTile(
                               icon: Icons.delete_forever_rounded,
-                              label: '회원탈퇴',
+                              label: _l.deleteAccount,
                               iconColor: AppColors.error,
                               labelColor: AppColors.error,
                               onTap: () => _confirmDeleteAccount(ctx),
@@ -941,6 +955,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     AppState state,
     PurchaseService purchase,
   ) {
+    final _al = AppL10n.of(user.languageCode);
     final tier = user.activityScore.tier;
     final tierClr = _tierColor(tier);
     final isBrand = purchase.isBrand || user.isBrand;
@@ -1092,7 +1107,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      '${user.countryFlag} ${user.country}',
+                      '${user.countryFlag} ${CountryL10n.localizedName(user.country, user.languageCode)}',
                       style: const TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 13,
@@ -1120,9 +1135,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
       ),
-      title: const Text(
-        '프로필',
-        style: TextStyle(
+      title: Text(
+        _al.profileTitle,
+        style: const TextStyle(
           color: AppColors.textPrimary,
           fontWeight: FontWeight.w700,
           fontSize: 18,
@@ -1133,6 +1148,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // ── ① 4열 스탯 바 (A+C) ────────────────────────────────────────────────────
   Widget _buildFourStatRow(BuildContext ctx, AppState state, UserProfile user) {
+    final _fsl = AppL10n.of(user.languageCode);
     final score = user.activityScore;
     // 나라 수: 받은 편지 발송 국가
     final countrySet = state.inbox.map((l) => l.senderCountry).toSet();
@@ -1146,13 +1162,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       child: Row(
         children: [
-          _stat4Cell('📬', '${score.sentCount}', '보낸 편지'),
+          _stat4Cell('📬', '${score.sentCount}', _fsl.profileSentLetters),
           _stat4Divider(),
-          _stat4Cell('📥', '${score.receivedCount}', '받은 편지'),
+          _stat4Cell('📥', '${score.receivedCount}', _fsl.profileReceivedLetters),
           _stat4Divider(),
-          _stat4Cell('🌍', '${countrySet.length}', '방문 나라'),
+          _stat4Cell('🌍', '${countrySet.length}', _fsl.profileVisitedCountries),
           _stat4Divider(),
-          _stat4Cell('👥', '${user.followerIds.length}', '팔로워'),
+          _stat4Cell('👥', '${user.followerIds.length}', _fsl.profileFollowers),
         ],
       ),
     );
@@ -1193,6 +1209,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     UserProfile user,
     PurchaseService purchase,
   ) {
+    final _ql = AppL10n.of(user.languageCode);
     final isBrand = purchase.isBrand || user.isBrand;
     final isPremium = isBrand || purchase.isPremium || user.isPremium;
     final planName = isBrand
@@ -1201,10 +1218,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ? '👑 Premium'
         : '⭐ Free';
     final planPrice = isBrand
-        ? '₩99,000/월'
+        ? '₩99,000/mo'
         : isPremium
-        ? '₩4,900/월'
-        : '무료';
+        ? '₩4,900/mo'
+        : _ql.profileFree;
     final planColor = isBrand
         ? const Color(0xFFFF8A5C)
         : isPremium
@@ -1244,7 +1261,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Row(
                       children: [
                         Text(
-                          '구독 플랜',
+                          _ql.profileSubscriptionPlan,
                           style: TextStyle(
                             color: AppColors.textMuted,
                             fontSize: 10,
@@ -1290,9 +1307,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Text(
-                          '업그레이드 →',
-                          style: TextStyle(
+                        child: Text(
+                          _ql.profileUpgrade,
+                          style: const TextStyle(
                             color: AppColors.bgDeep,
                             fontSize: 11,
                             fontWeight: FontWeight.w800,
@@ -1318,9 +1335,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    '오늘 발송',
-                    style: TextStyle(
+                  Text(
+                    _ql.profileTodaySent,
+                    style: const TextStyle(
                       color: AppColors.textMuted,
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
@@ -1360,9 +1377,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    '내일 자정 초기화',
-                    style: TextStyle(color: AppColors.textMuted, fontSize: 10),
+                  Text(
+                    _ql.profileResetMidnight,
+                    style: const TextStyle(color: AppColors.textMuted, fontSize: 10),
                   ),
                 ],
               ),
@@ -1375,6 +1392,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // ── ③ 타워 등급 + 프로그레스바 (A+B) ─────────────────────────────────────
   Widget _buildTowerProgressCard(BuildContext ctx, UserProfile user) {
+    final _tl = AppL10n.of(user.languageCode);
     final score = user.activityScore;
     final tier = score.tier;
     final tierClr = _tierColor(tier);
@@ -1484,7 +1502,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                isMax ? '🏆 최고 등급 달성!' : tier.nextGoal,
+                isMax ? '🏆 ${_tl.towerTopTierReached}' : tier.nextGoal,
                 style: const TextStyle(
                   color: AppColors.textMuted,
                   fontSize: 11,
@@ -1492,7 +1510,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               if (!isMax)
                 Text(
-                  '${ptsLeft.toStringAsFixed(0)}pts 남음',
+                  _tl.towerPtsRemaining(ptsLeft.toStringAsFixed(0)),
                   style: TextStyle(
                     color: tierClr,
                     fontSize: 11,
@@ -1801,11 +1819,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
 class _FollowListContent extends StatelessWidget {
   final String title;
+  final String emptyMsg;
   final List<String> userIds;
   final Map<String, dynamic> sessions;
 
   const _FollowListContent({
     required this.title,
+    required this.emptyMsg,
     required this.userIds,
     required this.sessions,
   });
@@ -1817,13 +1837,13 @@ class _FollowListContent extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              title == '팔로잉' ? '🔭' : '🌟',
-              style: const TextStyle(fontSize: 32),
+            const Text(
+              '🔭',
+              style: TextStyle(fontSize: 32),
             ),
             const SizedBox(height: 8),
             Text(
-              title == '팔로잉' ? '팔로잉 중인 유저가 없어요' : '아직 팔로워가 없어요',
+              emptyMsg,
               style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
             ),
           ],

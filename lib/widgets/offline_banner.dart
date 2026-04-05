@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../core/localization/app_localizations.dart';
 import '../core/services/connectivity_service.dart';
+import '../state/app_state.dart';
 
 class OfflineBanner extends StatefulWidget {
   const OfflineBanner({super.key});
@@ -55,6 +58,10 @@ class _OfflineBannerContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final langCode = context.select<AppState, String>(
+      (s) => s.currentUser.languageCode,
+    );
+    final l = AppL10n.of(langCode);
     return Container(
       width: double.infinity,
       color: const Color(0xFF8B1A1A),
@@ -63,10 +70,10 @@ class _OfflineBannerContent extends StatelessWidget {
         children: [
           const Icon(Icons.wifi_off, color: Colors.white70, size: 18),
           const SizedBox(width: 8),
-          const Expanded(
+          Expanded(
             child: Text(
-              '인터넷 연결이 끊겼습니다',
-              style: TextStyle(
+              l.offlineDisconnected,
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
@@ -81,9 +88,9 @@ class _OfflineBannerContent extends StatelessWidget {
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
-            child: const Text(
-              '재시도',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            child: Text(
+              l.offlineRetry,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
             ),
           ),
         ],

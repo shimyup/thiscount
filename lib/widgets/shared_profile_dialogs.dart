@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
+import '../core/localization/app_localizations.dart';
 import '../core/services/auth_service.dart';
 import '../state/app_state.dart';
 
 /// 닉네임 변경 불가 알림 스낵바
 void showNicknameCooldownSnack(BuildContext ctx, AppState state) {
+  final l = AppL10n.of(state.currentUser.languageCode);
   final next = state.nextNicknameChangeAvailableAt;
   final dateLabel = next == null
       ? ''
-      : ' (${next.year}.${next.month.toString().padLeft(2, '0')}.${next.day.toString().padLeft(2, '0')} 이후)';
+      : ' (${next.year}.${next.month.toString().padLeft(2, '0')}.${next.day.toString().padLeft(2, '0')})';
   ScaffoldMessenger.of(ctx).showSnackBar(
     SnackBar(
       content: Text(
-        '닉네임은 3개월에 1회만 변경할 수 있어요. 약 ${state.nicknameChangeRemainingDays}일 남았습니다$dateLabel',
+        l.profileDialogNicknameCooldown(state.nicknameChangeRemainingDays, dateLabel),
       ),
       backgroundColor: AppColors.bgCard,
       behavior: SnackBarBehavior.floating,
@@ -23,6 +25,7 @@ void showNicknameCooldownSnack(BuildContext ctx, AppState state) {
 
 /// 타워 이름 수정 다이얼로그
 void showEditTowerNameDialog(BuildContext ctx, AppState state) {
+  final l = AppL10n.of(state.currentUser.languageCode);
   final ctrl = TextEditingController(
     text: state.currentUser.customTowerName ?? '',
   );
@@ -31,9 +34,9 @@ void showEditTowerNameDialog(BuildContext ctx, AppState state) {
     builder: (_) => AlertDialog(
       backgroundColor: AppColors.bgCard,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: const Text(
-        '타워 이름 설정',
-        style: TextStyle(color: AppColors.textPrimary),
+      title: Text(
+        l.profileDialogTowerNameTitle,
+        style: const TextStyle(color: AppColors.textPrimary),
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -42,29 +45,29 @@ void showEditTowerNameDialog(BuildContext ctx, AppState state) {
             controller: ctrl,
             maxLength: 20,
             style: const TextStyle(color: AppColors.textPrimary),
-            decoration: const InputDecoration(
-              hintText: '나만의 타워 이름 (최대 20자)',
-              hintStyle: TextStyle(color: AppColors.textMuted),
-              counterStyle: TextStyle(color: AppColors.textMuted),
-              enabledBorder: UnderlineInputBorder(
+            decoration: InputDecoration(
+              hintText: l.profileDialogTowerNameHint,
+              hintStyle: const TextStyle(color: AppColors.textMuted),
+              counterStyle: const TextStyle(color: AppColors.textMuted),
+              enabledBorder: const UnderlineInputBorder(
                 borderSide: BorderSide(color: AppColors.textMuted),
               ),
-              focusedBorder: UnderlineInputBorder(
+              focusedBorder: const UnderlineInputBorder(
                 borderSide: BorderSide(color: AppColors.teal),
               ),
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
-            '지도에서 타워 마커에 이름이 표시됩니다',
-            style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+          Text(
+            l.profileDialogTowerNameDesc,
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
           ),
         ],
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx),
-          child: const Text('취소', style: TextStyle(color: AppColors.textMuted)),
+          child: Text(l.settingsCancel, style: const TextStyle(color: AppColors.textMuted)),
         ),
         TextButton(
           onPressed: () {
@@ -73,7 +76,7 @@ void showEditTowerNameDialog(BuildContext ctx, AppState state) {
             );
             if (ctx.mounted) Navigator.pop(ctx);
           },
-          child: const Text('저장', style: TextStyle(color: AppColors.teal)),
+          child: Text(l.settingsSave, style: const TextStyle(color: AppColors.teal)),
         ),
       ],
     ),
@@ -82,28 +85,29 @@ void showEditTowerNameDialog(BuildContext ctx, AppState state) {
 
 /// 닉네임 수정 다이얼로그
 void showEditUsernameDialog(BuildContext ctx, AppState state) {
+  final l = AppL10n.of(state.currentUser.languageCode);
   final ctrl = TextEditingController(text: state.currentUser.username);
   showDialog(
     context: ctx,
     builder: (_) => AlertDialog(
       backgroundColor: AppColors.bgCard,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: const Text(
-        '닉네임 수정',
-        style: TextStyle(color: AppColors.textPrimary),
+      title: Text(
+        l.profileDialogEditNickname,
+        style: const TextStyle(color: AppColors.textPrimary),
       ),
       content: TextField(
         controller: ctrl,
         maxLength: 20,
         style: const TextStyle(color: AppColors.textPrimary),
-        decoration: const InputDecoration(
-          hintText: '새 닉네임',
-          hintStyle: TextStyle(color: AppColors.textMuted),
-          counterStyle: TextStyle(color: AppColors.textMuted),
-          enabledBorder: UnderlineInputBorder(
+        decoration: InputDecoration(
+          hintText: l.profileDialogNewNickname,
+          hintStyle: const TextStyle(color: AppColors.textMuted),
+          counterStyle: const TextStyle(color: AppColors.textMuted),
+          enabledBorder: const UnderlineInputBorder(
             borderSide: BorderSide(color: AppColors.textMuted),
           ),
-          focusedBorder: UnderlineInputBorder(
+          focusedBorder: const UnderlineInputBorder(
             borderSide: BorderSide(color: AppColors.teal),
           ),
         ),
@@ -111,15 +115,15 @@ void showEditUsernameDialog(BuildContext ctx, AppState state) {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx),
-          child: const Text('취소', style: TextStyle(color: AppColors.textMuted)),
+          child: Text(l.settingsCancel, style: const TextStyle(color: AppColors.textMuted)),
         ),
         TextButton(
           onPressed: () async {
             final name = ctrl.text.trim();
             if (name.length < 2) {
               ScaffoldMessenger.of(ctx).showSnackBar(
-                const SnackBar(
-                  content: Text('닉네임은 2자 이상이어야 합니다'),
+                SnackBar(
+                  content: Text(l.profileDialogNicknameMin2),
                   backgroundColor: AppColors.error,
                 ),
               );
@@ -142,7 +146,7 @@ void showEditUsernameDialog(BuildContext ctx, AppState state) {
             }
             if (ctx.mounted) Navigator.pop(ctx);
           },
-          child: const Text('저장', style: TextStyle(color: AppColors.teal)),
+          child: Text(l.settingsSave, style: const TextStyle(color: AppColors.teal)),
         ),
       ],
     ),

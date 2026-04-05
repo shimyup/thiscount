@@ -27,9 +27,10 @@ class PremiumScreen extends StatelessWidget {
     required bool success,
     required String? message,
   }) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     final fallback = success
-        ? '구매가 완료되었습니다.'
-        : '구매를 진행하지 못했습니다. 잠시 후 다시 시도해주세요.';
+        ? l10n.premiumPurchaseSuccess
+        : l10n.premiumPurchaseFail;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message?.isNotEmpty == true ? message! : fallback),
@@ -61,17 +62,17 @@ class PremiumScreen extends StatelessWidget {
             ? _formatDate(purchase.nextBillingDate!)
             : null;
         final premiumFeatures = state.useValueBasedPremiumCopy
-            ? const [
-                '🚀  하루 3통 제한 해제 → 최대 30통 발송',
-                '📬  더 많이 보내고 답장 기회 최대 10배 확장',
-                '📸  이미지+링크 편지로 응답률 강화 (하루 20통)',
-                '⚡  특급 배송 하루 3통 + 커스텀 타워로 존재감 강화',
+            ? [
+                '🚀  ${l.premiumValueFeature1}',
+                '📬  ${l.premiumValueFeature2}',
+                '📸  ${l.premiumValueFeature3}',
+                '⚡  ${l.premiumValueFeature4}',
               ]
-            : const [
-                '✉️  하루 30통 편지 발송',
-                '📸  이미지+링크 편지 (하루 20통)',
-                '🗼  타워 커스텀 색상 & 이모지',
-                '⚡  특급 배송 (하루 3통)',
+            : [
+                '✉️  ${l.premiumFeature1}',
+                '📸  ${l.premiumFeature2}',
+                '🗼  ${l.premiumFeature3}',
+                '⚡  ${l.premiumFeature4}',
               ];
 
         return Scaffold(
@@ -144,9 +145,9 @@ class PremiumScreen extends StatelessWidget {
                   period: '',
                   badge: isFree ? l.premiumCurrentPlan : '',
                   badgeColor: AppColors.teal,
-                  features: const [
-                    '✉️  하루 3통 발송 · 월 100통',
-                    '🗺️  지도 열람 · 기본 편지 기능',
+                  features: [
+                    '✉️  ${l.premiumFreeFeature1}',
+                    '🗺️  ${l.premiumFreeFeature2}',
                   ],
                   isActive: false,
                   onTap: (isFree || purchase.loading)
@@ -156,8 +157,8 @@ class PremiumScreen extends StatelessWidget {
                             context: context,
                             builder: (ctx) => AlertDialog(
                               backgroundColor: AppColors.bgCard,
-                              title: const Text(
-                                '무료 플랜으로 전환',
+                              title: Text(
+                                l.premiumSwitchToFree,
                                 style: TextStyle(
                                   color: AppColors.textPrimary,
                                   fontSize: 16,
@@ -168,7 +169,7 @@ class PremiumScreen extends StatelessWidget {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    '다음 결제일부터 무료 플랜으로 전환됩니다.\n현재 구독 기간은 계속 이용 가능합니다.',
+                                    l.premiumSwitchToFreeDesc,
                                     style: TextStyle(
                                       color: AppColors.textSecondary,
                                       fontSize: 13,
@@ -189,9 +190,9 @@ class PremiumScreen extends StatelessWidget {
                                         ),
                                       ),
                                     ),
-                                    child: const Text(
-                                      '💡 실제 해지는 앱스토어 → 설정 → 구독에서 진행해야 합니다',
-                                      style: TextStyle(
+                                    child: Text(
+                                      '💡 ${l.premiumCancelViaStore}',
+                                      style: const TextStyle(
                                         color: AppColors.gold,
                                         fontSize: 11,
                                         height: 1.5,
@@ -203,8 +204,8 @@ class PremiumScreen extends StatelessWidget {
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.pop(ctx, false),
-                                  child: const Text(
-                                    '취소',
+                                  child: Text(
+                                    l.premiumCancel,
                                     style: TextStyle(
                                       color: AppColors.textMuted,
                                     ),
@@ -215,8 +216,8 @@ class PremiumScreen extends StatelessWidget {
                                   style: TextButton.styleFrom(
                                     foregroundColor: AppColors.error,
                                   ),
-                                  child: const Text(
-                                    '다운그레이드',
+                                  child: Text(
+                                    l.premiumDowngradeBtn,
                                     style: TextStyle(
                                       fontWeight: FontWeight.w700,
                                     ),
@@ -231,7 +232,7 @@ class PremiumScreen extends StatelessWidget {
                         },
                   loading: false,
                   color: AppColors.textMuted,
-                  actionLabel: '다운그레이드',
+                  actionLabel: l.premiumDowngradeBtn,
                 ),
                 const SizedBox(height: 16),
 
@@ -239,7 +240,7 @@ class PremiumScreen extends StatelessWidget {
                   emoji: '⭐',
                   name: 'Premium',
                   price: '₩4,900',
-                  period: '/월',
+                  period: l.premiumPerMonth,
                   badge: isPremium && !isBrand ? l.premiumCurrentPlan : '',
                   badgeColor: AppColors.teal,
                   features: premiumFeatures,
@@ -252,9 +253,9 @@ class PremiumScreen extends StatelessWidget {
                               context,
                               emoji: '⭐',
                               productName: 'Premium',
-                              price: '₩4,900/월',
+                              price: '₩4,900${l.premiumPerMonth}',
                               description:
-                                  '하루 30통 발송 · 이미지+링크 편지\n타워 커스텀 · 특급 배송',
+                                  l.premiumPremiumTestDesc,
                             );
                             if (!ok || !context.mounted) return;
                           }
@@ -268,23 +269,23 @@ class PremiumScreen extends StatelessWidget {
                         },
                   loading: isBuyingPremium,
                   color: AppColors.gold,
-                  actionLabel: isBrand ? '다운그레이드 불가' : '구독 시작 하기',
+                  actionLabel: isBrand ? l.premiumNoDowngrade : l.premiumSubscribeBtn,
                 ),
                 const SizedBox(height: 16),
                 _PlanCard(
                   emoji: '🏷️',
                   name: 'Brand / Creator',
                   price: '₩99,000',
-                  period: '/월',
+                  period: l.premiumPerMonth,
                   badge: isBrand ? l.premiumCurrentPlan : '',
                   badgeColor: const Color(0xFFFF8A5C),
-                  features: const [
-                    '✉️  하루 200통 발송 · 월 10,000통',
-                    '💳  추가 발송권 구매 (1,000통 ₩15,000)',
-                    '🌍  복수 나라 동시 대량 발송',
-                    '✅  공식 인증 배지 표시',
-                    '🚫  편지에 신고 버튼 미표시',
-                    '⭐  Premium 모든 기능 포함',
+                  features: [
+                    '✉️  ${l.premiumBrandFeature1}',
+                    '💳  ${l.premiumBrandFeature2}',
+                    '🌍  ${l.premiumBrandFeature3}',
+                    '✅  ${l.premiumBrandFeature4}',
+                    '🚫  ${l.premiumBrandFeature5}',
+                    '⭐  ${l.premiumBrandFeature6}',
                   ],
                   isActive: isBrand,
                   onTap: (isBrand || purchase.loading)
@@ -305,9 +306,9 @@ class PremiumScreen extends StatelessWidget {
                               context,
                               emoji: '🏷️',
                               productName: 'Brand / Creator',
-                              price: '₩99,000/월',
+                              price: '₩99,000${l.premiumPerMonth}',
                               description:
-                                  '하루 200통 · 인증 배지 · 대량 발송\nPremium 모든 기능 포함',
+                                  l.premiumBrandTestDesc,
                             );
                             if (!ok || !context.mounted) return;
                           }
@@ -321,7 +322,7 @@ class PremiumScreen extends StatelessWidget {
                         },
                   loading: isBuyingBrand,
                   color: const Color(0xFFFF8A5C),
-                  actionLabel: isPremium ? '브랜드 변경 예약' : '구독 시작 하기',
+                  actionLabel: isPremium ? l.premiumBrandSchedule : l.premiumSubscribeBtn,
                 ),
                 const SizedBox(height: 24),
 
@@ -339,7 +340,7 @@ class PremiumScreen extends StatelessWidget {
                 _GiftCardTile(purchase: purchase),
                 const SizedBox(height: 24),
 
-                _SectionTitle('친구 초대 리워드'),
+                _SectionTitle(l.premiumSectionInvite),
                 const SizedBox(height: 12),
                 const _InviteRewardTile(),
                 const SizedBox(height: 24),
@@ -381,16 +382,16 @@ class PremiumScreen extends StatelessWidget {
                               context: context,
                               builder: (ctx) => AlertDialog(
                                 backgroundColor: AppColors.bgCard,
-                                title: const Text(
-                                  '구매 복원',
-                                  style: TextStyle(
+                                title: Text(
+                                  l.premiumRestoreTitle,
+                                  style: const TextStyle(
                                     color: AppColors.textPrimary,
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
-                                content: const Text(
-                                  'iOS에서는 복원 시 Apple 계정 로그인 창이 표시될 수 있습니다.\n동일 Apple ID로 구매한 내역만 복원됩니다.',
+                                content: Text(
+                                  l.premiumRestoreDesc,
                                   style: TextStyle(
                                     color: AppColors.textSecondary,
                                     fontSize: 13,
@@ -400,17 +401,17 @@ class PremiumScreen extends StatelessWidget {
                                 actions: [
                                   TextButton(
                                     onPressed: () => Navigator.pop(ctx, false),
-                                    child: const Text(
-                                      '취소',
-                                      style: TextStyle(
+                                    child: Text(
+                                      l.premiumCancel,
+                                      style: const TextStyle(
                                         color: AppColors.textMuted,
                                       ),
                                     ),
                                   ),
                                   TextButton(
                                     onPressed: () => Navigator.pop(ctx, true),
-                                    child: const Text(
-                                      '복원',
+                                    child: Text(
+                                      l.premiumRestoreBtn,
                                       style: TextStyle(
                                         color: AppColors.teal,
                                         fontWeight: FontWeight.w700,
@@ -427,7 +428,7 @@ class PremiumScreen extends StatelessWidget {
                               _showPurchaseResultToast(
                                 context,
                                 success: true,
-                                message: '구매 내역을 복원했습니다.',
+                                message: l.premiumRestoreSuccess,
                               );
                             } else if (purchase.errorMessage != null) {
                               _showPurchaseResultToast(
@@ -452,10 +453,10 @@ class PremiumScreen extends StatelessWidget {
                 Center(
                   child: Text(
                     isFree
-                        ? '자동갱신일은 구독 시작 후 표시됩니다.'
+                        ? l.premiumAutoRenewAfterSub
                         : autoRenewDateText != null
-                        ? '자동갱신 예정일: $autoRenewDateText'
-                        : '자동갱신일 동기화 중',
+                        ? '${l.premiumAutoRenewDate}: $autoRenewDateText'
+                        : l.premiumAutoRenewSync,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: AppColors.textSecondary,
@@ -496,7 +497,7 @@ class _ActivePlanBanner extends StatelessWidget {
     final l = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     final color = isBrand ? const Color(0xFFFF8A5C) : AppColors.gold;
     final icon = isBrand ? '🏷️' : '👑';
-    final label = isBrand ? 'Brand / Creator 이용 중' : 'Premium 이용 중';
+    final label = isBrand ? 'Brand / Creator ${l.premiumActiveLabel}' : 'Premium ${l.premiumActiveLabel}';
 
     return Container(
       width: double.infinity,
@@ -905,9 +906,9 @@ class _GiftCardTile extends StatelessWidget {
                       final ok = await _confirmTestPurchase(
                         context,
                         emoji: '🎁',
-                        productName: '1개월 선물권',
+                        productName: l.premiumGiftCard1Month,
                         price: '₩8,910',
-                        description: '친구에게 1개월 프리미엄 선물\n(일반가 ₩9,900, 10% 할인)',
+                        description: l.premiumGiftTestDesc,
                       );
                       if (!ok || !context.mounted) return;
                     }
@@ -979,7 +980,7 @@ class _GiftCardSuccessDialog extends StatelessWidget {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('🎁', style: TextStyle(fontSize: 48)),
+          Text('🎁', style: TextStyle(fontSize: 48)),
           const SizedBox(height: 12),
           Text(
             l.premiumGiftSuccess,
@@ -990,8 +991,8 @@ class _GiftCardSuccessDialog extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            '아래 코드를 친구에게 전달하세요.\n친구가 앱에서 코드를 입력하면\n1개월 프리미엄이 활성화돼요.',
+          Text(
+            l.premiumGiftCodeDesc,
             textAlign: TextAlign.center,
             style: TextStyle(
               color: AppColors.textSecondary,
@@ -1021,8 +1022,8 @@ class _GiftCardSuccessDialog extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
-                const Text(
-                  '유효기간 30일',
+                Text(
+                  l.premiumGiftValidity,
                   style: TextStyle(color: AppColors.textMuted, fontSize: 11),
                 ),
               ],
@@ -1036,19 +1037,18 @@ class _GiftCardSuccessDialog extends StatelessWidget {
               onPressed: () async {
                 if (!context.mounted) return;
                 final shareText =
-                    '🎁 Letter Go 프리미엄 선물권\n'
-                    '코드: $code\n\n'
-                    '앱에서 코드를 입력하면 1개월 프리미엄이 활성화돼요!\n'
-                    '✉️ 전 세계 편지로 인연을 만들어보세요.\n'
+                    '🎁 Letter Go ${l.premiumGiftShareTitle}\n'
+                    '${l.premiumGiftShareCode}: $code\n\n'
+                    '${l.premiumGiftShareBody}\n'
                     '📲 https://lettergo.app/gift/$code';
                 await _showShareOptions(
                   context,
                   shareText,
-                  '🎁 Letter Go 프리미엄 선물권 (코드: $code)',
+                  '🎁 Letter Go ${l.premiumGiftShareTitle} (${l.premiumGiftShareCode}: $code)',
                 );
               },
               icon: const Icon(Icons.share_rounded, size: 16),
-              label: const Text('친구에게 공유하기'),
+              label: Text(l.premiumShareToFriend),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.gold,
                 foregroundColor: Colors.black87,
@@ -1068,15 +1068,15 @@ class _GiftCardSuccessDialog extends StatelessWidget {
                 await Clipboard.setData(ClipboardData(text: code));
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('코드가 복사되었어요! 친구에게 전달해 주세요 🎁'),
+                  SnackBar(
+                    content: Text(l.premiumCodeCopied),
                     backgroundColor: AppColors.teal,
                     duration: Duration(seconds: 2),
                   ),
                 );
               },
               icon: const Icon(Icons.copy_rounded, size: 16),
-              label: const Text('코드만 복사'),
+              label: Text(l.premiumCopyCode),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.teal,
                 side: BorderSide(color: AppColors.teal.withValues(alpha: 0.5)),
@@ -1090,8 +1090,8 @@ class _GiftCardSuccessDialog extends StatelessWidget {
           const SizedBox(height: 8),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              '닫기',
+            child: Text(
+              l.premiumClose,
               style: TextStyle(color: AppColors.textMuted),
             ),
           ),
@@ -1119,52 +1119,53 @@ class _InviteRewardTileState extends State<_InviteRewardTile> {
   }
 
   void _showApplyResult(InviteCodeApplyResult result) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     final messenger = ScaffoldMessenger.of(context);
     switch (result) {
       case InviteCodeApplyResult.success:
         messenger.showSnackBar(
-          const SnackBar(
-            content: Text('친구 초대 리워드가 지급됐어요! 보너스 5통이 추가되었습니다 🎉'),
+          SnackBar(
+            content: Text(l10n.premiumInviteSuccess),
             backgroundColor: AppColors.teal,
           ),
         );
         break;
       case InviteCodeApplyResult.self:
         messenger.showSnackBar(
-          const SnackBar(
-            content: Text('내 초대 코드는 직접 입력할 수 없어요.'),
+          SnackBar(
+            content: Text(l10n.premiumInviteSelf),
             backgroundColor: AppColors.error,
           ),
         );
         break;
       case InviteCodeApplyResult.alreadyUsed:
         messenger.showSnackBar(
-          const SnackBar(
-            content: Text('초대 코드는 계정당 1회만 사용할 수 있어요.'),
+          SnackBar(
+            content: Text(l10n.premiumInviteAlreadyUsed),
             backgroundColor: AppColors.warning,
           ),
         );
         break;
       case InviteCodeApplyResult.invalid:
         messenger.showSnackBar(
-          const SnackBar(
-            content: Text('코드 형식을 확인해주세요. (영문/숫자 6자리)'),
+          SnackBar(
+            content: Text(l10n.premiumInviteInvalid),
             backgroundColor: AppColors.error,
           ),
         );
         break;
       case InviteCodeApplyResult.serverUnavailable:
         messenger.showSnackBar(
-          const SnackBar(
-            content: Text('서버 연결이 필요해요. 로그인/Firebase 설정을 확인해주세요.'),
+          SnackBar(
+            content: Text(l10n.premiumInviteServerUnavailable),
             backgroundColor: AppColors.warning,
           ),
         );
         break;
       case InviteCodeApplyResult.networkError:
         messenger.showSnackBar(
-          const SnackBar(
-            content: Text('서버 검증 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.'),
+          SnackBar(
+            content: Text(l10n.premiumInviteNetworkError),
             backgroundColor: AppColors.error,
           ),
         );
@@ -1176,6 +1177,7 @@ class _InviteRewardTileState extends State<_InviteRewardTile> {
   Widget build(BuildContext context) {
     return Consumer<AppState>(
       builder: (context, state, _) {
+        final l10n = AppL10n.of(state.currentUser.languageCode);
         final inviteCode = state.myInviteCode;
         return Container(
           padding: const EdgeInsets.all(16),
@@ -1193,7 +1195,7 @@ class _InviteRewardTileState extends State<_InviteRewardTile> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '친구 초대 시 보너스 발송권 지급',
+                      l10n.premiumInviteRewardTitle,
                       style: const TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 14,
@@ -1211,7 +1213,7 @@ class _InviteRewardTileState extends State<_InviteRewardTile> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      '보유 ${state.inviteRewardCredits}통',
+                      '${l10n.premiumInviteCreditsOwned} ${state.inviteRewardCredits}',
                       style: const TextStyle(
                         color: AppColors.teal,
                         fontSize: 11,
@@ -1222,8 +1224,8 @@ class _InviteRewardTileState extends State<_InviteRewardTile> {
                 ],
               ),
               const SizedBox(height: 10),
-              const Text(
-                '코드 적용은 서버 검증 후 지급됩니다. (계정당 1회)',
+              Text(
+                l10n.premiumInviteOncePerAccount,
                 style: TextStyle(color: AppColors.textMuted, fontSize: 12),
               ),
               const SizedBox(height: 10),
@@ -1243,7 +1245,7 @@ class _InviteRewardTileState extends State<_InviteRewardTile> {
                   children: [
                     Expanded(
                       child: Text(
-                        '내 초대 코드: $inviteCode',
+                        '${l10n.premiumMyInviteCode}: $inviteCode',
                         style: const TextStyle(
                           color: AppColors.teal,
                           fontSize: 13,
@@ -1260,8 +1262,8 @@ class _InviteRewardTileState extends State<_InviteRewardTile> {
                         );
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('초대 코드가 복사되었어요.'),
+                          SnackBar(
+                            content: Text(l10n.premiumInviteCodeCopied),
                             backgroundColor: AppColors.teal,
                             duration: Duration(seconds: 2),
                           ),
@@ -1277,8 +1279,8 @@ class _InviteRewardTileState extends State<_InviteRewardTile> {
                           vertical: 8,
                         ),
                       ),
-                      child: const Text(
-                        '복사',
+                      child: Text(
+                        l10n.premiumCopy,
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
@@ -1290,16 +1292,14 @@ class _InviteRewardTileState extends State<_InviteRewardTile> {
                       onPressed: () async {
                         if (!context.mounted) return;
                         final shareText =
-                            '✉️ Letter Go — 전 세계와 편지로 연결되는 앱\n\n'
-                            '내 초대 코드 👉 $inviteCode\n\n'
-                            '코드 입력하면 보너스 발송권 지급!\n'
-                            '지도 위 편지가 실시간으로 여행하고,\n'
-                            '낯선 이에게 닿는 특별한 경험을 해보세요 🌍\n\n'
-                            '📲 앱 다운로드 → https://lettergo.app/invite/$inviteCode';
+                            '✉️ Letter Go — ${l10n.premiumInviteShareTagline}\n\n'
+                            '${l10n.premiumMyInviteCode} 👉 $inviteCode\n\n'
+                            '${l10n.premiumInviteShareBody}\n\n'
+                            '📲 https://lettergo.app/invite/$inviteCode';
                         await _showShareOptions(
                           context,
                           shareText,
-                          '✉️ Letter Go 초대장 — 코드: $inviteCode',
+                          '✉️ Letter Go ${l10n.premiumInviteShareSubject} — ${l10n.premiumGiftShareCode}: $inviteCode',
                         );
                       },
                       style: OutlinedButton.styleFrom(
@@ -1313,8 +1313,8 @@ class _InviteRewardTileState extends State<_InviteRewardTile> {
                         ),
                       ),
                       icon: const Icon(Icons.share_rounded, size: 13),
-                      label: const Text(
-                        '공유',
+                      label: Text(
+                        l10n.premiumShare,
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
@@ -1333,7 +1333,7 @@ class _InviteRewardTileState extends State<_InviteRewardTile> {
                   fontWeight: FontWeight.w600,
                 ),
                 decoration: InputDecoration(
-                  hintText: '친구 초대 코드 입력 (예: A1B2C3)',
+                  hintText: l10n.premiumInviteCodeHint,
                   hintStyle: const TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 12,
@@ -1400,8 +1400,8 @@ class _InviteRewardTileState extends State<_InviteRewardTile> {
                             color: Colors.white,
                           ),
                         )
-                      : const Text(
-                          '초대 코드 적용',
+                      : Text(
+                          l10n.premiumApplyInviteCode,
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
@@ -1441,18 +1441,19 @@ class _FeatureCompareTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const rows = [
-      ['기능', 'Free', 'Premium', 'Brand'],
-      ['일일 편지', '3통', '30통', '200통'],
-      ['월 편지', '100통', '500통', '10,000통'],
-      ['이미지+링크', '✗', '1일 20통', '전부 포함'],
-      ['특급 배송', '✗', '1일 3통', '5분 즉시·대량'],
-      ['편지 스타일', '기본', '특별', '브랜드'],
-      ['대량 발송', '✗', '✗', '✓'],
-      ['타워 커스텀', '✗', '✓', '✓'],
-      ['인증 배지', '✗', '✗', '✓'],
-      ['신고 버튼', '표시', '표시', '미표시'],
-      ['월 가격', '무료', '₩4,900', '₩99,000'],
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    final rows = [
+      [l10n.premiumCompareFeature, 'Free', 'Premium', 'Brand'],
+      [l10n.premiumCompareDailyLetters, '3', '30', '200'],
+      [l10n.premiumCompareMonthlyLetters, '100', '500', '10,000'],
+      [l10n.premiumCompareImageLink, '✗', l10n.premiumCompare20PerDay, l10n.premiumCompareAllIncluded],
+      [l10n.premiumCompareExpress, '✗', l10n.premiumCompare3PerDay, l10n.premiumCompareInstantBulk],
+      [l10n.premiumCompareStyle, l10n.premiumCompareBasic, l10n.premiumCompareSpecial, l10n.premiumCompareBrand],
+      [l10n.premiumCompareBulkSend, '✗', '✗', '✓'],
+      [l10n.premiumCompareTowerCustom, '✗', '✓', '✓'],
+      [l10n.premiumCompareBadge, '✗', '✗', '✓'],
+      [l10n.premiumCompareReportBtn, l10n.premiumCompareShown, l10n.premiumCompareShown, l10n.premiumCompareHidden],
+      [l10n.premiumCompareMonthlyPrice, l10n.premiumCompareFree, '₩4,900', '₩99,000'],
     ];
 
     return Container(
@@ -1548,11 +1549,8 @@ class _DowngradeSection extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              '플랜을 무료로 변경하면:\n'
-              '• 현재 결제 기간 종료 후 무료로 전환됩니다\n'
-              '• 다음 결제일부터 요금이 청구되지 않아요\n'
-              '• 현재 기간 동안은 모든 기능을 계속 이용하실 수 있어요',
+            Text(
+              l.premiumDowngradeDialogBody,
               style: TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 13,
@@ -1569,9 +1567,9 @@ class _DowngradeSection extends StatelessWidget {
                   color: AppColors.gold.withValues(alpha: 0.25),
                 ),
               ),
-              child: const Text(
-                '💡 실제 해지는 앱스토어 → 설정 → 구독에서 진행해야 합니다',
-                style: TextStyle(
+              child: Text(
+                '💡 ${l.premiumCancelViaStore}',
+                style: const TextStyle(
                   color: AppColors.gold,
                   fontSize: 11,
                   height: 1.5,
@@ -1629,8 +1627,8 @@ class _DowngradeSection extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-                const Text(
-                  '다음 결제일부터 무료 플랜으로 전환됩니다',
+                Text(
+                  l.premiumDowngradeNextBilling,
                   style: TextStyle(color: AppColors.textMuted, fontSize: 11),
                 ),
               ],
@@ -1697,7 +1695,7 @@ class _PendingPlanChangeBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isFreeTarget ? '무료 플랜 전환 예정' : 'Brand / Creator 변경 예정',
+                  isFreeTarget ? l.premiumPendingFreeChange : l.premiumPendingBrandChange,
                   style: TextStyle(
                     color: isFreeTarget ? AppColors.error : AppColors.gold,
                     fontSize: 13,
@@ -1707,8 +1705,8 @@ class _PendingPlanChangeBanner extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   isFreeTarget
-                      ? '$formatted 이후 무료로 변경됩니다'
-                      : '$formatted 이후 Brand / Creator로 변경됩니다',
+                      ? '$formatted ${l.premiumPendingFreeAfter}'
+                      : '$formatted ${l.premiumPendingBrandAfter}',
                   style: const TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 11,
@@ -1775,6 +1773,7 @@ class _BrandExtraTileState extends State<_BrandExtraTile> {
   Widget build(BuildContext context) {
     return Consumer<AppState>(
       builder: (ctx, appState, _) {
+        final l10n = AppL10n.of(appState.currentUser.languageCode);
         final isBuyingBrandExtra = widget.purchase.isOperationInProgress(
           PurchaseOperation.brandExtra,
         );
@@ -1874,19 +1873,19 @@ class _BrandExtraTileState extends State<_BrandExtraTile> {
                 children: [
                   Expanded(
                     child: _QuotaStat(
-                      label: '이번 달 한도',
-                      value: '${_formatNum(monthlyTotal)}통',
+                      label: l10n.premiumQuotaMonthlyLimit,
+                      value: '${_formatNum(monthlyTotal)}',
                       sub: extraPacks > 0
-                          ? '기본 10,000 + 추가 ${_formatNum(appState.brandExtraMonthlyQuota)}'
-                          : '기본 한도',
+                          ? '${l10n.premiumQuotaBase} 10,000 + ${l10n.premiumQuotaExtra} ${_formatNum(appState.brandExtraMonthlyQuota)}'
+                          : l10n.premiumQuotaBaseLimit,
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: _QuotaStat(
-                      label: '남은 발송량',
-                      value: '${_formatNum(remaining)}통',
-                      sub: '이번 달 기준',
+                      label: l10n.premiumQuotaRemaining,
+                      value: '${_formatNum(remaining)}',
+                      sub: l10n.premiumQuotaThisMonth,
                       highlight: remaining < 2000,
                     ),
                   ),
@@ -1894,10 +1893,10 @@ class _BrandExtraTileState extends State<_BrandExtraTile> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: _QuotaStat(
-                        label: '추가 구매',
-                        value: '$extraPacks팩',
+                        label: l10n.premiumQuotaExtraPurchase,
+                        value: '$extraPacks ${l10n.premiumQuotaPacks}',
                         sub:
-                            '${_formatNum(appState.brandExtraMonthlyQuota)}통 추가',
+                            '${_formatNum(appState.brandExtraMonthlyQuota)} ${l10n.premiumQuotaExtraAdded}',
                       ),
                     ),
                   ],
@@ -1917,17 +1916,17 @@ class _BrandExtraTileState extends State<_BrandExtraTile> {
                       color: Colors.green.shade600.withValues(alpha: 0.4),
                     ),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.check_circle_rounded,
                         color: Colors.green,
                         size: 18,
                       ),
                       SizedBox(width: 8),
                       Text(
-                        '1,000통이 추가되었습니다 ✓',
+                        l10n.premiumExtraAdded,
                         style: TextStyle(
                           color: Colors.green,
                           fontSize: 14,
@@ -1963,13 +1962,13 @@ class _BrandExtraTileState extends State<_BrandExtraTile> {
                               color: Colors.white,
                             ),
                           )
-                        : const Row(
+                        : Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.add_rounded, size: 18),
-                              SizedBox(width: 6),
+                              const Icon(Icons.add_rounded, size: 18),
+                              const SizedBox(width: 6),
                               Text(
-                                '1,000통 추가 구매 · ₩15,000',
+                                l10n.premiumExtraBuyBtn,
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
@@ -1980,9 +1979,9 @@ class _BrandExtraTileState extends State<_BrandExtraTile> {
                   ),
                 ),
               const SizedBox(height: 8),
-              const Center(
+              Center(
                 child: Text(
-                  '이번 달 말 초기화 · 미사용 발송권 소멸',
+                  l10n.premiumExtraResetNote,
                   style: TextStyle(color: AppColors.textMuted, fontSize: 10),
                 ),
               ),
@@ -1995,9 +1994,9 @@ class _BrandExtraTileState extends State<_BrandExtraTile> {
 
   String _formatNum(int n) {
     if (n >= 10000)
-      return '${(n / 10000).toStringAsFixed(n % 10000 == 0 ? 0 : 1)}만';
+      return '${(n / 10000).toStringAsFixed(n % 10000 == 0 ? 0 : 1)}K';
     if (n >= 1000)
-      return '${(n / 1000).toStringAsFixed(n % 1000 == 0 ? 0 : 1)}천';
+      return '${(n / 1000).toStringAsFixed(n % 1000 == 0 ? 0 : 1)}k';
     return n.toString();
   }
 }
@@ -2074,7 +2073,7 @@ class _DebugPremiumToggle extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            '🔧 개발자 도구 (DEBUG 전용)',
+            '🔧 Dev Tools (DEBUG)',
             style: TextStyle(
               color: Colors.purple,
               fontSize: 12,
@@ -2181,6 +2180,7 @@ Future<bool> _confirmTestPurchase(
   required String price,
   required String description,
 }) async {
+  final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
   final result = await showModalBottomSheet<bool>(
     context: context,
     backgroundColor: Colors.transparent,
@@ -2220,8 +2220,8 @@ Future<bool> _confirmTestPurchase(
                 width: 0.5,
               ),
             ),
-            child: const Text(
-              '🧪 테스트 모드 — 실제 결제 없음',
+            child: Text(
+              l10n.premiumTestModeBadge,
               style: TextStyle(
                 color: AppColors.error,
                 fontSize: 11,
@@ -2273,8 +2273,8 @@ Future<bool> _confirmTestPurchase(
                   borderRadius: BorderRadius.circular(14),
                 ),
               ),
-              child: const Text(
-                '구매 (테스트)',
+              child: Text(
+                l10n.premiumTestPurchaseBtn,
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
               ),
             ),
@@ -2282,9 +2282,9 @@ Future<bool> _confirmTestPurchase(
           const SizedBox(height: 8),
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text(
-              '취소',
-              style: TextStyle(color: AppColors.textMuted, fontSize: 14),
+            child: Text(
+              l10n.premiumCancel,
+              style: const TextStyle(color: AppColors.textMuted, fontSize: 14),
             ),
           ),
         ],
@@ -2300,6 +2300,7 @@ void _showBrandUpgradeDialog({
   required PurchaseService purchase,
   required String userEmail,
 }) {
+  final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
   final effectiveDate =
       purchase.nextBillingDate ?? DateTime.now().add(const Duration(days: 30));
   final formatted =
@@ -2309,8 +2310,8 @@ void _showBrandUpgradeDialog({
     context: context,
     builder: (ctx) => AlertDialog(
       backgroundColor: AppColors.bgCard,
-      title: const Text(
-        '브랜드 플랜으로 변경',
+      title: Text(
+        l10n.premiumBrandUpgradeTitle,
         style: TextStyle(
           color: AppColors.textPrimary,
           fontSize: 17,
@@ -2318,18 +2319,18 @@ void _showBrandUpgradeDialog({
         ),
       ),
       content: Text(
-        '$formatted 이후 다음 결제부터 Brand / Creator 플랜(₩99,000/월)으로 변경됩니다.\n\n현재 구독은 $formatted까지 유지됩니다.',
+        '${l10n.premiumBrandUpgradeDesc1} $formatted ${l10n.premiumBrandUpgradeDesc2}',
         style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx, false),
-          child: const Text('취소', style: TextStyle(color: AppColors.textMuted)),
+          child: Text(l10n.premiumCancel, style: const TextStyle(color: AppColors.textMuted)),
         ),
         TextButton(
           onPressed: () => Navigator.pop(ctx, true),
-          child: const Text(
-            '변경 예약',
+          child: Text(
+            l10n.premiumBrandSchedule,
             style: TextStyle(
               color: Color(0xFFFF8A5C),
               fontWeight: FontWeight.w700,
@@ -2346,8 +2347,8 @@ void _showBrandUpgradeDialog({
         context,
         emoji: '🏷️',
         productName: 'Brand / Creator',
-        price: '₩99,000/월',
-        description: '$formatted 이후 변경 예약\nPremium → Brand 플랜 업그레이드',
+        price: '₩99,000${l10n.premiumPerMonth}',
+        description: '$formatted ${l10n.premiumBrandUpgradeScheduleDesc}',
       );
       if (!ok) return;
     }
@@ -2357,8 +2358,8 @@ void _showBrandUpgradeDialog({
         SnackBar(
           content: Text(
             kDebugMode
-                ? '🏷️ Brand / Creator로 변경됐어요! (테스트 즉시 적용)'
-                : '⏰ $formatted 이후 Brand / Creator로 변경됩니다.',
+                ? l10n.premiumBrandUpgradeTestSuccess
+                : '⏰ $formatted ${l10n.premiumPendingBrandAfter}',
             style: const TextStyle(color: Colors.white),
           ),
           backgroundColor: const Color(0xFFFF8A5C),
@@ -2380,6 +2381,7 @@ Future<void> _showShareOptions(
   String shareText,
   String subject,
 ) async {
+  final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
   final locale = Localizations.localeOf(context);
   final isKorean = locale.languageCode == 'ko' || locale.countryCode == 'KR';
 
@@ -2405,10 +2407,10 @@ Future<void> _showShareOptions(
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.only(bottom: 8),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
-                  '공유하기',
+                  l10n.premiumShareTitle,
                   style: TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 15,
@@ -2419,8 +2421,8 @@ Future<void> _showShareOptions(
               if (isKorean)
                 _ShareOptionTile(
                   emoji: '💬',
-                  label: '카카오톡',
-                  sublabel: '카카오톡으로 친구에게 보내기',
+                  label: l10n.premiumShareKakao,
+                  sublabel: l10n.premiumShareKakaoDesc,
                   onTap: () async {
                     Navigator.pop(sheetCtx);
                     await Clipboard.setData(ClipboardData(text: shareText));
@@ -2434,7 +2436,7 @@ Future<void> _showShareOptions(
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: const Text('카카오톡이 없어요. 텍스트가 복사됐어요 📋'),
+                            content: Text(l10n.premiumShareKakaoMissing),
                             backgroundColor: AppColors.bgDeep,
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(
@@ -2449,8 +2451,8 @@ Future<void> _showShareOptions(
               else
                 _ShareOptionTile(
                   emoji: '📧',
-                  label: '이메일',
-                  sublabel: '이메일로 전송하기',
+                  label: l10n.premiumShareEmail,
+                  sublabel: l10n.premiumShareEmailDesc,
                   onTap: () async {
                     Navigator.pop(sheetCtx);
                     final uri = Uri(
@@ -2468,8 +2470,8 @@ Future<void> _showShareOptions(
                 ),
               _ShareOptionTile(
                 emoji: '💬',
-                label: '문자 메시지',
-                sublabel: isKorean ? '연락처에서 받는 사람 선택' : 'SMS로 전송하기',
+                label: l10n.premiumShareSms,
+                sublabel: l10n.premiumShareSmsDesc,
                 onTap: () async {
                   Navigator.pop(sheetCtx);
                   final uri = Uri(
@@ -2483,15 +2485,15 @@ Future<void> _showShareOptions(
               ),
               _ShareOptionTile(
                 emoji: '📋',
-                label: '링크 복사',
-                sublabel: '클립보드에 복사하기',
+                label: l10n.premiumShareCopyLink,
+                sublabel: l10n.premiumShareCopyLinkDesc,
                 onTap: () async {
                   Navigator.pop(sheetCtx);
                   await Clipboard.setData(ClipboardData(text: shareText));
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: const Text('클립보드에 복사됐어요 📋'),
+                        content: Text(l10n.premiumClipboardCopied),
                         backgroundColor: AppColors.teal,
                         behavior: SnackBarBehavior.floating,
                         shape: RoundedRectangleBorder(

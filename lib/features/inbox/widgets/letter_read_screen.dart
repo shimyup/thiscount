@@ -9,6 +9,8 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/letter_style.dart';
+import '../../../core/localization/app_localizations.dart';
+import '../../../core/localization/country_names.dart';
 import '../../../core/localization/language_config.dart';
 import '../../../models/letter.dart';
 import '../../../state/app_state.dart';
@@ -76,9 +78,10 @@ class _LetterReadScreenState extends State<LetterReadScreen>
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else if (mounted) {
+      final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('링크를 열 수 없어요: $urlStr'),
+          content: Text(l10n.letterReadCannotOpenLink(urlStr)),
           backgroundColor: const Color(0xFF1F2D44),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -122,15 +125,17 @@ class _LetterReadScreenState extends State<LetterReadScreen>
           _isTranslating = false;
         });
       } else {
+        final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
         setState(() {
-          _translateError = '번역 결과를 가져오지 못했어요';
+          _translateError = l10n.letterReadTranslationEmpty;
           _isTranslating = false;
         });
       }
     } catch (_) {
       if (mounted) {
+        final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
         setState(() {
-          _translateError = '번역 중 오류가 발생했어요';
+          _translateError = l10n.letterReadTranslationError;
           _isTranslating = false;
         });
       }
@@ -218,7 +223,8 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   }
 
   void _showReportDialog(BuildContext ctx, Letter letter, AppState state) {
-    const _reasons = ['욕설 / 혐오 표현', '스팸 / 광고성 내용', '개인정보 침해'];
+    final l10n = AppL10n.of(state.currentUser.languageCode);
+    final _reasons = [l10n.letterReadReportReasonAbuse, l10n.letterReadReportReasonSpam, l10n.letterReadReportReasonPrivacy];
     String? selectedReason;
     final customCtrl = TextEditingController();
 
@@ -230,8 +236,8 @@ class _LetterReadScreenState extends State<LetterReadScreen>
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          title: const Text(
-            '편지 신고',
+          title: Text(
+            l10n.letterReadReportTitle,
             style: TextStyle(
               color: AppColors.textPrimary,
               fontSize: 16,
@@ -243,8 +249,8 @@ class _LetterReadScreenState extends State<LetterReadScreen>
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  '신고 이유를 선택해주세요.\n3회 이상 신고 시 발신자가 자동 차단됩니다.',
+                Text(
+                  l10n.letterReadReportDescription,
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 12,
@@ -334,7 +340,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                         ),
                         const SizedBox(width: 10),
                         Text(
-                          '직접 입력',
+                          l10n.letterReadReportCustomInput,
                           style: TextStyle(
                             color: selectedReason == 'direct'
                                 ? AppColors.textPrimary
@@ -361,7 +367,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                       maxLines: 3,
                       maxLength: 200,
                       decoration: InputDecoration(
-                        hintText: '신고 이유를 입력해주세요...',
+                        hintText: l10n.letterReadReportHint,
                         hintStyle: const TextStyle(
                           color: AppColors.textMuted,
                           fontSize: 12,
@@ -399,9 +405,9 @@ class _LetterReadScreenState extends State<LetterReadScreen>
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogCtx),
-              child: const Text(
-                '취소',
-                style: TextStyle(color: AppColors.textMuted),
+              child: Text(
+                l10n.letterReadCancel,
+                style: const TextStyle(color: AppColors.textMuted),
               ),
             ),
             TextButton(
@@ -410,7 +416,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                   : () {
                       final reason = selectedReason == 'direct'
                           ? (customCtrl.text.trim().isEmpty
-                                ? '직접 입력'
+                                ? l10n.letterReadReportCustomInput
                                 : customCtrl.text.trim())
                           : selectedReason!;
                       state.reportLetter(letter.id, state.currentUser.id);
@@ -418,14 +424,14 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                       Navigator.pop(ctx); // 편지 화면 닫기
                       ScaffoldMessenger.of(ctx).showSnackBar(
                         SnackBar(
-                          content: Text('신고 접수: $reason'),
+                          content: Text(l10n.letterReadReportSubmitted(reason)),
                           backgroundColor: const Color(0xFF1F2D44),
                           behavior: SnackBarBehavior.floating,
                         ),
                       );
                     },
               child: Text(
-                '신고',
+                l10n.letterReadReportSubmit,
                 style: TextStyle(
                   color: selectedReason == null
                       ? AppColors.textMuted
@@ -441,6 +447,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   }
 
   Widget _buildReactionBar(BuildContext ctx, Letter letter) {
+    final l10n = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
     return Consumer<AppState>(
       builder: (ctx2, state, _) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -456,8 +463,8 @@ class _LetterReadScreenState extends State<LetterReadScreen>
               children: [
                 const Icon(Icons.star_rounded, color: AppColors.gold, size: 16),
                 const SizedBox(width: 6),
-                const Text(
-                  '이 편지를 평가해주세요',
+                Text(
+                  l10n.letterReadRatePrompt,
                   style: TextStyle(
                     color: AppColors.gold,
                     fontSize: 13,
@@ -568,8 +575,8 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                         color: const Color(0xFFFF8A5C).withValues(alpha: 0.3),
                       ),
                     ),
-                    child: const Text(
-                      '✓ 인증 계정',
+                    child: Text(
+                      l10n.letterReadVerifiedAccount,
                       style: TextStyle(
                         color: Color(0xFFFF8A5C),
                         fontSize: 11,
@@ -581,7 +588,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                   GestureDetector(
                     onTap: () => _showReportDialog(ctx2, letter, state),
                     child: Tooltip(
-                      message: '신고하기',
+                      message: l10n.letterReadReportAction,
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
@@ -613,7 +620,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  '⭐ ${_userRating}점 남겨주셨어요! (편지함 나가기 전까지 변경 가능)',
+                  l10n.letterReadRatingConfirm(_userRating),
                   style: const TextStyle(
                     color: AppColors.gold,
                     fontSize: 11,
@@ -629,6 +636,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   }
 
   Widget _buildAppBar(BuildContext ctx, Letter letter) {
+    final l10n = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: Row(
@@ -643,7 +651,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
           ),
           Expanded(
             child: Text(
-              '✉️  받은 편지',
+              l10n.letterReadReceivedLetter,
               textAlign: TextAlign.center,
               style: Theme.of(
                 ctx,
@@ -656,6 +664,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   }
 
   Widget _buildSenderCard(Letter letter) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -692,7 +701,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                   children: [
                     Flexible(
                       child: Text(
-                        letter.isAnonymous ? '🎭 익명의 발신자' : letter.senderName,
+                        letter.isAnonymous ? l10n.letterReadAnonymousSender : letter.senderName,
                         style: const TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 16,
@@ -719,8 +728,8 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                             ).withValues(alpha: 0.4),
                           ),
                         ),
-                        child: const Text(
-                          '✓ 인증',
+                        child: Text(
+                          l10n.letterReadVerifiedBadge,
                           style: TextStyle(
                             color: Color(0xFFFF8A5C),
                             fontSize: 10,
@@ -741,7 +750,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '${letter.senderCountry}에서 출발',
+                      l10n.letterReadDepartedFrom(CountryL10n.localizedName(letter.senderCountry, l10n.languageCode)),
                       style: const TextStyle(
                         color: AppColors.gold,
                         fontSize: 12,
@@ -829,7 +838,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                                   ScaffoldMessenger.of(ctx).showSnackBar(
                                     SnackBar(
                                       content: Text(
-                                        '${letter.senderName}님을 팔로우했습니다 ⚡',
+                                        l10n.letterReadFollowed(letter.senderName),
                                       ),
                                       backgroundColor: const Color(0xFF0D1421),
                                       behavior: SnackBarBehavior.floating,
@@ -858,7 +867,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                                   ),
                                 ),
                                 child: Text(
-                                  isFollowing ? '⚡ 팔로잉' : '+ 팔로우',
+                                  isFollowing ? l10n.letterReadFollowing : l10n.letterReadFollow,
                                   style: TextStyle(
                                     color: isFollowing
                                         ? AppColors.teal
@@ -883,6 +892,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   }
 
   Widget _buildChatInviteCard(BuildContext ctx, Letter letter, AppState state) {
+    final l10n = AppL10n.of(state.currentUser.languageCode);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -899,7 +909,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '${letter.senderName}님도 팔로우 중이에요!',
+                  l10n.letterReadMutualFollow(letter.senderName),
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 14,
@@ -910,8 +920,8 @@ class _LetterReadScreenState extends State<LetterReadScreen>
             ],
           ),
           const SizedBox(height: 6),
-          const Text(
-            '빠른 1:1 편지 대화를 시작하시겠어요?',
+          Text(
+            l10n.letterReadStartChatPrompt,
             style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
           ),
           const SizedBox(height: 12),
@@ -941,9 +951,9 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                         color: AppColors.teal.withValues(alpha: 0.5),
                       ),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Text(
-                        '💬 대화 시작',
+                        l10n.letterReadStartChat,
                         style: TextStyle(
                           color: AppColors.teal,
                           fontSize: 13,
@@ -967,9 +977,9 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: const Color(0xFF1F2D44)),
                   ),
-                  child: const Text(
-                    '나중에',
-                    style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+                  child: Text(
+                    l10n.letterReadLater,
+                    style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
                   ),
                 ),
               ),
@@ -981,6 +991,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   }
 
   Widget _buildDMButton(BuildContext ctx, Letter letter) {
+    final l10n = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
     return SizedBox(
       width: double.infinity,
       height: 48,
@@ -997,7 +1008,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
         ),
         icon: const Text('💬', style: TextStyle(fontSize: 16)),
         label: Text(
-          '${letter.senderName}님과 DM 대화',
+          l10n.letterReadDmChat(letter.senderName),
           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         ),
         style: OutlinedButton.styleFrom(
@@ -1012,6 +1023,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   }
 
   Widget _buildLetterContent(Letter letter) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     final paper = LetterStyles.paper(letter.paperStyle);
     final font = LetterStyles.font(letter.fontStyle);
     final fromLang = LanguageConfig.getLanguageCode(letter.senderCountry);
@@ -1051,7 +1063,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    '당신에게',
+                    l10n.letterReadToYou,
                     style: TextStyle(
                       color: AppColors.gold.withValues(alpha: 0.7),
                       fontSize: 13,
@@ -1133,7 +1145,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
-                    '🔤 번역됨 (${_langLabel(widget.userLanguageCode)})',
+                    l10n.letterReadTranslated(_langLabel(widget.userLanguageCode)),
                     style: const TextStyle(
                       color: AppColors.textMuted,
                       fontSize: 11,
@@ -1193,7 +1205,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                             ),
                           )
                         : Text(
-                            _isTranslated ? '🔤 원문 보기' : '🔤 번역하기',
+                            _isTranslated ? l10n.letterReadShowOriginal : l10n.letterReadTranslate,
                             style: const TextStyle(
                               color: AppColors.teal,
                               fontSize: 12,
@@ -1207,7 +1219,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
               Align(
                 alignment: Alignment.centerRight,
                 child: Text(
-                  '— ${letter.isAnonymous ? "어딘가의 낯선 이" : letter.senderName}',
+                  '— ${letter.isAnonymous ? l10n.letterReadAnonymousStranger : letter.senderName}',
                   style: TextStyle(
                     color: AppColors.gold.withValues(alpha: 0.6),
                     fontSize: 13,
@@ -1237,8 +1249,8 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                       color: AppColors.textMuted,
                     ),
                     const SizedBox(width: 4),
-                    const Text(
-                      '탭하면 크게 보기 · 저장 가능',
+                    Text(
+                      l10n.letterReadTapToEnlarge,
                       style: TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 11,
@@ -1285,8 +1297,8 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                '발신자 링크',
+                              Text(
+                                l10n.letterReadSenderLink,
                                 style: TextStyle(
                                   color: AppColors.textSecondary,
                                   fontSize: 10,
@@ -1327,6 +1339,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   }
 
   Widget _buildJourneyCard(Letter letter) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1337,12 +1350,12 @@ class _LetterReadScreenState extends State<LetterReadScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.route_rounded, color: AppColors.teal, size: 16),
-              SizedBox(width: 6),
+              const Icon(Icons.route_rounded, color: AppColors.teal, size: 16),
+              const SizedBox(width: 6),
               Text(
-                '배송 여정',
+                l10n.letterReadDeliveryJourney,
                 style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 13,
@@ -1386,7 +1399,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                letter.senderCountry,
+                CountryL10n.localizedName(letter.senderCountry, l10n.languageCode),
                 style: const TextStyle(
                   color: AppColors.textMuted,
                   fontSize: 11,
@@ -1397,7 +1410,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                 style: const TextStyle(color: AppColors.teal, fontSize: 11),
               ),
               Text(
-                letter.destinationCountry,
+                CountryL10n.localizedName(letter.destinationCountry, l10n.languageCode),
                 style: const TextStyle(
                   color: AppColors.textMuted,
                   fontSize: 11,
@@ -1411,6 +1424,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   }
 
   Widget _buildReplyButton(BuildContext ctx, Letter letter) {
+    final l10n = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
     final alreadyReplied = letter.hasReplied;
     return SizedBox(
       width: double.infinity,
@@ -1423,7 +1437,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                 MaterialPageRoute(
                   builder: (_) => ComposeScreen(
                     replyToId: letter.id,
-                    replyToName: letter.isAnonymous ? '익명' : letter.senderName,
+                    replyToName: letter.isAnonymous ? l10n.letterReadAnonymous : letter.senderName,
                   ),
                 ),
               ),
@@ -1451,7 +1465,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
             ),
             const SizedBox(width: 8),
             Text(
-              alreadyReplied ? '답장 완료 (1회만 가능)' : '답장 쓰기',
+              alreadyReplied ? l10n.letterReadReplied : l10n.letterReadReply,
               style: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
@@ -1536,18 +1550,18 @@ class _LetterReadScreenState extends State<LetterReadScreen>
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.textMuted.withValues(alpha: 0.2)),
       ),
-      child: const Center(
+      child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
+            const Icon(
               Icons.image_not_supported_outlined,
               color: AppColors.textMuted,
               size: 28,
             ),
-            SizedBox(height: 6),
+            const SizedBox(height: 6),
             Text(
-              '이미지를 불러올 수 없어요',
+              AppL10n.of(context.read<AppState>().currentUser.languageCode).letterReadImageLoadFailed,
               style: TextStyle(color: AppColors.textMuted, fontSize: 11),
             ),
           ],
@@ -1557,11 +1571,12 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   }
 
   String _formatDate(DateTime dt) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     final now = DateTime.now();
     final diff = now.difference(dt);
-    if (diff.inMinutes < 60) return '${diff.inMinutes}분 전';
-    if (diff.inHours < 24) return '${diff.inHours}시간 전';
-    return '${diff.inDays}일 전';
+    if (diff.inMinutes < 60) return l10n.letterReadMinutesAgo(diff.inMinutes);
+    if (diff.inHours < 24) return l10n.letterReadHoursAgo(diff.inHours);
+    return l10n.letterReadDaysAgo(diff.inDays);
   }
 
   String _calcDistance(Letter letter) {
@@ -1645,9 +1660,10 @@ class _FullscreenImageViewerState extends State<_FullscreenImageViewer> {
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
+        final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('저장 실패: 사진 접근 권한을 확인해주세요'),
+            content: Text(l10n.letterReadSaveFailed),
             backgroundColor: Colors.red.shade800,
             behavior: SnackBarBehavior.floating,
           ),
@@ -1658,6 +1674,7 @@ class _FullscreenImageViewerState extends State<_FullscreenImageViewer> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     final isNetwork =
         widget.imageUrl.startsWith('http://') ||
         widget.imageUrl.startsWith('https://');
@@ -1780,10 +1797,10 @@ class _FullscreenImageViewerState extends State<_FullscreenImageViewer> {
                         const SizedBox(width: 8),
                         Text(
                           _isSaving
-                              ? '저장 중...'
+                              ? l10n.letterReadSaving
                               : _savedOk
-                              ? '저장됐어요 ✓'
-                              : '사진 저장',
+                              ? l10n.letterReadSaved
+                              : l10n.letterReadSavePhoto,
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,

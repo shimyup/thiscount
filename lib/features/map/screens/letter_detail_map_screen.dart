@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart' as ll;
 import 'package:provider/provider.dart';
 import '../../../core/config/map_config.dart';
 import '../../../core/data/country_cities.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../models/letter.dart';
 import '../../../state/app_state.dart';
@@ -79,6 +80,7 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
   Widget build(BuildContext context) {
     return Consumer<AppState>(
       builder: (context, state, _) {
+        final l10n = AppL10n.of(state.currentUser.languageCode);
         final letter = _findLetter(state);
         if (letter == null) {
           return Scaffold(
@@ -92,15 +94,15 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
                 ),
                 onPressed: () => Navigator.pop(context),
               ),
-              title: const Text(
-                '배송 추적',
-                style: TextStyle(color: AppColors.gold),
+              title: Text(
+                l10n.mapDeliveryTracking,
+                style: const TextStyle(color: AppColors.gold),
               ),
             ),
-            body: const Center(
+            body: Center(
               child: Text(
-                '편지를 찾을 수 없습니다.',
-                style: TextStyle(color: AppColors.textMuted),
+                l10n.mapLetterNotFound,
+                style: const TextStyle(color: AppColors.textMuted),
               ),
             ),
           );
@@ -108,13 +110,13 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
 
         return Scaffold(
           backgroundColor: AppColors.bgDeep,
-          appBar: _buildAppBar(context, letter),
+          appBar: _buildAppBar(context, letter, l10n),
           body: Column(
             children: [
               // 지도 영역
-              Expanded(flex: 3, child: _buildMap(letter, state)),
+              Expanded(flex: 3, child: _buildMap(letter, state, l10n)),
               // 배송 진행 영역
-              Expanded(flex: 2, child: _buildProgressPanel(letter, state)),
+              Expanded(flex: 2, child: _buildProgressPanel(letter, state, l10n)),
             ],
           ),
         );
@@ -122,7 +124,7 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context, Letter letter) {
+  PreferredSizeWidget _buildAppBar(BuildContext context, Letter letter, AppL10n l10n) {
     final destinationLabel =
         (letter.destinationCity != null && letter.destinationCity!.isNotEmpty)
         ? letter.destinationCity!
@@ -161,7 +163,7 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
                   ),
                 ),
                 Text(
-                  _statusText(letter),
+                  _statusText(letter, l10n),
                   style: const TextStyle(color: AppColors.teal, fontSize: 11),
                 ),
               ],
@@ -172,17 +174,17 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
     );
   }
 
-  String _statusText(Letter letter) {
+  String _statusText(Letter letter, AppL10n l10n) {
     switch (letter.status) {
       case DeliveryStatus.inTransit:
         return '${_resolvedEmoji(letter, letter.currentTransport)}  ${_segmentLabel(letter.currentSegment, letter)}';
       case DeliveryStatus.nearYou:
-        return '📍 2km 이내 도착!';
+        return '📍 ${l10n.mapArrivedWithin2km}';
       case DeliveryStatus.delivered:
       case DeliveryStatus.read:
-        return '✅ 배달 완료';
+        return '✅ ${l10n.mapDeliveryComplete}';
       default:
-        return '준비 중';
+        return l10n.mapPreparing;
     }
   }
 
@@ -257,7 +259,7 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
     }
   }
 
-  Widget _buildMap(Letter letter, AppState state) {
+  Widget _buildMap(Letter letter, AppState state, AppL10n l10n) {
     // 모든 포인트 수집
     final points = <ll.LatLng>[];
     for (final seg in letter.segments) {
@@ -271,8 +273,8 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
     if (points.isEmpty) {
       return Container(
         color: const Color(0xFF0A0F1A),
-        child: const Center(
-          child: Text('경로 정보 없음', style: TextStyle(color: AppColors.textMuted)),
+        child: Center(
+          child: Text(l10n.mapNoRouteInfo, style: const TextStyle(color: AppColors.textMuted)),
         ),
       );
     }
@@ -555,7 +557,7 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
     return atan2(y, x);
   }
 
-  Widget _buildProgressPanel(Letter letter, AppState state) {
+  Widget _buildProgressPanel(Letter letter, AppState state, AppL10n l10n) {
     final myPos = LatLng(
       state.currentUser.latitude,
       state.currentUser.longitude,
@@ -586,7 +588,7 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            '전체 배송 진행',
+                            l10n.mapOverallDeliveryProgress,
                             style: TextStyle(
                               color: AppColors.textMuted,
                               fontSize: 11,
@@ -637,7 +639,7 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
                           ),
                         ),
                         child: Text(
-                          '📍 내 위치 포인트 표시됨 · 현재 편지와 약 ${distKm.toStringAsFixed(distKm >= 10 ? 0 : 1)}km',
+                          '📍 ${l10n.mapMyLocationShown(distKm.toStringAsFixed(distKm >= 10 ? 0 : 1))}',
                           style: const TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 10,
@@ -651,9 +653,9 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
               ],
             ),
             const SizedBox(height: 12),
-            const Text(
-              '배송 경로',
-              style: TextStyle(
+            Text(
+              l10n.mapDeliveryRoute,
+              style: const TextStyle(
                 color: AppColors.textMuted,
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
@@ -662,7 +664,7 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
             const SizedBox(height: 6),
             // 구간별 스텝
             ...letter.segments.asMap().entries.map(
-              (e) => _buildSegmentRow(e.key, e.value, letter),
+              (e) => _buildSegmentRow(e.key, e.value, letter, l10n),
             ),
           ],
         ),
@@ -670,7 +672,7 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
     );
   }
 
-  Widget _buildSegmentRow(int index, RouteSegment seg, Letter letter) {
+  Widget _buildSegmentRow(int index, RouteSegment seg, Letter letter, AppL10n l10n) {
     final isCompleted = index < letter.currentSegmentIndex;
     final isCurrent = index == letter.currentSegmentIndex;
     final isPending = index > letter.currentSegmentIndex;
@@ -727,7 +729,7 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  '${seg.mode.label} · ${_formatMinutes(seg.estimatedMinutes)}',
+                  '${seg.mode.label} · ${_formatMinutes(seg.estimatedMinutes, l10n)}',
                   style: TextStyle(color: color, fontSize: 10),
                 ),
               ],
@@ -771,12 +773,12 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
     );
   }
 
-  String _formatMinutes(int minutes) {
-    if (minutes < 60) return '$minutes분';
+  String _formatMinutes(int minutes, AppL10n l10n) {
+    if (minutes < 60) return l10n.mapMinutes(minutes);
     final h = minutes ~/ 60;
     final m = minutes % 60;
-    if (m == 0) return '${h}시간';
-    return '${h}시간 ${m}분';
+    if (m == 0) return l10n.mapHours(h);
+    return l10n.mapHoursMinutes(h, m);
   }
 }
 

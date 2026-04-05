@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../core/localization/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
+import '../../state/app_state.dart';
 import 'premium_screen.dart';
 
 /// 유료 기능 접근 시 나타나는 업그레이드 바텀시트
@@ -36,6 +39,7 @@ class PremiumGateSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.bgCard,
@@ -110,8 +114,8 @@ class PremiumGateSheet extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
             ),
-            child: const Text(
-              '₩4,900 / 월',
+            child: Text(
+              l10n.premiumGatePriceLabel,
               style: TextStyle(
                 color: AppColors.gold,
                 fontSize: 14,
@@ -140,8 +144,8 @@ class PremiumGateSheet extends StatelessWidget {
                   borderRadius: BorderRadius.circular(14),
                 ),
               ),
-              child: const Text(
-                '👑 프리미엄 시작하기',
+              child: Text(
+                l10n.premiumGateStartBtn,
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
               ),
             ),
@@ -150,8 +154,8 @@ class PremiumGateSheet extends StatelessWidget {
 
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              '나중에',
+            child: Text(
+              l10n.premiumLater,
               style: TextStyle(color: AppColors.textMuted, fontSize: 14),
             ),
           ),

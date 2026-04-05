@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/localization/app_localizations.dart';
+import '../../../core/localization/country_names.dart';
 import '../../../models/letter.dart';
 import '../../../state/app_state.dart';
 
@@ -11,6 +13,10 @@ class StampAlbumScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // inbox 리스트만 구독 → 다른 AppState 변경에는 rebuild 안 함
     final inbox = context.select<AppState, List<Letter>>((s) => s.inbox);
+    final langCode = context.select<AppState, String>(
+      (s) => s.currentUser.languageCode,
+    );
+    final l = AppL10n.of(langCode);
 
     // 받은 편지에서 발신 국가 수집 (중복 제거, 나라별 편지 수)
     final Map<String, _StampEntry> stamps = {};
@@ -47,9 +53,9 @@ class StampAlbumScreen extends StatelessWidget {
           shaderCallback: (b) => const LinearGradient(
             colors: [AppColors.goldLight, AppColors.gold],
           ).createShader(b),
-          child: const Text(
-            '우표 앨범',
-            style: TextStyle(
+          child: Text(
+            l.stampAlbumTitle,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 20,
               fontWeight: FontWeight.w800,
@@ -64,12 +70,13 @@ class StampAlbumScreen extends StatelessWidget {
             context,
             stampList.length,
             inbox.length,
+            l,
           ),
           // 스탬프 그리드
           Expanded(
             child: stampList.isEmpty
-                ? _buildEmpty(context)
-                : _buildStampGrid(context, stampList),
+                ? _buildEmpty(context, l)
+                : _buildStampGrid(context, stampList, l, langCode),
           ),
         ],
       ),
@@ -80,6 +87,7 @@ class StampAlbumScreen extends StatelessWidget {
     BuildContext context,
     int countryCount,
     int totalLetters,
+    AppL10n l,
   ) {
     return Container(
       margin: const EdgeInsets.all(20),
@@ -149,9 +157,9 @@ class StampAlbumScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  '편지 우표 수집 앨범',
-                  style: TextStyle(
+                Text(
+                  l.stampAlbumSubtitle,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -160,9 +168,9 @@ class StampAlbumScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    _headerStat('🌏', '$countryCount개국', '방문'),
+                    _headerStat('🌏', l.stampCountriesCount(countryCount), l.stampVisited),
                     const SizedBox(width: 16),
-                    _headerStat('💌', '$totalLetters통', '수신'),
+                    _headerStat('💌', l.stampLettersCount(totalLetters), l.stampReceived),
                   ],
                 ),
               ],
@@ -199,7 +207,7 @@ class StampAlbumScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStampGrid(BuildContext context, List<_StampEntry> stamps) {
+  Widget _buildStampGrid(BuildContext context, List<_StampEntry> stamps, AppL10n l, String langCode) {
     return GridView.builder(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -211,12 +219,12 @@ class StampAlbumScreen extends StatelessWidget {
       itemCount: stamps.length,
       itemBuilder: (context, index) {
         final stamp = stamps[index];
-        return _buildStamp(context, stamp, index);
+        return _buildStamp(context, stamp, index, l, langCode);
       },
     );
   }
 
-  Widget _buildStamp(BuildContext context, _StampEntry stamp, int index) {
+  Widget _buildStamp(BuildContext context, _StampEntry stamp, int index, AppL10n l, String langCode) {
     final colors = [
       [const Color(0xFF1A3A4A), const Color(0xFF0D2230)],
       [const Color(0xFF3A1A2A), const Color(0xFF230D18)],
@@ -227,7 +235,7 @@ class StampAlbumScreen extends StatelessWidget {
     final colorPair = colors[stamp.country.hashCode.abs() % colors.length];
 
     return GestureDetector(
-      onTap: () => _showStampDetail(context, stamp),
+      onTap: () => _showStampDetail(context, stamp, l, langCode),
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -260,7 +268,7 @@ class StampAlbumScreen extends StatelessWidget {
                   Text(stamp.flag, style: const TextStyle(fontSize: 32)),
                   const SizedBox(height: 6),
                   Text(
-                    stamp.country,
+                    CountryL10n.localizedName(stamp.country, langCode),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 10,
@@ -284,7 +292,7 @@ class StampAlbumScreen extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      '${stamp.count}통',
+                      l.stampLettersCount(stamp.count),
                       style: const TextStyle(
                         color: AppColors.gold,
                         fontSize: 10,
@@ -301,7 +309,7 @@ class StampAlbumScreen extends StatelessWidget {
     );
   }
 
-  void _showStampDetail(BuildContext context, _StampEntry stamp) {
+  void _showStampDetail(BuildContext context, _StampEntry stamp, AppL10n l, String langCode) {
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF1A2535),
@@ -325,7 +333,7 @@ class StampAlbumScreen extends StatelessWidget {
             Text(stamp.flag, style: const TextStyle(fontSize: 56)),
             const SizedBox(height: 12),
             Text(
-              stamp.country,
+              CountryL10n.localizedName(stamp.country, langCode),
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 22,
@@ -336,9 +344,9 @@ class StampAlbumScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _detailStat('💌', '${stamp.count}통 수신'),
+                _detailStat('💌', l.stampReceivedCount(stamp.count)),
                 const SizedBox(width: 24),
-                _detailStat('📅', '최초: ${_formatDate(stamp.firstReceivedAt)}'),
+                _detailStat('📅', l.stampFirstReceived(_formatDate(stamp.firstReceivedAt))),
               ],
             ),
             const SizedBox(height: 24),
@@ -365,25 +373,25 @@ class StampAlbumScreen extends StatelessWidget {
     return '${dt.year}.${dt.month.toString().padLeft(2, '0')}.${dt.day.toString().padLeft(2, '0')}';
   }
 
-  Widget _buildEmpty(BuildContext context) {
+  Widget _buildEmpty(BuildContext context, AppL10n l) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Text('📭', style: TextStyle(fontSize: 56)),
           const SizedBox(height: 16),
-          const Text(
-            '아직 수집한 우표가 없어요',
-            style: TextStyle(
+          Text(
+            l.stampEmptyTitle,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            '편지를 받으면 발신 국가 우표가\n자동으로 수집됩니다',
-            style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+          Text(
+            l.stampEmptyBody,
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
             textAlign: TextAlign.center,
           ),
         ],

@@ -12,6 +12,7 @@ import '../../../state/app_state.dart';
 import '../../../core/config/app_keys.dart';
 import '../../../core/config/app_links.dart';
 import '../../../widgets/shared_profile_dialogs.dart';
+import '../../../core/localization/country_names.dart';
 import '../premium/premium_screen.dart';
 import '../admin/admin_screen.dart';
 
@@ -211,7 +212,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<void> _showThemeModeSelector(BuildContext ctx, AppState state) async {
+  Future<void> _showThemeModeSelector(BuildContext ctx, AppState state, AppL10n l) async {
     await showModalBottomSheet<void>(
       context: ctx,
       backgroundColor: AppColors.bgCard,
@@ -225,11 +226,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Text(
-                    '화면 모드 선택',
-                    style: TextStyle(
+                    l.settingsThemeSelect,
+                    style: const TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -244,13 +245,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     state.updateDisplayThemeMode(v);
                     Navigator.pop(sheetCtx);
                   },
-                  title: const Text(
-                    '자동 (시간대)',
-                    style: TextStyle(color: AppColors.textPrimary),
+                  title: Text(
+                    l.settingsThemeAuto,
+                    style: const TextStyle(color: AppColors.textPrimary),
                   ),
-                  subtitle: const Text(
-                    '국가 시간에 따라 낮/밤 테마 자동 변경',
-                    style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                  subtitle: Text(
+                    l.settingsThemeAutoDesc,
+                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
                   ),
                   activeColor: AppColors.gold,
                 ),
@@ -262,13 +263,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     state.updateDisplayThemeMode(v);
                     Navigator.pop(sheetCtx);
                   },
-                  title: const Text(
-                    '밝은 모드',
-                    style: TextStyle(color: AppColors.textPrimary),
+                  title: Text(
+                    l.settingsThemeLight,
+                    style: const TextStyle(color: AppColors.textPrimary),
                   ),
-                  subtitle: const Text(
-                    '항상 낮 테마로 표시',
-                    style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                  subtitle: Text(
+                    l.settingsThemeLightDesc,
+                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
                   ),
                   activeColor: AppColors.gold,
                 ),
@@ -280,13 +281,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     state.updateDisplayThemeMode(v);
                     Navigator.pop(sheetCtx);
                   },
-                  title: const Text(
-                    '다크 모드',
-                    style: TextStyle(color: AppColors.textPrimary),
+                  title: Text(
+                    l.settingsThemeDark,
+                    style: const TextStyle(color: AppColors.textPrimary),
                   ),
-                  subtitle: const Text(
-                    '항상 밤 테마로 표시',
-                    style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                  subtitle: Text(
+                    l.settingsThemeDarkDesc,
+                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
                   ),
                   activeColor: AppColors.gold,
                 ),
@@ -388,10 +389,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     // 필요한 필드만 구독 → 불필요한 rebuild 방지
     final user = context.select<AppState, UserProfile>((s) => s.currentUser);
-    final themeLabel = context.select<AppState, String>(
-      (s) => s.displayThemeModeLabel,
+    final themeMode = context.select<AppState, DisplayThemeMode>(
+      (s) => s.displayThemeMode,
     );
     final l = AppL10n.of(user.languageCode);
+    final themeLabel = switch (themeMode) {
+      DisplayThemeMode.auto => l.settingsThemeAuto,
+      DisplayThemeMode.light => l.settingsThemeLight,
+      DisplayThemeMode.dark => l.settingsThemeDark,
+    };
     return Builder(
       builder: (ctx) {
         final state = context.read<AppState>();
@@ -413,7 +419,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
             title: Text(
-              widget.embedded ? '프로필' : l.settingsTitle,
+              widget.embedded ? l.profile : l.settingsTitle,
               style: const TextStyle(
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.w700,
@@ -429,7 +435,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   children: [
                     // ── 프리미엄 ─────────────────────────────────────────────
-                    _sectionHeader('구독'),
+                    _sectionHeader(l.settingsSubscription),
                     Consumer<PurchaseService>(
                       builder: (context, purchase, _) {
                         final isPremium = purchase.isPremium || user.isPremium;
@@ -445,15 +451,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                           ),
                           label: isBrand
-                              ? 'Brand 이용 중'
+                              ? l.settingsBrandActive
                               : isPremium
-                              ? 'Premium 이용 중'
-                              : 'Premium 업그레이드',
+                              ? l.settingsPremiumActive
+                              : l.settingsPremiumUpgrade,
                           subtitle: isBrand
-                              ? '인증 브랜드 계정 · 구독 관리'
+                              ? l.settingsBrandDesc
                               : isPremium
-                              ? '하루 30통 · 사진 첨부(20통) · 월 500통'
-                              : '하루 3통 · 사진 첨부 불가 · 월 100통',
+                              ? l.settingsPremiumDesc
+                              : l.settingsFreeDesc,
                           trailing: const Icon(
                             Icons.chevron_right,
                             color: AppColors.textMuted,
@@ -471,7 +477,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _sectionHeader(l.settingsAccount),
                     _tile(
                       icon: Icons.person_rounded,
-                      label: '닉네임',
+                      label: l.settingsNickname,
                       trailing: Text(
                         user.username,
                         style: const TextStyle(
@@ -487,7 +493,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       trailing: Text(
                         user.socialLink?.isNotEmpty == true
                             ? user.socialLink!
-                            : '미설정',
+                            : l.settingsNotSet,
                         style: const TextStyle(
                           color: AppColors.textMuted,
                           fontSize: 13,
@@ -509,17 +515,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _switchTile(
                       icon: Icons.notifications_active_rounded,
                       label: l.settingsNotifyNearby,
-                      subtitle: '2km 이내에 편지가 도착하면 알림',
+                      subtitle: l.settingsNotifyNearbyDesc,
                       value: _notifyNearby,
                       onChanged: _setNotifyNearby,
                     ),
 
                     const SizedBox(height: 8),
                     // ── 화면 ────────────────────────────────────────────────
-                    _sectionHeader('화면'),
+                    _sectionHeader(l.settingsDisplay),
                     _tile(
                       icon: Icons.brightness_6_rounded,
-                      label: '화면 모드',
+                      label: l.settingsDisplayMode,
                       trailing: Text(
                         themeLabel,
                         style: const TextStyle(
@@ -527,12 +533,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           fontSize: 14,
                         ),
                       ),
-                      onTap: () => _showThemeModeSelector(ctx, state),
+                      onTap: () => _showThemeModeSelector(ctx, state, l),
                     ),
 
                     const SizedBox(height: 8),
                     // ── 앱 정보 ─────────────────────────────────────────────
-                    _sectionHeader('앱 정보'),
+                    _sectionHeader(l.settingsAppInfo),
                     _tile(
                       icon: Icons.info_outline_rounded,
                       label: l.settingsVersion,
@@ -546,9 +552,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     _tile(
                       icon: Icons.public_rounded,
-                      label: '나라',
+                      label: l.settingsCountry,
                       trailing: Text(
-                        '${user.countryFlag} ${user.country}',
+                        '${user.countryFlag} ${CountryL10n.localizedName(user.country, user.languageCode)}',
                         style: const TextStyle(
                           color: AppColors.textMuted,
                           fontSize: 14,
@@ -580,7 +586,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                     const SizedBox(height: 8),
                     // ── 계정 관리 ────────────────────────────────────────────
-                    _sectionHeader('계정 관리'),
+                    _sectionHeader(l.settingsAccountManagement),
                     _tile(
                       icon: Icons.logout_rounded,
                       label: l.settingsLogout,
@@ -599,7 +605,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         user.email?.toLowerCase() ==
                             DebugConstants.testBrandEmail) ...[
                       const SizedBox(height: 8),
-                      _sectionHeader('🔐 관리자'),
+                      _sectionHeader('🔐 ${l.settingsAdmin}'),
                       _tile(
                         iconWidget: Container(
                           width: 24,
@@ -614,7 +620,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             style: TextStyle(fontSize: 14),
                           ),
                         ),
-                        label: '관리자 패널',
+                        label: l.settingsAdminPanel,
                         subtitle: 'Admin Panel',
                         trailing: Container(
                           padding: const EdgeInsets.symmetric(
