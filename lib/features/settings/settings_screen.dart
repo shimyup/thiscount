@@ -13,6 +13,7 @@ import '../../../core/config/app_keys.dart';
 import '../../../core/config/app_links.dart';
 import '../../../widgets/shared_profile_dialogs.dart';
 import '../../../core/localization/country_names.dart';
+import '../../../core/localization/language_config.dart';
 import '../premium/premium_screen.dart';
 import '../admin/admin_screen.dart';
 
@@ -342,6 +343,70 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // ── 언어 변경 ──────────────────────────────────────────────────────────────
+  void _showLanguagePicker(BuildContext ctx, AppState state) {
+    final currentCode = state.currentUser.languageCode;
+    final l = AppL10n.of(currentCode);
+    final languages = LanguageConfig.languageNames.entries.toList();
+
+    showModalBottomSheet(
+      context: ctx,
+      backgroundColor: AppColors.bgCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                l.settingsLanguage,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            Divider(height: 1, color: AppColors.textMuted.withValues(alpha: 0.2)),
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(ctx).size.height * 0.5,
+              ),
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: languages.length,
+                itemBuilder: (_, i) {
+                  final code = languages[i].key;
+                  final name = languages[i].value;
+                  final isSelected = code == currentCode;
+                  return ListTile(
+                    leading: isSelected
+                        ? const Icon(Icons.check_circle, color: AppColors.teal, size: 20)
+                        : const Icon(Icons.circle_outlined, color: AppColors.textMuted, size: 20),
+                    title: Text(
+                      name,
+                      style: TextStyle(
+                        color: isSelected ? AppColors.teal : AppColors.textPrimary,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                      ),
+                    ),
+                    onTap: () {
+                      state.updateProfile(languageCode: code);
+                      Navigator.pop(ctx);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // ── 회원탈퇴 ───────────────────────────────────────────────────────────────
   void _confirmDeleteAccount(BuildContext ctx) {
     final l = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
@@ -560,6 +625,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           fontSize: 14,
                         ),
                       ),
+                    ),
+                    _tile(
+                      icon: Icons.language_rounded,
+                      label: l.settingsLanguage,
+                      trailing: Text(
+                        LanguageConfig.getLanguageName(user.languageCode),
+                        style: const TextStyle(
+                          color: AppColors.textMuted,
+                          fontSize: 14,
+                        ),
+                      ),
+                      onTap: () => _showLanguagePicker(context, state),
                     ),
                     _tile(
                       icon: Icons.shield_outlined,

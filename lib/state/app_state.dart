@@ -4042,6 +4042,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     String? countryFlag,
     String? socialLink,
     String? email,
+    String? languageCode,
   }) {
     if (username != null && username.isNotEmpty)
       _currentUser.username = username;
@@ -4049,7 +4050,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (countryFlag != null) _currentUser.countryFlag = countryFlag;
     if (socialLink != null) _currentUser.socialLink = socialLink;
     if (email != null) _currentUser.email = email;
+    if (languageCode != null && languageCode.isNotEmpty)
+      _currentUser.languageCode = languageCode;
     notifyListeners();
+    _saveToPrefs();
   }
 
   // ── 알림 초기화 ────────────────────────────────────────────────────────────
