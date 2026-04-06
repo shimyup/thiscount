@@ -191,6 +191,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                       state,
                       l10n,
                       showLabels: _showTowerLabels,
+                      zoom: _lastKnownZoom,
                     ),
                   ),
                 // ── 편지(운송수단) 마커 ────────────────────────────────────
@@ -575,49 +576,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
           ),
         ),
       );
-      // 도착지 핀 마커 추가
-      final destLoc = letter.destinationLocation;
-      markers.add(
-        Marker(
-          point: ll.LatLng(destLoc.latitude, destLoc.longitude),
-          width: 36,
-          height: 42,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: AppColors.bgCard.withValues(alpha: 0.92),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppColors.gold.withValues(alpha: 0.7),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.gold.withValues(alpha: 0.3),
-                      blurRadius: 6,
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Text(
-                    letter.destinationCountryFlag,
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ),
-              ),
-              Container(
-                width: 2,
-                height: 8,
-                color: AppColors.gold.withValues(alpha: 0.6),
-              ),
-            ],
-          ),
-        ),
-      );
+      // 도착지 핀 마커 제거 — 편지 이모지(📮💌📪)만 표시
     }
     return markers;
   }
@@ -628,11 +587,27 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     AppState state,
     AppL10n l10n, {
     required bool showLabels,
+    required double zoom,
   }) {
     final markers = <Marker>[];
 
+    // 줌 레벨별 크기 스케일 (줌아웃 시 작게, 줌인 시 크게)
+    final scale = (zoom / 10.0).clamp(0.5, 1.2);
+    final markerW = (40 * scale).roundToDouble();
+    final markerH = (44 * scale).roundToDouble();
+    final emojiSize = 16.0 * scale;
+    final flagSize = 10.0 * scale;
+    final borderRadius = 10.0 * scale;
+    final borderWidth = 1.8 * scale;
+
+    // 자동 오프셋: 가까운 타워들을 원형으로 퍼뜨림
+    final users = state.mapUsers;
+    final offsets = _computeTowerOffsets(users, zoom);
+
     // 실제 회원 타워 (Firestore)
-    for (final u in state.mapUsers) {
+    for (int i = 0; i < users.length; i++) {
+      final u = users[i];
+      final offset = offsets[i];
       final tierColor = _towerTierColor(u.tier);
       final rankLabel = u.rank <= 3
           ? (u.rank == 1
@@ -647,11 +622,13 @@ class _WorldMapScreenState extends State<WorldMapScreen>
           : (hasUsername ? '@${u.username}' : null);
       final labelText = displayLabel ?? '';
       final hasLabel = showLabels && labelText.isNotEmpty;
+      final totalW = hasLabel ? markerW + 32 : markerW + 12;
+      final totalH = hasLabel ? markerH + 34 : markerH + 20;
       markers.add(
         Marker(
-          point: ll.LatLng(u.lat, u.lng),
-          width: hasLabel ? 72 : 52,
-          height: hasLabel ? 82 : 64,
+          point: ll.LatLng(u.lat + offset.dy, u.lng + offset.dx),
+          width: totalW,
+          height: totalH,
           child: GestureDetector(
             onTap: () => _showMapTowerDetail(context, u, null, l10n),
             child: Column(
@@ -659,19 +636,19 @@ class _WorldMapScreenState extends State<WorldMapScreen>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 40,
-                  height: 44,
+                  width: markerW,
+                  height: markerH,
                   decoration: BoxDecoration(
                     color: AppColors.bgCard.withValues(alpha: 0.95),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(borderRadius),
                     border: Border.all(
                       color: tierColor.withValues(alpha: 0.75),
-                      width: 1.8,
+                      width: borderWidth,
                     ),
                     boxShadow: [
                       BoxShadow(
                         color: tierColor.withValues(alpha: 0.3),
-                        blurRadius: 8,
+                        blurRadius: 8 * scale,
                       ),
                     ],
                   ),
@@ -683,28 +660,28 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                       children: [
                         Text(
                           u.tier.emoji,
-                          style: const TextStyle(fontSize: 16),
+                          style: TextStyle(fontSize: emojiSize),
                         ),
-                        Text(u.flag, style: const TextStyle(fontSize: 10)),
+                        Text(u.flag, style: TextStyle(fontSize: flagSize)),
                       ],
                     ),
                   ),
                 ),
                 // 랭킹 뱃지 (고정 높이)
                 SizedBox(
-                  height: 16,
+                  height: 16 * scale,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 5),
+                    padding: EdgeInsets.symmetric(horizontal: 5 * scale),
                     decoration: BoxDecoration(
                       color: tierColor.withValues(alpha: 0.85),
-                      borderRadius: BorderRadius.circular(5),
+                      borderRadius: BorderRadius.circular(5 * scale),
                     ),
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
                         rankLabel,
-                        style: const TextStyle(
-                          fontSize: 9,
+                        style: TextStyle(
+                          fontSize: 9 * scale,
                           color: Colors.white,
                           fontWeight: FontWeight.w800,
                         ),
@@ -741,6 +718,35 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       );
     }
     return markers;
+  }
+
+  /// 겹치는 타워들을 원형으로 퍼뜨리는 오프셋 계산
+  List<Offset> _computeTowerOffsets(List<MapUser> users, double zoom) {
+    final offsets = List<Offset>.filled(users.length, Offset.zero);
+    // 줌 레벨에 따라 "겹침" 판정 거리 조절 (줌아웃일수록 넓게)
+    final threshold = 0.8 / pow(2, zoom - 3).clamp(0.1, 1000);
+
+    for (int i = 0; i < users.length; i++) {
+      // 이 타워와 겹치는 다른 타워 인덱스 수집
+      final cluster = <int>[i];
+      for (int j = 0; j < users.length; j++) {
+        if (i == j) continue;
+        final dLat = users[i].lat - users[j].lat;
+        final dLng = users[i].lng - users[j].lng;
+        if (dLat * dLat + dLng * dLng < threshold * threshold) {
+          cluster.add(j);
+        }
+      }
+      if (cluster.length <= 1) continue; // 겹침 없음
+
+      // 클러스터 내 순서를 기반으로 원형 배치
+      final idx = cluster.indexOf(i);
+      final count = cluster.length;
+      final angle = (2 * pi * idx / count) - pi / 2;
+      final radius = threshold * 0.6;
+      offsets[i] = Offset(cos(angle) * radius, sin(angle) * radius);
+    }
+    return offsets;
   }
 
   Color _towerTierColor(TowerTier tier) {
@@ -2986,7 +2992,7 @@ class _MyTowerMarker extends StatelessWidget {
                     Text(
                       pendingLetterCount > 0 ? '📮' : flag,
                       style: TextStyle(
-                        fontSize: pendingLetterCount > 0 ? 13 : 12,
+                        fontSize: pendingLetterCount > 0 ? 12 : 10,
                       ),
                     ),
                     Text(
@@ -3004,8 +3010,8 @@ class _MyTowerMarker extends StatelessWidget {
             // 📮 뱃지: 타워 위치에 겹친 편지가 있을 때 우상단에 표시
             if (pendingLetterCount > 0)
               Positioned(
-                top: -5,
-                right: -8,
+                top: -10,
+                right: -12,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 6,
