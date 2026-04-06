@@ -626,9 +626,95 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 12),
+              // 회원 삭제 버튼
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    _confirmDelete(user);
+                  },
+                  icon: const Icon(Icons.delete_forever_rounded, size: 18),
+                  label: Text(l.koEn('회원 삭제', 'Delete User')),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.error,
+                    side: BorderSide(
+                      color: AppColors.error.withValues(alpha: 0.5),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // ── 회원 삭제 ───────────────────────────────────────────────────────────────
+  Future<void> _deleteUser(AdminUser user) async {
+    final l = _l10n(context);
+    final url = Uri.parse(
+      '${FirebaseConfig.firestoreBase}/users/${user.id}?key=${Uri.encodeQueryComponent(FirebaseConfig.apiKey)}',
+    );
+    try {
+      final res = await http.delete(url).timeout(const Duration(seconds: 10));
+      if (!mounted) return;
+      if (res.statusCode == 200 || res.statusCode == 204) {
+        _users.removeWhere((u) => u.id == user.id);
+        _applyFilter();
+        _showSnack(l.koEn('🗑️ ${user.username} 삭제 완료', '🗑️ ${user.username} deleted'));
+      } else {
+        _showSnack(
+          l.koEn('삭제 실패 (HTTP ${res.statusCode})', 'Delete failed (HTTP ${res.statusCode})'),
+          isError: true,
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showSnack(l.koEn('삭제 실패: $e', 'Delete failed: $e'), isError: true);
+    }
+  }
+
+  void _confirmDelete(AdminUser user) {
+    final l = _l10n(context);
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.bgCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          l.koEn('회원 삭제', 'Delete User'),
+          style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.w700),
+        ),
+        content: Text(
+          l.koEn(
+            '${user.username}(${user.id})를 영구 삭제합니다.\n이 작업은 되돌릴 수 없습니다.',
+            'Permanently delete ${user.username} (${user.id}).\nThis action cannot be undone.',
+          ),
+          style: const TextStyle(color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.koEn('취소', 'Cancel'), style: const TextStyle(color: AppColors.textMuted)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _deleteUser(user);
+            },
+            child: Text(
+              l.koEn('삭제', 'Delete'),
+              style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
       ),
     );
   }

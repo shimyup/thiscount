@@ -161,6 +161,64 @@ class NotificationService {
     }
   }
 
+  /// 쿨다운으로 편지 픽업 불가 시 알림
+  static Future<void> showCooldownNotification({
+    required String title,
+    required String body,
+  }) async {
+    try {
+      const androidDetails = AndroidNotificationDetails(
+        'pickup_cooldown',
+        '픽업 쿨다운 알림',
+        channelDescription: '근처 편지가 있지만 쿨다운으로 픽업할 수 없을 때 알림',
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+        icon: '@mipmap/ic_launcher',
+      );
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: false,
+        presentSound: true,
+      );
+      const details = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+      await _plugin.show(3, title, body, details);
+    } catch (e) {
+      debugPrint('Cooldown notification error: $e');
+    }
+  }
+
+  /// 신고로 인한 임시 차단 알림 (발송자에게)
+  static Future<void> showReportBlockNotification({
+    required String title,
+    required String body,
+  }) async {
+    try {
+      const androidDetails = AndroidNotificationDetails(
+        'report_block',
+        '신고 알림',
+        channelDescription: '편지가 신고되어 임시 차단되었을 때 알림',
+        importance: Importance.high,
+        priority: Priority.high,
+        icon: '@mipmap/ic_launcher',
+      );
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
+      const details = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+      await _plugin.show(4, title, body, details);
+    } catch (e) {
+      debugPrint('Report block notification error: $e');
+    }
+  }
+
   static Future<void> cancelAll() async {
     await _plugin.cancelAll();
   }

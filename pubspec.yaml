@@ -1,7 +1,7 @@
 name: letter_go
 description: "LetterGo — 당신의 진심이 세계를 유람하며 인연을 만나는 곳"
 publish_to: 'none'
-version: 1.0.0+19
+version: 1.0.0+21
 
 environment:
   sdk: ^3.11.0

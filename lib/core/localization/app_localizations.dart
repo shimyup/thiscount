@@ -9006,6 +9006,76 @@ class AppL10n {
     'th': '⏳ เก็บได้ใน $timeStr (คูลดาวน์ $tier)',
   });
 
+  // ── 쿨다운 중 근처 편지 알림 ──────────────────────────────────────────────
+  String get stateCooldownNearbyTitle => _t({
+    'ko': '⏳ 편지가 근처에 있어요!',
+    'en': '⏳ A letter is nearby!',
+    'ja': '⏳ 手紙が近くにあります！',
+    'zh': '⏳ 附近有一封信！',
+    'fr': '⏳ Une lettre est à proximité !',
+    'de': '⏳ Ein Brief ist in der Nähe!',
+    'es': '⏳ ¡Hay una carta cerca!',
+    'pt': '⏳ Uma carta está por perto!',
+    'ru': '⏳ Рядом есть письмо!',
+    'tr': '⏳ Yakınında bir mektup var!',
+    'ar': '⏳ هناك رسالة بالقرب منك!',
+    'it': '⏳ Una lettera è nelle vicinanze!',
+    'hi': '⏳ आपके पास एक पत्र है!',
+    'th': '⏳ มีจดหมายอยู่ใกล้ๆ!',
+  });
+
+  String stateCooldownNearbyBody(String flag, String country, String timeStr) => _t({
+    'ko': '$flag $country에서 온 편지가 근처에 있지만, $timeStr 후에 수령할 수 있어요',
+    'en': 'A letter from $flag $country is nearby, but you can pick it up in $timeStr',
+    'ja': '$flag ${country}からの手紙が近くにありますが、${timeStr}後に受け取れます',
+    'zh': '来自$flag $country的信在附近，但$timeStr后才能领取',
+    'fr': 'Une lettre de $flag $country est proche, ramassage dans $timeStr',
+    'de': 'Ein Brief aus $flag $country ist in der Nähe, abholbar in $timeStr',
+    'es': 'Una carta de $flag $country está cerca, recógela en $timeStr',
+    'pt': 'Uma carta de $flag $country está por perto, colete em $timeStr',
+    'ru': 'Письмо из $flag $country рядом, можно забрать через $timeStr',
+    'tr': '$flag $country\'den bir mektup yakınında, $timeStr sonra alabilirsiniz',
+    'ar': 'رسالة من $flag $country بالقرب منك، يمكنك استلامها بعد $timeStr',
+    'it': 'Una lettera da $flag $country è vicina, ritiro tra $timeStr',
+    'hi': '$flag $country से एक पत्र पास में है, $timeStr बाद उठा सकते हैं',
+    'th': 'จดหมายจาก $flag $country อยู่ใกล้ แต่เก็บได้ใน $timeStr',
+  });
+
+  // ── 신고 임시 차단 알림 (발송자에게) ───────────────────────────────────────
+  String get stateReportBlockTitle => _t({
+    'ko': '⚠️ 편지가 신고되었습니다',
+    'en': '⚠️ Your letter has been reported',
+    'ja': '⚠️ あなたの手紙が通報されました',
+    'zh': '⚠️ 您的信件被举报了',
+    'fr': '⚠️ Votre lettre a été signalée',
+    'de': '⚠️ Ihr Brief wurde gemeldet',
+    'es': '⚠️ Tu carta ha sido reportada',
+    'pt': '⚠️ Sua carta foi denunciada',
+    'ru': '⚠️ На ваше письмо пожаловались',
+    'tr': '⚠️ Mektubunuz bildirildi',
+    'ar': '⚠️ تم الإبلاغ عن رسالتك',
+    'it': '⚠️ La tua lettera è stata segnalata',
+    'hi': '⚠️ आपका पत्र रिपोर्ट किया गया',
+    'th': '⚠️ จดหมายของคุณถูกรายงาน',
+  });
+
+  String get stateReportBlockBody => _t({
+    'ko': '신고 접수로 편지 발송이 일시 제한됩니다. 관리자 검토 후 조치됩니다.',
+    'en': 'Your letter sending is temporarily restricted due to a report. An admin will review shortly.',
+    'ja': '通報により手紙の送信が一時制限されています。管理者が確認後、対応します。',
+    'zh': '由于举报，您的信件发送已暂时限制。管理员将尽快审核。',
+    'fr': 'L\'envoi de lettres est temporairement restreint suite à un signalement. Un administrateur examinera sous peu.',
+    'de': 'Ihr Briefversand ist vorübergehend eingeschränkt. Ein Administrator wird dies überprüfen.',
+    'es': 'El envío de cartas está temporalmente restringido por un reporte. Un administrador lo revisará pronto.',
+    'pt': 'O envio de cartas está temporariamente restrito. Um administrador revisará em breve.',
+    'ru': 'Отправка писем временно ограничена из-за жалобы. Администратор скоро проверит.',
+    'tr': 'Bir bildirim nedeniyle mektup gönderimi geçici olarak kısıtlandı. Yönetici yakında inceleyecek.',
+    'ar': 'تم تقييد إرسال الرسائل مؤقتاً بسبب بلاغ. سيقوم المسؤول بالمراجعة قريباً.',
+    'it': 'L\'invio di lettere è temporaneamente limitato. Un amministratore esaminerà a breve.',
+    'hi': 'रिपोर्ट के कारण पत्र भेजना अस्थायी रूप से प्रतिबंधित है। व्यवस्थापक जल्द समीक्षा करेगा।',
+    'th': 'การส่งจดหมายถูกจำกัดชั่วคราว ผู้ดูแลระบบจะตรวจสอบเร็วๆ นี้',
+  });
+
   String get stateAlreadyRead => _t({
     'ko': '이미 읽은 편지예요 📖',
     'en': 'You\'ve already read this letter 📖',
@@ -10209,6 +10279,40 @@ class AppL10n {
     'th': 'จดหมายทั้งหมด',
   });
 
+  String get onboardingStatBrandPartners => _t({
+    'ko': '브랜드 파트너',
+    'en': 'Brand partners',
+    'ja': 'ブランドパートナー',
+    'zh': '品牌合作伙伴',
+    'fr': 'Partenaires de marque',
+    'de': 'Markenpartner',
+    'es': 'Socios de marca',
+    'pt': 'Parceiros de marca',
+    'ru': 'Бренд-партнёры',
+    'tr': 'Marka ortakları',
+    'ar': 'شركاء العلامة التجارية',
+    'it': 'Partner di marca',
+    'hi': 'ब्रांड पार्टनर',
+    'th': 'พาร์ทเนอร์แบรนด์',
+  });
+
+  String get onboardingStatDeliveryRate => _t({
+    'ko': '편지 전달률',
+    'en': 'Delivery rate',
+    'ja': '配達率',
+    'zh': '投递率',
+    'fr': 'Taux de livraison',
+    'de': 'Zustellrate',
+    'es': 'Tasa de entrega',
+    'pt': 'Taxa de entrega',
+    'ru': 'Доставляемость',
+    'tr': 'Teslimat oranı',
+    'ar': 'معدل التسليم',
+    'it': 'Tasso di consegna',
+    'hi': 'डिलीवरी दर',
+    'th': 'อัตราการจัดส่ง',
+  });
+
   String get onboardingStatCountries => _t({
     'ko': '연결 국가',
     'en': 'Connected countries',
@@ -10244,37 +10348,118 @@ class AppL10n {
   });
 
   String get onboardingReview1 => _t({
-    'ko': '"일주일 만에 11개국에서 답장을 받았어요."',
-    'en': '"I received replies from 11 countries in one week."',
-    'ja': '"1週間で11カ国から返信がもらえました。"',
-    'zh': '"一周内就收到了来自11个国家的回信。"',
-    'fr': '"J\'ai reçu des réponses de 11 pays en une semaine."',
-    'de': '"Ich erhielt innerhalb einer Woche Antworten aus 11 Ländern."',
-    'es': '"Recibí respuestas de 11 países en una semana."',
-    'pt': '"Recebi respostas de 11 países em uma semana."',
-    'ru': '"Получил ответы из 11 стран за неделю."',
-    'tr': '"Bir haftada 11 ülkeden yanıt aldım."',
-    'ar': '"تلقيت ردودًا من 11 دولة في أسبوع واحد."',
-    'it': '"Ho ricevuto risposte da 11 paesi in una settimana."',
-    'hi': '"एक सप्ताह में 11 देशों से जवाब मिले।"',
-    'th': '"ได้รับจดหมายตอบจาก 11 ประเทศภายในหนึ่งสัปดาห์"',
+    'ko': '"브랜드 편지가 일반 광고보다 훨씬 따뜻하게 느껴져요."',
+    'en': '"Brand letters feel much warmer than regular ads."',
+    'ja': '"ブランドレターは普通の広告よりずっと温かみがあります。"',
+    'zh': '"品牌信件比普通广告感觉温暖得多。"',
+    'fr': '"Les lettres de marque semblent bien plus chaleureuses que les publicités."',
+    'de': '"Markenbriefe fühlen sich viel wärmer an als normale Werbung."',
+    'es': '"Las cartas de marca se sienten mucho más cálidas que los anuncios."',
+    'pt': '"As cartas de marca parecem muito mais acolhedoras que anúncios."',
+    'ru': '"Брендовые письма ощущаются гораздо теплее обычной рекламы."',
+    'tr': '"Marka mektupları normal reklamlardan çok daha sıcak hissettiriyor."',
+    'ar': '"رسائل العلامة التجارية تبدو أكثر دفئًا من الإعلانات العادية."',
+    'it': '"Le lettere di marca sembrano molto più calde della pubblicità."',
+    'hi': '"ब्रांड पत्र सामान्य विज्ञापनों से बहुत गर्म महसूस होते हैं।"',
+    'th': '"จดหมายแบรนด์ให้ความรู้สึกอบอุ่นกว่าโฆษณาทั่วไปมาก"',
   });
 
   String get onboardingReview2 => _t({
-    'ko': '"사진 편지 기능 덕분에 답장률이 확실히 올라갔어요."',
-    'en': '"The photo letter feature definitely increased my reply rate."',
-    'ja': '"写真レター機能のおかげで返信率が確実に上がりました。"',
-    'zh': '"照片信件功能确实提高了我的回复率。"',
-    'fr': '"La fonction photo a clairement augmenté mon taux de réponse."',
-    'de': '"Die Fotobrieffunktion hat meine Antwortrate deutlich erhöht."',
-    'es': '"La función de foto cartas aumentó mi tasa de respuesta."',
-    'pt': '"A função de carta com foto aumentou minha taxa de resposta."',
-    'ru': '"Функция фотописем заметно повысила процент ответов."',
-    'tr': '"Fotoğraf mektup özelliği yanıt oranımı kesinlikle artırdı."',
-    'ar': '"ميزة الرسائل المصورة زادت بالتأكيد من معدل الردود."',
-    'it': '"La funzione foto lettere ha aumentato il mio tasso di risposta."',
-    'hi': '"फ़ोटो पत्र सुविधा ने मेरी जवाब दर बढ़ा दी।"',
-    'th': '"ฟีเจอร์จดหมายรูปภาพทำให้อัตราการตอบกลับเพิ่มขึ้นจริงๆ"',
+    'ko': '"프리미엄으로 올리니 편지 무제한에 우선 배달까지, 완전 만족!"',
+    'en': '"Upgrading to Premium gave me unlimited letters and priority delivery!"',
+    'ja': '"プレミアムにしたら手紙無制限＋優先配達で大満足！"',
+    'zh': '"升级到高级版后，信件无限+优先配送，超级满意！"',
+    'fr': '"Passer en Premium m\'a donné des lettres illimitées et la livraison prioritaire !"',
+    'de': '"Premium-Upgrade: unbegrenzte Briefe und Prioritätszustellung!"',
+    'es': '"Al pasar a Premium obtuve cartas ilimitadas y entrega prioritaria."',
+    'pt': '"Ao atualizar para Premium, ganhei cartas ilimitadas e entrega prioritária!"',
+    'ru': '"Премиум дал безлимитные письма и приоритетную доставку!"',
+    'tr': '"Premium\'a geçince sınırsız mektup ve öncelikli teslimat!"',
+    'ar': '"الترقية إلى المميز أعطتني رسائل غير محدودة وتسليم أولوي!"',
+    'it': '"Passando a Premium ho ottenuto lettere illimitate e consegna prioritaria!"',
+    'hi': '"प्रीमियम में अपग्रेड से असीमित पत्र और प्राथमिकता डिलीवरी मिली!"',
+    'th': '"อัปเกรดเป็นพรีเมียมได้จดหมายไม่จำกัดและจัดส่งลำดับแรก!"',
+  });
+
+  // ── 온보딩 타임라인 ───────────────────────────────────────────────────────
+  String get onboardingTimelineTitle => _t({
+    'ko': '당신의 하루가 달라져요',
+    'en': 'Your day, transformed',
+    'ja': 'あなたの一日が変わります',
+    'zh': '你的一天将会改变',
+    'fr': 'Votre journée, transformée',
+    'de': 'Ihr Tag, verwandelt',
+    'es': 'Tu día, transformado',
+    'pt': 'Seu dia, transformado',
+    'ru': 'Ваш день преобразится',
+    'tr': 'Gününüz değişecek',
+    'ar': 'يومك سيتغير',
+    'it': 'La tua giornata, trasformata',
+    'hi': 'आपका दिन बदल जाएगा',
+    'th': 'วันของคุณจะเปลี่ยนไป',
+  });
+
+  String get onboardingTimelineMorning => _t({
+    'ko': '아침',
+    'en': 'MORNING',
+    'ja': '朝',
+    'zh': '早晨',
+  });
+
+  String get onboardingTimelineMorningFree => _t({
+    'ko': '편지 1통 발송',
+    'en': 'Send 1 letter',
+    'ja': '手紙1通送信',
+    'zh': '发送1封信',
+  });
+
+  String get onboardingTimelineMorningPremium => _t({
+    'ko': '인연의 기회 10배, 사진과 함께',
+    'en': '10x more connections, with photos',
+    'ja': '出会いの機会10倍、写真付き',
+    'zh': '10倍缘分机会，附带照片',
+  });
+
+  String get onboardingTimelineAfternoon => _t({
+    'ko': '오후',
+    'en': 'AFTERNOON',
+    'ja': '午後',
+    'zh': '下午',
+  });
+
+  String get onboardingTimelineAfternoonFree => _t({
+    'ko': '답장을 기다리는 중...',
+    'en': 'Waiting for replies...',
+    'ja': '返信を待っている...',
+    'zh': '等待回信中...',
+  });
+
+  String get onboardingTimelineAfternoonPremium => _t({
+    'ko': '특송 배달로 이미 3통 도착',
+    'en': '3 letters already arrived via express',
+    'ja': '特急便で既に3通到着',
+    'zh': '特快配送已收到3封',
+  });
+
+  String get onboardingTimelineEvening => _t({
+    'ko': '저녁',
+    'en': 'EVENING',
+    'ja': '夜',
+    'zh': '晚上',
+  });
+
+  String get onboardingTimelineEveningFree => _t({
+    'ko': '오늘은 여기까지',
+    'en': "That's it for today",
+    'ja': '今日はここまで',
+    'zh': '今天就到这里',
+  });
+
+  String get onboardingTimelineEveningBrand => _t({
+    'ko': '월 10,000명에게 내 브랜드 전달 완료',
+    'en': 'Brand delivered to 10,000 people/month',
+    'ja': '月10,000人にブランドを届け完了',
+    'zh': '每月向10,000人传递我的品牌',
   });
 
   String get onboardingLiveStats => _t({

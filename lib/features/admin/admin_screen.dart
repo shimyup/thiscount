@@ -368,6 +368,21 @@ class _AdminScreenState extends State<AdminScreen> {
           // 🛡️ 콘텐츠 관리
           // ──────────────────────────────────────────────────────────────────
           _sectionHeader(l.koEn('🛡️ 콘텐츠 관리', '🛡️ Content Moderation')),
+          // ── 신고 접수 (임시 차단) 대기 목록 ──
+          if (state.adminTempBlockedCount > 0) ...[
+            _actionTile(
+              icon: Icons.pending_actions_rounded,
+              iconColor: Colors.orange,
+              label: l.koEn('⏳ 검토 대기 (임시 차단)', '⏳ Pending Review (Temp Blocked)'),
+              subtitle: l.koEn(
+                '${state.adminTempBlockedCount}명 — 신고 접수 후 관리자 검토 대기 중',
+                '${state.adminTempBlockedCount} users — awaiting admin review after report',
+              ),
+              trailing: _badge('${state.adminTempBlockedCount}', Colors.orange),
+              onTap: () => _showTempBlockedSenders(state),
+            ),
+            const SizedBox(height: 4),
+          ],
           _actionTile(
             icon: Icons.flag_rounded,
             iconColor: AppColors.warning,
@@ -387,8 +402,8 @@ class _AdminScreenState extends State<AdminScreen> {
             iconColor: AppColors.error,
             label: l.koEn('차단된 발신자 목록', 'Blocked Senders'),
             subtitle: l.koEn(
-              '${state.adminBlockedCount}명 차단 중',
-              '${state.adminBlockedCount} currently blocked',
+              '${state.adminBlockedCount}명 영구 차단 중',
+              '${state.adminBlockedCount} permanently blocked',
             ),
             trailing: state.adminBlockedCount > 0
                 ? _badge('${state.adminBlockedCount}', AppColors.error)
@@ -982,6 +997,139 @@ class _AdminScreenState extends State<AdminScreen> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  // ── 임시 차단 (검토 대기) 발신자 목록 ────────────────────────────────────────
+  void _showTempBlockedSenders(AppState state) {
+    final l = _l10n(context);
+    final ids = state.tempBlockedSenderIds.toList();
+    if (ids.isEmpty) {
+      _showSnack(l.koEn('검토 대기 중인 사용자가 없어요', 'No users pending review'));
+      return;
+    }
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.bgCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      isScrollControlled: true,
+      builder: (ctx) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.5,
+        maxChildSize: 0.85,
+        builder: (_, scrollCtrl) => Column(
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.textMuted.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                l.koEn('⏳ 검토 대기 (임시 차단)', '⏳ Pending Review'),
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                l.koEn(
+                  '신고 접수 후 관리자 검토 대기 중인 사용자입니다.\n영구 차단 또는 무혐의 처리를 선택하세요.',
+                  'Users temporarily blocked after a report.\nChoose to permanently block or dismiss.',
+                ),
+                style: const TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 12,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Expanded(
+              child: ListView.separated(
+                controller: scrollCtrl,
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                itemCount: ids.length,
+                separatorBuilder: (_, __) =>
+                    const Divider(color: Color(0xFF1F2D44), height: 1),
+                itemBuilder: (_, i) => ListTile(
+                  leading: const Icon(
+                    Icons.pending_actions_rounded,
+                    color: Colors.orange,
+                    size: 20,
+                  ),
+                  title: Text(
+                    ids[i],
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 14,
+                    ),
+                  ),
+                  subtitle: Text(
+                    l.koEn('신고 접수 · 임시 차단 중', 'Reported · Temp blocked'),
+                    style: TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 11,
+                    ),
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // 무혐의 (임시 차단 해제)
+                      TextButton(
+                        onPressed: () {
+                          state.adminDismissReport(ids[i]);
+                          Navigator.pop(ctx);
+                          _showSnack(
+                            l.koEn('✅ 무혐의 처리: ${ids[i]}', '✅ Dismissed: ${ids[i]}'),
+                          );
+                        },
+                        child: Text(
+                          l.koEn('무혐의', 'Dismiss'),
+                          style: const TextStyle(
+                            color: AppColors.teal,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      // 영구 차단
+                      TextButton(
+                        onPressed: () {
+                          state.adminConfirmBlock(ids[i]);
+                          Navigator.pop(ctx);
+                          _showSnack(
+                            l.koEn('🚫 영구 차단: ${ids[i]}', '🚫 Permanently blocked: ${ids[i]}'),
+                          );
+                        },
+                        child: Text(
+                          l.koEn('영구 차단', 'Block'),
+                          style: const TextStyle(
+                            color: AppColors.error,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

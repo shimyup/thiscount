@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:geolocator/geolocator.dart';
@@ -200,11 +201,20 @@ class _LoginTabState extends State<_LoginTab> {
   final _passCtrl = TextEditingController();
   bool _obscurePass = true;
   bool _isLoading = false;
-  bool _rememberMe = false;
+  bool _rememberMe = true; // 기본 활성 — 테스터/유저 편의
   String? _error;
 
   static const _kRememberMe = 'login_remember_me';
   static const _kSavedUsername = 'login_saved_username';
+  static const _kSavedPasswordSecure = 'login_saved_pw_v2';
+
+  // iOS Keychain / Android EncryptedSharedPreferences — 앱 업데이트 후에도 유지
+  static const FlutterSecureStorage _secure = FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    iOptions: IOSOptions(
+      accessibility: KeychainAccessibility.first_unlock_this_device,
+    ),
+  );
 
   @override
   void initState() {
@@ -215,15 +225,17 @@ class _LoginTabState extends State<_LoginTab> {
   Future<void> _loadSavedCredentials() async {
     final prefs = await SharedPreferences.getInstance();
     final remember = prefs.getBool(_kRememberMe) ?? false;
-    // 보안 강화를 위해 비밀번호 자동저장은 중단. 기존 저장본도 즉시 삭제.
+    // 레거시 평문 저장분 정리
     await prefs.remove('login_saved_password');
     await prefs.remove('login_saved_password_secure');
     if (!remember) return;
     final username = prefs.getString(_kSavedUsername) ?? '';
+    final password = await _secure.read(key: _kSavedPasswordSecure) ?? '';
     if (username.isNotEmpty && mounted) {
       setState(() {
         _rememberMe = true;
         _usernameCtrl.text = username;
+        if (password.isNotEmpty) _passCtrl.text = password;
       });
     }
   }
@@ -233,14 +245,15 @@ class _LoginTabState extends State<_LoginTab> {
     if (_rememberMe) {
       await prefs.setBool(_kRememberMe, true);
       await prefs.setString(_kSavedUsername, _usernameCtrl.text.trim());
-      // 비밀번호는 보관하지 않고 아이디만 기억.
-      await prefs.remove('login_saved_password');
-      await prefs.remove('login_saved_password_secure');
+      // 비밀번호를 FlutterSecureStorage에 암호화 저장 (앱 업데이트 후에도 유지)
+      await _secure.write(
+        key: _kSavedPasswordSecure,
+        value: _passCtrl.text,
+      );
     } else {
       await prefs.remove(_kRememberMe);
       await prefs.remove(_kSavedUsername);
-      await prefs.remove('login_saved_password');
-      await prefs.remove('login_saved_password_secure');
+      await _secure.delete(key: _kSavedPasswordSecure);
     }
   }
 

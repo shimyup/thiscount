@@ -419,7 +419,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                                 ? l10n.letterReadReportCustomInput
                                 : customCtrl.text.trim())
                           : selectedReason!;
-                      state.reportLetter(letter.id, state.currentUser.id);
+                      state.reportLetter(letter.id, state.currentUser.id, reason: reason);
                       Navigator.pop(dialogCtx);
                       Navigator.pop(ctx); // 편지 화면 닫기
                       ScaffoldMessenger.of(ctx).showSnackBar(

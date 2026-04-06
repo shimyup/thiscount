@@ -538,9 +538,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // ── 사용된 배송지 (나라 → 도시 키 Set, 중복 방지) ──────────────────────────
   final Map<String, Set<String>> _usedDestinations = {};
 
-  // ── 차단된 발신자 (3회 이상 신고) ────────────────────────────────────────
+  // ── 차단된 발신자 (영구 차단: 관리자 확인 후) ─────────────────────────────
   final Set<String> _blockedSenderIds = {};
   Set<String> get blockedSenderIds => Set.unmodifiable(_blockedSenderIds);
+
+  // ── 임시 차단 (신고 접수 → 관리자 검토 전까지) ──────────────────────────────
+  final Set<String> _tempBlockedSenderIds = {};
+  Set<String> get tempBlockedSenderIds =>
+      Set.unmodifiable(_tempBlockedSenderIds);
+  bool isSenderTempBlocked(String senderId) =>
+      _tempBlockedSenderIds.contains(senderId);
 
   // ── 관리자 전용: 이벤트 모드 & 배송 속도 배율 ──────────────────────────────
   bool _adminEventMode = false;
@@ -618,19 +625,40 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _saveToPrefs();
   }
 
-  /// 차단 목록 전체 초기화
+  /// 차단 목록 전체 초기화 (영구 + 임시)
   void adminClearBlockList() {
     _blockedSenderIds.clear();
+    _tempBlockedSenderIds.clear();
     notifyListeners();
     _saveToPrefs();
   }
 
-  /// 특정 발신자 차단 해제
+  /// 특정 발신자 차단 해제 (영구 + 임시 모두)
   void adminUnblockSender(String senderId) {
     _blockedSenderIds.remove(senderId);
+    _tempBlockedSenderIds.remove(senderId);
     notifyListeners();
     _saveToPrefs();
   }
+
+  /// 관리자: 임시 차단 → 영구 차단으로 승격
+  void adminConfirmBlock(String senderId) {
+    _tempBlockedSenderIds.remove(senderId);
+    _blockedSenderIds.add(senderId);
+    _inbox.removeWhere((l) => l.senderId == senderId);
+    notifyListeners();
+    _saveToPrefs();
+  }
+
+  /// 관리자: 임시 차단 해제 (무혐의)
+  void adminDismissReport(String senderId) {
+    _tempBlockedSenderIds.remove(senderId);
+    notifyListeners();
+    _saveToPrefs();
+  }
+
+  /// 임시 차단된 유저 수
+  int get adminTempBlockedCount => _tempBlockedSenderIds.length;
 
   /// 특정 편지의 신고 카운터 초기화 (관리자 검토 후 클리어)
   void adminClearLetterReport(String letterId) {
@@ -1041,6 +1069,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         ),
       );
       prefs.setStringList('blocked', _blockedSenderIds.toList());
+      prefs.setStringList('temp_blocked', _tempBlockedSenderIds.toList());
       prefs.setInt('sentSinceLastUnlock', _sentSinceLastUnlock);
       prefs.setInt('dailySentCount', _dailySentCount);
       prefs.setString('dailySentDateKey', _dailySentDateKey);
@@ -1217,6 +1246,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // 차단 목록 복원
     _blockedSenderIds.clear();
     _blockedSenderIds.addAll(prefs.getStringList('blocked') ?? []);
+    _tempBlockedSenderIds.clear();
+    _tempBlockedSenderIds.addAll(prefs.getStringList('temp_blocked') ?? []);
 
     // 잠금 해제 카운터 복원
     _sentSinceLastUnlock = prefs.getInt('sentSinceLastUnlock') ?? 0;
@@ -3228,6 +3259,25 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final notifyEnabled = prefs.getBool('notify_nearby') ?? true;
     if (!notifyEnabled) return;
 
+    // 쿨다운 중이면 "편지가 근처에 있지만 쿨다운 중" 알림
+    final remaining = nearbyPickupRemainingCooldown;
+    if (remaining != null) {
+      final mins = remaining.inMinutes;
+      final secs = remaining.inSeconds % 60;
+      final timeStr = mins > 0
+          ? _l10n.stateMinSec(mins, secs)
+          : _l10n.stateSec(secs);
+      NotificationService.showCooldownNotification(
+        title: _l10n.stateCooldownNearbyTitle,
+        body: _l10n.stateCooldownNearbyBody(
+          letter.senderCountryFlag,
+          letter.senderCountry,
+          timeStr,
+        ),
+      );
+      return;
+    }
+
     // 다양한 알림 문구 중 랜덤 선택
     final titles = _l10n.stateNearbyNotifTitles;
     final bodies = _l10n.stateNearbyNotifBodies(
@@ -4100,20 +4150,82 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   // ── 편지 신고 ─────────────────────────────────────────────────────────────
-  void reportLetter(String letterId, String reporterId) {
-    final idx = _worldLetters.indexWhere((l) => l.id == letterId);
-    if (idx == -1) return;
-    final letter = _worldLetters[idx];
+  // 1회 신고 → 즉시 임시 차단 + 발송자 알림 → 관리자가 검토 후 영구 처리
+  void reportLetter(String letterId, String reporterId, {String reason = ''}) {
+    // inbox에서도 검색
+    Letter? letter;
+    for (final l in [..._worldLetters, ..._inbox]) {
+      if (l.id == letterId) { letter = l; break; }
+    }
+    if (letter == null) return;
     if (letter.reportedBy.contains(reporterId)) return; // 이미 신고함
+
     letter.reportedBy.add(reporterId);
     letter.reportCount++;
+
+    // ① 즉시 임시 차단: 발송자의 다른 편지도 지도에서 숨김
+    _tempBlockedSenderIds.add(letter.senderId);
+    _worldLetters.removeWhere((l) => l.senderId == letter!.senderId);
+
+    // ② 발송자에게 로컬 알림 (발송자가 현재 유저인 경우)
+    if (letter.senderId == _currentUser.id) {
+      NotificationService.showReportBlockNotification(
+        title: _l10n.stateReportBlockTitle,
+        body: _l10n.stateReportBlockBody,
+      );
+    }
+
+    // ③ Firestore에 신고 기록 저장 (관리자 대시보드에서 조회용)
+    if (FirebaseConfig.kFirebaseEnabled) {
+      _saveReportToFirestore(
+        letterId: letterId,
+        senderId: letter.senderId,
+        reporterId: reporterId,
+        reason: reason,
+        reportCount: letter.reportCount,
+      );
+    }
+
+    // ④ 3회 이상 누적 시 영구 차단으로 승격
     if (letter.reportCount >= 3) {
       _blockedSenderIds.add(letter.senderId);
-      _worldLetters.removeWhere((l) => l.senderId == letter.senderId);
-      _inbox.removeWhere((l) => l.senderId == letter.senderId);
+      _tempBlockedSenderIds.remove(letter.senderId);
+      _inbox.removeWhere((l) => l.senderId == letter!.senderId);
     }
+
     notifyListeners();
     _saveToPrefs();
+  }
+
+  /// Firestore에 신고 기록 저장 (관리자 조회용)
+  Future<void> _saveReportToFirestore({
+    required String letterId,
+    required String senderId,
+    required String reporterId,
+    required String reason,
+    required int reportCount,
+  }) async {
+    try {
+      final url = Uri.parse(
+        '${FirebaseConfig.firestoreBase}/reports?key=${Uri.encodeQueryComponent(FirebaseConfig.apiKey)}',
+      );
+      final body = {
+        'fields': {
+          'letterId': {'stringValue': letterId},
+          'senderId': {'stringValue': senderId},
+          'reporterId': {'stringValue': reporterId},
+          'reason': {'stringValue': reason},
+          'reportCount': {'integerValue': '$reportCount'},
+          'status': {'stringValue': 'pending'}, // pending → reviewed → resolved
+          'createdAt': {'timestampValue': DateTime.now().toUtc().toIso8601String()},
+        },
+      };
+      await http.post(url, body: jsonEncode(body), headers: {
+        'Content-Type': 'application/json',
+      }).timeout(const Duration(seconds: 10));
+    } catch (e) {
+      debugPrint('Failed to save report to Firestore: $e');
+    }
   }
 
   // ── 편지 좋아요 ───────────────────────────────────────────────────────────
@@ -4201,7 +4313,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   // ── 차단 여부 확인 ────────────────────────────────────────────────────────
-  bool isSenderBlocked(String senderId) => _blockedSenderIds.contains(senderId);
+  bool isSenderBlocked(String senderId) =>
+      _blockedSenderIds.contains(senderId) ||
+      _tempBlockedSenderIds.contains(senderId);
 
   // ── DM 발송자 차단 ────────────────────────────────────────────────────────
   /// DM 화면에서 상대방을 차단. 해당 세션과 메시지를 모두 제거.
