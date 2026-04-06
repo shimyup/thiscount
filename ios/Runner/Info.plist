@@ -14,6 +14,8 @@
 	<string>Permission is needed to save your selected profile photo.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Camera access is needed to take photos for your letters.</string>
+	<key>NSUserNotificationUsageDescription</key>
+	<string>Notifications let you know when new letters arrive nearby.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
