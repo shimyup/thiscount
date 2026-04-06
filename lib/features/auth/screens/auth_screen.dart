@@ -35,11 +35,13 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  late String _selectedLang;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _selectedLang = _deviceLangCode();
   }
 
   @override
@@ -62,7 +64,10 @@ class _AuthScreenState extends State<AuthScreen>
           SafeArea(
             child: Column(
               children: [
-                const SizedBox(height: 40),
+                const SizedBox(height: 8),
+                // 언어 선택 버튼
+                _buildLanguageSelector(),
+                const SizedBox(height: 16),
                 // 앱 로고
                 _buildLogo(),
                 const SizedBox(height: 32),
@@ -74,8 +79,8 @@ class _AuthScreenState extends State<AuthScreen>
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      _LoginTab(onLoginSuccess: _onAuthSuccess),
-                      _SignupTab(onSignupSuccess: _onAuthSuccess),
+                      _LoginTab(onLoginSuccess: _onAuthSuccess, langCode: _selectedLang),
+                      _SignupTab(onSignupSuccess: _onAuthSuccess, langCode: _selectedLang),
                     ],
                   ),
                 ),
@@ -88,6 +93,7 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   Widget _buildLogo() {
+    final l = AppL10n.of(_selectedLang);
     return Column(
       children: [
         const Text('🍾', style: TextStyle(fontSize: 64)),
@@ -97,18 +103,18 @@ class _AuthScreenState extends State<AuthScreen>
             colors: [AppColors.goldLight, AppColors.gold, AppColors.goldDark],
           ).createShader(b),
           child: const Text(
-            'Message in a Bottle',
+            'Letter Go',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 24,
+              fontSize: 28,
               fontWeight: FontWeight.w800,
-              letterSpacing: 0.5,
+              letterSpacing: 1.0,
             ),
           ),
         ),
         const SizedBox(height: 6),
         Text(
-          AppL10n.of(_deviceLangCode()).tagline,
+          l.tagline,
           style: TextStyle(
             color: AppColors.textMuted.withValues(alpha: 0.8),
             fontSize: 13,
@@ -117,6 +123,110 @@ class _AuthScreenState extends State<AuthScreen>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildLanguageSelector() {
+    final langName = LanguageConfig.getLanguageName(_selectedLang);
+    return Align(
+      alignment: Alignment.centerRight,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: GestureDetector(
+          onTap: _showLanguagePicker,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.bgCard,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: AppColors.textMuted.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.language_rounded, color: AppColors.textSecondary, size: 16),
+                const SizedBox(width: 6),
+                Text(
+                  langName,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Icon(Icons.expand_more_rounded, color: AppColors.textMuted, size: 16),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showLanguagePicker() {
+    final languages = LanguageConfig.languageNames.entries.toList();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.bgCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 36, height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.textMuted.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              '🌐 Language',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 350,
+              child: ListView.builder(
+                itemCount: languages.length,
+                itemBuilder: (_, i) {
+                  final code = languages[i].key;
+                  final name = languages[i].value;
+                  final selected = code == _selectedLang;
+                  return ListTile(
+                    leading: selected
+                        ? const Icon(Icons.check_circle_rounded, color: AppColors.teal, size: 20)
+                        : const Icon(Icons.circle_outlined, color: AppColors.textMuted, size: 20),
+                    title: Text(
+                      name,
+                      style: TextStyle(
+                        color: selected ? AppColors.teal : AppColors.textSecondary,
+                        fontSize: 15,
+                        fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+                      ),
+                    ),
+                    onTap: () {
+                      setState(() => _selectedLang = code);
+                      Navigator.pop(ctx);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -144,8 +254,8 @@ class _AuthScreenState extends State<AuthScreen>
           fontSize: 14,
         ),
         tabs: [
-          Tab(text: AppL10n.of(_deviceLangCode()).authTabLogin),
-          Tab(text: AppL10n.of(_deviceLangCode()).authTabSignup),
+          Tab(text: AppL10n.of(_selectedLang).authTabLogin),
+          Tab(text: AppL10n.of(_selectedLang).authTabSignup),
         ],
       ),
     );
@@ -207,7 +317,8 @@ class _AuthScreenState extends State<AuthScreen>
 // ── 로그인 탭 ─────────────────────────────────────────────────────────────────
 class _LoginTab extends StatefulWidget {
   final Future<void> Function(Map<String, String>) onLoginSuccess;
-  const _LoginTab({required this.onLoginSuccess});
+  final String langCode;
+  const _LoginTab({required this.onLoginSuccess, required this.langCode});
 
   @override
   State<_LoginTab> createState() => _LoginTabState();
@@ -310,7 +421,7 @@ class _LoginTabState extends State<_LoginTab> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppL10n.of(_deviceLangCode());
+    final l10n = AppL10n.of(widget.langCode);
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
       child: Column(
@@ -510,7 +621,7 @@ class _LoginTabState extends State<_LoginTab> {
   void _showFindIdDialog() {
     final emailCtrl = TextEditingController();
     bool isLoading = false;
-    final l10n = AppL10n.of(_deviceLangCode());
+    final l10n = AppL10n.of(widget.langCode);
 
     showDialog(
       context: context,
@@ -807,7 +918,7 @@ class _LoginTabState extends State<_LoginTab> {
   void _showResetPasswordDialog() {
     final usernameCtrl = TextEditingController();
     final emailCtrl = TextEditingController();
-    final l10n = AppL10n.of(_deviceLangCode());
+    final l10n = AppL10n.of(widget.langCode);
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -936,7 +1047,8 @@ class _LoginTabState extends State<_LoginTab> {
 // ── 회원가입 탭 ───────────────────────────────────────────────────────────────
 class _SignupTab extends StatefulWidget {
   final Future<void> Function(Map<String, String>) onSignupSuccess;
-  const _SignupTab({required this.onSignupSuccess});
+  final String langCode;
+  const _SignupTab({required this.onSignupSuccess, required this.langCode});
 
   @override
   State<_SignupTab> createState() => _SignupTabState();
@@ -1350,6 +1462,7 @@ class _SignupTabState extends State<_SignupTab> {
             title: l10n.authPrivacyRequired,
             linkLabel: l10n.authViewContent,
             description: l10n.authPrivacyDesc,
+            langCode: widget.langCode,
             onCheckChanged: (v) => setState(() => _agreePrivacy = v ?? false),
             onLinkTap: _openPrivacyPolicy,
           ),
@@ -1364,6 +1477,7 @@ class _SignupTabState extends State<_SignupTab> {
             iconColor: _locationGranted ? AppColors.teal : AppColors.textMuted,
             title: l10n.authLocationOptional,
             description: l10n.authLocationDesc,
+            langCode: widget.langCode,
             statusWidget: _locationGranted
                 ? Row(
                     mainAxisSize: MainAxisSize.min,
@@ -1479,8 +1593,8 @@ class _SignupTabState extends State<_SignupTab> {
           ),
           const SizedBox(height: 32),
 
-          // 개발용: OTP 코드 표시 (배포 시 이 블록 제거)
-          if (kDebugMode && _devOtpCode != null) ...[
+          // OTP 코드 표시 (테스트 기간용 — 정식 출시 시 이메일 발송 연동 후 제거)
+          if (_devOtpCode != null) ...[
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),
@@ -1491,23 +1605,15 @@ class _SignupTabState extends State<_SignupTab> {
                   color: const Color(0xFFFF8A5C).withValues(alpha: 0.4),
                 ),
               ),
-              child: Column(
-                children: [
-                  const Text(
-                    '[개발용] 실제 배포 시 이 박스는 제거됩니다.',
-                    style: TextStyle(color: Color(0xFFFF8A5C), fontSize: 10),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '인증 코드: $_devOtpCode',
-                    style: const TextStyle(
-                      color: Color(0xFFFF8A5C),
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 6,
-                    ),
-                  ),
-                ],
+              child: Text(
+                '인증 코드: $_devOtpCode',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Color(0xFFFF8A5C),
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 6,
+                ),
               ),
             ),
             const SizedBox(height: 20),
@@ -2026,6 +2132,7 @@ class _ConsentCard extends StatelessWidget {
   final Color iconColor;
   final String title;
   final String description;
+  final String langCode;
   final String? linkLabel;
   final Widget? statusWidget;
   final ValueChanged<bool?>? onCheckChanged;
@@ -2037,6 +2144,7 @@ class _ConsentCard extends StatelessWidget {
     required this.iconColor,
     required this.title,
     required this.description,
+    required this.langCode,
     this.linkLabel,
     this.statusWidget,
     this.onCheckChanged,
@@ -2101,7 +2209,7 @@ class _ConsentCard extends StatelessWidget {
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
-                  AppL10n.of(_deviceLangCode()).authIAgree,
+                  AppL10n.of(langCode).authIAgree,
                   style: TextStyle(
                     color: checked
                         ? AppColors.textPrimary
