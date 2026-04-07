@@ -46,9 +46,12 @@ class _DeliveryIntroScreenState extends State<DeliveryIntroScreen>
 
   @override
   Widget build(BuildContext context) {
-    final l = AppL10n.of(
-      context.select<AppState, String>((s) => s.currentUser.languageCode),
+    final langCode = context.select<AppState, String>(
+      (s) => s.currentUser.languageCode,
     );
+    final l = AppL10n.of(langCode);
+    final en = AppL10n.of('en');
+    final showEn = langCode != 'en';
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -82,12 +85,26 @@ class _DeliveryIntroScreenState extends State<DeliveryIntroScreen>
                   children: [
                     Text(
                       l.deliveryIntroTitle,
+                      textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 27,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
+                    if (showEn) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        en.deliveryIntroTitle,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppColors.textSecondary.withValues(alpha: 0.6),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 10),
                     Text(
                       l.deliveryIntroSubtitle,
@@ -98,6 +115,19 @@ class _DeliveryIntroScreenState extends State<DeliveryIntroScreen>
                         height: 1.45,
                       ),
                     ),
+                    if (showEn) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        en.deliveryIntroSubtitle,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppColors.textSecondary.withValues(alpha: 0.5),
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 30),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(20),

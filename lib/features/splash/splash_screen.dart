@@ -124,7 +124,8 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    final l = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    final langCode = context.read<AppState>().currentUser.languageCode;
+    final l = AppL10n.of(langCode);
     return Scaffold(
       backgroundColor: AppColors.bgDeep,
       body: Stack(
@@ -237,27 +238,47 @@ class _SplashScreenState extends State<SplashScreen>
 
                     const SizedBox(height: 20),
 
-                    // ── 슬로건 (현재 언어) ───────────────────────────────────
-                    SizedBox(
-                      height: 28,
-                      child: FadeTransition(
-                        opacity: _sloganFade,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 40),
-                          child: Text(
-                            l.tagline,
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AppColors.textSecondary.withValues(
-                                alpha: 0.85,
+                    // ── 슬로건 (현재 언어 + 영어) ────────────────────────────
+                    FadeTransition(
+                      opacity: _sloganFade,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 40),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              l.tagline,
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textSecondary.withValues(
+                                  alpha: 0.85,
+                                ),
+                                letterSpacing: 0.4,
+                                height: 1.6,
                               ),
-                              letterSpacing: 0.4,
-                              height: 1.6,
                             ),
-                          ),
+                            if (langCode != 'en') ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                AppL10n.of('en').tagline,
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  color: AppColors.textSecondary.withValues(
+                                    alpha: 0.55,
+                                  ),
+                                  letterSpacing: 0.3,
+                                  fontStyle: FontStyle.italic,
+                                  height: 1.5,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                     ),

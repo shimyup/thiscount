@@ -160,6 +160,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   static const int _dailyLimitBrand = 200;
   static const int _dailyPremiumExpressLimit = 3;
   static const Duration _readLetterRetention = Duration(days: 30);
+  static const Duration _unopenedLetterExpiry = Duration(days: 7);
 
   int _dailySentCount = 0;
   String _dailySentDateKey = _dateKey(DateTime.now());
@@ -865,9 +866,22 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final now = DateTime.now();
     final before = _inbox.length;
     _inbox.removeWhere((letter) {
-      if (letter.status != DeliveryStatus.read) return false;
-      final baseTime = letter.readAt ?? letter.arrivedAt ?? letter.sentAt;
-      return now.difference(baseTime) >= _readLetterRetention;
+      // 1) 읽은 편지: 30일 후 삭제
+      if (letter.status == DeliveryStatus.read) {
+        final baseTime = letter.readAt ?? letter.arrivedAt ?? letter.sentAt;
+        return now.difference(baseTime) >= _readLetterRetention;
+      }
+      // 2) 도착했지만 7일간 미열람 편지: 자동 삭제
+      if (letter.status == DeliveryStatus.delivered ||
+          letter.status == DeliveryStatus.nearYou ||
+          letter.status == DeliveryStatus.deliveredFar) {
+        final arrivedTime = letter.arrivedAt ?? letter.sentAt;
+        if (!letter.isReadByRecipient &&
+            now.difference(arrivedTime) >= _unopenedLetterExpiry) {
+          return true;
+        }
+      }
+      return false;
     });
     return _inbox.length != before;
   }
