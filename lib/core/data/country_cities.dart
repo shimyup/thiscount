@@ -284,7 +284,31 @@ class CountryCities {
     return true;
   }
 
+  // ── 지역 균등 분산을 위한 위도 구간 (한국 전용) ──────────────────────────
+  // 먼저 권역을 균등 확률로 선택한 뒤, 그 안에서 도시를 뽑아
+  // 수도권 편중을 방지합니다.
+  static const _koreaRegionBands = [
+    (33.0, 34.0),  // 제주
+    (34.0, 35.2),  // 전남/경남 해안 (여수·목포·통영·거제)
+    (35.2, 36.0),  // 부산·대구·전북·경북 남부
+    (36.0, 36.8),  // 대전·충남·충북·세종
+    (36.8, 37.3),  // 경기 남부 (수원·평택·천안 경계)
+    (37.3, 37.7),  // 서울·인천·경기 중부
+    (37.7, 38.5),  // 경기 북부·강원 (의정부·춘천·강릉)
+  ];
+
+  static const _japanRegionBands = [
+    (42.0, 46.0),  // 北海道
+    (38.0, 42.0),  // 東北 (仙台·青森·秋田)
+    (35.5, 38.0),  // 関東 (東京·横浜·千葉·さいたま)
+    (34.5, 35.5),  // 中部 (名古屋·静岡·浜松)
+    (33.5, 34.5),  // 近畿 (大阪·京都·神戸)
+    (32.5, 33.5),  // 中国·四国 (広島·岡山)
+    (26.0, 32.5),  // 九州·沖縄 (福岡·熊本·鹿児島)
+  ];
+
   /// 나라에서 랜덤 도시 1개 반환 (사용된 주소 제외, address 필드 포함)
+  /// 한국은 권역 균등 분산 적용 — 전국에 고르게 도착
   static Map<String, dynamic>? randomCity(
     String country, {
     Set<String>? usedCityKeys,
@@ -304,10 +328,29 @@ class CountryCities {
               .where((c) => !usedCityKeys.contains('${country}_${c['name']}'))
               .toList()
         : pool;
+    final candidates = available.isNotEmpty ? available : pool;
 
-    final base = available.isEmpty
-        ? pool[rng.nextInt(pool.length)]
-        : available[rng.nextInt(available.length)];
+    // ── 권역 균등 분산 (수도/대도시 편중 방지) ──
+    Map<String, dynamic>? base;
+    final bands = switch (country) {
+      '대한민국' => _koreaRegionBands,
+      '일본' => _japanRegionBands,
+      _ => null,
+    };
+    if (bands != null) {
+      // 1) 랜덤 권역 선택
+      final band = bands[rng.nextInt(bands.length)];
+      final regional = candidates.where((c) {
+        final lat = (c['lat'] as num?)?.toDouble() ?? 0;
+        return lat >= band.$1 && lat < band.$2;
+      }).toList();
+      // 2) 해당 권역에 도시가 있으면 그중 선택, 없으면 전체에서 선택
+      base = regional.isNotEmpty
+          ? regional[rng.nextInt(regional.length)]
+          : candidates[rng.nextInt(candidates.length)];
+    } else {
+      base = candidates[rng.nextInt(candidates.length)];
+    }
 
     final cityName = base['name'] as String? ?? '';
     return {
