@@ -1883,6 +1883,8 @@ class _TowerScreenState extends State<TowerScreen>
     // 프리미엄 유저: 커스터마이저 열기
     String selectedColor = state.currentUser.towerColor;
     String? selectedEmoji = state.currentUser.towerAccentEmoji;
+    int selectedRoof = state.currentUser.towerRoofStyle;
+    int selectedWindow = state.currentUser.towerWindowStyle;
 
     const presetColors = [
       '#FFD700', // 금색 (기본)
@@ -1893,22 +1895,87 @@ class _TowerScreenState extends State<TowerScreen>
       '#FF8A5C', // 오렌지
       '#CE93D8', // 보라
       '#EF5350', // 빨강
+      '#FFFFFF', // 화이트
+      '#90CAF9', // 연파랑
     ];
 
     const presetEmojis = [
-      '🌟',
-      '🔥',
-      '⚡',
-      '🌈',
-      '🌸',
-      '🎯',
-      '💫',
-      '🏆',
-      '🌙',
-      '☀️',
-      '🌊',
-      '🎪',
+      '🌟', '🔥', '⚡', '🌈', '🌸', '🎯',
+      '💫', '🏆', '🌙', '☀️', '🌊', '🎪',
+      '❄️', '🍀', '🦋', '👑',
     ];
+
+    // 지붕 스타일 목록
+    const roofStyles = [
+      {'id': 0, 'label': '기본', 'icon': '🏠'},
+      {'id': 1, 'label': '뾰족', 'icon': '⛪'},
+      {'id': 2, 'label': '돔', 'icon': '🕌'},
+      {'id': 3, 'label': '평지붕', 'icon': '🏢'},
+      {'id': 4, 'label': '안테나', 'icon': '📡'},
+    ];
+
+    // 창문 스타일 목록
+    const windowStyles = [
+      {'id': 0, 'label': '사각', 'icon': '⬜'},
+      {'id': 1, 'label': '원형', 'icon': '⭕'},
+      {'id': 2, 'label': '아치', 'icon': '🪟'},
+      {'id': 3, 'label': '모던', 'icon': '➖'},
+    ];
+
+    // ── 미니 타워 프리뷰 위젯 ──
+    Widget buildMiniPreview(StateSetter setS) {
+      final hexClean = selectedColor.replaceFirst('#', '');
+      final previewColor = Color(int.parse('0xFF$hexClean'));
+      const floors = 5;
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0A1628),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: previewColor.withValues(alpha: 0.2),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (selectedEmoji != null)
+              Text(selectedEmoji!, style: const TextStyle(fontSize: 14)),
+            Text(state.currentUser.countryFlag, style: const TextStyle(fontSize: 14)),
+            // 지붕
+            _buildPreviewRoof(previewColor, selectedRoof),
+            // 층
+            ...List.generate(floors, (i) {
+              final isBottom = i == floors - 1;
+              final alpha = 0.25 - (i / floors) * 0.15;
+              return _buildPreviewFloor(
+                previewColor,
+                alpha.clamp(0.05, 0.25),
+                isBottom,
+                i,
+                selectedWindow,
+              );
+            }),
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(colors: [
+                  previewColor.withValues(alpha: 0.95),
+                  previewColor.withValues(alpha: 0.7),
+                ]),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Text(
+                '🥇',
+                style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w800),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     showModalBottomSheet(
       context: ctx,
@@ -1916,183 +1983,483 @@ class _TowerScreenState extends State<TowerScreen>
       isScrollControlled: true,
       builder: (_) => StatefulBuilder(
         builder: (context, setS) => Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+          ),
           decoration: const BoxDecoration(
             color: AppColors.bgCard,
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
-          padding: EdgeInsets.fromLTRB(
-            24,
-            16,
-            24,
-            MediaQuery.of(context).viewInsets.bottom + 40,
-          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // 핸들
               Center(
                 child: Container(
                   width: 40,
                   height: 4,
-                  margin: const EdgeInsets.only(bottom: 20),
+                  margin: const EdgeInsets.only(top: 16, bottom: 12),
                   decoration: BoxDecoration(
                     color: AppColors.textMuted.withValues(alpha: 0.4),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
-              Text(
-                _tl.towerCustomizeTitle,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: [
+                    Text(
+                      _tl.towerCustomizeTitle,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      '🏗️',
+                      style: const TextStyle(fontSize: 20),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 20),
-              // color selection
-              Text(
-                _tl.towerGlowColor,
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 10,
-                children: presetColors.map((hex) {
-                  final color = Color(int.parse('0xFF${hex.substring(1)}'));
-                  final isSelected = selectedColor == hex;
-                  return GestureDetector(
-                    onTap: () => setS(() => selectedColor = hex),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: color,
-                        border: Border.all(
-                          color: isSelected ? Colors.white : Colors.transparent,
-                          width: 2.5,
+              const SizedBox(height: 12),
+              // 스크롤 가능한 본문
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(
+                    24, 0, 24,
+                    MediaQuery.of(context).viewInsets.bottom + 40,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── 미리보기 ──
+                      buildMiniPreview(setS),
+
+                      // ── 색상 선택 ──
+                      Text(
+                        _tl.towerGlowColor,
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
                         ),
-                        boxShadow: isSelected
-                            ? [
-                                BoxShadow(
-                                  color: color.withValues(alpha: 0.6),
-                                  blurRadius: 8,
-                                  spreadRadius: 2,
+                      ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: presetColors.map((hex) {
+                          final color = Color(int.parse('0xFF${hex.substring(1)}'));
+                          final isSelected = selectedColor == hex;
+                          return GestureDetector(
+                            onTap: () => setS(() => selectedColor = hex),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: color,
+                                border: Border.all(
+                                  color: isSelected ? Colors.white : Colors.transparent,
+                                  width: 2.5,
                                 ),
-                              ]
-                            : [],
+                                boxShadow: isSelected
+                                    ? [
+                                        BoxShadow(
+                                          color: color.withValues(alpha: 0.6),
+                                          blurRadius: 8,
+                                          spreadRadius: 2,
+                                        ),
+                                      ]
+                                    : [],
+                              ),
+                            ),
+                          );
+                        }).toList(),
                       ),
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 20),
-              // 장식 이모지 선택
-              Text(
-                _tl.towerDecoEmoji,
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  // 없음 옵션
-                  GestureDetector(
-                    onTap: () => setS(() => selectedEmoji = null),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: selectedEmoji == null
-                            ? AppColors.gold.withValues(alpha: 0.15)
-                            : AppColors.bgSurface,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: selectedEmoji == null
-                              ? AppColors.gold.withValues(alpha: 0.5)
-                              : AppColors.textMuted.withValues(alpha: 0.2),
+                      const SizedBox(height: 22),
+
+                      // ── 지붕 스타일 ──
+                      const Text(
+                        '🏠 지붕 스타일',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      child: const Center(
-                        child: Text(
-                          '✗',
-                          style: TextStyle(
-                            color: AppColors.textMuted,
-                            fontSize: 16,
+                      const SizedBox(height: 10),
+                      Row(
+                        children: roofStyles.map((r) {
+                          final id = r['id'] as int;
+                          final isSel = selectedRoof == id;
+                          return Expanded(
+                            child: GestureDetector(
+                              onTap: () => setS(() => selectedRoof = id),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                margin: const EdgeInsets.symmetric(horizontal: 3),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: isSel
+                                      ? AppColors.gold.withValues(alpha: 0.15)
+                                      : AppColors.bgSurface,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: isSel
+                                        ? AppColors.gold.withValues(alpha: 0.5)
+                                        : AppColors.textMuted.withValues(alpha: 0.2),
+                                    width: isSel ? 1.5 : 1,
+                                  ),
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text('${r['icon']}', style: const TextStyle(fontSize: 18)),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${r['label']}',
+                                      style: TextStyle(
+                                        color: isSel ? AppColors.gold : AppColors.textMuted,
+                                        fontSize: 9,
+                                        fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 22),
+
+                      // ── 창문 스타일 ──
+                      const Text(
+                        '🪟 창문 스타일',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: windowStyles.map((w) {
+                          final id = w['id'] as int;
+                          final isSel = selectedWindow == id;
+                          return Expanded(
+                            child: GestureDetector(
+                              onTap: () => setS(() => selectedWindow = id),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                margin: const EdgeInsets.symmetric(horizontal: 3),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: isSel
+                                      ? AppColors.gold.withValues(alpha: 0.15)
+                                      : AppColors.bgSurface,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: isSel
+                                        ? AppColors.gold.withValues(alpha: 0.5)
+                                        : AppColors.textMuted.withValues(alpha: 0.2),
+                                    width: isSel ? 1.5 : 1,
+                                  ),
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text('${w['icon']}', style: const TextStyle(fontSize: 18)),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${w['label']}',
+                                      style: TextStyle(
+                                        color: isSel ? AppColors.gold : AppColors.textMuted,
+                                        fontSize: 9,
+                                        fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 22),
+
+                      // ── 장식 이모지 ──
+                      Text(
+                        _tl.towerDecoEmoji,
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          GestureDetector(
+                            onTap: () => setS(() => selectedEmoji = null),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: selectedEmoji == null
+                                    ? AppColors.gold.withValues(alpha: 0.15)
+                                    : AppColors.bgSurface,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: selectedEmoji == null
+                                      ? AppColors.gold.withValues(alpha: 0.5)
+                                      : AppColors.textMuted.withValues(alpha: 0.2),
+                                ),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  '✗',
+                                  style: TextStyle(color: AppColors.textMuted, fontSize: 16),
+                                ),
+                              ),
+                            ),
+                          ),
+                          ...presetEmojis.map((e) {
+                            final isSel = selectedEmoji == e;
+                            return GestureDetector(
+                              onTap: () => setS(() => selectedEmoji = e),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: isSel
+                                      ? AppColors.gold.withValues(alpha: 0.15)
+                                      : AppColors.bgSurface,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: isSel
+                                        ? AppColors.gold.withValues(alpha: 0.5)
+                                        : AppColors.textMuted.withValues(alpha: 0.2),
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(e, style: const TextStyle(fontSize: 22)),
+                                ),
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                      const SizedBox(height: 28),
+
+                      // ── 저장 버튼 ──
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            state.updateTowerSkin(
+                              color: selectedColor,
+                              accentEmoji: selectedEmoji,
+                              roofStyle: selectedRoof,
+                              windowStyle: selectedWindow,
+                            );
+                            Navigator.pop(context);
+                            HapticFeedback.mediumImpact();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.gold,
+                            foregroundColor: AppColors.bgDeep,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: Text(
+                            _tl.towerSaveChanges,
+                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                  ...presetEmojis.map((e) {
-                    final isSel = selectedEmoji == e;
-                    return GestureDetector(
-                      onTap: () => setS(() => selectedEmoji = e),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: isSel
-                              ? AppColors.gold.withValues(alpha: 0.15)
-                              : AppColors.bgSurface,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: isSel
-                                ? AppColors.gold.withValues(alpha: 0.5)
-                                : AppColors.textMuted.withValues(alpha: 0.2),
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(e, style: const TextStyle(fontSize: 22)),
-                        ),
-                      ),
-                    );
-                  }),
-                ],
-              ),
-              const SizedBox(height: 24),
-              // 저장 버튼
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    state.updateTowerSkin(
-                      color: selectedColor,
-                      accentEmoji: selectedEmoji,
-                    );
-                    Navigator.pop(context);
-                    HapticFeedback.mediumImpact();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.gold,
-                    foregroundColor: AppColors.bgDeep,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  child: Text(
-                    _tl.towerSaveChanges,
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+                    ],
                   ),
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // ── 미리보기 지붕 ──────────────────────────────────────────────────────────
+  Widget _buildPreviewRoof(Color color, int roofStyle) {
+    const w = 48.0;
+    const h = 12.0;
+    switch (roofStyle) {
+      case 1: // 뾰족
+        return CustomPaint(
+          size: const Size(w, h + 4),
+          painter: _PreviewPointedRoofPainter(color: color),
+        );
+      case 2: // 돔
+        return Container(
+          width: w,
+          height: h,
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.elliptical(24, 12),
+            ),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [color.withValues(alpha: 0.9), color.withValues(alpha: 0.4)],
+            ),
+          ),
+        );
+      case 3: // 평지붕
+        return Container(
+          width: w,
+          height: h * 0.5,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.7),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(2)),
+          ),
+        );
+      case 4: // 안테나
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 2,
+              height: 10,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(1),
+              ),
+            ),
+            Container(
+              width: w,
+              height: h * 0.5,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.6),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(3)),
+              ),
+            ),
+          ],
+        );
+      default:
+        return Container(
+          width: w,
+          height: h,
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [color.withValues(alpha: 0.85), color.withValues(alpha: 0.45)],
+            ),
+          ),
+        );
+    }
+  }
+
+  // ── 미리보기 층 ────────────────────────────────────────────────────────────
+  Widget _buildPreviewFloor(
+    Color color,
+    double alpha,
+    bool isBottom,
+    int floorIndex,
+    int windowStyle,
+  ) {
+    const w = 42.0;
+    const h = 10.0;
+    final lit = (floorIndex * 7 + 3) % 3 != 0;
+    final lit2 = (floorIndex * 5 + 1) % 3 != 0;
+
+    Widget window(bool isLit) {
+      final baseColor = isLit
+          ? const Color(0xFFFFFFCC).withValues(alpha: 0.75)
+          : const Color(0xFFFFFFCC).withValues(alpha: 0.15);
+      switch (windowStyle) {
+        case 1:
+          return Container(
+            width: 5, height: 5,
+            margin: const EdgeInsets.symmetric(horizontal: 2),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: baseColor,
+              boxShadow: isLit ? [BoxShadow(color: baseColor.withValues(alpha: 0.5), blurRadius: 3)] : [],
+            ),
+          );
+        case 2:
+          return Container(
+            width: 5, height: 6,
+            margin: const EdgeInsets.symmetric(horizontal: 2),
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(2.5)),
+              color: baseColor,
+              boxShadow: isLit ? [BoxShadow(color: baseColor.withValues(alpha: 0.5), blurRadius: 3)] : [],
+            ),
+          );
+        case 3:
+          return Container(
+            width: 8, height: 3,
+            margin: const EdgeInsets.symmetric(horizontal: 1),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(0.5),
+              color: baseColor,
+              boxShadow: isLit ? [BoxShadow(color: baseColor.withValues(alpha: 0.5), blurRadius: 3)] : [],
+            ),
+          );
+        default:
+          return Container(
+            width: 5, height: 5,
+            margin: const EdgeInsets.symmetric(horizontal: 2),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(1),
+              color: baseColor,
+              boxShadow: isLit ? [BoxShadow(color: baseColor.withValues(alpha: 0.5), blurRadius: 3)] : [],
+            ),
+          );
+      }
+    }
+
+    return Container(
+      width: w,
+      height: h,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color.withValues(alpha: alpha),
+            const Color(0xFF1E293B).withValues(alpha: 0.85),
+          ],
+        ),
+        border: Border(
+          left: BorderSide(color: color.withValues(alpha: 0.45), width: 2),
+          right: BorderSide(color: color.withValues(alpha: 0.45), width: 2),
+          bottom: isBottom
+              ? BorderSide(color: color.withValues(alpha: 0.45), width: 2)
+              : BorderSide(color: Colors.white.withValues(alpha: 0.06), width: 0.5),
+        ),
+        borderRadius: isBottom
+            ? const BorderRadius.vertical(bottom: Radius.circular(3))
+            : null,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [window(lit), window(lit2)],
       ),
     );
   }
@@ -2816,4 +3183,34 @@ class _SkylinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_) => false;
+}
+
+// ── 미리보기용 뾰족 지붕 페인터 ─────────────────────────────────────────────
+class _PreviewPointedRoofPainter extends CustomPainter {
+  final Color color;
+  const _PreviewPointedRoofPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          color.withValues(alpha: 0.9),
+          color.withValues(alpha: 0.45),
+        ],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    final path = Path()
+      ..moveTo(size.width * 0.5, 0)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _PreviewPointedRoofPainter old) => old.color != color;
 }

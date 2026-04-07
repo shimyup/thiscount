@@ -669,21 +669,16 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     final users = state.mapUsers;
     if (users.isEmpty) return markers;
 
-    // 줌 레벨별 크기 스케일
     final scale = (zoom / 10.0).clamp(0.5, 1.2);
-    final markerW = (40 * scale).roundToDouble();
-    final markerH = (44 * scale).roundToDouble();
-    final emojiSize = 16.0 * scale;
-    final flagSize = 10.0 * scale;
-    final borderRadius = 10.0 * scale;
-    final borderWidth = 1.8 * scale;
 
-    // ── 클러스터별 마커 생성 ──
     for (final clusterUsers in clusters) {
-      final rep = clusterUsers.first; // 이미 rank순 정렬됨
+      final rep = clusterUsers.first;
       final isCluster = clusterUsers.length > 1;
 
-      final tierColor = _towerTierColor(rep.tier);
+      // 커스텀 색상 적용 (기본은 티어색)
+      final customColor = _parseHexColor(rep.towerColor);
+      final tierColor = customColor ?? _towerTierColor(rep.tier);
+
       final rankLabel = rep.rank <= 3
           ? (rep.rank == 1 ? '🥇' : rep.rank == 2 ? '🥈' : '🥉')
           : '#${rep.rank}';
@@ -693,8 +688,20 @@ class _WorldMapScreenState extends State<WorldMapScreen>
           : (hasUsername ? '@${rep.username}' : null);
       final labelText = displayLabel ?? '';
       final hasLabel = showLabels && labelText.isNotEmpty;
-      final totalW = max(52.0, hasLabel ? markerW + 32 : markerW + 12);
-      final totalH = max(64.0, hasLabel ? markerH + 34 : markerH + 20);
+
+      // 층수 제한 (마커 크기 제한)
+      final displayFloors = rep.floors.clamp(1, 15);
+      final floorH = (7.0 * scale).roundToDouble();
+      final towerW = (34 * scale).roundToDouble();
+      final roofH = (10 * scale).roundToDouble();
+      final towerBodyH = roofH + (displayFloors * floorH);
+      // 오라 여백
+      final tierIdx = rep.tier.index;
+      final hasAura = tierIdx >= 4; // Building 이상
+      final hasParticles = tierIdx >= 6; // Skyscraper 이상
+      final auraExtra = hasAura ? 14.0 * scale : 0.0;
+      final totalW = max(56.0, towerW + 24 + auraExtra * 2);
+      final totalH = towerBodyH + 36 * scale + (hasLabel ? 14.0 : 0.0) + auraExtra;
 
       markers.add(
         Marker(
@@ -712,47 +719,113 @@ class _WorldMapScreenState extends State<WorldMapScreen>
             },
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                // ── 오라 + 타워 본체 ──
                 Stack(
                   clipBehavior: Clip.none,
+                  alignment: Alignment.center,
                   children: [
-                    Container(
-                      width: markerW,
-                      height: markerH,
-                      decoration: BoxDecoration(
-                        color: AppColors.bgCard.withValues(alpha: 0.95),
-                        borderRadius: BorderRadius.circular(borderRadius),
-                        border: Border.all(
-                          color: tierColor.withValues(alpha: 0.75),
-                          width: borderWidth,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: tierColor.withValues(alpha: 0.3),
-                            blurRadius: 8 * scale,
+                    // 오라 글로우 (Building+)
+                    if (hasAura)
+                      Positioned.fill(
+                        child: Center(
+                          child: Container(
+                            width: towerW + 20 * scale,
+                            height: towerBodyH + 10 * scale,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(towerW * 0.5),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: tierColor.withValues(alpha: hasParticles ? 0.35 : 0.2),
+                                  blurRadius: hasParticles ? 20 * scale : 12 * scale,
+                                  spreadRadius: hasParticles ? 4 * scale : 2 * scale,
+                                ),
+                                if (hasParticles)
+                                  BoxShadow(
+                                    color: tierColor.withValues(alpha: 0.12),
+                                    blurRadius: 36 * scale,
+                                    spreadRadius: 8 * scale,
+                                  ),
+                              ],
+                            ),
                           ),
-                        ],
-                      ),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(rep.tier.emoji, style: TextStyle(fontSize: emojiSize)),
-                            Text(rep.flag, style: TextStyle(fontSize: flagSize)),
-                          ],
                         ),
                       ),
+                    // 파티클 (Skyscraper+)
+                    if (hasParticles) ...[
+                      for (int pi = 0; pi < (tierIdx >= 8 ? 5 : 3); pi++)
+                        Positioned(
+                          top: (towerBodyH * 0.15 * pi) - 2 * scale,
+                          left: pi.isEven ? -3 * scale : null,
+                          right: pi.isOdd ? -3 * scale : null,
+                          child: Container(
+                            width: 3 * scale,
+                            height: 3 * scale,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: tierColor.withValues(alpha: 0.6),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: tierColor.withValues(alpha: 0.4),
+                                  blurRadius: 4 * scale,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                    // ── 타워 본체 ──
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // 장식 이모지 (지붕 위)
+                        if (rep.towerAccentEmoji != null)
+                          Padding(
+                            padding: EdgeInsets.only(bottom: 1 * scale),
+                            child: Text(
+                              rep.towerAccentEmoji!,
+                              style: TextStyle(fontSize: 10 * scale),
+                            ),
+                          ),
+                        // 국기 (지붕 위)
+                        Text(rep.flag, style: TextStyle(fontSize: 10 * scale)),
+                        // 지붕
+                        _buildTowerRoof(
+                          width: towerW + 6 * scale,
+                          height: roofH,
+                          color: tierColor,
+                          roofStyle: rep.towerRoofStyle,
+                          scale: scale,
+                        ),
+                        // 층 쌓기
+                        ...List.generate(displayFloors, (i) {
+                          final isBottom = i == displayFloors - 1;
+                          final fadeAlpha = 0.25 - (i / displayFloors) * 0.15;
+                          return _buildTowerFloor(
+                            width: towerW,
+                            height: floorH,
+                            color: tierColor,
+                            alpha: fadeAlpha.clamp(0.05, 0.25),
+                            isBottom: isBottom,
+                            borderWidth: 1.5 * scale,
+                            floorIndex: i,
+                            windowStyle: rep.towerWindowStyle,
+                            scale: scale,
+                          );
+                        }),
+                      ],
                     ),
-                    // ── 클러스터 카운트 뱃지 ──
+                    // ── 클러스터 뱃지 ──
                     if (isCluster)
                       Positioned(
                         top: -4 * scale,
                         right: -6 * scale,
                         child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 4 * scale, vertical: 1 * scale),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 4 * scale,
+                            vertical: 1 * scale,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFEF4444),
                             borderRadius: BorderRadius.circular(8 * scale),
@@ -770,48 +843,53 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                       ),
                   ],
                 ),
-                // 랭킹 뱃지
-                SizedBox(
-                  height: 16 * scale,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 5 * scale),
-                    decoration: BoxDecoration(
-                      color: tierColor.withValues(alpha: 0.85),
-                      borderRadius: BorderRadius.circular(5 * scale),
+                // ── 랭킹 뱃지 ──
+                Container(
+                  margin: EdgeInsets.only(top: 1 * scale),
+                  padding: EdgeInsets.symmetric(horizontal: 5 * scale, vertical: 1 * scale),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        tierColor.withValues(alpha: 0.95),
+                        tierColor.withValues(alpha: 0.7),
+                      ],
                     ),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        rankLabel,
-                        style: TextStyle(
-                          fontSize: 9 * scale,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                        ),
+                    borderRadius: BorderRadius.circular(5 * scale),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        blurRadius: 3,
+                        offset: const Offset(0, 1),
                       ),
+                    ],
+                  ),
+                  child: Text(
+                    rankLabel,
+                    style: TextStyle(
+                      fontSize: 8 * scale,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
-                // 타워 이름 표시
+                // ── 타워 이름 ──
                 if (hasLabel)
-                  SizedBox(
-                    height: 14,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        labelText,
-                        style: TextStyle(
-                          fontSize: 8,
-                          color: Colors.white.withValues(alpha: 0.9),
-                          fontWeight: FontWeight.w700,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black.withValues(alpha: 0.8),
-                              blurRadius: 4,
-                            ),
-                          ],
-                        ),
+                  Padding(
+                    padding: EdgeInsets.only(top: 1 * scale),
+                    child: Text(
+                      labelText,
+                      style: TextStyle(
+                        fontSize: 7.5 * scale,
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontWeight: FontWeight.w700,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withValues(alpha: 0.8),
+                            blurRadius: 4,
+                          ),
+                        ],
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
               ],
@@ -821,6 +899,220 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       );
     }
     return markers;
+  }
+
+  // ── 지붕 빌더 ──────────────────────────────────────────────────────────────
+  Widget _buildTowerRoof({
+    required double width,
+    required double height,
+    required Color color,
+    required int roofStyle,
+    required double scale,
+  }) {
+    switch (roofStyle) {
+      case 1: // 뾰족 지붕
+        return CustomPaint(
+          size: Size(width, height + 4 * scale),
+          painter: _PointedRoofPainter(color: color),
+        );
+      case 2: // 돔 지붕
+        return Container(
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.vertical(
+              top: Radius.elliptical(width * 0.5, height),
+            ),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                color.withValues(alpha: 0.9),
+                color.withValues(alpha: 0.4),
+              ],
+            ),
+          ),
+        );
+      case 3: // 평지붕
+        return Container(
+          width: width,
+          height: height * 0.5,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.7),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(2 * scale)),
+          ),
+        );
+      case 4: // 안테나
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 2 * scale,
+              height: 8 * scale,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(1),
+              ),
+            ),
+            Container(
+              width: width,
+              height: height * 0.5,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(3 * scale)),
+              ),
+            ),
+          ],
+        );
+      default: // 기본 둥근 지붕
+        return Container(
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(6 * scale)),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                color.withValues(alpha: 0.85),
+                color.withValues(alpha: 0.45),
+              ],
+            ),
+          ),
+        );
+    }
+  }
+
+  // ── 층 빌더 ────────────────────────────────────────────────────────────────
+  Widget _buildTowerFloor({
+    required double width,
+    required double height,
+    required Color color,
+    required double alpha,
+    required bool isBottom,
+    required double borderWidth,
+    required int floorIndex,
+    required int windowStyle,
+    required double scale,
+  }) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color.withValues(alpha: alpha),
+            const Color(0xFF1E293B).withValues(alpha: 0.85),
+          ],
+        ),
+        border: Border(
+          left: BorderSide(color: color.withValues(alpha: 0.45), width: borderWidth),
+          right: BorderSide(color: color.withValues(alpha: 0.45), width: borderWidth),
+          bottom: isBottom
+              ? BorderSide(color: color.withValues(alpha: 0.45), width: borderWidth)
+              : BorderSide(
+                  color: Colors.white.withValues(alpha: 0.06),
+                  width: 0.5,
+                ),
+        ),
+        borderRadius: isBottom
+            ? BorderRadius.vertical(bottom: Radius.circular(3 * scale))
+            : null,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: _buildWindows(
+          windowStyle: windowStyle,
+          floorIndex: floorIndex,
+          scale: scale,
+        ),
+      ),
+    );
+  }
+
+  // ── 창문 빌더 ──────────────────────────────────────────────────────────────
+  List<Widget> _buildWindows({
+    required int windowStyle,
+    required int floorIndex,
+    required double scale,
+  }) {
+    final lit = (floorIndex * 7 + 3) % 3 != 0; // pseudo-random lit pattern
+    final lit2 = (floorIndex * 5 + 1) % 3 != 0;
+    final wSize = 3.0 * scale;
+
+    Widget window(bool isLit) {
+      final baseColor = isLit
+          ? const Color(0xFFFFFFCC).withValues(alpha: 0.75)
+          : const Color(0xFFFFFFCC).withValues(alpha: 0.15);
+      switch (windowStyle) {
+        case 1: // 원형 창문
+          return Container(
+            width: wSize,
+            height: wSize,
+            margin: EdgeInsets.symmetric(horizontal: 1.5 * scale),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: baseColor,
+              boxShadow: isLit
+                  ? [BoxShadow(color: baseColor.withValues(alpha: 0.5), blurRadius: 2 * scale)]
+                  : [],
+            ),
+          );
+        case 2: // 아치 창문
+          return Container(
+            width: wSize,
+            height: wSize + 1 * scale,
+            margin: EdgeInsets.symmetric(horizontal: 1.5 * scale),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(wSize * 0.5)),
+              color: baseColor,
+              boxShadow: isLit
+                  ? [BoxShadow(color: baseColor.withValues(alpha: 0.5), blurRadius: 2 * scale)]
+                  : [],
+            ),
+          );
+        case 3: // 모던 (가로로 넓은 슬릿)
+          return Container(
+            width: wSize * 1.8,
+            height: wSize * 0.6,
+            margin: EdgeInsets.symmetric(horizontal: 1 * scale),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(0.5 * scale),
+              color: baseColor,
+              boxShadow: isLit
+                  ? [BoxShadow(color: baseColor.withValues(alpha: 0.5), blurRadius: 2 * scale)]
+                  : [],
+            ),
+          );
+        default: // 사각 창문
+          return Container(
+            width: wSize,
+            height: wSize,
+            margin: EdgeInsets.symmetric(horizontal: 1.5 * scale),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(0.5 * scale),
+              color: baseColor,
+              boxShadow: isLit
+                  ? [BoxShadow(color: baseColor.withValues(alpha: 0.5), blurRadius: 2 * scale)]
+                  : [],
+            ),
+          );
+      }
+    }
+
+    return [window(lit), window(lit2)];
+  }
+
+  // ── hex 색상 파싱 ──────────────────────────────────────────────────────────
+  Color? _parseHexColor(String hex) {
+    if (hex.isEmpty || hex == '#FFD700') return null; // 기본값이면 null → 티어색 사용
+    try {
+      final clean = hex.replaceFirst('#', '');
+      if (clean.length == 6) return Color(int.parse('0xFF$clean'));
+    } catch (_) {}
+    return null;
   }
 
   Color _towerTierColor(TowerTier tier) {
@@ -3230,4 +3522,34 @@ class _MyTowerMarker extends StatelessWidget {
       },
     );
   }
+}
+
+// ── 뾰족 지붕 커스텀 페인터 ─────────────────────────────────────────────────
+class _PointedRoofPainter extends CustomPainter {
+  final Color color;
+  const _PointedRoofPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          color.withValues(alpha: 0.9),
+          color.withValues(alpha: 0.45),
+        ],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    final path = Path()
+      ..moveTo(size.width * 0.5, 0)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _PointedRoofPainter old) => old.color != color;
 }

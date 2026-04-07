@@ -437,6 +437,8 @@ class UserProfile {
   String towerColor; // 타워 글로우 색상 (hex, 기본 금색)
   String? towerAccentEmoji; // 타워 장식 이모지
   String? customTowerName; // 사용자 지정 타워 이름
+  int towerRoofStyle; // 지붕 스타일 (0=기본, 1=뾰족, 2=돔, 3=평지붕, 4=안테나)
+  int towerWindowStyle; // 창문 스타일 (0=사각, 1=원형, 2=아치, 3=모던)
 
   UserProfile({
     required this.id,
@@ -461,6 +463,8 @@ class UserProfile {
     this.towerColor = '#FFD700',
     this.towerAccentEmoji,
     this.customTowerName,
+    this.towerRoofStyle = 0,
+    this.towerWindowStyle = 0,
   }) : activityScore = activityScore ?? ActivityScore(),
        joinedAt = joinedAt ?? DateTime.now(),
        followingIds = followingIds ?? [],

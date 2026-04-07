@@ -51,6 +51,10 @@ class MapUser {
   final int rank;
   final String? username;
   final String? towerName; // 사용자 지정 타워 이름
+  final String towerColor; // 타워 커스텀 색상 (hex)
+  final String? towerAccentEmoji; // 타워 장식 이모지
+  final int towerRoofStyle; // 지붕 스타일
+  final int towerWindowStyle; // 창문 스타일
 
   const MapUser({
     required this.id,
@@ -62,6 +66,10 @@ class MapUser {
     required this.rank,
     this.username,
     this.towerName,
+    this.towerColor = '#FFD700',
+    this.towerAccentEmoji,
+    this.towerRoofStyle = 0,
+    this.towerWindowStyle = 0,
   });
 
   MapUser copyWith({int? rank}) => MapUser(
@@ -74,6 +82,10 @@ class MapUser {
     rank: rank ?? this.rank,
     username: username,
     towerName: towerName,
+    towerColor: towerColor,
+    towerAccentEmoji: towerAccentEmoji,
+    towerRoofStyle: towerRoofStyle,
+    towerWindowStyle: towerWindowStyle,
   );
 }
 
@@ -976,10 +988,18 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   // ── 타워 스킨 업데이트 ────────────────────────────────────────────────────
-  void updateTowerSkin({String? color, String? accentEmoji}) {
+  void updateTowerSkin({
+    String? color,
+    String? accentEmoji,
+    int? roofStyle,
+    int? windowStyle,
+  }) {
     if (color != null) _currentUser.towerColor = color;
     if (accentEmoji != null) _currentUser.towerAccentEmoji = accentEmoji;
+    if (roofStyle != null) _currentUser.towerRoofStyle = roofStyle;
+    if (windowStyle != null) _currentUser.towerWindowStyle = windowStyle;
     _saveToPrefs();
+    _saveUserToFirestore();
     notifyListeners();
   }
 
@@ -1119,6 +1139,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           _currentUser.towerAccentEmoji!,
         );
       }
+      prefs.setInt('towerRoofStyle', _currentUser.towerRoofStyle);
+      prefs.setInt('towerWindowStyle', _currentUser.towerWindowStyle);
       prefs.setBool(PrefKeys.isBrand, _currentUser.isBrand);
       if (_currentUser.brandName != null) {
         prefs.setString(PrefKeys.brandName, _currentUser.brandName!);
@@ -1307,6 +1329,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _rolloverMonthlySendCounterIfNeeded();
     _currentUser.towerColor = prefs.getString(PrefKeys.towerColor) ?? '#FFD700';
     _currentUser.towerAccentEmoji = prefs.getString(PrefKeys.towerAccentEmoji);
+    _currentUser.towerRoofStyle = prefs.getInt('towerRoofStyle') ?? 0;
+    _currentUser.towerWindowStyle = prefs.getInt('towerWindowStyle') ?? 0;
     _currentUser.isBrand = prefs.getBool(PrefKeys.isBrand) ?? false;
     _currentUser.isPremium = prefs.getBool(PrefKeys.purchaseIsPremium) ?? false;
     _currentUser.brandName = prefs.getString(PrefKeys.brandName);
@@ -1557,6 +1581,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           'updatedAt': {'stringValue': DateTime.now().toIso8601String()},
           if (_currentUser.customTowerName != null)
             'customTowerName': {'stringValue': _currentUser.customTowerName!},
+          'towerColor': {'stringValue': _currentUser.towerColor},
+          if (_currentUser.towerAccentEmoji != null)
+            'towerAccentEmoji': {'stringValue': _currentUser.towerAccentEmoji!},
+          'towerRoofStyle': {'integerValue': '${_currentUser.towerRoofStyle}'},
+          'towerWindowStyle': {'integerValue': '${_currentUser.towerWindowStyle}'},
         },
       });
       for (int attempt = 0; attempt < 3; attempt++) {
@@ -2457,6 +2486,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
             final towerNameRaw = parseString(fields, 'customTowerName');
             final towerName = towerNameRaw.isEmpty ? null : towerNameRaw;
+            final towerColorRaw = parseString(fields, 'towerColor', fallback: '#FFD700');
+            final towerAccentRaw = parseString(fields, 'towerAccentEmoji');
+            final towerAccent = towerAccentRaw.isEmpty ? null : towerAccentRaw;
 
             users.add(
               MapUser(
@@ -2469,6 +2501,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
                 rank: 0,
                 username: isPublic ? username : null,
                 towerName: towerName,
+                towerColor: towerColorRaw,
+                towerAccentEmoji: towerAccent,
+                towerRoofStyle: parseInt(fields, 'towerRoofStyle'),
+                towerWindowStyle: parseInt(fields, 'towerWindowStyle'),
               ),
             );
             if (users.length >= _mapUsersMaxCount) break;

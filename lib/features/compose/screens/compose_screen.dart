@@ -126,11 +126,12 @@ class _ComposeScreenState extends State<ComposeScreen>
   // ── 브랜드 대량 발송 ──────────────────────────────────────────────────────
   bool _isBulkMode = false; // 대량 발송 모드 여부
   final List<Map<String, dynamic>> _bulkTargets = []; // 선택된 나라 목록
-  int _bulkSendCount = 1; // 나라당 발송 횟수
 
   // ── 브랜드 특송 ───────────────────────────────────────────────────────────
   bool _isExpressMode = false; // 특송 모드 여부
-  int _expressCount = 5; // 발송할 주소 수 (3~10)
+
+  // ── 나라당 발송 수 (통합) ─────────────────────────────────────────────────
+  int _sendPerCountry = 5; // 나라당 발송 수 (1~50)
 
   // ── 브랜드 고급 옵션 ──────────────────────────────────────────────────────
   bool _brandUniquePerUser = false; // 1 아이디당 1 편지
@@ -460,7 +461,7 @@ class _ComposeScreenState extends State<ComposeScreen>
           content: content,
           destinationCountry: target['country'] as String,
           destinationFlag: target['flag'] as String,
-          count: _expressCount,
+          count: _sendPerCountry,
           deliveryEmoji: _deliveryEmojiEncoded,
           socialLink: _attachSocial && _socialLinkController.text.isNotEmpty
               ? _socialLinkController.text.trim()
@@ -479,7 +480,7 @@ class _ComposeScreenState extends State<ComposeScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              l10n.composeExpressBulkSent(_bulkTargets.length, _expressCount, totalSent),
+              l10n.composeExpressBulkSent(_bulkTargets.length, _sendPerCountry, totalSent),
               style: const TextStyle(color: Colors.white),
             ),
             backgroundColor: const Color(0xFF1A1A2A),
@@ -510,7 +511,7 @@ class _ComposeScreenState extends State<ComposeScreen>
       final totalSent = await state.sendBulkLetter(
         content: content,
         targets: _bulkTargets,
-        sendCount: _bulkSendCount,
+        sendCount: _sendPerCountry,
         socialLink: _attachSocial && _socialLinkController.text.isNotEmpty
             ? _socialLinkController.text.trim()
             : null,
@@ -1960,7 +1961,7 @@ class _ComposeScreenState extends State<ComposeScreen>
           const SizedBox(height: 8),
           Text(
             _selectedCountry.isNotEmpty
-                ? l10n.composeExpressSummary(_selectedFlag, CountryL10n.localizedName(_selectedCountry, langCode), _expressCount)
+                ? l10n.composeExpressSummary(_selectedFlag, CountryL10n.localizedName(_selectedCountry, langCode), _sendPerCountry)
                 : l10n.composeSelectCountryAbove,
             style: TextStyle(
               color: _selectedCountry.isNotEmpty
@@ -2061,76 +2062,88 @@ class _ComposeScreenState extends State<ComposeScreen>
               ),
             ),
           ),
-          // 특송 ON → 나라당 주소 수 선택
-          if (_isExpressMode) ...[
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Text(
-                  '⚡ ${l10n.composeAddressPerCountry}',
-                  style: const TextStyle(
-                    color: Color(0xFFFFD700),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
+          // 나라당 발송 수
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Text(
+                _isExpressMode
+                    ? '⚡ ${l10n.composeSendPerCountry}'
+                    : '📮 ${l10n.composeSendPerCountry}',
+                style: TextStyle(
+                  color: _isExpressMode
+                      ? const Color(0xFFFFD700)
+                      : AppColors.textPrimary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
                 ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () => setState(() {
-                    if (_expressCount > 3) _expressCount--;
-                  }),
-                  child: Container(
-                    width: 26,
-                    height: 26,
-                    decoration: BoxDecoration(
-                      color: AppColors.bgDeep,
-                      borderRadius: BorderRadius.circular(7),
-                      border: Border.all(
-                        color: const Color(0xFFFFD700).withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.remove,
-                      size: 13,
-                      color: Color(0xFFFFD700),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Text(
-                    l10n.composeCountUnit(_expressCount),
-                    style: const TextStyle(
-                      color: Color(0xFFFFD700),
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
+              ),
+              const Spacer(),
+              GestureDetector(
+                onTap: () => setState(() {
+                  if (_sendPerCountry > 1) _sendPerCountry--;
+                }),
+                child: Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: AppColors.bgDeep,
+                    borderRadius: BorderRadius.circular(7),
+                    border: Border.all(
+                      color: _isExpressMode
+                          ? const Color(0xFFFFD700).withValues(alpha: 0.3)
+                          : AppColors.textMuted.withValues(alpha: 0.3),
                     ),
                   ),
-                ),
-                GestureDetector(
-                  onTap: () => setState(() {
-                    if (_expressCount < 10) _expressCount++;
-                  }),
-                  child: Container(
-                    width: 26,
-                    height: 26,
-                    decoration: BoxDecoration(
-                      color: AppColors.bgDeep,
-                      borderRadius: BorderRadius.circular(7),
-                      border: Border.all(
-                        color: const Color(0xFFFFD700).withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.add,
-                      size: 13,
-                      color: Color(0xFFFFD700),
-                    ),
+                  child: Icon(
+                    Icons.remove,
+                    size: 14,
+                    color: _isExpressMode
+                        ? const Color(0xFFFFD700)
+                        : AppColors.textSecondary,
                   ),
                 ),
-              ],
-            ),
-          ],
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Text(
+                  l10n.composeCountUnit(_sendPerCountry),
+                  style: TextStyle(
+                    color: _isExpressMode
+                        ? const Color(0xFFFFD700)
+                        : AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: () => setState(() {
+                  if (_sendPerCountry < 50) _sendPerCountry++;
+                }),
+                child: Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: AppColors.bgDeep,
+                    borderRadius: BorderRadius.circular(7),
+                    border: Border.all(
+                      color: _isExpressMode
+                          ? const Color(0xFFFFD700).withValues(alpha: 0.3)
+                          : AppColors.textMuted.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.add,
+                    size: 14,
+                    color: _isExpressMode
+                        ? const Color(0xFFFFD700)
+                        : AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
           // 헤더
           Row(
@@ -2216,74 +2229,6 @@ class _ComposeScreenState extends State<ComposeScreen>
               );
             }).toList(),
           ),
-          const SizedBox(height: 14),
-          // 나라당 발송 횟수
-          Row(
-            children: [
-              Text(
-                '📮 ${l10n.composeSendPerCountry}',
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const Spacer(),
-              GestureDetector(
-                onTap: () => setState(() {
-                  if (_bulkSendCount > 1) _bulkSendCount--;
-                }),
-                child: Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: AppColors.bgSurface,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: AppColors.textMuted.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: const Icon(
-                    Icons.remove,
-                    size: 16,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text(
-                  '$_bulkSendCount',
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              GestureDetector(
-                onTap: () => setState(() {
-                  if (_bulkSendCount < 10) _bulkSendCount++;
-                }),
-                child: Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: AppColors.bgSurface,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: AppColors.textMuted.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: const Icon(
-                    Icons.add,
-                    size: 16,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ),
-            ],
-          ),
           const SizedBox(height: 10),
           // 총 발송 요약
           if (_bulkTargets.isNotEmpty)
@@ -2300,8 +2245,8 @@ class _ComposeScreenState extends State<ComposeScreen>
                 children: [
                   Text(
                     _isExpressMode
-                        ? l10n.composeBulkExpressSummary(_bulkTargets.length * _expressCount, _bulkTargets.length, _expressCount)
-                        : l10n.composeBulkSendSummary(_bulkTargets.length * _bulkSendCount, _bulkTargets.length, _bulkSendCount),
+                        ? l10n.composeBulkExpressSummary(_bulkTargets.length * _sendPerCountry, _bulkTargets.length, _sendPerCountry)
+                        : l10n.composeBulkSendSummary(_bulkTargets.length * _sendPerCountry, _bulkTargets.length, _sendPerCountry),
                     style: TextStyle(
                       color: _isExpressMode
                           ? const Color(0xFFFFD700)
