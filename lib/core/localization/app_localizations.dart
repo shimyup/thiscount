@@ -13913,21 +13913,125 @@ class AppL10n {
   // ── Auth: Phone Number & Verify Method ──────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
 
-  String get authPhoneOptional => _t({
-    'ko': '핸드폰 번호 (선택)',
-    'en': 'Phone Number (Optional)',
-    'ja': '電話番号（任意）',
-    'zh': '手机号码（可选）',
-    'fr': 'Numéro de téléphone (facultatif)',
-    'de': 'Telefonnummer (optional)',
-    'es': 'Número de teléfono (opcional)',
-    'pt': 'Número de telefone (opcional)',
-    'ru': 'Номер телефона (необязательно)',
-    'tr': 'Telefon numarası (isteğe bağlı)',
-    'ar': 'رقم الهاتف (اختياري)',
-    'it': 'Numero di telefono (facoltativo)',
-    'hi': 'फ़ोन नंबर (वैकल्पिक)',
-    'th': 'หมายเลขโทรศัพท์ (ไม่บังคับ)',
+  String get authPhoneOptional => authPhoneRequired; // backward compat
+
+  String get authPhoneRequired => _t({
+    'ko': '핸드폰 번호 (필수)',
+    'en': 'Phone Number (Required)',
+    'ja': '電話番号（必須）',
+    'zh': '手机号码（必填）',
+    'fr': 'Numéro de téléphone (obligatoire)',
+    'de': 'Telefonnummer (erforderlich)',
+    'es': 'Número de teléfono (obligatorio)',
+    'pt': 'Número de telefone (obrigatório)',
+    'ru': 'Номер телефона (обязательно)',
+    'tr': 'Telefon numarası (zorunlu)',
+    'ar': 'رقم الهاتف (مطلوب)',
+    'it': 'Numero di telefono (obbligatorio)',
+    'hi': 'फ़ोन नंबर (आवश्यक)',
+    'th': 'หมายเลขโทรศัพท์ (จำเป็น)',
+  });
+
+  String get authPhoneHint => _t({
+    'ko': '국가코드가 자동으로 추가됩니다',
+    'en': 'Country code is added automatically',
+    'ja': '国番号は自動的に追加されます',
+    'zh': '国家代码会自动添加',
+    'fr': 'L\'indicatif pays est ajouté automatiquement',
+    'de': 'Landesvorwahl wird automatisch hinzugefügt',
+    'es': 'El código de país se agrega automáticamente',
+    'pt': 'O código do país é adicionado automaticamente',
+    'ru': 'Код страны добавляется автоматически',
+    'tr': 'Ülke kodu otomatik olarak eklenir',
+    'ar': 'يتم إضافة رمز الدولة تلقائيًا',
+    'it': 'Il prefisso internazionale viene aggiunto automaticamente',
+    'hi': 'देश कोड स्वचालित रूप से जोड़ा जाता है',
+    'th': 'รหัสประเทศจะถูกเพิ่มโดยอัตโนมัติ',
+  });
+
+  String get authPhoneRequiredMsg => _t({
+    'ko': '핸드폰 번호를 입력해주세요',
+    'en': 'Please enter your phone number',
+    'ja': '電話番号を入力してください',
+    'zh': '请输入手机号码',
+    'fr': 'Veuillez entrer votre numéro de téléphone',
+    'de': 'Bitte geben Sie Ihre Telefonnummer ein',
+    'es': 'Ingrese su número de teléfono',
+    'pt': 'Insira seu número de telefone',
+    'ru': 'Введите номер телефона',
+    'tr': 'Lütfen telefon numaranızı girin',
+    'ar': 'يرجى إدخال رقم هاتفك',
+    'it': 'Inserisci il tuo numero di telefono',
+    'hi': 'कृपया अपना फ़ोन नंबर दर्ज करें',
+    'th': 'กรุณากรอกหมายเลขโทรศัพท์',
+  });
+
+  String get authPhoneInvalid => _t({
+    'ko': '올바른 전화번호를 입력해주세요',
+    'en': 'Please enter a valid phone number',
+    'ja': '有効な電話番号を入力してください',
+    'zh': '请输入有效的手机号码',
+    'fr': 'Veuillez entrer un numéro valide',
+    'de': 'Bitte geben Sie eine gültige Nummer ein',
+    'es': 'Ingrese un número de teléfono válido',
+    'pt': 'Insira um número de telefone válido',
+    'ru': 'Введите правильный номер телефона',
+    'tr': 'Geçerli bir telefon numarası girin',
+    'ar': 'يرجى إدخال رقم هاتف صالح',
+    'it': 'Inserisci un numero di telefono valido',
+    'hi': 'कृपया एक वैध फ़ोन नंबर दर्ज करें',
+    'th': 'กรุณากรอกหมายเลขโทรศัพท์ที่ถูกต้อง',
+  });
+
+  String get authSelectCountryCode => _t({
+    'ko': '국가코드 선택',
+    'en': 'Select Country Code',
+    'ja': '国番号を選択',
+    'zh': '选择国家代码',
+    'fr': 'Sélectionner l\'indicatif',
+    'de': 'Landesvorwahl wählen',
+    'es': 'Seleccionar código de país',
+    'pt': 'Selecionar código do país',
+    'ru': 'Выберите код страны',
+    'tr': 'Ülke kodu seçin',
+    'ar': 'اختر رمز الدولة',
+    'it': 'Seleziona prefisso',
+    'hi': 'देश कोड चुनें',
+    'th': 'เลือกรหัสประเทศ',
+  });
+
+  String get authSmsVerification => _t({
+    'ko': 'SMS 인증',
+    'en': 'SMS Verification',
+    'ja': 'SMS認証',
+    'zh': '短信验证',
+    'fr': 'Vérification SMS',
+    'de': 'SMS-Verifizierung',
+    'es': 'Verificación SMS',
+    'pt': 'Verificação SMS',
+    'ru': 'SMS-верификация',
+    'tr': 'SMS Doğrulama',
+    'ar': 'التحقق عبر SMS',
+    'it': 'Verifica SMS',
+    'hi': 'SMS सत्यापन',
+    'th': 'ยืนยันทาง SMS',
+  });
+
+  String authOtpSentSms(String phone) => _t({
+    'ko': '$phone 으로 인증번호가 발송되었습니다',
+    'en': 'A verification code has been sent to $phone',
+    'ja': '$phone に認証コードを送信しました',
+    'zh': '验证码已发送至 $phone',
+    'fr': 'Un code a été envoyé au $phone',
+    'de': 'Ein Code wurde an $phone gesendet',
+    'es': 'Se envió un código a $phone',
+    'pt': 'Um código foi enviado para $phone',
+    'ru': 'Код отправлен на $phone',
+    'tr': '$phone numarasına kod gönderildi',
+    'ar': 'تم إرسال رمز التحقق إلى $phone',
+    'it': 'Un codice è stato inviato a $phone',
+    'hi': '$phone पर सत्यापन कोड भेजा गया है',
+    'th': 'รหัสยืนยันถูกส่งไปที่ $phone',
   });
 
   String get authVerifyMethodTitle => _t({

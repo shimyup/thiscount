@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/services/sms_service.dart';
 import '../../../core/localization/language_config.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/localization/country_names.dart';
@@ -1078,10 +1079,29 @@ class _SignupTabState extends State<_SignupTab> {
   bool _agreeTerms = false; // 이용약관 + 커뮤니티 가이드라인 동의
   bool _agreeLocation = false; // 동의 체크
 
-  // ── 핸드폰 번호 + 인증 수단 선택 ──
+  // ── 핸드폰 번호 (필수) + 국가코드 + 인증 수단 선택 ──
   final _phoneCtrl = TextEditingController();
+  String _selectedCountryCode = '+82'; // 국가번호 기본값
   String _verifyMethod = 'email'; // 'email' or 'phone'
+  String? _phoneError; // 전화번호 검증 에러
   bool _locationGranted = false; // 실제 OS 권한 허용 여부
+
+  /// 국가별 전화번호 국가코드 맵
+  static const _countryCodes = {
+    '대한민국': '+82',
+    '일본': '+81',
+    '미국': '+1',
+    '프랑스': '+33',
+    '영국': '+44',
+    '독일': '+49',
+    '이탈리아': '+39',
+    '스페인': '+34',
+    '브라질': '+55',
+    '인도': '+91',
+    '중국': '+86',
+    '호주': '+61',
+    '캐나다': '+1',
+  };
 
   // ── 이메일 인증 OTP 상태 ──
   bool _showOtpScreen = false; // OTP 입력 화면 표시 여부
@@ -1091,8 +1111,9 @@ class _SignupTabState extends State<_SignupTab> {
   int _otpCountdown = 0; // 남은 시간 (초)
   Timer? _otpTimer; // 타이머
 
-  // 가입 버튼 활성화 조건
-  bool get _canSignUp => _agreePrivacy && _agreeTerms && !_isLoading;
+  // 가입 버튼 활성화 조건 (개인정보 동의 + 이용약관 동의 + 전화번호 입력)
+  bool get _canSignUp =>
+      _agreePrivacy && _agreeTerms && _phoneCtrl.text.trim().isNotEmpty && !_isLoading;
 
   @override
   void initState() {
@@ -1101,6 +1122,12 @@ class _SignupTabState extends State<_SignupTab> {
     // 실시간 검증 리스너
     _usernameCtrl.addListener(_validateUsername);
     _passCtrl.addListener(_validatePassword);
+    _phoneCtrl.addListener(_onPhoneChanged);
+  }
+
+  void _onPhoneChanged() {
+    // _canSignUp 갱신 (전화번호 입력 여부에 따라 버튼 활성화)
+    setState(() {});
   }
 
   Future<void> _loadOnboardingCountry() async {
@@ -1109,6 +1136,7 @@ class _SignupTabState extends State<_SignupTab> {
       setState(() {
         _selectedCountry = data['country'] ?? '대한민국';
         _selectedFlag = data['countryFlag'] ?? '🇰🇷';
+        _selectedCountryCode = _countryCodes[_selectedCountry] ?? '+82';
       });
     }
   }
@@ -1154,6 +1182,14 @@ class _SignupTabState extends State<_SignupTab> {
   String get _langCode => LanguageConfig.getLanguageCode(_selectedCountry);
   AppL10n get _l10n => AppL10n.of(_langCode);
 
+  /// 전체 전화번호 (E.164 형식) 생성
+  String get _fullPhoneNumber {
+    return SmsService.normalizePhoneNumber(
+      _phoneCtrl.text.trim(),
+      _selectedCountryCode,
+    );
+  }
+
   /// Step 1: 폼 검증 후 OTP 발송 화면으로 전환
   Future<void> _signUp() async {
     final l10n = _l10n;
@@ -1176,6 +1212,19 @@ class _SignupTabState extends State<_SignupTab> {
       setState(() => _error = emailErr);
       return;
     }
+    // 전화번호 필수 검증
+    final phoneVal = _phoneCtrl.text.trim();
+    if (phoneVal.isEmpty) {
+      setState(() => _error = l10n.authPhoneRequiredMsg);
+      return;
+    }
+    // 최소 자릿수 검증 (국가코드 제외 6자리 이상)
+    final digitsOnly = phoneVal.replaceAll(RegExp(r'[^\d]'), '');
+    if (digitsOnly.length < 6) {
+      setState(() => _error = l10n.authPhoneInvalid);
+      return;
+    }
+
     final taken = await AuthService.isEmailTaken(emailVal);
     if (taken) {
       setState(() => _error = l10n.authEmailTaken);
@@ -1187,29 +1236,60 @@ class _SignupTabState extends State<_SignupTab> {
       _error = null;
     });
 
-    // OTP 생성 (rate limit 초과 시 null 반환)
-    final code = AuthService.generateEmailOtp(emailVal);
+    // 인증 수단에 따라 OTP 발송 방법 분기
+    if (_verifyMethod == 'phone') {
+      // SMS OTP 발송
+      final fullPhone = _fullPhoneNumber;
+      final code = await AuthService.generatePhoneOtp(
+        fullPhone,
+        langCode: _langCode,
+      );
 
-    if (!mounted) return;
-    if (code == null) {
-      final cooldown = AuthService.otpCooldownSecondsRemaining;
+      if (!mounted) return;
+      if (code == null) {
+        final cooldown = AuthService.otpCooldownSecondsRemaining;
+        setState(() {
+          _isLoading = false;
+          _error = cooldown > 0
+              ? l10n.authOtpRetryLater(cooldown)
+              : l10n.authOtpLimitExceeded;
+        });
+        return;
+      }
+
       setState(() {
         _isLoading = false;
-        _error = cooldown > 0
-            ? l10n.authOtpRetryLater(cooldown)
-            : l10n.authOtpLimitExceeded;
+        _showOtpScreen = true;
+        _devOtpCode = code;
+        _otpError = null;
+        _otpCountdown = AuthService.otpRemainingSeconds;
       });
-      return;
-    }
+      _startOtpTimer();
+    } else {
+      // 이메일 OTP 발송
+      final code = AuthService.generateEmailOtp(emailVal);
 
-    setState(() {
-      _isLoading = false;
-      _showOtpScreen = true;
-      _devOtpCode = code; // 개발용 표시 (배포시 제거)
-      _otpError = null;
-      _otpCountdown = AuthService.otpRemainingSeconds;
-    });
-    _startOtpTimer();
+      if (!mounted) return;
+      if (code == null) {
+        final cooldown = AuthService.otpCooldownSecondsRemaining;
+        setState(() {
+          _isLoading = false;
+          _error = cooldown > 0
+              ? l10n.authOtpRetryLater(cooldown)
+              : l10n.authOtpLimitExceeded;
+        });
+        return;
+      }
+
+      setState(() {
+        _isLoading = false;
+        _showOtpScreen = true;
+        _devOtpCode = code;
+        _otpError = null;
+        _otpCountdown = AuthService.otpRemainingSeconds;
+      });
+      _startOtpTimer();
+    }
   }
 
   /// Step 2: OTP 확인 후 실제 회원가입 완료
@@ -1222,7 +1302,14 @@ class _SignupTabState extends State<_SignupTab> {
       return;
     }
 
-    final otpErr = AuthService.verifyEmailOtp(emailVal, otpVal);
+    // 인증 수단에 따라 OTP 검증 방법 분기
+    String? otpErr;
+    if (_verifyMethod == 'phone') {
+      otpErr = AuthService.verifyPhoneOtp(_fullPhoneNumber, otpVal, langCode: _langCode);
+    } else {
+      otpErr = AuthService.verifyEmailOtp(emailVal, otpVal, langCode: _langCode);
+    }
+
     if (otpErr != null) {
       setState(() => _otpError = otpErr);
       return;
@@ -1242,7 +1329,7 @@ class _SignupTabState extends State<_SignupTab> {
       countryFlag: _selectedFlag,
       languageCode: LanguageConfig.getLanguageCode(_selectedCountry),
       socialLink: _socialCtrl.text.isNotEmpty ? _socialCtrl.text : null,
-      phoneNumber: _phoneCtrl.text.isNotEmpty ? _phoneCtrl.text : null,
+      phoneNumber: _fullPhoneNumber,
       verifyMethod: _verifyMethod,
     );
 
@@ -1260,11 +1347,20 @@ class _SignupTabState extends State<_SignupTab> {
     if (user != null) await widget.onSignupSuccess(user);
   }
 
-  /// OTP 재발송
-  void _resendOtp() {
+  /// OTP 재발송 (이메일 또는 SMS)
+  Future<void> _resendOtp() async {
     _otpTimer?.cancel();
-    final emailVal = _emailCtrl.text.trim();
-    final code = AuthService.generateEmailOtp(emailVal);
+
+    String? code;
+    if (_verifyMethod == 'phone') {
+      code = await AuthService.generatePhoneOtp(
+        _fullPhoneNumber,
+        langCode: _langCode,
+      );
+    } else {
+      code = AuthService.generateEmailOtp(_emailCtrl.text.trim());
+    }
+
     if (code == null) {
       final cooldown = AuthService.otpCooldownSecondsRemaining;
       setState(() {
@@ -1294,6 +1390,90 @@ class _SignupTabState extends State<_SignupTab> {
       setState(() => _otpCountdown = remaining);
       if (remaining <= 0) timer.cancel();
     });
+  }
+
+  /// 국가코드 선택 바텀시트
+  void _showCountryCodePicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.bgCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return Container(
+          constraints: const BoxConstraints(maxHeight: 400),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    const Icon(Icons.public_rounded, color: AppColors.teal, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      _l10n.authSelectCountryCode,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: ListView.separated(
+                  itemCount: _countries.length,
+                  separatorBuilder: (_, __) => const Divider(
+                    height: 1,
+                    color: Color(0xFF1F2D44),
+                  ),
+                  itemBuilder: (_, i) {
+                    final country = _countries[i];
+                    final name = country['name']!;
+                    final flag = country['flag']!;
+                    final code = _countryCodes[name] ?? '+1';
+                    final isSelected = code == _selectedCountryCode;
+                    return ListTile(
+                      leading: Text(flag, style: const TextStyle(fontSize: 24)),
+                      title: Text(
+                        CountryL10n.localizedName(name, _langCode),
+                        style: TextStyle(
+                          color: isSelected ? AppColors.teal : AppColors.textPrimary,
+                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
+                          fontSize: 14,
+                        ),
+                      ),
+                      trailing: Text(
+                        code,
+                        style: TextStyle(
+                          color: isSelected ? AppColors.teal : AppColors.textSecondary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
+                      onTap: () {
+                        setState(() {
+                          _selectedCountryCode = code;
+                          // 국가 선택도 동기화
+                          _selectedCountry = name;
+                          _selectedFlag = flag;
+                        });
+                        Navigator.pop(ctx);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   /// 위치 동의 체크박스 탭 → OS 권한 요청
@@ -1468,13 +1648,124 @@ class _SignupTabState extends State<_SignupTab> {
           ),
           const SizedBox(height: 12),
 
-          // ── 5-1. 핸드폰 번호 (선택) ────────────────────────────────────────
-          _InputField(
-            controller: _phoneCtrl,
-            label: l10n.authPhoneOptional,
-            hint: '+82 10-1234-5678',
-            icon: Icons.phone_rounded,
-            keyboardType: TextInputType.phone,
+          // ── 5-1. 핸드폰 번호 (필수, 국가코드 포함) ─────────────────────────
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.authPhoneRequired,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 국가코드 드롭다운
+                  GestureDetector(
+                    onTap: _showCountryCodePicker,
+                    child: Container(
+                      width: 90,
+                      height: 50,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        color: AppColors.bgCard,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF1F2D44)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            _selectedFlag,
+                            style: const TextStyle(fontSize: 18),
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              _selectedCountryCode,
+                              style: const TextStyle(
+                                color: AppColors.textPrimary,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          const Icon(
+                            Icons.arrow_drop_down_rounded,
+                            size: 18,
+                            color: AppColors.textMuted,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // 전화번호 입력 필드
+                  Expanded(
+                    child: TextField(
+                      controller: _phoneCtrl,
+                      keyboardType: TextInputType.phone,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 15,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: '10-1234-5678',
+                        hintStyle: TextStyle(
+                          color: AppColors.textMuted.withValues(alpha: 0.5),
+                          fontSize: 15,
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.phone_rounded,
+                          size: 18,
+                          color: AppColors.textMuted,
+                        ),
+                        filled: true,
+                        fillColor: AppColors.bgCard,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 14,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF1F2D44)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF1F2D44)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: AppColors.teal,
+                            width: 1.5,
+                          ),
+                        ),
+                        errorText: _phoneError,
+                        errorStyle: const TextStyle(
+                          color: Colors.red,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                l10n.authPhoneHint,
+                style: TextStyle(
+                  color: AppColors.textMuted.withValues(alpha: 0.6),
+                  fontSize: 11,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
 
@@ -1560,19 +1851,6 @@ class _SignupTabState extends State<_SignupTab> {
                     Expanded(
                       child: GestureDetector(
                         onTap: () {
-                          if (_phoneCtrl.text.trim().isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(l10n.authPhoneRequiredForSms),
-                                backgroundColor: AppColors.bgCard,
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            );
-                            return;
-                          }
                           setState(() => _verifyMethod = 'phone');
                         },
                         child: Container(
@@ -1745,14 +2023,18 @@ class _SignupTabState extends State<_SignupTab> {
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    Icons.mark_email_read_rounded,
+                    _verifyMethod == 'phone'
+                        ? Icons.sms_rounded
+                        : Icons.mark_email_read_rounded,
                     size: 32,
                     color: AppColors.teal,
                   ),
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  l10n.authEmailVerification,
+                  _verifyMethod == 'phone'
+                      ? l10n.authSmsVerification
+                      : l10n.authEmailVerification,
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 22,
@@ -1761,7 +2043,9 @@ class _SignupTabState extends State<_SignupTab> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  l10n.authOtpSent(email),
+                  _verifyMethod == 'phone'
+                      ? l10n.authOtpSentSms(_fullPhoneNumber)
+                      : l10n.authOtpSent(email),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: AppColors.textSecondary,
@@ -2245,6 +2529,7 @@ class _SignupTabState extends State<_SignupTab> {
                         setState(() {
                           _selectedCountry = c['name']!;
                           _selectedFlag = c['flag']!;
+                          _selectedCountryCode = _countryCodes[c['name']!] ?? '+1';
                         });
                         Navigator.pop(ctx);
                         // 언어 안내 스낵바

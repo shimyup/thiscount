@@ -43,4 +43,28 @@ class FirebaseConfig {
   // FCM API URL (v1)
   static String get fcmBase =>
       'https://fcm.googleapis.com/v1/projects/$projectId/messages:send';
+
+  // ── Twilio SMS 설정 ──────────────────────────────────────────────────────
+  // 빌드 시 dart-define 으로 주입:
+  //   --dart-define=TWILIO_ACCOUNT_SID=ACxxxxxxxxxx
+  //   --dart-define=TWILIO_AUTH_TOKEN=xxxxxxxxxx
+  //   --dart-define=TWILIO_FROM_NUMBER=+1xxxxxxxxxx
+
+  /// Twilio Account SID
+  static const String twilioAccountSid = String.fromEnvironment(
+    'TWILIO_ACCOUNT_SID',
+    defaultValue: '',
+  );
+
+  /// Twilio Auth Token
+  static const String twilioAuthToken = String.fromEnvironment(
+    'TWILIO_AUTH_TOKEN',
+    defaultValue: '',
+  );
+
+  /// Twilio 발신 번호 (E.164 형식, 예: +15551234567)
+  static const String twilioFromNumber = String.fromEnvironment(
+    'TWILIO_FROM_NUMBER',
+    defaultValue: '',
+  );
 }

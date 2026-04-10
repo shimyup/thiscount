@@ -10,6 +10,7 @@ import '../config/firebase_config.dart';
 import '../localization/language_config.dart';
 import 'firebase_auth_service.dart';
 import 'purchase_service.dart';
+import 'sms_service.dart';
 
 /// Auth error message localization helper.
 /// Returns localized string for a given key based on language code.
@@ -41,6 +42,17 @@ const Map<String, Map<String, String>> _authMessages = {
     'de': 'E-Mail stimmt nicht überein.',
     'pt': 'O e-mail não corresponde.',
     'ru': 'Email не совпадает.',
+  },
+  'otp_phone_mismatch': {
+    'ko': '전화번호가 일치하지 않습니다.',
+    'en': 'Phone number does not match.',
+    'ja': '電話番号が一致しません。',
+    'zh': '手机号码不匹配。',
+    'es': 'El número de teléfono no coincide.',
+    'fr': 'Le numéro de téléphone ne correspond pas.',
+    'de': 'Telefonnummer stimmt nicht überein.',
+    'pt': 'O número de telefone não corresponde.',
+    'ru': 'Номер телефона не совпадает.',
   },
   'otp_expired': {
     'ko': '인증 코드가 만료되었습니다. 다시 요청해주세요.',
@@ -391,6 +403,100 @@ class AuthService {
     if (_otpExpiresAt == null) return 0;
     final remaining = _otpExpiresAt!.difference(DateTime.now()).inSeconds;
     return remaining.clamp(0, 600);
+  }
+
+  // ── SMS OTP ───────────────────────────────────────────────────────────────
+  static String? _pendingPhoneOtpHash;
+  static String? _pendingOtpPhone;
+
+  /// SMS로 6자리 OTP 생성 및 발송.
+  /// Rate limit은 이메일 OTP와 공유 (동일 윈도우).
+  /// [phoneNumber]는 E.164 형식 (예: +821012345678).
+  /// 성공 시 코드 반환 (개발용), 실패 시 null.
+  static Future<String?> generatePhoneOtp(
+    String phoneNumber, {
+    String langCode = 'en',
+  }) async {
+    final now = DateTime.now();
+
+    // 윈도우 리셋 (10분 경과)
+    if (_otpWindowStart == null ||
+        now.difference(_otpWindowStart!) >= _otpWindowDuration) {
+      _otpWindowStart = now;
+      _otpRequestCount = 0;
+    }
+
+    // 쿨다운 체크 (마지막 요청으로부터 60초)
+    if (_lastOtpSentAt != null &&
+        now.difference(_lastOtpSentAt!) < _otpCooldownDuration) {
+      return null; // 쿨다운 중
+    }
+
+    // 윈도우 내 최대 요청 횟수 초과
+    if (_otpRequestCount >= _maxOtpRequestsPerWindow) {
+      return null; // Rate limit 초과
+    }
+
+    _otpRequestCount++;
+    _lastOtpSentAt = now;
+
+    final rng = Random.secure();
+    final code = List.generate(6, (_) => rng.nextInt(10)).join();
+    _pendingPhoneOtpHash = _hashOtp(code);
+    _pendingOtpPhone = phoneNumber.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+    _otpExpiresAt = now.add(_otpTtl);
+
+    // Twilio를 통한 실제 SMS 발송
+    final smsError = await SmsService.sendOtp(
+      phoneNumber: _pendingOtpPhone!,
+      code: code,
+      langCode: langCode,
+    );
+
+    if (smsError != null) {
+      assert(() {
+        debugPrint('[AuthService] SMS 발송 실패: $smsError');
+        return true;
+      }());
+      // SMS 발송 실패해도 개발 환경에서는 코드 반환 (화면 표시용)
+      // 프로덕션에서는 return null; 로 변경
+    }
+
+    assert(() {
+      final masked = phoneNumber.length > 4
+          ? '${'*' * (phoneNumber.length - 4)}${phoneNumber.substring(phoneNumber.length - 4)}'
+          : '****';
+      debugPrint(
+        '[AuthService] SMS 인증 코드 발송: $masked (10분 유효, 이번 윈도우 $_otpRequestCount/$_maxOtpRequestsPerWindow)',
+      );
+      return true;
+    }());
+    return code;
+  }
+
+  /// SMS OTP 검증. null = 성공, 문자열 = 오류 메시지.
+  static String? verifyPhoneOtp(String phoneNumber, String otp, {String langCode = 'en'}) {
+    final cleaned = phoneNumber.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+    if (_pendingPhoneOtpHash == null || _pendingOtpPhone == null) {
+      return _authMsg('otp_not_found', langCode);
+    }
+    if (_pendingOtpPhone != cleaned) {
+      return _authMsg('otp_phone_mismatch', langCode);
+    }
+    if (_otpExpiresAt == null || DateTime.now().isAfter(_otpExpiresAt!)) {
+      _pendingPhoneOtpHash = null;
+      _pendingOtpPhone = null;
+      _otpExpiresAt = null;
+      return _authMsg('otp_expired', langCode);
+    }
+    if (_pendingPhoneOtpHash != _hashOtp(otp.trim())) {
+      return _authMsg('otp_invalid', langCode);
+    }
+    // 인증 성공 → OTP 무효화
+    _pendingPhoneOtpHash = null;
+    _pendingOtpPhone = null;
+    _otpExpiresAt = null;
+    return null;
   }
 
   /// 비밀번호를 SHA-256 해시로 변환 (소금값: 앱 고유 prefix)
