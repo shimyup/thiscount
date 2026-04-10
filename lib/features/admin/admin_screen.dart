@@ -222,6 +222,19 @@ class _AdminScreenState extends State<AdminScreen> {
               MaterialPageRoute(builder: (_) => const UserManagementScreen()),
             ),
           ),
+          _actionTile(
+            icon: Icons.monitor_heart_rounded,
+            iconColor: const Color(0xFF34D399),
+            label: l.koEn('테스터 대시보드', 'Tester Dashboard'),
+            subtitle: l.koEn(
+              '실시간 테스터 현황 · 편지 · 지도 동기화 상태',
+              'Real-time testers, letters, and map sync status',
+            ),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const _TesterDashboardScreen()),
+            ),
+          ),
           const SizedBox(height: 8),
 
           // ──────────────────────────────────────────────────────────────────
@@ -1531,4 +1544,454 @@ class _AdminScreenState extends State<AdminScreen> {
 extension AdminAppStateExt on AppState {
   int get _monthlySentCountAdmin =>
       monthlySendLimit - remainingMonthlySendCount;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 테스터 대시보드 — 모든 테스터 + 편지 실시간 관리
+// ══════════════════════════════════════════════════════════════════════════════
+class _TesterDashboardScreen extends StatefulWidget {
+  const _TesterDashboardScreen();
+
+  @override
+  State<_TesterDashboardScreen> createState() => _TesterDashboardScreenState();
+}
+
+class _TesterDashboardScreenState extends State<_TesterDashboardScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  List<Map<String, dynamic>> _testers = [];
+  List<Map<String, dynamic>> _letters = [];
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _fetchAll();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchAll() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      final state = context.read<AppState>();
+      final results = await Future.wait([
+        state.adminFetchAllUsers(),
+        state.adminFetchAllLetters(),
+      ]);
+      if (mounted) {
+        setState(() {
+          _testers = results[0];
+          _letters = results[1];
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() { _error = e.toString(); _loading = false; });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppTimeColors.of(context);
+    return Scaffold(
+      backgroundColor: colors.bgDeep,
+      appBar: AppBar(
+        backgroundColor: colors.bgDeep,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: AppColors.textPrimary, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text('Tester Dashboard',
+            style: TextStyle(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w700,
+                fontSize: 17)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded,
+                color: AppColors.textSecondary),
+            onPressed: _fetchAll,
+          ),
+        ],
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: AppColors.teal,
+          labelColor: AppColors.teal,
+          unselectedLabelColor: AppColors.textMuted,
+          tabs: [
+            Tab(text: 'Testers (${_testers.length})'),
+            Tab(text: 'Letters (${_letters.length})'),
+          ],
+        ),
+      ),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.teal))
+          : _error != null
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.error_outline, color: AppColors.error, size: 48),
+                        const SizedBox(height: 12),
+                        Text(_error!, style: const TextStyle(color: AppColors.textSecondary)),
+                        const SizedBox(height: 16),
+                        ElevatedButton(onPressed: _fetchAll, child: const Text('Retry')),
+                      ],
+                    ),
+                  ),
+                )
+              : TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildTesterList(),
+                    _buildLetterList(),
+                  ],
+                ),
+    );
+  }
+
+  // ── 테스터 목록 탭 ────────────────────────────────────────────────────────────
+  Widget _buildTesterList() {
+    if (_testers.isEmpty) {
+      return const Center(
+          child: Text('No testers found',
+              style: TextStyle(color: AppColors.textMuted)));
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 40),
+      itemCount: _testers.length + 1, // +1 for summary card
+      itemBuilder: (ctx, i) {
+        if (i == 0) return _testerSummaryCard();
+        final t = _testers[i - 1];
+        return _testerCard(t);
+      },
+    );
+  }
+
+  Widget _testerSummaryCard() {
+    final totalSent = _testers.fold<int>(
+        0, (s, t) => s + ((t['sentCount'] as num?)?.toInt() ?? 0));
+    final totalReceived = _testers.fold<int>(
+        0, (s, t) => s + ((t['receivedCount'] as num?)?.toInt() ?? 0));
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.teal.withValues(alpha: 0.15),
+            AppColors.teal.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.teal.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _summaryItem('Testers', '${_testers.length}', Icons.people),
+          _summaryItem('Letters', '${_letters.length}', Icons.mail),
+          _summaryItem('Sent', '$totalSent', Icons.send),
+          _summaryItem('Received', '$totalReceived', Icons.inbox),
+        ],
+      ),
+    );
+  }
+
+  Widget _summaryItem(String label, String value, IconData icon) {
+    return Column(
+      children: [
+        Icon(icon, color: AppColors.teal, size: 22),
+        const SizedBox(height: 4),
+        Text(value,
+            style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w800,
+                fontSize: 18)),
+        Text(label,
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+      ],
+    );
+  }
+
+  Widget _testerCard(Map<String, dynamic> t) {
+    final username = t['username'] as String? ?? '???';
+    final flag = t['countryFlag'] as String? ?? '🌍';
+    final country = t['country'] as String? ?? '';
+    final sent = (t['sentCount'] as num?)?.toInt() ?? 0;
+    final received = (t['receivedCount'] as num?)?.toInt() ?? 0;
+    final reply = (t['replyCount'] as num?)?.toInt() ?? 0;
+    final likes = (t['likeCount'] as num?)?.toInt() ?? 0;
+    final updatedAt = t['updatedAt'] as String? ?? '';
+    final id = t['id'] as String? ?? '';
+    final towerName = t['customTowerName'] as String? ?? '';
+    final isPremium = t['isPremium'] == true;
+    final isBrand = t['isBrand'] == true;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.bgCard.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text('$flag ', style: const TextStyle(fontSize: 22)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(username,
+                              style: const TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15),
+                              overflow: TextOverflow.ellipsis),
+                        ),
+                        if (isBrand) _badge('BRAND', AppColors.error),
+                        if (isPremium && !isBrand)
+                          _badge('PRO', const Color(0xFFFFD700)),
+                      ],
+                    ),
+                    if (towerName.isNotEmpty)
+                      Text(towerName,
+                          style: TextStyle(
+                              color: AppColors.textMuted, fontSize: 11)),
+                    Text(country,
+                        style: TextStyle(
+                            color: AppColors.textSecondary, fontSize: 12)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              _statChip('Sent', '$sent', Icons.send_rounded),
+              const SizedBox(width: 8),
+              _statChip('Received', '$received', Icons.inbox_rounded),
+              const SizedBox(width: 8),
+              _statChip('Reply', '$reply', Icons.reply_rounded),
+              const SizedBox(width: 8),
+              _statChip('Likes', '$likes', Icons.favorite_rounded),
+            ],
+          ),
+          if (updatedAt.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text('Last active: ${_formatTime(updatedAt)}',
+                style: TextStyle(color: AppColors.textMuted, fontSize: 10)),
+          ],
+          Text('ID: ${id.length > 20 ? '${id.substring(0, 20)}...' : id}',
+              style: TextStyle(color: AppColors.textMuted, fontSize: 9)),
+        ],
+      ),
+    );
+  }
+
+  Widget _badge(String text, Color color) {
+    return Container(
+      margin: const EdgeInsets.only(left: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(text,
+          style: TextStyle(
+              color: color, fontSize: 9, fontWeight: FontWeight.w800)),
+    );
+  }
+
+  Widget _statChip(String label, String value, IconData icon) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 14, color: AppColors.textMuted),
+            const SizedBox(height: 2),
+            Text(value,
+                style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13)),
+            Text(label,
+                style:
+                    const TextStyle(color: AppColors.textMuted, fontSize: 9)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── 편지 목록 탭 ──────────────────────────────────────────────────────────────
+  Widget _buildLetterList() {
+    if (_letters.isEmpty) {
+      return const Center(
+          child: Text('No letters found',
+              style: TextStyle(color: AppColors.textMuted)));
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 40),
+      itemCount: _letters.length,
+      itemBuilder: (ctx, i) => _letterCard(_letters[i]),
+    );
+  }
+
+  Widget _letterCard(Map<String, dynamic> lt) {
+    final id = lt['id'] as String? ?? '';
+    final sender = lt['senderName'] as String? ?? '???';
+    final senderFlag = lt['senderCountryFlag'] as String? ?? '';
+    final destFlag = lt['destinationCountryFlag'] as String? ?? '';
+    final destCountry = lt['destinationCountry'] as String? ?? '';
+    final destCity = lt['destinationCity'] as String? ?? '';
+    final sentAt = lt['sentAt'] as String? ?? '';
+    final status = lt['status'] as String? ?? 'inTransit';
+    final content = lt['content'] as String? ?? '';
+    final totalMin = (lt['estimatedTotalMinutes'] as num?)?.toInt() ?? 0;
+    final letterType = lt['letterType'] as String? ?? 'normal';
+
+    final statusColor = switch (status) {
+      'inTransit' => const Color(0xFF60A5FA),
+      'delivered' || 'read' => const Color(0xFF34D399),
+      'deliveredFar' => const Color(0xFFFBBF24),
+      _ => AppColors.textMuted,
+    };
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text('$senderFlag→$destFlag ',
+                  style: const TextStyle(fontSize: 16)),
+              Expanded(
+                child: Text('$sender → $destCountry${destCity.isNotEmpty ? ' ($destCity)' : ''}',
+                    style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13),
+                    overflow: TextOverflow.ellipsis),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(status.toUpperCase(),
+                    style: TextStyle(
+                        color: statusColor,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            content.length > 120 ? '${content.substring(0, 120)}...' : content,
+            style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Text(_formatTime(sentAt),
+                  style:
+                      const TextStyle(color: AppColors.textMuted, fontSize: 10)),
+              const Spacer(),
+              if (letterType != 'normal')
+                _badge(letterType.toUpperCase(), AppColors.teal),
+              const SizedBox(width: 6),
+              Text('${totalMin}min',
+                  style:
+                      const TextStyle(color: AppColors.textMuted, fontSize: 10)),
+              const SizedBox(width: 8),
+              InkWell(
+                onTap: () => _confirmDeleteLetter(id),
+                child: const Icon(Icons.delete_outline_rounded,
+                    size: 18, color: AppColors.textMuted),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteLetter(String letterId) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.bgCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Delete Letter',
+            style: TextStyle(
+                color: AppColors.error, fontWeight: FontWeight.w700)),
+        content: const Text('Remove this letter from the server?',
+            style: TextStyle(color: AppColors.textSecondary)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel',
+                style: TextStyle(color: AppColors.textMuted)),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              final state = context.read<AppState>();
+              await state.adminDeleteLetter(letterId);
+              _fetchAll();
+            },
+            child: const Text('Delete',
+                style: TextStyle(
+                    color: AppColors.error, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatTime(String isoStr) {
+    if (isoStr.isEmpty) return '';
+    final dt = DateTime.tryParse(isoStr);
+    if (dt == null) return isoStr;
+    final local = dt.toLocal();
+    return '${local.month}/${local.day} ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+  }
 }

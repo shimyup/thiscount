@@ -854,11 +854,21 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       if (_deliveryTimer == null || !_deliveryTimer!.isActive) {
         _startDeliverySimulation();
       }
+      // 서버 편지 동기화 재개
+      if (_worldLetterSyncTimer == null || !_worldLetterSyncTimer!.isActive) {
+        syncWorldLettersFromServer();
+        _worldLetterSyncTimer = Timer.periodic(
+          const Duration(seconds: 30),
+          (_) => syncWorldLettersFromServer(),
+        );
+      }
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
       // 백그라운드 진입 → 타이머 정지 + 주소 캐시 저장
       _deliveryTimer?.cancel();
       _deliveryTimer = null;
+      _worldLetterSyncTimer?.cancel();
+      _worldLetterSyncTimer = null;
       unawaited(GeocodingService.instance.saveAllCache());
     }
   }
@@ -1534,7 +1544,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
-  // ── Firebase 익명 로그인 + 서버 편지 수신 ────────────────────────────────────
+  // ── Firebase 익명 로그인 + 서버 동기화 ────────────────────────────────────────
+  Timer? _worldLetterSyncTimer;
+
   Future<void> _initFirebaseAndSync() async {
     if (!FirebaseConfig.kFirebaseEnabled) return;
     // 익명 로그인 (Firestore 접근용 ID 토큰 획득)
@@ -1543,23 +1555,27 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       if (kDebugMode) debugPrint('[Firebase] 익명 로그인 실패 — 서버 동기화 스킵');
       return;
     }
-    // 서버에서 내 나라로 오는 미수신 편지 가져오기
-    await _fetchIncomingLettersFromServer();
+    // 내 프로필을 Firestore에 저장 (다른 테스터가 지도에서 볼 수 있도록)
+    _saveUserToFirestore();
+    // 서버에서 다른 유저들의 편지 가져와서 지도에 표시
+    await syncWorldLettersFromServer();
+    // 30초마다 서버 편지 동기화 (다른 테스터가 보낸 새 편지를 반영)
+    _worldLetterSyncTimer?.cancel();
+    _worldLetterSyncTimer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => syncWorldLettersFromServer(),
+    );
   }
 
-  /// 서버에서 내 나라 대상 + 미수신(recipientId 비어있음) 편지를 가져와 claim
-  Future<void> _fetchIncomingLettersFromServer() async {
+  /// 서버에서 모든 유저의 최근 편지를 가져와 지도에 표시
+  Future<void> syncWorldLettersFromServer() async {
     if (!FirebaseConfig.kFirebaseEnabled) return;
-    if (_currentUser.country.isEmpty || _currentUser.id == 'guest') return;
+    if (!FirebaseAuthService.isSignedIn) return;
     try {
-      // 내 나라로 오는 미수신 편지 쿼리
-      final docs = await FirestoreService.queryWhereComposite(
-        collectionId: 'letters',
-        conditions: {
-          'destinationCountry': _currentUser.country,
-          'recipientId': '',
-        },
-        limit: 20,
+      final docs = await FirestoreService.queryCollection(
+        'letters',
+        orderBy: 'sentAt desc',
+        limit: 50,
       );
       if (docs.isEmpty) return;
 
@@ -1569,37 +1585,34 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       for (final doc in docs) {
         final data = FirestoreService.fromFirestoreDoc(doc);
         final letterId = data['id'] as String? ?? '';
-        // 자기가 보낸 편지는 건너뜀
+        if (letterId.isEmpty) continue;
+        // 자기가 보낸 편지는 건너뜀 (이미 로컬에 있음)
         if (data['senderId'] == _currentUser.id) continue;
-        // 이미 로컬에 있는 편지면 건너뜀
-        if (_inbox.any((l) => l.id == letterId) ||
-            _worldLetters.any((l) => l.id == letterId)) continue;
-
-        // claim: recipientId를 내 userId로 설정
-        final claimed = await FirestoreService.setDocument(
-          'letters/$letterId',
-          {'recipientId': _currentUser.id, 'claimedAt': now.toIso8601String()},
-        );
-        if (!claimed) continue;
+        // 이미 로컬에 있으면 건너뜀
+        if (_worldLetters.any((l) => l.id == letterId) ||
+            _inbox.any((l) => l.id == letterId)) continue;
 
         // 서버 데이터로 Letter 객체 생성
         final letter = _letterFromFirestoreData(data, now);
         if (letter == null) continue;
 
-        // 로컬에 추가
+        // 지도에 추가 (배송 중이든 도착했든 모두 표시)
         _worldLetters.add(letter);
         changed = true;
 
         if (kDebugMode) {
-          debugPrint('[Firebase] 편지 수신: ${letter.id} from ${letter.senderName}');
+          debugPrint('[Firebase] 월드 편지 추가: ${letter.id} '
+              '${letter.senderCountryFlag}→${letter.destinationCountryFlag} '
+              '(${letter.status.name})');
         }
       }
 
       if (changed) {
         _saveToPrefs();
+        notifyListeners();
       }
     } catch (e, st) {
-      if (kDebugMode) debugPrint('[Firebase] 수신 편지 조회 실패: $e\n$st');
+      if (kDebugMode) debugPrint('[Firebase] 월드 편지 동기화 실패: $e\n$st');
     }
   }
 
@@ -1690,7 +1703,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'imageUrl': letter.imageUrl ?? '',
         'socialLink': letter.socialLink ?? '',
         'letterType': letter.letterType.name,
-        'recipientId': '', // 빈 문자열 = 미수신
+        'status': letter.status.name,
+        'senderTier': letter.senderTier.name,
       });
       if (kDebugMode) {
         debugPrint('[Firebase] 편지 업로드 완료: ${letter.id} → ${letter.destinationCountry}');
@@ -1698,6 +1712,39 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     } catch (e, st) {
       if (kDebugMode) debugPrint('[Firebase] 편지 업로드 실패: $e\n$st');
     }
+  }
+
+  /// 관리자: 서버의 모든 편지 목록 조회
+  Future<List<Map<String, dynamic>>> adminFetchAllLetters() async {
+    if (!FirebaseConfig.kFirebaseEnabled) return [];
+    if (!FirebaseAuthService.isSignedIn) {
+      await FirebaseAuthService.signInAnonymously();
+    }
+    final docs = await FirestoreService.queryCollection(
+      'letters',
+      orderBy: 'sentAt desc',
+      limit: 100,
+    );
+    return docs.map((d) => FirestoreService.fromFirestoreDoc(d)).toList();
+  }
+
+  /// 관리자: 서버의 모든 유저 목록 조회
+  Future<List<Map<String, dynamic>>> adminFetchAllUsers() async {
+    if (!FirebaseConfig.kFirebaseEnabled) return [];
+    if (!FirebaseAuthService.isSignedIn) {
+      await FirebaseAuthService.signInAnonymously();
+    }
+    final docs = await FirestoreService.queryCollection(
+      'users',
+      limit: 100,
+    );
+    return docs.map((d) => FirestoreService.fromFirestoreDoc(d)).toList();
+  }
+
+  /// 관리자: 특정 편지 삭제
+  Future<bool> adminDeleteLetter(String letterId) async {
+    if (!FirebaseConfig.kFirebaseEnabled) return false;
+    return FirestoreService.deleteDocument('letters/$letterId');
   }
 
   // ── 유저 세팅 (로그인/회원가입 후) ────────────────────────────────────────
@@ -5034,6 +5081,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _deliveryTimer?.cancel();
+    _worldLetterSyncTimer?.cancel();
     super.dispose();
   }
 }
