@@ -25,6 +25,12 @@ abstract class AppLinks {
   static const String termsOfService =
       'https://shimyup.github.io/lettergo/terms.html';
 
+  /// 가입 나라에 맞는 이용약관 URL 반환
+  static String termsForCountry(String country) {
+    final lang = country == '대한민국' ? 'ko' : 'en';
+    return '$termsOfService?lang=$lang';
+  }
+
   // ── 고객 지원 ────────────────────────────────────────────────────────────
   static const String supportEmail = 'ceo@airony.xyz';
 }

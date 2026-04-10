@@ -1073,6 +1073,7 @@ class _SignupTabState extends State<_SignupTab> {
 
   // ── 동의 상태 ──
   bool _agreePrivacy = false;
+  bool _agreeTerms = false; // 이용약관 + 커뮤니티 가이드라인 동의
   bool _agreeLocation = false; // 동의 체크
   bool _locationGranted = false; // 실제 OS 권한 허용 여부
 
@@ -1085,7 +1086,7 @@ class _SignupTabState extends State<_SignupTab> {
   Timer? _otpTimer; // 타이머
 
   // 가입 버튼 활성화 조건
-  bool get _canSignUp => _agreePrivacy && !_isLoading;
+  bool get _canSignUp => _agreePrivacy && _agreeTerms && !_isLoading;
 
   @override
   void initState() {
@@ -1151,6 +1152,10 @@ class _SignupTabState extends State<_SignupTab> {
     final l10n = _l10n;
     if (!_agreePrivacy) {
       setState(() => _error = l10n.authMustAgreePrivacy);
+      return;
+    }
+    if (!_agreeTerms) {
+      setState(() => _error = l10n.authMustAgreeTerms);
       return;
     }
     // 폼 기본 검증
@@ -1465,6 +1470,20 @@ class _SignupTabState extends State<_SignupTab> {
             langCode: widget.langCode,
             onCheckChanged: (v) => setState(() => _agreePrivacy = v ?? false),
             onLinkTap: _openPrivacyPolicy,
+          ),
+          const SizedBox(height: 10),
+
+          // ── 6-1. 이용약관 + 커뮤니티 가이드라인 동의 ──────────────────────
+          _ConsentCard(
+            checked: _agreeTerms,
+            icon: Icons.gavel_rounded,
+            iconColor: AppColors.gold,
+            title: l10n.authTermsRequired,
+            linkLabel: l10n.authViewContent,
+            description: l10n.authTermsDesc,
+            langCode: widget.langCode,
+            onCheckChanged: (v) => setState(() => _agreeTerms = v ?? false),
+            onLinkTap: _showTermsAndGuidelines,
           ),
           const SizedBox(height: 10),
 
@@ -1831,6 +1850,45 @@ class _SignupTabState extends State<_SignupTab> {
                 l10n.authPrivacySec4Body,
                 style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
               ),
+              const SizedBox(height: 12),
+              Text(
+                l10n.authPrivacySec5Title,
+                style: const TextStyle(
+                  color: AppColors.gold,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                l10n.authPrivacySec5Body,
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                l10n.authPrivacySec6Title,
+                style: const TextStyle(
+                  color: AppColors.gold,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                l10n.authPrivacySec6Body,
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                l10n.authPrivacySec7Title,
+                style: const TextStyle(
+                  color: AppColors.gold,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                l10n.authPrivacySec7Body,
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              ),
             ],
           ),
         ),
@@ -1838,6 +1896,75 @@ class _SignupTabState extends State<_SignupTab> {
           ElevatedButton(
             onPressed: () {
               setState(() => _agreePrivacy = true);
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.teal),
+            child: Text(
+              l10n.authAgree,
+              style: const TextStyle(color: AppColors.bgDeep),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              l10n.authClose,
+              style: const TextStyle(color: AppColors.textMuted),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showTermsAndGuidelines() {
+    final l10n = _l10n;
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.bgCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          l10n.communityGuidelinesTitle,
+          style: const TextStyle(color: AppColors.textPrimary),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── 콘텐츠 열람 정책 ──
+              Text(
+                l10n.authPrivacySec5Title,
+                style: const TextStyle(
+                  color: AppColors.gold,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                l10n.authPrivacySec5Body,
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              ),
+              const SizedBox(height: 16),
+              // ── 커뮤니티 가이드라인 ──
+              Text(
+                l10n.authPrivacySec7Title,
+                style: const TextStyle(
+                  color: AppColors.gold,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                l10n.authPrivacySec7Body,
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              setState(() => _agreeTerms = true);
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.teal),

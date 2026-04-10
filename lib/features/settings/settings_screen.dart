@@ -665,6 +665,57 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         }
                       },
                     ),
+                    _tile(
+                      icon: Icons.description_outlined,
+                      label: l.settingsTerms,
+                      onTap: () async {
+                        final url = AppLinks.termsForCountry(user.country);
+                        final uri = Uri.parse(url);
+                        try {
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.inAppBrowserView,
+                          );
+                        } catch (_) {
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        }
+                      },
+                    ),
+
+                    const SizedBox(height: 8),
+                    // ── 데이터 및 개인정보 ──────────────────────────────────
+                    _sectionHeader(l.settingsDataPrivacy),
+                    _tile(
+                      icon: Icons.policy_outlined,
+                      label: l.settingsContentPolicy,
+                      onTap: () => _showContentPolicyDialog(ctx, l),
+                    ),
+                    _tile(
+                      icon: Icons.groups_outlined,
+                      label: l.settingsCommunityGuidelines,
+                      onTap: () => _showCommunityGuidelinesDialog(ctx, l),
+                    ),
+                    _tile(
+                      icon: Icons.download_outlined,
+                      label: l.settingsRequestData,
+                      subtitle: l.settingsRequestDataDesc,
+                      onTap: () async {
+                        final uri = Uri(
+                          scheme: 'mailto',
+                          path: 'ceo@airony.xyz',
+                          queryParameters: {
+                            'subject': 'Data Request - Letter Go',
+                            'body': 'I would like to request a copy of my personal data.\n\nUsername: ${user.username}\nEmail: ${user.email ?? "N/A"}',
+                          },
+                        );
+                        try {
+                          await launchUrl(uri);
+                        } catch (_) {}
+                      },
+                    ),
 
                     const SizedBox(height: 8),
                     // ── 계정 관리 ────────────────────────────────────────────
@@ -741,6 +792,90 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
         );
       },
+    );
+  }
+
+  // ── 콘텐츠 열람 정책 다이얼로그 ──────────────────────────────────────────
+  void _showContentPolicyDialog(BuildContext ctx, AppL10n l) {
+    showDialog(
+      context: ctx,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.bgCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.policy_outlined, color: AppColors.teal, size: 22),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                l.contentPolicyTitle,
+                style: const TextStyle(color: AppColors.textPrimary, fontSize: 17),
+              ),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Text(
+            l.contentPolicyBody,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+              height: 1.6,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              l.authClose,
+              style: const TextStyle(color: AppColors.teal),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── 커뮤니티 가이드라인 다이얼로그 ────────────────────────────────────────
+  void _showCommunityGuidelinesDialog(BuildContext ctx, AppL10n l) {
+    showDialog(
+      context: ctx,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.bgCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.groups_outlined, color: AppColors.gold, size: 22),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                l.communityGuidelinesTitle,
+                style: const TextStyle(color: AppColors.textPrimary, fontSize: 17),
+              ),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Text(
+            l.communityGuidelinesBody,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+              height: 1.6,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              l.authClose,
+              style: const TextStyle(color: AppColors.teal),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
