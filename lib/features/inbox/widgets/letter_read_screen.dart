@@ -475,8 +475,9 @@ class _LetterReadScreenState extends State<LetterReadScreen>
               ],
             ),
             const SizedBox(height: 14),
-            // 별점 + 좋아요 + 인증/신고 (Flexible 적용으로 오버플로우 방지)
+            // 별점 + 좋아요 + 인증/신고 (Flexible + spaceBetween 으로 오버플로우 방지)
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Flexible(
                   child: Row(
@@ -496,7 +497,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 3,
+                            horizontal: 2,
                             vertical: 4,
                           ),
                           child: AnimatedSwitcher(
@@ -505,7 +506,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                               selected ? '⭐' : '☆',
                               key: ValueKey('star_${i}_$selected'),
                               style: TextStyle(
-                                fontSize: 26,
+                                fontSize: 24,
                                 color: selected
                                     ? AppColors.gold
                                     : AppColors.textMuted,
@@ -517,7 +518,6 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                     }),
                   ),
                 ),
-                const Spacer(),
                 // 좋아요 버튼
                 GestureDetector(
                   onTap: () {
