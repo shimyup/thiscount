@@ -80,7 +80,6 @@ class _TowerScreenState extends State<TowerScreen>
   Widget build(BuildContext context) {
     return Consumer2<AppState, PurchaseService>(
       builder: (context, state, purchase, _) {
-        final l = _l10n(context);
         final user = state.currentUser;
         final _lc = user.languageCode;
         final _l = AppL10n.of(_lc);
@@ -1115,42 +1114,36 @@ class _TowerScreenState extends State<TowerScreen>
         'name': 'Kenji M.',
         'floors': 83,
         'tier': TowerTier.landmark,
-        'label': l.koEn('랜드마크', 'Landmark'),
       },
       {
         'flag': '🇧🇷',
         'name': 'Luis G.',
         'floors': 67,
         'tier': TowerTier.landmark,
-        'label': l.koEn('랜드마크', 'Landmark'),
       },
       {
         'flag': '🇨🇳',
         'name': 'Mei L.',
         'floors': 55,
         'tier': TowerTier.skyscraper,
-        'label': l.koEn('마천루', 'Skyscraper'),
       },
       {
         'flag': '🇺🇸',
         'name': 'Tom H.',
         'floors': 47,
         'tier': TowerTier.skyscraper,
-        'label': l.koEn('마천루', 'Skyscraper'),
       },
       {
         'flag': '🇫🇷',
         'name': 'Nina S.',
         'floors': 31,
         'tier': TowerTier.building,
-        'label': l.koEn('빌딩', 'Building'),
       },
       {
         'flag': '🇬🇧',
         'name': 'Emma W.',
         'floors': 22,
         'tier': TowerTier.building,
-        'label': l.koEn('빌딩', 'Building'),
       },
       {
         'flag': '🇩🇪',
@@ -1171,9 +1164,9 @@ class _TowerScreenState extends State<TowerScreen>
         members.where((m) => (m['floors'] as int) > myFloors).length + 1;
 
     String rankLabel(int rank) {
-      if (rank == 1) return '🥇 ${l.towerRank1}';
-      if (rank == 2) return '🥈 ${l.towerRank2}';
-      if (rank == 3) return '🥉 ${l.towerRank3}';
+      if (rank == 1) return '🥇 ${_cl.towerRank1}';
+      if (rank == 2) return '🥈 ${_cl.towerRank2}';
+      if (rank == 3) return '🥉 ${_cl.towerRank3}';
       return '#$rank';
     }
 

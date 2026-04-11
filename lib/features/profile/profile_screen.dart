@@ -795,7 +795,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Consumer2<AppState, PurchaseService>(
       builder: (ctx, state, purchase, _) {
-        final l = _l10n(ctx);
         final user = state.currentUser;
         final _lc = user.languageCode;
         final _l = AppL10n.of(_lc);
@@ -1304,7 +1303,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         : isPremium
         ? '👑 Premium'
         : '⭐ Free';
-    final l = _l10n(ctx);
     final planPrice = isBrand
         ? '₩99,000/mo'
         : isPremium
@@ -1527,7 +1525,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      l.koEn('타워 등급', 'TOWER RANK'),
+                      'TOWER RANK',
                       style: const TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 9,
@@ -1920,7 +1918,6 @@ class _FollowListContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l = AppL10n.of(context.select<AppState, String>((s) => s.currentUser.languageCode));
     if (userIds.isEmpty) {
       return Center(
         child: Column(

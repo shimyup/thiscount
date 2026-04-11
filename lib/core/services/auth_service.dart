@@ -540,6 +540,11 @@ class AuthService {
 
   /// [레거시] 단순 SHA-256 해시 — 기존 저장값 검증 전용, 신규 저장에는 사용하지 않음.
   static String _hashPasswordLegacy(String raw) {
+    const salt = 'globaldrift_v1_';
+    final bytes = utf8.encode(salt + raw);
+    return sha256.convert(bytes).toString();
+  }
+
   // ── SMS OTP ───────────────────────────────────────────────────────────────
   static String? _pendingPhoneOtpHash;
   static String? _pendingOtpPhone;
@@ -658,7 +663,7 @@ class AuthService {
   }
 
   /// 강화된 해싱: 랜덤 salt + 10 000회 HMAC-SHA256.
-  /// 반환값: "$pbkdf$<hex-salt>$<hex-hash>"
+  /// 반환값: `$pbkdf$[hex-salt]$[hex-hash]`
   static String _hashPassword(String raw) {
     final saltHex = _generateSalt();
     final saltBytes =
