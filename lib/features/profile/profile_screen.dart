@@ -35,6 +35,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _loading = true;
   final ImagePicker _picker = ImagePicker();
 
+  AppL10n _l10n(BuildContext context) =>
+      AppL10n.of(context.read<AppState>().currentUser.languageCode);
+
   @override
   void initState() {
     super.initState();
@@ -558,8 +561,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final _sbl = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
     // 수집된 국가 수 계산
     final countrySet = <String>{};
-    for (final l in state.inbox) {
-      countrySet.add(l.senderCountry);
+    for (final letter in state.inbox) {
+      countrySet.add(letter.senderCountry);
     }
     final countryCount = countrySet.length;
 
@@ -1523,7 +1526,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     Text(
                       'TOWER RANK',
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 9,
                         fontWeight: FontWeight.w700,

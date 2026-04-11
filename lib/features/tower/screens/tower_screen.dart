@@ -34,6 +34,9 @@ class _TowerScreenState extends State<TowerScreen>
   // 레벨업 감지용 이전 단계 추적
   TowerTier? _prevTier;
 
+  AppL10n _l10n(BuildContext context) =>
+      AppL10n.of(context.read<AppState>().currentUser.languageCode);
+
   @override
   void initState() {
     super.initState();
@@ -452,10 +455,10 @@ class _TowerScreenState extends State<TowerScreen>
                   right: 0,
                   child: AnimatedBuilder(
                     animation: _glowController,
-                    builder: (_, __) => Column(
+                    builder: (animCtx, __) => Column(
                       children: [
                         Text(
-                          'ARCHITECT OF WORDS',
+                          _l10n(animCtx).koEn('글자의 건축가', 'ARCHITECT OF WORDS'),
                           style: TextStyle(
                             color: tierColor.withValues(
                               alpha: 0.5 + _glow.value * 0.3,
@@ -1161,9 +1164,9 @@ class _TowerScreenState extends State<TowerScreen>
         members.where((m) => (m['floors'] as int) > myFloors).length + 1;
 
     String rankLabel(int rank) {
-      if (rank == 1) return '🥇';
-      if (rank == 2) return '🥈';
-      if (rank == 3) return '🥉';
+      if (rank == 1) return '🥇 ${_cl.towerRank1}';
+      if (rank == 2) return '🥈 ${_cl.towerRank2}';
+      if (rank == 3) return '🥉 ${_cl.towerRank3}';
       return '#$rank';
     }
 
@@ -1452,13 +1455,14 @@ class _TowerScreenState extends State<TowerScreen>
     // 층수에서 타워 높이 계산 (내 타워와 동일 공식)
     final towerH = (60 + floors * 4.0).clamp(60.0, 240.0);
 
+    final _tl = _l10n(ctx);
     final rankLabel = rank == 1
-        ? '🥇 1위'
+        ? '🥇 ${_tl.towerRank1}'
         : rank == 2
-        ? '🥈 2위'
+        ? '🥈 ${_tl.towerRank2}'
         : rank == 3
-        ? '🥉 3위'
-        : '🌍 ${rank}위';
+        ? '🥉 ${_tl.towerRank3}'
+        : '🌍 ${_tl.towerRankN(rank)}';
 
     showModalBottomSheet(
       context: ctx,
@@ -1842,7 +1846,7 @@ class _TowerScreenState extends State<TowerScreen>
               Text(
                 _tl.towerCustomDesc,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 13,
                   height: 1.6,

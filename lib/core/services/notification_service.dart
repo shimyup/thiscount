@@ -254,6 +254,54 @@ class NotificationService {
     }
   }
 
+  // ── Localized channel metadata ─────────────────────────────────────────────
+  static const _channelNames = <String, Map<String, String>>{
+    'nearby_letter': {
+      'ko': '근처 편지 알림',
+      'en': 'Nearby Letter Alerts',
+      'ja': '近くの手紙通知',
+      'zh': '附近信件通知',
+    },
+    'nearby_letter_desc': {
+      'ko': '500m 이내에 편지가 도착했을 때 알림',
+      'en': 'Alerts when a letter arrives within 500m',
+      'ja': '500m以内に手紙が届いた時の通知',
+      'zh': '当信件到达500米以内时通知',
+    },
+    'letter_arrived': {
+      'ko': '편지 도착 알림',
+      'en': 'Letter Arrival Alerts',
+      'ja': '手紙到着通知',
+      'zh': '信件到达通知',
+    },
+    'letter_arrived_desc': {
+      'ko': '새 편지가 도착했을 때 알림',
+      'en': 'Alerts when a new letter arrives',
+      'ja': '新しい手紙が届いた時の通知',
+      'zh': '新信件到达时通知',
+    },
+    'dm_arrived': {
+      'ko': 'DM 도착 알림',
+      'en': 'DM Alerts',
+      'ja': 'DMの通知',
+      'zh': 'DM通知',
+    },
+    'dm_arrived_desc': {
+      'ko': '새 DM이 도착했을 때 알림',
+      'en': 'Alerts when a new direct message arrives',
+      'ja': '新しいDMが届いた時の通知',
+      'zh': '新私信到达时通知',
+    },
+  };
+
+  static String _ch(String key, String langCode) {
+    final entry = _channelNames[key];
+    if (entry == null) return key;
+    return entry[langCode] ?? entry['ko']!;
+  }
+
+  static final Random _rng = Random();
+
   static Future<void> showNearbyLetterNotification({
     required String title,
     required String body,
@@ -282,8 +330,6 @@ class NotificationService {
       debugPrint('Notification show error: $e');
     }
   }
-
-  static final Random _rng = Random();
 
   static Future<void> showLetterArrivedNotification({
     required String senderCountry,
@@ -344,6 +390,7 @@ class NotificationService {
         android: androidDetails,
         iOS: iosDetails,
       );
+
       await _plugin.show(
         2,
         '💬 $senderName${_notiMsg('dm_title', langCode)}',

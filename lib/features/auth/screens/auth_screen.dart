@@ -404,6 +404,7 @@ class _LoginTabState extends State<_LoginTab> {
     final err = await AuthService.login(
       username: _usernameCtrl.text,
       password: _passCtrl.text,
+      langCode: _deviceLangCode(),
     );
 
     if (!mounted) return;
@@ -590,11 +591,13 @@ class _LoginTabState extends State<_LoginTab> {
                             email: 'test@lettergo.app',
                             country: '대한민국',
                             countryFlag: '🇰🇷',
+                            langCode: _deviceLangCode(),
                           );
                         }
                         final err = await AuthService.login(
                           username: testUser,
                           password: testPw,
+                          langCode: _deviceLangCode(),
                         );
                         if (!mounted) return;
                         if (err == null) {
@@ -712,7 +715,7 @@ class _LoginTabState extends State<_LoginTab> {
                       setS(() => isLoading = true);
 
                       // 이메일로 아이디 조회
-                      final idResult = await AuthService.findId(email: email);
+                      final idResult = await AuthService.findId(email: email, langCode: _deviceLangCode());
 
                       if (!mounted || !context.mounted || !dialogCtx.mounted)
                         return;
@@ -759,6 +762,7 @@ class _LoginTabState extends State<_LoginTab> {
                       final pwResult = await AuthService.resetPassword(
                         username: foundUsername,
                         email: email,
+                        langCode: _deviceLangCode(),
                       );
 
                       if (!mounted || !context.mounted || !dialogCtx.mounted)
@@ -1000,6 +1004,7 @@ class _LoginTabState extends State<_LoginTab> {
               final result = await AuthService.resetPassword(
                 username: usernameCtrl.text.trim(),
                 email: emailCtrl.text.trim(),
+                langCode: _deviceLangCode(),
               );
               if (!mounted) return;
               Navigator.pop(context);
@@ -1142,12 +1147,12 @@ class _SignupTabState extends State<_SignupTab> {
   }
 
   void _validateUsername() {
-    final err = AuthService.validateUsername(_usernameCtrl.text);
+    final err = AuthService.validateUsername(_usernameCtrl.text, langCode: _langCode);
     if (_usernameError != err) setState(() => _usernameError = err);
   }
 
   void _validatePassword() {
-    final err = AuthService.validatePassword(_passCtrl.text);
+    final err = AuthService.validatePassword(_passCtrl.text, langCode: _langCode);
     if (_passwordError != err) setState(() => _passwordError = err);
   }
 
@@ -1207,7 +1212,7 @@ class _SignupTabState extends State<_SignupTab> {
       setState(() => _error = l10n.authEnterEmail);
       return;
     }
-    final emailErr = AuthService.validateEmail(emailVal);
+    final emailErr = AuthService.validateEmail(emailVal, langCode: _langCode);
     if (emailErr != null) {
       setState(() => _error = emailErr);
       return;
@@ -1295,6 +1300,7 @@ class _SignupTabState extends State<_SignupTab> {
       socialLink: _socialCtrl.text.isNotEmpty ? _socialCtrl.text : null,
       phoneNumber: _fullPhoneNumber,
       verifyMethod: _verifyMethod,
+      langCode: _langCode,
     );
 
     if (!mounted) return;

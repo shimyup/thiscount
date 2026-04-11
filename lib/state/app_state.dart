@@ -21,6 +21,7 @@ import '../core/services/firestore_service.dart';
 import '../core/services/firebase_auth_service.dart';
 import '../core/theme/time_theme.dart';
 import '../models/direct_message.dart';
+import 'package:encrypt/encrypt.dart' as enc;
 
 enum DisplayThemeMode { auto, light, dark }
 
@@ -1075,17 +1076,34 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     return _encKey!;
   }
 
+  /// AES-256-CBC encryption. Returns "aes:" + base64(IV + ciphertext).
   static String _encryptStr(String plain, Uint8List key) {
-    final input = utf8.encode(plain);
-    final output = Uint8List(input.length);
-    for (var i = 0; i < input.length; i++) {
-      output[i] = input[i] ^ key[i % key.length];
-    }
-    return base64Encode(output);
+    final aesKey = enc.Key(key); // 32-byte key → AES-256
+    final iv = enc.IV.fromSecureRandom(16);
+    final encrypter = enc.Encrypter(enc.AES(aesKey, mode: enc.AESMode.cbc));
+    final encrypted = encrypter.encryptBytes(utf8.encode(plain), iv: iv);
+    // Prefix IV to ciphertext so decrypt can recover it.
+    final combined = Uint8List(16 + encrypted.bytes.length);
+    combined.setAll(0, iv.bytes);
+    combined.setAll(16, encrypted.bytes);
+    return 'aes:${base64Encode(combined)}';
   }
 
+  /// Decrypts AES-256-CBC (prefixed "aes:") or falls back to legacy XOR /
+  /// raw plaintext for backward compatibility.
   static String _decryptStr(String cipher, Uint8List key) {
     try {
+      if (cipher.startsWith('aes:')) {
+        // ── AES-256-CBC path ──
+        final combined = base64Decode(cipher.substring(4));
+        final iv = enc.IV(Uint8List.fromList(combined.sublist(0, 16)));
+        final cipherBytes = combined.sublist(16);
+        final aesKey = enc.Key(key);
+        final encrypter =
+            enc.Encrypter(enc.AES(aesKey, mode: enc.AESMode.cbc));
+        return encrypter.decrypt(enc.Encrypted(cipherBytes), iv: iv);
+      }
+      // ── Legacy XOR path (will be re-encrypted as AES on next save) ──
       final input = base64Decode(cipher);
       final output = Uint8List(input.length);
       for (var i = 0; i < input.length; i++) {
@@ -3547,6 +3565,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             NotificationService.showLetterArrivedNotification(
               senderCountry: letter.senderCountry,
               senderFlag: letter.senderCountryFlag,
+              langCode: _currentUser.languageCode,
             );
           }
           letter.arrivedAt ??= now;
@@ -3562,6 +3581,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         NotificationService.showLetterArrivedNotification(
           senderCountry: l.senderCountry,
           senderFlag: l.senderCountryFlag,
+          langCode: _currentUser.languageCode,
         );
       }
       if (dailyToInbox.isNotEmpty) {
@@ -3861,7 +3881,6 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   // ── 근처 도착 알림 트리거 ────────────────────────────────────────────────────
-  static final Random _notifRng = Random();
 
   Future<void> _triggerNearbyNotification(Letter letter) async {
     // 편지 도착 햅틱 (medium vibration)
@@ -3889,18 +3908,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       return;
     }
 
-    // 다양한 알림 문구 중 랜덤 선택
-    final titles = _l10n.stateNearbyNotifTitles;
-    final bodies = _l10n.stateNearbyNotifBodies(
-      letter.senderCountryFlag,
-      letter.senderCountry,
-    );
-    final title = titles[_notifRng.nextInt(titles.length)];
-    final body = bodies[_notifRng.nextInt(bodies.length)];
-
     NotificationService.showNearbyLetterNotification(
-      title: title,
-      body: body,
+      title: _l10n.stateNearbyNotificationTitle,
+      body:
+          _l10n.stateNearbyNotificationBody(letter.senderCountryFlag, letter.senderCountry),
+      langCode: _currentUser.languageCode,
     );
   }
 
@@ -4448,6 +4460,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     NotificationService.showLetterArrivedNotification(
       senderCountry: letter.senderCountry,
       senderFlag: letter.senderCountryFlag,
+      langCode: _currentUser.languageCode,
     );
     notifyListeners();
     _saveToPrefs();
@@ -4687,6 +4700,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         NotificationService.showDMArrivedNotification(
           senderName: session.partnerName,
           message: reply.content,
+          langCode: _currentUser.languageCode,
         );
         notifyListeners();
         _saveDMToPrefs();
