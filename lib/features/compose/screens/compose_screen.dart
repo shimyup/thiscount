@@ -78,41 +78,102 @@ class _ComposeScreenState extends State<ComposeScreen>
   // ── 행운의 편지 ──────────────────────────────────────────────────────────
   bool _isLuckyLetter = false;
 
-  static const List<String> _luckyQuotes = [
-    '안녕하세요, 이 편지를 받게 된 당신에게 따뜻한 인사를 전합니다.\n\n'
-        '오늘 하루, 작은 것들 속에서 행복을 발견하는 하루가 되기를 바랍니다. '
-        '아침에 마신 따뜻한 커피 한 잔, 스쳐 지나가는 바람, 창밖의 햇살 — '
-        '그 작은 것들이 모여 당신의 하루를 빛나게 만들어 줄 거예요.\n\n'
-        '어디선가 당신을 응원하고 있는 낯선 친구로부터. 🍀',
+  static const Map<String, List<String>> _luckyQuotesByLang = {
+    'ko': [
+      '안녕하세요, 이 편지를 받게 된 당신에게 따뜻한 인사를 전합니다.\n\n'
+          '오늘 하루, 작은 것들 속에서 행복을 발견하는 하루가 되기를 바랍니다. '
+          '아침에 마신 따뜻한 커피 한 잔, 스쳐 지나가는 바람, 창밖의 햇살 — '
+          '그 작은 것들이 모여 당신의 하루를 빛나게 만들어 줄 거예요.\n\n'
+          '어디선가 당신을 응원하고 있는 낯선 친구로부터. 🍀',
+      '안녕하세요, 이 편지가 당신에게 닿기를 바라며 씁니다.\n\n'
+          '세상은 참 넓고, 좋은 인연은 언제 어디서 시작될지 모릅니다. '
+          '이 편지가 그 시작이 된다면 정말 좋겠어요. '
+          '우리가 비록 이름도, 얼굴도 모르지만, 이렇게 편지로 이어진 것만으로도 '
+          '충분히 아름다운 인연이라고 생각합니다.\n\n'
+          '언젠가, 어딘가에서 만날 날을 기대하며. 💌',
+      '안녕하세요, 이 글이 당신에게 작은 힘이 되길 바랍니다.\n\n'
+          '지금 어떤 하루를 보내고 있든, 당신은 충분히 잘 하고 있어요. '
+          '완벽하지 않아도 괜찮고, 모든 걸 해내지 않아도 됩니다. '
+          '그냥 오늘 하루를 버텨낸 것만으로도, 당신은 이미 대단한 사람입니다.\n\n'
+          '포기하지 마세요. 멀리서 응원합니다. 💪',
+      '안녕하세요, 세상 어딘가에서 이 편지를 보냅니다.\n\n'
+          '매일 조금씩 나아가는 것, 그것만으로도 충분히 대단한 일입니다. '
+          '남들과 비교하지 말고, 어제의 나보다 조금만 더 나아가면 그걸로 충분해요. '
+          '당신의 속도로 걸어가는 삶이 가장 아름다운 삶입니다.\n\n'
+          '오늘도 수고 많으셨습니다. 🌟',
+      '안녕하세요, 이 편지를 받게 된 것도 하나의 인연이라 생각합니다.\n\n'
+          '세상은 생각보다 훨씬 따뜻한 사람들로 가득 차 있습니다. '
+          '때로는 낯선 사람의 작은 배려가 하루를 바꾸기도 하죠. '
+          '이 편지가 당신의 오늘에 그런 작은 온기가 되었으면 합니다.\n\n'
+          '당신 덕분에 세상이 조금 더 따뜻해집니다. 🌍',
+    ],
+    'en': [
+      'Hello, warm greetings to you who received this letter.\n\n'
+          'I hope today brings you joy in the little things — '
+          'a warm cup of coffee in the morning, a gentle breeze passing by, '
+          'sunlight streaming through the window. '
+          'Those small moments add up to make your day shine.\n\n'
+          'From a stranger cheering you on, somewhere out there. 🍀',
+      'Hello, I write this letter hoping it reaches you.\n\n'
+          'The world is vast, and beautiful connections can begin anywhere. '
+          'I would love it if this letter became one such beginning. '
+          'Even though we may never know each other\'s names or faces, '
+          'being connected through this letter is already something wonderful.\n\n'
+          'Looking forward to the day our paths might cross. 💌',
+      'Hello, I hope these words give you a little strength.\n\n'
+          'No matter what kind of day you\'re having, you\'re doing just fine. '
+          'It\'s okay not to be perfect. You don\'t have to do it all. '
+          'Just making it through today already makes you remarkable.\n\n'
+          'Don\'t give up. I\'m rooting for you from afar. 💪',
+      'Hello, I\'m sending this letter from somewhere in the world.\n\n'
+          'Moving forward little by little each day — that alone is incredible. '
+          'Don\'t compare yourself to others; just be a little better than yesterday, '
+          'and that\'s more than enough. A life lived at your own pace is the most beautiful life.\n\n'
+          'Thank you for all your hard work today. 🌟',
+      'Hello, I believe receiving this letter is a meaningful connection.\n\n'
+          'The world is full of warmer hearts than you might think. '
+          'Sometimes a small kindness from a stranger can change your whole day. '
+          'I hope this letter brings that kind of warmth to your today.\n\n'
+          'The world is a little warmer because of you. 🌍',
+    ],
+    'ja': [
+      'こんにちは、この手紙を受け取ったあなたに温かい挨拶を送ります。\n\n'
+          '今日一日、小さなことの中に幸せを見つける日になりますように。'
+          '朝の温かいコーヒー一杯、通り過ぎる風、窓の外の日差し — '
+          'その小さなものが集まって、あなたの一日を輝かせてくれるでしょう。\n\n'
+          'どこかであなたを応援している見知らぬ友人より。🍀',
+      'こんにちは、この手紙があなたに届くことを願って書いています。\n\n'
+          '世界は広く、素敵な縁はいつどこで始まるかわかりません。'
+          'この手紙がそのきっかけになれたら本当に嬉しいです。'
+          '名前も顔も知らない私たちですが、こうして手紙で繋がったことだけでも '
+          '十分に美しい縁だと思います。\n\n'
+          'いつか、どこかで会える日を楽しみにしています。💌',
+      'こんにちは、この言葉があなたの小さな力になることを願っています。\n\n'
+          '今どんな一日を過ごしていても、あなたは十分頑張っています。'
+          '完璧でなくてもいい、すべてをやり遂げなくてもいい。'
+          'ただ今日一日を乗り越えただけで、あなたはすでに素晴らしい人です。\n\n'
+          '諦めないでください。遠くから応援しています。💪',
+      'こんにちは、世界のどこかからこの手紙を送ります。\n\n'
+          '毎日少しずつ前に進むこと、それだけでも十分にすごいことです。'
+          '他人と比べず、昨日の自分より少しだけ前に進めばそれで十分。'
+          'あなたのペースで歩む人生が、一番美しい人生です。\n\n'
+          '今日もお疲れ様でした。🌟',
+      'こんにちは、この手紙を受け取ったことも一つの縁だと思います。\n\n'
+          '世界は思ったよりもずっと温かい人々で溢れています。'
+          '時には見知らぬ人の小さな思いやりが一日を変えることもあります。'
+          'この手紙があなたの今日にそんな小さな温もりになれたら幸いです。\n\n'
+          'あなたのおかげで世界は少し温かくなっています。🌍',
+    ],
+  };
 
-    '안녕하세요, 이 편지가 당신에게 닿기를 바라며 씁니다.\n\n'
-        '세상은 참 넓고, 좋은 인연은 언제 어디서 시작될지 모릅니다. '
-        '이 편지가 그 시작이 된다면 정말 좋겠어요. '
-        '우리가 비록 이름도, 얼굴도 모르지만, 이렇게 편지로 이어진 것만으로도 '
-        '충분히 아름다운 인연이라고 생각합니다.\n\n'
-        '언젠가, 어딘가에서 만날 날을 기대하며. 💌',
-
-    '안녕하세요, 이 글이 당신에게 작은 힘이 되길 바랍니다.\n\n'
-        '지금 어떤 하루를 보내고 있든, 당신은 충분히 잘 하고 있어요. '
-        '완벽하지 않아도 괜찮고, 모든 걸 해내지 않아도 됩니다. '
-        '그냥 오늘 하루를 버텨낸 것만으로도, 당신은 이미 대단한 사람입니다.\n\n'
-        '포기하지 마세요. 멀리서 응원합니다. 💪',
-
-    '안녕하세요, 세상 어딘가에서 이 편지를 보냅니다.\n\n'
-        '매일 조금씩 나아가는 것, 그것만으로도 충분히 대단한 일입니다. '
-        '남들과 비교하지 말고, 어제의 나보다 조금만 더 나아가면 그걸로 충분해요. '
-        '당신의 속도로 걸어가는 삶이 가장 아름다운 삶입니다.\n\n'
-        '오늘도 수고 많으셨습니다. 🌟',
-
-    '안녕하세요, 이 편지를 받게 된 것도 하나의 인연이라 생각합니다.\n\n'
-        '세상은 생각보다 훨씬 따뜻한 사람들로 가득 차 있습니다. '
-        '때로는 낯선 사람의 작은 배려가 하루를 바꾸기도 하죠. '
-        '이 편지가 당신의 오늘에 그런 작은 온기가 되었으면 합니다.\n\n'
-        '당신 덕분에 세상이 조금 더 따뜻해집니다. 🌍',
-  ];
+  /// Returns all lucky quotes for the given language (falls back to English).
+  static List<String> _luckyQuotesForLang(String langCode) {
+    return _luckyQuotesByLang[langCode] ?? _luckyQuotesByLang['en']!;
+  }
 
   void _applyLuckyLetter() {
-    final quotes = _luckyQuotes.toList()..shuffle();
+    final langCode = context.read<AppState>().currentUser.languageCode;
+    final quotes = _luckyQuotesForLang(langCode).toList()..shuffle();
     final quote = quotes.first;
     setState(() {
       _isLuckyLetter = true;
@@ -133,14 +194,35 @@ class _ComposeScreenState extends State<ComposeScreen>
   int _expressCount = 5; // 발송할 주소 수 (3~10)
 
   static const List<String> _bannedWords = [
-    // 영어
+    // 영어 (English)
     'fuck', 'shit', 'bitch', 'asshole', 'bastard', 'dick', 'pussy', 'cunt',
     'nigger', 'nigga', 'faggot', 'whore', 'slut', 'rape', 'kill yourself',
     'kys', 'retard',
-    // 한국어 욕설
+    // 한국어 욕설 (Korean)
     '씨발', '병신', '개새끼', '존나', '지랄', '엿먹', '꺼져', '죽어',
     '미친놈', '미친년', '창녀', '보지', '자지', '좆',
-    // 스팸 패턴
+    // 일본어 (Japanese)
+    'くそ', 'ばか', '死ね', 'きもい', 'うざい', 'クソ', 'バカ', 'アホ',
+    'ファック', 'くたばれ',
+    // 중국어 (Chinese)
+    '操', '妈的', '傻逼', '狗屎', '混蛋', '王八蛋', '去死', '废物',
+    '滚蛋', '他妈的',
+    // 스페인어 (Spanish)
+    'mierda', 'puta', 'joder', 'coño', 'cabrón', 'pendejo', 'chinga',
+    'maricón', 'hijo de puta', 'gilipollas',
+    // 프랑스어 (French)
+    'merde', 'putain', 'connard', 'enculé', 'salaud', 'bordel', 'connasse',
+    'nique', 'foutre', 'ta gueule',
+    // 독일어 (German)
+    'scheiße', 'arschloch', 'hurensohn', 'wichser', 'fotze', 'miststück',
+    'drecksau', 'fick dich', 'schlampe', 'vollidiot',
+    // 포르투갈어 (Portuguese)
+    'merda', 'puta', 'caralho', 'foda-se', 'filho da puta', 'cuzão',
+    'desgraçado', 'vadia', 'otário', 'arrombado',
+    // 러시아어 (Russian)
+    'блять', 'сука', 'хуй', 'пиздец', 'ебать', 'мудак', 'дерьмо',
+    'заткнись', 'иди нахуй', 'говно',
+    // 스팸 패턴 (Spam patterns)
     '카지노', '도박', '대출', '비트코인 투자', '클릭하세요',
   ];
 
@@ -155,7 +237,8 @@ class _ComposeScreenState extends State<ComposeScreen>
     _contentController.addListener(() {
       final text = _contentController.text;
       // 행운의 편지 글귀와 달라지면 플래그 해제 (직접 수정한 것으로 간주)
-      final isStillLucky = _luckyQuotes.contains(text);
+      final isStillLucky = _luckyQuotesByLang.values
+          .any((quotes) => quotes.contains(text));
       setState(() {
         _charCount = text.length;
         if (_isLuckyLetter && !isStillLucky) _isLuckyLetter = false;
@@ -1813,78 +1896,6 @@ class _ComposeScreenState extends State<ComposeScreen>
                 );
               },
             ),
-          ),
-          const SizedBox(height: 12),
-          // 발송 수 선택
-          Row(
-            children: [
-              Text(
-                l10n.composeAddressCount,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const Spacer(),
-              // 슬라이더
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => setState(() {
-                      if (_expressCount > 3) _expressCount--;
-                    }),
-                    child: Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        color: AppColors.bgDeep,
-                        borderRadius: BorderRadius.circular(7),
-                        border: Border.all(
-                          color: AppColors.textMuted.withValues(alpha: 0.2),
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.remove,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    l10n.composeCountUnit(_expressCount),
-                    style: const TextStyle(
-                      color: Color(0xFFFFD700),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  GestureDetector(
-                    onTap: () => setState(() {
-                      if (_expressCount < 10) _expressCount++;
-                    }),
-                    child: Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        color: AppColors.bgDeep,
-                        borderRadius: BorderRadius.circular(7),
-                        border: Border.all(
-                          color: AppColors.textMuted.withValues(alpha: 0.2),
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.add,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
           ),
           const SizedBox(height: 8),
           Text(

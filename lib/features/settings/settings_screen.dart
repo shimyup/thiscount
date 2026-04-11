@@ -162,6 +162,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               final err = await AuthService.login(
                 username: user['username'] ?? '',
                 password: oldCtrl.text,
+                langCode: state.currentUser.languageCode,
               );
               if (err != null) {
                 if (ctx.mounted) _showSnack(ctx, l.settingsPwError);

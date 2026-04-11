@@ -26,6 +26,131 @@ class AuthService {
   static const _keySecureMigrated = 'auth_secure_migrated_v1';
   static const _tempPasswordTtl = Duration(minutes: 15);
 
+  // ── Localized error messages ───────────────────────────────────────────────
+  static const _messages = <String, Map<String, String>>{
+    'otp_not_found': {
+      'ko': '인증 코드가 없습니다. 다시 요청해주세요.',
+      'en': 'No verification code found. Please request again.',
+      'ja': '認証コードがありません。再度リクエストしてください。',
+      'zh': '没有验证码。请重新请求。',
+    },
+    'otp_email_mismatch': {
+      'ko': '이메일이 일치하지 않습니다.',
+      'en': 'Email does not match.',
+      'ja': 'メールアドレスが一致しません。',
+      'zh': '电子邮件不匹配。',
+    },
+    'otp_expired': {
+      'ko': '인증 코드가 만료되었습니다. 다시 요청해주세요.',
+      'en': 'Verification code has expired. Please request again.',
+      'ja': '認証コードの有効期限が切れました。再度リクエストしてください。',
+      'zh': '验证码已过期。请重新请求。',
+    },
+    'otp_invalid': {
+      'ko': '인증 코드가 올바르지 않습니다.',
+      'en': 'Verification code is incorrect.',
+      'ja': '認証コードが正しくありません。',
+      'zh': '验证码不正确。',
+    },
+    'username_min_length': {
+      'ko': '2자 이상 입력해주세요',
+      'en': 'Must be at least 2 characters',
+      'ja': '2文字以上入力してください',
+      'zh': '请输入至少2个字符',
+    },
+    'username_max_length': {
+      'ko': '20자 이하로 입력해주세요',
+      'en': 'Must be 20 characters or fewer',
+      'ja': '20文字以下で入力してください',
+      'zh': '请输入20个字符以内',
+    },
+    'username_format': {
+      'ko': '영문으로 시작, 영문·숫자·_ 만 사용 가능',
+      'en': 'Must start with a letter; only letters, digits, and _ allowed',
+      'ja': '英字で始まり、英数字と_のみ使用可能',
+      'zh': '必须以字母开头，只能使用字母、数字和_',
+    },
+    'password_format': {
+      'ko': '영문+숫자를 포함한 8~20자를 입력해주세요',
+      'en': 'Must be 8–20 characters with at least one letter and one digit',
+      'ja': '英文と数字を含む8〜20文字を入力してください',
+      'zh': '请输入包含字母和数字的8-20个字符',
+    },
+    'email_required': {
+      'ko': '이메일을 입력해주세요.',
+      'en': 'Please enter your email.',
+      'ja': 'メールアドレスを入力してください。',
+      'zh': '请输入电子邮件。',
+    },
+    'email_invalid': {
+      'ko': '올바른 이메일 형식이 아닙니다.',
+      'en': 'Invalid email format.',
+      'ja': '正しいメール形式ではありません。',
+      'zh': '电子邮件格式无效。',
+    },
+    'username_taken': {
+      'ko': '이미 사용 중인 아이디입니다. 다른 아이디를 입력해주세요.',
+      'en': 'This username is already taken. Please choose another.',
+      'ja': 'このユーザー名は既に使用されています。別のものを入力してください。',
+      'zh': '该用户名已被使用。请选择其他用户名。',
+    },
+    'email_taken': {
+      'ko': '이미 가입된 이메일입니다. 다른 이메일을 사용하거나 로그인해주세요.',
+      'en': 'This email is already registered. Please use another or log in.',
+      'ja': 'このメールアドレスは既に登録されています。別のものを使用するかログインしてください。',
+      'zh': '该电子邮件已注册。请使用其他邮箱或登录。',
+    },
+    'nickname_required': {
+      'ko': '닉네임을 입력해주세요.',
+      'en': 'Please enter your nickname.',
+      'ja': 'ニックネームを入力してください。',
+      'zh': '请输入昵称。',
+    },
+    'password_required': {
+      'ko': '비밀번호를 입력해주세요.',
+      'en': 'Please enter your password.',
+      'ja': 'パスワードを入力してください。',
+      'zh': '请输入密码。',
+    },
+    'no_account': {
+      'ko': '등록된 계정이 없습니다. 회원가입을 먼저 해주세요.',
+      'en': 'No account found. Please sign up first.',
+      'ja': 'アカウントが見つかりません。先に会員登録してください。',
+      'zh': '未找到账户。请先注册。',
+    },
+    'login_failed': {
+      'ko': '닉네임 또는 비밀번호가 올바르지 않습니다.',
+      'en': 'Incorrect nickname or password.',
+      'ja': 'ニックネームまたはパスワードが正しくありません。',
+      'zh': '昵称或密码不正确。',
+    },
+    'email_not_found': {
+      'ko': '해당 이메일로 등록된 계정을 찾을 수 없습니다.',
+      'en': 'No account found with this email.',
+      'ja': 'このメールアドレスで登録されたアカウントが見つかりません。',
+      'zh': '未找到使用该电子邮件注册的账户。',
+    },
+    'reset_fields_required': {
+      'ko': '닉네임과 가입 이메일을 모두 입력해주세요.',
+      'en': 'Please enter both your nickname and registered email.',
+      'ja': 'ニックネームと登録メールアドレスの両方を入力してください。',
+      'zh': '请输入昵称和注册邮箱。',
+    },
+    'reset_mismatch': {
+      'ko': '닉네임 또는 이메일이 일치하지 않습니다.',
+      'en': 'Nickname or email does not match.',
+      'ja': 'ニックネームまたはメールアドレスが一致しません。',
+      'zh': '昵称或电子邮件不匹配。',
+    },
+  };
+
+  /// Look up a localized message by key. Falls back to Korean.
+  static String _t(String key, String langCode) {
+    final entry = _messages[key];
+    if (entry == null) return key;
+    return entry[langCode] ?? entry['ko']!;
+  }
+
   // ── 보안 저장소 ─────────────────────────────────────────────────────────────
   // 비밀번호는 SHA-256 해시 형태로만 저장 (평문 저장 없음).
   // iOS: Keychain (first_unlock_this_device) / Android: EncryptedSharedPreferences
@@ -139,22 +264,22 @@ class AuthService {
   }
 
   /// OTP 검증. null = 성공, 문자열 = 오류 메시지
-  static String? verifyEmailOtp(String email, String otp) {
+  static String? verifyEmailOtp(String email, String otp, {String langCode = 'ko'}) {
     if (_pendingOtpHash == null || _pendingOtpEmail == null) {
-      return '인증 코드가 없습니다. 다시 요청해주세요.';
+      return _t('otp_not_found', langCode);
     }
     if (_pendingOtpEmail != email.trim().toLowerCase()) {
-      return '이메일이 일치하지 않습니다.';
+      return _t('otp_email_mismatch', langCode);
     }
     if (_otpExpiresAt == null || DateTime.now().isAfter(_otpExpiresAt!)) {
       _pendingOtpHash = null;
       _pendingOtpEmail = null;
       _otpExpiresAt = null;
-      return '인증 코드가 만료되었습니다. 다시 요청해주세요.';
+      return _t('otp_expired', langCode);
     }
     // 입력값을 해시화하여 저장된 해시와 비교 (타이밍 공격 방지)
     if (_pendingOtpHash != _hashOtp(otp.trim())) {
-      return '인증 코드가 올바르지 않습니다.';
+      return _t('otp_invalid', langCode);
     }
     // 인증 성공 → OTP 무효화
     _pendingOtpHash = null;
@@ -170,16 +295,118 @@ class AuthService {
     return remaining.clamp(0, 600);
   }
 
-  /// 비밀번호를 SHA-256 해시로 변환 (소금값: 앱 고유 prefix)
-  static String _hashPassword(String raw) {
+  // ── 비밀번호 해싱 ────────────────────────────────────────────────────────────
+  // v1: 단순 SHA-256 (레거시 — 기존 사용자 로그인 호환용으로 유지)
+  // v2: HMAC-SHA256 × 10 000 라운드 + 16바이트 랜덤 salt
+  //     저장 형식: "$pbkdf$<hex-salt>$<hex-hash>"
+
+  static const int _pbkdf2Rounds = 10000;
+  static const String _pbkdf2Prefix = r'$pbkdf$';
+
+  /// [레거시] 단순 SHA-256 해시 — 기존 저장값 검증 전용, 신규 저장에는 사용하지 않음.
+  static String _hashPasswordLegacy(String raw) {
     const salt = 'globaldrift_v1_';
     final bytes = utf8.encode(salt + raw);
     return sha256.convert(bytes).toString(); // 64자 hex 문자열
   }
 
-  /// 저장된 값이 이미 해시인지 확인 (64자 hex = SHA-256)
-  static bool _isHashed(String value) =>
+  /// 16바이트 암호학적 랜덤 salt 생성 (hex 문자열 반환).
+  static String _generateSalt() {
+    final rng = Random.secure();
+    final bytes = List<int>.generate(16, (_) => rng.nextInt(256));
+    return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+  }
+
+  /// HMAC-SHA256 을 [_pbkdf2Rounds] 회 반복하여 키를 도출.
+  /// PBKDF2-HMAC-SHA256 과 동일한 원리이며, 외부 패키지 없이 `crypto`만 사용.
+  static List<int> _deriveKey(String password, List<int> salt) {
+    final hmac = Hmac(sha256, utf8.encode(password));
+    // U1 = HMAC(password, salt || INT(1))
+    var block = hmac.convert([...salt, 0, 0, 0, 1]).bytes;
+    var result = List<int>.from(block);
+    for (var i = 1; i < _pbkdf2Rounds; i++) {
+      block = hmac.convert(block).bytes;
+      for (var j = 0; j < result.length; j++) {
+        result[j] ^= block[j];
+      }
+    }
+    return result;
+  }
+
+  /// 강화된 해싱: 랜덤 salt + 10 000회 HMAC-SHA256.
+  /// 반환값: "$pbkdf$<hex-salt>$<hex-hash>"
+  static String _hashPassword(String raw) {
+    final saltHex = _generateSalt();
+    final saltBytes =
+        List<int>.generate(saltHex.length ~/ 2, (i) {
+          return int.parse(saltHex.substring(i * 2, i * 2 + 2), radix: 16);
+        });
+    final derived = _deriveKey(raw, saltBytes);
+    final hashHex = derived.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    return '$_pbkdf2Prefix$saltHex\$$hashHex';
+  }
+
+  /// 주어진 salt 로 해시를 재계산하여 저장값과 비교.
+  static bool _verifyPasswordStrengthened(String raw, String stored) {
+    if (!stored.startsWith(_pbkdf2Prefix)) return false;
+    // 형식: $pbkdf$<saltHex>$<hashHex>
+    final parts = stored.substring(_pbkdf2Prefix.length).split(r'$');
+    if (parts.length != 2) return false;
+    final saltHex = parts[0];
+    final expectedHashHex = parts[1];
+    final saltBytes =
+        List<int>.generate(saltHex.length ~/ 2, (i) {
+          return int.parse(saltHex.substring(i * 2, i * 2 + 2), radix: 16);
+        });
+    final derived = _deriveKey(raw, saltBytes);
+    final hashHex = derived.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    // 상수 시간 비교 (타이밍 공격 방지)
+    if (hashHex.length != expectedHashHex.length) return false;
+    var diff = 0;
+    for (var i = 0; i < hashHex.length; i++) {
+      diff |= hashHex.codeUnitAt(i) ^ expectedHashHex.codeUnitAt(i);
+    }
+    return diff == 0;
+  }
+
+  /// 비밀번호 검증: v2(강화) → v1(레거시) → 평문 순으로 시도.
+  /// 레거시 또는 평문 일치 시 자동으로 v2 해시로 재저장(마이그레이션).
+  static Future<bool> _verifyAndMigratePassword(
+    String raw,
+    String? stored,
+  ) async {
+    if (stored == null) return false;
+
+    // (1) v2 강화 해시
+    if (stored.startsWith(_pbkdf2Prefix)) {
+      return _verifyPasswordStrengthened(raw, stored);
+    }
+
+    // (2) v1 레거시 SHA-256
+    if (_isHashedLegacy(stored)) {
+      if (stored == _hashPasswordLegacy(raw)) {
+        // 마이그레이션: 강화 해시로 재저장
+        await _writeSecure(_keyPassword, _hashPassword(raw));
+        return true;
+      }
+      return false;
+    }
+
+    // (3) 평문 (아주 오래된 데이터)
+    if (stored == raw) {
+      await _writeSecure(_keyPassword, _hashPassword(raw));
+      return true;
+    }
+    return false;
+  }
+
+  /// 저장된 값이 레거시 SHA-256 해시인지 확인 (64자 hex)
+  static bool _isHashedLegacy(String value) =>
       value.length == 64 && RegExp(r'^[0-9a-f]+$').hasMatch(value);
+
+  /// 저장된 값이 이미 해시인지 확인 (v2 또는 레거시)
+  static bool _isHashed(String value) =>
+      value.startsWith(_pbkdf2Prefix) || _isHashedLegacy(value);
 
   static String _generateTempPassword({int length = 12}) {
     const chars =
@@ -259,28 +486,28 @@ class AuthService {
   );
 
   /// 아이디 유효성 검사 (UI 실시간 체크용)
-  static String? validateUsername(String value) {
+  static String? validateUsername(String value, {String langCode = 'ko'}) {
     final v = value.trim();
     if (v.isEmpty) return null;
-    if (v.length < 2) return '2자 이상 입력해주세요';
-    if (v.length > 20) return '20자 이하로 입력해주세요';
-    if (!_usernameRe.hasMatch(v)) return '영문으로 시작, 영문·숫자·_ 만 사용 가능';
+    if (v.length < 2) return _t('username_min_length', langCode);
+    if (v.length > 20) return _t('username_max_length', langCode);
+    if (!_usernameRe.hasMatch(v)) return _t('username_format', langCode);
     return null; // 유효
   }
 
   /// 비밀번호 유효성 검사 (UI 실시간 체크용)
-  static String? validatePassword(String value) {
+  static String? validatePassword(String value, {String langCode = 'ko'}) {
     if (value.isEmpty) return null;
     if (!_passwordRe.hasMatch(value)) {
-      return '영문+숫자를 포함한 8~20자를 입력해주세요';
+      return _t('password_format', langCode);
     }
     return null; // 유효
   }
 
   /// 이메일 유효성 검사
-  static String? validateEmail(String email) {
-    if (email.isEmpty) return '이메일을 입력해주세요.';
-    if (!_emailRe.hasMatch(email)) return '올바른 이메일 형식이 아닙니다.';
+  static String? validateEmail(String email, {String langCode = 'ko'}) {
+    if (email.isEmpty) return _t('email_required', langCode);
+    if (!_emailRe.hasMatch(email)) return _t('email_invalid', langCode);
     return null;
   }
 
@@ -306,15 +533,16 @@ class AuthService {
     String? languageCode,
     String? email,
     String? socialLink,
+    String langCode = 'ko',
   }) async {
     // ── 형식 검사 ──
     final normalizedEmail = email?.trim() ?? '';
-    final usernameErr = validateUsername(username);
-    if (usernameErr != null) return '아이디: $usernameErr';
-    final passwordErr = validatePassword(password);
-    if (passwordErr != null) return '비밀번호: $passwordErr';
-    if (normalizedEmail.isEmpty) return '이메일을 입력해주세요.';
-    if (!_emailRe.hasMatch(normalizedEmail)) return '올바른 이메일 형식이 아닙니다.';
+    final usernameErr = validateUsername(username, langCode: langCode);
+    if (usernameErr != null) return usernameErr;
+    final passwordErr = validatePassword(password, langCode: langCode);
+    if (passwordErr != null) return passwordErr;
+    if (normalizedEmail.isEmpty) return _t('email_required', langCode);
+    if (!_emailRe.hasMatch(normalizedEmail)) return _t('email_invalid', langCode);
 
     final prefs = await SharedPreferences.getInstance();
     await _migrateLegacyAuthDataIfNeeded(prefs);
@@ -323,12 +551,12 @@ class AuthService {
     final existingUsername = await _readSecure(_keyUsername);
     if (existingUsername != null &&
         existingUsername.toLowerCase() == username.trim().toLowerCase()) {
-      return '이미 사용 중인 아이디입니다. 다른 아이디를 입력해주세요.';
+      return _t('username_taken', langCode);
     }
     final existingEmail = await _readSecure(_keyEmail);
     if (existingEmail != null &&
         existingEmail.toLowerCase() == normalizedEmail.toLowerCase()) {
-      return '이미 가입된 이메일입니다. 다른 이메일을 사용하거나 로그인해주세요.';
+      return _t('email_taken', langCode);
     }
 
     final userId = 'user_${const Uuid().v4()}';
@@ -356,9 +584,10 @@ class AuthService {
   static Future<String?> login({
     required String username,
     required String password,
+    String langCode = 'ko',
   }) async {
-    if (username.trim().isEmpty) return '닉네임을 입력해주세요.';
-    if (password.isEmpty) return '비밀번호를 입력해주세요.';
+    if (username.trim().isEmpty) return _t('nickname_required', langCode);
+    if (password.isEmpty) return _t('password_required', langCode);
 
     final prefs = await SharedPreferences.getInstance();
     await _migrateLegacyAuthDataIfNeeded(prefs);
@@ -366,24 +595,12 @@ class AuthService {
     final savedUsername = await _readSecure(_keyUsername);
     final savedPassword = await _readSecure(_keyPassword);
 
-    if (savedUsername == null) return '등록된 계정이 없습니다. 회원가입을 먼저 해주세요.';
-    if (savedUsername != username.trim()) return '닉네임 또는 비밀번호가 올바르지 않습니다.';
+    if (savedUsername == null) return _t('no_account', langCode);
+    if (savedUsername != username.trim()) return _t('login_failed', langCode);
 
-    var primaryPasswordMatched = false;
-
-    // 기존 평문 비밀번호 자동 마이그레이션: 로그인 성공 시 해시로 재저장
-    if (savedPassword != null && !_isHashed(savedPassword)) {
-      if (savedPassword == password) {
-        await _writeSecure(_keyPassword, _hashPassword(password)); // 마이그레이션
-        primaryPasswordMatched = true;
-      }
-    } else {
-      if (savedPassword != _hashPassword(password)) {
-        primaryPasswordMatched = false;
-      } else {
-        primaryPasswordMatched = true;
-      }
-    }
+    // 비밀번호 검증 (v2 강화 해시 → v1 레거시 → 평문 순, 자동 마이그레이션 포함)
+    final primaryPasswordMatched =
+        await _verifyAndMigratePassword(password, savedPassword);
 
     if (!primaryPasswordMatched) {
       final tempHash = await _readSecure(_keyTempPasswordHash);
@@ -391,10 +608,16 @@ class AuthService {
       final tempExpiresAt = int.tryParse(tempExpiresAtRaw ?? '');
       final nowMs = DateTime.now().millisecondsSinceEpoch;
 
+      // 임시 비밀번호 검증 (마이그레이션 없이 비교만 수행)
+      final tempMatched = tempHash != null &&
+          (tempHash.startsWith(_pbkdf2Prefix)
+              ? _verifyPasswordStrengthened(password, tempHash)
+              : tempHash == _hashPasswordLegacy(password));
+
       if (tempHash != null &&
           tempExpiresAt != null &&
           nowMs <= tempExpiresAt &&
-          tempHash == _hashPassword(password)) {
+          tempMatched) {
         await _writeSecure(_keyMustChangePassword, 'true');
         await _writeSecure(_keyIsLoggedIn, 'true');
         return null;
@@ -406,7 +629,7 @@ class AuthService {
         await _deleteSecure(_keyTempPasswordExpiresAt);
       }
 
-      return '닉네임 또는 비밀번호가 올바르지 않습니다.';
+      return _t('login_failed', langCode);
     }
 
     await _deleteSecure(_keyTempPasswordHash);
@@ -441,7 +664,10 @@ class AuthService {
   }
 
   // Find username by email
-  static Future<Map<String, dynamic>> findId({required String email}) async {
+  static Future<Map<String, dynamic>> findId({
+    required String email,
+    String langCode = 'ko',
+  }) async {
     final prefs = await SharedPreferences.getInstance();
     await _migrateLegacyAuthDataIfNeeded(prefs);
 
@@ -450,13 +676,14 @@ class AuthService {
       final username = (await _readSecure(_keyUsername)) ?? '';
       return {'success': true, 'username': username};
     }
-    return {'success': false, 'error': '해당 이메일로 등록된 계정을 찾을 수 없습니다.'};
+    return {'success': false, 'error': _t('email_not_found', langCode)};
   }
 
   // Reset password
   static Future<Map<String, dynamic>> resetPassword({
     required String username,
     required String email,
+    String langCode = 'ko',
   }) async {
     final prefs = await SharedPreferences.getInstance();
     await _migrateLegacyAuthDataIfNeeded(prefs);
@@ -464,7 +691,7 @@ class AuthService {
     final inputUsername = username.trim();
     final inputEmail = email.trim();
     if (inputUsername.isEmpty || inputEmail.isEmpty) {
-      return {'success': false, 'error': '닉네임과 가입 이메일을 모두 입력해주세요.'};
+      return {'success': false, 'error': _t('reset_fields_required', langCode)};
     }
 
     final storedUsername = (await _readSecure(_keyUsername)) ?? '';
@@ -485,7 +712,7 @@ class AuthService {
         'expiresInMinutes': _tempPasswordTtl.inMinutes,
       };
     }
-    return {'success': false, 'error': '닉네임 또는 이메일이 일치하지 않습니다.'};
+    return {'success': false, 'error': _t('reset_mismatch', langCode)};
   }
 
   // Change password (requires old password verified by caller)

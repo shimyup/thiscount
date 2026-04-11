@@ -1183,9 +1183,9 @@ class _TowerScreenState extends State<TowerScreen>
         members.where((m) => (m['floors'] as int) > myFloors).length + 1;
 
     String rankLabel(int rank) {
-      if (rank == 1) return l.koEn('🥇 1위', '🥇 #1');
-      if (rank == 2) return l.koEn('🥈 2위', '🥈 #2');
-      if (rank == 3) return l.koEn('🥉 3위', '🥉 #3');
+      if (rank == 1) return '🥇 ${l.towerRank1}';
+      if (rank == 2) return '🥈 ${l.towerRank2}';
+      if (rank == 3) return '🥉 ${l.towerRank3}';
       return '#$rank';
     }
 
@@ -1218,7 +1218,7 @@ class _TowerScreenState extends State<TowerScreen>
                   ),
                 ),
                 child: Text(
-                  l.koEn('내 순위 ${myRank}위', 'My rank #$myRank'),
+                  l.towerMyRankLabel(myRank),
                   style: const TextStyle(
                     color: AppColors.gold,
                     fontSize: 11,
@@ -1473,13 +1473,14 @@ class _TowerScreenState extends State<TowerScreen>
     // 층수에서 타워 높이 계산 (내 타워와 동일 공식)
     final towerH = (60 + floors * 4.0).clamp(60.0, 240.0);
 
+    final _tl = _l10n(ctx);
     final rankLabel = rank == 1
-        ? _l10n(ctx).koEn('🥇 1위', '🥇 #1')
+        ? '🥇 ${_tl.towerRank1}'
         : rank == 2
-        ? _l10n(ctx).koEn('🥈 2위', '🥈 #2')
+        ? '🥈 ${_tl.towerRank2}'
         : rank == 3
-        ? _l10n(ctx).koEn('🥉 3위', '🥉 #3')
-        : _l10n(ctx).koEn('🌍 ${rank}위', '🌍 #$rank');
+        ? '🥉 ${_tl.towerRank3}'
+        : '🌍 ${_tl.towerRankN(rank)}';
 
     showModalBottomSheet(
       context: ctx,
@@ -1600,7 +1601,7 @@ class _TowerScreenState extends State<TowerScreen>
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _l10n(ctx).koEn('세계 랭킹', 'World Ranking'),
+                          _tl.towerWorldRanking,
                           style: const TextStyle(
                             color: AppColors.textMuted,
                             fontSize: 11,
@@ -1634,7 +1635,7 @@ class _TowerScreenState extends State<TowerScreen>
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _l10n(ctx).koEn('건물 층수', 'Floors'),
+                          _tl.towerBuildingFloors,
                           style: const TextStyle(
                             color: AppColors.textMuted,
                             fontSize: 11,
@@ -1662,7 +1663,7 @@ class _TowerScreenState extends State<TowerScreen>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        _l10n(ctx).koEn('타워 높이', 'Tower Height'),
+                        _tl.towerTowerHeight,
                         style: const TextStyle(
                           color: AppColors.textMuted,
                           fontSize: 12,
@@ -1705,7 +1706,7 @@ class _TowerScreenState extends State<TowerScreen>
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                child: Text(_l10n(ctx).koEn('닫기', 'Close')),
+                child: Text(_tl.towerClose),
               ),
             ),
           ],

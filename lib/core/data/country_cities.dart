@@ -148,6 +148,33 @@ class CountryCities {
       '岡山',
       '静岡',
       '鹿児島',
+      // ── Tokyo wards ──
+      '練馬区',
+      '江戸川区',
+      // ── Osaka wards ──
+      '北区',
+      '中央区',
+      '天王寺区',
+      '浪速区',
+      '西区',
+      '淀川区',
+      '東淀川区',
+      '生野区',
+      '城東区',
+      '鶴見区',
+      '此花区',
+      '西成区',
+      '住吉区',
+      '阿倍野区',
+      '東住吉区',
+      '平野区',
+      '住之江区',
+      '港区',
+      '大正区',
+      '旭区',
+      '都島区',
+      '福島区',
+      '東成区',
     },
     '중국': {
       '北京',
@@ -166,6 +193,19 @@ class CountryCities {
       '青岛',
       '宁波',
       '郑州',
+      // ── Beijing districts ──
+      '朝阳区',
+      // ── Shanghai districts ──
+      '浦东新区',
+      '闵行区',
+      // ── Guangzhou districts ──
+      '天河区',
+      '越秀区',
+      '海珠区',
+      // ── Shenzhen districts ──
+      '南山区',
+      '福田区',
+      '罗湖区',
     },
     '미국': {
       'New York',
@@ -194,6 +234,117 @@ class CountryCities {
       'Tampa',
       'New Orleans',
       'Cleveland',
+      // ── Neighborhoods / Districts ──
+      'Manhattan',
+      'SoHo',
+      'Wicker Park',
+      'Venice Beach',
+      'Georgetown',
+      'Mission District',
+      'French Quarter',
+      'Back Bay',
+      'Capitol Hill',
+      'Pacific Heights',
+      'South Beach',
+      'Buckhead',
+      'River North',
+      'Adams Morgan',
+      'Dupont Circle',
+    },
+    '프랑스': {
+      'Paris',
+      'Paris 1er',
+      'Paris 2e',
+      'Paris 3e',
+      'Paris 4e',
+      'Paris 5e',
+      'Paris 6e',
+      'Paris 7e',
+      'Paris 8e',
+      'Paris 9e',
+      'Paris 14e',
+      'Paris 15e',
+      'Paris 16e',
+      'Paris 17e',
+      'Paris 18e',
+      'Paris 19e',
+      'Paris 20e',
+    },
+    '영국': {
+      'London',
+      'Westminster',
+      'Camden',
+      'Southwark',
+      'Tower Hamlets',
+      'Hammersmith',
+      'Wandsworth',
+      'Lewisham',
+      'Newham',
+      'Barnet',
+      'Ealing',
+      'Brent',
+      'Haringey',
+      'Croydon',
+      'Bromley',
+    },
+    '인도': {
+      'Mumbai',
+      'Delhi',
+      'Bangalore',
+      // ── Mumbai districts ──
+      'Bandra',
+      'Andheri',
+      'Colaba',
+      'Juhu',
+      // ── Delhi districts ──
+      'Connaught Place',
+      'Karol Bagh',
+      'Hauz Khas',
+      'Lajpat Nagar',
+      // ── Bangalore districts ──
+      'Koramangala',
+      'Indiranagar',
+      'Whitefield',
+    },
+    '브라질': {
+      'São Paulo',
+      'Rio de Janeiro',
+      // ── São Paulo neighborhoods ──
+      'Pinheiros',
+      'Itaim Bibi',
+      'Jardins',
+      'Moema',
+      // ── Rio neighborhoods ──
+      'Copacabana',
+      'Ipanema',
+      'Botafogo',
+      'Leblon',
+      'Lapa',
+      'Santa Teresa',
+    },
+    '러시아': {
+      'Moscow',
+      // ── Moscow districts ──
+      'Arbat',
+      'Tverskaya',
+      'Kitay-gorod',
+      'Zamoskvorechye',
+      'Basmanny',
+    },
+    '호주': {
+      'Sydney',
+      'Melbourne',
+      'Brisbane',
+      // ── Melbourne suburbs ──
+      'St Kilda',
+      'Fitzroy',
+      'Carlton',
+      'South Yarra',
+      'Richmond',
+      // ── Brisbane suburbs ──
+      'South Bank',
+      'Fortitude Valley',
+      'West End',
     },
   };
 
@@ -211,9 +362,9 @@ class CountryCities {
     final result = all.where((c) {
       final name = c['name'] as String? ?? '';
       if (name.length <= 1) return false;
-      if (name.contains(RegExp(r'[A-Za-z0-9]'))) return false;
-      // 화이트리스트에 있으면 포함
+      // 화이트리스트에 있으면 무조건 포함 (영문 이름 포함)
       if (whitelist != null && whitelist.contains(name)) return true;
+      if (name.contains(RegExp(r'[A-Za-z0-9]'))) return false;
       // 행정구역 어미면 포함
       for (final e in adminEndings) {
         if (name.endsWith(e)) return true;

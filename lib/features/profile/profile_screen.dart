@@ -354,6 +354,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               final err = await AuthService.login(
                 username: user['username'] ?? '',
                 password: oldCtrl.text,
+                langCode: ctx.read<AppState>().currentUser.languageCode,
               );
               if (err != null) {
                 if (ctx.mounted) {

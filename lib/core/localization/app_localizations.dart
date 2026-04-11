@@ -4024,7 +4024,7 @@ class AppL10n {
   });
 
   String get composeAddressCount => _t({
-    'ko': '발송 주소 수',
+    'ko': '발송 수',
     'en': 'Address count',
     'ja': '送信先アドレス数',
     'zh': '地址数量',
@@ -4126,7 +4126,7 @@ class AppL10n {
   });
 
   String get composeAddressPerCountry => _t({
-    'ko': '나라당 발송 주소 수',
+    'ko': '나라당 발송 수',
     'en': 'Addresses per country',
     'ja': '国ごとの送信先アドレス数',
     'zh': '每个国家的地址数',
@@ -11393,6 +11393,122 @@ class AppL10n {
     'fr': 'Couleur de lueur', 'de': 'Leuchtfarbe', 'es': 'Color de brillo',
     'pt': 'Cor de brilho', 'ru': 'Цвет свечения', 'tr': 'Parlama rengi',
     'ar': 'لون التوهج', 'it': 'Colore bagliore', 'hi': 'चमक रंग', 'th': 'สีเรืองแสง',
+  });
+
+  // ── Roof & Window Styles ──────────────────────────────────────────────────
+
+  String get towerRoofStyle => _t({
+    'ko': '지붕 스타일', 'en': 'Roof Style', 'ja': '屋根スタイル', 'zh': '屋顶样式',
+    'fr': 'Style de toit', 'de': 'Dachstil', 'es': 'Estilo de techo',
+    'pt': 'Estilo de telhado', 'ru': 'Стиль крыши', 'tr': 'Çatı stili',
+    'ar': 'نمط السقف', 'it': 'Stile del tetto', 'hi': 'छत शैली', 'th': 'รูปแบบหลังคา',
+  });
+
+  String get towerRoofDefault => _t({
+    'ko': '기본', 'en': 'Default', 'ja': 'デフォルト', 'zh': '默认',
+    'fr': 'Par défaut', 'de': 'Standard', 'es': 'Predeterminado',
+    'pt': 'Padrão', 'ru': 'По умолчанию', 'tr': 'Varsayılan',
+    'ar': 'افتراضي', 'it': 'Predefinito', 'hi': 'डिफ़ॉल्ट', 'th': 'ค่าเริ่มต้น',
+  });
+
+  String get towerRoofPointed => _t({
+    'ko': '뾰족', 'en': 'Pointed', 'ja': '尖塔', 'zh': '尖顶',
+    'fr': 'Pointu', 'de': 'Spitz', 'es': 'Puntiagudo',
+    'pt': 'Pontiagudo', 'ru': 'Остроконечная', 'tr': 'Sivri',
+    'ar': 'مدبب', 'it': 'Appuntito', 'hi': 'नुकीला', 'th': 'แหลม',
+  });
+
+  String get towerRoofDome => _t({
+    'ko': '돔', 'en': 'Dome', 'ja': 'ドーム', 'zh': '圆顶',
+    'fr': 'Dôme', 'de': 'Kuppel', 'es': 'Cúpula',
+    'pt': 'Cúpula', 'ru': 'Купол', 'tr': 'Kubbe',
+    'ar': 'قبة', 'it': 'Cupola', 'hi': 'गुंबद', 'th': 'โดม',
+  });
+
+  String get towerRoofFlat => _t({
+    'ko': '평지붕', 'en': 'Flat', 'ja': 'フラット', 'zh': '平顶',
+    'fr': 'Plat', 'de': 'Flach', 'es': 'Plano',
+    'pt': 'Plano', 'ru': 'Плоская', 'tr': 'Düz',
+    'ar': 'مسطح', 'it': 'Piatto', 'hi': 'सपाट', 'th': 'แบน',
+  });
+
+  String get towerRoofAntenna => _t({
+    'ko': '안테나', 'en': 'Antenna', 'ja': 'アンテナ', 'zh': '天线',
+    'fr': 'Antenne', 'de': 'Antenne', 'es': 'Antena',
+    'pt': 'Antena', 'ru': 'Антенна', 'tr': 'Anten',
+    'ar': 'هوائي', 'it': 'Antenna', 'hi': 'एंटीना', 'th': 'เสาอากาศ',
+  });
+
+  String get towerWindowStyle => _t({
+    'ko': '창문 스타일', 'en': 'Window Style', 'ja': '窓スタイル', 'zh': '窗户样式',
+    'fr': 'Style de fenêtre', 'de': 'Fensterstil', 'es': 'Estilo de ventana',
+    'pt': 'Estilo de janela', 'ru': 'Стиль окон', 'tr': 'Pencere stili',
+    'ar': 'نمط النافذة', 'it': 'Stile finestra', 'hi': 'खिड़की शैली', 'th': 'รูปแบบหน้าต่าง',
+  });
+
+  String get towerWindowSquare => _t({
+    'ko': '사각', 'en': 'Square', 'ja': '四角', 'zh': '方形',
+    'fr': 'Carré', 'de': 'Quadratisch', 'es': 'Cuadrada',
+    'pt': 'Quadrada', 'ru': 'Квадратное', 'tr': 'Kare',
+    'ar': 'مربع', 'it': 'Quadrata', 'hi': 'चौकोर', 'th': 'สี่เหลี่ยม',
+  });
+
+  String get towerWindowCircle => _t({
+    'ko': '원형', 'en': 'Circle', 'ja': '円形', 'zh': '圆形',
+    'fr': 'Rond', 'de': 'Rund', 'es': 'Circular',
+    'pt': 'Circular', 'ru': 'Круглое', 'tr': 'Yuvarlak',
+    'ar': 'دائري', 'it': 'Circolare', 'hi': 'गोल', 'th': 'กลม',
+  });
+
+  String get towerWindowArch => _t({
+    'ko': '아치', 'en': 'Arch', 'ja': 'アーチ', 'zh': '拱形',
+    'fr': 'Arche', 'de': 'Bogen', 'es': 'Arco',
+    'pt': 'Arco', 'ru': 'Арочное', 'tr': 'Kemer',
+    'ar': 'مقوس', 'it': 'Arco', 'hi': 'मेहराब', 'th': 'โค้ง',
+  });
+
+  String get towerWindowModern => _t({
+    'ko': '모던', 'en': 'Modern', 'ja': 'モダン', 'zh': '现代',
+    'fr': 'Moderne', 'de': 'Modern', 'es': 'Moderno',
+    'pt': 'Moderno', 'ru': 'Современное', 'tr': 'Modern',
+    'ar': 'حديث', 'it': 'Moderno', 'hi': 'आधुनिक', 'th': 'โมเดิร์น',
+  });
+
+  // ── Ranking Labels ────────────────────────────────────────────────────────
+
+  String get towerRank1 => _t({
+    'ko': '1위', 'en': '#1', 'ja': '1位', 'zh': '第1名',
+    'fr': '1er', 'de': 'Rang 1', 'es': '1.º',
+    'pt': '1º lugar', 'ru': '1-е место', 'tr': '1. sıra',
+    'ar': 'المرتبة 1', 'it': '1° posto', 'hi': 'रैंक #1', 'th': 'อันดับ 1',
+  });
+
+  String get towerRank2 => _t({
+    'ko': '2위', 'en': '#2', 'ja': '2位', 'zh': '第2名',
+    'fr': '2e', 'de': 'Rang 2', 'es': '2.º',
+    'pt': '2º lugar', 'ru': '2-е место', 'tr': '2. sıra',
+    'ar': 'المرتبة 2', 'it': '2° posto', 'hi': 'रैंक #2', 'th': 'อันดับ 2',
+  });
+
+  String get towerRank3 => _t({
+    'ko': '3위', 'en': '#3', 'ja': '3位', 'zh': '第3名',
+    'fr': '3e', 'de': 'Rang 3', 'es': '3.º',
+    'pt': '3º lugar', 'ru': '3-е место', 'tr': '3. sıra',
+    'ar': 'المرتبة 3', 'it': '3° posto', 'hi': 'रैंक #3', 'th': 'อันดับ 3',
+  });
+
+  String towerRankN(int rank) => _t({
+    'ko': '${rank}위', 'en': '#$rank', 'ja': '${rank}位', 'zh': '第${rank}名',
+    'fr': '${rank}e', 'de': 'Rang $rank', 'es': '$rank.º',
+    'pt': '${rank}º lugar', 'ru': '${rank}-е место', 'tr': '$rank. sıra',
+    'ar': 'المرتبة $rank', 'it': '${rank}° posto', 'hi': 'रैंक #$rank', 'th': 'อันดับ $rank',
+  });
+
+  String towerMyRankLabel(int rank) => _t({
+    'ko': '내 순위 ${rank}위', 'en': 'My rank #$rank', 'ja': '自分の順位 ${rank}位', 'zh': '我的排名 第${rank}名',
+    'fr': 'Mon classement ${rank}e', 'de': 'Mein Rang $rank', 'es': 'Mi puesto $rank.º',
+    'pt': 'Meu ranking ${rank}º', 'ru': 'Моё место: ${rank}-е', 'tr': 'Sıralamam: $rank.',
+    'ar': 'ترتيبي: $rank', 'it': 'La mia posizione: ${rank}°', 'hi': 'मेरी रैंक #$rank', 'th': 'อันดับของฉัน $rank',
   });
 
   String get towerSaveChanges => _t({
