@@ -97,10 +97,21 @@ class GeocodingService {
   // 공개 API — 나라/주소 조회
   // ══════════════════════════════════════════════════════════════════════════
 
-  /// 전체 나라 목록 반환
+  /// 제외 국가 목록 (제재 대상 및 우편 서비스 불가 지역)
+  static const Set<String> _excludedCountries = {
+    '북한', // DPRK - 우편 서비스 불가
+  };
+
+  /// 국가가 편지 목적지로 허용되는지 확인
+  static bool isAllowedCountry(String country) =>
+      !_excludedCountries.contains(country);
+
+  /// 전체 나라 목록 반환 (제외 국가 필터링)
   List<Map<String, String>> get allCountries {
     if (_bounds == null) return [];
-    return _bounds!.entries.map((e) {
+    return _bounds!.entries
+        .where((e) => !_excludedCountries.contains(e.key))
+        .map((e) {
       final b = e.value as Map<String, dynamic>;
       final latCenter = ((b['lat_min'] as num) + (b['lat_max'] as num)) / 2;
       final lngCenter = ((b['lng_min'] as num) + (b['lng_max'] as num)) / 2;
@@ -117,8 +128,10 @@ class GeocodingService {
   /// 나라 수
   int get countryCount => _bounds?.length ?? 0;
 
-  /// 나라 경계 박스 존재 여부
-  bool hasCountry(String country) => _bounds?.containsKey(country) ?? false;
+  /// 나라 경계 박스 존재 여부 (제외 국가는 false 반환)
+  bool hasCountry(String country) =>
+      !_excludedCountries.contains(country) &&
+      (_bounds?.containsKey(country) ?? false);
 
   /// 나라의 국기 이모지
   String flagOf(String country) {
@@ -157,7 +170,7 @@ class GeocodingService {
     };
   }
 
-  /// 랜덤 나라 선택 (제외 가능)
+  /// 랜덤 나라 선택 (제외 가능, 제외 국가 목록은 allCountries에서 이미 필터링됨)
   Map<String, String>? randomCountry({String? exclude}) {
     final list = allCountries.where((c) => c['name'] != exclude).toList();
     if (list.isEmpty) return null;
