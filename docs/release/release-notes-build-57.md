@@ -1,6 +1,6 @@
-# Release Notes — Build 56 (1.0.0+56)
+# Release Notes — Build 57 (1.0.0+57)
 
-Date: 2026-04-12
+Date: 2026-04-16
 
 ---
 
@@ -24,6 +24,10 @@ Date: 2026-04-12
 - 국가별 전화번호 최소 자릿수 검증 강화 (한국 9자리, 미국 10자리 등)
 - 작성 화면 및 알림 서비스 다국어 번역 보완
 
+**서비스 정책**
+
+- 국제 우편 서비스 제한 및 제재 준수를 위해 북한은 편지 발송 대상에서 제외되었습니다
+
 ---
 
 ## English
@@ -45,6 +49,10 @@ Date: 2026-04-12
 - Removed SMS verification option from settings (unified to email-only)
 - Strengthened phone number validation with country-specific minimum digits (Korea 9, US 10, etc.)
 - Improved localization for compose screen and notification service
+
+**Service Policy**
+
+- North Korea has been excluded from letter destinations due to international postal service restrictions and sanctions compliance
 
 ---
 
@@ -68,6 +76,10 @@ Date: 2026-04-12
 - 国別の電話番号最小桁数バリデーションを強化（韓国9桁、米国10桁など）
 - 作成画面と通知サービスの多言語翻訳を改善
 
+**サービスポリシー**
+
+- 国際郵便サービスの制限および制裁遵守のため、北朝鮮は手紙の送信先から除外されました
+
 ---
 
 ## Chinese (中文)
@@ -89,3 +101,7 @@ Date: 2026-04-12
 - 从设置页面移除SMS验证选项（统一为仅邮箱验证）
 - 加强国家/地区特定的手机号码最小位数验证（韩国9位、美国10位等）
 - 改善编写页面和通知服务的多语言翻译
+
+**服务政策**
+
+- 由于国际邮政服务限制和制裁合规，朝鲜已从信件目的地中排除
