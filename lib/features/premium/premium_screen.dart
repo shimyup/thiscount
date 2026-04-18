@@ -257,6 +257,9 @@ class PremiumScreen extends StatelessWidget {
                                   l.premiumPremiumTestDesc,
                             );
                             if (!ok || !context.mounted) return;
+                          } else if (purchase.isBetaFreePremium) {
+                            final ok = await _confirmBetaPremium(context);
+                            if (!ok || !context.mounted) return;
                           }
                           final bought = await purchase.buyPremium();
                           if (!context.mounted) return;
@@ -275,7 +278,8 @@ class PremiumScreen extends StatelessWidget {
                   final brandEmail = state.currentUser.email?.toLowerCase() ?? '';
                   final isAdminBrand = brandEmail == DebugConstants.testBrandEmail;
                   // 테스터는 브랜드 구매 비활성화 (보이기만 함)
-                  final brandDisabled = kDebugMode && !isAdminBrand && !isBrand;
+                  final brandDisabled = (kDebugMode && !isAdminBrand && !isBrand) ||
+                      (purchase.isBetaFreePremium && !isBrand);
                   return _PlanCard(
                     emoji: '🏷️',
                     name: 'Brand / Creator',
@@ -284,7 +288,9 @@ class PremiumScreen extends StatelessWidget {
                     badge: isBrand
                         ? l.premiumCurrentPlan
                         : brandDisabled
-                            ? l.koEn('관리자 전용', 'Admin Only')
+                            ? purchase.isBetaFreePremium
+                                ? l.koEn('베타 기간 미지원', 'Not Available in Beta')
+                                : l.koEn('관리자 전용', 'Admin Only')
                             : '',
                     badgeColor: isBrand
                         ? const Color(0xFFFF8A5C)
@@ -335,7 +341,9 @@ class PremiumScreen extends StatelessWidget {
                     actionLabel: isBrand
                         ? l.premiumNoDowngrade
                         : brandDisabled
-                            ? l.koEn('관리자 승급 필요', 'Admin Promotion Required')
+                            ? purchase.isBetaFreePremium
+                                ? l.koEn('정식 출시 후 이용 가능', 'Available After Launch')
+                                : l.koEn('관리자 승급 필요', 'Admin Promotion Required')
                             : isPremium
                                 ? l.premiumBrandSchedule
                                 : l.premiumSubscribeBtn,
@@ -2314,6 +2322,126 @@ Future<bool> _confirmTestPurchase(
               child: Text(
                 l10n.premiumTestPurchaseBtn,
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              l10n.premiumCancel,
+              style: const TextStyle(color: AppColors.textMuted, fontSize: 14),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+  return result == true;
+}
+
+// ── 베타 무료 프리미엄 확인 다이얼로그 ──────────────────────────────────────────
+/// 베타 테스트 기간 중 프리미엄을 무료로 활성화할 때 보여주는 확인 다이얼로그.
+Future<bool> _confirmBetaPremium(BuildContext context) async {
+  final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+  final result = await showModalBottomSheet<bool>(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    builder: (ctx) => Container(
+      decoration: const BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.fromLTRB(
+        24,
+        8,
+        24,
+        MediaQuery.of(ctx).viewInsets.bottom + 28,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle bar
+          Container(
+            width: 40,
+            height: 4,
+            margin: const EdgeInsets.only(bottom: 20),
+            decoration: BoxDecoration(
+              color: AppColors.textMuted.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          // 베타 배지
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.teal.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: AppColors.teal.withValues(alpha: 0.3),
+                width: 0.5,
+              ),
+            ),
+            child: Text(
+              l10n.koEn('🎉 베타 테스터 혜택', '🎉 Beta Tester Benefit'),
+              style: const TextStyle(
+                color: AppColors.teal,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Text('⭐', style: TextStyle(fontSize: 52)),
+          const SizedBox(height: 12),
+          const Text(
+            'Premium',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l10n.koEn('무료', 'FREE'),
+            style: const TextStyle(
+              color: AppColors.teal,
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l10n.koEn(
+              '베타 테스트 기간 동안 프리미엄 기능을\n무료로 체험하실 수 있습니다.\n정식 출시 후 구독이 필요합니다.',
+              'You can try Premium features for free\nduring the beta test period.\nSubscription required after official launch.',
+            ),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 28),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.gold,
+                foregroundColor: AppColors.bgDeep,
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              child: Text(
+                l10n.koEn('프리미엄 활성화', 'Activate Premium'),
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
               ),
             ),
           ),

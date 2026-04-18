@@ -126,6 +126,33 @@ class _InboxScreenState extends State<InboxScreen>
             child: Column(
               children: [
                 _buildHeader(context, state),
+                Builder(builder: (ctx) {
+                  final newCount = state.inbox.where((l) => l.status == DeliveryStatus.delivered).length;
+                  final transitCount = state.inbox.where((l) => l.status == DeliveryStatus.inTransit || l.status == DeliveryStatus.nearYou).length;
+                  final totalCount = state.inbox.length;
+                  return Container(
+                    margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.bgCard,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFF1F2D44)),
+                    ),
+                    child: Row(
+                      children: [
+                        _buildStatChip('새 편지', newCount.toString(), AppColors.gold),
+                        const Expanded(child: SizedBox()),
+                        Container(width: 1, height: 28, color: const Color(0xFF1F2D44)),
+                        const Expanded(child: SizedBox()),
+                        _buildStatChip('배달중', transitCount.toString(), AppColors.teal),
+                        const Expanded(child: SizedBox()),
+                        Container(width: 1, height: 28, color: const Color(0xFF1F2D44)),
+                        const Expanded(child: SizedBox()),
+                        _buildStatChip('총 수신', totalCount.toString(), AppColors.textSecondary),
+                      ],
+                    ),
+                  );
+                }),
                 _buildTabBar(),
                 Expanded(
                   child: TabBarView(
@@ -166,6 +193,17 @@ class _InboxScreenState extends State<InboxScreen>
           ),
         );
       },
+    );
+  }
+
+  Widget _buildStatChip(String label, String value, Color color) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(value, style: TextStyle(color: color, fontSize: 20, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 2),
+        Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 10)),
+      ],
     );
   }
 

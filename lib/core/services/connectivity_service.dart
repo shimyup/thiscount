@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 
 class ConnectivityService extends ChangeNotifier {
   static final ConnectivityService _instance = ConnectivityService._internal();
@@ -21,14 +21,18 @@ class ConnectivityService extends ChangeNotifier {
   }
 
   Future<void> _check() async {
+    // 웹 환경: dart:io InternetAddress.lookup 미지원 → HTTP HEAD 요청으로 대체
+    // 네이티브: 동일하게 HTTP HEAD 요청 사용 (웹/앱 통합 방식)
     bool online = false;
-    // Google이 차단된 국가(중국, 이란 등)를 위해 여러 호스트 순차 시도
-    for (final host in ['one.one.one.one', 'dns.google', 'google.com']) {
+    const checkUrls = [
+      'https://one.one.one.one',       // Cloudflare DNS
+      'https://connectivitycheck.gstatic.com/generate_204', // Google
+      'https://www.apple.com/library/test/success.html',    // Apple
+    ];
+    for (final url in checkUrls) {
       try {
-        final result = await InternetAddress.lookup(
-          host,
-        ).timeout(const Duration(seconds: 3));
-        if (result.isNotEmpty && result.first.rawAddress.isNotEmpty) {
+        final res = await http.head(Uri.parse(url)).timeout(const Duration(seconds: 4));
+        if (res.statusCode < 500) {
           online = true;
           break;
         }

@@ -414,43 +414,106 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   // ── 회원탈퇴 ───────────────────────────────────────────────────────────────
   void _confirmDeleteAccount(BuildContext ctx) {
-    final l = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
+    final state = ctx.read<AppState>();
+    final l = AppL10n.of(state.currentUser.languageCode);
+    final username = state.currentUser.username;
+    final confirmCtrl = TextEditingController();
+
     showDialog(
       context: ctx,
-      builder: (_) => AlertDialog(
-        backgroundColor: AppColors.bgCard,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          l.settingsWithdraw,
-          style: const TextStyle(color: AppColors.error),
-        ),
-        content: Text(
-          l.settingsWithdrawConfirm,
-          style: const TextStyle(color: AppColors.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              l.settingsCancel,
-              style: const TextStyle(color: AppColors.textMuted),
-            ),
+      builder: (dCtx) => StatefulBuilder(
+        builder: (dCtx2, setDState) => AlertDialog(
+          backgroundColor: AppColors.bgCard,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(
+            l.settingsWithdraw,
+            style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.w800),
           ),
-          TextButton(
-            onPressed: () async {
-              await AuthService.deleteAccount();
-              if (ctx.mounted) {
-                Navigator.of(
-                  ctx,
-                ).pushNamedAndRemoveUntil('/auth', (_) => false);
-              }
-            },
-            child: Text(
-              l.settingsWithdraw,
-              style: const TextStyle(color: AppColors.error),
-            ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l.settingsWithdrawConfirm,
+                style: const TextStyle(color: AppColors.textSecondary, height: 1.5),
+              ),
+              const SizedBox(height: 16),
+              // 경고 박스
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.error.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.error.withValues(alpha: 0.25)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('⚠️ 삭제되는 항목', style: TextStyle(color: AppColors.error, fontSize: 12, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 6),
+                    const Text('• 모든 편지 및 DM 기록\n• 타워 및 활동 점수\n• 스탬프 앨범\n• 계정 정보', style: TextStyle(color: AppColors.textMuted, fontSize: 12, height: 1.5)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              // 유저명 입력 확인
+              Text(
+                '확인을 위해 아이디 "$username"를 입력하세요:',
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: confirmCtrl,
+                onChanged: (_) => setDState(() {}),
+                decoration: InputDecoration(
+                  hintText: username,
+                  hintStyle: const TextStyle(color: AppColors.textMuted),
+                  filled: true,
+                  fillColor: AppColors.bgSurface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFF1F2D44)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFF1F2D44)),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                ),
+                style: const TextStyle(color: AppColors.textPrimary),
+              ),
+            ],
           ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dCtx),
+              child: Text(
+                l.settingsCancel,
+                style: const TextStyle(color: AppColors.textMuted),
+              ),
+            ),
+            TextButton(
+              onPressed: confirmCtrl.text.trim() == username
+                  ? () async {
+                      Navigator.pop(dCtx);
+                      await AuthService.deleteAccount();
+                      if (ctx.mounted) {
+                        Navigator.of(ctx).pushNamedAndRemoveUntil('/auth', (_) => false);
+                      }
+                    }
+                  : null,
+              child: Text(
+                l.settingsWithdraw,
+                style: TextStyle(
+                  color: confirmCtrl.text.trim() == username
+                      ? AppColors.error
+                      : AppColors.textMuted,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -694,6 +757,50 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             mode: LaunchMode.externalApplication,
                           );
                         }
+                      },
+                    ),
+
+                    const SizedBox(height: 8),
+                    // ── 고객 지원 ───────────────────────────────────────────
+                    _sectionHeader('고객 지원'),
+                    _tile(
+                      icon: Icons.help_outline_rounded,
+                      label: '문의하기',
+                      subtitle: '오류 신고 · 기능 제안 · 기타 문의',
+                      onTap: () async {
+                        final uri = Uri(
+                          scheme: 'mailto',
+                          path: 'support@airony.xyz',
+                          queryParameters: {
+                            'subject': '[Letter Go] 문의 / Support',
+                            'body': '아이디: ${user.username}\n이메일: ${user.email ?? "N/A"}\n\n문의 내용:\n',
+                          },
+                        );
+                        try {
+                          await launchUrl(uri);
+                        } catch (_) {}
+                      },
+                    ),
+                    Consumer<PurchaseService>(
+                      builder: (ctx2, purchase, _) {
+                        final isPremium = purchase.isPremium || user.isPremium;
+                        if (!isPremium) return const SizedBox.shrink();
+                        return _tile(
+                          icon: Icons.subscriptions_outlined,
+                          label: '구독 관리',
+                          subtitle: 'App Store / Google Play에서 구독 변경',
+                          onTap: () async {
+                            // iOS: App Store 구독 관리 / Android: Play Store
+                            const iosUrl = 'https://apps.apple.com/account/subscriptions';
+                            const androidUrl = 'https://play.google.com/store/account/subscriptions';
+                            final url = Uri.parse(
+                              Theme.of(ctx2).platform == TargetPlatform.iOS ? iosUrl : androidUrl,
+                            );
+                            try {
+                              await launchUrl(url, mode: LaunchMode.externalApplication);
+                            } catch (_) {}
+                          },
+                        );
                       },
                     ),
 

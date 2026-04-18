@@ -266,6 +266,18 @@ class PurchaseService extends ChangeNotifier {
     return true;
   }
 
+  // ── 베타 무료 프리미엄 모드 (TestFlight / 내부 테스트용) ──────────────────
+  // 빌드 시 --dart-define=BETA_FREE_PREMIUM=true 로 활성화.
+  // 릴리스 빌드에서도 Premium 구독을 무료로 즉시 활성화.
+  // Brand 구독은 베타 기간 중 불가.
+  static const bool _isBetaFreePremium = bool.fromEnvironment(
+    'BETA_FREE_PREMIUM',
+    defaultValue: false,
+  );
+
+  /// UI에서 베타 무료 프리미엄 모드 여부를 확인할 때 사용
+  bool get isBetaFreePremium => _isBetaFreePremium;
+
   static bool get _isRcKeyConfiguredForCurrentPlatform {
     final iosReady = _isValidRevenueCatKey(_RcKeys.ios, isAndroid: false);
     final androidReady = _isValidRevenueCatKey(
@@ -306,6 +318,13 @@ class PurchaseService extends ChangeNotifier {
       await _initFromPrefs();
       return;
     }
+
+    // 베타 무료 프리미엄 모드: RevenueCat 완전 우회, 로컬 상태만 사용
+    if (_isBetaFreePremium) {
+      await _initFromPrefs();
+      return;
+    }
+
     if (!_isRcKeyConfiguredForCurrentPlatform) {
       _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
       return;
@@ -521,13 +540,13 @@ class PurchaseService extends ChangeNotifier {
   // ── Premium 구매 ────────────────────────────────────────────────────────
   Future<bool> buyPremium() async {
     _startLoading(PurchaseOperation.premium);
-    if (!_isTestMode && !_isRcKeyConfiguredForCurrentPlatform) {
+    if (!_isTestMode && !_isBetaFreePremium && !_isRcKeyConfiguredForCurrentPlatform) {
       _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
       return false;
     }
 
-    // 디버그 빌드 or RevenueCat 미연동 → 테스트 모드
-    if (_isTestMode) {
+    // 디버그 빌드 or RevenueCat 미연동 or 베타 무료 프리미엄 → 로컬 활성화
+    if (_isTestMode || _isBetaFreePremium) {
       return await _fakePurchase(() async {
         final prefs = await _getPrefs();
         _isPremium = true;
@@ -566,6 +585,13 @@ class PurchaseService extends ChangeNotifier {
   // ── Brand 구매 ──────────────────────────────────────────────────────────
   Future<bool> buyBrand() async {
     _startLoading(PurchaseOperation.brand);
+
+    // 베타 무료 프리미엄 모드에서는 Brand 구독 불가
+    if (_isBetaFreePremium) {
+      _setError('베타 테스트 기간에는 Brand 구독을 이용할 수 없습니다. 정식 출시 후 이용해주세요.');
+      return false;
+    }
+
     if (!_isTestMode && !_isRcKeyConfiguredForCurrentPlatform) {
       _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
       return false;
@@ -612,6 +638,13 @@ class PurchaseService extends ChangeNotifier {
   // 테스트 모드에서는 구매자 자신의 계정에 영향 없이 코드만 생성
   Future<bool> buyGiftCard() async {
     _startLoading(PurchaseOperation.giftCard);
+
+    // 베타 무료 프리미엄 모드에서는 선물권 구매도 로컬 시뮬레이션
+    if (_isBetaFreePremium) {
+      await _fakePurchase(() async {});
+      return true;
+    }
+
     if (!_isTestMode && !_isRcKeyConfiguredForCurrentPlatform) {
       _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
       return false;
@@ -744,9 +777,22 @@ class PurchaseService extends ChangeNotifier {
   // ── 구매 복원 ───────────────────────────────────────────────────────────
   Future<bool> restorePurchases() async {
     _startLoading(PurchaseOperation.restore);
-    if (!_isTestMode && !_isRcKeyConfiguredForCurrentPlatform) {
+    if (!_isTestMode && !_isBetaFreePremium && !_isRcKeyConfiguredForCurrentPlatform) {
       _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
       return false;
+    }
+
+    // 베타 무료 프리미엄 모드 → 로컬 상태만 복원
+    if (_isBetaFreePremium) {
+      final prefs = await _getPrefs();
+      await _loadSecurePremiumState();
+      _nextBillingDate = _loadDateFromPrefs(
+        prefs,
+        PrefKeys.purchaseNextBillingDate,
+      );
+      await _loadAndApplyScheduledPlanChange(prefs);
+      _stopLoading();
+      return true;
     }
 
     if (_isTestMode) {

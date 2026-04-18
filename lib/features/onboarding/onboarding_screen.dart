@@ -4,6 +4,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../core/localization/language_config.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/services/notification_service.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -113,6 +114,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       countryFlag: _selectedFlag,
     );
     await AuthService.setOnboardingComplete();
+
+    // 알림 권한 요청 (선택적 — 거부해도 진행 가능)
+    try {
+      await NotificationService.requestPermissions();
+    } catch (_) {}
+
     if (mounted) {
       // 이미 로그인 상태면 홈으로, 아니면 인증 화면으로
       final loggedIn = await AuthService.isLoggedIn();
@@ -152,7 +159,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _nextPage() {
-    // 페이지 1(위치 허용)에서 아직 허가 안됐으면 막기
+    // 페이지 1(위치 허용): 권한 미허가 시 먼저 요청, 이미 거부됐으면 건너뛰기 허용
     if (_currentPage == 1 && !_locationGranted) {
       _requestLocationPermission();
       return;
@@ -165,6 +172,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     } else {
       _finish();
     }
+  }
+
+  /// 위치 권한 없이 다음으로 건너뜀 (앱스토어 가이드라인 준수)
+  void _skipLocationPermission() {
+    _pageCtrl.nextPage(
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
@@ -309,6 +324,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
                       ),
                     ),
+                    // 위치 권한 페이지: "나중에" 스킵 버튼 (앱스토어 가이드라인)
+                    if (_currentPage == 1 && !_locationGranted && !_locationChecking)
+                      TextButton(
+                        onPressed: _skipLocationPermission,
+                        child: Text(
+                          _l.skip,
+                          style: const TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),

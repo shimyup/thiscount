@@ -67,4 +67,25 @@ class FirebaseConfig {
     'TWILIO_FROM_NUMBER',
     defaultValue: '',
   );
+
+  // ── SendGrid 이메일 설정 ─────────────────────────────────────────────────────
+  // 빌드 시 dart-define 으로 주입:
+  //   --dart-define=SENDGRID_API_KEY=SG.xxxxxxxxxx
+  //   --dart-define=SENDGRID_FROM_EMAIL=noreply@yourdomain.com
+
+  /// SendGrid API Key
+  static const String sendgridApiKey = String.fromEnvironment(
+    'SENDGRID_API_KEY',
+    defaultValue: '',
+  );
+
+  /// SendGrid 발신 이메일 주소
+  static const String sendgridFromEmail = String.fromEnvironment(
+    'SENDGRID_FROM_EMAIL',
+    defaultValue: '',
+  );
+
+  /// SendGrid 설정 여부
+  static bool get isSendgridEnabled =>
+      sendgridApiKey.isNotEmpty && sendgridFromEmail.isNotEmpty;
 }
