@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'core/theme/app_theme.dart';
@@ -263,6 +264,11 @@ class _GlobalDriftAppState extends State<GlobalDriftApp> {
             debugShowCheckedModeBanner: false,
             theme: _buildTheme(state),
             locale: appLocale,
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
             supportedLocales: const [
               Locale('ko'), Locale('en'), Locale('ja'), Locale('zh'),
               Locale('fr'), Locale('de'), Locale('es'), Locale('pt'),
