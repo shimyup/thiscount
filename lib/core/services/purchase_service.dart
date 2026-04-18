@@ -885,11 +885,17 @@ class PurchaseService extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── 테스트 이메일 자동 브랜드 설정 (DEBUG 전용) ──────────────────────────────
+  // ── 테스트 이메일 자동 브랜드 설정 (DEBUG + BETA_ADMIN_EMAIL) ──────────────
+  /// 허용 조건:
+  /// 1) 디버그 빌드 + shimyup@gmail.com (하드코딩 테스트 계정)
+  /// 2) 릴리스 빌드라도 BETA_ADMIN_EMAIL 주입 값과 일치 (베타 관리자)
+  /// 정식 출시 시 .env.local 에서 BETA_ADMIN_EMAIL 제거하면 자동으로 잠김.
   Future<void> applyTestEmailOverride(String? email) async {
-    if (!kDebugMode) return;
     if (email == null || email.isEmpty) return;
-    if (email.toLowerCase() != DebugConstants.testBrandEmail) return;
+    final isDebugTester =
+        kDebugMode && email.toLowerCase() == DebugConstants.testBrandEmail;
+    final isBetaAdmin = BetaConstants.isAdmin(email);
+    if (!isDebugTester && !isBetaAdmin) return;
     if (_isBrand) return; // 이미 브랜드면 skip
     final prefs = await _getPrefs();
     _isBrand = true;

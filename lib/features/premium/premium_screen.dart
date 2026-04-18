@@ -276,7 +276,8 @@ class PremiumScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 Builder(builder: (_) {
                   final brandEmail = state.currentUser.email?.toLowerCase() ?? '';
-                  final isAdminBrand = brandEmail == DebugConstants.testBrandEmail;
+                  final isAdminBrand = brandEmail == DebugConstants.testBrandEmail ||
+                      BetaConstants.isAdmin(brandEmail);
                   // 테스터는 브랜드 구매 비활성화 (보이기만 함)
                   final brandDisabled = (kDebugMode && !isAdminBrand && !isBrand) ||
                       (purchase.isBetaFreePremium && !isBrand);
@@ -2112,7 +2113,8 @@ class _DebugPremiumToggle extends StatelessWidget {
                   context.read<AppState>().currentUser.email?.toLowerCase() ??
                   '';
               final isTestBrandAccount =
-                  userEmail == DebugConstants.testBrandEmail;
+                  userEmail == DebugConstants.testBrandEmail ||
+                  BetaConstants.isAdmin(userEmail);
               return Row(
                 children: [
                   Expanded(

@@ -118,9 +118,13 @@ class _AdminScreenState extends State<AdminScreen> {
     final colors = AppTimeColors.of(context);
     final curSpeedIdx = _speedIndex(state.adminSpeedMultiplier);
     final user = state.currentUser;
+    // 관리자 접근 허용 조건:
+    // 1) 디버그 빌드 + 하드코딩된 테스트 브랜드 이메일, 또는
+    // 2) 베타 dart-define 으로 주입된 BETA_ADMIN_EMAIL 과 일치 (정식 빌드 차단용).
     final isAllowedAdmin =
-        kDebugMode &&
-        user.email?.toLowerCase() == DebugConstants.testBrandEmail;
+        (kDebugMode &&
+            user.email?.toLowerCase() == DebugConstants.testBrandEmail) ||
+        BetaConstants.isAdmin(user.email);
 
     if (!isAllowedAdmin) {
       return Scaffold(

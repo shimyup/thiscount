@@ -852,10 +852,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onTap: () => _confirmDeleteAccount(ctx),
                     ),
 
-                    // ── 관리자 패널 (DEBUG + 지정 테스트 계정 전용) ────────────
-                    if (kDebugMode &&
-                        user.email?.toLowerCase() ==
-                            DebugConstants.testBrandEmail) ...[
+                    // ── 관리자 패널 (DEBUG + 테스트 이메일 · 또는 BETA_ADMIN_EMAIL) ──
+                    if ((kDebugMode &&
+                            user.email?.toLowerCase() ==
+                                DebugConstants.testBrandEmail) ||
+                        BetaConstants.isAdmin(user.email)) ...[
                       const SizedBox(height: 8),
                       _sectionHeader('🔐 ${l.settingsAdmin}'),
                       _tile(
