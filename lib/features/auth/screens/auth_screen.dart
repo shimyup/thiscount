@@ -1956,8 +1956,12 @@ class _SignupTabState extends State<_SignupTab> {
           ),
           const SizedBox(height: 32),
 
-          // OTP 코드 표시 (DEBUG 빌드 전용 — release 빌드에는 노출되지 않음)
-          if (kDebugMode && _devOtpCode != null) ...[
+          // OTP 코드 표시:
+          //   - DEBUG 빌드: 항상 표시
+          //   - RELEASE 빌드: SendGrid 미설정 시에만 표시 (베타 테스트 구제)
+          //     → SendGrid API 키가 dart-define 으로 주입되면 자동으로 숨김
+          if ((kDebugMode || !EmailService.isConfigured) &&
+              _devOtpCode != null) ...[
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),
@@ -1968,15 +1972,36 @@ class _SignupTabState extends State<_SignupTab> {
                   color: const Color(0xFFFF8A5C).withValues(alpha: 0.4),
                 ),
               ),
-              child: Text(
-                '인증 코드: $_devOtpCode',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Color(0xFFFF8A5C),
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 6,
-                ),
+              child: Column(
+                children: [
+                  Text(
+                    '📬 베타 인증 코드 (이메일 미발송 중)',
+                    style: TextStyle(
+                      color: const Color(0xFFFF8A5C).withValues(alpha: 0.8),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _devOtpCode!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Color(0xFFFF8A5C),
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 6,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '위 코드를 아래 입력란에 넣어주세요',
+                    style: TextStyle(
+                      color: const Color(0xFFFF8A5C).withValues(alpha: 0.7),
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 20),
