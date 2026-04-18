@@ -21,7 +21,7 @@ Date: 2026-04-18
 **테스터에게는**
 
 - 기기를 바꾸거나 앱을 재설치해도 편지와 타워가 그대로 남아있어요
-- 관리자 계정(shimyup@gmail.com)은 Firestore 규칙 게시 후 회원 관리 정상 작동
+- 관리자 계정(ceo@airony.xyz)은 Firestore 규칙 게시 후 회원 관리 정상 작동
 
 ---
 
@@ -42,7 +42,7 @@ Date: 2026-04-18
 **Testers**
 
 - Letters and tower persist even when switching devices or reinstalling
-- Admin account (shimyup@gmail.com) works once the Firestore rules are
+- Admin account (ceo@airony.xyz) works once the Firestore rules are
   published (see docs/release/firestore-rules-setup.md)
 
 ---
@@ -124,7 +124,7 @@ Date: 2026-04-18
 관리자 403 수정이 작동하려면 Firestore 보안 규칙을 게시해야 합니다.
 
 1. Firebase Console → lettergo-147eb → Authentication → Users 탭에서
-   `shimyup@gmail.com` 의 User UID 복사
+   `ceo@airony.xyz` 의 User UID 복사
 2. Firestore Database → 규칙 탭으로 이동
 3. 세션 기록의 "관리자 UID 찾는 방법" 섹션 규칙을 붙여넣고 UID 교체
 4. **게시** 클릭

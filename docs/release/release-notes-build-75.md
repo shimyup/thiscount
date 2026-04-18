@@ -123,7 +123,7 @@ Date: 2026-04-18
 Firestore 보안 규칙을 배포해야 관리자 패널이 작동합니다.
 
 1. `firebase login --reauth` (세션 갱신)
-2. Firebase Console → Authentication → Users → shimyup@gmail.com 의 UID 복사
+2. Firebase Console → Authentication → Users → ceo@airony.xyz 의 UID 복사
 3. `sed -i '' "s/REPLACE_WITH_YOUR_UID_HERE/복사한UID/g" firestore.rules`
 4. `firebase deploy --only firestore:rules,firestore:indexes`
 

@@ -35,8 +35,10 @@ abstract class PrefKeys {
 
 /// DEBUG 전용 상수 (kDebugMode 체크 후에만 사용)
 abstract class DebugConstants {
-  /// 자동으로 브랜드 계정으로 승급시킬 테스트 이메일
-  static const String testBrandEmail = 'shimyup@gmail.com';
+  /// 자동으로 브랜드 계정으로 승급시킬 테스트 이메일.
+  /// 디버그 빌드에서만 적용됨. 릴리스 빌드의 관리자 이메일은
+  /// dart-define BETA_ADMIN_EMAIL 로 주입 (BetaConstants 참조).
+  static const String testBrandEmail = 'ceo@airony.xyz';
 }
 
 /// 베타 테스트 기간 전용 상수
