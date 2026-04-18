@@ -120,6 +120,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   final List<Letter> _worldLetters = [];
   List<Letter> get worldLetters => List.unmodifiable(_worldLetters);
 
+  // ── 서버 동기화 타이머 (편지 수신 + 다른 사용자) ──────────────────────────
+  Timer? _syncTimer;
+  static const Duration _syncInterval = Duration(seconds: 30);
+  bool _syncInFlight = false;
+
   // ── 내 받은 편지함 ──────────────────────────────────────────────────────────
   final List<Letter> _inbox = [];
   List<Letter> get inbox => List.unmodifiable(_inbox);
@@ -1732,6 +1737,209 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
+  // ╔══════════════════════════════════════════════════════════════════════╗
+  // ║ 서버 동기화 (수신 편지 + 다른 온라인 사용자)                         ║
+  // ╚══════════════════════════════════════════════════════════════════════╝
+
+  /// 앱 시작 직후 호출. 주기적으로 서버에서 편지 수신 + 다른 사용자 정보를
+  /// 가져와 로컬 상태와 병합. 사용자가 설정되지 않았거나 Firebase 가 꺼져
+  /// 있으면 아무 것도 하지 않는다.
+  void startServerSync() {
+    if (_syncTimer != null) return; // 이미 돌고 있음
+    if (!FirebaseConfig.kFirebaseEnabled) return;
+    if (_currentUser.id.isEmpty || _currentUser.id == 'guest') return;
+    // 첫 1회 즉시 실행 → 그 뒤 주기적 갱신
+    unawaited(_runServerSync());
+    _syncTimer = Timer.periodic(_syncInterval, (_) => _runServerSync());
+  }
+
+  /// 로그아웃 등으로 사용자 세션이 끊겼을 때 호출.
+  void stopServerSync() {
+    _syncTimer?.cancel();
+    _syncTimer = null;
+  }
+
+  Future<void> _runServerSync() async {
+    if (_syncInFlight) return; // 이전 동기화가 아직 안 끝났으면 skip
+    _syncInFlight = true;
+    try {
+      // 다른 사용자 타워는 기존 fetchMapUsers 인프라 재사용 (force: true 로
+      // 10분 캐시 우회). 편지 수신과 병렬 실행.
+      await Future.wait([
+        _fetchIncomingLettersFromServer(),
+        fetchMapUsers(force: true),
+      ]);
+    } finally {
+      _syncInFlight = false;
+    }
+  }
+
+  /// 다른 사용자가 **내가 있는 국가**로 보낸 편지를 서버에서 내려받아 inbox
+  /// 와 worldLetters 에 병합. 자기 자신이 보낸 편지, 이미 local 에 있는
+  /// 편지, 차단된 발송자의 편지는 제외.
+  Future<void> _fetchIncomingLettersFromServer() async {
+    if (!FirebaseConfig.kFirebaseEnabled) return;
+    if (_currentUser.country.isEmpty) return;
+    try {
+      final docs = await FirestoreService.queryWhereEquals(
+        collectionId: 'letters',
+        field: 'destinationCountry',
+        value: _currentUser.country,
+        limit: 50,
+      );
+      if (docs.isEmpty) return;
+
+      int added = 0;
+      for (final doc in docs) {
+        final map = FirestoreService.fromFirestoreDoc(doc);
+        final letter = _letterFromFirestore(map);
+        if (letter == null) continue;
+        // 자기 자신이 보낸 편지는 제외
+        if (letter.senderId == _currentUser.id) continue;
+        // 차단된 발송자 편지 제외
+        if (_blockedSenderIds.contains(letter.senderId)) continue;
+        if (_tempBlockedSenderIds.contains(letter.senderId)) continue;
+        // 이미 local (inbox/worldLetters/sent) 에 있으면 skip
+        if (_inbox.any((l) => l.id == letter.id)) continue;
+        if (_worldLetters.any((l) => l.id == letter.id)) continue;
+        if (_sent.any((l) => l.id == letter.id)) continue;
+
+        // 도착 상태에 따라 분배:
+        //   - delivered → inbox (받은 편지함)
+        //   - inTransit / nearYou → worldLetters (지도)
+        if (letter.status == DeliveryStatus.delivered) {
+          _inbox.add(letter);
+        } else {
+          _worldLetters.add(letter);
+        }
+        added++;
+      }
+      if (added > 0) {
+        notifyListeners();
+        _saveToPrefs();
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Firebase] 수신 편지 동기화 실패: $e');
+    }
+  }
+
+  /// Firestore 문서(필드 디코딩 완료) → Letter 객체 변환.
+  /// 필수 필드 누락 시 null 반환.
+  Letter? _letterFromFirestore(Map<String, dynamic> map) {
+    try {
+      final id = map['id'] as String?;
+      final senderId = map['senderId'] as String?;
+      final content = map['content'] as String?;
+      if (id == null || senderId == null || content == null) return null;
+
+      final originLat = (map['originLat'] as num?)?.toDouble() ?? 0.0;
+      final originLng = (map['originLng'] as num?)?.toDouble() ?? 0.0;
+      final destLat = (map['destLat'] as num?)?.toDouble() ?? 0.0;
+      final destLng = (map['destLng'] as num?)?.toDouble() ?? 0.0;
+      final origin = LatLng(originLat, originLng);
+      final dest = LatLng(destLat, destLng);
+
+      final sentAtStr = map['sentAt'] as String?;
+      final sentAt = sentAtStr != null
+          ? DateTime.tryParse(sentAtStr) ?? DateTime.now()
+          : DateTime.now();
+      final estimatedMinutes =
+          (map['estimatedTotalMinutes'] as num?)?.toInt() ?? 60;
+
+      // status 파싱
+      DeliveryStatus status = DeliveryStatus.inTransit;
+      final statusStr = map['status'] as String?;
+      if (statusStr != null) {
+        status = DeliveryStatus.values.firstWhere(
+          (s) => s.name == statusStr,
+          orElse: () => DeliveryStatus.inTransit,
+        );
+      }
+
+      // letterType 파싱
+      LetterType letterType = LetterType.normal;
+      final typeStr = map['letterType'] as String?;
+      if (typeStr != null) {
+        letterType = LetterType.values.firstWhere(
+          (t) => t.name == typeStr,
+          orElse: () => LetterType.normal,
+        );
+      }
+
+      // senderTier 파싱
+      LetterSenderTier senderTier = LetterSenderTier.free;
+      final tierStr = map['senderTier'] as String?;
+      if (tierStr != null) {
+        senderTier = LetterSenderTier.values.firstWhere(
+          (t) => t.name == tierStr,
+          orElse: () => LetterSenderTier.free,
+        );
+      }
+
+      // 간이 segment (서버 전송 시 저장되지 않아 클라이언트에서 재구성).
+      // 세부 출발/도착 허브 정보는 로컬에만 존재하므로 국가명으로 placeholder.
+      final segment = RouteSegment(
+        from: origin,
+        to: dest,
+        mode: TransportMode.airplane,
+        fromName: (map['senderCountry'] as String?) ?? '',
+        toName: (map['destinationCountry'] as String?) ?? '',
+        fromType: HubType.city,
+        toType: HubType.destination,
+        estimatedMinutes: estimatedMinutes,
+        progress:
+            status == DeliveryStatus.delivered ? 1.0 : 0.0,
+      );
+
+      // 도착 시각이 이미 지났다면 자동으로 delivered 처리
+      final arrivalTime =
+          sentAt.add(Duration(minutes: estimatedMinutes));
+      final now = DateTime.now();
+      if (status == DeliveryStatus.inTransit && now.isAfter(arrivalTime)) {
+        status = DeliveryStatus.delivered;
+      }
+
+      return Letter(
+        id: id,
+        senderId: senderId,
+        senderName: (map['senderName'] as String?) ?? 'Traveler',
+        senderCountry: (map['senderCountry'] as String?) ?? '',
+        senderCountryFlag: (map['senderCountryFlag'] as String?) ?? '🌍',
+        content: content,
+        originLocation: origin,
+        destinationLocation: dest,
+        destinationCountry:
+            (map['destinationCountry'] as String?) ?? '',
+        destinationCountryFlag:
+            (map['destinationCountryFlag'] as String?) ?? '🌍',
+        destinationCity: (map['destinationCity'] as String?)?.isEmpty == true
+            ? null
+            : map['destinationCity'] as String?,
+        segments: [segment],
+        status: status,
+        sentAt: sentAt,
+        arrivalTime: arrivalTime,
+        arrivedAt:
+            status == DeliveryStatus.delivered ? arrivalTime : null,
+        estimatedTotalMinutes: estimatedMinutes,
+        letterType: letterType,
+        paperStyle: (map['paperStyle'] as num?)?.toInt() ?? 0,
+        fontStyle: (map['fontStyle'] as num?)?.toInt() ?? 0,
+        imageUrl: (map['imageUrl'] as String?)?.isEmpty == true
+            ? null
+            : map['imageUrl'] as String?,
+        socialLink: (map['socialLink'] as String?)?.isEmpty == true
+            ? null
+            : map['socialLink'] as String?,
+        senderTier: senderTier,
+        senderIsBrand: senderTier == LetterSenderTier.brand,
+      );
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Firebase] 편지 파싱 실패: $e');
+      return null;
+    }
+  }
+
   /// 관리자: 서버의 모든 편지 목록 조회
   Future<List<Map<String, dynamic>>> adminFetchAllLetters() async {
     if (!FirebaseConfig.kFirebaseEnabled) return [];
@@ -1810,6 +2018,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     fetchMapUsers(force: true);
     // AI 자동 편지 생성 (하루 5통)
     _generateDailyAiLetters();
+    // 서버 동기화 시작 (편지 수신 + 다른 온라인 사용자 타워)
+    startServerSync();
   }
 
   // ── 위치 업데이트 ─────────────────────────────────────────────────────────
@@ -5021,6 +5231,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _dmMessages.remove(senderId);
     _inbox.removeWhere((l) => l.senderId == senderId);
     _worldLetters.removeWhere((l) => l.senderId == senderId);
+    // 지도 위 타워에서도 즉시 제거 (다음 동기화 주기까지 기다리지 않음)
+    _mapUsers.removeWhere((u) => u.id == senderId);
     notifyListeners();
     _saveToPrefs();
     _saveDMToPrefs();
@@ -5128,6 +5340,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _deliveryTimer?.cancel();
     _worldLetterSyncTimer?.cancel();
+    _syncTimer?.cancel();
     super.dispose();
   }
 }
