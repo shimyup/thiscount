@@ -14876,4 +14876,22 @@ class AppL10n {
     'th': 'สตรีคที่ยาวที่สุด $days วัน',
   });
 
+  // ── 빈 상태 CTA ─────────────────────────────────────────────────────────
+  String get emptyStateWriteCta => _t({
+    'ko': '첫 편지 쓰기',
+    'en': 'Write your first letter',
+    'ja': '最初の手紙を書く',
+    'zh': '写下第一封信',
+    'fr': 'Écrire votre première lettre',
+    'de': 'Ersten Brief schreiben',
+    'es': 'Escribir tu primera carta',
+    'pt': 'Escrever sua primeira carta',
+    'ru': 'Написать первое письмо',
+    'tr': 'İlk mektubunuzu yazın',
+    'ar': 'اكتب رسالتك الأولى',
+    'it': 'Scrivi la tua prima lettera',
+    'hi': 'पहला पत्र लिखें',
+    'th': 'เขียนจดหมายฉบับแรก',
+  });
+
 }

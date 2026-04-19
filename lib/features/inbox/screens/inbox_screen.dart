@@ -603,6 +603,8 @@ class _InboxTab extends StatelessWidget {
               emoji: '📭',
               title: l10n.inboxEmptyReceived,
               subtitle: l10n.inboxEmptyReceivedSub,
+              ctaLabel: l10n.emptyStateWriteCta,
+              onCtaTap: () => Navigator.of(context).pushNamed('/compose'),
             ),
           )
         else ...[
@@ -801,6 +803,8 @@ class _SentTab extends StatelessWidget {
               emoji: '📮',
               title: l10n.inboxEmptySent,
               subtitle: l10n.inboxEmptySentSub,
+              ctaLabel: l10n.emptyStateWriteCta,
+              onCtaTap: () => Navigator.of(context).pushNamed('/compose'),
             ),
           )
         else
@@ -1399,33 +1403,72 @@ class _EmptyState extends StatelessWidget {
   final String emoji;
   final String title;
   final String subtitle;
+  final String? ctaLabel;
+  final VoidCallback? onCtaTap;
 
   const _EmptyState({
     required this.emoji,
     required this.title,
     required this.subtitle,
+    this.ctaLabel,
+    this.onCtaTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(emoji, style: const TextStyle(fontSize: 64)),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            subtitle,
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 72)),
+            const SizedBox(height: 20),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 13,
+                height: 1.6,
+              ),
+            ),
+            if (ctaLabel != null && onCtaTap != null) ...[
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: onCtaTap,
+                icon: const Icon(Icons.edit_outlined, size: 18),
+                label: Text(ctaLabel!),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.gold,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24, vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  textStyle: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
