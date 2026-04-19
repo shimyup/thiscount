@@ -171,6 +171,19 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       ? const Duration(minutes: 10)
       : const Duration(minutes: 60);
 
+  // ── 등급별 픽업 반경 ──────────────────────────────────────────────────
+  // 무료: 200m — 주변을 진짜 걸어야 편지가 잡히는 보물찾기 느낌
+  // 프리미엄: 1km — 여유 있게 탐험 가능
+  // 브랜드: 지구 전체 (매우 큰 값)
+  //
+  // `nearYou` / `deliveredFar` 상태 전환과 픽업 시 거리 검증 모두 이 한 곳을
+  // 통해 간다. 이 상수를 바꾸면 게임 난이도가 한 번에 조정된다.
+  double get pickupRadiusMeters {
+    if (_currentUser.isBrand) return 20000000; // 20,000km ≈ 전 지구
+    if (_currentUser.isPremium) return 1000;
+    return 200;
+  }
+
   DateTime? _lastNearbyPickupAt;
 
   /// 현재 유저가 이미 줍기한 편지 ID 집합 (동일 편지 중복 줍기 방지)
@@ -1960,7 +1973,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         final dist = letter.destinationLocation.distanceTo(
           LatLng(_currentUser.latitude, _currentUser.longitude),
         );
-        if (dist <= 2000) {
+        if (dist <= pickupRadiusMeters) {
           letter.status = DeliveryStatus.nearYou;
           _hasNearbyAlert = true;
         } else {
@@ -4505,12 +4518,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       final List<Letter> dailyToInbox = [];
 
       for (final letter in _worldLetters) {
-        // deliveredFar 편지: 유저가 2km 이내로 이동하면 nearYou로 변경
+        // deliveredFar 편지: 유저가 반경 이내로 이동하면 nearYou로 변경
         if (letter.status == DeliveryStatus.deliveredFar) {
           final dist = letter.destinationLocation.distanceTo(
             LatLng(_currentUser.latitude, _currentUser.longitude),
           );
-          if (dist <= 2000) {
+          if (dist <= pickupRadiusMeters) {
             letter.status = DeliveryStatus.nearYou;
             _hasNearbyAlert = true;
             _triggerNearbyNotification(letter);
@@ -4519,12 +4532,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           continue;
         }
 
-        // nearYou 편지: 유저가 2km 밖으로 이동하면 deliveredFar로 되돌림
+        // nearYou 편지: 유저가 반경 밖으로 이동하면 deliveredFar로 되돌림
         if (letter.status == DeliveryStatus.nearYou) {
           final dist = letter.destinationLocation.distanceTo(
             LatLng(_currentUser.latitude, _currentUser.longitude),
           );
-          if (dist > 2000) {
+          if (dist > pickupRadiusMeters) {
             letter.status = DeliveryStatus.deliveredFar;
             changed = true;
           }
@@ -4550,17 +4563,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             changed = true;
             continue;
           }
-          // 내 위치 2km 이내인지 확인
+          // 내 위치 반경 이내인지 확인
           final dist = letter.destinationLocation.distanceTo(
             LatLng(_currentUser.latitude, _currentUser.longitude),
           );
-          if (dist <= 2000) {
-            // 실제 2km 이내
+          if (dist <= pickupRadiusMeters) {
+            // 실제 반경 이내
             letter.status = DeliveryStatus.nearYou;
             _hasNearbyAlert = true;
             _triggerNearbyNotification(letter);
           } else {
-            // 2km 밖에 있으면 deliveredFar (지도에 표시되지만 열 수 없음)
+            // 반경 밖에 있으면 deliveredFar (지도에 표시되지만 열 수 없음)
             letter.status = DeliveryStatus.deliveredFar;
             NotificationService.showLetterArrivedNotification(
               senderCountry: letter.senderCountry,
@@ -5005,6 +5018,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     bool isExpress = false, // 프리미엄/브랜드 특급 배송
     bool brandUniquePerUser = false, // 브랜드: 수신자당 1회 수신
     int? brandAutoExpireHours, // 브랜드: 자동 삭제 시간
+    LetterCategory category = LetterCategory.general, // 브랜드만 coupon/voucher 선택 가능
   }) async {
     if (!_canSendLetterByDailyLimit()) {
       return false;
@@ -5168,6 +5182,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       expiresAt: (_currentUser.isBrand && brandAutoExpireHours != null)
           ? now.add(Duration(minutes: totalMin) + Duration(hours: brandAutoExpireHours))
           : null,
+      // coupon/voucher 카테고리는 브랜드만 선택할 수 있도록 서버 사이드 가드
+      // 일반·프리미엄 유저가 어떤 방식으로 category 를 전달해도 general 로 강제.
+      category: _currentUser.isBrand ? category : LetterCategory.general,
     );
 
     _worldLetters.add(letter);
@@ -5227,6 +5244,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     int fontStyle = 0,
     bool brandUniquePerUser = false,
     int? brandAutoExpireHours,
+    LetterCategory category = LetterCategory.general,
   }) async {
     if (!_currentUser.isBrand) return 0;
     int sent = 0;
@@ -5250,6 +5268,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           fontStyle: fontStyle,
           brandUniquePerUser: brandUniquePerUser,
           brandAutoExpireHours: brandAutoExpireHours,
+          category: category,
         );
         if (ok) sent++;
       }
@@ -5271,6 +5290,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             fontStyle: fontStyle,
             brandUniquePerUser: brandUniquePerUser,
             brandAutoExpireHours: brandAutoExpireHours,
+            category: category,
           );
           if (ok) sent++;
         }
@@ -5294,6 +5314,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     String? imageUrl,
     bool brandUniquePerUser = false,
     int? brandAutoExpireHours,
+    LetterCategory category = LetterCategory.general,
   }) async {
     if (!_currentUser.isBrand) return 0;
 
@@ -5373,6 +5394,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         expiresAt: brandAutoExpireHours != null
             ? now.add(Duration(minutes: expressTotalMin) + Duration(hours: brandAutoExpireHours))
             : null,
+        category: category,
       );
 
       _worldLetters.add(letter);
@@ -5444,7 +5466,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       final dist = letter.destinationLocation.distanceTo(
         LatLng(_currentUser.latitude, _currentUser.longitude),
       );
-      if (dist > 2000) return _l10n.stateDistanceTooFar;
+      if (dist > pickupRadiusMeters) return _l10n.stateDistanceTooFar;
     }
 
     // ⑥ 수령 처리: readCount 증가 후 inbox에 복사본 추가

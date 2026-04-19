@@ -10,7 +10,9 @@ import '../widgets/letter_read_screen.dart';
 import '../../map/screens/letter_detail_map_screen.dart';
 import '../../dm/dm_conversation_screen.dart';
 
-enum LetterFilterType { all, read, inTransit, waitingPickup, brand }
+// all · read · inTransit · waitingPickup · brand (기존)
+//   + coupon · voucher (브랜드 발송 편지의 카테고리별 쿠폰함 섹션용)
+enum LetterFilterType { all, read, inTransit, waitingPickup, brand, coupon, voucher }
 
 class InboxScreen extends StatefulWidget {
   const InboxScreen({super.key});
@@ -100,6 +102,10 @@ class _InboxScreenState extends State<InboxScreen>
         case LetterFilterType.brand:
           return letter.senderIsBrand ||
               letter.letterType == LetterType.brandExpress;
+        case LetterFilterType.coupon:
+          return letter.category == LetterCategory.coupon;
+        case LetterFilterType.voucher:
+          return letter.category == LetterCategory.voucher;
         case LetterFilterType.all:
           return true;
       }
@@ -1035,7 +1041,8 @@ class _LetterCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          // 브랜드 뱃지
+                          // 브랜드 뱃지 — category 가 coupon/voucher 면 쿠폰
+                          // 색조(teal)로, 일반편지는 기존 오렌지 그라디언트로.
                           if (letter.senderIsBrand ||
                               letter.letterType == LetterType.brandExpress) ...[
                             const SizedBox(width: 4),
@@ -1045,24 +1052,44 @@ class _LetterCard extends StatelessWidget {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xFFFF8C00),
-                                    Color(0xFFFFB347),
-                                  ],
-                                ),
+                                gradient: letter.category ==
+                                            LetterCategory.coupon ||
+                                        letter.category ==
+                                            LetterCategory.voucher
+                                    ? const LinearGradient(
+                                        colors: [
+                                          Color(0xFF00BFA5),
+                                          Color(0xFF4DD0E1),
+                                        ],
+                                      )
+                                    : const LinearGradient(
+                                        colors: [
+                                          Color(0xFFFF8C00),
+                                          Color(0xFFFFB347),
+                                        ],
+                                      ),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Text(
-                                    '🏢',
-                                    style: TextStyle(fontSize: 9),
+                                  Text(
+                                    letter.category == LetterCategory.coupon
+                                        ? '🎟'
+                                        : letter.category ==
+                                                LetterCategory.voucher
+                                            ? '🎁'
+                                            : '🏢',
+                                    style: const TextStyle(fontSize: 9),
                                   ),
                                   const SizedBox(width: 2),
                                   Text(
-                                    l10n.labelBrand,
+                                    letter.category == LetterCategory.coupon
+                                        ? l10n.inboxFilterCoupon
+                                        : letter.category ==
+                                                LetterCategory.voucher
+                                            ? l10n.inboxFilterVoucher
+                                            : l10n.labelBrand,
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 8,
@@ -1311,6 +1338,10 @@ class _LetterFilterBar extends StatelessWidget {
         return l10n.inboxFilterWaiting;
       case LetterFilterType.brand:
         return '🏢 ${l10n.inboxFilterBrand}';
+      case LetterFilterType.coupon:
+        return '🎟 ${l10n.inboxFilterCoupon}';
+      case LetterFilterType.voucher:
+        return '🎁 ${l10n.inboxFilterVoucher}';
     }
   }
 

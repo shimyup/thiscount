@@ -14,6 +14,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/letter_style.dart';
 import '../../../core/data/country_cities.dart';
 import '../../../core/services/geocoding_service.dart';
+import '../../../models/letter.dart';
 import '../../../state/app_state.dart';
 import '../../../core/services/purchase_service.dart';
 import '../../city_of_month/city_of_month.dart';
@@ -215,6 +216,9 @@ class _ComposeScreenState extends State<ComposeScreen>
   // ── 브랜드 고급 옵션 ──────────────────────────────────────────────────────
   bool _brandUniquePerUser = false; // 1 아이디당 1 편지
   int? _brandAutoExpireHours; // 자동 삭제 시간 (null=없음)
+  // Brand 전용 편지 카테고리 — 일반 / 할인권 / 교환권. 수집첩에서 쿠폰함 섹션
+  // 으로 분리 표시되므로 브랜드 운영자가 발송 의도를 명확히 지정한다.
+  LetterCategory _brandCategory = LetterCategory.general;
 
   static const List<String> _bannedWords = [
     // English
@@ -671,6 +675,7 @@ class _ComposeScreenState extends State<ComposeScreen>
             brandUniquePerUser: _brandUniquePerUser,
             brandAutoExpireHours: _brandAutoExpireHours,
             imageUrl: _imageFilePath,
+            category: _brandCategory,
           );
           totalSent += sent;
           if (sent == 0) break; // 한도 초과 시 중단
@@ -691,6 +696,7 @@ class _ComposeScreenState extends State<ComposeScreen>
             brandUniquePerUser: _brandUniquePerUser,
             brandAutoExpireHours: _brandAutoExpireHours,
             imageUrl: _imageFilePath,
+            category: _brandCategory,
           );
         }
       }
@@ -742,6 +748,7 @@ class _ComposeScreenState extends State<ComposeScreen>
         fontStyle: _fontStyle,
         brandUniquePerUser: _brandUniquePerUser,
         brandAutoExpireHours: _brandAutoExpireHours,
+        category: _brandCategory,
       );
 
       if (mounted) {
@@ -798,6 +805,7 @@ class _ComposeScreenState extends State<ComposeScreen>
         isExpress: useExpressSingle,
         brandUniquePerUser: _brandUniquePerUser,
         brandAutoExpireHours: _brandAutoExpireHours,
+        category: _brandCategory,
       );
     }
 
@@ -2368,6 +2376,79 @@ class _ComposeScreenState extends State<ComposeScreen>
             ],
           ),
           const SizedBox(height: 10),
+          // ── 편지 카테고리 ──────────────────────────────
+          // 수집첩(InboxScreen) 에서 필터링·쿠폰함 분류에 쓰이는 값. Brand 만
+          // 선택 가능. 기본값은 general (일반 편지).
+          Text(
+            l10n.composeBrandCategoryLabel,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              for (final c in LetterCategory.values) ...[
+                Expanded(
+                  child: InkWell(
+                    onTap: () => setState(() => _brandCategory = c),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 6),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _brandCategory == c
+                            ? AppColors.teal.withValues(alpha: 0.16)
+                            : AppColors.bgSurface,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: _brandCategory == c
+                              ? AppColors.teal
+                              : AppColors.textMuted.withValues(alpha: 0.3),
+                          width: _brandCategory == c ? 1.3 : 1,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            c == LetterCategory.coupon
+                                ? '🎟'
+                                : c == LetterCategory.voucher
+                                    ? '🎁'
+                                    : '✉️',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            c == LetterCategory.coupon
+                                ? l10n.composeBrandCategoryCoupon
+                                : c == LetterCategory.voucher
+                                    ? l10n.composeBrandCategoryVoucher
+                                    : l10n.composeBrandCategoryGeneral,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: _brandCategory == c
+                                  ? AppColors.teal
+                                  : AppColors.textSecondary,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 12),
           // ── 1 아이디당 1 편지 ──
           GestureDetector(
             onTap: () => setState(() => _brandUniquePerUser = !_brandUniquePerUser),

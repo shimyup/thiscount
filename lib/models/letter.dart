@@ -9,6 +9,41 @@ enum LetterType { normal, express, brandExpress }
 // ── 발신자 등급 (시각적 구분용) ────────────────────────────────────────────────
 enum LetterSenderTier { free, premium, brand }
 
+// ── 편지 카테고리 (브랜드 전용 — 수집첩 필터링 + 쿠폰함 표시) ──────────────────
+//
+// - general : 일반 편지 (기본값). 브랜드가 아닌 유저의 모든 편지도 이 값.
+// - coupon  : 할인권 편지. 수집첩에서 쿠폰함 섹션에 분류.
+// - voucher : 교환권 편지. 동일.
+//
+// 브랜드 유저만 컴포즈 화면에서 coupon/voucher 를 선택할 수 있다. Firestore
+// 에도 그대로 문자열로 저장되어 다른 유저가 수신할 때 필터링 기준으로 쓴다.
+enum LetterCategory { general, coupon, voucher }
+
+extension LetterCategoryExt on LetterCategory {
+  String get key {
+    switch (this) {
+      case LetterCategory.general:
+        return 'general';
+      case LetterCategory.coupon:
+        return 'coupon';
+      case LetterCategory.voucher:
+        return 'voucher';
+    }
+  }
+
+  static LetterCategory fromKey(String? s) {
+    switch (s) {
+      case 'coupon':
+        return LetterCategory.coupon;
+      case 'voucher':
+        return LetterCategory.voucher;
+      case 'general':
+      default:
+        return LetterCategory.general;
+    }
+  }
+}
+
 // ── 배송 상태 ──────────────────────────────────────────────────────────────────
 enum DeliveryStatus {
   composing,
@@ -214,6 +249,10 @@ class Letter {
   final LetterSenderTier senderTier; // 발신자 등급 (시각 구분)
   final bool brandUniquePerUser; // 브랜드: 수신자당 1회만 수신 가능
   final DateTime? expiresAt; // 자동 삭제 시각 (null이면 만료 없음)
+  // 카테고리 — 브랜드가 컴포즈 화면에서 선택. 기본은 general (일반 편지).
+  // 수집첩(InboxScreen) 에서 필터링 기준으로 사용되며 coupon/voucher 편지는
+  // "쿠폰함" 섹션에 시각적으로 분리 표시된다.
+  final LetterCategory category;
 
   Letter({
     required this.id,
@@ -256,6 +295,7 @@ class Letter {
     this.senderTier = LetterSenderTier.free,
     this.brandUniquePerUser = false,
     this.expiresAt,
+    this.category = LetterCategory.general,
   }) : reportedBy = reportedBy ?? {};
 
   /// 인박스용 독립 복사본 (worldLetters에서 제거 전 inbox에 추가할 때 사용)
@@ -298,6 +338,7 @@ class Letter {
     senderTier: senderTier,
     brandUniquePerUser: brandUniquePerUser,
     expiresAt: expiresAt,
+    category: category,
     readCount: readCount,
     maxReaders: maxReaders,
   );
@@ -502,6 +543,7 @@ class Letter {
     'senderTier': senderTier.index,
     'brandUniquePerUser': brandUniquePerUser,
     if (expiresAt != null) 'expiresAt': expiresAt!.millisecondsSinceEpoch,
+    'category': category.key,
     'readCount': readCount,
     'maxReaders': maxReaders,
   };
@@ -556,6 +598,7 @@ class Letter {
     senderIsBrand: j['senderIsBrand'] as bool? ?? false,
     senderTier: LetterSenderTier.values[j['senderTier'] as int? ?? 0],
     brandUniquePerUser: j['brandUniquePerUser'] as bool? ?? false,
+    category: LetterCategoryExt.fromKey(j['category'] as String?),
     expiresAt: j['expiresAt'] != null
         ? DateTime.fromMillisecondsSinceEpoch(j['expiresAt'] as int)
         : null,

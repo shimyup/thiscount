@@ -21,8 +21,7 @@ class MainScaffold extends StatefulWidget {
   State<MainScaffold> createState() => _MainScaffoldState();
 }
 
-class _MainScaffoldState extends State<MainScaffold>
-    with TickerProviderStateMixin {
+class _MainScaffoldState extends State<MainScaffold> {
   late int _currentIndex = widget.initialIndex;
 
   late final List<Widget> _pages = [
@@ -32,29 +31,9 @@ class _MainScaffoldState extends State<MainScaffold>
     const ProfileScreen(),
   ];
 
-  late AnimationController _fabPulseController;
-  late Animation<double> _fabPulse;
-  late AnimationController _fabTapController;
-  late Animation<double> _fabTapScale;
-
   @override
   void initState() {
     super.initState();
-    _fabPulseController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat(reverse: true);
-    _fabPulse = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fabPulseController, curve: Curves.easeInOut),
-    );
-    // FAB 탭 시 눌리는 효과
-    _fabTapController = AnimationController(
-      duration: const Duration(milliseconds: 100),
-      vsync: this,
-    );
-    _fabTapScale = Tween<double>(begin: 1.0, end: 0.87).animate(
-      CurvedAnimation(parent: _fabTapController, curve: Curves.easeOut),
-    );
     // 스트릭·레벨업 축하 스낵바 — 첫 프레임 이후 1회 표시
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -66,17 +45,9 @@ class _MainScaffoldState extends State<MainScaffold>
     });
   }
 
-  @override
-  void dispose() {
-    _fabPulseController.dispose();
-    _fabTapController.dispose();
-    super.dispose();
-  }
-
   void _openCompose(BuildContext ctx) async {
-    // 가벼운 햅틱 + 버튼 눌림 애니메이션
+    // 탭 진입 피드백
     HapticFeedback.lightImpact();
-    _fabTapController.forward().then((_) => _fabTapController.reverse());
     final result = await Navigator.push<bool>(
       ctx,
       PageRouteBuilder(
@@ -126,46 +97,11 @@ class _MainScaffoldState extends State<MainScaffold>
         ),
       ),
       bottomNavigationBar: _buildBottomNav(context, badgeCount, l),
-          floatingActionButton: AnimatedBuilder(
-            animation: Listenable.merge([_fabPulse, _fabTapController]),
-            builder: (_, __) => GestureDetector(
-              onTap: () => _openCompose(context),
-              child: Transform.scale(
-                scale: _fabTapScale.value,
-                child: Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        AppColors.goldLight,
-                        AppColors.gold,
-                        AppColors.goldDark,
-                      ],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.gold.withValues(
-                          alpha: 0.35 + _fabPulse.value * 0.25,
-                        ),
-                        blurRadius: 16,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                  child: const Center(
-                    child: Text('✍️', style: TextStyle(fontSize: 26)),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          floatingActionButtonLocation:
-              FloatingActionButtonLocation.centerDocked,
-        );
+    );
+    // 기존 중앙 FAB 제거 — "보내기" 가 하단 네비 5번째 탭으로 승격되며
+    // 수집(보물찾기) UX 에 발송 액션을 동등한 비중으로 둔다. 발송 자체는
+    // 여전히 중요하지만 FAB 크기(56px 골드 펄스)만큼 시각 우선순위를 주진
+    // 않는다.
   }
 
   Widget _buildBottomNav(BuildContext ctx, int badgeCount, AppL10n l) {
@@ -210,22 +146,32 @@ class _MainScaffoldState extends State<MainScaffold>
                 children: [
                   Expanded(
                     child: _NavItem(
-                      icon: Icons.public_rounded,
-                      label: l.map,
+                      icon: Icons.explore_rounded,
+                      label: l.navExplore,
                       isSelected: _currentIndex == 0,
                       onTap: () => setState(() => _currentIndex = 0),
                     ),
                   ),
                   Expanded(
                     child: _NavItemWithBadge(
-                      icon: Icons.mail_rounded,
-                      label: l.inbox,
+                      icon: Icons.inventory_2_rounded,
+                      label: l.navCollection,
                       isSelected: _currentIndex == 1,
                       badgeCount: badgeCount,
                       onTap: () => setState(() => _currentIndex = 1),
                     ),
                   ),
-                  const SizedBox(width: 56), // center space for FAB
+                  Expanded(
+                    child: _NavItem(
+                      icon: Icons.edit_rounded,
+                      label: l.navSend,
+                      isSelected: false,
+                      // "보내기" 탭은 IndexedStack 의 페이지를 바꾸지 않고
+                      // 모달 컴포즈 화면을 띄운다. 선택 상태로 남지 않도록
+                      // isSelected 는 항상 false.
+                      onTap: () => _openCompose(ctx),
+                    ),
+                  ),
                   Expanded(
                     child: _NavItem(
                       icon: Icons.apartment_rounded,

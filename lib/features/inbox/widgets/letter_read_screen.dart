@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../core/services/feedback_service.dart';
@@ -53,26 +54,42 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   @override
   void initState() {
     super.initState();
-    // 더 긴 개봉 시간 + easeOutCubic 으로 자연스러운 종료
+    // 3단계 개봉 시퀀스 — 총 1500ms
+    //   Phase 1 (0 → 0.3, 400ms) : 봉투가 살짝 나타남 + light haptic
+    //   Phase 2 (0.3 → 0.6, 350ms): 봉인 터짐 느낌 + medium haptic
+    //   Phase 3 (0.6 → 1.0, 750ms): 편지 본문 펼침 (scale + opacity)
+    //
+    // 각 단계 시작 시 다른 햅틱 강도로 "줍기 → 개봉" 분리감을 강화한다.
+    // 전체 controller 는 0~1 의 연속값이지만, 본문의 AnimatedBuilder 가
+    // value 구간별로 다른 변환을 적용하므로 시각적으로 3단 분리된다.
     _openController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
     _openAnimation = CurvedAnimation(
       parent: _openController,
       curve: Curves.easeOutCubic,
     );
-    // 봉투 열기 시퀀스 — FeedbackService가 햅틱+시스템 사운드로 "봉인 풀림"
-    // 느낌을 구성. 애니메이션 타이밍에 맞춰 한 번에 재생한다.
-    Future.delayed(const Duration(milliseconds: 350), () async {
+    Future.delayed(const Duration(milliseconds: 300), () async {
       if (!mounted) return;
-      FeedbackService.onLetterOpen();
+      // Phase 1: 봉투가 떠오름
+      HapticFeedback.lightImpact();
       await _openController.animateTo(
-        0.5,
-        duration: const Duration(milliseconds: 450),
+        0.3,
+        duration: const Duration(milliseconds: 400),
         curve: Curves.easeOutCubic,
       );
       if (!mounted) return;
+      // Phase 2: 봉인 터짐 — FeedbackService 의 onLetterOpen 이 medium + click
+      FeedbackService.onLetterOpen();
+      await _openController.animateTo(
+        0.6,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
+      );
+      if (!mounted) return;
+      // Phase 3: 편지 펼침 — 가장 길게, 여유 있게
+      await HapticFeedback.heavyImpact();
       await _openController.animateTo(
         1.0,
         duration: const Duration(milliseconds: 750),
@@ -190,14 +207,37 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                             // 발신자 정보 카드
                             _buildSenderCard(letter),
                             const SizedBox(height: 20),
-                            // 편지 본문
-                            Transform.scale(
-                              scale: _openAnimation.value.clamp(0.8, 1.0),
-                              child: Opacity(
-                                opacity: _openAnimation.value.clamp(0.0, 1.0),
-                                child: _buildLetterContent(letter),
-                              ),
-                            ),
+                            // 편지 본문 — 3단계 개봉 연출
+                            //  0.0-0.3: 봉투가 바닥에서 떠오름 (translateY + fade)
+                            //  0.3-0.6: 봉인 터짐 (가벼운 흔들림 + 점진 노출)
+                            //  0.6-1.0: 편지지가 펼쳐짐 (scale up to full)
+                            Builder(builder: (_) {
+                              final v = _openAnimation.value;
+                              // Phase 1: 진입 — 아래에서 위로 + 투명도 상승
+                              final enterT = (v / 0.3).clamp(0.0, 1.0);
+                              final translateY = (1 - enterT) * 40;
+                              final enterOpacity = enterT;
+                              // Phase 2: 봉인 파열 — 좌우 wobble (0.3~0.6)
+                              final wobbleT = ((v - 0.3) / 0.3).clamp(0.0, 1.0);
+                              final wobbleX = wobbleT > 0 && wobbleT < 1
+                                  ? math.sin(wobbleT * 8 * math.pi) * 2.5
+                                  : 0.0;
+                              // Phase 3: 펼침 — scale 0.85 → 1.0
+                              final openT = ((v - 0.6) / 0.4).clamp(0.0, 1.0);
+                              final scale = 0.85 + openT * 0.15;
+                              final contentOpacity = 0.3 + wobbleT * 0.4 + openT * 0.3;
+                              return Transform.translate(
+                                offset: Offset(wobbleX, translateY),
+                                child: Transform.scale(
+                                  scale: scale,
+                                  child: Opacity(
+                                    opacity: (enterOpacity * contentOpacity)
+                                        .clamp(0.0, 1.0),
+                                    child: _buildLetterContent(letter),
+                                  ),
+                                ),
+                              );
+                            }),
                             const SizedBox(height: 12),
                             if (_isOpened) LetterContextBadge(letter: letter),
                             if (_isOpened) ScarcityIndicator(letter: letter),
@@ -1721,7 +1761,10 @@ class _LetterReadScreenState extends State<LetterReadScreen>
 
   Widget _buildReplyButton(BuildContext ctx, Letter letter) {
     final l10n = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
-    final alreadyReplied = letter.hasReplied;
+    // 답장 1회 제한을 제거 — 유저는 같은 편지에 여러 번 답장 가능.
+    // `hasReplied` 플래그는 UI 상에서 "최근 답장함" 힌트로만 쓰고, 버튼 자체는
+    // 항상 활성 상태로 둔다.
+    final recentlyReplied = letter.hasReplied;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -1729,74 +1772,49 @@ class _LetterReadScreenState extends State<LetterReadScreen>
           width: double.infinity,
           height: 54,
           child: ElevatedButton(
-        onPressed: alreadyReplied
-            ? () {
-                // 이미 답장한 경우 — 비활성 대신 안내 표시
-                ScaffoldMessenger.of(ctx).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      l10n.replyAlreadyNotice,
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                    backgroundColor: const Color(0xFF1F2D44),
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    duration: const Duration(seconds: 3),
-                  ),
-                );
-              }
-            : () => Navigator.push(
-                ctx,
-                MaterialPageRoute(
-                  builder: (_) => ComposeScreen(
-                    replyToId: letter.id,
-                    replyToName: letter.isAnonymous ? l10n.letterReadAnonymous : letter.senderName,
-                  ),
+            onPressed: () => Navigator.push(
+              ctx,
+              MaterialPageRoute(
+                builder: (_) => ComposeScreen(
+                  replyToId: letter.id,
+                  replyToName: letter.isAnonymous
+                      ? l10n.letterReadAnonymous
+                      : letter.senderName,
                 ),
               ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: alreadyReplied
-              ? AppColors.bgSurface
-              : AppColors.bgCard,
-          foregroundColor: alreadyReplied
-              ? AppColors.textMuted
-              : AppColors.gold,
-          side: BorderSide(
-            color: alreadyReplied ? const Color(0xFF1F2D44) : AppColors.gold,
-            width: 1.5,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              alreadyReplied ? '✅' : '💌',
-              style: const TextStyle(fontSize: 18),
             ),
-            const SizedBox(width: 8),
-            Text(
-              alreadyReplied ? l10n.letterReadReplied : l10n.letterReadReply,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.5,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.bgCard,
+              foregroundColor: AppColors.gold,
+              side: const BorderSide(color: AppColors.gold, width: 1.5),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
               ),
             ),
-          ],
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('💌', style: TextStyle(fontSize: 18)),
+                const SizedBox(width: 8),
+                Text(
+                  recentlyReplied
+                      ? l10n.letterReadReplyAgain
+                      : l10n.letterReadReply,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-      ),
-    ),
-        // 답장 1회 제한 설명 — 비활성 이유 즉시 전달
-        if (alreadyReplied)
+        if (recentlyReplied)
           Padding(
-            padding: const EdgeInsets.only(top: 8),
+            padding: const EdgeInsets.only(top: 6),
             child: Text(
-              l10n.replyOnePerLetterTip,
+              l10n.letterReadRepliedHint,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: AppColors.textMuted,

@@ -275,6 +275,59 @@ class AppL10n {
     'th': 'โปรไฟล์',
   });
 
+  // ── 하단 네비 전용 라벨 (보물찾기 컨셉) ─────────────────────────────
+  // 기존 `map` / `inbox` 는 다른 컨텍스트(대화상자·에러 메시지 등)에서도
+  // 쓰이므로 전역 변경은 부작용이 크다. 네비바에서만 쓸 새 키를 별도로
+  // 두어 "지도 → 탐험", "편지함 → 수집첩" 으로 브랜드 톤을 바꾼다.
+  String get navExplore => _t({
+    'ko': '탐험',
+    'en': 'Explore',
+    'ja': '探検',
+    'zh': '探索',
+    'fr': 'Explorer',
+    'de': 'Erkunden',
+    'es': 'Explorar',
+    'pt': 'Explorar',
+    'ru': 'Карта',
+    'tr': 'Keşfet',
+    'ar': 'استكشاف',
+    'it': 'Esplora',
+    'hi': 'खोजें',
+    'th': 'สำรวจ',
+  });
+  String get navCollection => _t({
+    'ko': '수집첩',
+    'en': 'Collection',
+    'ja': 'コレクション',
+    'zh': '收藏簿',
+    'fr': 'Collection',
+    'de': 'Sammlung',
+    'es': 'Colección',
+    'pt': 'Coleção',
+    'ru': 'Коллекция',
+    'tr': 'Koleksiyon',
+    'ar': 'المجموعة',
+    'it': 'Collezione',
+    'hi': 'संग्रह',
+    'th': 'สะสม',
+  });
+  String get navSend => _t({
+    'ko': '보내기',
+    'en': 'Send',
+    'ja': '送る',
+    'zh': '寄出',
+    'fr': 'Envoyer',
+    'de': 'Senden',
+    'es': 'Enviar',
+    'pt': 'Enviar',
+    'ru': 'Отправить',
+    'tr': 'Gönder',
+    'ar': 'إرسال',
+    'it': 'Invia',
+    'hi': 'भेजें',
+    'th': 'ส่ง',
+  });
+
   // ── Inbox ─────────────────────────────────────────────────────────────────
   String get received => _t({
     'ko': '받은 편지',
@@ -4376,6 +4429,70 @@ class AppL10n {
     'th': 'ถึงจำนวนขั้นต่ำแล้ว',
   });
 
+  String get composeBrandCategoryLabel => _t({
+    'ko': '편지 종류',
+    'en': 'Letter category',
+    'ja': '手紙の種類',
+    'zh': '信件类型',
+    'fr': 'Type de lettre',
+    'de': 'Briefkategorie',
+    'es': 'Tipo de carta',
+    'pt': 'Categoria da carta',
+    'ru': 'Категория письма',
+    'tr': 'Mektup türü',
+    'ar': 'فئة الرسالة',
+    'it': 'Categoria lettera',
+    'hi': 'पत्र श्रेणी',
+    'th': 'ประเภทจดหมาย',
+  });
+  String get composeBrandCategoryGeneral => _t({
+    'ko': '일반편지',
+    'en': 'Regular',
+    'ja': '通常',
+    'zh': '普通',
+    'fr': 'Ordinaire',
+    'de': 'Regulär',
+    'es': 'Regular',
+    'pt': 'Regular',
+    'ru': 'Обычное',
+    'tr': 'Normal',
+    'ar': 'عادية',
+    'it': 'Standard',
+    'hi': 'सामान्य',
+    'th': 'ทั่วไป',
+  });
+  String get composeBrandCategoryCoupon => _t({
+    'ko': '할인권',
+    'en': 'Discount',
+    'ja': '割引券',
+    'zh': '折扣券',
+    'fr': 'Réduction',
+    'de': 'Rabatt',
+    'es': 'Descuento',
+    'pt': 'Desconto',
+    'ru': 'Скидка',
+    'tr': 'İndirim',
+    'ar': 'خصم',
+    'it': 'Sconto',
+    'hi': 'छूट',
+    'th': 'ส่วนลด',
+  });
+  String get composeBrandCategoryVoucher => _t({
+    'ko': '교환권',
+    'en': 'Voucher',
+    'ja': '引換券',
+    'zh': '兑换券',
+    'fr': 'Bon',
+    'de': 'Gutschein',
+    'es': 'Vale',
+    'pt': 'Vale',
+    'ru': 'Ваучер',
+    'tr': 'Fiş',
+    'ar': 'قسيمة',
+    'it': 'Buono',
+    'hi': 'वाउचर',
+    'th': 'บัตรแลก',
+  });
   String get composeExactDropToggle => _t({
     'ko': '🎯 정확한 위치 지정',
     'en': '🎯 Exact location',
@@ -6375,6 +6492,38 @@ class AppL10n {
     'it': 'Marchio',
     'hi': 'ब्रांड',
     'th': 'แบรนด์',
+  });
+  String get inboxFilterCoupon => _t({
+    'ko': '할인권',
+    'en': 'Coupons',
+    'ja': '割引券',
+    'zh': '折扣券',
+    'fr': 'Réductions',
+    'de': 'Rabatte',
+    'es': 'Cupones',
+    'pt': 'Cupons',
+    'ru': 'Купоны',
+    'tr': 'Kuponlar',
+    'ar': 'قسائم',
+    'it': 'Sconti',
+    'hi': 'कूपन',
+    'th': 'คูปอง',
+  });
+  String get inboxFilterVoucher => _t({
+    'ko': '교환권',
+    'en': 'Vouchers',
+    'ja': '引換券',
+    'zh': '兑换券',
+    'fr': 'Bons',
+    'de': 'Gutscheine',
+    'es': 'Vales',
+    'pt': 'Vales',
+    'ru': 'Ваучеры',
+    'tr': 'Fişler',
+    'ar': 'قسائم التبادل',
+    'it': 'Buoni',
+    'hi': 'वाउचर',
+    'th': 'บัตรแลก',
   });
 
   String get inboxStatusInTransit => _t({
@@ -12307,6 +12456,40 @@ class AppL10n {
     'it': 'Scrivi risposta',
     'hi': 'जवाब लिखें',
     'th': 'เขียนตอบ',
+  });
+
+  // 답장 1회 제한 제거 후 "다시 답장 쓰기" / "이미 답장했어요" 상태 표시용
+  String get letterReadReplyAgain => _t({
+    'ko': '다시 답장 쓰기',
+    'en': 'Reply again',
+    'ja': 'もう一度返信する',
+    'zh': '再次回复',
+    'fr': 'Répondre à nouveau',
+    'de': 'Erneut antworten',
+    'es': 'Responder de nuevo',
+    'pt': 'Responder novamente',
+    'ru': 'Ответить ещё раз',
+    'tr': 'Tekrar yanıtla',
+    'ar': 'رد مرة أخرى',
+    'it': 'Rispondi di nuovo',
+    'hi': 'फिर से जवाब दें',
+    'th': 'ตอบอีกครั้ง',
+  });
+  String get letterReadRepliedHint => _t({
+    'ko': '이미 한 번 답장했어요 · 원하면 더 이어서 보낼 수 있어요',
+    'en': 'You already replied once — you can send another if you want',
+    'ja': '一度返信済みです — もう一通続けて送れます',
+    'zh': '你已经回过一次 · 可以再写一封寄出',
+    'fr': 'Déjà répondu une fois — vous pouvez en envoyer une autre',
+    'de': 'Schon einmal geantwortet — Sie können noch eine schicken',
+    'es': 'Ya respondiste una vez — puedes enviar otra si quieres',
+    'pt': 'Você já respondeu uma vez — pode mandar outra',
+    'ru': 'Вы уже ответили — можно отправить ещё',
+    'tr': 'Zaten bir kez yanıtladınız — istersen bir tane daha gönder',
+    'ar': 'لقد رددت مرة بالفعل — يمكنك إرسال أخرى',
+    'it': 'Hai già risposto una volta — puoi inviarne un\'altra',
+    'hi': 'आप एक बार जवाब दे चुके हैं — चाहें तो और भेज सकते हैं',
+    'th': 'คุณตอบไปแล้วหนึ่งครั้ง · ถ้าต้องการก็ส่งเพิ่มได้',
   });
 
   String get letterReadImageLoadFailed => _t({
