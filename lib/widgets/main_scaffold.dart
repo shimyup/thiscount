@@ -162,13 +162,11 @@ class _MainScaffoldState extends State<MainScaffold> {
                     ),
                   ),
                   Expanded(
-                    child: _NavItem(
-                      icon: Icons.edit_rounded,
+                    // "보내기"는 탭이 아니라 컴포즈 모달 CTA. 항상 골드 톤으로
+                    // 강조해서 다른 탭과 시각적으로 구분되도록 _ComposeNavItem
+                    // 을 따로 둔다.
+                    child: _ComposeNavItem(
                       label: l.navSend,
-                      isSelected: false,
-                      // "보내기" 탭은 IndexedStack 의 페이지를 바꾸지 않고
-                      // 모달 컴포즈 화면을 띄운다. 선택 상태로 남지 않도록
-                      // isSelected 는 항상 false.
                       onTap: () => _openCompose(ctx),
                     ),
                   ),
@@ -193,6 +191,56 @@ class _MainScaffoldState extends State<MainScaffold> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── 컴포즈 CTA 탭 — 항상 골드, 둥근 테두리로 "탭이 아니라 작성 버튼" 표현 ──
+class _ComposeNavItem extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _ComposeNavItem({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                color: AppColors.gold.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.gold.withValues(alpha: 0.55),
+                  width: 1.2,
+                ),
+              ),
+              child: const Icon(
+                Icons.edit_note_rounded,
+                color: AppColors.gold,
+                size: 20,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.gold,
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

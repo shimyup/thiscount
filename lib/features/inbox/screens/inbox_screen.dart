@@ -14,6 +14,27 @@ import '../../dm/dm_conversation_screen.dart';
 //   + coupon · voucher (브랜드 발송 편지의 카테고리별 쿠폰함 섹션용)
 enum LetterFilterType { all, read, inTransit, waitingPickup, brand, coupon, voucher }
 
+// 필터별 empty state 이모지. 수집첩이 비었을 때 어떤 종류의 편지를 찾고 있었는지
+// 시각적으로 힌트를 준다. (예: 할인권 필터에서 비면 🎟)
+String _emptyEmojiForFilter(LetterFilterType f) {
+  switch (f) {
+    case LetterFilterType.coupon:
+      return '🎟';
+    case LetterFilterType.voucher:
+      return '🎁';
+    case LetterFilterType.brand:
+      return '🏢';
+    case LetterFilterType.read:
+      return '📖';
+    case LetterFilterType.inTransit:
+      return '✈️';
+    case LetterFilterType.waitingPickup:
+      return '📬';
+    case LetterFilterType.all:
+      return '📭';
+  }
+}
+
 class InboxScreen extends StatefulWidget {
   const InboxScreen({super.key});
 
@@ -641,8 +662,10 @@ class _InboxTab extends StatelessWidget {
         if (letters.isEmpty)
           Expanded(
             child: _EmptyState(
-              emoji: '📭',
-              title: l10n.inboxEmptyReceived,
+              emoji: _emptyEmojiForFilter(activeFilter),
+              title: activeFilter == LetterFilterType.all
+                  ? l10n.inboxEmptyReceived
+                  : l10n.inboxEmptyFilterGeneric,
               subtitle: l10n.inboxEmptyReceivedSub,
               ctaLabel: l10n.emptyStateWriteCta,
               onCtaTap: () => Navigator.of(context).pushNamed('/compose'),
@@ -841,8 +864,12 @@ class _SentTab extends StatelessWidget {
         if (letters.isEmpty)
           Expanded(
             child: _EmptyState(
-              emoji: '📮',
-              title: l10n.inboxEmptySent,
+              emoji: activeFilter == LetterFilterType.all
+                  ? '📮'
+                  : _emptyEmojiForFilter(activeFilter),
+              title: activeFilter == LetterFilterType.all
+                  ? l10n.inboxEmptySent
+                  : l10n.inboxEmptyFilterGeneric,
               subtitle: l10n.inboxEmptySentSub,
               ctaLabel: l10n.emptyStateWriteCta,
               onCtaTap: () => Navigator.of(context).pushNamed('/compose'),

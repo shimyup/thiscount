@@ -4510,20 +4510,20 @@ class AppL10n {
     'th': '🎯 ตำแหน่งที่แม่นยำ',
   });
   String get composeExactDropHint => _t({
-    'ko': '지도를 움직여 편지를 떨어뜨릴 정확한 지점을 선택하세요',
-    'en': 'Move the map to the exact spot where this letter should drop',
-    'ja': '地図を動かして、手紙を落とす正確な地点を選んでください',
-    'zh': '移动地图以选择信件投放的精确位置',
-    'fr': "Déplacez la carte pour choisir l'endroit exact du dépôt",
-    'de': 'Verschieben Sie die Karte zum genauen Ablageort',
-    'es': 'Mueve el mapa para elegir el punto exacto de entrega',
-    'pt': 'Mova o mapa para escolher o ponto exato da entrega',
-    'ru': 'Переместите карту в точное место, куда упадёт письмо',
-    'tr': 'Haritayı mektubun düşeceği tam noktaya taşıyın',
-    'ar': 'حرّك الخريطة لاختيار النقطة الدقيقة لوضع الرسالة',
-    'it': 'Sposta la mappa sul punto esatto in cui far cadere la lettera',
-    'hi': 'पत्र गिराने के सटीक स्थान के लिए मानचित्र घुमाएँ',
-    'th': 'เลื่อนแผนที่เพื่อเลือกตำแหน่งที่แม่นยำในการวางจดหมาย',
+    'ko': '빨간 핀이 떨어뜨릴 위치예요. 지도를 움직여 조정한 뒤 아래 버튼으로 확정하세요',
+    'en': 'The red pin marks the drop spot. Pan the map to adjust, then tap Confirm below',
+    'ja': '赤いピンが手紙を落とす位置です。地図を動かして調整し、下のボタンで確定してください',
+    'zh': '红色图钉即为投放位置。移动地图进行调整后，点击下方按钮确认',
+    'fr': "L'épingle rouge indique le point de dépôt. Déplacez la carte, puis appuyez sur Confirmer ci-dessous",
+    'de': 'Die rote Markierung zeigt den Ablageort. Karte verschieben, dann unten bestätigen',
+    'es': 'El pin rojo marca el punto de entrega. Mueve el mapa y pulsa Confirmar abajo',
+    'pt': 'O pino vermelho marca o ponto de entrega. Mova o mapa e toque em Confirmar abaixo',
+    'ru': 'Красная метка — место доставки. Сдвиньте карту и нажмите «Подтвердить» ниже',
+    'tr': 'Kırmızı iğne teslim noktasıdır. Haritayı kaydırıp aşağıda Onayla’ya dokunun',
+    'ar': 'الدبّوس الأحمر هو نقطة التسليم. حرّك الخريطة ثم اضغط تأكيد بالأسفل',
+    'it': 'Il perno rosso indica il punto di rilascio. Sposta la mappa e tocca Conferma qui sotto',
+    'hi': 'लाल पिन गिराने की जगह है. मानचित्र घुमाएँ और नीचे पुष्टि करें',
+    'th': 'หมุดสีแดงคือตำแหน่งวางจดหมาย เลื่อนแผนที่แล้วกดยืนยันด้านล่าง',
   });
   String get composeExactDropTitle => _t({
     'ko': '편지 떨어뜨릴 위치',
@@ -6322,6 +6322,23 @@ class AppL10n {
     'it': 'Prova un filtro diverso o trova nuove lettere sulla mappa!',
     'hi': 'कोई अलग फ़िल्टर आज़माएं या मानचित्र पर नए पत्र खोजें!',
     'th': 'ลองเปลี่ยนตัวกรองหรือค้นหาจดหมายใหม่บนแผนที่!',
+  });
+
+  String get inboxEmptyFilterGeneric => _t({
+    'ko': '아직 이 종류의 편지가 없어요',
+    'en': 'No letters of this type yet',
+    'ja': 'この種類の手紙はまだありません',
+    'zh': '暂无此类信件',
+    'fr': 'Aucune lettre de ce type pour l’instant',
+    'de': 'Noch keine Briefe dieser Art',
+    'es': 'Aún no hay cartas de este tipo',
+    'pt': 'Ainda não há cartas deste tipo',
+    'ru': 'Писем этого типа пока нет',
+    'tr': 'Henüz bu türde mektup yok',
+    'ar': 'لا توجد رسائل من هذا النوع بعد',
+    'it': 'Nessuna lettera di questo tipo',
+    'hi': 'अभी इस प्रकार का कोई पत्र नहीं',
+    'th': 'ยังไม่มีจดหมายประเภทนี้',
   });
 
   String get inboxEmptySent => _t({

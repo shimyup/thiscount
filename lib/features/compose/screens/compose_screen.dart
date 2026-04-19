@@ -2421,9 +2421,9 @@ class _ComposeScreenState extends State<ComposeScreen>
                                 : c == LetterCategory.voucher
                                     ? '🎁'
                                     : '✉️',
-                            style: const TextStyle(fontSize: 16),
+                            style: const TextStyle(fontSize: 18),
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: 3),
                           Text(
                             c == LetterCategory.coupon
                                 ? l10n.composeBrandCategoryCoupon
@@ -2436,7 +2436,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                               color: _brandCategory == c
                                   ? AppColors.teal
                                   : AppColors.textSecondary,
-                              fontSize: 10,
+                              fontSize: 11.5,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
