@@ -233,6 +233,44 @@ const Map<String, String> _dailyReminderTitles = {
   'th': '☀️ จดหมายวันนี้กำลังรอคุณอยู่',
 };
 
+// Anticipation ping ~1h before the next incoming letter arrives.
+const Map<String, String> _arrivalCountdownTitles = {
+  'ko': '📮 편지가 1시간 후 도착해요',
+  'en': '📮 A letter arrives in about an hour',
+  'ja': '📮 手紙はあと1時間で到着します',
+  'zh': '📮 信件将在约 1 小时后到达',
+  'fr': '📮 Une lettre arrive dans environ une heure',
+  'de': '📮 Ein Brief kommt in etwa einer Stunde an',
+  'es': '📮 Una carta llega en aproximadamente una hora',
+  'pt': '📮 Uma carta chega em cerca de uma hora',
+  'ru': '📮 Письмо придёт примерно через час',
+  'tr': '📮 Bir mektup yaklaşık bir saat içinde varıyor',
+  'ar': '📮 ستصل رسالة بعد نحو ساعة',
+  'it': '📮 Una lettera arriva tra circa un\'ora',
+  'hi': '📮 लगभग एक घंटे में एक पत्र पहुँचेगा',
+  'th': '📮 จดหมายจะถึงในอีกประมาณหนึ่งชั่วโมง',
+};
+
+String _arrivalCountdownBody(String langCode, String flag, String country) {
+  switch (langCode) {
+    case 'ko': return '$flag $country에서 출발한 편지가 곧 우편함에 도착해요';
+    case 'ja': return '$flag $countryから出発した手紙がもうすぐ届きます';
+    case 'zh': return '来自 $flag $country 的信件即将到达你的信箱';
+    case 'fr': return 'Une lettre partie de $flag $country arrive bientôt';
+    case 'de': return 'Ein Brief aus $flag $country erreicht bald deinen Kasten';
+    case 'es': return 'Una carta desde $flag $country está por llegar';
+    case 'pt': return 'Uma carta de $flag $country está quase chegando';
+    case 'ru': return 'Письмо из $flag $country скоро будет в ящике';
+    case 'tr': return '$flag $country\'dan yola çıkan mektup kutuna yaklaşıyor';
+    case 'ar': return 'رسالة من $flag $country ستصل إلى صندوقك قريباً';
+    case 'it': return 'Una lettera da $flag $country sta per arrivare';
+    case 'hi': return '$flag $country से एक पत्र जल्द ही आपके मेलबॉक्स में';
+    case 'th': return 'จดหมายจาก $flag $country กำลังจะถึงกล่องของคุณ';
+    case 'en':
+    default: return 'A letter from $flag $country is about to reach your mailbox';
+  }
+}
+
 const Map<String, String> _dailyReminderBodies = {
   'ko': '지구 어딘가에서 누군가 당신에게 편지를 보냈을지도 몰라요',
   'en': 'Someone, somewhere on Earth, may have written you a letter',
@@ -257,6 +295,11 @@ class NotificationService {
 
   /// Notification ID reserved for the recurring daily letter reminder.
   static const int _dailyReminderId = 10;
+
+  /// Single-slot notification for "your next letter arrives in ~1 hour".
+  /// Overwrites any previously scheduled countdown so the user only ever
+  /// sees one anticipation ping at a time.
+  static const int _arrivalCountdownId = 11;
 
   static Future<void> initialize() async {
     if (_initialized) return;
@@ -298,23 +341,33 @@ class NotificationService {
     }
   }
 
-  static Future<void> requestPermissions() async {
+  /// Returns true if the user granted the notification permission, false if
+  /// denied, null if the platform doesn't respond (treat as denied).
+  static Future<bool> requestPermissions() async {
     try {
       // iOS / macOS
       final ios = _plugin
           .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin
           >();
-      await ios?.requestPermissions(alert: true, badge: true, sound: true);
+      final iosResult = await ios?.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
 
       // Android 13+ (API 33+) — POST_NOTIFICATIONS 런타임 권한 필요
       final android = _plugin
           .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin
           >();
-      await android?.requestNotificationsPermission();
+      final androidResult = await android?.requestNotificationsPermission();
+
+      // 둘 중 어느 하나라도 true면 권한 허용으로 본다 (플랫폼별 단일 응답)
+      return (iosResult ?? false) || (androidResult ?? false);
     } catch (e) {
       debugPrint('Notification permission error: $e');
+      return false;
     }
   }
 
@@ -595,6 +648,78 @@ class NotificationService {
       await _plugin.cancel(_dailyReminderId);
     } catch (e) {
       debugPrint('Daily reminder cancel error: $e');
+    }
+  }
+
+  /// Schedules a one-shot local notification at `arrivalTime - 1h` that the
+  /// next incoming letter is approaching. Passing an arrivalTime less than
+  /// ~1h in the future is a no-op (no lead time left). Only one countdown
+  /// is held at a time — calling this again replaces the previous slot.
+  static Future<void> scheduleArrivalCountdown({
+    required DateTime arrivalTime,
+    required String senderCountry,
+    required String senderFlag,
+    String langCode = 'en',
+  }) async {
+    try {
+      await _plugin.cancel(_arrivalCountdownId);
+      final fire = arrivalTime.subtract(const Duration(hours: 1));
+      final now = DateTime.now();
+      // 5분 이하 여유만 남았으면 굳이 알릴 가치가 낮다 — skip
+      if (fire.isBefore(now.add(const Duration(minutes: 5)))) return;
+
+      final title =
+          _arrivalCountdownTitles[langCode] ?? _arrivalCountdownTitles['en']!;
+      final body = _arrivalCountdownBody(langCode, senderFlag, senderCountry);
+
+      const androidDetails = AndroidNotificationDetails(
+        'letter_arrival_countdown',
+        'Letter Arrival Countdown',
+        channelDescription:
+            'Anticipation ping about an hour before a letter arrives',
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+        icon: '@mipmap/ic_launcher',
+      );
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
+      const details = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      final tzFire = tz.TZDateTime(
+        tz.local,
+        fire.year,
+        fire.month,
+        fire.day,
+        fire.hour,
+        fire.minute,
+      );
+
+      await _plugin.zonedSchedule(
+        _arrivalCountdownId,
+        title,
+        body,
+        tzFire,
+        details,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+      );
+    } catch (e) {
+      debugPrint('Arrival countdown schedule error: $e');
+    }
+  }
+
+  static Future<void> cancelArrivalCountdown() async {
+    try {
+      await _plugin.cancel(_arrivalCountdownId);
+    } catch (e) {
+      debugPrint('Arrival countdown cancel error: $e');
     }
   }
 

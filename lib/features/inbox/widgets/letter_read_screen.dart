@@ -20,6 +20,7 @@ import '../../dm/dm_conversation_screen.dart';
 import '../../share/share_card_service.dart';
 import 'letter_context_badge.dart';
 import 'scarcity_indicator.dart';
+import 'sender_moment_line.dart';
 
 class LetterReadScreen extends StatefulWidget {
   final Letter letter;
@@ -225,6 +226,11 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                             // 배송 여정
                             if (_isOpened) _buildJourneyCard(letter),
                             const SizedBox(height: 24),
+                            // 답장 FOMO 힌트 (시스템/AI 편지 제외, 미답장시만)
+                            if (_isOpened &&
+                                !letter.hasReplied &&
+                                _isHumanLetter(letter))
+                              _buildReplyFomoHint(context),
                             // 답장 버튼
                             if (_isOpened) _buildReplyButton(context, letter),
                             const SizedBox(height: 40),
@@ -911,6 +917,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                     fontSize: 11,
                   ),
                 ),
+                SenderMomentLine(letter: letter),
                 // SNS 링크 + 팔로우 버튼 (하단 행)
                 if (letter.socialLink != null || !letter.isAnonymous) ...[
                   const SizedBox(height: 8),
@@ -1564,6 +1571,49 @@ class _LetterReadScreenState extends State<LetterReadScreen>
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  // AI·운영 시스템 발신 편지는 답장 대상이 아니므로 FOMO 힌트를 감춘다.
+  bool _isHumanLetter(Letter letter) {
+    final id = letter.senderId;
+    return !id.startsWith('ai_') &&
+        !id.startsWith('mock_') &&
+        id != 'letter_go_welcome';
+  }
+
+  Widget _buildReplyFomoHint(BuildContext ctx) {
+    final l10n = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.gold.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: AppColors.gold.withValues(alpha: 0.18),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            const Text('🕊️', style: TextStyle(fontSize: 14)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                l10n.replyFomoHint,
+                style: TextStyle(
+                  color: AppColors.gold.withValues(alpha: 0.92),
+                  fontSize: 12,
+                  height: 1.4,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1547,6 +1547,145 @@ class AppL10n {
     'hi': 'पास के पत्र की सूचना',
     'th': 'การแจ้งเตือนจดหมายใกล้เคียง',
   });
+  String senderMomentLine(int hour) {
+    // 시간대 라벨 + "에 쓴 편지" 구조
+    final label = _hourToPartOfDay(hour);
+    switch (languageCode) {
+      case 'ko': return '$label $hour시에 쓴 편지';
+      case 'ja': return '$label $hour時に書かれた手紙';
+      case 'zh': return '在$label $hour点写下的信';
+      case 'fr': return "Lettre écrite $label à ${hour}h";
+      case 'de': return 'Brief geschrieben $label um $hour Uhr';
+      case 'es': return "Carta escrita $label a las $hour";
+      case 'pt': return "Carta escrita $label às $hour";
+      case 'ru': return 'Письмо написано $label в $hour:00';
+      case 'tr': return '$label saat $hour\'da yazıldı';
+      case 'ar': return 'رسالة كُتبت $label عند الساعة $hour';
+      case 'it': return "Lettera scritta $label alle $hour";
+      case 'hi': return '$label $hour बजे लिखा पत्र';
+      case 'th': return 'จดหมายที่เขียนใน$labelเวลา $hour นาฬิกา';
+      case 'en':
+      default: return 'Written $label at $hour:00';
+    }
+  }
+
+  String _hourToPartOfDay(int hour) {
+    if (hour >= 5 && hour < 11) {
+      return _t({
+        'ko': '아침', 'en': 'in the morning', 'ja': '朝',
+        'zh': '早晨', 'fr': 'le matin', 'de': 'morgens',
+        'es': 'por la mañana', 'pt': 'de manhã', 'ru': 'утром',
+        'tr': 'sabah', 'ar': 'صباحاً', 'it': 'di mattina',
+        'hi': 'सुबह', 'th': 'ช่วงเช้า',
+      });
+    }
+    if (hour >= 11 && hour < 17) {
+      return _t({
+        'ko': '낮', 'en': 'in the afternoon', 'ja': '昼',
+        'zh': '白天', 'fr': "dans l'après-midi", 'de': 'nachmittags',
+        'es': 'por la tarde', 'pt': 'à tarde', 'ru': 'днём',
+        'tr': 'öğleden sonra', 'ar': 'ظهراً', 'it': 'di pomeriggio',
+        'hi': 'दोपहर', 'th': 'ช่วงบ่าย',
+      });
+    }
+    if (hour >= 17 && hour < 21) {
+      return _t({
+        'ko': '저녁', 'en': 'in the evening', 'ja': '夕方',
+        'zh': '傍晚', 'fr': 'le soir', 'de': 'abends',
+        'es': 'por la tarde', 'pt': 'à noite', 'ru': 'вечером',
+        'tr': 'akşam', 'ar': 'مساءً', 'it': 'di sera',
+        'hi': 'शाम', 'th': 'ช่วงเย็น',
+      });
+    }
+    return _t({
+      'ko': '밤', 'en': 'late at night', 'ja': '夜',
+      'zh': '深夜', 'fr': 'tard le soir', 'de': 'spätnachts',
+      'es': 'de madrugada', 'pt': 'tarde da noite', 'ru': 'ночью',
+      'tr': 'gece', 'ar': 'ليلاً', 'it': 'di notte',
+      'hi': 'रात', 'th': 'ช่วงค่ำคืน',
+    });
+  }
+
+  String get replyFomoHint => _t({
+    'ko': '이 사람은 당신의 답을 기다리고 있을지 몰라요',
+    'en': 'Someone, somewhere, may be waiting for your reply',
+    'ja': 'この人はあなたの返事を待っているかもしれません',
+    'zh': '这个人也许正在等待你的回信',
+    'fr': 'Cette personne attend peut-être votre réponse',
+    'de': 'Jemand wartet vielleicht gerade auf deine Antwort',
+    'es': 'Alguien podría estar esperando tu respuesta',
+    'pt': 'Alguém pode estar esperando sua resposta',
+    'ru': 'Возможно, кто-то ждёт вашего ответа',
+    'tr': 'Biri cevabını bekliyor olabilir',
+    'ar': 'ربما ينتظر هذا الشخص ردك',
+    'it': 'Qualcuno potrebbe star aspettando la tua risposta',
+    'hi': 'शायद कोई आपकी प्रतिक्रिया का इंतज़ार कर रहा है',
+    'th': 'อาจมีใครบางคนกำลังรอคำตอบของคุณ',
+  });
+  String get reminderPrepromptTitle => _t({
+    'ko': '매일 아침 8시에 알려드릴까요?',
+    'en': 'Nudge at 8 AM every morning?',
+    'ja': '毎朝8時にお知らせしますか？',
+    'zh': '每天早上 8 点温柔提醒你？',
+    'fr': 'Un rappel tous les jours à 8h ?',
+    'de': 'Jeden Morgen um 8 Uhr erinnern?',
+    'es': '¿Aviso suave a las 8 cada mañana?',
+    'pt': 'Lembrete todos os dias às 8h?',
+    'ru': 'Напоминать каждое утро в 8:00?',
+    'tr': 'Her sabah 8\'de hatırlatalım mı?',
+    'ar': 'تذكير كل صباح الساعة 8؟',
+    'it': 'Promemoria ogni mattina alle 8?',
+    'hi': 'हर सुबह 8 बजे याद दिलाएँ?',
+    'th': 'เตือนทุกเช้าเวลา 8 โมง?',
+  });
+  String get reminderPrepromptBody => _t({
+    'ko': '"오늘 나에게 편지가 왔을까?"\n매일 아침 8시에 편지함을 열어보도록 조용히 알려드릴게요.',
+    'en': '"Did a letter arrive for me today?"\nA quiet 8 AM nudge to open your mailbox — nothing noisy.',
+    'ja': '「今日、手紙は届いたかな？」\n毎朝8時に、そっと手紙箱を開くようお知らせします。',
+    'zh': '"今天有我的信吗？"\n每天早上 8 点轻轻提醒你打开信箱——不喧哗。',
+    'fr': '"Ai-je reçu une lettre aujourd\'hui ?"\nUn rappel doux à 8h pour ouvrir votre boîte.',
+    'de': '"Ist heute ein Brief für mich da?"\nEin leiser 8-Uhr-Hinweis, den Briefkasten zu öffnen.',
+    'es': '"¿Hoy me ha llegado una carta?"\nUn aviso suave a las 8 para abrir tu buzón.',
+    'pt': '"Chegou uma carta pra mim hoje?"\nUm lembrete sutil às 8h para abrir sua caixa.',
+    'ru': '"Пришло ли мне сегодня письмо?"\nЛёгкое напоминание в 8 утра открыть почтовый ящик.',
+    'tr': '"Bugün bana mektup geldi mi?"\nSabah 8\'de posta kutunu açman için sakin bir hatırlatma.',
+    'ar': '"هل وصلتني رسالة اليوم؟"\nتذكير هادئ الساعة 8 صباحاً لتفتح صندوق رسائلك.',
+    'it': '"Mi è arrivata una lettera oggi?"\nUn promemoria gentile alle 8 per aprire la tua buca.',
+    'hi': '"क्या आज मेरे लिए पत्र आया?"\nसुबह 8 बजे मेलबॉक्स खोलने की शांत याद।',
+    'th': '"วันนี้มีจดหมายถึงฉันไหม?"\nการเตือนเบา ๆ เวลา 8 โมงให้เปิดกล่องจดหมาย',
+  });
+  String get reminderPrepromptYes => _t({
+    'ko': '좋아요',
+    'en': "Yes, please",
+    'ja': 'はい',
+    'zh': '好的',
+    'fr': "D'accord",
+    'de': 'Gerne',
+    'es': 'Sí, por favor',
+    'pt': 'Sim, por favor',
+    'ru': 'Давайте',
+    'tr': 'Evet, lütfen',
+    'ar': 'نعم',
+    'it': 'Sì, grazie',
+    'hi': 'हाँ',
+    'th': 'ดีเลย',
+  });
+  String get reminderPrepromptLater => _t({
+    'ko': '나중에',
+    'en': 'Maybe later',
+    'ja': 'あとで',
+    'zh': '以后再说',
+    'fr': 'Plus tard',
+    'de': 'Später',
+    'es': 'Quizás después',
+    'pt': 'Talvez depois',
+    'ru': 'Позже',
+    'tr': 'Sonra',
+    'ar': 'لاحقاً',
+    'it': 'Più tardi',
+    'hi': 'बाद में',
+    'th': 'ไว้ทีหลัง',
+  });
   String get settingsNotifyDaily => _t({
     'ko': '오늘의 편지 리마인더',
     'en': "Today's Letter Reminder",
@@ -3679,6 +3818,23 @@ class AppL10n {
     'it': 'Minimo raggiunto',
     'hi': 'न्यूनतम पूर्ण',
     'th': 'ถึงจำนวนขั้นต่ำแล้ว',
+  });
+
+  String get composeDailyPromptLabel => _t({
+    'ko': '오늘의 영감',
+    'en': "TODAY'S PROMPT",
+    'ja': '今日のひとこと',
+    'zh': '今日灵感',
+    'fr': "INSPIRATION DU JOUR",
+    'de': "TAGES-IMPULS",
+    'es': "INSPIRACIÓN DE HOY",
+    'pt': "INSPIRAÇÃO DE HOJE",
+    'ru': "ВДОХНОВЕНИЕ ДНЯ",
+    'tr': "BUGÜNÜN ESINI",
+    'ar': "إلهام اليوم",
+    'it': "SPUNTO DI OGGI",
+    'hi': "आज की प्रेरणा",
+    'th': "แรงบันดาลใจวันนี้",
   });
 
   String get composeHint => _t({
@@ -14263,6 +14419,26 @@ class AppL10n {
     'ru': '$days д', 'tr': '$days g', 'ar': '$days يوم',
     'it': '$days g', 'hi': '$days दिन', 'th': '$days วัน',
   });
+
+  String streakFreezeUsedMessage(int days) {
+    switch (languageCode) {
+      case 'ko': return '스트릭을 한 번 구해드렸어요! $days일 연속 유지 중';
+      case 'ja': return 'ストリークを1回救いました！$days日連続継続中';
+      case 'zh': return '我们帮你保住了一次连续签到！当前 $days 天';
+      case 'fr': return "On a sauvé votre série une fois ! $days jours d'affilée";
+      case 'de': return 'Wir haben deine Serie einmal gerettet! $days Tage in Folge';
+      case 'es': return '¡Salvamos tu racha una vez! $days días seguidos';
+      case 'pt': return 'Salvamos seu streak uma vez! $days dias seguidos';
+      case 'ru': return 'Мы сохранили вашу серию! $days дней подряд';
+      case 'tr': return 'Serini bir kez kurtardık! $days gün üst üste';
+      case 'ar': return 'أنقذنا سلسلتك مرة واحدة! $days يوماً متتالياً';
+      case 'it': return 'Abbiamo salvato la tua serie una volta! $days giorni di fila';
+      case 'hi': return 'हमने आपकी स्ट्रीक एक बार बचा ली! लगातार $days दिन';
+      case 'th': return 'เราช่วยสตรีคของคุณไว้หนึ่งครั้ง! ต่อเนื่อง $days วัน';
+      case 'en':
+      default: return 'We saved your streak once! $days days running';
+    }
+  }
 
   String streakMilestoneMessage(int days) {
     switch (days) {

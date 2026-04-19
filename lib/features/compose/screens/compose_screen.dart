@@ -17,6 +17,7 @@ import '../../../state/app_state.dart';
 import '../../../core/services/purchase_service.dart';
 import '../../city_of_month/city_of_month.dart';
 import '../../premium/premium_gate_sheet.dart';
+import '../compose_prompts.dart';
 
 class ComposeScreen extends StatefulWidget {
   final String? replyToId;
@@ -1663,6 +1664,8 @@ class _ComposeScreenState extends State<ComposeScreen>
                   ],
                 ),
               ),
+              if (_charCount == 0 && !_isReply)
+                _buildDailyPromptChip(paper.inkColor),
               TextField(
                 controller: _contentController,
                 focusNode: _contentFocus,
@@ -1688,6 +1691,72 @@ class _ComposeScreenState extends State<ComposeScreen>
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  // Daily inspiration strip shown only when the body is empty and this isn't
+  // a reply. Tapping inserts the prompt as a starter so the blank canvas
+  // problem doesn't stall first-time writers.
+  Widget _buildDailyPromptChip(Color inkColor) {
+    final langCode = context.read<AppState>().currentUser.languageCode;
+    final l10n = AppL10n.of(langCode);
+    final prompt = composeDailyPrompt(langCode);
+    return InkWell(
+      onTap: () {
+        final insert = '$prompt\n\n';
+        _contentController.value = TextEditingValue(
+          text: insert,
+          selection: TextSelection.collapsed(offset: insert.length),
+        );
+        _contentFocus.requestFocus();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: inkColor.withValues(alpha: 0.08)),
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('✨', style: TextStyle(fontSize: 12)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.composeDailyPromptLabel,
+                    style: TextStyle(
+                      color: inkColor.withValues(alpha: 0.45),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    prompt,
+                    style: TextStyle(
+                      color: inkColor.withValues(alpha: 0.7),
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 6),
+            Icon(
+              Icons.arrow_forward_rounded,
+              size: 13,
+              color: inkColor.withValues(alpha: 0.35),
+            ),
+          ],
         ),
       ),
     );

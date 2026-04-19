@@ -66,10 +66,39 @@ class StreakBadge extends StatelessWidget {
 class StreakCelebrationBar {
   static void showIfIncreased(BuildContext context) {
     final state = context.read<AppState>();
+    final l10n = AppL10n.of(state.currentUser.languageCode);
+
+    // 방어권이 방금 사용됐다면 이쪽을 먼저 노출 (스트릭 증가 플래그 대신)
+    if (state.consumeStreakSavedFlag()) {
+      state.consumeStreakIncreaseFlag(); // 함께 소비 (중복 스낵바 방지)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Text('🎟️ ', style: TextStyle(fontSize: 20)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.streakFreezeUsedMessage(state.currentStreak),
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFF1F2D44),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
     if (!state.consumeStreakIncreaseFlag()) return;
     if (state.currentStreak <= 1) return; // 1일째는 너무 흔해 생략
 
-    final l10n = AppL10n.of(state.currentUser.languageCode);
     final message = l10n.streakMilestoneMessage(state.currentStreak);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

@@ -5,6 +5,7 @@ import '../../core/localization/app_localizations.dart';
 import '../../core/localization/language_config.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/notification_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -116,8 +117,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await AuthService.setOnboardingComplete();
 
     // 알림 권한 요청 (선택적 — 거부해도 진행 가능)
+    // 먼저 커스텀 프리프롬프트로 "왜" 필요한지 설명 → 시스템 권한 팝업 →
+    // 허용 시 매일 오전 8시 리마인더 자동 예약. 이 프리프롬프트 패턴은
+    // 시스템 팝업에서 곧바로 거부되는 비율을 크게 낮춰준다.
     try {
-      await NotificationService.requestPermissions();
+      final wantsReminder = await _showReminderPrePrompt();
+      if (wantsReminder) {
+        final granted = await NotificationService.requestPermissions();
+        if (granted) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool('notify_daily_letter', true);
+          await NotificationService.scheduleDailyLetterReminder(
+            langCode: _langCode,
+          );
+        }
+      } else {
+        // 거부해도 앱 전반의 알림 권한은 요청해 둔다 (편지 도착 알림 등)
+        await NotificationService.requestPermissions();
+      }
     } catch (_) {}
 
     if (mounted) {
@@ -129,6 +146,64 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ).pushReplacementNamed(loggedIn ? '/home' : '/auth');
       }
     }
+  }
+
+  Future<bool> _showReminderPrePrompt() async {
+    if (!mounted) return false;
+    final granted = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.bgCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('☀️', style: TextStyle(fontSize: 32)),
+            const SizedBox(width: 10),
+            Flexible(
+              child: Text(
+                _l.reminderPrepromptTitle,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          _l.reminderPrepromptBody,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 14,
+            height: 1.5,
+          ),
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(
+              _l.reminderPrepromptLater,
+              style: const TextStyle(color: AppColors.textMuted),
+            ),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.teal,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(_l.reminderPrepromptYes),
+          ),
+        ],
+      ),
+    );
+    return granted ?? false;
   }
 
   String _getKoreanName(String displayName) {

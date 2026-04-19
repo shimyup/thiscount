@@ -9,6 +9,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../features/progression/user_level.dart';
+import '../features/welcome/welcome_letter.dart';
 import '../models/letter.dart';
 import '../models/user_profile.dart';
 import '../core/config/app_keys.dart';
@@ -217,8 +218,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   String _lastStreakCheckinDate = ''; // yyyy-MM-dd
   bool _streakJustIncreased = false;  // 방금 증가했는지 — UI 알림용
 
+  // ── 스트릭 방어권 (Streak Freeze) ───────────────────────────────────────
+  // 하루 놓쳐도 스트릭 1회 구제. 30일마다 1개씩 자동 충전 (최대 1개 보유).
+  int _streakFreezeTokens = 0;
+  String _streakFreezeLastRefill = ''; // yyyy-MM-dd — 마지막 충전·소비일
+  bool _streakJustSaved = false;       // 직전 체크인에서 방어권 소비했는지
+  static const int _streakFreezeMax = 1;
+  static const int _streakFreezeRefillDays = 30;
+
   int get currentStreak => _currentStreak;
   int get longestStreak => _longestStreak;
+  int get streakFreezeTokens => _streakFreezeTokens;
   bool get hasCheckedInToday =>
       _lastStreakCheckinDate == _dateKey(DateTime.now());
 
@@ -226,6 +236,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   bool consumeStreakIncreaseFlag() {
     if (!_streakJustIncreased) return false;
     _streakJustIncreased = false;
+    return true;
+  }
+
+  /// 스트릭 방어권이 방금 사용되었는지 — UI 스낵바용. 1회 소비.
+  bool consumeStreakSavedFlag() {
+    if (!_streakJustSaved) return false;
+    _streakJustSaved = false;
     return true;
   }
 
@@ -344,7 +361,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// 앱 진입 / 첫 액티비티 시 호출. 하루 1회만 실제 증가, 중복 호출 안전.
   /// - 처음 접속: streak = 1
   /// - 어제 접속 → 오늘 재접속: streak++
-  /// - 어제 누락 (하루 이상 공백): streak = 1
+  /// - 2일 이상 공백 + 방어권 보유 + 공백이 정확히 1일: 방어권 소비, 스트릭 유지
+  /// - 그 외 공백: streak = 1
   /// - 오늘 이미 체크인: no-op
   void registerDailyStreakCheckin() {
     final today = DateTime.now();
@@ -354,17 +372,30 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       return; // 오늘 이미 처리
     }
 
+    _maybeRefillStreakFreeze(today);
+
     if (_lastStreakCheckinDate.isEmpty) {
-      // 첫 접속
+      // 첫 접속 + 방어권 첫 지급
       _currentStreak = 1;
+      if (_streakFreezeTokens < _streakFreezeMax) {
+        _streakFreezeTokens = _streakFreezeMax;
+        _streakFreezeLastRefill = todayKey;
+      }
     } else {
-      // 어제 (today - 1) 와 비교
-      final yesterday = today.subtract(const Duration(days: 1));
-      final yesterdayKey = _dateKey(yesterday);
-      if (_lastStreakCheckinDate == yesterdayKey) {
+      final lastDate = _parseDateKey(_lastStreakCheckinDate);
+      final gapDays = lastDate == null
+          ? 2
+          : _dayDifference(lastDate, today);
+      if (gapDays == 1) {
         _currentStreak += 1;
+      } else if (gapDays == 2 && _streakFreezeTokens > 0) {
+        // 어제 하루 놓침 — 방어권으로 구제
+        _streakFreezeTokens -= 1;
+        _streakFreezeLastRefill = todayKey;
+        _streakJustSaved = true;
+        _currentStreak += 1; // 어제 접속한 것처럼 1 증가
       } else {
-        _currentStreak = 1; // 공백 → 리셋
+        _currentStreak = 1; // 2일 이상 공백 또는 토큰 없음 → 리셋
       }
     }
 
@@ -375,6 +406,41 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _streakJustIncreased = true;
     notifyListeners();
     _saveToPrefs();
+  }
+
+  void _maybeRefillStreakFreeze(DateTime today) {
+    if (_streakFreezeTokens >= _streakFreezeMax) return;
+    if (_streakFreezeLastRefill.isEmpty) {
+      // 아직 한 번도 충전되지 않은 계정 — 최초 지급은 첫 체크인 로직에서 처리
+      return;
+    }
+    final lastRefill = _parseDateKey(_streakFreezeLastRefill);
+    if (lastRefill == null) return;
+    final gap = _dayDifference(lastRefill, today);
+    if (gap >= _streakFreezeRefillDays) {
+      _streakFreezeTokens = _streakFreezeMax;
+      _streakFreezeLastRefill = _dateKey(today);
+    }
+  }
+
+  DateTime? _parseDateKey(String yyyyMMdd) {
+    try {
+      final parts = yyyyMMdd.split('-');
+      if (parts.length != 3) return null;
+      return DateTime(
+        int.parse(parts[0]),
+        int.parse(parts[1]),
+        int.parse(parts[2]),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  int _dayDifference(DateTime a, DateTime b) {
+    final aDay = DateTime(a.year, a.month, a.day);
+    final bDay = DateTime(b.year, b.month, b.day);
+    return bDay.difference(aDay).inDays;
   }
 
   // ── 월간 발송 제한 ────────────────────────────────────────────────────────
@@ -1361,6 +1427,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       prefs.setInt('streak_current', _currentStreak);
       prefs.setInt('streak_longest', _longestStreak);
       prefs.setString('streak_last_checkin', _lastStreakCheckinDate);
+      // 스트릭 방어권 (30일마다 1회 충전, 1일 공백 구제)
+      prefs.setInt('streak_freeze_tokens', _streakFreezeTokens);
+      prefs.setString('streak_freeze_last_refill', _streakFreezeLastRefill);
       // 주간 챌린지
       prefs.setStringList(
         'challenge_week_countries',
@@ -1558,6 +1627,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _currentStreak = prefs.getInt('streak_current') ?? 0;
     _longestStreak = prefs.getInt('streak_longest') ?? 0;
     _lastStreakCheckinDate = prefs.getString('streak_last_checkin') ?? '';
+    _streakFreezeTokens = prefs.getInt('streak_freeze_tokens') ?? 0;
+    _streakFreezeLastRefill =
+        prefs.getString('streak_freeze_last_refill') ?? '';
 
     // 주간 챌린지 복원
     _weeklyChallengeCountries
@@ -1729,7 +1801,46 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       );
     }
 
+    // ── 도착 1시간 전 카운트다운 재예약 ─────────────────────────────────────
+    _rescheduleArrivalCountdown();
+
     notifyListeners();
+  }
+
+  /// 가장 임박한 미래 도착 편지 1건에 대해 도착 1시간 전 알림 스케줄.
+  /// 신규 편지 수신·앱 실행·AI 편지 생성 후에 호출한다.
+  void _rescheduleArrivalCountdown() {
+    try {
+      final now = DateTime.now();
+      // 2시간 이상 여유가 있는 편지만 — 리드타임이 너무 짧으면 무의미
+      Letter? next;
+      for (final l in [..._worldLetters, ..._inbox]) {
+        // 내게 오는 편지가 아니면 스킵 (destination으로 체크)
+        if (l.status != DeliveryStatus.inTransit) continue;
+        final at = l.arrivalTime;
+        if (at == null) continue;
+        if (at.isBefore(now.add(const Duration(hours: 2)))) continue;
+        // 목적지가 내 계정 위치 근방인지로 "나에게 오는 편지" 판단
+        final distKm = l.destinationLocation.distanceTo(
+              LatLng(_currentUser.latitude, _currentUser.longitude),
+            ) /
+            1000.0;
+        if (distKm > 100) continue;
+        if (next == null || at.isBefore(next.arrivalTime!)) {
+          next = l;
+        }
+      }
+      if (next == null) {
+        NotificationService.cancelArrivalCountdown();
+        return;
+      }
+      NotificationService.scheduleArrivalCountdown(
+        arrivalTime: next.arrivalTime!,
+        senderCountry: next.senderCountry,
+        senderFlag: next.senderCountryFlag,
+        langCode: _currentUser.languageCode,
+      );
+    } catch (_) {}
   }
 
   /// 앱 재시작 후 arrivalTime이 이미 지난 편지들의 상태를 즉시 보정한다.
@@ -2560,6 +2671,37 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     registerDailyStreakCheckin();
     // 초기 레벨 baseline 설정 (레벨업 감지에 사용)
     _previousUserLevel = userLevel;
+    // 첫 가입 유저에게 운영팀 웰컴 편지 시딩 (한 번만)
+    unawaited(_seedWelcomeLetterIfNeeded());
+  }
+
+  // 웰컴 편지: 유저별 1회만 시딩. 이미 존재하면 no-op.
+  Future<void> _seedWelcomeLetterIfNeeded() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final seedKey = 'welcome_letter_seeded_${_currentUser.id}';
+      if (prefs.getBool(seedKey) ?? false) return;
+      if (_inbox.any((l) => l.senderId == 'letter_go_welcome')) {
+        await prefs.setBool(seedKey, true);
+        return;
+      }
+      final letter = buildWelcomeLetter(
+        userId: _currentUser.id,
+        userCountry: _currentUser.country,
+        userCountryFlag: _currentUser.countryFlag,
+        userLat: _currentUser.latitude,
+        userLng: _currentUser.longitude,
+        langCode: _currentUser.languageCode.isNotEmpty
+            ? _currentUser.languageCode
+            : 'en',
+      );
+      _inbox.insert(0, letter);
+      await prefs.setBool(seedKey, true);
+      _saveToPrefs();
+      notifyListeners();
+    } catch (_) {
+      // 실패해도 유저 흐름을 막지 않음
+    }
   }
 
   // ── 위치 업데이트 ─────────────────────────────────────────────────────────
@@ -4553,6 +4695,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       _worldLetters.add(letter);
     }
     _saveToPrefs();
+    _rescheduleArrivalCountdown();
     notifyListeners();
   }
 
