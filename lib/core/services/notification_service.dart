@@ -1,8 +1,41 @@
 import 'dart:math';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
+
+/// Categories of notifications the app can fire. Used by the push-mode
+/// gate below to drop noisy categories when a user has selected a
+/// quieter mode.
+enum PushCategory {
+  daily,            // 8am "Today's Letter" reminder
+  arrivedInbox,     // a letter landed in your mailbox
+  arrivalCountdown, // 1h before an arrival
+  dm,               // direct message
+  nearby,           // letter within 500m
+  cooldown,         // "nearby but on cooldown"
+  reportBlock,      // your letter got reported
+}
+
+enum PushMode { quiet, standard, full }
+
+PushMode _pushModeFromString(String s) {
+  switch (s) {
+    case 'quiet': return PushMode.quiet;
+    case 'full': return PushMode.full;
+    case 'standard':
+    default: return PushMode.standard;
+  }
+}
+
+String pushModeToString(PushMode m) {
+  switch (m) {
+    case PushMode.quiet: return 'quiet';
+    case PushMode.standard: return 'standard';
+    case PushMode.full: return 'full';
+  }
+}
 
 /// Notification text localization helper
 String _notiMsg(String key, [String langCode = 'en']) {
@@ -301,6 +334,43 @@ class NotificationService {
   /// sees one anticipation ping at a time.
   static const int _arrivalCountdownId = 11;
 
+  static PushMode _currentMode = PushMode.standard;
+
+  static Future<PushMode> loadPushMode() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final s = prefs.getString('push_mode') ?? 'standard';
+      _currentMode = _pushModeFromString(s);
+    } catch (_) {}
+    return _currentMode;
+  }
+
+  static Future<void> setPushMode(PushMode mode) async {
+    _currentMode = mode;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('push_mode', pushModeToString(mode));
+    } catch (_) {}
+  }
+
+  /// Gate: is this push category allowed given the current mode?
+  /// `quiet`    — only the 8am daily nudge
+  /// `standard` — daily + arrivals + DM + arrival countdown
+  /// `full`     — everything (back-compat with old default)
+  static bool _isAllowed(PushCategory cat) {
+    switch (_currentMode) {
+      case PushMode.full:
+        return true;
+      case PushMode.standard:
+        return cat == PushCategory.daily ||
+            cat == PushCategory.arrivedInbox ||
+            cat == PushCategory.arrivalCountdown ||
+            cat == PushCategory.dm;
+      case PushMode.quiet:
+        return cat == PushCategory.daily;
+    }
+  }
+
   static Future<void> initialize() async {
     if (_initialized) return;
     _initLocalTimezone();
@@ -424,6 +494,7 @@ class NotificationService {
     required String body,
     String langCode = 'en',
   }) async {
+    if (!_isAllowed(PushCategory.nearby)) return;
     try {
       final androidDetails = AndroidNotificationDetails(
         'nearby_letter',
@@ -453,6 +524,7 @@ class NotificationService {
     required String senderFlag,
     String langCode = 'en',
   }) async {
+    if (!_isAllowed(PushCategory.arrivedInbox)) return;
     try {
       final androidDetails = AndroidNotificationDetails(
         'letter_arrived',
@@ -489,6 +561,7 @@ class NotificationService {
     required String message,
     String langCode = 'en',
   }) async {
+    if (!_isAllowed(PushCategory.dm)) return;
     try {
       final androidDetails = AndroidNotificationDetails(
         'dm_arrived',
@@ -525,6 +598,7 @@ class NotificationService {
     required String body,
     String langCode = 'en',
   }) async {
+    if (!_isAllowed(PushCategory.cooldown)) return;
     try {
       final androidDetails = AndroidNotificationDetails(
         'pickup_cooldown',
@@ -555,6 +629,7 @@ class NotificationService {
     required String body,
     String langCode = 'en',
   }) async {
+    if (!_isAllowed(PushCategory.reportBlock)) return;
     try {
       final androidDetails = AndroidNotificationDetails(
         'report_block',
@@ -587,6 +662,10 @@ class NotificationService {
     int minute = 0,
     String langCode = 'en',
   }) async {
+    if (!_isAllowed(PushCategory.daily)) {
+      await _plugin.cancel(_dailyReminderId);
+      return;
+    }
     try {
       await _plugin.cancel(_dailyReminderId);
 
@@ -661,6 +740,10 @@ class NotificationService {
     required String senderFlag,
     String langCode = 'en',
   }) async {
+    if (!_isAllowed(PushCategory.arrivalCountdown)) {
+      await _plugin.cancel(_arrivalCountdownId);
+      return;
+    }
     try {
       await _plugin.cancel(_arrivalCountdownId);
       final fire = arrivalTime.subtract(const Duration(hours: 1));

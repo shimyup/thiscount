@@ -1606,6 +1606,321 @@ class AppL10n {
     });
   }
 
+  String penpalBadgeCount(int n) {
+    switch (languageCode) {
+      case 'ko': return '$n번째';
+      case 'ja': return '$n通目';
+      case 'zh': return '第 $n 封';
+      case 'fr': return '${n}e échange';
+      case 'de': return '$n. Brief';
+      case 'es': return '${n}º intercambio';
+      case 'pt': return '${n}º intercâmbio';
+      case 'ru': return '$n-е письмо';
+      case 'tr': return '$n. mektup';
+      case 'ar': return 'الرسالة ${n}';
+      case 'it': return '${n}º scambio';
+      case 'hi': return '${n}वाँ आदान-प्रदान';
+      case 'th': return 'ฉบับที่ $n';
+      case 'en':
+      default: return '#$n exchange';
+    }
+  }
+
+  String get premiumCollectionsHeader => _t({
+    'ko': 'Air Mail Pass 컬렉션',
+    'en': 'Air Mail Pass Collections',
+    'ja': 'Air Mail Pass コレクション',
+    'zh': 'Air Mail Pass 合集',
+    'fr': 'Collections Air Mail Pass',
+    'de': 'Air Mail Pass Kollektionen',
+    'es': 'Colecciones Air Mail Pass',
+    'pt': 'Coleções Air Mail Pass',
+    'ru': 'Коллекции Air Mail Pass',
+    'tr': 'Air Mail Pass Koleksiyonları',
+    'ar': 'مجموعات Air Mail Pass',
+    'it': 'Collezioni Air Mail Pass',
+    'hi': 'Air Mail Pass कलेक्शन',
+    'th': 'คอลเลกชัน Air Mail Pass',
+  });
+  String get premiumCollectionsSub => _t({
+    'ko': '하나의 패스 안에, 편지의 결을 바꾸는 세 가지 컬렉션.',
+    'en': 'One pass, three collections that change the grain of your letters.',
+    'ja': '一つのパスで、手紙の質感を変える3つのコレクション。',
+    'zh': '一张通行证，三种改变信件质地的合集。',
+    'fr': 'Un seul Pass, trois collections qui changent la texture de vos lettres.',
+    'de': 'Ein Pass, drei Kollektionen, die die Textur deiner Briefe verändern.',
+    'es': 'Un solo pase, tres colecciones que cambian la textura de tus cartas.',
+    'pt': 'Um passe, três coleções que mudam a textura das suas cartas.',
+    'ru': 'Один Pass, три коллекции, меняющие текстуру ваших писем.',
+    'tr': 'Tek bir pass, mektuplarınızın dokusunu değiştiren üç koleksiyon.',
+    'ar': 'باقة واحدة، ثلاث مجموعات تغيّر ملمس رسائلك.',
+    'it': 'Un solo pass, tre collezioni che cambiano la trama delle tue lettere.',
+    'hi': 'एक पास, तीन कलेक्शन — आपके पत्रों का बनावट बदलते हैं।',
+    'th': 'พาสหนึ่งใบ สามคอลเลกชันที่เปลี่ยนสัมผัสของจดหมาย',
+  });
+  String get premiumCollectionAuroraName => _t({
+    'ko': '🌌 Aurora',
+    'en': '🌌 Aurora',
+    'ja': '🌌 Aurora',
+    'zh': '🌌 Aurora',
+    'fr': '🌌 Aurora',
+    'de': '🌌 Aurora',
+    'es': '🌌 Aurora',
+    'pt': '🌌 Aurora',
+    'ru': '🌌 Aurora',
+    'tr': '🌌 Aurora',
+    'ar': '🌌 Aurora',
+    'it': '🌌 Aurora',
+    'hi': '🌌 Aurora',
+    'th': '🌌 Aurora',
+  });
+  String get premiumCollectionAuroraTagline => _t({
+    'ko': '밤의 언어로 쓰는 편지',
+    'en': 'Letters in the language of the night',
+    'ja': '夜の言葉で綴る手紙',
+    'zh': '以夜的语言写成的信',
+    'fr': 'Des lettres dans la langue de la nuit',
+    'de': 'Briefe in der Sprache der Nacht',
+    'es': 'Cartas en el idioma de la noche',
+    'pt': 'Cartas na língua da noite',
+    'ru': 'Письма на языке ночи',
+    'tr': 'Gecenin dilinde mektuplar',
+    'ar': 'رسائل بلغة الليل',
+    'it': 'Lettere nella lingua della notte',
+    'hi': 'रात की भाषा में पत्र',
+    'th': 'จดหมายในภาษาของราตรี',
+  });
+  String get premiumCollectionAuroraBullet1 => _t({
+    'ko': '야간 감성 편지지 · 이미지 무제한',
+    'en': 'Night-themed stationery · unlimited images',
+    'ja': '夜の便箋 · 画像無制限',
+    'zh': '夜间主题信纸 · 无限图片',
+    'fr': 'Papeterie nocturne · images illimitées',
+    'de': 'Nachtbriefpapier · unbegrenzte Bilder',
+    'es': 'Papel nocturno · imágenes ilimitadas',
+    'pt': 'Papel noturno · imagens ilimitadas',
+    'ru': 'Ночной дизайн · безлимитные изображения',
+    'tr': 'Gece temalı kırtasiye · sınırsız görsel',
+    'ar': 'قرطاسية ليلية · صور بلا حدود',
+    'it': 'Cancelleria notturna · immagini illimitate',
+    'hi': 'रात्रि स्टेशनरी · असीमित छवियाँ',
+    'th': 'กระดาษจดหมายธีมกลางคืน · รูปภาพไม่จำกัด',
+  });
+  String get premiumCollectionAuroraBullet2 => _t({
+    'ko': '오로라·별·달빛 페이퍼 스타일',
+    'en': 'Aurora, starlight, and moonlight paper styles',
+    'ja': 'オーロラ・星・月光の用紙スタイル',
+    'zh': '极光、星光、月光纸样',
+    'fr': "Aurores, étoiles, clair de lune",
+    'de': 'Aurora-, Sternen- und Mondlicht-Papier',
+    'es': 'Estilos aurora, estrellas, luz de luna',
+    'pt': 'Estilos aurora, estrelas, luar',
+    'ru': 'Стили: полярное сияние, звёзды, лунный свет',
+    'tr': 'Aurora, yıldız ışığı, ay ışığı tasarımları',
+    'ar': 'تصاميم: الشفق، النجوم، ضوء القمر',
+    'it': 'Stili aurora, stelle, chiaro di luna',
+    'hi': 'ऑरोरा, तारों, चाँदनी वाले पेपर',
+    'th': 'แบบกระดาษแสงเหนือ ดาว แสงจันทร์',
+  });
+  String get premiumCollectionHarvestName => _t({
+    'ko': '🌾 Harvest',
+    'en': '🌾 Harvest',
+    'ja': '🌾 Harvest',
+    'zh': '🌾 Harvest',
+    'fr': '🌾 Harvest',
+    'de': '🌾 Harvest',
+    'es': '🌾 Harvest',
+    'pt': '🌾 Harvest',
+    'ru': '🌾 Harvest',
+    'tr': '🌾 Harvest',
+    'ar': '🌾 Harvest',
+    'it': '🌾 Harvest',
+    'hi': '🌾 Harvest',
+    'th': '🌾 Harvest',
+  });
+  String get premiumCollectionHarvestTagline => _t({
+    'ko': '계절이 지나가는 속도로',
+    'en': 'Paced by the seasons',
+    'ja': '季節の歩みとともに',
+    'zh': '以季节的节奏',
+    'fr': 'Au rythme des saisons',
+    'de': 'Im Takt der Jahreszeiten',
+    'es': 'Al ritmo de las estaciones',
+    'pt': 'No ritmo das estações',
+    'ru': 'В ритме времён года',
+    'tr': 'Mevsimlerin temposuyla',
+    'ar': 'بإيقاع الفصول',
+    'it': 'Al ritmo delle stagioni',
+    'hi': 'ऋतुओं की लय में',
+    'th': 'ตามจังหวะของฤดูกาล',
+  });
+  String get premiumCollectionHarvestBullet1 => _t({
+    'ko': '봄·여름·가을·겨울 편지지 + 특급 배송',
+    'en': 'Seasonal stationery + express delivery',
+    'ja': '四季の便箋 + 特急配送',
+    'zh': '四季信纸 + 特快寄送',
+    'fr': 'Papeterie saisonnière + livraison express',
+    'de': 'Saisonale Briefe + Express-Zustellung',
+    'es': 'Papel estacional + entrega exprés',
+    'pt': 'Papel sazonal + entrega expressa',
+    'ru': 'Сезонный дизайн + экспресс-доставка',
+    'tr': 'Mevsimlik kırtasiye + hızlı teslimat',
+    'ar': 'قرطاسية موسمية + توصيل سريع',
+    'it': 'Cancelleria stagionale + consegna express',
+    'hi': 'मौसमी स्टेशनरी + एक्सप्रेस डिलिवरी',
+    'th': 'กระดาษตามฤดูกาล + จัดส่งด่วน',
+  });
+  String get premiumCollectionHarvestBullet2 => _t({
+    'ko': '이번 달의 도시 자동 테마 적용',
+    'en': 'City-of-the-month themes applied automatically',
+    'ja': '今月の都市テーマを自動適用',
+    'zh': '自动套用本月之城主题',
+    'fr': 'Thèmes "ville du mois" appliqués automatiquement',
+    'de': 'Stadt-des-Monats-Themen automatisch angewendet',
+    'es': 'Temas de "ciudad del mes" automáticos',
+    'pt': 'Temas da "cidade do mês" automaticamente',
+    'ru': 'Темы "город месяца" автоматически',
+    'tr': 'Ayın şehri temaları otomatik uygulanır',
+    'ar': 'مواضيع مدينة الشهر تلقائياً',
+    'it': 'Temi "città del mese" automatici',
+    'hi': '"महीने का शहर" थीम स्वतः लगते हैं',
+    'th': 'ธีม "เมืองประจำเดือน" ติดอัตโนมัติ',
+  });
+  String get premiumCollectionPostmasterName => _t({
+    'ko': '💌 Postmaster',
+    'en': '💌 Postmaster',
+    'ja': '💌 Postmaster',
+    'zh': '💌 Postmaster',
+    'fr': '💌 Postmaster',
+    'de': '💌 Postmaster',
+    'es': '💌 Postmaster',
+    'pt': '💌 Postmaster',
+    'ru': '💌 Postmaster',
+    'tr': '💌 Postmaster',
+    'ar': '💌 Postmaster',
+    'it': '💌 Postmaster',
+    'hi': '💌 Postmaster',
+    'th': '💌 Postmaster',
+  });
+  String get premiumCollectionPostmasterTagline => _t({
+    'ko': '공식 발송인의 권한',
+    'en': 'The Official Sender tier',
+    'ja': '公式発送人の権限',
+    'zh': '官方寄件人权限',
+    'fr': "Les privilèges du Postmaster",
+    'de': 'Die Rechte des offiziellen Absenders',
+    'es': 'Los privilegios del remitente oficial',
+    'pt': 'Privilégios de remetente oficial',
+    'ru': 'Привилегии официального отправителя',
+    'tr': 'Resmi gönderici ayrıcalıkları',
+    'ar': 'امتيازات المرسل الرسمي',
+    'it': 'Privilegi di mittente ufficiale',
+    'hi': 'आधिकारिक प्रेषक के विशेषाधिकार',
+    'th': 'สิทธิของผู้ส่งทางการ',
+  });
+  String get premiumCollectionPostmasterBullet1 => _t({
+    'ko': '무제한 하늘길 · 답장 우선 도착',
+    'en': 'Unlimited skyways · priority reply delivery',
+    'ja': '無制限エアルート · 返信が優先到着',
+    'zh': '无限空邮 · 回信优先送达',
+    'fr': 'Voies aériennes illimitées · priorité des réponses',
+    'de': 'Unbegrenzte Luftwege · Antworten mit Vorrang',
+    'es': 'Vías aéreas ilimitadas · respuestas prioritarias',
+    'pt': 'Vias aéreas ilimitadas · respostas prioritárias',
+    'ru': 'Неограниченные авиапути · ответы в приоритете',
+    'tr': 'Sınırsız hava yolu · cevaplar önceliklidir',
+    'ar': 'خطوط جوية غير محدودة · أولوية للردود',
+    'it': 'Rotte aeree illimitate · risposte prioritarie',
+    'hi': 'असीमित एयरवे · जवाब प्राथमिकता से',
+    'th': 'สายการบินไม่จำกัด · คำตอบส่งก่อน',
+  });
+  String get premiumCollectionPostmasterBullet2 => _t({
+    'ko': '공식 발송인 배지 · SNS 링크 첨부',
+    'en': 'Official Sender badge · attach your SNS link',
+    'ja': '公式発送人バッジ · SNSリンク添付',
+    'zh': '官方寄件人徽章 · SNS 链接附加',
+    'fr': 'Badge Postmaster · lien SNS joint',
+    'de': 'Postmaster-Abzeichen · SNS-Link anhängen',
+    'es': 'Insignia de remitente oficial · enlace SNS',
+    'pt': 'Selo de remetente oficial · link SNS',
+    'ru': 'Значок официального отправителя · ссылка SNS',
+    'tr': 'Resmi gönderici rozeti · SNS bağlantısı',
+    'ar': 'شارة المرسل الرسمي · رابط التواصل الاجتماعي',
+    'it': 'Badge mittente ufficiale · link SNS',
+    'hi': 'आधिकारिक प्रेषक बैज · SNS लिंक',
+    'th': 'ตราผู้ส่งทางการ · แนบลิงก์ SNS',
+  });
+  String get weeklyReflectionTitle => _t({
+    'ko': '이번 주의 회고',
+    'en': 'This Week in Letters',
+    'ja': '今週のふりかえり',
+    'zh': '本周回顾',
+    'fr': 'La semaine en lettres',
+    'de': 'Diese Woche in Briefen',
+    'es': 'Esta semana en cartas',
+    'pt': 'Esta semana em cartas',
+    'ru': 'Неделя в письмах',
+    'tr': 'Mektuplarla bu hafta',
+    'ar': 'هذا الأسبوع في الرسائل',
+    'it': 'La settimana in lettere',
+    'hi': 'इस हफ़्ते के पत्र',
+    'th': 'สัปดาห์นี้ในจดหมาย',
+  });
+
+  String weeklyReflectionSummary(int letters, int countries, int continents) {
+    switch (languageCode) {
+      case 'ko':
+        return '이번 주 당신의 편지 $letters통이 $countries개 나라·$continents개 대륙으로 떠났어요 🌍';
+      case 'ja':
+        return '今週、あなたの手紙$letters通が$countriesヶ国・$continents大陸へと旅立ちました 🌍';
+      case 'zh':
+        return '本周你的 $letters 封信飞往了 $countries 个国家 · $continents 个大洲 🌍';
+      case 'fr':
+        return 'Cette semaine, $letters de vos lettres sont parties vers $countries pays et $continents continents 🌍';
+      case 'de':
+        return 'Diese Woche reisten $letters Briefe in $countries Länder auf $continents Kontinenten 🌍';
+      case 'es':
+        return 'Esta semana, $letters cartas tuyas partieron a $countries países · $continents continentes 🌍';
+      case 'pt':
+        return 'Esta semana, $letters cartas suas partiram para $countries países · $continents continentes 🌍';
+      case 'ru':
+        return 'На этой неделе $letters ваших писем ушли в $countries стран · $continents континентов 🌍';
+      case 'tr':
+        return 'Bu hafta $letters mektubunuz $countries ülkeye · $continents kıtaya gitti 🌍';
+      case 'ar':
+        return 'هذا الأسبوع، $letters من رسائلك سافرت إلى $countries دولة · $continents قارة 🌍';
+      case 'it':
+        return 'Questa settimana $letters tue lettere sono partite verso $countries paesi · $continents continenti 🌍';
+      case 'hi':
+        return 'इस हफ़्ते आपके $letters पत्र $countries देशों · $continents महाद्वीपों को गए 🌍';
+      case 'th':
+        return 'สัปดาห์นี้ จดหมาย $letters ฉบับของคุณเดินทางไปยัง $countries ประเทศ · $continents ทวีป 🌍';
+      case 'en':
+      default:
+        return 'This week, $letters of your letters traveled to $countries countries across $continents continents 🌍';
+    }
+  }
+
+  String weeklyReflectionLongest(int km) {
+    switch (languageCode) {
+      case 'ko': return '가장 멀리 떠난 편지는 ${km}km를 여행했어요 ✈️';
+      case 'ja': return '最も遠く旅した手紙は${km}kmを旅しました ✈️';
+      case 'zh': return '最远的那封信旅行了 ${km} 公里 ✈️';
+      case 'fr': return 'Votre lettre la plus lointaine a parcouru ${km} km ✈️';
+      case 'de': return 'Der weiteste Brief reiste ${km} km ✈️';
+      case 'es': return 'La carta más lejana viajó ${km} km ✈️';
+      case 'pt': return 'A carta mais distante viajou ${km} km ✈️';
+      case 'ru': return 'Самое дальнее письмо преодолело ${km} км ✈️';
+      case 'tr': return 'En uzun yolculuk ${km} km oldu ✈️';
+      case 'ar': return 'أبعد رسالة سافرت ${km} كم ✈️';
+      case 'it': return 'La lettera più lontana ha percorso ${km} km ✈️';
+      case 'hi': return 'सबसे दूर गया पत्र ${km} किमी चला ✈️';
+      case 'th': return 'จดหมายที่ไปไกลที่สุดเดินทาง ${km} กม. ✈️';
+      case 'en':
+      default: return 'Your farthest letter traveled ${km} km ✈️';
+    }
+  }
+
   String get replyAlreadyNotice => _t({
     'ko': '이 편지엔 이미 답장을 보냈어요 · 한 편지에 한 번만 답장할 수 있어요',
     'en': 'You\'ve already replied to this letter — one reply per letter',
@@ -1765,6 +2080,118 @@ class AppL10n {
     'it': 'Più tardi',
     'hi': 'बाद में',
     'th': 'ไว้ทีหลัง',
+  });
+  String get pushModeLabel => _t({
+    'ko': '푸시 알림 수준',
+    'en': 'Notification Volume',
+    'ja': 'プッシュ通知のレベル',
+    'zh': '推送通知级别',
+    'fr': 'Niveau des notifications',
+    'de': 'Benachrichtigungs-Level',
+    'es': 'Nivel de notificaciones',
+    'pt': 'Nível de notificações',
+    'ru': 'Уровень уведомлений',
+    'tr': 'Bildirim düzeyi',
+    'ar': 'مستوى الإشعارات',
+    'it': 'Livello notifiche',
+    'hi': 'सूचना स्तर',
+    'th': 'ระดับการแจ้งเตือน',
+  });
+  String get pushModeQuiet => _t({
+    'ko': '조용히',
+    'en': 'Quiet',
+    'ja': '静か',
+    'zh': '安静',
+    'fr': 'Discret',
+    'de': 'Leise',
+    'es': 'Silencio',
+    'pt': 'Silencioso',
+    'ru': 'Тихо',
+    'tr': 'Sessiz',
+    'ar': 'هادئ',
+    'it': 'Silenzioso',
+    'hi': 'शांत',
+    'th': 'เงียบ',
+  });
+  String get pushModeStandard => _t({
+    'ko': '기본',
+    'en': 'Standard',
+    'ja': '標準',
+    'zh': '标准',
+    'fr': 'Standard',
+    'de': 'Standard',
+    'es': 'Estándar',
+    'pt': 'Padrão',
+    'ru': 'Обычный',
+    'tr': 'Standart',
+    'ar': 'افتراضي',
+    'it': 'Standard',
+    'hi': 'सामान्य',
+    'th': 'มาตรฐาน',
+  });
+  String get pushModeFull => _t({
+    'ko': '전체',
+    'en': 'Everything',
+    'ja': '全て',
+    'zh': '全部',
+    'fr': 'Tout',
+    'de': 'Alle',
+    'es': 'Todo',
+    'pt': 'Tudo',
+    'ru': 'Всё',
+    'tr': 'Hepsi',
+    'ar': 'الكل',
+    'it': 'Tutto',
+    'hi': 'सब',
+    'th': 'ทั้งหมด',
+  });
+  String get pushModeQuietDesc => _t({
+    'ko': '하루 1번의 아침 리마인더만 받아요',
+    'en': 'Only the once-a-day morning nudge',
+    'ja': '朝のリマインダーのみ（1日1回）',
+    'zh': '仅每天清晨一次提醒',
+    'fr': "Seulement le rappel matinal (une fois par jour)",
+    'de': 'Nur der morgendliche Hinweis (1 × pro Tag)',
+    'es': 'Solo el recordatorio matutino (una vez al día)',
+    'pt': 'Apenas o lembrete matinal (uma vez por dia)',
+    'ru': 'Только утреннее напоминание (раз в день)',
+    'tr': 'Yalnızca sabah hatırlatıcısı (günde 1 kez)',
+    'ar': 'فقط تذكير الصباح (مرة واحدة يومياً)',
+    'it': 'Solo il promemoria mattutino (una volta al giorno)',
+    'hi': 'केवल सुबह की याद (दिन में एक बार)',
+    'th': 'แค่การเตือนเช้า (วันละ 1 ครั้ง)',
+  });
+  String get pushModeStandardDesc => _t({
+    'ko': '편지 도착·DM·아침 리마인더',
+    'en': 'Arrivals, DMs, and the daily nudge',
+    'ja': '到着・DM・朝のリマインダー',
+    'zh': '信件到达·私信·清晨提醒',
+    'fr': 'Arrivées, messages et rappel quotidien',
+    'de': 'Ankünfte, DMs und tägliche Erinnerung',
+    'es': 'Llegadas, DMs y recordatorio diario',
+    'pt': 'Chegadas, DMs e lembrete diário',
+    'ru': 'Приходы, сообщения и утреннее напоминание',
+    'tr': 'Varışlar, DM\'ler ve günlük hatırlatma',
+    'ar': 'الوصول، الرسائل، والتذكير اليومي',
+    'it': 'Arrivi, DM e promemoria quotidiano',
+    'hi': 'पत्र आगमन, DM, दैनिक याद',
+    'th': 'การมาถึง, DM, การเตือนรายวัน',
+  });
+  String get pushModeFullDesc => _t({
+    'ko': '근처 도착·쿨다운·카운트다운까지 전부',
+    'en': 'All alerts, including nearby and cooldown',
+    'ja': '近く・クールダウン・カウントダウンも含む全て',
+    'zh': '包括附近、冷却、倒计时的所有提醒',
+    'fr': 'Toutes les alertes (proximité, délai, compte à rebours)',
+    'de': 'Alle Benachrichtigungen (inkl. Umgebung und Cooldown)',
+    'es': 'Todas las alertas (cercanas, enfriamiento, cuenta atrás)',
+    'pt': 'Todos os alertas (proximidade, espera, contagem)',
+    'ru': 'Все уведомления (рядом, перезарядка, обратный отсчёт)',
+    'tr': 'Tüm bildirimler (yakın, bekleme, geri sayım)',
+    'ar': 'كل التنبيهات (القريبة، الانتظار، العد التنازلي)',
+    'it': 'Tutte le notifiche (vicinanze, attesa, countdown)',
+    'hi': 'सभी अलर्ट (पास, कूलडाउन, काउंटडाउन)',
+    'th': 'การแจ้งเตือนทั้งหมด (ใกล้เคียง, คูลดาวน์, นับถอยหลัง)',
   });
   String get settingsNotifyDaily => _t({
     'ko': '오늘의 편지 리마인더',
@@ -3900,6 +4327,134 @@ class AppL10n {
     'th': 'ถึงจำนวนขั้นต่ำแล้ว',
   });
 
+  String get dayThemeBannerTitle => _t({
+    'ko': '오늘의 테마',
+    'en': "TODAY'S THEME",
+    'ja': '今日のテーマ',
+    'zh': '今日主题',
+    'fr': 'THÈME DU JOUR',
+    'de': 'TAGES-THEMA',
+    'es': 'TEMA DE HOY',
+    'pt': 'TEMA DE HOJE',
+    'ru': 'ТЕМА ДНЯ',
+    'tr': 'BUGÜNÜN TEMASI',
+    'ar': 'موضوع اليوم',
+    'it': 'TEMA DI OGGI',
+    'hi': 'आज का विषय',
+    'th': 'ธีมวันนี้',
+  });
+  String get dayThemeEastAsia => _t({
+    'ko': '월요일 · 동아시아로 편지를 써볼까요',
+    'en': 'Monday · write to East Asia',
+    'ja': '月曜日 · 東アジアに手紙を',
+    'zh': '周一 · 写信去东亚',
+    'fr': 'Lundi · écrivez vers l\'Asie de l\'Est',
+    'de': 'Montag · schreib nach Ostasien',
+    'es': 'Lunes · escribe a Asia Oriental',
+    'pt': 'Segunda · escreva para o Leste Asiático',
+    'ru': 'Понедельник · напишите в Восточную Азию',
+    'tr': 'Pazartesi · Doğu Asya\'ya yazın',
+    'ar': 'الاثنين · اكتب إلى شرق آسيا',
+    'it': 'Lunedì · scrivi nell\'Asia orientale',
+    'hi': 'सोमवार · पूर्व एशिया को पत्र',
+    'th': 'จันทร์ · เขียนไปเอเชียตะวันออก',
+  });
+  String get dayThemeEurope => _t({
+    'ko': '화요일 · 유럽으로 편지를 써볼까요',
+    'en': 'Tuesday · write to Europe',
+    'ja': '火曜日 · ヨーロッパに手紙を',
+    'zh': '周二 · 写信去欧洲',
+    'fr': 'Mardi · écrivez vers l\'Europe',
+    'de': 'Dienstag · schreib nach Europa',
+    'es': 'Martes · escribe a Europa',
+    'pt': 'Terça · escreva para a Europa',
+    'ru': 'Вторник · напишите в Европу',
+    'tr': 'Salı · Avrupa\'ya yazın',
+    'ar': 'الثلاثاء · اكتب إلى أوروبا',
+    'it': 'Martedì · scrivi in Europa',
+    'hi': 'मंगलवार · यूरोप को पत्र',
+    'th': 'อังคาร · เขียนไปยุโรป',
+  });
+  String get dayThemeAfrica => _t({
+    'ko': '수요일 · 아프리카로 편지를 써볼까요',
+    'en': 'Wednesday · write to Africa',
+    'ja': '水曜日 · アフリカに手紙を',
+    'zh': '周三 · 写信去非洲',
+    'fr': 'Mercredi · écrivez vers l\'Afrique',
+    'de': 'Mittwoch · schreib nach Afrika',
+    'es': 'Miércoles · escribe a África',
+    'pt': 'Quarta · escreva para a África',
+    'ru': 'Среда · напишите в Африку',
+    'tr': 'Çarşamba · Afrika\'ya yazın',
+    'ar': 'الأربعاء · اكتب إلى أفريقيا',
+    'it': 'Mercoledì · scrivi in Africa',
+    'hi': 'बुधवार · अफ्रीका को पत्र',
+    'th': 'พุธ · เขียนไปแอฟริกา',
+  });
+  String get dayThemeSouthAmerica => _t({
+    'ko': '목요일 · 남아메리카로 편지를 써볼까요',
+    'en': 'Thursday · write to South America',
+    'ja': '木曜日 · 南アメリカに手紙を',
+    'zh': '周四 · 写信去南美',
+    'fr': 'Jeudi · écrivez vers l\'Amérique du Sud',
+    'de': 'Donnerstag · schreib nach Südamerika',
+    'es': 'Jueves · escribe a Sudamérica',
+    'pt': 'Quinta · escreva para a América do Sul',
+    'ru': 'Четверг · напишите в Южную Америку',
+    'tr': 'Perşembe · Güney Amerika\'ya yazın',
+    'ar': 'الخميس · اكتب إلى أمريكا الجنوبية',
+    'it': 'Giovedì · scrivi in Sud America',
+    'hi': 'गुरुवार · दक्षिण अमेरिका को पत्र',
+    'th': 'พฤหัส · เขียนไปอเมริกาใต้',
+  });
+  String get dayThemeOceania => _t({
+    'ko': '금요일 · 오세아니아로 편지를 써볼까요',
+    'en': 'Friday · write to Oceania',
+    'ja': '金曜日 · オセアニアに手紙を',
+    'zh': '周五 · 写信去大洋洲',
+    'fr': 'Vendredi · écrivez vers l\'Océanie',
+    'de': 'Freitag · schreib nach Ozeanien',
+    'es': 'Viernes · escribe a Oceanía',
+    'pt': 'Sexta · escreva para a Oceania',
+    'ru': 'Пятница · напишите в Океанию',
+    'tr': 'Cuma · Okyanusya\'ya yazın',
+    'ar': 'الجمعة · اكتب إلى أوقيانوسيا',
+    'it': 'Venerdì · scrivi in Oceania',
+    'hi': 'शुक्रवार · ओशिनिया को पत्र',
+    'th': 'ศุกร์ · เขียนไปโอเชียเนีย',
+  });
+  String get dayThemeNorthAmerica => _t({
+    'ko': '토요일 · 북아메리카로 편지를 써볼까요',
+    'en': 'Saturday · write to North America',
+    'ja': '土曜日 · 北アメリカに手紙を',
+    'zh': '周六 · 写信去北美',
+    'fr': 'Samedi · écrivez vers l\'Amérique du Nord',
+    'de': 'Samstag · schreib nach Nordamerika',
+    'es': 'Sábado · escribe a Norteamérica',
+    'pt': 'Sábado · escreva para a América do Norte',
+    'ru': 'Суббота · напишите в Северную Америку',
+    'tr': 'Cumartesi · Kuzey Amerika\'ya yazın',
+    'ar': 'السبت · اكتب إلى أمريكا الشمالية',
+    'it': 'Sabato · scrivi in Nord America',
+    'hi': 'शनिवार · उत्तरी अमेरिका को पत्र',
+    'th': 'เสาร์ · เขียนไปอเมริกาเหนือ',
+  });
+  String get dayThemeMiddleEast => _t({
+    'ko': '일요일 · 중동으로 편지를 써볼까요',
+    'en': 'Sunday · write to the Middle East',
+    'ja': '日曜日 · 中東に手紙を',
+    'zh': '周日 · 写信去中东',
+    'fr': 'Dimanche · écrivez vers le Moyen-Orient',
+    'de': 'Sonntag · schreib in den Nahen Osten',
+    'es': 'Domingo · escribe a Oriente Medio',
+    'pt': 'Domingo · escreva para o Oriente Médio',
+    'ru': 'Воскресенье · напишите на Ближний Восток',
+    'tr': 'Pazar · Orta Doğu\'ya yazın',
+    'ar': 'الأحد · اكتب إلى الشرق الأوسط',
+    'it': 'Domenica · scrivi in Medio Oriente',
+    'hi': 'रविवार · मध्य पूर्व को पत्र',
+    'th': 'อาทิตย์ · เขียนไปตะวันออกกลาง',
+  });
   String get composeQuickPickOpposite => _t({
     'ko': '지구 반대편',
     'en': 'Other side',

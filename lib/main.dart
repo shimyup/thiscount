@@ -59,6 +59,7 @@ void main() async {
   // void 초기화 + bool/Position 동시 병렬 실행 → 시작 시간 단축
   await Future.wait([
     NotificationService.initialize(),
+    NotificationService.loadPushMode(),
     CountryCities.init(),
     GeocodingService.instance.initialize(),
   ]);

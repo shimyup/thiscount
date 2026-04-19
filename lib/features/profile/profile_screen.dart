@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import '../city_of_month/city_of_month_card.dart';
 import '../journey/journey_card.dart';
+import '../reflection/weekly_reflection_card.dart';
 import '../progression/user_level.dart';
 import '../streak/streak_badge.dart';
 import '../streak/weekly_challenge_card.dart';
@@ -858,6 +859,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             margin: EdgeInsets.symmetric(horizontal: 16),
                           ),
                           const SizedBox(height: 10),
+                          // ①-4 이번 주 회고 — 일요일 + 발송 이력 있을 때만
+                          const WeeklyReflectionCard(),
                           // ② 구독 + 잔여발송 빠른카드 (B+C)
                           _buildQuickCardsRow(ctx, state, user, purchase),
                           const SizedBox(height: 10),

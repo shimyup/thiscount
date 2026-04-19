@@ -19,6 +19,7 @@ import '../../city_of_month/city_of_month.dart';
 import '../../premium/premium_gate_sheet.dart';
 import '../compose_prompts.dart';
 import '../compose_quick_pick.dart';
+import '../day_theme.dart';
 import '../../../core/services/feedback_service.dart';
 
 class ComposeScreen extends StatefulWidget {
@@ -1015,6 +1016,11 @@ class _ComposeScreenState extends State<ComposeScreen>
                               _buildDestinationCard(state, hasPremium),
                             if (!_isReply && !_isBulkMode)
                               const SizedBox(height: 8),
+                            // 오늘의 요일 테마 (요일별 지역 추천)
+                            if (!_isReply && !_isBulkMode)
+                              _buildDayThemeBanner(state),
+                            if (!_isReply && !_isBulkMode)
+                              const SizedBox(height: 8),
                             // 원클릭 목적지 제안 (랜덤/반대편/아침/미방문 대륙)
                             if (!_isReply && !_isBulkMode)
                               _buildQuickPickRow(state),
@@ -1701,6 +1707,89 @@ class _ComposeScreenState extends State<ComposeScreen>
         ),
       ),
     );
+  }
+
+  Widget _buildDayThemeBanner(AppState state) {
+    final l10n = AppL10n.of(state.currentUser.languageCode);
+    final theme = currentDayTheme();
+    final (emoji, label) = _dayThemeDisplay(theme, l10n);
+    return InkWell(
+      onTap: () {
+        final pick = pickDayThemeCountry(
+          excludeCountry: state.currentUser.country,
+        ) ?? AppState.randomDestination(
+          excludeCountry: state.currentUser.country,
+        );
+        _applyPickedDestination(pick, state.currentUser.languageCode);
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.gold.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: AppColors.gold.withValues(alpha: 0.25),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 16)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.dayThemeBannerTitle,
+                    style: TextStyle(
+                      color: AppColors.gold.withValues(alpha: 0.85),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_rounded,
+              size: 14,
+              color: AppColors.gold.withValues(alpha: 0.5),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  (String, String) _dayThemeDisplay(DayTheme theme, AppL10n l10n) {
+    switch (theme) {
+      case DayTheme.eastAsia:
+        return ('🏮', l10n.dayThemeEastAsia);
+      case DayTheme.europe:
+        return ('🏛️', l10n.dayThemeEurope);
+      case DayTheme.africa:
+        return ('🌍', l10n.dayThemeAfrica);
+      case DayTheme.southAmerica:
+        return ('🌴', l10n.dayThemeSouthAmerica);
+      case DayTheme.oceania:
+        return ('🌊', l10n.dayThemeOceania);
+      case DayTheme.northAmerica:
+        return ('🗽', l10n.dayThemeNorthAmerica);
+      case DayTheme.middleEast:
+        return ('🕌', l10n.dayThemeMiddleEast);
+    }
   }
 
   // Row of 3 preset destination strategies for users who don't know where

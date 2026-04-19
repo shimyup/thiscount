@@ -30,6 +30,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _notifyNearby = true;
   bool _notifyDaily = false;
+  PushMode _pushMode = PushMode.standard;
   bool _loading = true;
 
   @override
@@ -40,11 +41,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _loadPrefs() async {
     final prefs = await SharedPreferences.getInstance();
+    final mode = await NotificationService.loadPushMode();
     setState(() {
       _notifyNearby = prefs.getBool('notify_nearby') ?? true;
       _notifyDaily = prefs.getBool('notify_daily_letter') ?? false;
+      _pushMode = mode;
       _loading = false;
     });
+  }
+
+  Future<void> _setPushMode(PushMode mode) async {
+    await NotificationService.setPushMode(mode);
+    setState(() => _pushMode = mode);
+    // Quiet/Standard로 전환했는데 daily가 꺼져 있으면 매일 리마인더 자동 해제
+    if (mode != PushMode.full && !_notifyDaily) {
+      await NotificationService.cancelDailyLetterReminder();
+    }
+    // 현재 daily 리마인더가 켜져 있다면 새 모드 기준으로 재평가해 재예약
+    if (_notifyDaily) {
+      final lang = context.read<AppState>().currentUser.languageCode;
+      await NotificationService.scheduleDailyLetterReminder(langCode: lang);
+    }
   }
 
   Future<void> _setNotifyNearby(bool value) async {
@@ -673,6 +690,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(height: 8),
                     // ── 알림 ────────────────────────────────────────────────
                     _sectionHeader(l.settingsNotifications),
+                    _buildPushModeRow(l),
                     _switchTile(
                       icon: Icons.notifications_active_rounded,
                       label: l.settingsNotifyNearby,
@@ -1084,6 +1102,94 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Text(
               l.authClose,
               style: const TextStyle(color: AppColors.teal),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPushModeRow(AppL10n l) {
+    final modes = [
+      (mode: PushMode.quiet, emoji: '🔕', label: l.pushModeQuiet),
+      (mode: PushMode.standard, emoji: '🛎', label: l.pushModeStandard),
+      (mode: PushMode.full, emoji: '📣', label: l.pushModeFull),
+    ];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l.pushModeLabel,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              for (int i = 0; i < modes.length; i++) ...[
+                if (i > 0) const SizedBox(width: 6),
+                Expanded(
+                  child: InkWell(
+                    onTap: () => _setPushMode(modes[i].mode),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _pushMode == modes[i].mode
+                            ? AppColors.teal.withValues(alpha: 0.15)
+                            : AppColors.bgSurface,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: _pushMode == modes[i].mode
+                              ? AppColors.teal
+                              : AppColors.textMuted.withValues(alpha: 0.3),
+                          width: _pushMode == modes[i].mode ? 1.5 : 1,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(modes[i].emoji,
+                              style: const TextStyle(fontSize: 18)),
+                          const SizedBox(height: 4),
+                          Text(
+                            modes[i].label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: _pushMode == modes[i].mode
+                                  ? AppColors.teal
+                                  : AppColors.textSecondary,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            _pushMode == PushMode.quiet
+                ? l.pushModeQuietDesc
+                : _pushMode == PushMode.standard
+                    ? l.pushModeStandardDesc
+                    : l.pushModeFullDesc,
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 11,
+              height: 1.4,
             ),
           ),
         ],

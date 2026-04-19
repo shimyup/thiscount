@@ -8,6 +8,7 @@ import '../../core/config/app_keys.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/services/purchase_service.dart';
 import '../../core/localization/app_localizations.dart';
+import 'premium_collections.dart';
 import '../../state/app_state.dart';
 
 class PremiumScreen extends StatelessWidget {
@@ -145,7 +146,14 @@ class PremiumScreen extends StatelessWidget {
                     ),
                 ] else
                   _PremiumHeroBanner(),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
+
+                // 비구독자에게만 컬렉션 스토리를 먼저 노출 — 기능 나열 대신
+                // "라이프스타일 패키지"로 감성 프레이밍
+                if (!isPremium && !isBrand) ...[
+                  const PremiumCollectionsPreview(),
+                  const SizedBox(height: 20),
+                ],
 
                 // 디버그 전용: 프리미엄 상태 토글
                 if (kDebugMode) ...[

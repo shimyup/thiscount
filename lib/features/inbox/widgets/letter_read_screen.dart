@@ -22,6 +22,7 @@ import '../../share/share_card_service.dart';
 import 'letter_context_badge.dart';
 import 'scarcity_indicator.dart';
 import 'sender_moment_line.dart';
+import '../../penpal/penpal_tier.dart';
 
 class LetterReadScreen extends StatefulWidget {
   final Letter letter;
@@ -862,6 +863,37 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                         ),
                       ),
                     ),
+                    if (!letter.isAnonymous)
+                      Builder(builder: (ctx) {
+                        final stats = PenpalStats.forSender(
+                          letter.senderId,
+                          ctx.read<AppState>().inbox,
+                        );
+                        if (stats.tier == PenpalTier.none) {
+                          return const SizedBox.shrink();
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 6),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                penpalTierEmoji(stats.tier),
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                l10n.penpalBadgeCount(stats.exchanges),
+                                style: const TextStyle(
+                                  color: AppColors.teal,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
                     // 브랜드 인증 배지
                     if (letter.senderIsBrand) ...[
                       const SizedBox(width: 6),
