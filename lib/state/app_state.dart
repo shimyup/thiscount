@@ -208,6 +208,62 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   int _dailyPremiumExpressSentCount = 0;
   String _dailyPremiumExpressDateKey = _dateKey(DateTime.now());
 
+  // ── 일일 스트릭 (리텐션 후크) ─────────────────────────────────────────
+  /// 연속 접속 일수. 매일 앱 진입 시 1 증가, 하루 건너뛰면 1로 리셋.
+  /// UI: 프로필·타워 화면에 🔥 N 뱃지로 노출.
+  int _currentStreak = 0;
+  int _longestStreak = 0;
+  String _lastStreakCheckinDate = ''; // yyyy-MM-dd
+  bool _streakJustIncreased = false;  // 방금 증가했는지 — UI 알림용
+
+  int get currentStreak => _currentStreak;
+  int get longestStreak => _longestStreak;
+  bool get hasCheckedInToday =>
+      _lastStreakCheckinDate == _dateKey(DateTime.now());
+
+  /// UI 에서 축하 메시지 1회 띄운 후 소비할 것.
+  bool consumeStreakIncreaseFlag() {
+    if (!_streakJustIncreased) return false;
+    _streakJustIncreased = false;
+    return true;
+  }
+
+  /// 앱 진입 / 첫 액티비티 시 호출. 하루 1회만 실제 증가, 중복 호출 안전.
+  /// - 처음 접속: streak = 1
+  /// - 어제 접속 → 오늘 재접속: streak++
+  /// - 어제 누락 (하루 이상 공백): streak = 1
+  /// - 오늘 이미 체크인: no-op
+  void registerDailyStreakCheckin() {
+    final today = DateTime.now();
+    final todayKey = _dateKey(today);
+
+    if (_lastStreakCheckinDate == todayKey) {
+      return; // 오늘 이미 처리
+    }
+
+    if (_lastStreakCheckinDate.isEmpty) {
+      // 첫 접속
+      _currentStreak = 1;
+    } else {
+      // 어제 (today - 1) 와 비교
+      final yesterday = today.subtract(const Duration(days: 1));
+      final yesterdayKey = _dateKey(yesterday);
+      if (_lastStreakCheckinDate == yesterdayKey) {
+        _currentStreak += 1;
+      } else {
+        _currentStreak = 1; // 공백 → 리셋
+      }
+    }
+
+    if (_currentStreak > _longestStreak) {
+      _longestStreak = _currentStreak;
+    }
+    _lastStreakCheckinDate = todayKey;
+    _streakJustIncreased = true;
+    notifyListeners();
+    _saveToPrefs();
+  }
+
   // ── 월간 발송 제한 ────────────────────────────────────────────────────────
   static const int _monthlyLimitFree = 100;
   static const int _monthlyLimitPremium = 500;
@@ -1188,6 +1244,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       prefs.setInt('sentSinceLastUnlock', _sentSinceLastUnlock);
       prefs.setInt('dailySentCount', _dailySentCount);
       prefs.setString('dailySentDateKey', _dailySentDateKey);
+      // 일일 스트릭
+      prefs.setInt('streak_current', _currentStreak);
+      prefs.setInt('streak_longest', _longestStreak);
+      prefs.setString('streak_last_checkin', _lastStreakCheckinDate);
       prefs.setInt(
         PrefKeys.dailyPremiumExpressSentCount,
         _dailyPremiumExpressSentCount,
@@ -1372,6 +1432,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _dailySentDateKey =
         prefs.getString('dailySentDateKey') ?? _dateKey(DateTime.now());
     _rolloverDailySendCounterIfNeeded();
+
+    // 일일 스트릭 복원
+    _currentStreak = prefs.getInt('streak_current') ?? 0;
+    _longestStreak = prefs.getInt('streak_longest') ?? 0;
+    _lastStreakCheckinDate = prefs.getString('streak_last_checkin') ?? '';
     _dailyPremiumExpressSentCount =
         prefs.getInt(PrefKeys.dailyPremiumExpressSentCount) ?? 0;
     _dailyPremiumExpressDateKey =
@@ -2351,6 +2416,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     unawaited(restoreFromServerIfMissing());
     // 서버 동기화 시작 (편지 수신 + 다른 온라인 사용자 타워)
     startServerSync();
+    // 일일 스트릭 체크인 (하루 1회 자동 증가)
+    registerDailyStreakCheckin();
   }
 
   // ── 위치 업데이트 ─────────────────────────────────────────────────────────

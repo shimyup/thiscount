@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import '../streak/streak_badge.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/localization/country_names.dart';
@@ -1185,6 +1186,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                     ],
+                    // 일일 스트릭 뱃지 (연속 접속 일수 > 0 일 때만 표시)
+                    const SizedBox(width: 8),
+                    const StreakBadge(compact: true),
                   ],
                 ),
                 const SizedBox(height: 6),

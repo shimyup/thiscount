@@ -17,6 +17,7 @@ import '../../../state/app_state.dart';
 import '../../compose/screens/compose_screen.dart';
 import '../../../models/direct_message.dart';
 import '../../dm/dm_conversation_screen.dart';
+import '../../share/share_card_service.dart';
 
 class LetterReadScreen extends StatefulWidget {
   final Letter letter;
@@ -655,6 +656,35 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                     ),
                   )
                 else ...[
+                  // 공유 카드 버튼 (스토리·SNS 공유)
+                  GestureDetector(
+                    onTap: () async {
+                      await ShareCardService.shareLetterCard(
+                        letter: letter,
+                        tagline: l10n.appTagline,
+                        brandName: 'Letter Go',
+                      );
+                    },
+                    child: Tooltip(
+                      message: '공유',
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.teal.withValues(alpha: 0.10),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: AppColors.teal.withValues(alpha: 0.35),
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.ios_share_rounded,
+                          color: AppColors.teal,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
                   // 차단 버튼
                   GestureDetector(
                     onTap: () => _showBlockDialog(ctx2, letter, state),

@@ -9,6 +9,7 @@ import '../features/compose/screens/compose_screen.dart';
 import '../features/inbox/screens/inbox_screen.dart';
 import '../features/tower/screens/tower_screen.dart';
 import '../features/profile/profile_screen.dart';
+import '../features/streak/streak_badge.dart';
 import 'offline_banner.dart';
 
 class MainScaffold extends StatefulWidget {
@@ -53,6 +54,10 @@ class _MainScaffoldState extends State<MainScaffold>
     _fabTapScale = Tween<double>(begin: 1.0, end: 0.87).animate(
       CurvedAnimation(parent: _fabTapController, curve: Curves.easeOut),
     );
+    // 스트릭 축하 스낵바 — 첫 프레임 이후 표시 (mount 직후)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) StreakCelebrationBar.showIfIncreased(context);
+    });
   }
 
   @override
