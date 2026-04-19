@@ -35,6 +35,15 @@ String _emptyEmojiForFilter(LetterFilterType f) {
   }
 }
 
+// 필터가 "헌트 모드"인지 판정. 할인권 · 교환권 · 브랜드 편지는 유저가
+// 지도에서 주워야 얻는 것이므로 빈 상태 CTA를 "편지 쓰기"가 아닌
+// "지도에서 찾기"로 바꾼다.
+bool _isHuntFilter(LetterFilterType f) {
+  return f == LetterFilterType.coupon ||
+      f == LetterFilterType.voucher ||
+      f == LetterFilterType.brand;
+}
+
 // 필터별 이름. inboxEmptyForFilter() 에 전달해 "아직 받은 할인권이 없어요"
 // 식으로 쓰인다. 사용자가 어떤 필터를 켜놨는지 empty state 제목에서 즉시 인지.
 String _filterName(LetterFilterType f, AppL10n l10n) {
@@ -319,7 +328,9 @@ class _InboxScreenState extends State<InboxScreen>
                         colors: [AppColors.goldLight, AppColors.gold],
                       ).createShader(b),
                       child: Text(
-                        l10n.inbox,
+                        // 헌트 피봇(Build 103)에서 네비 라벨이 "수집첩" 으로
+                        // 바뀌었으므로 페이지 헤더도 같은 용어를 써서 혼동을 피한다.
+                        l10n.navCollection,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 26,
@@ -700,8 +711,15 @@ class _InboxTab extends StatelessWidget {
                   ? l10n.inboxEmptyReceived
                   : l10n.inboxEmptyForFilter(_filterName(activeFilter, l10n)),
               subtitle: l10n.inboxEmptyReceivedSub,
-              ctaLabel: l10n.emptyStateWriteCta,
-              onCtaTap: () => Navigator.of(context).pushNamed('/compose'),
+              // 헌트 모드(쿠폰·교환권·브랜드)에서는 편지 쓰기 대신 지도로
+              // 유도한다 — "없는 편지"를 사용자가 직접 주우러 가야 하므로.
+              ctaLabel: _isHuntFilter(activeFilter)
+                  ? l10n.emptyStateExploreCta
+                  : l10n.emptyStateWriteCta,
+              onCtaTap: () => _isHuntFilter(activeFilter)
+                  ? Navigator.of(context).pushNamedAndRemoveUntil(
+                      '/home', (route) => false)
+                  : Navigator.of(context).pushNamed('/compose'),
             ),
           )
         else ...[
@@ -906,6 +924,8 @@ class _SentTab extends StatelessWidget {
               subtitle: l10n.inboxEmptySentSub,
               ctaLabel: l10n.emptyStateWriteCta,
               onCtaTap: () => Navigator.of(context).pushNamed('/compose'),
+              // 발송함의 "헌트 모드" 필터(할인권·교환권·브랜드)는 발송 이력
+              // 기반이므로 CTA는 "편지 쓰기"로 유지 (수신함과 다름).
             ),
           )
         else

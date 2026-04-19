@@ -4277,20 +4277,20 @@ class AppL10n {
   });
 
   String get composeExpressLocked => _t({
-    'ko': '특급 배송 (Premium 하루 3통)',
-    'en': 'Express Delivery (Premium 3/day)',
-    'ja': '特急配送（Premium 1日3通）',
-    'zh': '特快配送（Premium 每天3封）',
-    'fr': 'Livraison express (Premium 3/jour)',
-    'de': 'Expresslieferung (Premium 3/Tag)',
-    'es': 'Envío exprés (Premium 3/día)',
-    'pt': 'Entrega expressa (Premium 3/dia)',
-    'ru': 'Экспресс-доставка (Premium 3/день)',
-    'tr': 'Hızlı teslimat (Premium günde 3)',
-    'ar': 'توصيل سريع (Premium 3/يوم)',
-    'it': 'Consegna express (Premium 3/giorno)',
-    'hi': 'एक्सप्रेस डिलीवरी (Premium 3/दिन)',
-    'th': 'จัดส่งด่วน (Premium 3/วัน)',
+    'ko': '특급 배송 · Premium 하루 3통',
+    'en': 'Express Delivery · Premium · 3 / day',
+    'ja': '特急配送 · Premium · 1日3通',
+    'zh': '特快配送 · Premium · 每天3封',
+    'fr': 'Livraison express · Premium · 3 / jour',
+    'de': 'Expresslieferung · Premium · 3 / Tag',
+    'es': 'Envío exprés · Premium · 3 / día',
+    'pt': 'Entrega expressa · Premium · 3 / dia',
+    'ru': 'Экспресс-доставка · Premium · 3 / день',
+    'tr': 'Hızlı teslimat · Premium · 3 / gün',
+    'ar': 'توصيل سريع · Premium · 3 / يوم',
+    'it': 'Consegna express · Premium · 3 / giorno',
+    'hi': 'एक्सप्रेस डिलीवरी · Premium · 3 / दिन',
+    'th': 'จัดส่งด่วน · Premium · 3 / วัน',
   });
 
   String get composeLuckyApplied => _t({
@@ -5846,20 +5846,21 @@ class AppL10n {
   });
 
   String composeQuotaGeneral(int sent, int limit, int remaining) => _t({
-    'ko': '오늘 발송 $sent/${limit}통 · 남은 ${remaining}통',
-    'en': 'Today $sent/$limit sent · $remaining remaining',
-    'ja': '本日 $sent/${limit}通送信 · 残り${remaining}通',
-    'zh': '今日已发$sent/$limit封 · 剩余${remaining}封',
-    'fr': 'Aujourd\'hui $sent/$limit envoyés · $remaining restants',
-    'de': 'Heute $sent/$limit gesendet · $remaining übrig',
-    'es': 'Hoy $sent/$limit enviadas · $remaining restantes',
-    'pt': 'Hoje $sent/$limit enviadas · $remaining restantes',
-    'ru': 'Сегодня $sent/$limit отправлено · осталось $remaining',
-    'tr': 'Bugün $sent/$limit gönderildi · $remaining kaldı',
-    'ar': 'اليوم $sent/$limit مرسل · متبقي $remaining',
-    'it': 'Oggi $sent/$limit inviate · $remaining rimanenti',
-    'hi': 'आज $sent/$limit भेजे · $remaining शेष',
-    'th': 'วันนี้ส่ง $sent/$limit · เหลือ $remaining',
+    // "0/3 · 남은 3통" 은 중복 정보. 분수만 남겨 간결하게.
+    'ko': '오늘 발송 $sent/${limit}통',
+    'en': 'Today $sent / $limit sent',
+    'ja': '本日 $sent / ${limit}通送信',
+    'zh': '今日已发 $sent / $limit 封',
+    'fr': 'Aujourd\'hui $sent / $limit envoyés',
+    'de': 'Heute $sent / $limit gesendet',
+    'es': 'Hoy $sent / $limit enviadas',
+    'pt': 'Hoje $sent / $limit enviadas',
+    'ru': 'Сегодня $sent / $limit отправлено',
+    'tr': 'Bugün $sent / $limit gönderildi',
+    'ar': 'اليوم $sent / $limit مرسل',
+    'it': 'Oggi $sent / $limit inviate',
+    'hi': 'आज $sent / $limit भेजे',
+    'th': 'วันนี้ส่ง $sent / $limit',
   });
 
   String composeQuotaBrand(int sent, int limit, int monthlyRemaining) => _t({
@@ -6325,39 +6326,41 @@ class AppL10n {
   });
 
   /// 필터명을 받아 "아직 X 편지가 없어요" 식으로 조합. 빈 수집첩에서
-  /// 어떤 필터가 걸렸는지 명시적으로 알려준다.
+  /// 어떤 필터가 걸렸는지 명시적으로 알려준다. "편지" 를 공통 명사로 붙여
+  /// 한국어 조사 처리 ((이)가) 를 피하고 "할인권 편지가", "브랜드 편지가"
+  /// 식으로 매끄럽게 읽히도록 한다.
   String inboxEmptyForFilter(String filterName) {
     switch (languageCode) {
       case 'ko':
-        return '아직 받은 $filterName(이)가 없어요';
+        return '아직 $filterName 편지가 없어요';
       case 'en':
-        return 'No $filterName yet';
+        return 'No $filterName letters yet';
       case 'ja':
-        return 'まだ$filterNameがありません';
+        return 'まだ$filterNameの手紙がありません';
       case 'zh':
-        return '暂无$filterName';
+        return '暂无$filterName信件';
       case 'fr':
-        return 'Pas encore de $filterName';
+        return 'Pas encore de lettres $filterName';
       case 'de':
-        return 'Noch keine $filterName';
+        return 'Noch keine $filterName-Briefe';
       case 'es':
-        return 'Aún no hay $filterName';
+        return 'Aún no hay cartas de $filterName';
       case 'pt':
-        return 'Ainda não há $filterName';
+        return 'Ainda não há cartas de $filterName';
       case 'ru':
-        return 'Пока нет $filterName';
+        return 'Писем категории «$filterName» пока нет';
       case 'tr':
-        return 'Henüz $filterName yok';
+        return 'Henüz $filterName mektubu yok';
       case 'ar':
-        return 'لا يوجد $filterName بعد';
+        return 'لا توجد رسائل $filterName بعد';
       case 'it':
-        return 'Ancora nessun $filterName';
+        return 'Ancora nessuna lettera $filterName';
       case 'hi':
-        return 'अभी कोई $filterName नहीं';
+        return 'अभी कोई $filterName पत्र नहीं';
       case 'th':
-        return 'ยังไม่มี$filterName';
+        return 'ยังไม่มีจดหมาย$filterName';
       default:
-        return 'No $filterName yet';
+        return 'No $filterName letters yet';
     }
   }
 
@@ -16490,6 +16493,24 @@ class AppL10n {
     'it': 'Scrivi la tua prima lettera',
     'hi': 'पहला पत्र लिखें',
     'th': 'เขียนจดหมายฉบับแรก',
+  });
+
+  // 헌트 모드 필터(할인권·교환권·브랜드)에서 편지 쓰기 대신 탐험 탭으로 유도
+  String get emptyStateExploreCta => _t({
+    'ko': '지도에서 찾아보기',
+    'en': 'Find on the map',
+    'ja': '地図で探す',
+    'zh': '在地图上寻找',
+    'fr': 'Chercher sur la carte',
+    'de': 'Auf der Karte finden',
+    'es': 'Buscar en el mapa',
+    'pt': 'Procurar no mapa',
+    'ru': 'Искать на карте',
+    'tr': 'Haritada bul',
+    'ar': 'ابحث على الخريطة',
+    'it': 'Cerca sulla mappa',
+    'hi': 'मानचित्र पर ढूंढें',
+    'th': 'ค้นหาบนแผนที่',
   });
 
 }
