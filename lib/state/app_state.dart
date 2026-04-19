@@ -2776,7 +2776,20 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   // ── Firestore: 내 정보 저장/업데이트 ──────────────────────────────────────
-  Future<void> _saveUserToFirestore() async {
+  /// 로그아웃 직전 호출: 마지막 위치·프로필을 Firestore에 한 번 더 동기화하고
+  /// 완료까지 대기한다. Firebase 세션이 살아있는 동안 write가 성공하도록
+  /// 반드시 `AuthService.logout()` 전에 호출해야 한다.
+  ///
+  /// 이 메서드가 없으면, 로그아웃한 테스터의 최근 위치가 Firestore에 반영되지
+  /// 않은 채 세션만 종료되어, 다른 회원들의 지도에서 해당 타워가 누락되거나
+  /// 오래된 좌표로 남는 문제가 발생한다.
+  Future<void> snapshotUserForLogout() async {
+    if (_currentUser.id.isEmpty || _currentUser.id == 'guest') return;
+    if (!FirebaseConfig.kFirebaseEnabled) return;
+    await _saveUserToFirestore(markLoggedOut: true);
+  }
+
+  Future<void> _saveUserToFirestore({bool markLoggedOut = false}) async {
     if (_currentUser.id == 'guest') return;
     if (!FirebaseConfig.kFirebaseEnabled) return;
     try {
@@ -2795,6 +2808,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           'isUsernamePublic': {'booleanValue': _currentUser.isUsernamePublic},
           // 지도 노출은 명시적 opt-in 필드로 관리
           'isMapPublic': {'booleanValue': _currentUser.isUsernamePublic},
+          // 로그아웃 스냅샷: 다른 회원 지도에서 "최근에 접속했던 테스터"를
+          // 구분하는 데 사용. 현재 fetchMapUsers 는 이 필드를 읽지 않지만
+          // 나중에 "최근 활동" 필터 추가 시 활용 가능.
+          'lastSeenAt': {
+            'timestampValue': DateTime.now().toUtc().toIso8601String(),
+          },
+          if (markLoggedOut)
+            'loggedOutAt': {
+              'timestampValue': DateTime.now().toUtc().toIso8601String(),
+            },
           'receivedCount': {
             'integerValue': '${_currentUser.activityScore.receivedCount}',
           },

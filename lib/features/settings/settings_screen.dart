@@ -360,6 +360,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           TextButton(
             onPressed: () async {
+              // Firebase 세션이 살아있는 동안 마지막 위치·프로필을 Firestore로
+              // 한 번 더 스냅샷한다. 이래야 다른 회원의 지도에서 이 테스터의
+              // 타워가 "마지막 위치"로 정확히 유지된다.
+              await ctx.read<AppState>().snapshotUserForLogout();
               await AuthService.logout();
               if (ctx.mounted) {
                 Navigator.of(

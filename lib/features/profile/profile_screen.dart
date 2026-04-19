@@ -528,6 +528,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           TextButton(
             onPressed: () async {
+              // Firebase 세션 살아있을 때 마지막 위치 Firestore 반영 →
+              // 다른 회원 지도에서 타워가 "마지막 접속 위치"로 유지됨
+              await ctx.read<AppState>().snapshotUserForLogout();
               await AuthService.logout();
               if (ctx.mounted) {
                 Navigator.of(
