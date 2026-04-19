@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import '../city_of_month/city_of_month_card.dart';
+import '../progression/user_level.dart';
 import '../streak/streak_badge.dart';
+import '../streak/weekly_challenge_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/localization/country_names.dart';
@@ -814,6 +817,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           // ① 4열 스탯 (A+C)
                           _buildFourStatRow(ctx, state, user),
+                          const SizedBox(height: 10),
+                          // ①-1 주간 챌린지 카드 (casual 레벨 이상에서만 노출)
+                          if (state.isFeatureUnlocked(
+                            UnlockableFeature.weeklyChallenge,
+                          )) ...[
+                            const WeeklyChallengeCard(
+                              margin: EdgeInsets.symmetric(horizontal: 16),
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+                          // ①-2 이번 달의 도시 카드 — 모든 사용자에게 노출 (콘텐츠)
+                          CityOfMonthCard(
+                            margin: const EdgeInsets.symmetric(horizontal: 16),
+                            onWriteTap: () {
+                              Navigator.of(ctx).pushNamed('/compose');
+                            },
+                          ),
                           const SizedBox(height: 10),
                           // ② 구독 + 잔여발송 빠른카드 (B+C)
                           _buildQuickCardsRow(ctx, state, user, purchase),

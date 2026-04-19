@@ -10,6 +10,7 @@ import '../features/inbox/screens/inbox_screen.dart';
 import '../features/tower/screens/tower_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/streak/streak_badge.dart';
+import '../features/progression/level_up_banner.dart';
 import 'offline_banner.dart';
 
 class MainScaffold extends StatefulWidget {
@@ -54,9 +55,14 @@ class _MainScaffoldState extends State<MainScaffold>
     _fabTapScale = Tween<double>(begin: 1.0, end: 0.87).animate(
       CurvedAnimation(parent: _fabTapController, curve: Curves.easeOut),
     );
-    // 스트릭 축하 스낵바 — 첫 프레임 이후 표시 (mount 직후)
+    // 스트릭·레벨업 축하 스낵바 — 첫 프레임 이후 1회 표시
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) StreakCelebrationBar.showIfIncreased(context);
+      if (!mounted) return;
+      StreakCelebrationBar.showIfIncreased(context);
+      // 레벨업은 스트릭보다 우선 (더 큰 이벤트) — 살짝 딜레이로 연달아 표시
+      Future.delayed(const Duration(milliseconds: 400), () {
+        if (mounted) LevelUpBanner.showIfLevelUp(context);
+      });
     });
   }
 

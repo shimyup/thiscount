@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../features/progression/user_level.dart';
 import '../models/letter.dart';
 import '../models/user_profile.dart';
 import '../core/config/app_keys.dart';
@@ -226,6 +227,118 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (!_streakJustIncreased) return false;
     _streakJustIncreased = false;
     return true;
+  }
+
+  // ── 주간 챌린지 (Weekly Challenge) ──────────────────────────────────────
+  /// 이번 주 발송 편지의 목적지 국가 집합.
+  /// 현재 챌린지: "이번 주에 3개 이상 다른 국가로 편지 보내기"
+  final Set<String> _weeklyChallengeCountries = {};
+  String _weeklyChallengeWeekKey = ''; // yyyy-WW
+  bool _weeklyChallengeClaimed = false; // 보상 수령 여부
+  int _challengeRewardBalance = 0;       // 미청구 보상 카운터 (향후 프리미엄 연동)
+
+  /// 이번 주 주간 챌린지 목표 — 3개 대륙/국가
+  int get weeklyChallengeGoal => 3;
+
+  /// 이번 주까지 발송한 서로 다른 목적지 국가 수 (진행도).
+  int get weeklyChallengeProgress {
+    _rolloverWeeklyChallengeIfNeeded();
+    return _weeklyChallengeCountries.length;
+  }
+
+  /// 이번 주 챌린지 달성 여부.
+  bool get weeklyChallengeAchieved =>
+      weeklyChallengeProgress >= weeklyChallengeGoal;
+
+  /// 보상 수령 대기 여부 (완료했고 아직 청구 안 함).
+  bool get weeklyChallengeRewardPending =>
+      weeklyChallengeAchieved && !_weeklyChallengeClaimed;
+
+  /// 주간 챌린지 보상 수령 처리. UI 에서 "보상 받기" 탭 시 호출.
+  /// 반환: 수령 직전 주 번호(UI 축하용). 실패 시 null.
+  String? claimWeeklyChallengeReward() {
+    if (!weeklyChallengeRewardPending) return null;
+    _weeklyChallengeClaimed = true;
+    _challengeRewardBalance += 1;
+    notifyListeners();
+    _saveToPrefs();
+    return _weeklyChallengeWeekKey;
+  }
+
+  /// 발송 시 호출되어 챌린지 진행도를 갱신.
+  /// 이미 같은 국가를 보낸 주에는 무효 (중복 카운트 X).
+  void _recordWeeklyChallengeSend(String destinationCountry) {
+    if (destinationCountry.isEmpty) return;
+    _rolloverWeeklyChallengeIfNeeded();
+    if (_weeklyChallengeCountries.add(destinationCountry)) {
+      // 새 국가 추가된 경우에만 저장
+      notifyListeners();
+      _saveToPrefs();
+    }
+  }
+
+  /// 주 경계를 넘었으면 진행도 초기화.
+  void _rolloverWeeklyChallengeIfNeeded() {
+    final nowKey = _isoWeekKey(DateTime.now());
+    if (_weeklyChallengeWeekKey != nowKey) {
+      _weeklyChallengeWeekKey = nowKey;
+      _weeklyChallengeCountries.clear();
+      _weeklyChallengeClaimed = false;
+    }
+  }
+
+  /// ISO 주 번호 (예: "2026-W17"). 월요일을 한 주의 시작으로.
+  static String _isoWeekKey(DateTime date) {
+    // 그레고리력 → ISO 8601 week date
+    final thursday = date.add(Duration(days: 4 - (date.weekday)));
+    final firstThursday = DateTime(thursday.year, 1, 4);
+    final firstWeek = firstThursday
+        .subtract(Duration(days: (firstThursday.weekday - 1)));
+    final weekNumber =
+        1 + (thursday.difference(firstWeek).inDays / 7).floor();
+    return '${thursday.year}-W${weekNumber.toString().padLeft(2, '0')}';
+  }
+
+  // ── 사용자 레벨 (점진적 해금) ───────────────────────────────────────────
+  /// 누적 지표에서 계산된 현재 사용자 레벨.
+  /// 신규 유저는 newbie → 첫 편지 → beginner → ... → experienced 로 성장.
+  UserLevel get userLevel {
+    final sent = _currentUser.activityScore.sentCount;
+    final received = _currentUser.activityScore.replyCount +
+        _currentUser.activityScore.receivedCount;
+    if (sent >= 20 || _currentStreak >= 14) return UserLevel.experienced;
+    if (sent >= 10) return UserLevel.regular;
+    if (sent >= 5 || received >= 1) return UserLevel.casual;
+    if (sent >= 1) return UserLevel.beginner;
+    return UserLevel.newbie;
+  }
+
+  /// 특정 기능이 현재 해금되어 있는지 확인.
+  /// UI: `if (state.isFeatureUnlocked(UnlockableFeature.todaysLetter)) ...`
+  bool isFeatureUnlocked(UnlockableFeature feature) =>
+      FeatureUnlockPolicy.isUnlocked(feature, userLevel);
+
+  /// 직전 레벨 — 레벨업 감지용.
+  UserLevel? _previousUserLevel;
+  bool _justLeveledUp = false;
+
+  /// 레벨업 일회성 플래그를 소비. UI 에서 축하 배너 표시 후 호출.
+  /// 반환: 방금 달성한 레벨 (레벨업 아니면 null).
+  UserLevel? consumeLevelUpFlag() {
+    if (!_justLeveledUp) return null;
+    _justLeveledUp = false;
+    return userLevel;
+  }
+
+  /// 레벨 변화 감지 — `sendLetter` 성공, 답장 수신, 체크인 등 주요 이벤트
+  /// 이후 호출. 실제 변화가 있으면 `_justLeveledUp = true`.
+  void _detectLevelUp() {
+    final current = userLevel;
+    if (_previousUserLevel != null &&
+        current.rank > _previousUserLevel!.rank) {
+      _justLeveledUp = true;
+    }
+    _previousUserLevel = current;
   }
 
   /// 앱 진입 / 첫 액티비티 시 호출. 하루 1회만 실제 증가, 중복 호출 안전.
@@ -1248,6 +1361,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       prefs.setInt('streak_current', _currentStreak);
       prefs.setInt('streak_longest', _longestStreak);
       prefs.setString('streak_last_checkin', _lastStreakCheckinDate);
+      // 주간 챌린지
+      prefs.setStringList(
+        'challenge_week_countries',
+        _weeklyChallengeCountries.toList(),
+      );
+      prefs.setString('challenge_week_key', _weeklyChallengeWeekKey);
+      prefs.setBool('challenge_week_claimed', _weeklyChallengeClaimed);
+      prefs.setInt('challenge_reward_balance', _challengeRewardBalance);
       prefs.setInt(
         PrefKeys.dailyPremiumExpressSentCount,
         _dailyPremiumExpressSentCount,
@@ -1437,6 +1558,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _currentStreak = prefs.getInt('streak_current') ?? 0;
     _longestStreak = prefs.getInt('streak_longest') ?? 0;
     _lastStreakCheckinDate = prefs.getString('streak_last_checkin') ?? '';
+
+    // 주간 챌린지 복원
+    _weeklyChallengeCountries
+      ..clear()
+      ..addAll(prefs.getStringList('challenge_week_countries') ?? []);
+    _weeklyChallengeWeekKey = prefs.getString('challenge_week_key') ?? '';
+    _weeklyChallengeClaimed = prefs.getBool('challenge_week_claimed') ?? false;
+    _challengeRewardBalance = prefs.getInt('challenge_reward_balance') ?? 0;
+    // 주 경계 체크 (필요시 리셋)
+    _rolloverWeeklyChallengeIfNeeded();
     _dailyPremiumExpressSentCount =
         prefs.getInt(PrefKeys.dailyPremiumExpressSentCount) ?? 0;
     _dailyPremiumExpressDateKey =
@@ -2418,6 +2549,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     startServerSync();
     // 일일 스트릭 체크인 (하루 1회 자동 증가)
     registerDailyStreakCheckin();
+    // 초기 레벨 baseline 설정 (레벨업 감지에 사용)
+    _previousUserLevel = userLevel;
   }
 
   // ── 위치 업데이트 ─────────────────────────────────────────────────────────
@@ -4784,6 +4917,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _consumeExpressQuotaIfNeeded(isExpress);
     _currentUser.activityScore.sentCount++;
     _sentSinceLastUnlock++;
+    // 주간 챌린지 진행도 갱신 (중복 국가는 자동으로 무시됨)
+    _recordWeeklyChallengeSend(letter.destinationCountry);
+    // 레벨업 감지 (발송 수 증가로 레벨 바뀔 수 있음)
+    _detectLevelUp();
     notifyListeners();
     _saveToPrefs();
     // Firestore에 편지 저장 (다른 유저가 수신할 수 있도록)

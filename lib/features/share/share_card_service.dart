@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../core/localization/app_localizations.dart';
 import '../../models/letter.dart';
 
 /// 받은 편지를 인스타그램 스토리·Twitter 등 SNS 에 공유하기 위한 이미지
@@ -28,16 +29,24 @@ class ShareCardService {
 
   /// 편지 카드를 생성하고 SNS 공유 다이얼로그를 연다.
   /// 성공 시 true, 실패 시 false.
+  ///
+  /// [langCode] 를 주면 해당 언어로 카드 헤더·거리 문구를 렌더링.
+  /// 미지정 시 'en' 기본. 대부분 호출처에서 현재 사용자 언어 주입.
   static Future<bool> shareLetterCard({
     required Letter letter,
-    String tagline = '편지는 천천히 여행합니다 — 육로, 항공, 해운으로',
+    required String langCode,
+    String tagline = '',
     String brandName = 'Letter Go',
     String shareText = '',
   }) async {
     try {
+      final l10n = AppL10n.of(langCode);
+      final effectiveTagline =
+          tagline.isNotEmpty ? tagline : l10n.appTagline;
       final bytes = await renderCardBytes(
         letter: letter,
-        tagline: tagline,
+        langCode: langCode,
+        tagline: effectiveTagline,
         brandName: brandName,
       );
       if (bytes == null) return false;
@@ -49,7 +58,9 @@ class ShareCardService {
 
       await Share.shareXFiles(
         [XFile(file.path, mimeType: 'image/png')],
-        text: shareText.isNotEmpty ? shareText : '$tagline · $brandName',
+        text: shareText.isNotEmpty
+            ? shareText
+            : '$effectiveTagline · $brandName',
       );
       return true;
     } catch (e, st) {
@@ -64,14 +75,16 @@ class ShareCardService {
     required Letter letter,
     required String tagline,
     required String brandName,
+    String langCode = 'en',
   }) async {
+    final l10n = AppL10n.of(langCode);
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
     final size = Size(_cardWidth.toDouble(), _cardHeight.toDouble());
 
     _paintBackground(canvas, size);
-    _paintHeader(canvas, size, letter);
-    _paintJourneyGraphic(canvas, size, letter);
+    _paintHeader(canvas, size, letter, l10n);
+    _paintJourneyGraphic(canvas, size, letter, l10n);
     _paintLetterSnippet(canvas, size, letter);
     _paintBottomBranding(canvas, size, tagline, brandName);
 
@@ -115,10 +128,16 @@ class ShareCardService {
   }
 
   // ── 상단: 발신국 + 도착 메시지 ─────────────────────────────────────────
-  static void _paintHeader(Canvas canvas, Size size, Letter letter) {
+  static void _paintHeader(
+    Canvas canvas,
+    Size size,
+    Letter letter,
+    AppL10n l10n,
+  ) {
+    // "A letter arrived from {country}" 두 줄로 분리 렌더링
     _drawText(
       canvas,
-      '${letter.senderCountryFlag}  ${letter.senderCountry}에서',
+      '${letter.senderCountryFlag}  ${letter.senderCountry}',
       offset: const Offset(80, 200),
       fontSize: 54,
       color: const Color(0xFFE8E8E0),
@@ -126,16 +145,22 @@ class ShareCardService {
     );
     _drawText(
       canvas,
-      '편지가 도착했어요',
+      l10n.shareCardHeader(''),
       offset: const Offset(80, 280),
-      fontSize: 72,
+      fontSize: 68,
       color: const Color(0xFFF0C35A),
       weight: FontWeight.w800,
+      maxLines: 2,
     );
   }
 
   // ── 중앙: 여정 그래픽 (출발 → 운송수단 → 도착) ─────────────────────────
-  static void _paintJourneyGraphic(Canvas canvas, Size size, Letter letter) {
+  static void _paintJourneyGraphic(
+    Canvas canvas,
+    Size size,
+    Letter letter,
+    AppL10n l10n,
+  ) {
     // 카드 배경
     final cardRect = RRect.fromLTRBR(
       80, 440, size.width - 80, 1200,
@@ -203,7 +228,7 @@ class ShareCardService {
     if (km != null && km > 0) {
       _drawText(
         canvas,
-        '약 ${_formatKm(km)} km 여행했어요',
+        l10n.shareCardDistance(_formatKm(km)),
         offset: const Offset(120, 1140),
         fontSize: 32,
         color: const Color(0xFFE8E8E0).withValues(alpha: 0.6),

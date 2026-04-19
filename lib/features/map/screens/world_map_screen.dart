@@ -8,6 +8,7 @@ import 'package:latlong2/latlong.dart' as ll;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/config/map_config.dart';
+import '../../progression/user_level.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/localization/country_names.dart';
 import '../../../core/theme/app_theme.dart';
@@ -292,8 +293,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                     setState(() => _showNearbyOnly = !_showNearbyOnly),
               ),
             ),
-            // ── 근처 도착 배너 ─────────────────────────────────────────────
-            if (state.hasNearbyAlert)
+            // ── 근처 도착 배너 (experienced 레벨 이상에서만) ─────────────
+            if (state.hasNearbyAlert &&
+                state.isFeatureUnlocked(UnlockableFeature.nearbyPickup))
               Positioned(
                 top: 220,
                 left: 16,

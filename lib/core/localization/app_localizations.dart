@@ -14220,4 +14220,560 @@ class AppL10n {
     'th': 'กรุณากรอกหมายเลขโทรศัพท์ก่อนเพื่อใช้การยืนยันทาง SMS',
   });
 
+  // ══════════════════════════════════════════════════════════════════════
+  // Phase 2/3 — Streak · Challenge · Scarcity · City of Month · Share card
+  // ══════════════════════════════════════════════════════════════════════
+
+  // ── 일일 스트릭 ─────────────────────────────────────────────────────────
+  String streakDayLabel(int days) => _t({
+    'ko': '$days일', 'en': '$days d', 'ja': '$days日', 'zh': '$days天',
+    'fr': '$days j', 'de': '$days T', 'es': '$days d', 'pt': '$days d',
+    'ru': '$days д', 'tr': '$days g', 'ar': '$days يوم',
+    'it': '$days g', 'hi': '$days दिन', 'th': '$days วัน',
+  });
+
+  String streakMilestoneMessage(int days) {
+    switch (days) {
+      case 3: return streakMilestone3;
+      case 7: return streakMilestone7;
+      case 14: return streakMilestone14;
+      case 30: return streakMilestone30;
+      case 100: return streakMilestone100;
+      default: return streakMilestoneGeneric(days);
+    }
+  }
+
+  String get streakMilestone3 => _t({
+    'ko': '3일 연속 접속! 습관이 시작되고 있어요',
+    'en': '3-day streak! A new habit is forming',
+    'ja': '3日連続アクセス！習慣が始まっています',
+    'zh': '连续3天签到！习惯正在养成',
+    'fr': '3 jours consécutifs ! Une habitude se forme',
+    'de': '3-Tage-Serie! Eine Gewohnheit entsteht',
+    'es': '¡3 días seguidos! Se forma un hábito',
+    'pt': '3 dias seguidos! Um hábito está se formando',
+    'ru': '3 дня подряд! Привычка формируется',
+    'tr': '3 gün üst üste! Bir alışkanlık oluşuyor',
+    'ar': '٣ أيام متتالية! عادة تتشكل',
+    'it': '3 giorni di fila! Un\'abitudine sta nascendo',
+    'hi': '3 दिन लगातार! आदत बन रही है',
+    'th': 'ต่อเนื่อง 3 วัน! นิสัยกำลังก่อตัว',
+  });
+
+  String get streakMilestone7 => _t({
+    'ko': '7일 연속 접속! 일주일을 채웠어요 ✨',
+    'en': '7-day streak! A full week ✨',
+    'ja': '7日連続アクセス！一週間達成 ✨',
+    'zh': '连续7天签到！完整一周 ✨',
+    'fr': '7 jours consécutifs ! Une semaine complète ✨',
+    'de': '7-Tage-Serie! Eine ganze Woche ✨',
+    'es': '¡7 días seguidos! Una semana completa ✨',
+    'pt': '7 dias seguidos! Uma semana inteira ✨',
+    'ru': '7 дней подряд! Целая неделя ✨',
+    'tr': '7 gün üst üste! Tam bir hafta ✨',
+    'ar': '٧ أيام متتالية! أسبوع كامل ✨',
+    'it': '7 giorni di fila! Una settimana intera ✨',
+    'hi': '7 दिन लगातार! पूरा हफ़्ता ✨',
+    'th': 'ต่อเนื่อง 7 วัน! ครบสัปดาห์ ✨',
+  });
+
+  String get streakMilestone14 => _t({
+    'ko': '14일 연속 접속! 편지가 익숙해졌어요',
+    'en': '14-day streak! Letters feel like home',
+    'ja': '14日連続アクセス！手紙が日課になりました',
+    'zh': '连续14天签到！写信已成日常',
+    'fr': '14 jours consécutifs ! Les lettres deviennent routine',
+    'de': '14-Tage-Serie! Briefe sind zur Gewohnheit geworden',
+    'es': '¡14 días seguidos! Las cartas se sienten naturales',
+    'pt': '14 dias seguidos! As cartas viraram rotina',
+    'ru': '14 дней подряд! Письма стали привычкой',
+    'tr': '14 gün üst üste! Mektuplar rutine döndü',
+    'ar': '١٤ يومًا متتاليًا! صارت الرسائل عادة',
+    'it': '14 giorni di fila! Le lettere sono ormai familiari',
+    'hi': '14 दिन लगातार! पत्र अब आदत बन गए',
+    'th': 'ต่อเนื่อง 14 วัน! จดหมายกลายเป็นส่วนหนึ่งของวัน',
+  });
+
+  String get streakMilestone30 => _t({
+    'ko': '30일 연속 접속! 한 달의 여정 🌟',
+    'en': '30-day streak! A month-long journey 🌟',
+    'ja': '30日連続アクセス！一ヶ月の旅 🌟',
+    'zh': '连续30天签到！一个月的旅程 🌟',
+    'fr': '30 jours consécutifs ! Un mois de voyage 🌟',
+    'de': '30-Tage-Serie! Eine Reise von einem Monat 🌟',
+    'es': '¡30 días seguidos! Un viaje de un mes 🌟',
+    'pt': '30 dias seguidos! Uma jornada de um mês 🌟',
+    'ru': '30 дней подряд! Месяц в пути 🌟',
+    'tr': '30 gün üst üste! Bir aylık yolculuk 🌟',
+    'ar': '٣٠ يومًا متتاليًا! رحلة شهر 🌟',
+    'it': '30 giorni di fila! Un viaggio di un mese 🌟',
+    'hi': '30 दिन लगातार! एक महीने की यात्रा 🌟',
+    'th': 'ต่อเนื่อง 30 วัน! การเดินทางหนึ่งเดือน 🌟',
+  });
+
+  String get streakMilestone100 => _t({
+    'ko': '100일 연속 접속! 전설의 편지꾼 🏆',
+    'en': '100-day streak! Legendary mailer 🏆',
+    'ja': '100日連続アクセス！伝説の手紙使い 🏆',
+    'zh': '连续100天签到！传说中的信使 🏆',
+    'fr': '100 jours consécutifs ! Écrivain légendaire 🏆',
+    'de': '100-Tage-Serie! Legendärer Briefschreiber 🏆',
+    'es': '¡100 días seguidos! Cartero legendario 🏆',
+    'pt': '100 dias seguidos! Carteiro lendário 🏆',
+    'ru': '100 дней подряд! Легендарный письмоносец 🏆',
+    'tr': '100 gün üst üste! Efsanevi mektupçu 🏆',
+    'ar': '١٠٠ يوم متتالي! ساعي البريد الأسطوري 🏆',
+    'it': '100 giorni di fila! Scrittore leggendario 🏆',
+    'hi': '100 दिन लगातार! दिग्गज पत्र लेखक 🏆',
+    'th': 'ต่อเนื่อง 100 วัน! นักเขียนจดหมายในตำนาน 🏆',
+  });
+
+  String streakMilestoneGeneric(int days) => _t({
+    'ko': '$days일 연속 접속! 계속 이어가요',
+    'en': '$days-day streak! Keep it going',
+    'ja': '$days日連続アクセス！このまま続けましょう',
+    'zh': '连续$days天签到！继续保持',
+    'fr': '$days jours consécutifs ! Continuez',
+    'de': '$days-Tage-Serie! Weiter so',
+    'es': '¡$days días seguidos! Sigue así',
+    'pt': '$days dias seguidos! Continue assim',
+    'ru': '$days дней подряд! Продолжайте',
+    'tr': '$days gün üst üste! Devam edin',
+    'ar': '$days يومًا متتاليًا! استمر',
+    'it': '$days giorni di fila! Continua così',
+    'hi': '$days दिन लगातार! जारी रखें',
+    'th': 'ต่อเนื่อง $days วัน! ทำต่อไป',
+  });
+
+  // ── 주간 챌린지 ─────────────────────────────────────────────────────────
+  String get weeklyChallengeTitle => _t({
+    'ko': '이번 주 챌린지',
+    'en': 'This Week\'s Challenge',
+    'ja': '今週のチャレンジ',
+    'zh': '本周挑战',
+    'fr': 'Défi de la semaine',
+    'de': 'Wochen-Challenge',
+    'es': 'Reto de la semana',
+    'pt': 'Desafio da semana',
+    'ru': 'Вызов недели',
+    'tr': 'Bu haftanın mücadelesi',
+    'ar': 'تحدي هذا الأسبوع',
+    'it': 'Sfida della settimana',
+    'hi': 'इस हफ़्ते की चुनौती',
+    'th': 'ชาเลนจ์ประจำสัปดาห์',
+  });
+
+  String get weeklyChallengeAchievedTitle => _t({
+    'ko': '이번 주 챌린지 달성',
+    'en': 'Weekly Challenge Achieved',
+    'ja': '今週のチャレンジ達成',
+    'zh': '本周挑战已完成',
+    'fr': 'Défi hebdomadaire accompli',
+    'de': 'Wochen-Challenge geschafft',
+    'es': 'Reto semanal logrado',
+    'pt': 'Desafio semanal concluído',
+    'ru': 'Вызов недели выполнен',
+    'tr': 'Haftalık mücadele tamamlandı',
+    'ar': 'تم إنجاز تحدي الأسبوع',
+    'it': 'Sfida settimanale completata',
+    'hi': 'साप्ताहिक चुनौती पूरी',
+    'th': 'ผ่านชาเลนจ์ประจำสัปดาห์แล้ว',
+  });
+
+  String get weeklyChallengeRewardPendingTitle => _t({
+    'ko': '이번 주 챌린지 완료!',
+    'en': 'Challenge Complete!',
+    'ja': '今週のチャレンジ完了！',
+    'zh': '挑战完成！',
+    'fr': 'Défi terminé !',
+    'de': 'Challenge abgeschlossen!',
+    'es': '¡Reto completado!',
+    'pt': 'Desafio completo!',
+    'ru': 'Вызов завершён!',
+    'tr': 'Mücadele tamamlandı!',
+    'ar': 'اكتمل التحدي!',
+    'it': 'Sfida completata!',
+    'hi': 'चुनौती पूरी!',
+    'th': 'ชาเลนจ์สำเร็จ!',
+  });
+
+  String weeklyChallengeDescription(int goal) => _t({
+    'ko': '이번 주에 $goal개 나라로 편지를 보내보세요',
+    'en': 'Send letters to $goal countries this week',
+    'ja': '今週$goalカ国に手紙を送ってみましょう',
+    'zh': '本周向$goal个国家寄信',
+    'fr': 'Envoyez des lettres à $goal pays cette semaine',
+    'de': 'Sende Briefe in $goal Länder diese Woche',
+    'es': 'Envía cartas a $goal países esta semana',
+    'pt': 'Envie cartas para $goal países esta semana',
+    'ru': 'Отправь письма в $goal стран на этой неделе',
+    'tr': 'Bu hafta $goal ülkeye mektup gönder',
+    'ar': 'أرسل رسائل إلى $goal دول هذا الأسبوع',
+    'it': 'Invia lettere a $goal paesi questa settimana',
+    'hi': 'इस हफ़्ते $goal देशों को पत्र भेजें',
+    'th': 'ส่งจดหมายไปยัง $goal ประเทศในสัปดาห์นี้',
+  });
+
+  String weeklyChallengeProgress(int current, int goal) => _t({
+    'ko': '$current / $goal 개국',
+    'en': '$current / $goal countries',
+    'ja': '$current / $goalカ国',
+    'zh': '$current / $goal 国',
+    'fr': '$current / $goal pays',
+    'de': '$current / $goal Länder',
+    'es': '$current / $goal países',
+    'pt': '$current / $goal países',
+    'ru': '$current / $goal стран',
+    'tr': '$current / $goal ülke',
+    'ar': '$current / $goal دولة',
+    'it': '$current / $goal paesi',
+    'hi': '$current / $goal देश',
+    'th': '$current / $goal ประเทศ',
+  });
+
+  String weeklyChallengeRemaining(int n) => _t({
+    'ko': '$n개국 남음',
+    'en': '$n more to go',
+    'ja': '残り$nカ国',
+    'zh': '还差$n个国家',
+    'fr': '$n de plus',
+    'de': 'noch $n',
+    'es': 'faltan $n',
+    'pt': 'faltam $n',
+    'ru': 'ещё $n',
+    'tr': '$n ülke kaldı',
+    'ar': 'متبقي $n دول',
+    'it': 'ancora $n',
+    'hi': '$n और बाकी',
+    'th': 'เหลืออีก $n ประเทศ',
+  });
+
+  String get weeklyChallengeClaimButton => _t({
+    'ko': '보상 받기',
+    'en': 'Claim Reward',
+    'ja': '報酬を受け取る',
+    'zh': '领取奖励',
+    'fr': 'Récupérer la récompense',
+    'de': 'Belohnung holen',
+    'es': 'Reclamar recompensa',
+    'pt': 'Resgatar recompensa',
+    'ru': 'Забрать награду',
+    'tr': 'Ödülü al',
+    'ar': 'استلام المكافأة',
+    'it': 'Riscuoti ricompensa',
+    'hi': 'इनाम पाएं',
+    'th': 'รับรางวัล',
+  });
+
+  String get weeklyChallengeClaimed => _t({
+    'ko': '보상 수령 완료',
+    'en': 'Reward claimed',
+    'ja': '報酬受取済み',
+    'zh': '奖励已领取',
+    'fr': 'Récompense reçue',
+    'de': 'Belohnung erhalten',
+    'es': 'Recompensa reclamada',
+    'pt': 'Recompensa recebida',
+    'ru': 'Награда получена',
+    'tr': 'Ödül alındı',
+    'ar': 'تم استلام المكافأة',
+    'it': 'Ricompensa ricevuta',
+    'hi': 'इनाम मिल गया',
+    'th': 'รับรางวัลแล้ว',
+  });
+
+  String get weeklyChallengeClaimToast => _t({
+    'ko': '보상을 받았어요! 다음 주에도 이어가볼까요?',
+    'en': 'Reward claimed! See you next week?',
+    'ja': '報酬を受け取りました！来週も続けましょう',
+    'zh': '奖励已领取！下周继续吧',
+    'fr': 'Récompense reçue ! À la semaine prochaine ?',
+    'de': 'Belohnung erhalten! Weiter nächste Woche?',
+    'es': '¡Recompensa reclamada! ¿La siguiente semana?',
+    'pt': 'Recompensa recebida! Até a próxima semana?',
+    'ru': 'Награда получена! Продолжим на следующей неделе?',
+    'tr': 'Ödül alındı! Gelecek hafta devam edelim mi?',
+    'ar': 'تم استلام المكافأة! نراكم الأسبوع القادم؟',
+    'it': 'Ricompensa ricevuta! Ci vediamo la prossima settimana',
+    'hi': 'इनाम मिल गया! अगले हफ़्ते फिर मिलते हैं',
+    'th': 'รับรางวัลแล้ว! สัปดาห์หน้าเจอกันอีกนะ',
+  });
+
+  // ── 편지 희소성 ─────────────────────────────────────────────────────────
+  String get scarcityClosedTitle => _t({
+    'ko': '이 편지는 마감됐어요',
+    'en': 'This letter is sealed',
+    'ja': 'この手紙は締め切られました',
+    'zh': '这封信已截止',
+    'fr': 'Cette lettre est close',
+    'de': 'Dieser Brief ist geschlossen',
+    'es': 'Esta carta está cerrada',
+    'pt': 'Esta carta está encerrada',
+    'ru': 'Это письмо закрыто',
+    'tr': 'Bu mektup kapandı',
+    'ar': 'تم إغلاق هذه الرسالة',
+    'it': 'Questa lettera è chiusa',
+    'hi': 'यह पत्र बंद हो गया',
+    'th': 'จดหมายนี้ปิดรับแล้ว',
+  });
+
+  String get scarcityClosedSub => _t({
+    'ko': '더 이상 다른 사람에게 배달되지 않아요',
+    'en': 'No longer delivered to anyone else',
+    'ja': 'これ以上他の人には配達されません',
+    'zh': '不再投递给其他人',
+    'fr': 'Ne sera plus livrée à quelqu\'un d\'autre',
+    'de': 'Wird niemandem mehr zugestellt',
+    'es': 'Ya no se entregará a nadie más',
+    'pt': 'Não será mais entregue a ninguém',
+    'ru': 'Больше никому не доставляется',
+    'tr': 'Artık başkasına teslim edilmiyor',
+    'ar': 'لن تُسلَّم لأحد آخر',
+    'it': 'Non sarà più consegnata a nessun altro',
+    'hi': 'अब किसी और को वितरित नहीं की जाएगी',
+    'th': 'จะไม่ถูกส่งให้คนอื่นอีกแล้ว',
+  });
+
+  String get scarcityLastReaderTitle => _t({
+    'ko': '이 편지를 읽을 수 있는 마지막 사람이에요',
+    'en': 'You\'re the last reader of this letter',
+    'ja': 'あなたがこの手紙の最後の読者です',
+    'zh': '你是这封信的最后一位读者',
+    'fr': 'Vous êtes le dernier lecteur',
+    'de': 'Du bist der letzte Leser',
+    'es': 'Eres el último lector',
+    'pt': 'Você é o último leitor',
+    'ru': 'Вы последний читатель',
+    'tr': 'Bu mektubun son okuyucusu sizsiniz',
+    'ar': 'أنت آخر قارئ لهذه الرسالة',
+    'it': 'Sei l\'ultimo lettore',
+    'hi': 'आप इस पत्र के अंतिम पाठक हैं',
+    'th': 'คุณคือผู้อ่านคนสุดท้ายของจดหมายนี้',
+  });
+
+  String scarcityLastReaderSub(int ordinal, int total) => _t({
+    'ko': '당신이 $total명 중 $ordinal번째',
+    'en': 'You are #$ordinal of $total',
+    'ja': 'あなたは$total人中$ordinal人目',
+    'zh': '你是$total人中第$ordinal个',
+    'fr': 'Vous êtes le $ordinal sur $total',
+    'de': '$ordinal von $total',
+    'es': 'Eres el $ordinal de $total',
+    'pt': 'Você é o $ordinal de $total',
+    'ru': 'Вы $ordinal из $total',
+    'tr': '$total kişiden $ordinal. sirasınız',
+    'ar': 'أنت رقم $ordinal من أصل $total',
+    'it': 'Sei il $ordinal di $total',
+    'hi': '$total में से $ordinal आप हैं',
+    'th': 'คุณคือคนที่ $ordinal จาก $total คน',
+  });
+
+  String scarcityCountTitle(int read, int total) => _t({
+    'ko': '이 편지를 읽은 사람: $read / $total',
+    'en': 'Readers so far: $read / $total',
+    'ja': 'この手紙を読んだ人: $read / $total',
+    'zh': '已读人数: $read / $total',
+    'fr': 'Lecteurs à ce jour : $read / $total',
+    'de': 'Bisherige Leser: $read / $total',
+    'es': 'Lectores hasta ahora: $read / $total',
+    'pt': 'Leitores até agora: $read / $total',
+    'ru': 'Прочитали: $read / $total',
+    'tr': 'Şu ana kadar okuyanlar: $read / $total',
+    'ar': 'القراء حتى الآن: $read / $total',
+    'it': 'Lettori finora: $read / $total',
+    'hi': 'अब तक के पाठक: $read / $total',
+    'th': 'ผู้อ่านจนถึงตอนนี้: $read / $total',
+  });
+
+  String scarcityCountSub(int remaining) => _t({
+    'ko': '앞으로 $remaining명이 더 받을 수 있어요',
+    'en': '$remaining more can still receive it',
+    'ja': 'あと$remaining人が受け取れます',
+    'zh': '还有$remaining人可以收到',
+    'fr': '$remaining personnes peuvent encore la recevoir',
+    'de': 'Noch $remaining können es erhalten',
+    'es': '$remaining más pueden recibirla',
+    'pt': 'Mais $remaining podem recebê-la',
+    'ru': 'Ещё $remaining могут получить',
+    'tr': '$remaining kişi daha alabilir',
+    'ar': 'يمكن لـ $remaining آخرين استلامها',
+    'it': 'Altre $remaining persone possono riceverla',
+    'hi': '$remaining और लोग पा सकते हैं',
+    'th': 'อีก $remaining คนยังรับได้',
+  });
+
+  // ── 레벨업 배너 ─────────────────────────────────────────────────────────
+  String get levelUpBannerTitle => _t({
+    'ko': '새 기능이 해금됐어요',
+    'en': 'New feature unlocked',
+    'ja': '新機能が解放されました',
+    'zh': '解锁新功能',
+    'fr': 'Nouvelle fonctionnalité débloquée',
+    'de': 'Neue Funktion freigeschaltet',
+    'es': 'Nueva función desbloqueada',
+    'pt': 'Novo recurso desbloqueado',
+    'ru': 'Открыта новая функция',
+    'tr': 'Yeni özellik açıldı',
+    'ar': 'تم فتح ميزة جديدة',
+    'it': 'Nuova funzione sbloccata',
+    'hi': 'नई सुविधा खुली',
+    'th': 'ปลดล็อกฟีเจอร์ใหม่',
+  });
+
+  String get userLevelNewbieWelcome => _t({
+    'ko': '첫 편지를 보내볼까요?',
+    'en': 'Ready to send your first letter?',
+    'ja': '最初の手紙を送ってみませんか？',
+    'zh': '要寄出第一封信吗？',
+    'fr': 'Prêt à envoyer votre première lettre ?',
+    'de': 'Bereit für den ersten Brief?',
+    'es': '¿Listo para enviar tu primera carta?',
+    'pt': 'Pronto para enviar sua primeira carta?',
+    'ru': 'Готовы отправить первое письмо?',
+    'tr': 'İlk mektubunu göndermeye hazır mısın?',
+    'ar': 'مستعد لإرسال أول رسالة؟',
+    'it': 'Pronto a inviare la tua prima lettera?',
+    'hi': 'पहला पत्र भेजने को तैयार?',
+    'th': 'พร้อมส่งจดหมายฉบับแรกหรือยัง?',
+  });
+
+  String get userLevelBeginnerWelcome => _t({
+    'ko': '🏠 나의 탑 레벨이 공개되었어요',
+    'en': '🏠 Your tower level is now visible',
+    'ja': '🏠 あなたのタワーレベルが公開されました',
+    'zh': '🏠 你的塔楼等级已公开',
+    'fr': '🏠 Votre niveau de tour est maintenant visible',
+    'de': '🏠 Deine Turm-Stufe ist nun sichtbar',
+    'es': '🏠 Tu nivel de torre ahora es visible',
+    'pt': '🏠 Seu nível de torre agora é visível',
+    'ru': '🏠 Ваш уровень башни теперь виден',
+    'tr': '🏠 Kule seviyen artık görünür',
+    'ar': '🏠 أصبح مستوى برجك مرئيًا',
+    'it': '🏠 Il livello della tua torre è ora visibile',
+    'hi': '🏠 आपका टॉवर स्तर अब दिखाई दे रहा है',
+    'th': '🏠 ระดับหอคอยของคุณแสดงแล้ว',
+  });
+
+  String get userLevelCasualWelcome => _t({
+    'ko': '✉️ 오늘의 편지가 해금되었어요',
+    'en': '✉️ Today\'s Letter is now available',
+    'ja': '✉️ 今日の手紙が利用可能になりました',
+    'zh': '✉️ 今日之信已解锁',
+    'fr': '✉️ La Lettre du jour est disponible',
+    'de': '✉️ Der Brief des Tages ist verfügbar',
+    'es': '✉️ La Carta del día está disponible',
+    'pt': '✉️ A Carta do dia está disponível',
+    'ru': '✉️ Письмо дня теперь доступно',
+    'tr': '✉️ Günün Mektubu artık kullanılabilir',
+    'ar': '✉️ رسالة اليوم متاحة الآن',
+    'it': '✉️ La Lettera del giorno è disponibile',
+    'hi': '✉️ आज का पत्र अब उपलब्ध है',
+    'th': '✉️ จดหมายวันนี้พร้อมแล้ว',
+  });
+
+  String get userLevelRegularWelcome => _t({
+    'ko': '🎨 편지지·폰트를 마음껏 꾸밀 수 있어요',
+    'en': '🎨 Customize paper and fonts freely',
+    'ja': '🎨 便箋・フォントを自由にカスタマイズ',
+    'zh': '🎨 自由定制信纸与字体',
+    'fr': '🎨 Personnalisez papier et polices librement',
+    'de': '🎨 Papier und Schriftarten nach Belieben anpassen',
+    'es': '🎨 Personaliza papel y fuentes libremente',
+    'pt': '🎨 Personalize papel e fontes livremente',
+    'ru': '🎨 Настройте бумагу и шрифты',
+    'tr': '🎨 Kağıt ve yazı tipini istediğin gibi özelleştir',
+    'ar': '🎨 خصّص الورق والخطوط بحرية',
+    'it': '🎨 Personalizza carta e font liberamente',
+    'hi': '🎨 कागज़ और फ़ॉन्ट मनपसंद चुनें',
+    'th': '🎨 ปรับแต่งกระดาษและฟอนต์ได้ตามใจ',
+  });
+
+  String get userLevelExperiencedWelcome => _t({
+    'ko': '🌍 주변 편지 줍기와 DM 이 열렸어요',
+    'en': '🌍 Nearby pickup and DM are now open',
+    'ja': '🌍 近くの手紙拾いとDMが解放されました',
+    'zh': '🌍 附近拾取和私信已开放',
+    'fr': '🌍 Ramassage local et DM maintenant ouverts',
+    'de': '🌍 Briefabholung in der Nähe und DM freigeschaltet',
+    'es': '🌍 Recogida cercana y DM disponibles',
+    'pt': '🌍 Coleta próxima e DM disponíveis',
+    'ru': '🌍 Сбор поблизости и личные сообщения открыты',
+    'tr': '🌍 Yakındaki toplama ve DM açıldı',
+    'ar': '🌍 تم فتح الالتقاط القريب والرسائل الخاصة',
+    'it': '🌍 Raccolta vicina e DM ora disponibili',
+    'hi': '🌍 आस-पास संग्रह और DM अब खुले',
+    'th': '🌍 เก็บจดหมายใกล้ตัวและ DM เปิดแล้ว',
+  });
+
+  // ── 이번 달의 도시 ──────────────────────────────────────────────────────
+  String cityOfMonthBadge(int month) => _t({
+    'ko': '$month월의 도시', 'en': 'City of month $month', 'ja': '$month月の都市',
+    'zh': '$month月之城', 'fr': 'Ville du mois $month',
+    'de': 'Stadt des Monats $month', 'es': 'Ciudad del mes $month',
+    'pt': 'Cidade do mês $month', 'ru': 'Город месяца $month',
+    'tr': '$month. ay şehri', 'ar': 'مدينة الشهر $month',
+    'it': 'Città del mese $month', 'hi': '$month महीने का शहर',
+    'th': 'เมืองประจำเดือนที่ $month',
+  });
+
+  String get cityOfMonthCta => _t({
+    'ko': '이 도시로 편지 쓰기',
+    'en': 'Write a letter to this city',
+    'ja': 'この都市に手紙を書く',
+    'zh': '写信给这座城市',
+    'fr': 'Écrire une lettre à cette ville',
+    'de': 'Einen Brief an diese Stadt schreiben',
+    'es': 'Escribir una carta a esta ciudad',
+    'pt': 'Escrever uma carta para esta cidade',
+    'ru': 'Написать письмо этому городу',
+    'tr': 'Bu şehre mektup yaz',
+    'ar': 'اكتب رسالة لهذه المدينة',
+    'it': 'Scrivi una lettera a questa città',
+    'hi': 'इस शहर को पत्र लिखें',
+    'th': 'เขียนจดหมายถึงเมืองนี้',
+  });
+
+  // ── 공유 카드 ───────────────────────────────────────────────────────────
+  String shareCardHeader(String country) => _t({
+    'ko': '$country에서 편지가 도착했어요',
+    'en': 'A letter arrived from $country',
+    'ja': '$countryから手紙が届きました',
+    'zh': '来自$country的信件已送达',
+    'fr': 'Une lettre est arrivée de $country',
+    'de': 'Ein Brief aus $country ist angekommen',
+    'es': 'Llegó una carta desde $country',
+    'pt': 'Uma carta chegou de $country',
+    'ru': 'Пришло письмо из $country',
+    'tr': '$country\'den bir mektup geldi',
+    'ar': 'وصلت رسالة من $country',
+    'it': 'È arrivata una lettera da $country',
+    'hi': '$country से एक पत्र आया',
+    'th': 'จดหมายจาก$countryมาถึงแล้ว',
+  });
+
+  String shareCardDistance(String km) => _t({
+    'ko': '약 $km km 여행했어요',
+    'en': 'Traveled ~$km km',
+    'ja': '約$km km の旅',
+    'zh': '旅行约$km km',
+    'fr': 'Voyage de ~$km km',
+    'de': 'Reise ~$km km',
+    'es': 'Viajó ~$km km',
+    'pt': 'Viajou ~$km km',
+    'ru': 'Преодолело ~$km км',
+    'tr': '~$km km yol aldı',
+    'ar': 'قطعت حوالي $km كم',
+    'it': 'Ha percorso ~$km km',
+    'hi': '~$km km का सफ़र',
+    'th': 'เดินทาง ~$km กม.',
+  });
+
+  // ── 일반 공유 액션 라벨 ──────────────────────────────────────────────────
+  String get shareAction => _t({
+    'ko': '공유', 'en': 'Share', 'ja': '共有', 'zh': '分享',
+    'fr': 'Partager', 'de': 'Teilen', 'es': 'Compartir',
+    'pt': 'Compartilhar', 'ru': 'Поделиться', 'tr': 'Paylaş',
+    'ar': 'مشاركة', 'it': 'Condividi', 'hi': 'शेयर', 'th': 'แชร์',
+  });
+
 }

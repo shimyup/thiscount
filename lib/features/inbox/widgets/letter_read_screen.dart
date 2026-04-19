@@ -18,6 +18,7 @@ import '../../compose/screens/compose_screen.dart';
 import '../../../models/direct_message.dart';
 import '../../dm/dm_conversation_screen.dart';
 import '../../share/share_card_service.dart';
+import 'scarcity_indicator.dart';
 
 class LetterReadScreen extends StatefulWidget {
   final Letter letter;
@@ -48,19 +49,34 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   @override
   void initState() {
     super.initState();
+    // 더 긴 개봉 시간 + easeOutCubic 으로 자연스러운 종료
     _openController = AnimationController(
-      duration: const Duration(milliseconds: 700),
+      duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
     _openAnimation = CurvedAnimation(
       parent: _openController,
-      curve: Curves.easeOutBack,
+      curve: Curves.easeOutCubic,
     );
-    // 봉투 열기 애니메이션 시작
-    Future.delayed(const Duration(milliseconds: 300), () {
-      _openController.forward().then((_) {
-        if (mounted) setState(() => _isOpened = true);
-      });
+    // 봉투 열기 시퀀스 — 햅틱 2단계로 "종이 접힘 풀리는" 촉각 표현
+    Future.delayed(const Duration(milliseconds: 350), () async {
+      if (!mounted) return;
+      // 1단계: 봉투 꺼내는 순간 — 부드러운 햅틱
+      await HapticFeedback.lightImpact();
+      await _openController.animateTo(
+        0.5,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeOutCubic,
+      );
+      // 2단계: 편지 펼쳐지는 순간 — 약간 더 강한 햅틱
+      if (!mounted) return;
+      await HapticFeedback.mediumImpact();
+      await _openController.animateTo(
+        1.0,
+        duration: const Duration(milliseconds: 750),
+        curve: Curves.easeOutCubic,
+      );
+      if (mounted) setState(() => _isOpened = true);
     });
   }
 
@@ -181,6 +197,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                               ),
                             ),
                             const SizedBox(height: 12),
+                            if (_isOpened) ScarcityIndicator(letter: letter),
                             if (_isOpened) _buildReactionBar(context, letter),
                             const SizedBox(height: 12),
                             if (_isOpened)
@@ -661,12 +678,13 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                     onTap: () async {
                       await ShareCardService.shareLetterCard(
                         letter: letter,
+                        langCode: state.currentUser.languageCode,
                         tagline: l10n.appTagline,
                         brandName: 'Letter Go',
                       );
                     },
                     child: Tooltip(
-                      message: '공유',
+                      message: l10n.shareAction,
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
