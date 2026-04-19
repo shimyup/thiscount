@@ -18,6 +18,7 @@ import '../../compose/screens/compose_screen.dart';
 import '../../../models/direct_message.dart';
 import '../../dm/dm_conversation_screen.dart';
 import '../../share/share_card_service.dart';
+import 'letter_context_badge.dart';
 import 'scarcity_indicator.dart';
 
 class LetterReadScreen extends StatefulWidget {
@@ -197,6 +198,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                               ),
                             ),
                             const SizedBox(height: 12),
+                            if (_isOpened) LetterContextBadge(letter: letter),
                             if (_isOpened) ScarcityIndicator(letter: letter),
                             if (_isOpened) _buildReactionBar(context, letter),
                             const SizedBox(height: 12),

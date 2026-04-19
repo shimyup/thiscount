@@ -14876,6 +14876,70 @@ class AppL10n {
     'th': 'สตรีคที่ยาวที่สุด $days วัน',
   });
 
+  // ── 편지 맥락 배지 ──────────────────────────────────────────────────────
+  String letterContextReceivedOrdinal(int n) => _t({
+    'ko': '당신이 받은 $n번째 편지',
+    'en': 'Your ${_ordinalEn(n)} received letter',
+    'ja': 'あなたの受け取った$n通目の手紙',
+    'zh': '你收到的第 $n 封信',
+    'fr': '$n${_ordinalFr(n)} lettre reçue',
+    'de': 'Dein $n. empfangener Brief',
+    'es': 'Tu $n.ª carta recibida',
+    'pt': 'Sua $n.ª carta recebida',
+    'ru': 'Ваше $n-е полученное письмо',
+    'tr': '$n. aldığınız mektup',
+    'ar': 'الرسالة رقم $n التي استلمتها',
+    'it': 'La tua $n.ª lettera ricevuta',
+    'hi': 'आपका $n पत्र (प्राप्त)',
+    'th': 'จดหมายฉบับที่ $n ที่คุณได้รับ',
+  });
+
+  String letterContextFirstFromCountry(String country) => _t({
+    'ko': '$country에서 온 첫 편지예요',
+    'en': 'Your first letter from $country',
+    'ja': '$countryからの最初の手紙',
+    'zh': '来自$country的第一封信',
+    'fr': 'Première lettre de $country',
+    'de': 'Erster Brief aus $country',
+    'es': 'Tu primera carta de $country',
+    'pt': 'Sua primeira carta de $country',
+    'ru': 'Первое письмо из $country',
+    'tr': '$country\'den ilk mektup',
+    'ar': 'أول رسالة لك من $country',
+    'it': 'La tua prima lettera da $country',
+    'hi': '$country से पहला पत्र',
+    'th': 'จดหมายฉบับแรกจาก$country',
+  });
+
+  String letterContextNthFromCountry(int n, String country) => _t({
+    'ko': '$country에서 온 $n번째 편지',
+    'en': 'Your ${_ordinalEn(n)} letter from $country',
+    'ja': '$countryからの$n通目の手紙',
+    'zh': '来自$country的第 $n 封信',
+    'fr': '$n${_ordinalFr(n)} lettre de $country',
+    'de': '$n. Brief aus $country',
+    'es': 'Tu $n.ª carta de $country',
+    'pt': 'Sua $n.ª carta de $country',
+    'ru': '$n-е письмо из $country',
+    'tr': '$country\'den $n. mektup',
+    'ar': 'الرسالة رقم $n من $country',
+    'it': 'La tua $n.ª lettera da $country',
+    'hi': '$country से $n पत्र',
+    'th': 'จดหมายฉบับที่ $n จาก$country',
+  });
+
+  static String _ordinalEn(int n) {
+    if (n % 100 >= 11 && n % 100 <= 13) return '${n}th';
+    switch (n % 10) {
+      case 1: return '${n}st';
+      case 2: return '${n}nd';
+      case 3: return '${n}rd';
+      default: return '${n}th';
+    }
+  }
+
+  static String _ordinalFr(int n) => n == 1 ? 're' : 'e';
+
   // ── 빈 상태 CTA ─────────────────────────────────────────────────────────
   String get emptyStateWriteCta => _t({
     'ko': '첫 편지 쓰기',
