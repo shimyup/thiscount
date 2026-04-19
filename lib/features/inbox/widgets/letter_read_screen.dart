@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../core/services/feedback_service.dart';
 import 'package:gal/gal.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
@@ -60,19 +61,17 @@ class _LetterReadScreenState extends State<LetterReadScreen>
       parent: _openController,
       curve: Curves.easeOutCubic,
     );
-    // 봉투 열기 시퀀스 — 햅틱 2단계로 "종이 접힘 풀리는" 촉각 표현
+    // 봉투 열기 시퀀스 — FeedbackService가 햅틱+시스템 사운드로 "봉인 풀림"
+    // 느낌을 구성. 애니메이션 타이밍에 맞춰 한 번에 재생한다.
     Future.delayed(const Duration(milliseconds: 350), () async {
       if (!mounted) return;
-      // 1단계: 봉투 꺼내는 순간 — 부드러운 햅틱
-      await HapticFeedback.lightImpact();
+      FeedbackService.onLetterOpen();
       await _openController.animateTo(
         0.5,
         duration: const Duration(milliseconds: 450),
         curve: Curves.easeOutCubic,
       );
-      // 2단계: 편지 펼쳐지는 순간 — 약간 더 강한 햅틱
       if (!mounted) return;
-      await HapticFeedback.mediumImpact();
       await _openController.animateTo(
         1.0,
         duration: const Duration(milliseconds: 750),
@@ -231,8 +230,11 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                                 !letter.hasReplied &&
                                 _isHumanLetter(letter))
                               _buildReplyFomoHint(context),
-                            // 답장 버튼
-                            if (_isOpened) _buildReplyButton(context, letter),
+                            // 답장 버튼 (AI 편지는 "닿지 않음" 카드로 대체)
+                            if (_isOpened) _buildAiLetterNotice(context, letter),
+                            if (_isOpened &&
+                                !letter.senderId.startsWith('ai_'))
+                              _buildReplyButton(context, letter),
                             const SizedBox(height: 40),
                           ],
                         ),
@@ -883,6 +885,27 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                           l10n.letterReadVerifiedBadge,
                           style: TextStyle(
                             color: Color(0xFFFF8A5C),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ],
+                    if (letter.senderId.startsWith('ai_')) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.textMuted.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          l10n.labelAiCurated,
+                          style: const TextStyle(
+                            color: AppColors.textMuted,
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
                           ),
@@ -1618,15 +1641,80 @@ class _LetterReadScreenState extends State<LetterReadScreen>
     );
   }
 
+  Widget _buildAiLetterNotice(BuildContext ctx, Letter letter) {
+    if (!letter.senderId.startsWith('ai_')) return const SizedBox.shrink();
+    final l10n = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: AppColors.textMuted.withValues(alpha: 0.25),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          const Text('🤖', style: TextStyle(fontSize: 18)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.aiLetterNoticeTitle,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  l10n.aiLetterNoticeBody,
+                  style: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 11,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildReplyButton(BuildContext ctx, Letter letter) {
     final l10n = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
     final alreadyReplied = letter.hasReplied;
-    return SizedBox(
-      width: double.infinity,
-      height: 54,
-      child: ElevatedButton(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: 54,
+          child: ElevatedButton(
         onPressed: alreadyReplied
-            ? null
+            ? () {
+                // 이미 답장한 경우 — 비활성 대신 안내 표시
+                ScaffoldMessenger.of(ctx).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      l10n.replyAlreadyNotice,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    backgroundColor: const Color(0xFF1F2D44),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    duration: const Duration(seconds: 3),
+                  ),
+                );
+              }
             : () => Navigator.push(
                 ctx,
                 MaterialPageRoute(
@@ -1670,6 +1758,22 @@ class _LetterReadScreenState extends State<LetterReadScreen>
           ],
         ),
       ),
+    ),
+        // 답장 1회 제한 설명 — 비활성 이유 즉시 전달
+        if (alreadyReplied)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              l10n.replyOnePerLetterTip,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 11,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+      ],
     );
   }
 

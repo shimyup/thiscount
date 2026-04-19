@@ -1082,6 +1082,37 @@ class _LetterCard extends StatelessWidget {
                               ),
                             ),
                           ],
+                          if (letter.senderId.startsWith('ai_')) ...[
+                            const SizedBox(width: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 5,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.textMuted
+                                    .withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text('🤖',
+                                      style: TextStyle(fontSize: 9)),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    l10n.labelAiCurated,
+                                    style: const TextStyle(
+                                      color: AppColors.textMuted,
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.4,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                           if (_isUnread)
                             Container(
                               width: 8,

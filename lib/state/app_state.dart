@@ -18,6 +18,7 @@ import '../core/localization/language_config.dart';
 import '../core/localization/app_localizations.dart';
 import '../core/data/country_cities.dart';
 import '../core/services/notification_service.dart';
+import '../core/services/feedback_service.dart';
 import '../core/services/geocoding_service.dart';
 import '../core/services/firestore_service.dart';
 import '../core/services/firebase_auth_service.dart';
@@ -4778,8 +4779,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // ── 근처 도착 알림 트리거 ────────────────────────────────────────────────────
 
   Future<void> _triggerNearbyNotification(Letter letter) async {
-    // 편지 도착 햅틱 (medium vibration)
-    HapticFeedback.mediumImpact();
+    // 편지 도착 피드백 (3단 light — 부드러운 우편함 노크)
+    FeedbackService.onLetterArrive();
     final prefs = await SharedPreferences.getInstance();
     final notifyEnabled = prefs.getBool('notify_nearby') ?? true;
     if (!notifyEnabled) return;

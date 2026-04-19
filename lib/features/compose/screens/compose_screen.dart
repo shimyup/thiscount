@@ -18,6 +18,8 @@ import '../../../core/services/purchase_service.dart';
 import '../../city_of_month/city_of_month.dart';
 import '../../premium/premium_gate_sheet.dart';
 import '../compose_prompts.dart';
+import '../compose_quick_pick.dart';
+import '../../../core/services/feedback_service.dart';
 
 class ComposeScreen extends StatefulWidget {
   final String? replyToId;
@@ -691,7 +693,7 @@ class _ComposeScreenState extends State<ComposeScreen>
       }
       if (mounted) {
         _clearDraft();
-        HapticFeedback.heavyImpact();
+        FeedbackService.onLetterSend();
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -741,7 +743,7 @@ class _ComposeScreenState extends State<ComposeScreen>
 
       if (mounted) {
         _clearDraft();
-        HapticFeedback.mediumImpact();
+        FeedbackService.onLetterSend();
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -828,8 +830,8 @@ class _ComposeScreenState extends State<ComposeScreen>
       saveLastSentContent(content);
       // 편지 발송 성공 시 초안 삭제
       _clearDraft();
-      // 편지 발송 성공 햅틱 (medium vibration)
-      HapticFeedback.mediumImpact();
+      // 편지 발송 성공 피드백 (햅틱 + 시스템 사운드)
+      FeedbackService.onLetterSend();
       if (shouldShowPremiumWelcome) {
         Navigator.of(context).popAndPushNamed('/premium_welcome');
         return;
@@ -1011,6 +1013,11 @@ class _ComposeScreenState extends State<ComposeScreen>
                             // 일반 목적지 카드 (대량 OFF일 때만)
                             if (!_isReply && !_isBulkMode)
                               _buildDestinationCard(state, hasPremium),
+                            if (!_isReply && !_isBulkMode)
+                              const SizedBox(height: 8),
+                            // 원클릭 목적지 제안 (랜덤/반대편/아침/미방문 대륙)
+                            if (!_isReply && !_isBulkMode)
+                              _buildQuickPickRow(state),
                             if (!_isReply && !_isBulkMode)
                               const SizedBox(height: 10),
                             if (!_isReply)
@@ -1694,6 +1701,135 @@ class _ComposeScreenState extends State<ComposeScreen>
         ),
       ),
     );
+  }
+
+  // Row of 3 preset destination strategies for users who don't know where
+  // to send their letter. Each chip calls a helper in compose_quick_pick.dart
+  // and applies the result via _applyQuickPickResult. Falls back to plain
+  // random when no candidate matches the strategy's filter.
+  Widget _buildQuickPickRow(AppState state) {
+    final l10n = AppL10n.of(state.currentUser.languageCode);
+    final chips = [
+      (
+        emoji: '🎲',
+        label: l10n.composeQuickPickOpposite,
+        onTap: () => _handleQuickPick(state, QuickPickKind.oppositeSide),
+      ),
+      (
+        emoji: '🌅',
+        label: l10n.composeQuickPickSunrise,
+        onTap: () => _handleQuickPick(state, QuickPickKind.sunrise),
+      ),
+      (
+        emoji: '🌏',
+        label: l10n.composeQuickPickUnvisited,
+        onTap: () => _handleQuickPick(state, QuickPickKind.unvisitedContinent),
+      ),
+    ];
+    return Row(
+      children: [
+        for (int i = 0; i < chips.length; i++) ...[
+          if (i > 0) const SizedBox(width: 6),
+          Expanded(
+            child: InkWell(
+              onTap: chips[i].onTap,
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.bgSurface,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: AppColors.teal.withValues(alpha: 0.18),
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Text(chips[i].emoji,
+                        style: const TextStyle(fontSize: 16)),
+                    const SizedBox(height: 3),
+                    Text(
+                      chips[i].label,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        height: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  void _handleQuickPick(AppState state, QuickPickKind kind) {
+    final exclude = state.currentUser.country;
+    final sentSet =
+        state.sent.map((l) => l.destinationCountry).toSet();
+    Map<String, String>? picked;
+    switch (kind) {
+      case QuickPickKind.oppositeSide:
+        picked = pickOppositeSideCountry(
+          userLng: state.currentUser.longitude,
+          excludeCountry: exclude,
+        );
+        break;
+      case QuickPickKind.sunrise:
+        picked = pickSunriseCountry(excludeCountry: exclude);
+        break;
+      case QuickPickKind.unvisitedContinent:
+        picked = pickUnvisitedContinentCountry(
+          sentCountries: sentSet,
+          excludeCountry: exclude,
+        );
+        break;
+    }
+    picked ??= AppState.randomDestination(excludeCountry: exclude);
+    _applyPickedDestination(picked, state.currentUser.languageCode);
+  }
+
+  void _applyPickedDestination(Map<String, String> dest, String langCode) {
+    final name = dest['name']!;
+    final flag = dest['flag']!;
+    // 캐시 주소 우선 — 없으면 cities.json → 폴백
+    final geo = GeocodingService.instance;
+    final cachedAddr =
+        geo.isInitialized ? geo.getCachedAddress(name) : null;
+    if (cachedAddr != null) {
+      setState(() {
+        _selectedCountry = name;
+        _selectedFlag = flag;
+        _selectedCity = (cachedAddr['city'] as String?) ?? '';
+        _destLat = (cachedAddr['lat'] as num).toDouble();
+        _destLng = (cachedAddr['lng'] as num).toDouble();
+        _isRandom = true;
+      });
+      if (geo.cachedCountOf(name) < 3) geo.prefetch(name, count: 5);
+      return;
+    }
+    final cityData = CountryCities.randomCity(name, languageCode: langCode);
+    setState(() {
+      _selectedCountry = name;
+      _selectedFlag = flag;
+      _selectedCity = cityData?['name'] as String? ?? '';
+      _destLat = cityData != null
+          ? (cityData['lat'] as num).toDouble()
+          : double.parse(dest['lat']!);
+      _destLng = cityData != null
+          ? (cityData['lng'] as num).toDouble()
+          : double.parse(dest['lng']!);
+      _isRandom = true;
+    });
   }
 
   // Daily inspiration strip shown only when the body is empty and this isn't
