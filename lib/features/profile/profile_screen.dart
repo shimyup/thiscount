@@ -5,12 +5,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../progression/user_progress.dart';
-import '../city_of_month/city_of_month_card.dart';
 import '../journey/journey_card.dart';
 import '../reflection/weekly_reflection_card.dart';
-import '../progression/user_level.dart';
 import '../streak/streak_badge.dart';
-import '../streak/weekly_challenge_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/localization/country_names.dart';
@@ -842,23 +839,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           // ① 4열 스탯 (A+C)
                           _buildFourStatRow(ctx, state, user),
                           const SizedBox(height: 10),
-                          // ①-1 주간 챌린지 카드 (casual 레벨 이상에서만 노출)
-                          if (state.isFeatureUnlocked(
-                            UnlockableFeature.weeklyChallenge,
-                          )) ...[
-                            const WeeklyChallengeCard(
-                              margin: EdgeInsets.symmetric(horizontal: 16),
-                            ),
-                            const SizedBox(height: 10),
-                          ],
-                          // ①-2 이번 달의 도시 카드 — 모든 사용자에게 노출 (콘텐츠)
-                          CityOfMonthCard(
-                            margin: const EdgeInsets.symmetric(horizontal: 16),
-                            onWriteTap: () {
-                              Navigator.of(ctx).pushNamed('/compose');
-                            },
-                          ),
-                          const SizedBox(height: 10),
+                          // 주간 챌린지 카드와 이번 달의 도시 카드는 Build 110 에서
+                          // 제거됨 — 헌트 포지셔닝과 맞지 않는 발송 중심 CTA 였음.
                           // ①-3 나의 여정 카드 — 누적 지표가 있을 때만 표시
                           const JourneyCard(
                             margin: EdgeInsets.symmetric(horizontal: 16),
