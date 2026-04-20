@@ -1222,14 +1222,13 @@ class _ComposeScreenState extends State<ComposeScreen>
                             _ComposeOptionsSection(
                               title: l10n.composeOptionsSectionTitle,
                               children: [
-                                // 🎯 오늘의 영감 통합 카드 — 기존 3개 (요일 테마·
-                                // 퀵픽 목적지·월별 도시) 가 세로로 흩어져있던 것을
-                                // 하나의 골드-테두리 박스로 묶어 "오늘 뭘 쓸까?" 의사
-                                // 결정을 한 카드 안에서 완결되게 함.
-                                if (!_isReply && !_isBulkMode)
-                                  _buildInspirationCard(state),
-                                if (!_isReply && !_isBulkMode)
-                                  const SizedBox(height: 10),
+                                // "오늘의 영감" 통합 카드 제거 (Build 107):
+                                // 앱 포지셔닝이 "느린 소셜 편지 · 펜팔" 에서
+                                // "브랜드 홍보 · 할인권 유통" 중심으로 전환되며
+                                // "오늘 뭘 쓸까?" 류 글감 도움 UI 는 더 이상 주력이
+                                // 아니다. 요일 테마·퀵픽·월별 도시 builder 는 코드에
+                                // 남겨두되 (다른 곳에서 참조 가능성) 이 섹션에서만
+                                // 렌더링에서 빠진다.
                                 if (!_isReply)
                                   _buildSocialToggle(hasPremium: hasPremium),
                                 if (!_isReply && _attachSocial && hasPremium) ...[

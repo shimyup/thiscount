@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../core/theme/app_theme.dart';
 import '../core/localization/app_localizations.dart';
+import '../models/letter.dart';
 import '../state/app_state.dart';
 import '../features/map/screens/world_map_screen.dart';
 import '../features/compose/screens/compose_screen.dart';
@@ -51,136 +50,39 @@ class _MainScaffoldState extends State<MainScaffold> {
     });
   }
 
-  /// 🎁 "브랜드 할인 편지" 안내 팝업.
+  /// 🎟 브랜드 홍보 티켓형 팝업 (Build 107).
+  /// 형식: 테두리 쿠폰 티켓 — "신상 50% 할인 by OOO 브랜드" + 만료 기간 표시.
   /// 표시 조건:
-  ///   - 유저가 Free 또는 Premium (Brand 는 이미 알고 있어 제외)
-  ///   - SharedPreferences 의 `brandPromoPopupLastShown` 이 null 이거나
-  ///     현재 시각보다 7일 이상 전
-  /// CTA:
-  ///   - 알겠어요 (dismiss) → lastShown 갱신
-  ///   - 관리자 문의 (mailto) → lastShown 갱신 + support 이메일 열기
+  ///   - 유저가 Free 또는 Premium (Brand 는 자기 캠페인이라 제외)
+  ///   - 활성 브랜드 holidayBrand 편지가 존재 (`AppState.featuredBrandPromo`)
+  ///   - 이번 세션에서 아직 한 번도 표시되지 않음
+  /// 닫으면 `markPromoShownThisSession()` 으로 세션 플래그 on — 앱 재시작까지
+  /// 재노출 안 됨. 기간 제한은 편지의 `expiresAt` 을 그대로 사용 (브랜드가
+  /// 컴포즈 시 설정).
   Future<void> _showBrandPromoIfDue(BuildContext ctx) async {
     final state = ctx.read<AppState>();
     if (state.currentUser.isBrand) return;
+    if (state.promoShownThisSession) return;
 
-    final prefs = await SharedPreferences.getInstance();
-    final lastMs = prefs.getInt('brandPromoPopupLastShown');
-    final now = DateTime.now().millisecondsSinceEpoch;
-    const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-    if (lastMs != null && now - lastMs < sevenDaysMs) return;
+    final promo = state.featuredBrandPromo;
+    if (promo == null) return;
 
     if (!ctx.mounted) return;
     final l = AppL10n.of(state.currentUser.languageCode);
 
-    Future<void> markShown() async {
-      await prefs.setInt('brandPromoPopupLastShown', now);
-    }
+    state.markPromoShownThisSession();
 
     await showDialog(
       context: ctx,
-      builder: (dCtx) => AlertDialog(
-        backgroundColor: AppColors.bgCard,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: Row(
-          children: [
-            const Text('🎁', style: TextStyle(fontSize: 22)),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                l.brandPromoTitle,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-          ],
+      barrierColor: Colors.black.withValues(alpha: 0.7),
+      builder: (dCtx) => Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: _BrandPromoTicket(
+          promo: promo,
+          l10n: l,
+          onClose: () => Navigator.of(dCtx).pop(),
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l.brandPromoBody,
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 13,
-                height: 1.55,
-              ),
-            ),
-            const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppColors.teal.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: AppColors.teal.withValues(alpha: 0.35),
-                ),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('💼', style: TextStyle(fontSize: 16)),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      l.brandPromoContactHint,
-                      style: const TextStyle(
-                        color: AppColors.teal,
-                        fontSize: 12,
-                        height: 1.4,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              await markShown();
-              if (dCtx.mounted) Navigator.of(dCtx).pop();
-            },
-            child: Text(
-              l.brandPromoDismiss,
-              style: const TextStyle(color: AppColors.textMuted),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.gold,
-              foregroundColor: AppColors.bgDeep,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            onPressed: () async {
-              await markShown();
-              final uri = Uri(
-                scheme: 'mailto',
-                path: 'support@airony.xyz',
-                queryParameters: {
-                  'subject': '[Letter Go] Brand Campaign Inquiry / 브랜드 캠페인 문의',
-                  'body':
-                      'Hello / 안녕하세요,\n\nI\'m interested in running brand coupon campaigns on Letter Go.\n브랜드 쿠폰 캠페인을 운영하고 싶습니다.\n\nID / 아이디: ${state.currentUser.username}\nEmail / 이메일: ${state.currentUser.email ?? "N/A"}\n\n---\n',
-                },
-              );
-              try {
-                await launchUrl(uri);
-              } catch (_) {}
-              if (dCtx.mounted) Navigator.of(dCtx).pop();
-            },
-            child: Text(
-              l.brandPromoContactCta,
-              style: const TextStyle(fontWeight: FontWeight.w800),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -503,6 +405,261 @@ class _NavItemWithBadge extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ── 🎟 브랜드 홍보 티켓형 팝업 ────────────────────────────────────────────────
+/// "신상 50% 할인 by OOO 브랜드" 형식의 쿠폰 티켓 모달.
+/// 좌우 반원 노치로 티켓감 + 점선 구분선 + 만료 기간 표시. 닫기 누르면 세션
+/// 내 재표시 안 됨. 만료는 브랜드의 편지 expiresAt 을 그대로 따른다.
+class _BrandPromoTicket extends StatelessWidget {
+  final Letter promo;
+  final AppL10n l10n;
+  final VoidCallback onClose;
+
+  const _BrandPromoTicket({
+    required this.promo,
+    required this.l10n,
+    required this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final title = _extractTitle(promo.content);
+    final brandName = promo.senderName.isNotEmpty
+        ? promo.senderName
+        : l10n.brandTicketDefaultBrand;
+    final expiresAt = promo.expiresAt;
+
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 24),
+        constraints: const BoxConstraints(maxWidth: 360),
+        child: Material(
+          color: Colors.transparent,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFFE082), Color(0xFFFFCA28)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.35),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
+                      child: Row(
+                        children: [
+                          const Text("🎟", style: TextStyle(fontSize: 22)),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              l10n.brandTicketTopLabel,
+                              style: const TextStyle(
+                                color: Color(0xFF6B4A00),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                          ),
+                          InkWell(
+                            onTap: onClose,
+                            borderRadius: BorderRadius.circular(20),
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF6B4A00).withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Icon(
+                                Icons.close_rounded,
+                                color: Color(0xFF6B4A00),
+                                size: 18,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 6, 24, 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              color: Color(0xFF2B1A00),
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              height: 1.2,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Text(
+                                l10n.brandTicketBy,
+                                style: const TextStyle(
+                                  color: Color(0xFF6B4A00),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+                              Flexible(
+                                child: Text(
+                                  brandName,
+                                  style: const TextStyle(
+                                    color: Color(0xFF2B1A00),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                              if (promo.senderCountryFlag.isNotEmpty) ...[
+                                const SizedBox(width: 4),
+                                Text(
+                                  promo.senderCountryFlag,
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      child: _DashedLine(),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 18),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.schedule_rounded,
+                            color: Color(0xFF6B4A00),
+                            size: 15,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              expiresAt == null
+                                  ? l10n.brandTicketNoExpiry
+                                  : l10n.brandTicketExpiresAt(_formatExpiry(expiresAt)),
+                              style: const TextStyle(
+                                color: Color(0xFF6B4A00),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            l10n.brandTicketCloseHint,
+                            style: TextStyle(
+                              color: const Color(0xFF6B4A00).withValues(alpha: 0.7),
+                              fontSize: 10,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Positioned(
+                left: -10,
+                top: 0,
+                bottom: 0,
+                child: Center(child: _SideNotch()),
+              ),
+              const Positioned(
+                right: -10,
+                top: 0,
+                bottom: 0,
+                child: Center(child: _SideNotch()),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _extractTitle(String content) {
+    final firstLine = content.split("\n").firstWhere(
+          (s) => s.trim().isNotEmpty,
+          orElse: () => "",
+        );
+    final trimmed = firstLine.trim();
+    if (trimmed.isEmpty) return l10n.brandTicketFallbackTitle;
+    if (trimmed.length <= 40) return trimmed;
+    return "${trimmed.substring(0, 38)}…";
+  }
+
+  String _formatExpiry(DateTime d) {
+    final now = DateTime.now();
+    final diff = d.difference(now);
+    if (diff.isNegative) return l10n.brandTicketExpired;
+    if (diff.inHours < 24) return l10n.brandTicketHoursLeft(diff.inHours);
+    return l10n.brandTicketDaysLeft(diff.inDays);
+  }
+}
+
+class _SideNotch extends StatelessWidget {
+  const _SideNotch();
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 20,
+      height: 20,
+      decoration: const BoxDecoration(
+        color: Color(0xFF0A0A12),
+        shape: BoxShape.circle,
+      ),
+    );
+  }
+}
+
+class _DashedLine extends StatelessWidget {
+  const _DashedLine();
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (_, constraints) {
+        const dashWidth = 5.0;
+        const dashGap = 4.0;
+        final dashCount = (constraints.maxWidth / (dashWidth + dashGap)).floor();
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(
+            dashCount,
+            (_) => Container(
+              width: dashWidth,
+              height: 1.2,
+              color: const Color(0xFF6B4A00).withValues(alpha: 0.45),
+            ),
+          ),
+        );
+      },
     );
   }
 }

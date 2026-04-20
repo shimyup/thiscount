@@ -592,6 +592,35 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
     return true;
   }
+
+  // ── 🎟 브랜드 홍보 팝업 — 티켓형 (Build 107) ────────────────────────────
+  // 로그인 직후 홈 화면에서 "신상 50% 할인 by 000 브랜드" 스타일의 티켓 팝업을
+  // 1회 노출. 유저가 닫으면 해당 세션 동안 재출현 금지 (`_promoShownThisSession`).
+  // 앱 재시작 시 플래그 리셋 → 다시 노출. 세션 플래그는 영속화하지 않는다.
+  //
+  // 팝업에 쓸 campaign 데이터는 현재 `_worldLetters` 중 브랜드가 보낸 최신
+  // 활성 편지 (`senderIsBrand=true`, `!isExpired`) 에서 파생. 만료 기간은
+  // 브랜드가 컴포즈 시 설정한 `expiresAt` 을 그대로 따른다 — 별도 설정 불필요.
+  bool _promoShownThisSession = false;
+  bool get promoShownThisSession => _promoShownThisSession;
+  void markPromoShownThisSession() {
+    _promoShownThisSession = true;
+  }
+
+  /// 현재 활성 중인 브랜드 홍보 편지 중 가장 최근 것을 반환.
+  /// 기준: senderIsBrand=true · 만료되지 않음 · coupon 또는 voucher 카테고리.
+  /// 없으면 null (팝업 미노출).
+  Letter? get featuredBrandPromo {
+    final now = DateTime.now();
+    final candidates = _worldLetters.where((l) =>
+        l.senderIsBrand &&
+        (l.category == LetterCategory.coupon ||
+            l.category == LetterCategory.voucher) &&
+        (l.expiresAt == null || l.expiresAt!.isAfter(now))).toList();
+    if (candidates.isEmpty) return null;
+    candidates.sort((a, b) => b.sentAt.compareTo(a.sentAt));
+    return candidates.first;
+  }
   int _inviteRewardCredits = 0;
   String _inviteCode = '';
   String? _appliedInviteCode;

@@ -302,7 +302,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 gradient: const [Color(0xFF0F1A30), Color(0xFF1A2A50)],
               ),
               _IntroPage(
-                emoji: '🌗',
+                // Build 107: "시간대별 테마" → "🎁 즉시 사용 가능한 혜택"
+                // 재포지셔닝. 주운 편지가 실제 혜택으로 바로 이어진다는 가치 제안.
+                emoji: '🎁',
                 title: _l.onboarding4Title,
                 body: _l.onboarding4Body,
                 gradient: const [Color(0xFF15102A), Color(0xFF2A1A50)],

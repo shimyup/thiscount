@@ -641,23 +641,22 @@ class AppL10n {
     'th': 'จดหมายเดินทาง 🚚→✈️→🚚 บนแผนที่โลก สะท้อนเวลาส่งไปรษณีย์จริง',
   });
 
-  // Build 103 에서 "3개 보내야 받은 편지 읽음" 룰이 제거되면서 이 페이지는
-  // 헌트/줍기 메커니즘 소개로 재구성됨. (Free 200m · Premium 1km)
+  // Build 107 재포지셔닝 — "느린 편지 보물찾기" 보다 "할인·홍보 편지 유통" 강조.
   String get onboarding3Title => _t({
-    'ko': '🗺 편지를 주워요',
-    'en': '🗺 Pick Up Letters',
-    'ja': '🗺 手紙を拾おう',
-    'zh': '🗺 拾起信件',
-    'fr': '🗺 Ramasse les lettres',
-    'de': '🗺 Briefe aufsammeln',
-    'es': '🗺 Recoge cartas',
-    'pt': '🗺 Apanhe cartas',
-    'ru': '🗺 Подбирайте письма',
-    'tr': '🗺 Mektupları topla',
-    'ar': '🗺 التقط الرسائل',
-    'it': '🗺 Raccogli lettere',
-    'hi': '🗺 पत्र उठाएँ',
-    'th': '🗺 เก็บจดหมาย',
+    'ko': '🎟 할인·홍보 편지를 주워요',
+    'en': '🎟 Pick Up Coupon Letters',
+    'ja': '🎟 割引・プロモ手紙を拾う',
+    'zh': '🎟 拾起优惠促销信件',
+    'fr': '🎟 Ramasse les coupons',
+    'de': '🎟 Rabatt-Briefe aufsammeln',
+    'es': '🎟 Recoge cupones',
+    'pt': '🎟 Apanhe cupões',
+    'ru': '🎟 Подбирайте купоны',
+    'tr': '🎟 Kupon mektupları topla',
+    'ar': '🎟 التقط رسائل الخصومات',
+    'it': '🎟 Raccogli coupon',
+    'hi': '🎟 कूपन पत्र उठाएँ',
+    'th': '🎟 เก็บจดหมายส่วนลด',
   });
   String get onboarding3Body => _t({
     // 모든 등급(Free/Premium/Brand) 이 주울 수 있음. Free 200m, Premium/Brand 1km.
@@ -690,48 +689,53 @@ class AppL10n {
         'เข้าใกล้จดหมายโปรโมชั่นและส่วนลดบนแผนที่เพื่อเก็บ Free: 200 ม. · Premium และ Brand: 1 กม.',
   });
 
+  // Build 107 재포지셔닝 — "시간대별 테마" 피쳐는 존재하지만 메인 홍보
+  // 메시지에서 빠짐. 이 페이지는 이제 "즉시 사용 가능한 혜택" 가치 제안으로
+  // 사용된다. 시간대 테마는 주요 가치에 부속된 경험.
   String get onboarding4Title => _t({
-    'ko': '🌗 시간대별 화면',
-    'en': '🌗 Time-Based Themes',
-    'ja': '🌗 時間帯のテーマ',
-    'zh': '🌗 时间主题',
-    'fr': '🌗 Thèmes selon l\'heure',
-    'de': '🌗 Zeitbasierte Designs',
-    'es': '🌗 Temas según la hora',
-    'pt': '🌗 Temas baseados na hora',
-    'ru': '🌗 Темы по времени суток',
-    'tr': '🌗 Saate göre temalar',
-    'ar': '🌗 مظاهر حسب الوقت',
-    'it': '🌗 Temi basati sull\'ora',
-    'hi': '🌗 समय-आधारित थीम',
-    'th': '🌗 ธีมตามเวลา',
+    'ko': '🎁 즉시 사용 가능한 혜택',
+    'en': '🎁 Redeem on the Spot',
+    'ja': '🎁 その場で使える特典',
+    'zh': '🎁 立即可用的优惠',
+    'fr': '🎁 Utilisable sur place',
+    'de': '🎁 Sofort einlösbar',
+    'es': '🎁 Canjea al instante',
+    'pt': '🎁 Resgata na hora',
+    'ru': '🎁 Сразу в дело',
+    'tr': '🎁 Anında kullan',
+    'ar': '🎁 استخدم فوراً',
+    'it': '🎁 Da usare subito',
+    'hi': '🎁 तुरंत उपयोग करें',
+    'th': '🎁 ใช้ได้ทันที',
   });
   String get onboarding4Body => _t({
-    'ko': '앱 화면이 내 나라의 현재 시간에 맞춰 낮☀️, 저녁🌅, 밤🌙으로 자동 변경됩니다.',
+    'ko': '주운 편지 안에 할인 코드·URL·매장 안내가 들어있어 바로 쓸 수 있어요. 브랜드마다 유효 기간이 설정되니 놓치지 마세요.',
     'en':
-        'The app automatically changes to morning☀️, evening🌅, or night🌙 based on your country\'s local time.',
-    'ja': 'アプリは自国の現地時刻に合わせて朝☀️・夕方🌅・夜🌙に自動変更されます。',
-    'zh': '应用根据您所在国家的当地时间自动切换为早晨☀️、傍晚🌅或夜晚🌙。',
+        'Coupon codes, URLs, and in-store instructions come right inside the letter you picked up — usable immediately. Each brand sets its own expiry.',
+    'ja':
+        '拾った手紙の中に割引コード・URL・店舗案内が入っていて、すぐに使えます。有効期限はブランドごとに設定されます。',
+    'zh':
+        '拾起的信件内含折扣码、链接与到店说明，立即可用。每个品牌自行设定有效期限。',
     'fr':
-        "L'app change automatiquement en matin☀️, soir🌅, nuit🌙 selon l'heure locale de votre pays.",
+        'Codes promo, liens et instructions en boutique sont inclus — utilisables immédiatement. Chaque marque fixe son expiration.',
     'de':
-        'Die App wechselt automatisch zu Morgen☀️, Abend🌅 oder Nacht🌙 entsprechend der Ortszeit.',
+        'Im aufgehobenen Brief stehen Code, Link oder Ladenhinweis — sofort einlösbar. Jede Marke legt eigene Gültigkeit fest.',
     'es':
-        'La app cambia automáticamente a mañana☀️, tarde🌅 o noche🌙 según la hora local de tu país.',
+        'El código, enlace o instrucciones para la tienda están dentro de la carta que recoges — listos para usar. Cada marca fija su caducidad.',
     'pt':
-        'O app muda automaticamente para manhã☀️, tarde🌅 ou noite🌙 conforme a hora local.',
+        'Códigos, links ou instruções da loja vêm dentro da carta — prontos a usar. Cada marca define o seu prazo.',
     'ru':
-        'Приложение автоматически меняется на утро☀️, вечер🌅 или ночь🌙 по местному времени.',
+        'Промокод, ссылка или инструкция ждут внутри поднятого письма — используйте сразу. Срок действия задаёт бренд.',
     'tr':
-        'Uygulama ülkenizin yerel saatine göre otomatik olarak sabah☀️, akşam🌅 veya gece🌙ya dönüşür.',
+        'Topladığın mektubun içinde indirim kodu, link veya mağaza bilgisi hemen kullanıma hazır. Süreyi marka belirler.',
     'ar':
-        'يتغير التطبيق تلقائياً إلى صباح☀️ أو مساء🌅 أو ليل🌙 حسب التوقيت المحلي لبلدك.',
+        'رموز الخصم أو الروابط أو تعليمات المتجر داخل الرسالة التي التقطتها — جاهزة للاستخدام فوراً. كل علامة تضع مدتها.',
     'it':
-        "L'app cambia automaticamente in mattina☀️, sera🌅 o notte🌙 in base all'ora locale.",
+        'Codice, link o istruzioni del negozio sono dentro la lettera che hai raccolto — usabili subito. La scadenza la decide il brand.',
     'hi':
-        'ऐप स्वचालित रूप से आपके देश के स्थानीय समय के अनुसार सुबह☀️, शाम🌅 या रात🌙 में बदल जाता है।',
+        'आपने उठाए पत्र में कूपन कोड, URL या स्टोर निर्देश होते हैं — तुरंत उपयोगी. हर ब्रांड अपनी समाप्ति तय करता है.',
     'th':
-        'แอปเปลี่ยนเป็นเช้า☀️ เย็น🌅 หรือกลางคืน🌙 โดยอัตโนมัติตามเวลาท้องถิ่นของประเทศคุณ',
+        'รหัสส่วนลด ลิงก์ หรือวิธีการที่ร้านอยู่ในจดหมายที่คุณเก็บ ใช้ได้ทันที แต่ละแบรนด์กำหนดวันหมดอายุเอง',
   });
 
   String get onboarding5Title => _t({
@@ -751,35 +755,35 @@ class AppL10n {
     'th': '🚀 เริ่มต้น',
   });
   String get onboarding5Body => _t({
-    // Build 103 의 5탭 네비(탐험 · 수집첩 · 보내기 · 타워 · 프로필) 와
-    // 헌트 루프를 한 줄로 요약. 가입 CTA 는 유지.
-    'ko': '탐험 · 수집첩 · 보내기 · 타워 · 프로필 5개 탭으로 편지를 보내고, 지도를 돌아다니며 할인권과 이벤트 편지를 주워보세요.',
+    // Build 107 재포지셔닝 — 브랜드 쿠폰/홍보 유통이 메인, 편지 보내기는
+    // 부차적. 네비 소개보다 "지도에서 혜택 줍기" 를 최우선 메시지로.
+    'ko': '지도를 열어 근처의 할인·홍보 편지를 주워보세요. 받은 편지 안 코드·링크로 바로 혜택을 사용할 수 있어요.',
     'en':
-        'Explore, Collect, Send, Tower, Profile — five tabs to send letters and roam the map picking up coupons and event letters.',
+        'Open the map and pick up nearby promo and coupon letters. Use the code or link inside each letter right away.',
     'ja':
-        '探検・コレクション・送信・タワー・プロフィールの5タブで手紙を送り、地図を歩きながら割引券とイベント手紙を拾おう。',
+        '地図を開いて近くの割引・プロモ手紙を拾いましょう。中のコードやリンクですぐに特典を使えます。',
     'zh':
-        '探索·收集·发送·塔·个人，五个标签页寄信并在地图上拾取优惠券和活动信件。',
+        '打开地图拾取附近的优惠促销信件。使用信件中的代码或链接立即享受优惠。',
     'fr':
-        'Explorer · Collection · Envoyer · Tour · Profil — cinq onglets pour envoyer des lettres et parcourir la carte pour ramasser des coupons.',
+        'Ouvre la carte et ramasse les lettres promo et coupons à proximité. Utilise le code ou le lien à l\'intérieur immédiatement.',
     'de':
-        'Entdecken · Sammlung · Senden · Turm · Profil — fünf Tabs zum Briefeversenden und Gutschein-Sammeln auf der Karte.',
+        'Öffne die Karte und sammle Rabatt- und Aktionsbriefe in deiner Nähe. Code oder Link im Brief sofort nutzen.',
     'es':
-        'Explorar · Colección · Enviar · Torre · Perfil: cinco pestañas para enviar cartas y recorrer el mapa recogiendo cupones.',
+        'Abre el mapa y recoge cupones y cartas promocionales cercanas. Usa el código o enlace al instante.',
     'pt':
-        'Explorar · Coleção · Enviar · Torre · Perfil — cinco separadores para enviar cartas e apanhar cupões no mapa.',
+        'Abre o mapa e apanha cartas promocionais e cupões próximos. Usa o código ou link imediatamente.',
     'ru':
-        'Исследовать · Коллекция · Отправить · Башня · Профиль — пять вкладок для писем и сбора купонов на карте.',
+        'Откройте карту и подбирайте промо- и купонные письма рядом. Используйте код или ссылку сразу.',
     'tr':
-        'Keşfet · Koleksiyon · Gönder · Kule · Profil — beş sekmeyle mektup gönder ve haritada kupon topla.',
+        'Haritayı aç, yakınındaki indirim ve kupon mektuplarını topla. İçindeki kod veya bağlantıyı hemen kullan.',
     'ar':
-        'استكشاف · مجموعة · إرسال · برج · ملف — خمسة تبويبات لإرسال الرسائل والتجوّل في الخريطة لالتقاط القسائم.',
+        'افتح الخريطة والتقط رسائل العروض والقسائم القريبة. استخدم الرمز أو الرابط داخلها فوراً.',
     'it':
-        'Esplora · Collezione · Invia · Torre · Profilo — cinque schede per inviare lettere e raccogliere coupon sulla mappa.',
+        'Apri la mappa e raccogli le lettere promo e coupon vicine. Usa subito il codice o il link contenuto.',
     'hi':
-        'एक्सप्लोर · कलेक्शन · भेजें · टावर · प्रोफ़ाइल — पाँच टैब से पत्र भेजें और मानचित्र पर कूपन उठाएँ.',
+        'मानचित्र खोलें और पास के प्रमोशन और कूपन पत्र उठाएँ. अंदर के कोड या लिंक का तुरंत उपयोग करें.',
     'th':
-        'สำรวจ · คอลเลคชัน · ส่ง · หอ · โปรไฟล์ — 5 แท็บส่งจดหมายและเก็บคูปองบนแผนที่.',
+        'เปิดแผนที่และเก็บจดหมายส่วนลดใกล้ ๆ ใช้รหัสหรือลิงก์ข้างในได้ทันที',
   });
 
   String get getStarted => _t({
@@ -4538,7 +4542,233 @@ class AppL10n {
     'hi': '🎯 सटीक स्थान',
     'th': '🎯 ตำแหน่งที่แม่นยำ',
   });
-  // 🎁 브랜드 할인 편지 안내 팝업 (로그인 후, 7일 간격) — Free/Premium 전용
+  // 🎟 브랜드 홍보 티켓형 팝업 (Build 107) — 로그인 후 1회/세션
+  String get brandTicketTopLabel => _t({
+    'ko': '한정 혜택 도착',
+    'en': 'LIMITED OFFER',
+    'ja': '期間限定',
+    'zh': '限时优惠',
+    'fr': 'OFFRE LIMITÉE',
+    'de': 'LIMITIERTES ANGEBOT',
+    'es': 'OFERTA LIMITADA',
+    'pt': 'OFERTA LIMITADA',
+    'ru': 'ОГРАНИЧЕННОЕ ПРЕДЛОЖЕНИЕ',
+    'tr': 'SINIRLI TEKLİF',
+    'ar': 'عرض محدود',
+    'it': 'OFFERTA LIMITATA',
+    'hi': 'सीमित ऑफ़र',
+    'th': 'ข้อเสนอพิเศษ',
+  });
+
+  String get brandTicketBy => _t({
+    'ko': 'by',
+    'en': 'by',
+    'ja': 'by',
+    'zh': 'by',
+    'fr': 'par',
+    'de': 'von',
+    'es': 'de',
+    'pt': 'de',
+    'ru': 'от',
+    'tr': 'sunan',
+    'ar': 'من',
+    'it': 'di',
+    'hi': 'द्वारा',
+    'th': 'โดย',
+  });
+
+  String get brandTicketDefaultBrand => _t({
+    'ko': '공식 발송인',
+    'en': 'Official Sender',
+    'ja': '公式発信元',
+    'zh': '官方发送方',
+    'fr': 'Expéditeur officiel',
+    'de': 'Offizieller Absender',
+    'es': 'Remitente oficial',
+    'pt': 'Remetente oficial',
+    'ru': 'Официальный отправитель',
+    'tr': 'Resmi Gönderici',
+    'ar': 'المرسل الرسمي',
+    'it': 'Mittente ufficiale',
+    'hi': 'आधिकारिक प्रेषक',
+    'th': 'ผู้ส่งอย่างเป็นทางการ',
+  });
+
+  String get brandTicketFallbackTitle => _t({
+    'ko': '지금 바로 주워보세요',
+    'en': 'Go pick it up now',
+    'ja': '今すぐ手に入れよう',
+    'zh': '立即去拾取',
+    'fr': 'À ramasser tout de suite',
+    'de': 'Jetzt aufheben',
+    'es': 'Recógelo ya',
+    'pt': 'Apanhe agora',
+    'ru': 'Забирайте прямо сейчас',
+    'tr': 'Hemen topla',
+    'ar': 'التقطها الآن',
+    'it': 'Raccogli subito',
+    'hi': 'अभी उठाएँ',
+    'th': 'รีบเก็บเลย',
+  });
+
+  String get brandTicketNoExpiry => _t({
+    'ko': '기간 제한 없음',
+    'en': 'No expiry',
+    'ja': '期限なし',
+    'zh': '无限期',
+    'fr': 'Sans expiration',
+    'de': 'Ohne Ablauf',
+    'es': 'Sin caducidad',
+    'pt': 'Sem validade',
+    'ru': 'Без срока',
+    'tr': 'Süresiz',
+    'ar': 'بدون انتهاء',
+    'it': 'Senza scadenza',
+    'hi': 'कोई समाप्ति नहीं',
+    'th': 'ไม่มีหมดอายุ',
+  });
+
+  String get brandTicketExpired => _t({
+    'ko': '만료됨',
+    'en': 'Expired',
+    'ja': '期限切れ',
+    'zh': '已过期',
+    'fr': 'Expiré',
+    'de': 'Abgelaufen',
+    'es': 'Caducado',
+    'pt': 'Expirado',
+    'ru': 'Истёк',
+    'tr': 'Süresi doldu',
+    'ar': 'منتهي',
+    'it': 'Scaduto',
+    'hi': 'समाप्त',
+    'th': 'หมดอายุ',
+  });
+
+  String brandTicketHoursLeft(int h) {
+    switch (languageCode) {
+      case 'ko':
+        return '${h}시간 남음';
+      case 'en':
+        return '${h}h left';
+      case 'ja':
+        return '残り${h}時間';
+      case 'zh':
+        return '剩 $h 小时';
+      case 'fr':
+        return '${h}h restant';
+      case 'de':
+        return 'noch ${h}h';
+      case 'es':
+        return 'quedan ${h}h';
+      case 'pt':
+        return '${h}h restantes';
+      case 'ru':
+        return 'осталось ${h}ч';
+      case 'tr':
+        return '${h}s kaldı';
+      case 'ar':
+        return 'متبقي ${h} س';
+      case 'it':
+        return '${h}h rimaste';
+      case 'hi':
+        return '${h} घंटे शेष';
+      case 'th':
+        return 'เหลือ $h ชม.';
+      default:
+        return '${h}h left';
+    }
+  }
+
+  String brandTicketDaysLeft(int d) {
+    switch (languageCode) {
+      case 'ko':
+        return '${d}일 남음';
+      case 'en':
+        return '${d}d left';
+      case 'ja':
+        return '残り${d}日';
+      case 'zh':
+        return '剩 $d 天';
+      case 'fr':
+        return '${d}j restants';
+      case 'de':
+        return 'noch ${d}T';
+      case 'es':
+        return 'quedan ${d}d';
+      case 'pt':
+        return '${d}d restantes';
+      case 'ru':
+        return 'осталось ${d}д';
+      case 'tr':
+        return '${d}g kaldı';
+      case 'ar':
+        return 'متبقي ${d} أيام';
+      case 'it':
+        return '${d}g rimasti';
+      case 'hi':
+        return '${d} दिन शेष';
+      case 'th':
+        return 'เหลือ $d วัน';
+      default:
+        return '${d}d left';
+    }
+  }
+
+  String brandTicketExpiresAt(String remaining) {
+    switch (languageCode) {
+      case 'ko':
+        return '유효 기간 · $remaining';
+      case 'en':
+        return 'Valid · $remaining';
+      case 'ja':
+        return '有効期間 · $remaining';
+      case 'zh':
+        return '有效期 · $remaining';
+      case 'fr':
+        return 'Validité · $remaining';
+      case 'de':
+        return 'Gültig · $remaining';
+      case 'es':
+        return 'Válido · $remaining';
+      case 'pt':
+        return 'Válido · $remaining';
+      case 'ru':
+        return 'Действует · $remaining';
+      case 'tr':
+        return 'Geçerli · $remaining';
+      case 'ar':
+        return 'ساري · $remaining';
+      case 'it':
+        return 'Valido · $remaining';
+      case 'hi':
+        return 'मान्य · $remaining';
+      case 'th':
+        return 'ใช้ได้ · $remaining';
+      default:
+        return 'Valid · $remaining';
+    }
+  }
+
+  String get brandTicketCloseHint => _t({
+    'ko': '닫기 누르면 오늘은 안 보여요',
+    'en': 'Close to hide for today',
+    'ja': '閉じると今日は非表示',
+    'zh': '点击关闭今日不再显示',
+    'fr': 'Fermer pour masquer aujourd\'hui',
+    'de': 'Schließen verbirgt für heute',
+    'es': 'Cerrar oculta hoy',
+    'pt': 'Fechar oculta hoje',
+    'ru': 'Закрыть — скрыть на сегодня',
+    'tr': 'Kapat · bugün gizle',
+    'ar': 'أغلق · إخفاء اليوم',
+    'it': 'Chiudi per oggi',
+    'hi': 'बंद करें · आज के लिए छिपाएँ',
+    'th': 'ปิดเพื่อซ่อนวันนี้',
+  });
+
+  // (레거시) 🎁 브랜드 할인 편지 안내 팝업 문자열 — 티켓 팝업 전환으로 더 이상
+  // 표시 경로 없음. 롤백 대비 키만 유지.
   String get brandPromoTitle => _t({
     'ko': '브랜드 할인 편지가 도착하고 있어요',
     'en': 'Brand coupon letters are on the map',
