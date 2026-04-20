@@ -441,27 +441,20 @@ class ShareCardService {
       Paint()..color = const Color(0xFF1F2D44).withValues(alpha: 0.85),
     );
 
-    // 3열 통계
+    // 2열 통계 — 펜팔식 "답장" 지표 제거 후 발송·방문국만 노출.
     _drawJourneyStatCell(
       canvas,
-      x: 140, y: 440,
+      x: 240, y: 440,
       emoji: '✉️',
       value: '${stats.totalSent}',
       label: l10n.journeyStatSent,
     );
     _drawJourneyStatCell(
       canvas,
-      x: 455, y: 440,
+      x: 640, y: 440,
       emoji: '🌍',
       value: '${stats.countriesFrom + stats.countriesTo}',
       label: l10n.journeyStatCountries,
-    );
-    _drawJourneyStatCell(
-      canvas,
-      x: 770, y: 440,
-      emoji: '💬',
-      value: '${stats.totalReplies}',
-      label: l10n.journeyStatReplies,
     );
 
     // 하단 카드 내부: 최장 거리 강조

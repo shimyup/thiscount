@@ -93,7 +93,7 @@ class JourneyCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 14),
-              // 주요 지표 3개 (stat row)
+              // 헌트 포지셔닝 — 펜팔식 "답장" 지표 제거. 발송·방문국 2개만 노출.
               Row(
                 children: [
                   _statCell(
@@ -106,12 +106,6 @@ class JourneyCard extends StatelessWidget {
                     emoji: '🌍',
                     value: '${stats.countriesFrom + stats.countriesTo}',
                     label: l10n.journeyStatCountries,
-                  ),
-                  _divider(),
-                  _statCell(
-                    emoji: '💬',
-                    value: '${stats.totalReplies}',
-                    label: l10n.journeyStatReplies,
                   ),
                 ],
               ),

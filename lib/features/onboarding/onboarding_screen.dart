@@ -287,23 +287,29 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 onRequest: _requestLocationPermission,
                 langCode: _langCode,
               ),
-              // Pages 2-5: Intro slides
+              // Pages 2-5: Intro slides.
+              // Build 109 — "편지 줍기"를 위치 권한 바로 다음 첫 인상으로 승격.
+              // 이전 구성(✈️ 실제 배송 경로 → 🗺 줍기 → 🎁 혜택)이
+              // 배송 메커니즘을 핵심 가치처럼 앞세웠던 것을 역전.
+              // 지금의 흐름: 🎟 (왜 여는지 = 줍기) → ✈️ (어떻게 움직이는지) →
+              // 🎁 (주운 뒤 무엇을 얻는지) → 🚀 (시작).
               _IntroPage(
+                // 핵심 가치 제안: 지도에 뿌려진 할인·홍보 편지를 주워 모으기.
+                // 이모지를 🗺 → 🎟 로 통일 (title 과 매칭).
+                emoji: '🎟',
+                title: _l.onboarding3Title,
+                body: _l.onboarding3Body,
+                gradient: const [Color(0xFF0F1A30), Color(0xFF1A2A50)],
+              ),
+              _IntroPage(
+                // 부가 메커니즘: 위 "줍기" 에 딸린 배송 애니메이션/이동 경로.
                 emoji: '✈️',
                 title: _l.onboarding2Title,
                 body: _l.onboarding2Body,
                 gradient: const [Color(0xFF0A1628), Color(0xFF0D2040)],
               ),
               _IntroPage(
-                // Build 103 의 헌트/줍기 메커니즘 — 지도에서 편지 주워 모으기
-                emoji: '🗺',
-                title: _l.onboarding3Title,
-                body: _l.onboarding3Body,
-                gradient: const [Color(0xFF0F1A30), Color(0xFF1A2A50)],
-              ),
-              _IntroPage(
-                // Build 107: "시간대별 테마" → "🎁 즉시 사용 가능한 혜택"
-                // 재포지셔닝. 주운 편지가 실제 혜택으로 바로 이어진다는 가치 제안.
+                // 주운 편지로부터 실제 혜택 — 가치 제안의 페이아웃.
                 emoji: '🎁',
                 title: _l.onboarding4Title,
                 body: _l.onboarding4Body,

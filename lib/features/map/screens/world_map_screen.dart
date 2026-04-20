@@ -12,7 +12,6 @@ import '../../progression/user_level.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/localization/country_names.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/theme/time_theme.dart';
 import '../../../models/letter.dart';
 import '../../../models/user_profile.dart';
 import '../../../state/app_state.dart';
@@ -138,7 +137,6 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 ...inboxDelivered,
               ];
         final timeColors = AppTimeColors.of(context);
-        final period = state.activeTimePeriod;
         final mapLangCode = MapConfig.resolveMapLanguage(
           country: state.currentUser.country,
           appLanguageCode: state.currentUser.languageCode,
@@ -276,22 +274,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
               top: 0,
               left: 0,
               right: 0,
-              child: _MapHeader(
-                l10n: l10n,
-                showNearbyOnly: _showNearbyOnly,
-                letterCount: state.worldLetters.length,
-                nearbyCount: state.nearbyLetters.length,
-                inTransitCount: state.totalInTransitCount,
-                mapUsersCount: state.mapUsers.length,
-                period: period,
-                mapLanguageLabel: MapConfig.mapLanguageLabel(mapLangCode),
-                isUnifiedLanguageMode: MapConfig.isUnifiedLanguageMode,
-                mapProviderLabel: MapConfig.tileProviderLabel,
-                showTowerLabels: _showTowerLabels,
-                currentZoom: _lastKnownZoom,
-                onToggleNearby: () =>
-                    setState(() => _showNearbyOnly = !_showNearbyOnly),
-              ),
+              child: const _MapHeader(),
             ),
             // ── 근처 도착 배너 (experienced 레벨 이상에서만) ─────────────
             // 브랜드도 줍기 가능해져서 `!isBrand` 조건 제거.
@@ -2428,373 +2411,41 @@ class _UnreadDeliveredMarker extends StatelessWidget {
 
 // ── 상단 헤더 ──────────────────────────────────────────────────────────────────
 class _MapHeader extends StatelessWidget {
-  final AppL10n l10n;
-  final bool showNearbyOnly;
-  final int letterCount;
-  final int nearbyCount;
-  final int inTransitCount;
-  final int mapUsersCount;
-  final TimeOfDayPeriod period;
-  final String mapLanguageLabel;
-  final bool isUnifiedLanguageMode;
-  final String mapProviderLabel;
-  final bool showTowerLabels;
-  final double currentZoom;
-  final VoidCallback onToggleNearby;
-
-  const _MapHeader({
-    required this.l10n,
-    required this.showNearbyOnly,
-    required this.letterCount,
-    required this.nearbyCount,
-    required this.inTransitCount,
-    required this.mapUsersCount,
-    required this.period,
-    required this.mapLanguageLabel,
-    required this.isUnifiedLanguageMode,
-    required this.mapProviderLabel,
-    required this.showTowerLabels,
-    required this.currentZoom,
-    required this.onToggleNearby,
-  });
-
-  String get _periodLabel {
-    switch (period) {
-      case TimeOfDayPeriod.morning:
-        return '🌅 ${l10n.mapDawn}';
-      case TimeOfDayPeriod.day:
-        return '☀️ ${l10n.mapDay}';
-      case TimeOfDayPeriod.evening:
-        return '🌆 ${l10n.mapEvening}';
-      case TimeOfDayPeriod.night:
-        return '🌙 ${l10n.mapNight}';
-    }
-  }
+  // 지도 상단 헤더는 "Letter Go" 앱 이름만 표시. 통계·LIVE·글로벌흐름 등은
+  // 바텀 칩 / 프로필 / 설정 경로로 이동. 시각 정보 부하를 줄여 지도 자체에
+  // 집중하게 하기 위함.
+  const _MapHeader();
 
   @override
   Widget build(BuildContext context) {
+    // 지도 상단은 시각적으로 최대한 비워두고 앱 이름만 노출.
+    // 통계·LIVE·글로벌흐름·맵메타 칩은 모두 다른 진입점(프로필 XP, 바텀 탭
+    // 하단 칩, 설정)에서 확인 가능하므로 헤더에서 제거.
     final timeColors = AppTimeColors.of(context);
-    final socialProofLabel = mapUsersCount > 0
-        ? 'LIVE ${l10n.mapLiveExploring(mapUsersCount, inTransitCount)}'
-        : 'LIVE ${l10n.mapSyncingData}';
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            timeColors.bgDeep.withValues(alpha: 0.97),
+            timeColors.bgDeep.withValues(alpha: 0.55),
             timeColors.bgDeep.withValues(alpha: 0.0),
           ],
-          stops: const [0.55, 1.0],
+          stops: const [0.4, 1.0],
         ),
       ),
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
-            decoration: BoxDecoration(
-              color: timeColors.bgCard.withValues(alpha: 0.82),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: timeColors.accent.withValues(alpha: 0.22),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.28),
-                  blurRadius: 14,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 8),
+          child: const Text(
+            'Letter Go',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.5,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    // 시간대 + 앱 이름
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _periodLabel,
-                          style: TextStyle(
-                            color: timeColors.accent,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        const Text(
-                          'Letter Go',
-                          style: TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Spacer(),
-                    // GLOBAL FLOW 카드 (Stitch AI 추천)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0D1421).withValues(alpha: 0.78),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppColors.teal.withValues(alpha: 0.35),
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            l10n.labelGlobalFlow,
-                            style: TextStyle(
-                              color: AppColors.teal,
-                              fontSize: 8,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1.5,
-                            ),
-                          ),
-                          const SizedBox(height: 1),
-                          Text(
-                            '$inTransitCount',
-                            style: const TextStyle(
-                              color: AppColors.textPrimary,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w900,
-                              height: 1.0,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 7,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.teal.withValues(alpha: 0.13),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: AppColors.teal.withValues(alpha: 0.35),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: AppColors.teal,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          socialProofLabel,
-                          style: const TextStyle(
-                            color: AppColors.teal,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: [
-                    if (isUnifiedLanguageMode)
-                      _MapMetaChip(
-                        icon: Icons.translate_rounded,
-                        text: '${l10n.mapMapLanguage}: $mapLanguageLabel',
-                      ),
-                    _MapMetaChip(
-                      icon: Icons.layers_rounded,
-                      text:
-                          '$mapProviderLabel · ${l10n.mapZoom} ${currentZoom.toStringAsFixed(1)}',
-                    ),
-                    _MapMetaChip(
-                      icon: Icons.location_city_rounded,
-                      text: showTowerLabels ? '${l10n.mapTowerLabel} ON' : '${l10n.mapTowerLabel} OFF',
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                // 통계 칩
-                Row(
-                  children: [
-                    _StatChip(
-                      label: '✈️ $inTransitCount',
-                      color: AppColors.teal,
-                      active: !showNearbyOnly,
-                      onTap: onToggleNearby,
-                      tooltip: l10n.mapInTransitLetters,
-                    ),
-                    const SizedBox(width: 6),
-                    _StatChip(
-                      label: '📍 $nearbyCount',
-                      color: AppColors.gold,
-                      active: showNearbyOnly,
-                      onTap: onToggleNearby,
-                      tooltip: l10n.mapNearby2km,
-                    ),
-                    const SizedBox(width: 6),
-                    _StatChip(
-                      label: '🌍 $letterCount',
-                      color: AppColors.textMuted,
-                      active: false,
-                      onTap: null,
-                      tooltip: l10n.mapAllLetters,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MapMetaChip extends StatelessWidget {
-  final IconData icon;
-  final String text;
-
-  const _MapMetaChip({required this.icon, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(minHeight: 28),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard.withValues(alpha: 0.75),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.textMuted.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: AppColors.textMuted),
-          const SizedBox(width: 4),
-          Text(
-            text,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatChip extends StatelessWidget {
-  final String label;
-  final Color color;
-  final bool active;
-  final VoidCallback? onTap;
-  final String tooltip;
-
-  const _StatChip({
-    required this.label,
-    required this.color,
-    required this.active,
-    required this.onTap,
-    this.tooltip = '',
-  });
-
-  void _showTooltip(BuildContext ctx) {
-    if (tooltip.isEmpty) return;
-    final overlay = Overlay.of(ctx).context.findRenderObject() as RenderBox;
-    final box = ctx.findRenderObject() as RenderBox?;
-    final pos =
-        box?.localToGlobal(Offset.zero, ancestor: overlay) ?? Offset.zero;
-    final entry = OverlayEntry(
-      builder: (_) => Positioned(
-        left: pos.dx,
-        top: pos.dy + 36,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.bgCard,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: color.withValues(alpha: 0.4)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.4),
-                  blurRadius: 8,
-                ),
-              ],
-            ),
-            child: Text(
-              tooltip,
-              style: TextStyle(
-                color: color,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-    Overlay.of(ctx).insert(entry);
-    Future.delayed(const Duration(seconds: 2), entry.remove);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        if (tooltip.isNotEmpty) _showTooltip(context);
-        onTap?.call();
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: active
-              ? color.withValues(alpha: 0.15)
-              : AppColors.bgCard.withValues(alpha: 0.80),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: active
-                ? color.withValues(alpha: 0.5)
-                : AppColors.textMuted.withValues(alpha: 0.15),
-            width: 1,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: active ? color : AppColors.textMuted,
-            fontSize: 12,
-            fontWeight: active ? FontWeight.w700 : FontWeight.w500,
           ),
         ),
       ),
