@@ -1802,53 +1802,152 @@ class _LetterReadScreenState extends State<LetterReadScreen>
 
   /// 🎁 쿠폰/교환권 사용 안내 박스 — 브랜드가 composeBrandRedemptionLabel
   /// 필드에 입력한 자유 텍스트를 본문 아래 티일 강조 박스로 보여준다.
-  /// URL · 할인코드 · 매장 사용법 등 수신자가 혜택을 실제로 사용하는 동선을
-  /// 명확히 만들기 위한 핵심 UI (편지 줍기 → 혜택 사용 전환률 대폭 상승).
+  /// 하단에 "🎫 사용 완료" 버튼 추가 (Build 108) — 수신자가 혜택을 실제로
+  /// 쓰고 나면 탭해서 영구적으로 "사용됨" 으로 표시. 브랜드 측에서 전환율
+  /// 집계에 활용 가능 (같은 디바이스 기준 로컬, 서버 집계는 후속).
   Widget _buildRedemptionBox(BuildContext ctx, Letter letter) {
     final l10n = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.teal.withValues(alpha: 0.14),
-            AppColors.teal.withValues(alpha: 0.04),
+    return Builder(builder: (inner) {
+      final state = inner.watch<AppState>();
+      final redeemed = state.isLetterRedeemed(letter.id);
+      return Container(
+        margin: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: redeemed
+                ? [
+                    const Color(0xFF4A5A75).withValues(alpha: 0.22),
+                    const Color(0xFF4A5A75).withValues(alpha: 0.08),
+                  ]
+                : [
+                    AppColors.teal.withValues(alpha: 0.14),
+                    AppColors.teal.withValues(alpha: 0.04),
+                  ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: redeemed
+                ? const Color(0xFF4A5A75).withValues(alpha: 0.45)
+                : AppColors.teal.withValues(alpha: 0.45),
+            width: 1.2,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    redeemed
+                        ? l10n.letterReadRedemptionUsedHeader
+                        : l10n.letterReadRedemptionHeader,
+                    style: TextStyle(
+                      color: redeemed
+                          ? AppColors.textMuted
+                          : AppColors.teal,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+                if (redeemed)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.teal.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.check_circle_rounded,
+                          size: 12,
+                          color: AppColors.teal,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          l10n.letterReadRedemptionUsedBadge,
+                          style: const TextStyle(
+                            color: AppColors.teal,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            SelectableText(
+              letter.redemptionInfo ?? '',
+              style: TextStyle(
+                color: redeemed
+                    ? AppColors.textMuted
+                    : AppColors.textPrimary,
+                fontSize: 14,
+                height: 1.45,
+                fontWeight: FontWeight.w600,
+                decoration: redeemed
+                    ? TextDecoration.lineThrough
+                    : TextDecoration.none,
+                decorationColor: AppColors.textMuted.withValues(alpha: 0.5),
+              ),
+            ),
+            if (!redeemed) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    await ctx.read<AppState>().markLetterRedeemed(letter.id);
+                    if (!inner.mounted) return;
+                    ScaffoldMessenger.of(inner).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          l10n.letterReadRedemptionMarkedToast,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        backgroundColor: AppColors.teal,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.check_circle_outline_rounded, size: 16),
+                  label: Text(
+                    l10n.letterReadRedemptionMarkUsed,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.teal,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: AppColors.teal.withValues(alpha: 0.45),
-          width: 1.2,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.letterReadRedemptionHeader,
-            style: const TextStyle(
-              color: AppColors.teal,
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(height: 8),
-          SelectableText(
-            letter.redemptionInfo ?? '',
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 14,
-              height: 1.45,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
+      );
+    });
   }
 
   /// 브랜드 발송인이 "답장 받지 않음" 으로 설정한 편지에 표시되는 안내.

@@ -1006,6 +1006,34 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
+  // ── 쿠폰 사용 완료 추적 (Build 108) ─────────────────────────────────────
+  // 수신자가 편지 안 할인 코드·링크를 실제로 써서 "사용 완료" 버튼을 누르면
+  // letterId 가 이 set 에 들어간다. SharedPreferences 로 영속. 브랜드 쪽에서
+  // 자기 편지들 중 얼마나 사용됐는지 집계해 편지 카드에 배지 노출 가능.
+  // 서버 동기화·브랜드 대시보드 대용량 집계는 후속 작업 — 현재는 로컬 추적만.
+  final Set<String> _redeemedLetterIds = {};
+  bool isLetterRedeemed(String letterId) =>
+      _redeemedLetterIds.contains(letterId);
+
+  /// 편지의 쿠폰/링크를 실제로 사용했음을 표시 (단방향 — 한번 사용 → 계속 사용됨).
+  Future<void> markLetterRedeemed(String letterId) async {
+    if (letterId.isEmpty) return;
+    if (_redeemedLetterIds.contains(letterId)) return;
+    _redeemedLetterIds.add(letterId);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      'redeemedLetterIds',
+      _redeemedLetterIds.toList(),
+    );
+    notifyListeners();
+  }
+
+  /// 브랜드 대시보드 용 — 내가 보낸 편지 중 몇 통이 사용됐는지 (동일 디바이스 기준).
+  int get myRedeemedSentCount {
+    if (!_currentUser.isBrand) return 0;
+    return _sent.where((l) => _redeemedLetterIds.contains(l.id)).length;
+  }
+
   // ── 임시 차단 (신고 접수 → 관리자 검토 전까지) ──────────────────────────────
   final Set<String> _tempBlockedSenderIds = {};
   Set<String> get tempBlockedSenderIds =>
@@ -1806,6 +1834,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // 유저가 뮤트한 브랜드 복원
     _mutedBrandIds.clear();
     _mutedBrandIds.addAll(prefs.getStringList('mutedBrandIds') ?? []);
+
+    // 쿠폰 사용 완료 복원
+    _redeemedLetterIds.clear();
+    _redeemedLetterIds.addAll(prefs.getStringList('redeemedLetterIds') ?? []);
 
     // 잠금 해제 카운터 복원
     _sentSinceLastUnlock = prefs.getInt('sentSinceLastUnlock') ?? 0;

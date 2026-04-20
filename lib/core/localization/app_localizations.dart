@@ -13292,6 +13292,75 @@ class AppL10n {
     'th': 'จดหมายใหม่จากแบรนด์นี้จะไม่เข้ากล่อง',
   });
 
+  // 🎫 쿠폰 사용 완료 관련 — Build 108 추가
+  String get letterReadRedemptionMarkUsed => _t({
+    'ko': '🎫 사용 완료 표시',
+    'en': '🎫 Mark as used',
+    'ja': '🎫 使用済みにする',
+    'zh': '🎫 标记为已使用',
+    'fr': '🎫 Marquer comme utilisé',
+    'de': '🎫 Als verwendet markieren',
+    'es': '🎫 Marcar como usado',
+    'pt': '🎫 Marcar como usado',
+    'ru': '🎫 Отметить использованным',
+    'tr': '🎫 Kullanıldı olarak işaretle',
+    'ar': '🎫 وضع علامة مستخدم',
+    'it': '🎫 Segna come usato',
+    'hi': '🎫 उपयोग किया गया चिह्न',
+    'th': '🎫 ทำเครื่องหมายว่าใช้แล้ว',
+  });
+
+  String get letterReadRedemptionUsedHeader => _t({
+    'ko': '사용 완료된 혜택',
+    'en': 'Already redeemed',
+    'ja': '使用済みの特典',
+    'zh': '已使用的优惠',
+    'fr': 'Déjà utilisé',
+    'de': 'Bereits eingelöst',
+    'es': 'Ya canjeado',
+    'pt': 'Já utilizado',
+    'ru': 'Уже использовано',
+    'tr': 'Kullanıldı',
+    'ar': 'تم استخدامه',
+    'it': 'Già usato',
+    'hi': 'उपयोग किया गया',
+    'th': 'ใช้แล้ว',
+  });
+
+  String get letterReadRedemptionUsedBadge => _t({
+    'ko': '사용됨',
+    'en': 'Used',
+    'ja': '使用済み',
+    'zh': '已使用',
+    'fr': 'Utilisé',
+    'de': 'Verwendet',
+    'es': 'Usado',
+    'pt': 'Usado',
+    'ru': 'Использовано',
+    'tr': 'Kullanıldı',
+    'ar': 'مستخدم',
+    'it': 'Usato',
+    'hi': 'उपयोग',
+    'th': 'ใช้แล้ว',
+  });
+
+  String get letterReadRedemptionMarkedToast => _t({
+    'ko': '사용 완료로 표시했어요',
+    'en': 'Marked as used',
+    'ja': '使用済みにしました',
+    'zh': '已标记为使用',
+    'fr': 'Marqué comme utilisé',
+    'de': 'Als verwendet markiert',
+    'es': 'Marcado como usado',
+    'pt': 'Marcado como utilizado',
+    'ru': 'Отмечено как использованное',
+    'tr': 'Kullanıldı olarak işaretlendi',
+    'ar': 'تم الوضع كمستخدم',
+    'it': 'Contrassegnato come usato',
+    'hi': 'उपयोग किया गया चिह्नित',
+    'th': 'ทำเครื่องหมายแล้ว',
+  });
+
   // 수신자 측 편지 읽기 화면 쿠폰 박스
   String get letterReadRedemptionHeader => _t({
     'ko': '🎁 사용 방법',
