@@ -284,12 +284,20 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                                 letter.senderIsBrand &&
                                 !letter.acceptsReplies)
                               _buildBrandNoReplyNotice(context),
-                            // 🔕 브랜드 뮤트 버튼 — 브랜드 발송일 때만 노출.
+                            // ❤️/🔕 브랜드 팔로우·뮤트 쌍 — 브랜드 발송일 때만 노출.
                             // 본인 발송 편지(sent 탭)에는 보이지 않도록 `senderId != myId` 체크.
+                            // Build 115: follow 토글 추가 (뮤트 반대 개념).
                             if (_isOpened &&
                                 letter.senderIsBrand &&
                                 letter.senderId != context.read<AppState>().currentUser.id)
-                              _buildMuteBrandButton(context, letter),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  _buildFollowBrandButton(context, letter),
+                                  const SizedBox(width: 8),
+                                  _buildMuteBrandButton(context, letter),
+                                ],
+                              ),
                             const SizedBox(height: 40),
                           ],
                         ),
@@ -1701,6 +1709,52 @@ class _LetterReadScreenState extends State<LetterReadScreen>
         ],
       ),
     );
+  }
+
+  /// ❤️ "브랜드 팔로우" 토글 — 뮤트의 반대 (Build 115).
+  /// 팔로우된 브랜드는 인박스 상단에 해당 브랜드 편지가 고정된다.
+  /// 팔로우와 뮤트는 상호배타 — 팔로우 시 뮤트 자동 해제.
+  Widget _buildFollowBrandButton(BuildContext ctx, Letter letter) {
+    final l10n = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
+    return Builder(builder: (inner) {
+      final state = inner.watch<AppState>();
+      final followed = state.isBrandFollowed(letter.senderId);
+      return TextButton.icon(
+        icon: Icon(
+          followed ? Icons.favorite : Icons.favorite_border,
+          size: 16,
+          color: followed ? AppColors.gold : AppColors.textMuted,
+        ),
+        label: Text(
+          followed ? l10n.letterReadUnfollowBrand : l10n.letterReadFollowBrand,
+          style: TextStyle(
+            color: followed ? AppColors.gold : AppColors.textMuted,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        onPressed: () async {
+          await ctx.read<AppState>().toggleBrandFollow(letter.senderId);
+          if (!inner.mounted) return;
+          // 방금 팔로우한 경우에만 토스트 — 해제 시 조용히.
+          if (!followed) {
+            ScaffoldMessenger.of(inner).showSnackBar(
+              SnackBar(
+                content: Text(
+                  l10n.letterReadFollowedToast,
+                  style: const TextStyle(color: Colors.white),
+                ),
+                backgroundColor: const Color(0xFF1A1A2A),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            );
+          }
+        },
+      );
+    });
   }
 
   /// 🔕 "이 브랜드 편지 받지 않기" 텍스트 버튼 — 스팸 방지 도구.

@@ -1727,6 +1727,16 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 ),
               ),
             );
+            // Build 115: 생애 첫 픽업이면 축하 모달을 띄운다. 포스트프레임으로
+            // 밀어 snackbar 애니메이션과 겹치지 않게 한다. 한번 소진하면
+            // SharedPreferences 에 저장되어 다시 뜨지 않음.
+            if (state.shouldCelebrateFirstPickup) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!ctx.mounted) return;
+                _showFirstPickupCelebration(ctx, l10n);
+                state.acknowledgeFirstPickup();
+              });
+            }
           } else {
             ScaffoldMessenger.of(ctx).showSnackBar(
               SnackBar(
@@ -1740,6 +1750,73 @@ class _WorldMapScreenState extends State<WorldMapScreen>
             );
           }
         },
+      ),
+    );
+  }
+
+  /// Build 115: 첫 픽업 축하 다이얼로그 — 3단 개봉 애니·햅틱에 이어
+  /// 사용자에게 "이게 루프다" 를 알려주는 한 번뿐의 모먼트. 소진되면
+  /// `acknowledgeFirstPickup` 으로 영구 비활성.
+  void _showFirstPickupCelebration(BuildContext ctx, AppL10n l10n) {
+    showDialog(
+      context: ctx,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.bgCard,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Text('🗺', style: TextStyle(fontSize: 52)),
+            const SizedBox(height: 14),
+            Text(
+              l10n.firstPickupCelebrationTitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              l10n.firstPickupCelebrationBody,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 13,
+                height: 1.55,
+              ),
+            ),
+          ],
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.gold,
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 26,
+                vertical: 10,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            child: Text(
+              l10n.firstPickupCelebrationCta,
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

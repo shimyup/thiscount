@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../progression/user_progress.dart';
+import '../hunt_wallet/hunt_wallet_card.dart';
 import '../journey/journey_card.dart';
 import '../reflection/weekly_reflection_card.dart';
 import '../streak/streak_badge.dart';
@@ -839,9 +840,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           // ① 4열 스탯 (A+C)
                           _buildFourStatRow(ctx, state, user),
                           const SizedBox(height: 10),
-                          // 주간 챌린지 카드와 이번 달의 도시 카드는 Build 110 에서
-                          // 제거됨 — 헌트 포지셔닝과 맞지 않는 발송 중심 CTA 였음.
-                          // ①-3 나의 여정 카드 — 누적 지표가 있을 때만 표시
+                          // ①-1 나의 헌트 기록 — Build 115 신규. "이번 달
+                          // 얼마나 벌었나?" 감각을 만드는 메인 지표 카드.
+                          const HuntWalletCard(
+                            margin: EdgeInsets.symmetric(horizontal: 16),
+                          ),
+                          const SizedBox(height: 10),
+                          // ①-2 나의 여정 카드 — 누적 지표가 있을 때만 표시
                           const JourneyCard(
                             margin: EdgeInsets.symmetric(horizontal: 16),
                           ),

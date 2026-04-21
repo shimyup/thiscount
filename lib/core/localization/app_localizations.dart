@@ -13243,6 +13243,193 @@ class AppL10n {
     'th': 'เช่น ใส่ LETTERGO20 ตอนชำระ',
   });
 
+  // ─────────────────────────────────────────────────────────────────────
+  // Build 115 — 소비자 감사 기반 4개 신규 기능. 각 키 묶음 앞에 용도 명시.
+  // ─────────────────────────────────────────────────────────────────────
+
+  // 1) 프로필 "나의 헌트 기록" 카드 (HuntWalletCard)
+  String get huntWalletTitle => _t({
+    'ko': '나의 헌트 기록', 'en': 'My Hunt Log', 'ja': '私のハント記録',
+    'zh': '我的寻宝记录', 'fr': 'Mon journal de chasse', 'de': 'Mein Jagdprotokoll',
+    'es': 'Mi registro de caza', 'pt': 'Meu registro de caça',
+    'ru': 'Моя охотничья запись', 'tr': 'Avcılık kaydım',
+    'ar': 'سجل صيدي', 'it': 'Il mio diario di caccia',
+    'hi': 'मेरा शिकार लॉग', 'th': 'บันทึกการล่าของฉัน',
+  });
+  String get huntWalletPickupsMonth => _t({
+    'ko': '이번 달 픽업', 'en': 'Pickups this month', 'ja': '今月のピックアップ',
+    'zh': '本月拾取', 'fr': 'Ramassées ce mois', 'de': 'Diesen Monat',
+    'es': 'Recogidas este mes', 'pt': 'Apanhadas este mês',
+    'ru': 'Собрано в месяц', 'tr': 'Bu ay toplandı',
+    'ar': 'التقطت هذا الشهر', 'it': 'Raccolte questo mese',
+    'hi': 'इस महीने', 'th': 'เดือนนี้',
+  });
+  String get huntWalletRedeemedMonth => _t({
+    'ko': '이번 달 사용', 'en': 'Redeemed this month', 'ja': '今月使用',
+    'zh': '本月已使用', 'fr': 'Utilisées ce mois', 'de': 'Eingelöst diesen Monat',
+    'es': 'Canjeadas este mes', 'pt': 'Usadas este mês',
+    'ru': 'Использовано в месяц', 'tr': 'Bu ay kullanıldı',
+    'ar': 'استُخدمت هذا الشهر', 'it': 'Riscattate questo mese',
+    'hi': 'इस महीने उपयोग', 'th': 'ใช้เดือนนี้',
+  });
+  String get huntWalletTotalPickups => _t({
+    'ko': '누적 픽업', 'en': 'Total pickups', 'ja': '累計ピックアップ',
+    'zh': '累计拾取', 'fr': 'Total ramassées', 'de': 'Gesamt aufgenommen',
+    'es': 'Total recogidas', 'pt': 'Total apanhadas',
+    'ru': 'Всего собрано', 'tr': 'Toplam toplanan',
+    'ar': 'الإجمالي', 'it': 'Totale raccolte',
+    'hi': 'कुल पिकअप', 'th': 'รวมทั้งหมด',
+  });
+  String get huntWalletTotalRedemptions => _t({
+    'ko': '누적 사용', 'en': 'Total redemptions', 'ja': '累計使用',
+    'zh': '累计使用', 'fr': 'Total utilisées', 'de': 'Gesamt eingelöst',
+    'es': 'Total canjeadas', 'pt': 'Total usadas',
+    'ru': 'Всего использовано', 'tr': 'Toplam kullanılan',
+    'ar': 'إجمالي الاستخدام', 'it': 'Totale riscattate',
+    'hi': 'कुल उपयोग', 'th': 'รวมใช้',
+  });
+  String get huntWalletEmpty => _t({
+    'ko': '아직 주운 편지가 없어요. 지도에서 찾아보세요!',
+    'en': 'No letters picked up yet. Open the map and hunt!',
+    'ja': 'まだ拾った手紙はありません。地図で探しましょう！',
+    'zh': '还没有拾起信件。打开地图找找看！',
+    'fr': "Aucune lettre ramassée. Ouvre la carte et chasse !",
+    'de': 'Noch keine Briefe. Öffne die Karte und jag!',
+    'es': '¡Aún no has recogido cartas. Abre el mapa y caza!',
+    'pt': 'Ainda sem cartas. Abre o mapa e caça!',
+    'ru': 'Ещё ничего не собрано. Откройте карту и начните охоту!',
+    'tr': 'Henüz mektup yok. Haritayı aç ve avlan!',
+    'ar': 'لم تلتقط أي رسالة بعد. افتح الخريطة وابدأ الصيد!',
+    'it': 'Nessuna lettera ancora. Apri la mappa e caccia!',
+    'hi': 'अभी कुछ नहीं. नक्शा खोलो और शिकार करो!',
+    'th': 'ยังไม่มีจดหมาย เปิดแผนที่แล้วไปล่าเลย!',
+  });
+
+  // 2) 인박스 "만료 사이렌" 스트립
+  String expirySirenTitle(int n) => _t({
+    'ko': '⏰ $n장의 혜택이 24시간 안에 만료돼요',
+    'en': '⏰ $n benefit${n == 1 ? '' : 's'} expire in 24h',
+    'ja': '⏰ $n枚の特典が24時間以内に期限切れ',
+    'zh': '⏰ $n 张优惠将在 24 小时内过期',
+    'fr': "⏰ $n avantage${n == 1 ? '' : 's'} expire${n == 1 ? '' : 'nt'} dans 24h",
+    'de': '⏰ $n Vorteil${n == 1 ? '' : 'e'} läuft in 24h ab',
+    'es': '⏰ $n beneficio${n == 1 ? '' : 's'} expira${n == 1 ? '' : 'n'} en 24h',
+    'pt': '⏰ $n benefício${n == 1 ? '' : 's'} expira${n == 1 ? '' : 'm'} em 24h',
+    'ru': '⏰ $n выгод${n == 1 ? 'а' : ''} истекает за 24 ч',
+    'tr': '⏰ $n fayda 24 saat içinde sona eriyor',
+    'ar': '⏰ $n مزايا تنتهي خلال 24 ساعة',
+    'it': '⏰ $n vantagg${n == 1 ? 'io' : 'i'} scade${n == 1 ? '' : 'no'} in 24h',
+    'hi': '⏰ $n लाभ 24 घंटे में समाप्त',
+    'th': '⏰ สิทธิประโยชน์ $n รายการจะหมดใน 24 ชม.',
+  });
+  String get expirySirenCta => _t({
+    'ko': '지금 사용 →', 'en': 'Use now →', 'ja': '今すぐ使う →',
+    'zh': '立即使用 →', 'fr': 'Utiliser maintenant →', 'de': 'Jetzt nutzen →',
+    'es': 'Usar ahora →', 'pt': 'Usar já →', 'ru': 'Использовать →',
+    'tr': 'Şimdi kullan →', 'ar': 'استخدم الآن →', 'it': 'Usa ora →',
+    'hi': 'अभी उपयोग करें →', 'th': 'ใช้เลย →',
+  });
+
+  // 3) 인박스 빈 상태 근처 편지 카운터 (부제)
+  String inboxEmptyNearbyCount(int n) => _t({
+    'ko': '지금 근처에 $n통의 편지가 있어요',
+    'en': '$n letter${n == 1 ? '' : 's'} nearby right now',
+    'ja': '今、近くに$n通の手紙があります',
+    'zh': '附近有 $n 封信件',
+    'fr': '$n lettre${n == 1 ? '' : 's'} à proximité',
+    'de': '$n Brief${n == 1 ? '' : 'e'} in der Nähe',
+    'es': '$n carta${n == 1 ? '' : 's'} cerca',
+    'pt': '$n carta${n == 1 ? '' : 's'} por perto',
+    'ru': 'Рядом $n письм${n == 1 ? 'о' : 'а'}',
+    'tr': 'Yakınlarda $n mektup',
+    'ar': 'يوجد $n رسائل قربك الآن',
+    'it': '$n lettera${n == 1 ? '' : 'e'} vicino',
+    'hi': 'पास में $n पत्र हैं',
+    'th': 'ใกล้คุณมีจดหมาย $n ฉบับ',
+  });
+
+  // 4) 편지 읽기 화면 브랜드 팔로우 토글
+  String get letterReadFollowBrand => _t({
+    'ko': '브랜드 팔로우', 'en': 'Follow brand', 'ja': 'ブランドをフォロー',
+    'zh': '关注品牌', 'fr': 'Suivre la marque', 'de': 'Marke folgen',
+    'es': 'Seguir marca', 'pt': 'Seguir marca', 'ru': 'Подписаться',
+    'tr': 'Markayı takip et', 'ar': 'متابعة العلامة', 'it': 'Segui brand',
+    'hi': 'ब्रांड फ़ॉलो करें', 'th': 'ติดตามแบรนด์',
+  });
+  String get letterReadUnfollowBrand => _t({
+    'ko': '팔로우 해제', 'en': 'Unfollow', 'ja': 'フォロー解除',
+    'zh': '取消关注', 'fr': 'Ne plus suivre', 'de': 'Nicht mehr folgen',
+    'es': 'Dejar de seguir', 'pt': 'Deixar de seguir', 'ru': 'Отписаться',
+    'tr': 'Takipten çık', 'ar': 'إلغاء المتابعة', 'it': 'Smetti di seguire',
+    'hi': 'अनफ़ॉलो', 'th': 'เลิกติดตาม',
+  });
+  String get letterReadFollowedToast => _t({
+    'ko': '이 브랜드를 팔로우했어요',
+    'en': 'Following this brand',
+    'ja': 'このブランドをフォローしました',
+    'zh': '已关注此品牌',
+    'fr': 'Marque suivie',
+    'de': 'Marke gefolgt',
+    'es': 'Siguiendo esta marca',
+    'pt': 'A seguir esta marca',
+    'ru': 'Подписка оформлена',
+    'tr': 'Bu marka takipte',
+    'ar': 'متابعة العلامة',
+    'it': 'Stai seguendo questo brand',
+    'hi': 'ब्रांड फ़ॉलो किया',
+    'th': 'กำลังติดตามแบรนด์นี้',
+  });
+
+  // 5) 첫 픽업 축하 모달
+  String get firstPickupCelebrationTitle => _t({
+    'ko': '🎉 첫 편지를 주웠어요!',
+    'en': '🎉 First letter picked up!',
+    'ja': '🎉 最初の手紙を拾いました！',
+    'zh': '🎉 拾起你的第一封信！',
+    'fr': '🎉 Première lettre ramassée !',
+    'de': '🎉 Ersten Brief aufgehoben!',
+    'es': '🎉 ¡Primera carta recogida!',
+    'pt': '🎉 Primeira carta apanhada!',
+    'ru': '🎉 Первое письмо поднято!',
+    'tr': '🎉 İlk mektubunu topladın!',
+    'ar': '🎉 التقطت أول رسالة!',
+    'it': '🎉 Prima lettera raccolta!',
+    'hi': '🎉 पहला पत्र उठाया!',
+    'th': '🎉 เก็บจดหมายแรกแล้ว!',
+  });
+  String get firstPickupCelebrationBody => _t({
+    'ko': '이 동네에 흘린 혜택 편지를 계속 찾아보세요. 레벨이 오를수록 줍는 반경이 넓어져요.',
+    'en': 'Keep exploring — letters are dropped all around you. Every level you gain widens your pickup radius.',
+    'ja': 'この街に散らばる手紙を探し続けましょう。レベルが上がるほど拾える範囲が広がります。',
+    'zh': '继续探索——信件遍布你的周围。等级提升会扩大拾取范围。',
+    'fr': "Continue d'explorer — des lettres tombent autour de toi. Chaque niveau élargit ton rayon.",
+    'de': 'Erkunde weiter — überall in deiner Nähe fallen Briefe. Jedes Level vergrößert deinen Radius.',
+    'es': 'Sigue explorando: hay cartas por todas partes. Cada nivel amplía tu radio.',
+    'pt': 'Continua a explorar — caem cartas à tua volta. Cada nível amplia o teu raio.',
+    'ru': 'Продолжайте исследовать — письма падают вокруг вас. Каждый уровень расширяет радиус.',
+    'tr': 'Keşfetmeye devam et — etrafına mektuplar düşüyor. Her seviyede yarıçap artıyor.',
+    'ar': 'واصل الاستكشاف — الرسائل تتساقط حولك. كل مستوى يوسّع نطاقك.',
+    'it': 'Continua a esplorare — le lettere cadono ovunque. Ogni livello allarga il tuo raggio.',
+    'hi': 'खोजते रहो — तुम्हारे आसपास पत्र गिर रहे हैं। हर स्तर तुम्हारी रेंज बढ़ाता है।',
+    'th': 'สำรวจต่อไป — จดหมายตกอยู่รอบตัวคุณ ระดับยิ่งสูง รัศมียิ่งกว้าง',
+  });
+  String get firstPickupCelebrationCta => _t({
+    'ko': '계속 찾아보기',
+    'en': 'Keep hunting',
+    'ja': '続けて探す',
+    'zh': '继续寻找',
+    'fr': 'Continuer',
+    'de': 'Weiter suchen',
+    'es': 'Seguir cazando',
+    'pt': 'Continuar à caça',
+    'ru': 'Продолжить охоту',
+    'tr': 'Aramaya devam',
+    'ar': 'واصل الصيد',
+    'it': 'Continua',
+    'hi': 'शिकार जारी रखें',
+    'th': 'ล่าต่อ',
+  });
+
   // Build 113: 쿠폰/교환권 발송 시 본문 최소 20자 규칙 완화 — 브랜드가 짧은
   // 프로모 헤드라인 (예: "20% off this weekend!") 으로도 바로 보낼 수 있게.
   // 카테고리 패널 사용 방법 필드 아래 안내 라인에 표시.

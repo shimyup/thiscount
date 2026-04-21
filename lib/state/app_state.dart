@@ -1034,6 +1034,100 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     return _sent.where((l) => _redeemedLetterIds.contains(l.id)).length;
   }
 
+  // ── 브랜드 팔로우 (뮤트의 반대 — Build 115) ──────────────────────────────
+  // 관심 브랜드를 표시해두면 인박스 상단에 해당 브랜드 편지가 고정되고,
+  // 향후 신규 편지 알림 우선순위 판단에도 쓰일 수 있다. mute 와 상호배타 —
+  // follow 하면 mute 해제, mute 하면 follow 해제. 둘 다 SharedPreferences
+  // 영속.
+  final Set<String> _followedBrandIds = {};
+  Set<String> get followedBrandIds => Set.unmodifiable(_followedBrandIds);
+  bool isBrandFollowed(String senderId) =>
+      _followedBrandIds.contains(senderId);
+
+  Future<void> toggleBrandFollow(String senderId) async {
+    if (senderId.isEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    if (_followedBrandIds.contains(senderId)) {
+      _followedBrandIds.remove(senderId);
+    } else {
+      _followedBrandIds.add(senderId);
+      if (_mutedBrandIds.remove(senderId)) {
+        await prefs.setStringList('mutedBrandIds', _mutedBrandIds.toList());
+      }
+    }
+    await prefs.setStringList(
+      'followedBrandIds',
+      _followedBrandIds.toList(),
+    );
+    notifyListeners();
+  }
+
+  // ── 첫 픽업 축하 모먼트 (Build 115) ──────────────────────────────────────
+  // 신규 유저의 첫 편지 픽업은 온보딩-본격 사용 전환의 결정적 순간.
+  // 프로필/지도 어디서든 이 getter 가 true 면 축하 모달을 띄우고
+  // `acknowledgeFirstPickup()` 으로 플래그를 소진한다. 한 번 소진 후 다시
+  // true 되지 않음 (영구).
+  bool _hasCelebratedFirstPickup = false;
+  bool get shouldCelebrateFirstPickup =>
+      !_hasCelebratedFirstPickup && _myPickedUpLetterIds.isNotEmpty;
+
+  Future<void> acknowledgeFirstPickup() async {
+    if (_hasCelebratedFirstPickup) return;
+    _hasCelebratedFirstPickup = true;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('hasCelebratedFirstPickup', true);
+    notifyListeners();
+  }
+
+  // ── 헌트 지표 집계 (Build 115 "나의 헌트 기록" 카드용) ───────────────────
+  // 프로필 카드에서 "이번 달 얼마나 벌었나?" 감각을 만드는 핵심 수치. 쿠폰
+  // 편지만 카운트 — 일반 편지는 혜택 개념이 아님. arrivedAt 은 픽업 시점에
+  // 세팅되므로 월별 필터링의 기준 시각으로 쓴다.
+  DateTime get _startOfMonth {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, 1);
+  }
+
+  int get pickupsThisMonth => _inbox
+      .where((l) => l.arrivedAt != null && l.arrivedAt!.isAfter(_startOfMonth))
+      .length;
+
+  int get brandPickupsThisMonth => _inbox
+      .where((l) =>
+          l.senderIsBrand &&
+          l.arrivedAt != null &&
+          l.arrivedAt!.isAfter(_startOfMonth))
+      .length;
+
+  int get redemptionsThisMonth => _inbox
+      .where((l) =>
+          l.senderIsBrand &&
+          l.arrivedAt != null &&
+          l.arrivedAt!.isAfter(_startOfMonth) &&
+          _redeemedLetterIds.contains(l.id))
+      .length;
+
+  int get totalBrandPickups =>
+      _inbox.where((l) => l.senderIsBrand).length;
+  int get totalRedemptions => _redeemedLetterIds.length;
+
+  // ── 만료 임박 쿠폰 (Build 115 "만료 사이렌" 배너용) ────────────────────────
+  // 받은 브랜드 쿠폰·교환권 중 24h 이내 만료 + 미사용. 인박스 상단 빨간
+  // 배너로 FOMO 트리거. 일반 브랜드 편지는 제외 (혜택 개념 없음).
+  List<Letter> get expiringSoonLetters {
+    final now = DateTime.now();
+    final cutoff = now.add(const Duration(hours: 24));
+    return _inbox
+        .where((l) =>
+            l.senderIsBrand &&
+            l.category != LetterCategory.general &&
+            l.expiresAt != null &&
+            l.expiresAt!.isAfter(now) &&
+            l.expiresAt!.isBefore(cutoff) &&
+            !_redeemedLetterIds.contains(l.id))
+        .toList();
+  }
+
   // ── 임시 차단 (신고 접수 → 관리자 검토 전까지) ──────────────────────────────
   final Set<String> _tempBlockedSenderIds = {};
   Set<String> get tempBlockedSenderIds =>
@@ -1838,6 +1932,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // 쿠폰 사용 완료 복원
     _redeemedLetterIds.clear();
     _redeemedLetterIds.addAll(prefs.getStringList('redeemedLetterIds') ?? []);
+
+    // 브랜드 팔로우 복원
+    _followedBrandIds.clear();
+    _followedBrandIds.addAll(prefs.getStringList('followedBrandIds') ?? []);
+
+    // 첫 픽업 축하 소진 여부 복원
+    _hasCelebratedFirstPickup =
+        prefs.getBool('hasCelebratedFirstPickup') ?? false;
 
     // 잠금 해제 카운터 복원
     _sentSinceLastUnlock = prefs.getInt('sentSinceLastUnlock') ?? 0;

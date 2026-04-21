@@ -175,6 +175,22 @@ class _InboxScreenState extends State<InboxScreen>
     }).toList();
   }
 
+  // Build 115: 팔로우한 브랜드의 편지는 인박스 상단에 고정. stable sort 라
+  // 같은 follow/non-follow 그룹 내부의 시간 역순은 보존된다.
+  List<Letter> _sortFollowedFirst(AppState state, List<Letter> letters) {
+    if (state.followedBrandIds.isEmpty) return letters;
+    final followed = <Letter>[];
+    final rest = <Letter>[];
+    for (final l in letters) {
+      if (l.senderIsBrand && state.isBrandFollowed(l.senderId)) {
+        followed.add(l);
+      } else {
+        rest.add(l);
+      }
+    }
+    return [...followed, ...rest];
+  }
+
   void _toggleSearch() {
     setState(() {
       _searchMode = !_searchMode;
@@ -229,6 +245,61 @@ class _InboxScreenState extends State<InboxScreen>
                       ],
                     ),
                   ),
+                // 만료 사이렌 (Build 115) — 24h 이내 만료되는 쿠폰/교환권이
+                // 있을 때만 붉은 배너 노출. FOMO 를 이용해 즉시 사용 유도.
+                // 탭하면 탐험 탭으로 이동하지 않고 인박스 최상단으로 스크롤
+                // (따로 필터 추가 비용 피하기 위해 currently no-op).
+                Builder(builder: (ctx) {
+                  final expiring = state.expiringSoonLetters;
+                  if (expiring.isEmpty) return const SizedBox.shrink();
+                  final l10n = AppL10n.of(state.currentUser.languageCode);
+                  return Container(
+                    margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        colors: [
+                          const Color(0xFFFF5A4B).withValues(alpha: 0.18),
+                          const Color(0xFFFF8A5C).withValues(alpha: 0.10),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: const Color(0xFFFF5A4B).withValues(alpha: 0.55),
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            l10n.expirySirenTitle(expiring.length),
+                            style: const TextStyle(
+                              color: Color(0xFFFF8A5C),
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w800,
+                              height: 1.35,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          l10n.expirySirenCta,
+                          style: const TextStyle(
+                            color: Color(0xFFFF5A4B),
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
                 Builder(builder: (ctx) {
                   final newCount = state.inbox.where((l) => l.status == DeliveryStatus.delivered).length;
                   final transitCount = state.inbox.where((l) => l.status == DeliveryStatus.inTransit || l.status == DeliveryStatus.nearYou).length;
@@ -277,12 +348,16 @@ class _InboxScreenState extends State<InboxScreen>
                         letters: _applyFilter(
                           // 뮤트된 브랜드 편지는 인박스 리스트에서 숨김
                           // (카드 자체 제거 — 필터와 무관하게 모든 탭에서).
-                          state.inbox
-                              .where((l) => !(l.senderIsBrand &&
-                                  state.isBrandMuted(l.senderId)))
-                              .toList()
-                              .reversed
-                              .toList(),
+                          // Build 115: 팔로우한 브랜드 편지는 상단 고정.
+                          _sortFollowedFirst(
+                            state,
+                            state.inbox
+                                .where((l) => !(l.senderIsBrand &&
+                                    state.isBrandMuted(l.senderId)))
+                                .toList()
+                                .reversed
+                                .toList(),
+                          ),
                           filter: _inboxFilter,
                           isInbox: true,
                         ),
@@ -721,22 +796,32 @@ class _InboxTab extends StatelessWidget {
         ),
         if (letters.isEmpty)
           Expanded(
-            child: _EmptyState(
-              emoji: _emptyEmojiForFilter(activeFilter),
-              title: activeFilter == LetterFilterType.all
-                  ? l10n.inboxEmptyReceived
-                  : l10n.inboxEmptyForFilter(_filterName(activeFilter, l10n)),
-              subtitle: l10n.inboxEmptyReceivedSub,
-              // 헌트 모드(쿠폰·교환권·브랜드)에서는 편지 쓰기 대신 지도로
-              // 유도한다 — "없는 편지"를 사용자가 직접 주우러 가야 하므로.
-              ctaLabel: _isHuntFilter(activeFilter)
-                  ? l10n.emptyStateExploreCta
-                  : l10n.emptyStateWriteCta,
-              onCtaTap: () => _isHuntFilter(activeFilter)
-                  ? Navigator.of(context).pushNamedAndRemoveUntil(
-                      '/home', (route) => false)
-                  : Navigator.of(context).pushNamed('/compose'),
-            ),
+            child: Builder(builder: (ctx) {
+              // Build 115 — "지금 근처에 N통 있어요" 실시간 카운터를 부제에
+              // 덧붙여 empty state 가 "죽은 공간" 이 되지 않게 한다.
+              final state = ctx.read<AppState>();
+              final nearby = state.nearbyLetters.length;
+              final baseSub = l10n.inboxEmptyReceivedSub;
+              final sub = nearby > 0
+                  ? '$baseSub\n${l10n.inboxEmptyNearbyCount(nearby)}'
+                  : baseSub;
+              return _EmptyState(
+                emoji: _emptyEmojiForFilter(activeFilter),
+                title: activeFilter == LetterFilterType.all
+                    ? l10n.inboxEmptyReceived
+                    : l10n.inboxEmptyForFilter(_filterName(activeFilter, l10n)),
+                subtitle: sub,
+                // 헌트 모드(쿠폰·교환권·브랜드)에서는 편지 쓰기 대신 지도로
+                // 유도한다 — "없는 편지"를 사용자가 직접 주우러 가야 하므로.
+                ctaLabel: _isHuntFilter(activeFilter)
+                    ? l10n.emptyStateExploreCta
+                    : l10n.emptyStateWriteCta,
+                onCtaTap: () => _isHuntFilter(activeFilter)
+                    ? Navigator.of(context).pushNamedAndRemoveUntil(
+                        '/home', (route) => false)
+                    : Navigator.of(context).pushNamed('/compose'),
+              );
+            }),
           )
         else ...[
           // "🔒 3통 보내야 다음 읽기" 체인 배너 제거 — 답장 무제한 정책과
