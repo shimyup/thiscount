@@ -842,10 +842,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const SizedBox(height: 10),
                           // ①-1 나의 헌트 기록 — Build 115 신규. "이번 달
                           // 얼마나 벌었나?" 감각을 만드는 메인 지표 카드.
-                          const HuntWalletCard(
-                            margin: EdgeInsets.symmetric(horizontal: 16),
-                          ),
-                          const SizedBox(height: 10),
+                          // Brand 계정은 발송이 본업이라 픽업 지표가 비어있어
+                          // 오해를 주므로 숨김 (Build 117). 브랜드 전용 집계는
+                          // myRedeemedSentCount 등을 통한 별도 대시보드로
+                          // 후속에서 분리.
+                          if (!user.isBrand) ...[
+                            const HuntWalletCard(
+                              margin: EdgeInsets.symmetric(horizontal: 16),
+                            ),
+                            const SizedBox(height: 10),
+                          ],
                           // ①-2 나의 여정 카드 — 누적 지표가 있을 때만 표시
                           const JourneyCard(
                             margin: EdgeInsets.symmetric(horizontal: 16),

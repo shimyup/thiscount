@@ -1956,9 +1956,20 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _followedBrandIds.clear();
     _followedBrandIds.addAll(prefs.getStringList('followedBrandIds') ?? []);
 
-    // 첫 픽업 축하 소진 여부 복원
+    // 첫 픽업 축하 소진 여부 복원. Build 117 마이그레이션: Build 115 이전부터
+    // 이미 편지를 주운 사용자는 축하 키가 없으면서 픽업 이력이 있다. 그대로
+    // 두면 다음 실행에서 "첫 픽업!" 모달이 오발사하므로, 키 미존재 + prefs 의
+    // 픽업 이력이 비어있지 않으면 즉시 소진으로 백필. prefs 에서 직접 읽어서
+    // 로드 순서 의존성을 피한다 (`_myPickedUpLetterIds` 채워지는 시점이 뒤쪽).
     _hasCelebratedFirstPickup =
         prefs.getBool('hasCelebratedFirstPickup') ?? false;
+    if (!prefs.containsKey('hasCelebratedFirstPickup')) {
+      final prior = prefs.getStringList('myPickedUpLetterIds') ?? const [];
+      if (prior.isNotEmpty) {
+        _hasCelebratedFirstPickup = true;
+        await prefs.setBool('hasCelebratedFirstPickup', true);
+      }
+    }
 
     // 잠금 해제 카운터 복원
     _sentSinceLastUnlock = prefs.getInt('sentSinceLastUnlock') ?? 0;

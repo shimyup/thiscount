@@ -251,22 +251,24 @@ Map<String, List<String> Function(String, String)> _arrivedBodiesByLang = {
 
 // Daily "Today's Letter" reminder copy. One variant per language; the
 // notification repeats daily so rotating variants isn't worth the complexity
-// of re-scheduling per day.
+// of re-scheduling per day. Build 117: 펜팔식 "편지함 열어보세요" → 헌트식
+// "오늘의 쿠폰을 확인해봐요" 로 재정비. 마케팅 기획서 Build 113 의 Discovery
+// 메시지 축에 정렬.
 const Map<String, String> _dailyReminderTitles = {
-  'ko': '☀️ 오늘의 편지함을 열어보세요',
-  'en': "☀️ Today's letters are waiting",
-  'ja': '☀️ 今日の手紙を確認してみましょう',
-  'zh': '☀️ 今日的信件在等你',
-  'fr': "☀️ Vos lettres du jour vous attendent",
-  'de': '☀️ Heute warten neue Briefe',
-  'es': '☀️ Tus cartas de hoy te esperan',
-  'pt': '☀️ Suas cartas de hoje estão esperando',
-  'ru': '☀️ Сегодняшние письма ждут вас',
-  'tr': '☀️ Bugünkü mektuplarınız bekliyor',
-  'ar': '☀️ رسائل اليوم بانتظارك',
-  'it': '☀️ Le tue lettere di oggi ti aspettano',
-  'hi': '☀️ आज के पत्र आपका इंतज़ार कर रहे हैं',
-  'th': '☀️ จดหมายวันนี้กำลังรอคุณอยู่',
+  'ko': '🗺 오늘의 쿠폰을 확인해봐요',
+  'en': '🗺 Check today\'s coupon drops',
+  'ja': '🗺 今日のクーポンをチェック',
+  'zh': '🗺 看看今天的优惠',
+  'fr': "🗺 Regarde les coupons du jour",
+  'de': '🗺 Heutige Coupons checken',
+  'es': '🗺 Mira los cupones de hoy',
+  'pt': '🗺 Vê os cupões de hoje',
+  'ru': '🗺 Проверь сегодняшние купоны',
+  'tr': '🗺 Bugünün kuponlarına bak',
+  'ar': '🗺 تفقّد كوبونات اليوم',
+  'it': '🗺 Controlla i coupon di oggi',
+  'hi': '🗺 आज के कूपन देखो',
+  'th': '🗺 ดูคูปองวันนี้',
 };
 
 // Anticipation ping ~1h before the next incoming letter arrives.
@@ -308,21 +310,23 @@ String _arrivalCountdownBody(String langCode, String flag, String country) {
   }
 }
 
+// Build 117: 본문도 헌트 포지셔닝 — "누군가 편지를 보냈을지도" 에서 "근처
+// 지도를 열어보면 새 쿠폰이 있을지도" 로. 구체적인 액션 유도.
 const Map<String, String> _dailyReminderBodies = {
-  'ko': '지구 어딘가에서 누군가 당신에게 편지를 보냈을지도 몰라요',
-  'en': 'Someone, somewhere on Earth, may have written you a letter',
-  'ja': '地球のどこかで、誰かがあなたに手紙を書いたかもしれません',
-  'zh': '地球上的某处，也许有人给你写了一封信',
-  'fr': "Quelqu'un, quelque part sur Terre, vous a peut-être écrit",
-  'de': 'Irgendwo auf der Welt hat dir vielleicht jemand geschrieben',
-  'es': 'Alguien, en algún lugar del mundo, tal vez te haya escrito',
-  'pt': 'Alguém, em algum lugar do mundo, pode ter lhe escrito',
-  'ru': 'Где-то на Земле кто-то, возможно, написал вам письмо',
-  'tr': 'Dünyanın bir yerinde biri sana mektup yazmış olabilir',
-  'ar': 'ربما كتب لك أحدهم رسالة من مكان ما حول العالم',
-  'it': 'Qualcuno, da qualche parte nel mondo, potrebbe averti scritto',
-  'hi': 'दुनिया के किसी कोने से किसी ने आपको पत्र लिखा हो सकता है',
-  'th': 'อาจมีใครบางคนจากมุมโลกนี้เขียนจดหมายถึงคุณ',
+  'ko': '근처 지도에 새로 떨어진 할인·홍보 편지를 주워보세요',
+  'en': 'Open the map — discount letters may have dropped nearby',
+  'ja': '近くの地図を開いて、新しい割引・プロモ手紙を拾いましょう',
+  'zh': '打开附近地图，看看新落下的优惠信件',
+  'fr': "Ouvre la carte — des coupons sont peut-être tombés près de toi",
+  'de': 'Öffne die Karte — vielleicht warten neue Rabatt-Briefe in der Nähe',
+  'es': 'Abre el mapa — puede que haya cupones nuevos cerca de ti',
+  'pt': 'Abre o mapa — podem ter caído novos cupões perto de ti',
+  'ru': 'Откройте карту — рядом могли выпасть новые купонные письма',
+  'tr': 'Haritayı aç — yakınlarına yeni indirim mektupları düşmüş olabilir',
+  'ar': 'افتح الخريطة — ربما سقطت رسائل خصم قربك',
+  'it': 'Apri la mappa — potrebbero esserci nuovi coupon vicino a te',
+  'hi': 'नक्शा खोलो — पास में नए कूपन पत्र गिरे हो सकते हैं',
+  'th': 'เปิดแผนที่ — อาจมีจดหมายส่วนลดใหม่ตกอยู่ใกล้คุณ',
 };
 
 class NotificationService {

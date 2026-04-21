@@ -5167,21 +5167,24 @@ class AppL10n {
     'th': "แรงบันดาลใจวันนี้",
   });
 
+  // Build 117: 펜팔식 "처음 뵙겠어요" 자기소개 템플릿 → 헌트·브랜드 모두에
+  // 중립적인 열린 프롬프트로 교체. 브랜드는 프로모 헤드라인, 비브랜드는
+  // 메시지·인사를 자유롭게 쓰도록 유도.
   String get composeHint => _t({
-    'ko': '안녕하세요, 처음 뵙겠어요.\n저는 지금 이 편지를 쓰고 있는...',
-    'en': 'Hello, nice to meet you.\nI am writing this letter to...',
-    'ja': 'はじめまして。\n今この手紙を書いている...',
-    'zh': '你好，初次见面。\n我正在写这封信...',
-    'fr': 'Bonjour, enchanté(e).\nJ\'écris cette lettre pour...',
-    'de': 'Hallo, freut mich.\nIch schreibe diesen Brief...',
-    'es': 'Hola, mucho gusto.\nEstoy escribiendo esta carta...',
-    'pt': 'Olá, prazer em conhecê-lo.\nEstou escrevendo esta carta...',
-    'ru': 'Здравствуйте, приятно познакомиться.\nЯ пишу это письмо...',
-    'tr': 'Merhaba, tanıştığımıza memnun oldum.\nBu mektubu yazıyorum...',
-    'ar': 'مرحبًا، سعيد بلقائك.\nأنا أكتب هذه الرسالة...',
-    'it': 'Ciao, piacere di conoscerti.\nSto scrivendo questa lettera...',
-    'hi': 'नमस्ते, आपसे मिलकर खुशी हुई।\nमैं यह पत्र लिख रहा/रही हूं...',
-    'th': 'สวัสดี ยินดีที่ได้รู้จัก\nฉันกำลังเขียนจดหมายนี้...',
+    'ko': '이 편지에 담고 싶은 이야기를 적어보세요...',
+    'en': 'Write the message you want to send in this letter...',
+    'ja': 'この手紙で伝えたいことを書いてみましょう...',
+    'zh': '写下你想通过这封信传达的内容...',
+    'fr': "Écris ce que tu veux partager dans cette lettre...",
+    'de': 'Schreib, was du in diesem Brief mitteilen möchtest...',
+    'es': 'Escribe lo que quieres decir en esta carta...',
+    'pt': 'Escreve o que queres dizer nesta carta...',
+    'ru': 'Напишите, что хотите передать в этом письме...',
+    'tr': 'Bu mektupta paylaşmak istediklerini yaz...',
+    'ar': 'اكتب ما تودّ قوله في هذه الرسالة...',
+    'it': 'Scrivi ciò che vuoi dire in questa lettera...',
+    'hi': 'इस पत्र में जो संदेश भेजना चाहते हैं, लिखें...',
+    'th': 'เขียนสิ่งที่คุณอยากสื่อในจดหมายนี้...',
   });
 
   String get composeLinkAttach => _t({
