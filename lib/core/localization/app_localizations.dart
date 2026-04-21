@@ -13240,6 +13240,26 @@ class AppL10n {
     'th': 'เช่น ใส่ LETTERGO20 ตอนชำระ',
   });
 
+  // Build 113: 쿠폰/교환권 발송 시 본문 최소 20자 규칙 완화 — 브랜드가 짧은
+  // 프로모 헤드라인 (예: "20% off this weekend!") 으로도 바로 보낼 수 있게.
+  // 카테고리 패널 사용 방법 필드 아래 안내 라인에 표시.
+  String get composeBrandPromoBodyHint => _t({
+    'ko': '쿠폰·교환권은 본문을 짧게 써도 바로 보낼 수 있어요',
+    'en': 'Promo letters can be sent with just a short headline',
+    'ja': '割引・プロモは短いタイトルだけでも送れます',
+    'zh': '优惠信件只需简短标题即可发送',
+    'fr': 'Les lettres promo peuvent partir avec un simple titre court',
+    'de': 'Promo-Briefe gehen auch mit einer kurzen Überschrift raus',
+    'es': 'Las cartas promo pueden enviarse con solo un título corto',
+    'pt': 'Cartas promo podem ser enviadas só com um título curto',
+    'ru': 'Промо-письма можно отправить с коротким заголовком',
+    'tr': 'Promosyon mektupları kısa bir başlıkla da gönderilebilir',
+    'ar': 'يمكن إرسال رسائل العروض بعنوان قصير فقط',
+    'it': 'Le lettere promo possono partire con una breve intestazione',
+    'hi': 'प्रोमो पत्र केवल एक छोटे शीर्षक से भेजे जा सकते हैं',
+    'th': 'จดหมายโปรโมสามารถส่งด้วยหัวข้อสั้น ๆ ก็ได้',
+  });
+
   // 브랜드 뮤트 — 수신자가 "이 브랜드 편지 받지 않기" 선택 시.
   String get letterReadMuteBrand => _t({
     'ko': '이 브랜드 편지 받지 않기',

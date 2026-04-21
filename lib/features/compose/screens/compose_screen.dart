@@ -622,11 +622,17 @@ class _ComposeScreenState extends State<ComposeScreen>
   Future<void> _onSend(AppState state) async {
     final l10n = AppL10n.of(state.currentUser.languageCode);
     final content = _contentController.text.trim();
+    // Brand 가 쿠폰/교환권 카테고리로 보낼 때는 본문 대신 "사용 방법" 필드가
+    // 핵심 콘텐츠가 되므로 20자 최소 규칙을 완화. 본문은 여전히 비어선 안 되고
+    // (스낵바·알림·인박스 프리뷰에 쓰임) 1자 이상만 있으면 통과. 일반 편지는
+    // 기존 규칙(20자 이상) 유지.
+    final isBrandPromo = state.currentUser.isBrand &&
+        _brandCategory != LetterCategory.general;
     if (content.isEmpty) {
       _showError(l10n.composeEmptyError);
       return;
     }
-    if (content.length < 20) {
+    if (!isBrandPromo && content.length < 20) {
       _showError(l10n.composeMinLengthError(content.length));
       return;
     }
@@ -1200,6 +1206,15 @@ class _ComposeScreenState extends State<ComposeScreen>
                             if (!_isReply && !_isBulkMode)
                               _buildDestinationCard(state, hasPremium),
                             if (!_isReply && !_isBulkMode)
+                              const SizedBox(height: 8),
+                            // Brand 전용 — 카테고리 + 사용 방법 패널 (Build 113
+                            // 간편 발송). 기존엔 ExpansionTile 안쪽에 묻혀 있어
+                            // 브랜드가 쿠폰/교환권으로 드롭하려면 "더 많은 옵션"
+                            // 을 반드시 펼쳐야 했는데, 이제는 destination 바로
+                            // 아래에서 🎟/🎁/✉️ 중 하나를 한 탭으로 선택 가능.
+                            if (!_isReply && !_isBulkMode && isBrand)
+                              _buildBrandCategoryPanel(state),
+                            if (!_isReply && !_isBulkMode && isBrand)
                               const SizedBox(height: 8),
                             // Brand 전용 — 정확한 좌표 드롭 진입점
                             if (!_isReply && !_isBulkMode && isBrand)
@@ -2543,38 +2558,34 @@ class _ComposeScreenState extends State<ComposeScreen>
     );
   }
 
-  // ── 브랜드 고급 옵션 ──────────────────────────────────────────────────────
-  Widget _buildBrandOptions(AppState state) {
+  // ── 브랜드 편지 카테고리 패널 (본문 위 STEP) ────────────────────────────
+  // Build 113 에서 `_buildBrandOptions()` 의 상단 (카테고리 + 사용 방법) 을
+  // 이 메서드로 분리해 ExpansionTile 밖에서 노출. 브랜드는 "무엇을 드롭할지"
+  // (🎟 할인권 / 🎁 교환권 / ✉️ 일반) 를 destination 바로 아래에서 선택.
+  // 쿠폰·교환권일 때만 사용 방법 입력 필드가 함께 보인다. 나머지 고급 옵션
+  // (1-per-user · 답장 받기 · 자동 삭제) 은 `_buildBrandAdvancedOptions()`
+  // 로 이동.
+  Widget _buildBrandCategoryPanel(AppState state) {
     final l10n = AppL10n.of(state.currentUser.languageCode);
-    final expireOptions = <int?>[null, 12, 24, 48, 72];
-
-    String expireLabel(int? hours) {
-      if (hours == null) return l10n.composeBrandExpireOff;
-      if (hours == 12) return l10n.composeBrandExpire12h;
-      if (hours == 24) return l10n.composeBrandExpire24h;
-      if (hours == 48) return l10n.composeBrandExpire2d;
-      return l10n.composeBrandExpire3d;
-    }
-
     return Container(
       padding: const EdgeInsets.all(13),
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(13),
-        border: Border.all(color: const Color(0xFF1F2D44)),
+        border: Border.all(color: AppColors.teal.withValues(alpha: 0.35)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 헤더
+          // 헤더 — "어떤 편지인가요?" 느낌으로 카테고리 레이블만 사용
           Row(
             children: [
               const Text('🏢', style: TextStyle(fontSize: 15)),
               const SizedBox(width: 8),
               Text(
-                l10n.composeBrandOptions,
+                l10n.composeBrandCategoryLabel,
                 style: const TextStyle(
-                  color: AppColors.textSecondary,
+                  color: AppColors.textPrimary,
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                 ),
@@ -2582,18 +2593,6 @@ class _ComposeScreenState extends State<ComposeScreen>
             ],
           ),
           const SizedBox(height: 10),
-          // ── 편지 카테고리 ──────────────────────────────
-          // 수집첩(InboxScreen) 에서 필터링·쿠폰함 분류에 쓰이는 값. Brand 만
-          // 선택 가능. 기본값은 general (일반 편지).
-          Text(
-            l10n.composeBrandCategoryLabel,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 6),
           Row(
             children: [
               for (final c in LetterCategory.values) ...[
@@ -2604,7 +2603,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                     child: Container(
                       margin: const EdgeInsets.only(right: 6),
                       padding: const EdgeInsets.symmetric(
-                        vertical: 8,
+                        vertical: 10,
                         horizontal: 6,
                       ),
                       decoration: BoxDecoration(
@@ -2627,9 +2626,9 @@ class _ComposeScreenState extends State<ComposeScreen>
                                 : c == LetterCategory.voucher
                                     ? '🎁'
                                     : '✉️',
-                            style: const TextStyle(fontSize: 18),
+                            style: const TextStyle(fontSize: 20),
                           ),
-                          const SizedBox(height: 3),
+                          const SizedBox(height: 4),
                           Text(
                             c == LetterCategory.coupon
                                 ? l10n.composeBrandCategoryCoupon
@@ -2654,9 +2653,9 @@ class _ComposeScreenState extends State<ComposeScreen>
               ],
             ],
           ),
-          const SizedBox(height: 12),
-          // ── 쿠폰/교환권 사용 안내 (카테고리가 coupon/voucher 일 때만 노출) ──
+          // ── 쿠폰/교환권 사용 방법 (카테고리가 coupon/voucher 일 때만 노출) ──
           if (_brandCategory != LetterCategory.general) ...[
+            const SizedBox(height: 12),
             Text(
               l10n.composeBrandRedemptionLabel,
               style: const TextStyle(
@@ -2714,8 +2713,61 @@ class _ComposeScreenState extends State<ComposeScreen>
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 4),
+            // 쿠폰/교환권 발송 시 본문 최소 20자 완화 안내.
+            Text(
+              l10n.composeBrandPromoBodyHint,
+              style: const TextStyle(
+                color: AppColors.teal,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
+        ],
+      ),
+    );
+  }
+
+  // ── 브랜드 고급 옵션 (ExpansionTile 내부) ───────────────────────────────
+  Widget _buildBrandOptions(AppState state) {
+    final l10n = AppL10n.of(state.currentUser.languageCode);
+    final expireOptions = <int?>[null, 12, 24, 48, 72];
+
+    String expireLabel(int? hours) {
+      if (hours == null) return l10n.composeBrandExpireOff;
+      if (hours == 12) return l10n.composeBrandExpire12h;
+      if (hours == 24) return l10n.composeBrandExpire24h;
+      if (hours == 48) return l10n.composeBrandExpire2d;
+      return l10n.composeBrandExpire3d;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(13),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(13),
+        border: Border.all(color: const Color(0xFF1F2D44)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 헤더 — "브랜드 고급 옵션"
+          Row(
+            children: [
+              const Text('🏢', style: TextStyle(fontSize: 15)),
+              const SizedBox(width: 8),
+              Text(
+                l10n.composeBrandOptions,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
           // ── 1 아이디당 1 편지 ──
           GestureDetector(
             onTap: () => setState(() => _brandUniquePerUser = !_brandUniquePerUser),
