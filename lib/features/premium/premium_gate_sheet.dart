@@ -104,26 +104,66 @@ class PremiumGateSheet extends StatelessWidget {
               height: 1.6,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
 
-          // 가격 뱃지
+          // Build 150: 가격 카드 전면 개편 — 두 줄 구성으로 가치 제안 명확화.
+          // 1) 큰 글씨 가격 ("₩4,900 / 월")
+          // 2) 안심 문구 ("언제든 해지 · 광고 없음")
+          // 기존 작은 뱃지는 한 줄이라 눈에 잘 안 띈다는 페르소나 4 지적 반영.
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: BoxDecoration(
-              color: AppColors.gold.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
-            ),
-            child: Text(
-              l10n.premiumGatePriceLabel,
-              style: TextStyle(
-                color: AppColors.gold,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.gold.withValues(alpha: 0.18),
+                  AppColors.gold.withValues(alpha: 0.06),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: AppColors.gold.withValues(alpha: 0.45),
+                width: 1.2,
               ),
             ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  l10n.premiumGatePriceLabel,
+                  style: const TextStyle(
+                    color: AppColors.gold,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.check_circle_rounded,
+                      size: 13,
+                      color: AppColors.gold,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      l10n.premiumGateAssurance,
+                      style: TextStyle(
+                        color: AppColors.gold.withValues(alpha: 0.85),
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
           // 업그레이드 버튼
           SizedBox(

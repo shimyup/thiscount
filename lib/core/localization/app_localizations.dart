@@ -7611,6 +7611,24 @@ class AppL10n {
   // ── Premium Screen ──────────────────────────────────────────────────
   // ── premium_gate_sheet.dart ──
 
+  // Build 150: Premium Gate 가격 카드 안심 문구.
+  String get premiumGateAssurance => _t({
+    'ko': '언제든 해지 · 광고 없음',
+    'en': 'Cancel anytime · No ads',
+    'ja': 'いつでも解約可能 · 広告なし',
+    'zh': '随时取消 · 无广告',
+    'fr': 'Annulation à tout moment · Sans pub',
+    'de': 'Jederzeit kündbar · Keine Werbung',
+    'es': 'Cancela cuando quieras · Sin anuncios',
+    'pt': 'Cancela quando quiseres · Sem anúncios',
+    'ru': 'Отмена в любое время · Без рекламы',
+    'tr': 'İstediğin zaman iptal · Reklamsız',
+    'ar': 'إلغاء في أي وقت · بدون إعلانات',
+    'it': 'Cancella quando vuoi · Senza pubblicità',
+    'hi': 'कभी भी रद्द · बिना विज्ञापन',
+    'th': 'ยกเลิกเมื่อใดก็ได้ · ไม่มีโฆษณา',
+  });
+
   String get premiumGatePriceLabel => _t({
     'ko': '₩4,900 / 월',
     'en': '₩4,900 / mo',
