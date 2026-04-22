@@ -14384,6 +14384,143 @@ class AppL10n {
 
   // Build 137: 무료 유저가 "보내기" 탭 탭했을 때 뜨는 Premium 안내 시트 문구.
   // Free = 줍기 전용, Premium = 홍보 편지 발송의 가치 제안.
+  // Build 138: 브랜드 분석 대시보드 l10n.
+  String get brandAnalyticsTitle => _t({
+    'ko': '캠페인 분석',
+    'en': 'Campaign Analytics',
+    'ja': 'キャンペーン分析',
+    'zh': '活动分析',
+    'fr': 'Analyse de campagne',
+    'de': 'Kampagnen-Analyse',
+    'es': 'Análisis de campaña',
+    'pt': 'Análise de campanha',
+    'ru': 'Аналитика кампаний',
+    'tr': 'Kampanya Analizi',
+    'ar': 'تحليلات الحملة',
+    'it': 'Analisi campagna',
+    'hi': 'अभियान विश्लेषण',
+    'th': 'วิเคราะห์แคมเปญ',
+  });
+
+  String get brandAnalyticsOffline => _t({
+    'ko': '집계를 불러올 수 없어요. 네트워크 확인 후 다시 시도해주세요.',
+    'en': "Couldn't load analytics. Check network and retry.",
+    'ja': '集計を読み込めません。ネットワーク確認後に再試行してください。',
+    'zh': '无法加载数据。请检查网络后重试。',
+    'fr': 'Impossible de charger les analyses. Vérifiez le réseau.',
+    'de': 'Analysen nicht ladbar. Netzwerk prüfen.',
+    'es': 'No se pudo cargar. Revisa la red.',
+    'pt': 'Não foi possível carregar. Verifica a rede.',
+    'ru': 'Не удалось загрузить аналитику.',
+    'tr': 'Analitik yüklenemedi. Ağı kontrol edin.',
+    'ar': 'تعذّر تحميل التحليلات.',
+    'it': 'Impossibile caricare. Controlla la rete.',
+    'hi': 'डेटा लोड नहीं हुआ। नेटवर्क जांचें।',
+    'th': 'โหลดข้อมูลไม่สำเร็จ',
+  });
+
+  String get brandAnalyticsSent => _t({
+    'ko': '발송',
+    'en': 'Sent',
+    'ja': '発送',
+    'zh': '发送',
+    'fr': 'Envoyées',
+    'de': 'Versendet',
+    'es': 'Enviadas',
+    'pt': 'Enviadas',
+    'ru': 'Отправлено',
+    'tr': 'Gönderilen',
+    'ar': 'مرسلة',
+    'it': 'Inviate',
+    'hi': 'भेजे',
+    'th': 'ส่ง',
+  });
+
+  String get brandAnalyticsPicked => _t({
+    'ko': '픽업',
+    'en': 'Picked',
+    'ja': 'ピックアップ',
+    'zh': '拾取',
+    'fr': 'Ramassées',
+    'de': 'Aufgesammelt',
+    'es': 'Recogidas',
+    'pt': 'Apanhadas',
+    'ru': 'Собрано',
+    'tr': 'Toplanan',
+    'ar': 'مُلتَقط',
+    'it': 'Raccolte',
+    'hi': 'उठाए',
+    'th': 'เก็บ',
+  });
+
+  String get brandAnalyticsRedeemed => _t({
+    'ko': '사용',
+    'en': 'Used',
+    'ja': '使用',
+    'zh': '使用',
+    'fr': 'Utilisées',
+    'de': 'Genutzt',
+    'es': 'Usados',
+    'pt': 'Usados',
+    'ru': 'Использовано',
+    'tr': 'Kullanılan',
+    'ar': 'مستخدم',
+    'it': 'Usate',
+    'hi': 'उपयोग',
+    'th': 'ใช้',
+  });
+
+  String get brandAnalyticsPickupReach => _t({
+    'ko': '픽업률',
+    'en': 'Pickup reach',
+    'ja': 'ピックアップ率',
+    'zh': '拾取率',
+    'fr': 'Taux de ramassage',
+    'de': 'Aufsammel-Reichweite',
+    'es': 'Alcance de recogida',
+    'pt': 'Alcance',
+    'ru': 'Охват подбора',
+    'tr': 'Toplama oranı',
+    'ar': 'نسبة الالتقاط',
+    'it': 'Tasso di raccolta',
+    'hi': 'पिकअप दर',
+    'th': 'อัตราการเก็บ',
+  });
+
+  String get brandAnalyticsConversion => _t({
+    'ko': '전환율',
+    'en': 'Conversion',
+    'ja': '転換率',
+    'zh': '转换率',
+    'fr': 'Conversion',
+    'de': 'Konversion',
+    'es': 'Conversión',
+    'pt': 'Conversão',
+    'ru': 'Конверсия',
+    'tr': 'Dönüşüm',
+    'ar': 'التحويل',
+    'it': 'Conversione',
+    'hi': 'रूपांतरण',
+    'th': 'คอนเวอร์ชัน',
+  });
+
+  String get brandAnalyticsTopCountries => _t({
+    'ko': '국가별 픽업 TOP 5',
+    'en': 'Top 5 countries (by picks)',
+    'ja': '国別ピックアップ TOP 5',
+    'zh': '按国家拾取 TOP 5',
+    'fr': 'Top 5 pays (ramassages)',
+    'de': 'Top 5 Länder (Picks)',
+    'es': 'Top 5 países (recogidas)',
+    'pt': 'Top 5 países (apanhadas)',
+    'ru': 'ТОП-5 стран (по подборам)',
+    'tr': 'En iyi 5 ülke (toplama)',
+    'ar': 'أفضل 5 دول (التقاط)',
+    'it': 'Top 5 paesi (raccolte)',
+    'hi': 'शीर्ष 5 देश (पिकअप)',
+    'th': '5 ประเทศยอดนิยม (เก็บ)',
+  });
+
   String get composeGateFeatureName => _t({
     'ko': '홍보 편지 발송',
     'en': 'Promo letter sending',

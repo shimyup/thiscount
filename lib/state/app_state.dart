@@ -1269,6 +1269,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     );
     // Build 134: 이미 사용했으니 만료 임박 알림은 불필요 — 예약됐다면 취소.
     unawaited(NotificationService.cancelCouponExpiryReminder(letterId));
+    // Build 138: 브랜드 편지 사용 완료 집계 — 브랜드 대시보드 conversion
+    // 계산 원천. 로컬 `_redeemedLetterIds` 와 별도로 서버에도 기록.
+    if (FirebaseConfig.kFirebaseEnabled) {
+      unawaited(
+        FirestoreService.incrementField(
+          path: 'letters/$letterId',
+          field: 'redeemedCount',
+        ),
+      );
+    }
     notifyListeners();
   }
 
@@ -2880,6 +2890,56 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       }
     } catch (e) {
       if (kDebugMode) debugPrint('[Restore] 프로필 실패: $e');
+    }
+  }
+
+  /// Build 138: 브랜드 분석 대시보드 데이터. Firestore 에서 내가 보낸
+  /// 편지들을 쿼리해 총 발송·총 픽업·총 사용·전환율 집계. Brand 유저가
+  /// 프로필 화면에서 자신의 캠페인 ROI 를 볼 수 있게 함.
+  ///
+  /// 네트워크 실패 시 `null` 반환 → UI 에서 "오프라인" 표시.
+  Future<BrandAnalytics?> fetchBrandAnalytics() async {
+    if (!_currentUser.isBrand) return null;
+    if (!FirebaseConfig.kFirebaseEnabled) return null;
+    try {
+      final docs = await FirestoreService.queryWhereEquals(
+        collectionId: 'letters',
+        field: 'senderId',
+        value: _currentUser.id,
+        limit: 500,
+      );
+      int totalSent = 0;
+      int totalPicked = 0;
+      int totalRedeemed = 0;
+      int couponSent = 0;
+      int voucherSent = 0;
+      final countryPicks = <String, int>{};
+      for (final doc in docs) {
+        final map = FirestoreService.fromFirestoreDoc(doc);
+        totalSent++;
+        final picks = (map['pickupCount'] as num?)?.toInt() ?? 0;
+        final redeemed = (map['redeemedCount'] as num?)?.toInt() ?? 0;
+        totalPicked += picks;
+        totalRedeemed += redeemed;
+        final cat = map['category'] as String?;
+        if (cat == 'coupon') couponSent++;
+        if (cat == 'voucher') voucherSent++;
+        final country = map['destinationCountry'] as String? ?? '';
+        if (country.isNotEmpty && picks > 0) {
+          countryPicks[country] = (countryPicks[country] ?? 0) + picks;
+        }
+      }
+      return BrandAnalytics(
+        totalSent: totalSent,
+        totalPicked: totalPicked,
+        totalRedeemed: totalRedeemed,
+        couponSent: couponSent,
+        voucherSent: voucherSent,
+        countryPicks: countryPicks,
+      );
+    } catch (e, st) {
+      if (kDebugMode) debugPrint('[Analytics] fetchBrandAnalytics 실패: $e\n$st');
+      return null;
     }
   }
 
@@ -6156,6 +6216,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // ⑦ Firestore 클레임 등록 (Firebase 활성화 시, 선착순 기록)
     if (FirebaseConfig.kFirebaseEnabled) {
       _claimLetterOnFirestore(letter.id);
+      // Build 138: 브랜드 편지 픽업 집계 — 브랜드 대시보드에서 impression
+      // 숫자로 노출. 원자적 증감 (`:commit` fieldTransforms.increment).
+      if (letter.senderIsBrand) {
+        unawaited(
+          FirestoreService.incrementField(
+            path: 'letters/${letter.id}',
+            field: 'pickupCount',
+          ),
+        );
+      }
     }
 
     return null; // 성공
@@ -6822,4 +6892,31 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _mapSyncTimer?.cancel();
     super.dispose();
   }
+}
+
+/// Build 138: 브랜드 분석 결과 데이터 클래스.
+/// `fetchBrandAnalytics()` 가 Firestore 에서 집계해 반환.
+class BrandAnalytics {
+  final int totalSent;      // 총 발송 편지 수
+  final int totalPicked;    // 총 픽업 수 (impression)
+  final int totalRedeemed;  // 총 사용 완료 수 (conversion)
+  final int couponSent;     // 할인권 발송 건수
+  final int voucherSent;    // 교환권 발송 건수
+  final Map<String, int> countryPicks; // 국가별 픽업 수
+
+  const BrandAnalytics({
+    required this.totalSent,
+    required this.totalPicked,
+    required this.totalRedeemed,
+    required this.couponSent,
+    required this.voucherSent,
+    required this.countryPicks,
+  });
+
+  /// 픽업 대비 사용 전환율 (0.0 ~ 1.0). picks 가 0 이면 0.
+  double get redeemConversion =>
+      totalPicked == 0 ? 0 : totalRedeemed / totalPicked;
+
+  /// 발송 대비 픽업률 (reach — 얼마나 주워졌는지).
+  double get pickupReach => totalSent == 0 ? 0 : totalPicked / totalSent;
 }

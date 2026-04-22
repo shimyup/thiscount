@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../progression/user_progress.dart';
+import '../brand/brand_analytics_card.dart';
 import '../hunt_wallet/hunt_wallet_card.dart';
 import '../journey/journey_card.dart';
 import '../reflection/weekly_reflection_card.dart';
@@ -850,6 +851,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             const HuntWalletCard(
                               margin: EdgeInsets.symmetric(horizontal: 16),
                             ),
+                            const SizedBox(height: 10),
+                          ],
+                          // Build 138: Brand 전용 ROI 대시보드. 발송·픽업·사용
+                          // 집계 + 전환율 + 국가별 상위 리스트. Firestore 에서
+                          // 실시간 조회하므로 광고주가 캠페인 효과를 볼 수 있음.
+                          if (user.isBrand) ...[
+                            const BrandAnalyticsCard(),
                             const SizedBox(height: 10),
                           ],
                           // ①-2 나의 여정 카드 — 누적 지표가 있을 때만 표시

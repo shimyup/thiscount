@@ -147,6 +147,53 @@ class FirestoreService {
     return [];
   }
 
+  /// Build 138: 문서의 정수 필드를 원자적으로 증감. Firestore `:commit`
+  /// 엔드포인트 + `fieldTransforms.increment` 사용. 여러 유저가 동시에
+  /// 같은 편지를 주워도 counter 가 안전하게 증가.
+  ///
+  /// [path] 예: `letters/sent_123`
+  /// [field] 예: `pickupCount`
+  /// [by]  증감량 (음수 가능)
+  static Future<bool> incrementField({
+    required String path,
+    required String field,
+    int by = 1,
+  }) async {
+    if (!FirebaseConfig.kFirebaseEnabled) return false;
+    await FirebaseAuthService.ensureValidToken();
+    try {
+      final docName =
+          'projects/${FirebaseConfig.projectId}/databases/(default)/documents/$path';
+      final body = jsonEncode({
+        'writes': [
+          {
+            'transform': {
+              'document': docName,
+              'fieldTransforms': [
+                {
+                  'fieldPath': field,
+                  'increment': {'integerValue': by.toString()},
+                },
+              ],
+            },
+          },
+        ],
+      });
+      final commitUrl =
+          'https://firestore.googleapis.com/v1/projects/${FirebaseConfig.projectId}'
+          '/databases/(default)/documents:commit';
+      final res = await http
+          .post(Uri.parse(commitUrl), headers: _headers, body: body)
+          .timeout(const Duration(seconds: 10));
+      return res.statusCode == 200;
+    } catch (e, st) {
+      if (kDebugMode) {
+        debugPrint('[FirestoreService] incrementField 에러: $e\n$st');
+      }
+    }
+    return false;
+  }
+
   // ── 문서 삭제 ────────────────────────────────────────────────────────────────
   static Future<bool> deleteDocument(String path) async {
     if (!FirebaseConfig.kFirebaseEnabled) return false;
