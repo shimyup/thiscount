@@ -13,6 +13,10 @@ class FirestoreService {
     _idToken = token;
   }
 
+  /// Build 136: StorageService 가 같은 ID 토큰으로 Firebase Storage REST
+  /// 호출을 인증하기 위해 토큰을 읽을 수 있도록 노출. 다른 곳에서 쓰지 말 것.
+  static String? get idToken => _idToken;
+
   static Map<String, String> get _headers => {
     'Content-Type': 'application/json',
     if (_idToken != null) 'Authorization': 'Bearer $_idToken',

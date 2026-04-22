@@ -24,6 +24,7 @@ import '../compose_quick_pick.dart';
 import '../day_theme.dart';
 import '../widgets/exact_drop_picker.dart';
 import '../../../core/services/feedback_service.dart';
+import '../../../core/services/storage_service.dart';
 
 class ComposeScreen extends StatefulWidget {
   final String? replyToId;
@@ -228,6 +229,8 @@ class _ComposeScreenState extends State<ComposeScreen>
   // `_redemptionInfoController.text` 도 이 경로와 동기화돼 있음. 유저가 URL
   // 을 직접 타이핑하면 null 로 되돌아가 이미지 선택 상태 해제.
   String? _voucherImageLocalPath;
+  // Build 136: Firebase Storage 업로드 중 플래그 — 썸네일 위에 progress 표시.
+  bool _isUploadingVoucher = false;
 
   // Build 132: 쿠폰/교환권 유효기간 (일 단위). null = 무제한.
   // 기본 30일 — Kakao Gift 평균 유효기간과 동일. coupon/voucher 카테고리에서만
@@ -2728,10 +2731,12 @@ class _ComposeScreenState extends State<ComposeScreen>
           const SizedBox(width: 8),
           _VoucherImagePreview(
             path: _voucherImageLocalPath!,
+            uploading: _isUploadingVoucher,
             onRemove: () {
               setState(() {
                 _voucherImageLocalPath = null;
                 _redemptionInfoController.clear();
+                _isUploadingVoucher = false;
               });
             },
           ),
@@ -2743,6 +2748,9 @@ class _ComposeScreenState extends State<ComposeScreen>
   /// Build 130: 교환권 이미지 갤러리 선택. 프리미엄 게이트·데일리 쿼터 불필요
   /// (이미 Brand 전용 섹션). 압축 후 로컬 경로를 `_redemptionInfoController`
   /// 에 채운다.
+  /// Build 136: 압축 후 Firebase Storage 에 업로드 → HTTPS download URL 을
+  /// 편지에 저장해 **다른 기기 수신자도 이미지를 볼 수 있게** 함. 업로드 실패
+  /// 시 로컬 경로 fallback 유지 (오프라인·로그인 안됨 대응).
   Future<void> _pickVoucherImage() async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(
@@ -2768,10 +2776,36 @@ class _ComposeScreenState extends State<ComposeScreen>
       // 압축 실패 시 원본 경로 그대로 사용.
     }
     if (!mounted) return;
+
+    // 우선 로컬 썸네일을 바로 보여주고 "업로드 중" 상태 표시.
     setState(() {
       _voucherImageLocalPath = finalPath;
       _redemptionInfoController.text = finalPath;
+      _isUploadingVoucher = true;
     });
+
+    // Build 136: Firebase Storage 업로드 시도. 성공 시 HTTPS URL 로 교체,
+    // 실패 시 로컬 경로 유지 (같은 기기 테스트는 가능).
+    try {
+      final uploadPath = StorageService.voucherPath(
+        'voucher_${DateTime.now().millisecondsSinceEpoch}',
+      );
+      final url = await StorageService.uploadImage(
+        file: File(finalPath),
+        path: uploadPath,
+      );
+      if (!mounted) return;
+      setState(() {
+        _isUploadingVoucher = false;
+        if (url != null) {
+          // HTTPS URL 로 교체 — 미리보기는 여전히 로컬 경로에서 그려
+          // (네트워크 왕복 생략). 발송 시점엔 redemptionInfo=URL.
+          _redemptionInfoController.text = url;
+        }
+      });
+    } catch (_) {
+      if (mounted) setState(() => _isUploadingVoucher = false);
+    }
   }
 
   /// Build 128: Free/Premium 이 🎟 할인권 / 🎁 교환권 칩을 탭했을 때
@@ -5111,8 +5145,13 @@ class _ComposeScreenState extends State<ComposeScreen>
 /// 우상단 ✕ 버튼으로 선택 해제.
 class _VoucherImagePreview extends StatelessWidget {
   final String path;
+  final bool uploading;
   final VoidCallback onRemove;
-  const _VoucherImagePreview({required this.path, required this.onRemove});
+  const _VoucherImagePreview({
+    required this.path,
+    required this.onRemove,
+    this.uploading = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -5138,6 +5177,25 @@ class _VoucherImagePreview extends StatelessWidget {
             ),
           ),
         ),
+        // Build 136: 업로드 중 오버레이 — 썸네일 위에 반투명 + 작은 스피너.
+        if (uploading)
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.45),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              alignment: Alignment.center,
+              child: const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              ),
+            ),
+          ),
         Positioned(
           top: -6,
           right: -6,
