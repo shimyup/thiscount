@@ -470,10 +470,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _previousXpLevel = xpLevel;
   }
 
-  // ── 레벨 마일스톤 축하 (Build 120) ────────────────────────────────────────
-  // 레벨 시스템의 게임플레이 상 의미를 느끼게 하는 주요 마디. 각 마일스톤은
-  // 한 번만 표시 — 해당 레벨 하향 시에도 재표시 안 됨.
-  static const Set<int> _milestoneLevels = {2, 5, 10, 25, 50};
+  // ── 레벨 마일스톤 축하 (Build 120, Build 126 재분배) ─────────────────────
+  // 레벨 시스템의 게임플레이 상 의미를 느끼게 하는 주요 마디. 한 번만 표시.
+  // Build 126: Lv 25–50 간 너무 큰 공백 해소를 위해 {2,5,10,25,50} →
+  // {2,5,10,20,35,50} 로 재분배. 마지막 20 → 50 도 공백 크지만 50 은 최종
+  // 전설이라 유지.
+  static const Set<int> _milestoneLevels = {2, 5, 10, 20, 35, 50};
   int? _pendingMilestoneLevel;
   final Set<int> _celebratedMilestones = {};
 
@@ -538,11 +540,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // 타워 층 비주얼을 대체해 "주웠다 = 모았다" 감각을 주는 이모지 아이템. 5개
   // 마일스톤 레벨에 한 개씩 매핑. 지도 아바타 좌상단에 가장 최근 획득 아이템
   // 작게 노출, 프로필 HuntWalletCard 에 전체 슬롯 5칸 나열.
+  // Build 126: 5 → 6 슬롯. Lv 25–50 공백을 완화하기 위해 25 → 20 이동 +
+  // 35 (⚡) 신규 추가. 마일스톤 세트와 동일한 키 목록 유지.
   static const Map<int, String> _hunterItemEmojis = {
     2: '🎯',  // 조준 — 첫 마일스톤
     5: '🧭',  // 나침반
     10: '🗺', // 보물 지도
-    25: '🎒', // 여행자 배낭
+    20: '🎒', // 여행자 배낭
+    35: '⚡', // 번개 — 중반 마일스톤 (Build 126 신규)
     50: '👑', // 전설의 왕관
   };
 
@@ -573,13 +578,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // ── 레터 동행 동물 (Companion) · Build 125 ──────────────────────────────
   // 타워 층 대신 "내 레터와 함께 걷는 동물" 이모지 펫. 특정 레벨 달성 시
   // 해금. 지도 아바타 옆·프로필에 노출. 게임성·캐릭터 애착 강화.
+  // Build 126: 18/28/38/48 을 15/25/35/45 로 당겨 Lv 25–45 중반 구간 공백
+  // 해소. 다른 시스템(아이템·악세사리) 과 언락 시점이 겹치지 않게 조정.
   static const Map<int, String> _letterCompanions = {
     3: '🐕',  // 강아지 — 첫 동반자
     8: '🐈',  // 고양이
-    18: '🦊', // 여우
-    28: '🦉', // 부엉이
-    38: '🐉', // 드래곤
-    48: '🦄', // 유니콘 — 전설
+    15: '🦊', // 여우
+    25: '🦉', // 부엉이
+    35: '🐉', // 드래곤
+    45: '🦄', // 유니콘 — 전설
   };
 
   static String? letterCompanionEmoji(int level) => _letterCompanions[level];
