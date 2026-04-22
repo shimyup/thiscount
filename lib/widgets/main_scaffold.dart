@@ -137,6 +137,15 @@ class _MainScaffoldState extends State<MainScaffold> {
     final langCode = context.select<AppState, String>(
       (s) => s.currentUser.languageCode,
     );
+    // Build 139: 회원 등급에 따라 중앙 탭 라벨·아이콘·색을 바꿔 각 등급의
+    // 핵심 동작을 자연스럽게 노출. Free → 💎 업그레이드, Premium → ✉️ 보내기,
+    // Brand → 📣 캠페인.
+    final isPremium = context.select<AppState, bool>(
+      (s) => s.currentUser.isPremium,
+    );
+    final isBrand = context.select<AppState, bool>(
+      (s) => s.currentUser.isBrand,
+    );
     final l = AppL10n.of(langCode);
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -162,7 +171,7 @@ class _MainScaffoldState extends State<MainScaffold> {
             onTap: () => setState(() => _currentIndex = 0),
             hideWhenExploreSelected: _currentIndex == 0,
           ),
-          _buildBottomNav(context, badgeCount, l),
+          _buildBottomNav(context, badgeCount, l, isPremium, isBrand),
         ],
       ),
     );
@@ -172,7 +181,13 @@ class _MainScaffoldState extends State<MainScaffold> {
     // 않는다.
   }
 
-  Widget _buildBottomNav(BuildContext ctx, int badgeCount, AppL10n l) {
+  Widget _buildBottomNav(
+    BuildContext ctx,
+    int badgeCount,
+    AppL10n l,
+    bool isPremium,
+    bool isBrand,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: AppTimeColors.of(ctx).bgDeep,
@@ -230,11 +245,20 @@ class _MainScaffoldState extends State<MainScaffold> {
                     ),
                   ),
                   Expanded(
-                    // "보내기"는 탭이 아니라 컴포즈 모달 CTA. 항상 골드 톤으로
-                    // 강조해서 다른 탭과 시각적으로 구분되도록 _ComposeNavItem
-                    // 을 따로 둔다.
+                    // Build 139: 등급별 중앙 CTA — Free 는 업그레이드 유도,
+                    // Premium 은 홍보 편지 보내기, Brand 는 캠페인 발행.
                     child: _ComposeNavItem(
-                      label: l.navSend,
+                      label: isBrand
+                          ? l.navCampaign
+                          : (isPremium ? l.navSend : l.navUpgradeShort),
+                      icon: isBrand
+                          ? Icons.campaign_rounded
+                          : (isPremium
+                              ? Icons.edit_note_rounded
+                              : Icons.workspace_premium_rounded),
+                      accent: isBrand
+                          ? const Color(0xFFFF8A5C)
+                          : AppColors.gold,
                       onTap: () => _openCompose(ctx),
                     ),
                   ),
@@ -264,12 +288,21 @@ class _MainScaffoldState extends State<MainScaffold> {
   }
 }
 
-// ── 컴포즈 CTA 탭 — 항상 골드, 둥근 테두리로 "탭이 아니라 작성 버튼" 표현 ──
+// ── 중앙 CTA 탭 — 등급별 색상·아이콘·라벨 (Build 139) ──
+// Free → 💎 업그레이드 (gold), Premium → ✉️ 보내기 (gold),
+// Brand → 📣 캠페인 (orange) — 한 눈에 "지금 내 역할" 을 감지.
 class _ComposeNavItem extends StatelessWidget {
   final String label;
+  final IconData icon;
+  final Color accent;
   final VoidCallback onTap;
 
-  const _ComposeNavItem({required this.label, required this.onTap});
+  const _ComposeNavItem({
+    required this.label,
+    required this.icon,
+    required this.accent,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -285,24 +318,20 @@ class _ComposeNavItem extends StatelessWidget {
               width: 30,
               height: 30,
               decoration: BoxDecoration(
-                color: AppColors.gold.withValues(alpha: 0.12),
+                color: accent.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: AppColors.gold.withValues(alpha: 0.55),
+                  color: accent.withValues(alpha: 0.55),
                   width: 1.2,
                 ),
               ),
-              child: const Icon(
-                Icons.edit_note_rounded,
-                color: AppColors.gold,
-                size: 20,
-              ),
+              child: Icon(icon, color: accent, size: 20),
             ),
             const SizedBox(height: 3),
             Text(
               label,
-              style: const TextStyle(
-                color: AppColors.gold,
+              style: TextStyle(
+                color: accent,
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
               ),

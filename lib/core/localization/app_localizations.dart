@@ -331,6 +331,42 @@ class AppL10n {
     'th': 'ส่ง',
   });
 
+  // Build 139: Brand 유저 전용 중앙 탭 라벨.
+  String get navCampaign => _t({
+    'ko': '캠페인',
+    'en': 'Campaign',
+    'ja': 'キャンペーン',
+    'zh': '活动',
+    'fr': 'Campagne',
+    'de': 'Kampagne',
+    'es': 'Campaña',
+    'pt': 'Campanha',
+    'ru': 'Кампания',
+    'tr': 'Kampanya',
+    'ar': 'حملة',
+    'it': 'Campagna',
+    'hi': 'अभियान',
+    'th': 'แคมเปญ',
+  });
+
+  // Build 139: Free 유저 전용 중앙 탭 라벨 — 업그레이드 CTA.
+  String get navUpgradeShort => _t({
+    'ko': '업그레이드',
+    'en': 'Upgrade',
+    'ja': 'アップグレード',
+    'zh': '升级',
+    'fr': 'Upgrade',
+    'de': 'Upgrade',
+    'es': 'Mejora',
+    'pt': 'Upgrade',
+    'ru': 'Апгрейд',
+    'tr': 'Yükselt',
+    'ar': 'ترقية',
+    'it': 'Upgrade',
+    'hi': 'अपग्रेड',
+    'th': 'อัปเกรด',
+  });
+
   // ── Inbox ─────────────────────────────────────────────────────────────────
   String get received => _t({
     'ko': '받은 편지',
