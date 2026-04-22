@@ -224,6 +224,11 @@ class _ComposeScreenState extends State<ComposeScreen>
   // 으로 분리 표시되므로 브랜드 운영자가 발송 의도를 명확히 지정한다.
   LetterCategory _brandCategory = LetterCategory.general;
 
+  // Build 130: 교환권(voucher) 이미지 선택 로컬 경로. non-null 일 때는
+  // `_redemptionInfoController.text` 도 이 경로와 동기화돼 있음. 유저가 URL
+  // 을 직접 타이핑하면 null 로 되돌아가 이미지 선택 상태 해제.
+  String? _voucherImageLocalPath;
+
   static const List<String> _bannedWords = [
     // English
     'fuck', 'shit', 'bitch', 'asshole', 'bastard', 'dick', 'pussy', 'cunt',
@@ -2559,6 +2564,101 @@ class _ComposeScreenState extends State<ComposeScreen>
     );
   }
 
+  /// Build 130: 교환권 이미지 선택 row — 버튼 + 선택 시 썸네일 미리보기.
+  /// 탭하면 `image_picker` 로 갤러리 열고 로컬 경로를 `_redemptionInfoController`
+  /// 에 채운다. 다시 탭해서 교체 가능. 옆의 ✕ 버튼으로 제거.
+  Widget _buildVoucherImagePickRow(AppL10n l10n) {
+    final hasImage = _voucherImageLocalPath != null;
+    return Row(
+      children: [
+        Expanded(
+          child: InkWell(
+            onTap: _pickVoucherImage,
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+              decoration: BoxDecoration(
+                color: AppColors.teal.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: AppColors.teal.withValues(alpha: 0.5),
+                  width: 1.2,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.add_photo_alternate_rounded,
+                    color: AppColors.teal,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    hasImage
+                        ? l10n.composeBrandVoucherImageChange
+                        : l10n.composeBrandVoucherImagePick,
+                    style: const TextStyle(
+                      color: AppColors.teal,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        if (hasImage) ...[
+          const SizedBox(width: 8),
+          _VoucherImagePreview(
+            path: _voucherImageLocalPath!,
+            onRemove: () {
+              setState(() {
+                _voucherImageLocalPath = null;
+                _redemptionInfoController.clear();
+              });
+            },
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// Build 130: 교환권 이미지 갤러리 선택. 프리미엄 게이트·데일리 쿼터 불필요
+  /// (이미 Brand 전용 섹션). 압축 후 로컬 경로를 `_redemptionInfoController`
+  /// 에 채운다.
+  Future<void> _pickVoucherImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+      maxWidth: 1280,
+      maxHeight: 1280,
+    );
+    if (picked == null || !mounted) return;
+    String finalPath = picked.path;
+    try {
+      final targetPath = '${picked.path}_voucher.jpg';
+      final result = await FlutterImageCompress.compressAndGetFile(
+        picked.path,
+        targetPath,
+        quality: 80,
+        minWidth: 200,
+        minHeight: 200,
+        keepExif: false,
+      );
+      if (result?.path != null) finalPath = result!.path;
+    } catch (_) {
+      // 압축 실패 시 원본 경로 그대로 사용.
+    }
+    if (!mounted) return;
+    setState(() {
+      _voucherImageLocalPath = finalPath;
+      _redemptionInfoController.text = finalPath;
+    });
+  }
+
   /// Build 128: Free/Premium 이 🎟 할인권 / 🎁 교환권 칩을 탭했을 때
   /// "이건 Brand 가 뿌리는 편지예요" 를 알리는 업그레이드 안내 시트.
   /// `PremiumGateSheet` 를 재사용 — CTA 는 Premium 화면으로 이동.
@@ -2891,6 +2991,12 @@ class _ComposeScreenState extends State<ComposeScreen>
                 color: AppColors.textPrimary,
                 fontSize: 13,
               ),
+              onChanged: (_) {
+                // 유저가 텍스트를 직접 타이핑하면 이미지 선택 상태 해제.
+                if (_voucherImageLocalPath != null) {
+                  setState(() => _voucherImageLocalPath = null);
+                }
+              },
               decoration: InputDecoration(
                 hintText: _brandCategory == LetterCategory.coupon
                     ? l10n.composeBrandCouponHint
@@ -2926,6 +3032,16 @@ class _ComposeScreenState extends State<ComposeScreen>
                 ),
               ),
             ),
+            // Build 130: 교환권일 때 이미지 선택 버튼 + 미리보기. 선택하면 로컬
+            // 경로가 `_redemptionInfoController` 에 채워진다 (URL 자리를
+            // 로컬 경로가 대신함). 수신자 렌더링은 Build 131 에서 경로 vs URL
+            // 을 분기해 이미지로 표시.
+            // NOTE: 크로스 디바이스 동기화는 Firebase Storage 업로드 경로가
+            // 필요함 — 현재 `letter.imageUrl` 패턴과 동일하게 로컬 경로만 저장.
+            if (_brandCategory == LetterCategory.voucher) ...[
+              const SizedBox(height: 8),
+              _buildVoucherImagePickRow(l10n),
+            ],
             const SizedBox(height: 4),
             // 쿠폰/교환권 발송 시 본문 최소 20자 완화 안내.
             Text(
@@ -4868,6 +4984,63 @@ class _ComposeScreenState extends State<ComposeScreen>
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Build 130: 교환권 이미지 미리보기 썸네일. 로컬 경로에서 File 로드.
+/// 우상단 ✕ 버튼으로 선택 해제.
+class _VoucherImagePreview extends StatelessWidget {
+  final String path;
+  final VoidCallback onRemove;
+  const _VoucherImagePreview({required this.path, required this.onRemove});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.file(
+            File(path),
+            width: 44,
+            height: 44,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
+              width: 44,
+              height: 44,
+              color: AppColors.bgSurface,
+              child: const Icon(
+                Icons.broken_image_rounded,
+                size: 18,
+                color: AppColors.textMuted,
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: -6,
+          right: -6,
+          child: GestureDetector(
+            onTap: onRemove,
+            child: Container(
+              width: 18,
+              height: 18,
+              decoration: BoxDecoration(
+                color: AppColors.bgDeep,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.teal, width: 1.2),
+              ),
+              child: const Icon(
+                Icons.close_rounded,
+                size: 11,
+                color: AppColors.teal,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

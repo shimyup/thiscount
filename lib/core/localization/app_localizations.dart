@@ -13627,6 +13627,41 @@ class AppL10n {
     'hi': 'उदा. https://... .png', 'th': 'เช่น https://... .png',
   });
 
+  // Build 130: 교환권 이미지 선택 버튼 라벨.
+  String get composeBrandVoucherImagePick => _t({
+    'ko': '📸 쿠폰 이미지 선택',
+    'en': '📸 Pick voucher image',
+    'ja': '📸 クーポン画像を選択',
+    'zh': '📸 选择优惠券图片',
+    'fr': '📸 Choisir l\'image',
+    'de': '📸 Bild auswählen',
+    'es': '📸 Elegir imagen',
+    'pt': '📸 Escolher imagem',
+    'ru': '📸 Выбрать изображение',
+    'tr': '📸 Görsel seç',
+    'ar': '📸 اختر صورة القسيمة',
+    'it': '📸 Scegli immagine',
+    'hi': '📸 वाउचर छवि चुनें',
+    'th': '📸 เลือกรูปคูปอง',
+  });
+
+  String get composeBrandVoucherImageChange => _t({
+    'ko': '📸 다른 이미지 선택',
+    'en': '📸 Change image',
+    'ja': '📸 別の画像を選択',
+    'zh': '📸 更换图片',
+    'fr': '📸 Changer d\'image',
+    'de': '📸 Bild ändern',
+    'es': '📸 Cambiar imagen',
+    'pt': '📸 Trocar imagem',
+    'ru': '📸 Заменить',
+    'tr': '📸 Görseli değiştir',
+    'ar': '📸 تغيير الصورة',
+    'it': '📸 Cambia immagine',
+    'hi': '📸 छवि बदलें',
+    'th': '📸 เปลี่ยนรูป',
+  });
+
   // Brand 사업자 인증 UI.
   String get brandVerificationTitle => _t({
     'ko': '사업자 인증', 'en': 'Business verification', 'ja': '事業者認証',
