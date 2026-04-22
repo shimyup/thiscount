@@ -38,6 +38,8 @@ class _BrandPromoBannerState extends State<BrandPromoBanner>
   Letter? _promo;
   bool _showing = false;
   bool _dismissed = false;
+  // Build 143: 축소 상태 — 전체 배너에서 우상단 mini pill 로 전환.
+  bool _minimized = false;
 
   @override
   void initState() {
@@ -60,7 +62,9 @@ class _BrandPromoBannerState extends State<BrandPromoBanner>
 
   Future<void> _maybeShow() async {
     final state = context.read<AppState>();
-    if (state.currentUser.isBrand) return;
+    // Build 143: Brand 유저도 배너 노출. 자기 캠페인을 직접 확인하거나 다른
+    // 브랜드 활동을 벤치마크할 수 있게. 이전엔 "자기 거라서 스팸" 논리였지만
+    // 실제로는 "내 경쟁사가 뭘 뿌리는지" 가 Brand 에게도 유용.
     if (state.promoShownThisSession) return;
     final promo = state.featuredBrandPromo;
     if (promo == null) return;
@@ -68,6 +72,7 @@ class _BrandPromoBannerState extends State<BrandPromoBanner>
     setState(() {
       _promo = promo;
       _showing = true;
+      _minimized = false;
     });
     state.markPromoShownThisSession();
 
@@ -75,10 +80,12 @@ class _BrandPromoBannerState extends State<BrandPromoBanner>
     if (!mounted) return;
     _slideCtrl.forward();
 
-    // 8초 후 자동 접힘.
-    await Future.delayed(const Duration(seconds: 8));
+    // Build 143: 3.2초 후 full 배너 → mini pill 로 축소 (완전히 사라지지 않고
+    // 우상단 작은 🎟 칩으로 남아 있음). 유저 주의는 덜 끌면서 광고 도달률
+    // 유지. 탭하면 다시 expand.
+    await Future.delayed(const Duration(milliseconds: 3200));
     if (!mounted || _dismissed) return;
-    _hide();
+    setState(() => _minimized = true);
   }
 
   Future<void> _hide() async {
@@ -86,7 +93,15 @@ class _BrandPromoBannerState extends State<BrandPromoBanner>
     _dismissed = true;
     await _slideCtrl.reverse();
     if (!mounted) return;
-    setState(() => _showing = false);
+    setState(() {
+      _showing = false;
+      _minimized = false;
+    });
+  }
+
+  void _toggleExpand() {
+    if (_dismissed) return;
+    setState(() => _minimized = !_minimized);
   }
 
   @override
@@ -111,119 +126,195 @@ class _BrandPromoBannerState extends State<BrandPromoBanner>
       position: _slide,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(14),
-            onTap: () {
-              widget.onRevealOnMap?.call(promo);
-              widget.onTapLetter?.call();
-              _hide();
-            },
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFFE082), Color(0xFFFFCA28)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.32),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
+        child: Align(
+          alignment: Alignment.centerRight,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 320),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (child, anim) => FadeTransition(
+              opacity: anim,
+              child: ScaleTransition(
+                scale: Tween<double>(begin: 0.85, end: 1.0).animate(anim),
+                alignment: Alignment.topRight,
+                child: child,
               ),
-              child: Row(
-                children: [
-                  const Text('🎟', style: TextStyle(fontSize: 24)),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
+            ),
+            child: _minimized
+                ? _buildMiniPill(l10n)
+                : _buildFullBanner(l10n, brandName, title, promo),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 전체 배너 (등장 후 3.2초간 유지) — 🎟 + 브랜드명 · 홍보 태그 + 타이틀 + "자세히" CTA + ✕
+  Widget _buildFullBanner(
+    AppL10n l10n,
+    String brandName,
+    String title,
+    Letter promo,
+  ) {
+    return Material(
+      key: const ValueKey('full'),
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () {
+          widget.onRevealOnMap?.call(promo);
+          widget.onTapLetter?.call();
+          _hide();
+        },
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFFFE082), Color(0xFFFFCA28)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.32),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              const Text('🎟', style: TextStyle(fontSize: 24)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
                       children: [
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                brandName,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Color(0xFF6B4A00),
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
+                        Flexible(
+                          child: Text(
+                            brandName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Color(0xFF6B4A00),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
                             ),
-                            const SizedBox(width: 6),
-                            Text(
-                              l10n.brandPromoBannerAdLabel,
-                              style: TextStyle(
-                                color: const Color(0xFF6B4A00)
-                                    .withValues(alpha: 0.55),
-                                fontSize: 9,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.8,
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(width: 6),
                         Text(
-                          title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Color(0xFF2B1A00),
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w900,
-                            height: 1.15,
+                          l10n.brandPromoBannerAdLabel,
+                          style: TextStyle(
+                            color: const Color(0xFF6B4A00)
+                                .withValues(alpha: 0.55),
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.8,
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2B1A00),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      l10n.brandPromoBannerCTA,
+                    const SizedBox(height: 2),
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: Color(0xFFFFE082),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.4,
+                        color: Color(0xFF2B1A00),
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w900,
+                        height: 1.15,
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  InkWell(
-                    onTap: _hide,
-                    borderRadius: BorderRadius.circular(14),
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      child: Icon(
-                        Icons.close_rounded,
-                        color: const Color(0xFF6B4A00).withValues(alpha: 0.7),
-                        size: 16,
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10, vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2B1A00),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  l10n.brandPromoBannerCTA,
+                  style: const TextStyle(
+                    color: Color(0xFFFFE082),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              InkWell(
+                onTap: _hide,
+                borderRadius: BorderRadius.circular(14),
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  child: Icon(
+                    Icons.close_rounded,
+                    color: const Color(0xFF6B4A00).withValues(alpha: 0.7),
+                    size: 18,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Build 143: 축소 상태 mini pill — 우상단 🎟 한 개. 탭하면 다시 expand.
+  /// 지도 시야 방해 최소화하면서 "광고 아직 있음" 만 표시.
+  Widget _buildMiniPill(AppL10n l10n) {
+    return Material(
+      key: const ValueKey('mini'),
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(22),
+        onTap: _toggleExpand,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFFFE082), Color(0xFFFFCA28)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.28),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('🎟', style: TextStyle(fontSize: 14)),
+              const SizedBox(width: 5),
+              Text(
+                l10n.brandPromoBannerAdLabel.replaceAll('·', '').trim(),
+                style: const TextStyle(
+                  color: Color(0xFF2B1A00),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
           ),
         ),
       ),
