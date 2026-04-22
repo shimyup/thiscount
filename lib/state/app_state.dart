@@ -2662,6 +2662,27 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       final arrived = now.isAfter(arrivalTime);
       final status = arrived ? DeliveryStatus.delivered : DeliveryStatus.inTransit;
 
+      // Build 135: 쿠폰/교환권 메타 복원. senderTier 문자열 → enum.
+      LetterSenderTier tier = LetterSenderTier.free;
+      final tierStr = data['senderTier'] as String?;
+      if (tierStr == 'brand') {
+        tier = LetterSenderTier.brand;
+      } else if (tierStr == 'premium') {
+        tier = LetterSenderTier.premium;
+      }
+      final catKey = data['category'] as String?;
+      final category = LetterCategoryExt.fromKey(catKey);
+      final redInfoRaw = data['redemptionInfo'] as String?;
+      final redInfo = (redInfoRaw == null || redInfoRaw.isEmpty)
+          ? null
+          : redInfoRaw;
+      final redExpiresStr = data['redemptionExpiresAt'] as String?;
+      final redExpiresAt = redExpiresStr == null
+          ? null
+          : DateTime.tryParse(redExpiresStr);
+      final expStr = data['expiresAt'] as String?;
+      final expAt = expStr == null ? null : DateTime.tryParse(expStr);
+
       return Letter(
         id: data['id'] as String? ?? 'srv_${now.millisecondsSinceEpoch}',
         senderId: data['senderId'] as String? ?? '',
@@ -2685,6 +2706,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         fontStyle: (data['fontStyle'] as num?)?.toInt() ?? 0,
         imageUrl: data['imageUrl'] as String?,
         arrivedAt: arrived ? arrivalTime : null,
+        deliveryEmoji: data['deliveryEmoji'] as String?,
+        isAnonymous: data['isAnonymous'] as bool? ?? true,
+        category: category,
+        redemptionInfo: redInfo,
+        redemptionExpiresAt: redExpiresAt,
+        acceptsReplies: data['acceptsReplies'] as bool? ?? true,
+        senderIsBrand: data['senderIsBrand'] as bool? ?? (tier == LetterSenderTier.brand),
+        senderTier: tier,
+        brandUniquePerUser: data['brandUniquePerUser'] as bool? ?? false,
+        expiresAt: expAt,
       );
     } catch (e, st) {
       if (kDebugMode) debugPrint('[Firebase] Letter 변환 실패: $e\n$st');
@@ -2720,6 +2751,20 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'letterType': letter.letterType.name,
         'status': letter.status.name,
         'senderTier': letter.senderTier.name,
+        // Build 135: 쿠폰/교환권 필드 전체 동기화. 이전엔 누락돼 다른 기기에서
+        // 주운 수신자가 할인 코드·교환권 이미지·유효기간을 볼 수 없었음.
+        'category': letter.category.key,
+        'redemptionInfo': letter.redemptionInfo ?? '',
+        if (letter.redemptionExpiresAt != null)
+          'redemptionExpiresAt':
+              letter.redemptionExpiresAt!.toIso8601String(),
+        'acceptsReplies': letter.acceptsReplies,
+        'senderIsBrand': letter.senderIsBrand,
+        'brandUniquePerUser': letter.brandUniquePerUser,
+        if (letter.expiresAt != null)
+          'expiresAt': letter.expiresAt!.toIso8601String(),
+        'isAnonymous': letter.isAnonymous,
+        if (letter.deliveryEmoji != null) 'deliveryEmoji': letter.deliveryEmoji,
       });
       if (kDebugMode) {
         debugPrint('[Firebase] 편지 업로드 완료: ${letter.id} → ${letter.destinationCountry}');
