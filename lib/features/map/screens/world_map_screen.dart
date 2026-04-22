@@ -2822,33 +2822,39 @@ class _MapHeader extends StatelessWidget {
     final timeColors = AppTimeColors.of(context);
     return Container(
       decoration: BoxDecoration(
+        // Build 146: 그라데이션 더 부드럽게 — bgDeep → transparent 부드러운
+        // 페이드로 지도 첫 인상 시 "헤더가 덮고 있는 느낌" 감쇄.
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            timeColors.bgDeep.withValues(alpha: 0.55),
+            timeColors.bgDeep.withValues(alpha: 0.45),
             timeColors.bgDeep.withValues(alpha: 0.0),
           ],
-          stops: const [0.4, 1.0],
+          stops: const [0.3, 1.0],
         ),
       ),
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 12, 8),
+          // Build 146: padding 20/10/12/8 → 16/6/8/4 로 컴팩트.
+          padding: const EdgeInsets.fromLTRB(16, 6, 8, 4),
           child: Row(
             children: [
+              // Build 146: 로고를 ✉️ 이모지 + 텍스트 조합으로 바꿔 브랜딩
+              // 표현 강화. fontSize 18→16, weight w800→w900.
+              const Text('✉️', style: TextStyle(fontSize: 16)),
+              const SizedBox(width: 6),
               const Text(
                 'Letter Go',
                 style: TextStyle(
                   color: AppColors.textPrimary,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.5,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.2,
                 ),
               ),
               const Spacer(),
-              // Build 141: ⓘ 도움말 — 이모지 범례 + 사용 방법 바텀시트.
               _MapHelpButton(),
             ],
           ),
@@ -2859,28 +2865,40 @@ class _MapHeader extends StatelessWidget {
 }
 
 /// Build 141: 지도 상단 우측 ⓘ 도움말 버튼. 이모지·마커 범례와 티어별 사용법.
+/// Build 146: 터치 타겟 44pt 이상 확보 + Semantics 라벨 접근성.
 class _MapHelpButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: () => _showMapHelpSheet(context),
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.bgCard.withValues(alpha: 0.85),
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: AppColors.textMuted.withValues(alpha: 0.25),
-              width: 1,
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    return Semantics(
+      label: l10n.mapHelpTitle,
+      button: true,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(24),
+          onTap: () => _showMapHelpSheet(context),
+          child: Container(
+            // Build 146: 44×44pt 최소 터치 타겟 보장 (이전 34×34).
+            width: 44,
+            height: 44,
+            alignment: Alignment.center,
+            child: Container(
+              padding: const EdgeInsets.all(9),
+              decoration: BoxDecoration(
+                color: AppColors.bgCard.withValues(alpha: 0.85),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.textMuted.withValues(alpha: 0.25),
+                  width: 1,
+                ),
+              ),
+              child: const Icon(
+                Icons.help_outline_rounded,
+                size: 18,
+                color: AppColors.textSecondary,
+              ),
             ),
-          ),
-          child: const Icon(
-            Icons.help_outline_rounded,
-            size: 18,
-            color: AppColors.textSecondary,
           ),
         ),
       ),
