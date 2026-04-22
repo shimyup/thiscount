@@ -344,33 +344,62 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   top: 220,
                   left: 16,
                   right: 16,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.bgCard.withValues(alpha: 0.92),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: AppColors.gold.withValues(alpha: 0.4),
-                        width: 1.2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.3),
-                          blurRadius: 10,
+                  // Build 141: 배너 탭 → 해당 편지 위치로 지도 이동.
+                  // 반경 밖이라 줍을 순 없지만 "어디 있는지" 눈으로 확인
+                  // 가능. 줌 레벨 14 로 시내 블록 수준까지 접근.
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      _mapController.move(
+                        ll.LatLng(
+                          hint.letter.destinationLocation.latitude,
+                          hint.letter.destinationLocation.longitude,
                         ),
-                      ],
-                    ),
-                    child: Text(
-                      l10n.mapCompassHint(
-                        hint.$1, hint.$2, hint.$3,
+                        14.0,
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10,
                       ),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: AppColors.gold,
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
+                      decoration: BoxDecoration(
+                        color: AppColors.bgCard.withValues(alpha: 0.92),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.gold.withValues(alpha: 0.4),
+                          width: 1.2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              l10n.mapCompassHint(
+                                hint.distance, hint.arrow, hint.emoji,
+                              ),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: AppColors.gold,
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            color: AppColors.gold,
+                            size: 11,
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -2051,7 +2080,10 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   /// 찾아 `(미터, 방향 화살표 이모지, 카테고리 이모지)` 로 반환.
   /// 반경 내에 이미 있는 경우는 호출측에서 제외 — 반경 밖 가장 가까운 것을
   /// 찾는 것이 목적.
-  (int, String, String)? _nearestLetterCompass(AppState state) {
+  /// Build 141: 반환형을 `(letter, distance, arrow, emoji)` 로 확장 —
+  /// 배너 onTap 에서 해당 편지 위치로 지도 이동 가능하도록.
+  ({Letter letter, int distance, String arrow, String emoji})?
+      _nearestLetterCompass(AppState state) {
     final myLat = state.currentUser.latitude;
     final myLng = state.currentUser.longitude;
     final me = LatLng(myLat, myLng);
@@ -2093,7 +2125,12 @@ class _WorldMapScreenState extends State<WorldMapScreen>
         ? nearest.category.brandEmoji
         : '📬';
 
-    return (nearestDist.round(), arrows[idx], catEmoji);
+    return (
+      letter: nearest,
+      distance: nearestDist.round(),
+      arrow: arrows[idx],
+      emoji: catEmoji,
+    );
   }
 
   Future<void> _checkLocationPermission() async {
@@ -2753,16 +2790,12 @@ class _UnreadDeliveredMarker extends StatelessWidget {
 
 // ── 상단 헤더 ──────────────────────────────────────────────────────────────────
 class _MapHeader extends StatelessWidget {
-  // 지도 상단 헤더는 "Letter Go" 앱 이름만 표시. 통계·LIVE·글로벌흐름 등은
-  // 바텀 칩 / 프로필 / 설정 경로로 이동. 시각 정보 부하를 줄여 지도 자체에
-  // 집중하게 하기 위함.
+  // 지도 상단 헤더. Build 141 — 우측에 ⓘ 도움말 버튼 추가. 이모지 의미와
+  // 티어별 역할을 한 번에 설명하는 바텀 시트를 연다.
   const _MapHeader();
 
   @override
   Widget build(BuildContext context) {
-    // 지도 상단은 시각적으로 최대한 비워두고 앱 이름만 노출.
-    // 통계·LIVE·글로벌흐름·맵메타 칩은 모두 다른 진입점(프로필 XP, 바텀 탭
-    // 하단 칩, 설정)에서 확인 가능하므로 헤더에서 제거.
     final timeColors = AppTimeColors.of(context);
     return Container(
       decoration: BoxDecoration(
@@ -2779,18 +2812,189 @@ class _MapHeader extends StatelessWidget {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 8),
-          child: const Text(
-            'Letter Go',
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1.5,
-            ),
+          padding: const EdgeInsets.fromLTRB(20, 10, 12, 8),
+          child: Row(
+            children: [
+              const Text(
+                'Letter Go',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.5,
+                ),
+              ),
+              const Spacer(),
+              // Build 141: ⓘ 도움말 — 이모지 범례 + 사용 방법 바텀시트.
+              _MapHelpButton(),
+            ],
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Build 141: 지도 상단 우측 ⓘ 도움말 버튼. 이모지·마커 범례와 티어별 사용법.
+class _MapHelpButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () => _showMapHelpSheet(context),
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.bgCard.withValues(alpha: 0.85),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: AppColors.textMuted.withValues(alpha: 0.25),
+              width: 1,
+            ),
+          ),
+          child: const Icon(
+            Icons.help_outline_rounded,
+            size: 18,
+            color: AppColors.textSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showMapHelpSheet(BuildContext context) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.bgCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      isScrollControlled: true,
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.72,
+        minChildSize: 0.5,
+        maxChildSize: 0.92,
+        expand: false,
+        builder: (_, scroll) => SingleChildScrollView(
+          controller: scroll,
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Text('📖', style: TextStyle(fontSize: 22)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      l10n.mapHelpTitle,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: AppColors.textMuted,
+                    ),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                l10n.mapHelpTierSection,
+                style: const TextStyle(
+                  color: AppColors.gold,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _helpRow(emoji: '🎟', title: l10n.mapHelpTierFreeTitle, body: l10n.mapHelpTierFreeBody),
+              const SizedBox(height: 10),
+              _helpRow(emoji: '📸', title: l10n.mapHelpTierPremiumTitle, body: l10n.mapHelpTierPremiumBody),
+              const SizedBox(height: 10),
+              _helpRow(emoji: '📣', title: l10n.mapHelpTierBrandTitle, body: l10n.mapHelpTierBrandBody),
+              const SizedBox(height: 16),
+              Text(
+                l10n.mapHelpMarkerSection,
+                style: const TextStyle(
+                  color: AppColors.teal,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _helpRow(emoji: '📮', title: l10n.mapHelpMarkerArrivedTitle, body: l10n.mapHelpMarkerArrivedBody),
+              const SizedBox(height: 10),
+              _helpRow(emoji: '🎟', title: l10n.mapHelpMarkerCouponTitle, body: l10n.mapHelpMarkerCouponBody),
+              const SizedBox(height: 10),
+              _helpRow(emoji: '🎁', title: l10n.mapHelpMarkerVoucherTitle, body: l10n.mapHelpMarkerVoucherBody),
+              const SizedBox(height: 10),
+              _helpRow(emoji: '🏢', title: l10n.mapHelpMarkerBrandTitle, body: l10n.mapHelpMarkerBrandBody),
+              const SizedBox(height: 16),
+              Text(
+                l10n.mapHelpHowToSection,
+                style: const TextStyle(
+                  color: Color(0xFFFF8A5C),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _helpRow(emoji: '1️⃣', title: l10n.mapHelpStep1Title, body: l10n.mapHelpStep1Body),
+              const SizedBox(height: 10),
+              _helpRow(emoji: '2️⃣', title: l10n.mapHelpStep2Title, body: l10n.mapHelpStep2Body),
+              const SizedBox(height: 10),
+              _helpRow(emoji: '3️⃣', title: l10n.mapHelpStep3Title, body: l10n.mapHelpStep3Body),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _helpRow({required String emoji, required String title, required String body}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(width: 28, child: Text(emoji, style: const TextStyle(fontSize: 18))),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                body,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 11.5,
+                  height: 1.45,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -3235,24 +3439,24 @@ class _StatsBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final timeColors = AppTimeColors.of(context);
+    // Build 141: 통계 바 컴팩트화. padding · font · emoji 크기 전반 축소.
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: timeColors.bgCard.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: timeColors.accent.withValues(alpha: 0.15)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.35),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.32),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          // 전체 편지 → 지도 전체 보기
           _StatBtn(
             icon: '✈️',
             value: '${state.totalInTransitCount}',
@@ -3260,7 +3464,6 @@ class _StatsBar extends StatelessWidget {
             onTap: onShowAll,
           ),
           _Divider(),
-          // 근처 → 내 위치로 이동 + 근처 편지 필터
           _StatBtn(
             icon: '📍',
             value: '${state.nearbyLetters.length}',
@@ -3268,7 +3471,6 @@ class _StatsBar extends StatelessWidget {
             onTap: onShowNearby,
           ),
           _Divider(),
-          // 받은 편지 → 편지함 탭으로 이동
           _StatBtn(
             icon: '📬',
             value: '${state.inbox.length}',
@@ -3278,7 +3480,6 @@ class _StatsBar extends StatelessWidget {
             badge: state.unreadCount > 0 ? '${state.unreadCount}' : null,
           ),
           _Divider(),
-          // 보낸 편지 → 편지함 탭으로 이동
           _StatBtn(
             icon: '✍️',
             value: '${state.sent.length}',
@@ -3317,12 +3518,13 @@ class _StatBtn extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        // Build 141: 컴팩트 버전 — padding · font · emoji 축소.
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
           color: highlight
               ? AppColors.gold.withValues(alpha: 0.10)
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Stack(
           clipBehavior: Clip.none,
@@ -3330,8 +3532,8 @@ class _StatBtn extends StatelessWidget {
             Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(icon, style: const TextStyle(fontSize: 16)),
-                const SizedBox(height: 2),
+                Text(icon, style: const TextStyle(fontSize: 13)),
+                const SizedBox(height: 1),
                 Text(
                   value,
                   style: TextStyle(
@@ -3340,8 +3542,8 @@ class _StatBtn extends StatelessWidget {
                         : active
                         ? timeColors.accent
                         : AppColors.textMuted,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
                 Text(
@@ -3350,7 +3552,7 @@ class _StatBtn extends StatelessWidget {
                     color: active
                         ? AppColors.textMuted
                         : AppColors.textMuted.withValues(alpha: 0.5),
-                    fontSize: 9,
+                    fontSize: 8,
                   ),
                 ),
               ],
