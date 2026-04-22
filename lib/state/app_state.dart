@@ -1267,6 +1267,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       'redeemedLetterIds',
       _redeemedLetterIds.toList(),
     );
+    // Build 134: 이미 사용했으니 만료 임박 알림은 불필요 — 예약됐다면 취소.
+    unawaited(NotificationService.cancelCouponExpiryReminder(letterId));
     notifyListeners();
   }
 
@@ -6080,6 +6082,23 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         1000.0;
     _sumPickupKm += pickupKm;
     _detectLevelUp();
+
+    // Build 134: 쿠폰/교환권 편지를 주웠다면 만료 24h 전 알림 예약.
+    // general 카테고리·만료일 없음·이미 지남 = 스킵 (service 내부 guard).
+    if (letter.category != LetterCategory.general &&
+        letter.redemptionExpiresAt != null) {
+      unawaited(
+        NotificationService.scheduleCouponExpiryReminder(
+          letterId: letter.id,
+          expiresAt: letter.redemptionExpiresAt!,
+          senderName: letter.senderName.isNotEmpty
+              ? letter.senderName
+              : letter.senderCountry,
+          isVoucher: letter.category == LetterCategory.voucher,
+          langCode: _currentUser.languageCode,
+        ),
+      );
+    }
 
     NotificationService.showLetterArrivedNotification(
       senderCountry: letter.senderCountry,

@@ -16,6 +16,7 @@ enum PushCategory {
   nearby,           // letter within 500m
   cooldown,         // "nearby but on cooldown"
   reportBlock,      // your letter got reported
+  couponExpiry,     // Build 134: 보유 쿠폰/교환권 만료 1일 전 알림
 }
 
 enum PushMode { quiet, standard, full }
@@ -373,7 +374,8 @@ class NotificationService {
         return cat == PushCategory.daily ||
             cat == PushCategory.arrivedInbox ||
             cat == PushCategory.arrivalCountdown ||
-            cat == PushCategory.dm;
+            cat == PushCategory.dm ||
+            cat == PushCategory.couponExpiry;
       case PushMode.quiet:
         return cat == PushCategory.daily;
     }
@@ -814,7 +816,135 @@ class NotificationService {
     }
   }
 
+  /// Build 134: 쿠폰/교환권 유효기간 1일 전 만료 임박 알림을 예약한다.
+  /// `letterId` 는 여러 쿠폰을 독립적으로 관리하기 위한 키 (SharedPreferences
+  /// 와 무관하게 알림 시스템 내부 ID 로만 사용). ID 는 해시 기반이라 같은
+  /// 레터 재예약 시 자동 치환됨.
+  ///
+  /// [expiresAt] 은 쿠폰의 만료 시각. 알림은 만료 24 시간 전에 발사.
+  /// 이미 24 시간 이내이면 스킵 (너무 늦은 알림은 피로 유발).
+  static Future<void> scheduleCouponExpiryReminder({
+    required String letterId,
+    required DateTime expiresAt,
+    required String senderName,
+    required bool isVoucher,
+    String langCode = 'en',
+  }) async {
+    if (!_isAllowed(PushCategory.couponExpiry)) return;
+    try {
+      final id = _couponExpiryNotificationId(letterId);
+      await _plugin.cancel(id); // 중복 예약 방지
+      final fire = expiresAt.subtract(const Duration(hours: 24));
+      final now = DateTime.now();
+      // 이미 24시간 이내이거나 지난 쿠폰은 알림 불필요.
+      if (fire.isBefore(now.add(const Duration(minutes: 1)))) return;
+
+      final title = _couponExpiryTitle(langCode, isVoucher);
+      final body = _couponExpiryBody(langCode, senderName, isVoucher);
+
+      const androidDetails = AndroidNotificationDetails(
+        'coupon_expiry_reminder',
+        'Coupon expiry reminder',
+        channelDescription: 'Alert 1 day before a coupon or voucher expires',
+        importance: Importance.high,
+        priority: Priority.high,
+        icon: '@mipmap/ic_launcher',
+      );
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
+      const details = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      final tzFire = tz.TZDateTime(
+        tz.local,
+        fire.year,
+        fire.month,
+        fire.day,
+        fire.hour,
+        fire.minute,
+      );
+
+      await _plugin.zonedSchedule(
+        id,
+        title,
+        body,
+        tzFire,
+        details,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+      );
+    } catch (e) {
+      debugPrint('Coupon expiry schedule error: $e');
+    }
+  }
+
+  /// 예약된 쿠폰 만료 알림 취소 (사용 완료 · 편지 삭제 시).
+  static Future<void> cancelCouponExpiryReminder(String letterId) async {
+    try {
+      await _plugin.cancel(_couponExpiryNotificationId(letterId));
+    } catch (e) {
+      debugPrint('Coupon expiry cancel error: $e');
+    }
+  }
+
+  /// `letterId` 를 안정적인 양의 32-bit 정수로 매핑. 알림 시스템 ID 는 int
+  /// 제한이 있어 hashCode 를 절대값 + 오프셋 (1000 부터 시작) 으로 clamp.
+  static int _couponExpiryNotificationId(String letterId) {
+    final h = letterId.hashCode.abs();
+    return 1000 + (h % 1000000); // 1000 ~ 1_000_999 범위
+  }
+
   static Future<void> cancelAll() async {
     await _plugin.cancelAll();
+  }
+}
+
+String _couponExpiryTitle(String langCode, bool isVoucher) {
+  final emoji = isVoucher ? '🎁' : '🎟';
+  switch (langCode) {
+    case 'ko': return '⏰ $emoji 내일 만료돼요';
+    case 'ja': return '⏰ $emoji 明日で期限切れ';
+    case 'zh': return '⏰ $emoji 明天就到期了';
+    case 'fr': return '⏰ $emoji Expire demain';
+    case 'de': return '⏰ $emoji Läuft morgen ab';
+    case 'es': return '⏰ $emoji Caduca mañana';
+    case 'pt': return '⏰ $emoji Expira amanhã';
+    case 'ru': return '⏰ $emoji Истекает завтра';
+    case 'tr': return '⏰ $emoji Yarın sona eriyor';
+    case 'ar': return '⏰ $emoji تنتهي غدًا';
+    case 'it': return '⏰ $emoji Scade domani';
+    case 'hi': return '⏰ $emoji कल समाप्त';
+    case 'th': return '⏰ $emoji พรุ่งนี้หมดอายุ';
+    default: return '⏰ $emoji Expires tomorrow';
+  }
+}
+
+String _couponExpiryBody(String langCode, String sender, bool isVoucher) {
+  final kind = isVoucher
+      ? (langCode == 'ko' ? '교환권' : 'voucher')
+      : (langCode == 'ko' ? '할인권' : 'coupon');
+  switch (langCode) {
+    case 'ko': return '$sender의 $kind을(를) 오늘·내일 중에 사용하세요';
+    case 'ja': return '$sender の$kind を今日か明日までに使ってください';
+    case 'zh': return '请在今明两天内使用 $sender 的$kind';
+    case 'fr': return "Utilisez le $kind de $sender aujourd'hui ou demain";
+    case 'de': return 'Nutze den $kind von $sender heute oder morgen';
+    case 'es': return 'Usa el $kind de $sender hoy o mañana';
+    case 'pt': return 'Usa o $kind de $sender hoje ou amanhã';
+    case 'ru': return 'Используйте $kind от $sender сегодня или завтра';
+    case 'tr': return "$sender'in $kind'ini bugün veya yarın kullan";
+    case 'ar': return 'استخدم $kind من $sender اليوم أو غدًا';
+    case 'it': return 'Usa il $kind di $sender oggi o domani';
+    case 'hi': return '$sender का $kind आज या कल तक उपयोग करें';
+    case 'th': return 'ใช้$kindจาก $sender วันนี้หรือพรุ่งนี้';
+    case 'en':
+    default:
+      return "Use $sender's $kind today or tomorrow";
   }
 }
