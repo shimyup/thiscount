@@ -2836,15 +2836,33 @@ class _MapHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final timeColors = AppTimeColors.of(context);
+    // Build 148: 티어별 헤더 tint — Brand 는 미세한 오렌지 오버레이로
+    // "대시보드 모드" 감각, Premium 은 gold 미세 오버레이. 티어 정체성이
+    // 앱 상단에서 은은하게 드러나되 가독성은 해치지 않음 (alpha 0.08 이하).
+    final isBrand = context.select<AppState, bool>(
+      (s) => s.currentUser.isBrand,
+    );
+    final isPremium = context.select<AppState, bool>(
+      (s) => s.currentUser.isPremium,
+    );
+    final tierTint = isBrand
+        ? const Color(0xFFFF8A5C).withValues(alpha: 0.10)
+        : isPremium
+            ? AppColors.gold.withValues(alpha: 0.08)
+            : Colors.transparent;
     return Container(
       decoration: BoxDecoration(
         // Build 146: 그라데이션 더 부드럽게 — bgDeep → transparent 부드러운
         // 페이드로 지도 첫 인상 시 "헤더가 덮고 있는 느낌" 감쇄.
+        // Build 148: 티어 tint 를 bgDeep 위에 추가 — 색감만 은은히 변화.
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            timeColors.bgDeep.withValues(alpha: 0.45),
+            Color.alphaBlend(
+              tierTint,
+              timeColors.bgDeep.withValues(alpha: 0.45),
+            ),
             timeColors.bgDeep.withValues(alpha: 0.0),
           ],
           stops: const [0.3, 1.0],
@@ -3970,6 +3988,23 @@ class _MyTowerMarker extends StatelessWidget {
           alignment: Alignment.center,
           clipBehavior: Clip.none,
           children: [
+            // Build 148: Premium 유저 전용 추가 gold aura — 기존 맥동 링보다
+            // 살짝 크게 + gold 색으로 오버레이 해서 "Premium 티어" 시각적으로
+            // 강조. Free 는 teal 링 1개, Premium 은 teal + gold 2중 링.
+            if (isPremium && !isBrand)
+              Container(
+                width: 64 + pulse * 8,
+                height: 64 + pulse * 8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.gold.withValues(
+                      alpha: 0.12 + pulse * 0.18,
+                    ),
+                    width: 2.0,
+                  ),
+                ),
+              ),
             // 외곽 맥동 링
             Container(
               width: 54 + pulse * 6,
