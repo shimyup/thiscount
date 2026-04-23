@@ -12265,6 +12265,116 @@ class AppL10n {
     'th': 'ใกล้ที่สุด',
   });
 
+  /// Build 171: 레터 이름 수정 다이얼로그 라벨 (Free/Premium 전용).
+  String get profileDialogLetterNameTitle => _t({
+    'ko': '내 레터 이름',
+    'en': 'My Letter name',
+    'ja': 'レターの名前',
+    'zh': '我的信使名',
+    'fr': 'Nom de ma lettre',
+    'de': 'Mein Letter-Name',
+    'es': 'Nombre de mi Letter',
+    'pt': 'Nome do meu Letter',
+    'ru': 'Имя моего Letter',
+    'tr': "Letter'imin adı",
+    'ar': 'اسم ليتر الخاص بي',
+    'it': 'Nome del mio Letter',
+    'hi': 'मेरे Letter का नाम',
+    'th': 'ชื่อ Letter ของฉัน',
+  });
+
+  String get profileDialogLetterNameHint => _t({
+    'ko': '예: 우체부 루나', 'en': 'e.g. Mailman Luna', 'ja': '例: 郵便配達のルナ',
+    'zh': '例：邮差露娜', 'fr': 'ex. Facteur Luna', 'de': 'z.B. Briefträger Luna',
+    'es': 'ej. Cartero Luna', 'pt': 'ex. Carteiro Luna', 'ru': 'напр. Почтальон Луна',
+    'tr': 'örn. Postacı Luna', 'ar': 'مثل: ساعي البريد لونا', 'it': 'es. Postino Luna',
+    'hi': 'उदा. डाकिया Luna', 'th': 'เช่น บุรุษไปรษณีย์ลูน่า',
+  });
+
+  String get profileDialogLetterNameDesc => _t({
+    'ko': '내 레터 캐릭터에 이름을 붙여보세요. 최대 20자.',
+    'en': 'Give your Letter character a name. Max 20 chars.',
+    'ja': 'レターキャラクターに名前を付けよう。最大20文字。',
+    'zh': '给你的信使起个名字。最多 20 字符。',
+    'fr': 'Donne un nom à ta lettre. 20 caractères max.',
+    'de': 'Gib deinem Letter einen Namen. Max 20 Zeichen.',
+    'es': 'Ponle un nombre a tu Letter. Máx. 20 caracteres.',
+    'pt': 'Dá um nome ao teu Letter. Máx 20 caracteres.',
+    'ru': 'Назови своего Letter. Макс 20 символов.',
+    'tr': "Letter'ına isim ver. En fazla 20 karakter.",
+    'ar': 'سمّ ليترك الخاص. 20 حرفًا بحد أقصى.',
+    'it': 'Dai un nome al tuo Letter. Max 20 caratteri.',
+    'hi': 'अपने Letter का नाम दें. अधिकतम 20 वर्ण.',
+    'th': 'ตั้งชื่อ Letter ของคุณ สูงสุด 20 ตัวอักษร',
+  });
+
+  /// Build 171: 레터 캐릭터 로드맵 카드 (다음 해금까지).
+  String get letterRoadmapTitle => _t({
+    'ko': '🎯 다음 해금', 'en': '🎯 Next unlock', 'ja': '🎯 次の解放',
+    'zh': '🎯 下次解锁', 'fr': '🎯 Prochain déblocage', 'de': '🎯 Nächstes Freischalten',
+    'es': '🎯 Próximo desbloqueo', 'pt': '🎯 Próximo desbloqueio',
+    'ru': '🎯 Следующая разблокировка', 'tr': '🎯 Sonraki açılma',
+    'ar': '🎯 الفتح التالي', 'it': '🎯 Prossimo sblocco',
+    'hi': '🎯 अगला अनलॉक', 'th': '🎯 ปลดล็อกถัดไป',
+  });
+
+  String letterRoadmapCompanion(int level) {
+    switch (languageCode) {
+      case 'ko': return '$level 레벨에 새 동반자 해금';
+      case 'ja': return 'レベル $level で新しい仲間を解放';
+      case 'zh': return '等级 $level 解锁新伙伴';
+      case 'fr': return 'Nouveau compagnon au niveau $level';
+      case 'de': return 'Neuer Gefährte auf Level $level';
+      case 'es': return 'Nuevo compañero en el nivel $level';
+      case 'pt': return 'Novo companheiro no nível $level';
+      case 'ru': return 'Новый спутник на уровне $level';
+      case 'tr': return 'Seviye $level yeni yoldaş';
+      case 'ar': return 'رفيق جديد في المستوى $level';
+      case 'it': return 'Nuovo compagno al livello $level';
+      case 'hi': return 'स्तर $level पर नया साथी';
+      case 'th': return 'ปลดล็อกเพื่อนใหม่ระดับ $level';
+      default: return 'New companion at Level $level';
+    }
+  }
+
+  String letterRoadmapAccessory(int level) {
+    switch (languageCode) {
+      case 'ko': return '$level 레벨에 새 악세사리 해금';
+      case 'ja': return 'レベル $level で新しいアクセサリー';
+      case 'zh': return '等级 $level 解锁新配饰';
+      case 'fr': return 'Nouvel accessoire au niveau $level';
+      case 'de': return 'Neues Accessoire auf Level $level';
+      case 'es': return 'Nuevo accesorio en el nivel $level';
+      case 'pt': return 'Novo acessório no nível $level';
+      case 'ru': return 'Новый аксессуар на уровне $level';
+      case 'tr': return 'Seviye $level yeni aksesuar';
+      case 'ar': return 'إكسسوار جديد في المستوى $level';
+      case 'it': return 'Nuovo accessorio al livello $level';
+      case 'hi': return 'स्तर $level पर नया एक्सेसरी';
+      case 'th': return 'ปลดล็อกเครื่องประดับระดับ $level';
+      default: return 'New accessory at Level $level';
+    }
+  }
+
+  String letterRoadmapCharacter(int level) {
+    switch (languageCode) {
+      case 'ko': return '$level 레벨에 캐릭터 진화';
+      case 'ja': return 'レベル $level でキャラクター進化';
+      case 'zh': return '等级 $level 角色进化';
+      case 'fr': return 'Évolution du personnage au niveau $level';
+      case 'de': return 'Charakterentwicklung auf Level $level';
+      case 'es': return 'Evolución del personaje en nivel $level';
+      case 'pt': return 'Evolução do personagem no nível $level';
+      case 'ru': return 'Эволюция персонажа на уровне $level';
+      case 'tr': return 'Seviye $level karakter evrimi';
+      case 'ar': return 'تطور الشخصية في المستوى $level';
+      case 'it': return 'Evoluzione personaggio al livello $level';
+      case 'hi': return 'स्तर $level पर चरित्र विकास';
+      case 'th': return 'วิวัฒนาการตัวละครระดับ $level';
+      default: return 'Character evolves at Level $level';
+    }
+  }
+
   /// Build 163: Free/Premium 전용 탭 라벨 — 타워 대신 "레터" 캐릭터 성장
   /// 경험. Brand 는 `navTower` 유지.
   String get navLetter => _t({

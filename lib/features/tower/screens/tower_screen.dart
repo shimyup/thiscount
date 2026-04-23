@@ -350,8 +350,43 @@ class _TowerScreenState extends State<TowerScreen>
               ),
             ),
           ),
-          const SizedBox(height: 20),
-          // 레벨 라벨 (이름·Lv)
+          const SizedBox(height: 16),
+          // Build 171: 레터 이름 (커스텀) + 편집 아이콘. 미설정 시 "이름 없음 · 탭".
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => showEditTowerNameDialog(context, state),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    user.customTowerName?.isNotEmpty == true
+                        ? user.customTowerName!
+                        : AppL10n.of(user.languageCode)
+                            .profileDialogLetterNameHint,
+                    style: AppText.heading.copyWith(
+                      color: user.customTowerName?.isNotEmpty == true
+                          ? AppColors.textPrimary
+                          : AppColors.textMuted,
+                      fontStyle: user.customTowerName?.isNotEmpty == true
+                          ? FontStyle.normal
+                          : FontStyle.italic,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Icon(
+                  Icons.edit_rounded,
+                  size: 16,
+                  color: accent.withValues(alpha: 0.7),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 6),
+          // 레벨 라벨 (예: "🌱 견습 집배원")
           Text(
             state.levelLabel,
             style: AppText.title.copyWith(color: accent),
@@ -377,6 +412,68 @@ class _TowerScreenState extends State<TowerScreen>
             style: AppText.small.copyWith(
               color: AppColors.textMuted,
               fontWeight: FontWeight.w800,
+            ),
+          ),
+          // Build 171: 다음 해금 로드맵 (동반자·악세사리·캐릭터 중 가장 가까운 것)
+          const SizedBox(height: 14),
+          _buildNextUnlockRow(state, accent, user.languageCode),
+        ],
+      ),
+    );
+  }
+
+  /// Build 171: 가장 가까운 미해금 마일스톤 (동반자·악세사리·캐릭터 중) 을
+  /// "다음 해금: Lv N (—N 남음)" 로 표시. 없으면 null (Lv 50 달성) .
+  Widget _buildNextUnlockRow(AppState state, Color accent, String lang) {
+    final lvl = state.currentLevel;
+    final l = AppL10n.of(lang);
+    // 다음 해금 후보 (레벨, 설명) 수집
+    final candidates = <(int, String)>[];
+    for (final k in AppState.letterCompanionLevels) {
+      if (k > lvl) candidates.add((k, l.letterRoadmapCompanion(k)));
+    }
+    for (final k in AppState.letterAccessoryLevels) {
+      if (k > lvl) candidates.add((k, l.letterRoadmapAccessory(k)));
+    }
+    // 캐릭터 진화 — 현재 티어 다음 경계점
+    final nextCharLvl = (((lvl ~/ 5) + 1) * 5) + 1;
+    if (nextCharLvl <= 50) {
+      candidates.add((nextCharLvl - 1, l.letterRoadmapCharacter(nextCharLvl - 1)));
+    }
+    if (candidates.isEmpty) return const SizedBox.shrink();
+    candidates.sort((a, b) => a.$1.compareTo(b.$1));
+    final next = candidates.first;
+    final remaining = next.$1 - lvl;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        border: Border.all(
+          color: accent.withValues(alpha: 0.25),
+          width: 0.8,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            l.letterRoadmapTitle,
+            style: AppText.caption.copyWith(
+              color: accent,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              '${next.$2} · -$remaining',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppText.caption.copyWith(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
