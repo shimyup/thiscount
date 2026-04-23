@@ -874,7 +874,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           // ① 4열 스탯 (A+C)
                           _buildFourStatRow(ctx, state, user),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 12),
                           // ①-1 나의 헌트 기록 — Build 115 신규. "이번 달
                           // 얼마나 벌었나?" 감각을 만드는 메인 지표 카드.
                           // Brand 계정은 발송이 본업이라 픽업 지표가 비어있어
@@ -885,7 +885,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             const HuntWalletCard(
                               margin: EdgeInsets.symmetric(horizontal: 16),
                             ),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 12),
                           ],
                           // Build 138: Brand 전용 ROI 대시보드. 발송·픽업·사용
                           // 집계 + 전환율 + 국가별 상위 리스트. Firestore 에서
@@ -894,32 +894,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             // Build 156: 신규 Brand 온보딩 체크리스트
                             // (3/3 완료 시 자동 숨김).
                             const BrandChecklistCard(),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 12),
                             const BrandAnalyticsCard(),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 12),
                           ],
                           // ①-2 나의 여정 카드 — 누적 지표가 있을 때만 표시
                           const JourneyCard(
                             margin: EdgeInsets.symmetric(horizontal: 16),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 12),
                           // ①-4 이번 주 회고 — 일요일 + 발송 이력 있을 때만
                           const WeeklyReflectionCard(),
                           // ② 구독 + 잔여발송 빠른카드 (B+C)
                           _buildQuickCardsRow(ctx, state, user, purchase),
-                          const SizedBox(height: 10),
-                          // ②-2 게임 레벨 바 (Free · Premium 만 표시. Brand 는 👑 고정)
-                          _buildXpLevelCard(ctx, state),
-                          const SizedBox(height: 10),
-                          // ③ 타워 등급 + 프로그레스바 (A+B)
-                          _buildTowerProgressCard(ctx, user),
-                          const SizedBox(height: 10),
-                          // ④ 우표 앨범 배너 (A)
+                          const SizedBox(height: 12),
+                          // Build 178: XP 레벨 바 + 타워 진척 카드는 Free/Premium
+                          // 유저의 경우 레터 탭 hero 에 이미 표시됨 → 여기선 숨겨
+                          // 프로필 수직 밀도 감소. Brand 만 남겨 타워 정체성 유지.
+                          if (user.isBrand) ...[
+                            _buildXpLevelCard(ctx, state),
+                            const SizedBox(height: 12),
+                            _buildTowerProgressCard(ctx, user),
+                            const SizedBox(height: 12),
+                          ],
+                          // ④ 우표 앨범 배너
                           _buildStampAlbumBanner(ctx, state),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 12),
                           // ⑤ 팔로잉/팔로워 탭
                           _buildFollowSection(ctx, state, user),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 16),
                           // ── 계정 ──
                           _settingsGroup(_l.profileAccountSection, [
                             _groupTile(
