@@ -12072,6 +12072,26 @@ class AppL10n {
     'th': 'หอคอย',
   });
 
+  /// Build 167: Premium Gate 소셜 증거 바.
+  String premiumSocialProof(int count) {
+    switch (languageCode) {
+      case 'ko': return '이번 주 $count명이 Premium 업그레이드';
+      case 'ja': return '今週 $count 人が Premium にアップグレード';
+      case 'zh': return '本周 $count 人升级到 Premium';
+      case 'fr': return 'Cette semaine, $count personnes passées Premium';
+      case 'de': return 'Diese Woche $count Upgrades zu Premium';
+      case 'es': return 'Esta semana $count pasaron a Premium';
+      case 'pt': return 'Esta semana $count passaram a Premium';
+      case 'ru': return 'На этой неделе $count перешли на Premium';
+      case 'tr': return 'Bu hafta $count kişi Premium\'a geçti';
+      case 'ar': return 'هذا الأسبوع $count ترقّوا إلى Premium';
+      case 'it': return 'Questa settimana $count sono passati a Premium';
+      case 'hi': return 'इस सप्ताह $count ने Premium अपग्रेड किया';
+      case 'th': return 'สัปดาห์นี้ $count คนอัปเกรด Premium';
+      default: return '$count upgraded to Premium this week';
+    }
+  }
+
   /// Build 166: GPS 필수 동의 플로우 (약관 + skip 경고).
   String get gpsTermsHeader => _t({
     'ko': 'GPS 사용 동의',
