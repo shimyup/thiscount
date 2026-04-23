@@ -16,11 +16,15 @@ import '../../../core/theme/app_theme.dart';
 class ExactDropPicker extends StatefulWidget {
   final ll.LatLng initial;
   final String langCode;
+  /// Build 158: 과거 Brand 발송 좌표 추천 리스트. 각 좌표에 오렌지 핀 + 탭 시
+  /// 지도 중앙을 해당 지점으로 이동. 추천 없으면 기본 UX 그대로.
+  final List<ll.LatLng> recommendations;
 
   const ExactDropPicker({
     super.key,
     required this.initial,
     required this.langCode,
+    this.recommendations = const [],
   });
 
   @override
@@ -82,6 +86,41 @@ class _ExactDropPickerState extends State<ExactDropPicker> {
                     'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.globaldrift.lettergo',
               ),
+              // Build 158: 추천 좌표 핀 (과거 Brand 발송 지점) — 오렌지 tint
+              // 로 중앙 빨간 고정핀과 시각적 구분. 탭 시 지도 센터 이동.
+              if (widget.recommendations.isNotEmpty)
+                MarkerLayer(
+                  markers: widget.recommendations.map((p) {
+                    return Marker(
+                      point: p,
+                      width: 40,
+                      height: 40,
+                      child: GestureDetector(
+                        onTap: () {
+                          _ctrl.move(p, _zoom);
+                          setState(() => _center = p);
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: const Color(0xFFFF8A5C)
+                                .withValues(alpha: 0.22),
+                            border: Border.all(
+                              color: const Color(0xFFFF8A5C),
+                              width: 2,
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            Icons.history_rounded,
+                            color: Color(0xFFFF8A5C),
+                            size: 18,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
             ],
           ),
           // 중앙 고정 핀 — 지도가 움직이면 핀 아래 좌표가 바뀌는 개념

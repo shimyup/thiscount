@@ -1110,10 +1110,20 @@ class _ComposeScreenState extends State<ComposeScreen>
       _destLat != 0.0 ? _destLat : state.currentUser.latitude,
       _destLng != 0.0 ? _destLng : state.currentUser.longitude,
     );
+    // Build 158: 과거 Brand 발송 좌표 3개 → ExactDrop 추천 핀으로 전달.
+    // 로컬 `_sent` 기반 경량 추천 — 동일 지역 재발송 시 원탭 이동.
+    final recs = state
+        .brandRecentDropCoordinates(limit: 3)
+        .map((p) => ll.LatLng(p.latitude, p.longitude))
+        .toList();
     final picked = await Navigator.of(context).push<ll.LatLng>(
       MaterialPageRoute(
         fullscreenDialog: true,
-        builder: (_) => ExactDropPicker(initial: initial, langCode: langCode),
+        builder: (_) => ExactDropPicker(
+          initial: initial,
+          langCode: langCode,
+          recommendations: recs,
+        ),
       ),
     );
     if (!mounted || picked == null) return;

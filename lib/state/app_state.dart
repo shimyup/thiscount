@@ -2893,6 +2893,26 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
+  /// Build 158: ExactDrop 화면에서 보여줄 "최근 발송 좌표" 추천 리스트.
+  /// 로컬 `_sent` 중 Brand 편지 역순 N개 destination. 서버 쿼리 불필요.
+  /// 과거 캠페인 좌표를 재활용하면 동일 동네 유저에게 반복 노출 가능.
+  List<LatLng> brandRecentDropCoordinates({int limit = 3}) {
+    if (!_currentUser.isBrand) return const [];
+    final coords = <LatLng>[];
+    final seen = <String>{};
+    for (final l in _sent.reversed) {
+      if (!l.senderIsBrand) continue;
+      final key =
+          '${l.destinationLocation.latitude.toStringAsFixed(3)},'
+          '${l.destinationLocation.longitude.toStringAsFixed(3)}';
+      if (seen.contains(key)) continue;
+      seen.add(key);
+      coords.add(l.destinationLocation);
+      if (coords.length >= limit) break;
+    }
+    return coords;
+  }
+
   /// Build 138: 브랜드 분석 대시보드 데이터. Firestore 에서 내가 보낸
   /// 편지들을 쿼리해 총 발송·총 픽업·총 사용·전환율 집계. Brand 유저가
   /// 프로필 화면에서 자신의 캠페인 ROI 를 볼 수 있게 함.
