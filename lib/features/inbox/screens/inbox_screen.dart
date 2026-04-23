@@ -411,6 +411,17 @@ class _InboxScreenState extends State<InboxScreen>
     );
   }
 
+  /// Build 153: 이번 달(로컬 타임존) 수령 편지 수 집계.
+  /// 월 경계는 `arrivedAt.year == now.year && month == now.month` 기준.
+  int _countThisMonth(List<Letter> letters) {
+    final now = DateTime.now();
+    return letters.where((l) {
+      final a = l.arrivedAt;
+      if (a == null) return false;
+      return a.year == now.year && a.month == now.month;
+    }).length;
+  }
+
   Widget _buildHeader(BuildContext ctx, AppState state) {
     final l10n = AppL10n.of(state.currentUser.languageCode);
     return Padding(
@@ -455,6 +466,14 @@ class _InboxScreenState extends State<InboxScreen>
                         color: AppColors.textMuted,
                         fontSize: 13,
                       ),
+                    ),
+                    const SizedBox(height: 6),
+                    // Build 153: 이번 달 수집 진척도 — 50통 목표 기준 %.
+                    // 파워 유저 long-term goal 부재 문제 해소 (월마다 리셋).
+                    _MonthlyProgressBar(
+                      collected: _countThisMonth(state.inbox),
+                      target: 50,
+                      l10n: l10n,
                     ),
                   ],
                 ),
@@ -2336,6 +2355,70 @@ class _FollowListTab extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+
+/// Build 153: 이번 달 수령 편지 진척도 막대.
+/// 50통 목표 대비 현재까지 수집 비율 + 색상 티어링:
+///   < 50% : teal
+///   50–99%: gold
+///   >= 100%: gold 애니메이션 (달성)
+class _MonthlyProgressBar extends StatelessWidget {
+  final int collected;
+  final int target;
+  final AppL10n l10n;
+  const _MonthlyProgressBar({
+    required this.collected,
+    required this.target,
+    required this.l10n,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final ratio = target == 0 ? 0.0 : (collected / target).clamp(0.0, 1.0);
+    final pct = (ratio * 100).round();
+    final reached = collected >= target;
+    final color = reached
+        ? AppColors.gold
+        : (ratio >= 0.5 ? AppColors.gold : AppColors.teal);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              l10n.inboxMonthlyGoalLabel(collected, target),
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.3,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              reached ? "🏆 $pct%" : "$pct%",
+              style: TextStyle(
+                color: color,
+                fontSize: 10.5,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 3),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: ratio,
+            minHeight: 4,
+            backgroundColor: AppColors.bgSurface,
+            valueColor: AlwaysStoppedAnimation(color),
+          ),
+        ),
+      ],
     );
   }
 }

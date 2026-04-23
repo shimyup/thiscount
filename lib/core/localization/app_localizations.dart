@@ -4620,6 +4620,40 @@ class AppL10n {
     'th': 'โดย',
   });
 
+  // Build 153: 수집첩 월간 목표 진척 라벨 — "이번 달 32 / 50".
+  String inboxMonthlyGoalLabel(int collected, int target) {
+    switch (languageCode) {
+      case 'ko':
+        return '이번 달 $collected / $target';
+      case 'ja':
+        return '今月 $collected / $target';
+      case 'zh':
+        return '本月 $collected / $target';
+      case 'fr':
+        return 'Ce mois-ci $collected / $target';
+      case 'de':
+        return 'Diesen Monat $collected / $target';
+      case 'es':
+        return 'Este mes $collected / $target';
+      case 'pt':
+        return 'Este mês $collected / $target';
+      case 'ru':
+        return 'В этом месяце $collected / $target';
+      case 'tr':
+        return 'Bu ay $collected / $target';
+      case 'ar':
+        return 'هذا الشهر $collected / $target';
+      case 'it':
+        return 'Questo mese $collected / $target';
+      case 'hi':
+        return 'इस माह $collected / $target';
+      case 'th':
+        return 'เดือนนี้ $collected / $target';
+      default:
+        return 'This month $collected / $target';
+    }
+  }
+
   // Build 152: 시간대별 인사 pill — 반경 안에 편지 있을 때 표시.
   String get dailyGreetingMorning => _t({
     'ko': '좋은 아침',
