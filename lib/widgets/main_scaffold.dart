@@ -225,9 +225,14 @@ class _MainScaffoldState extends State<MainScaffold> {
                     ),
                   ),
                   Expanded(
+                    // Build 163: 티어별 탭 라벨·아이콘 — Brand 는 타워 (건물
+                    // 아이콘) 유지, Free/Premium 은 "레터" 캐릭터 (emoji_events
+                    // 대신 person 계열) 로 성장 내러티브 전달.
                     child: _NavItem(
-                      icon: Icons.apartment_rounded,
-                      label: l.navTower,
+                      icon: isBrand
+                          ? Icons.apartment_rounded
+                          : Icons.catching_pokemon_rounded,
+                      label: isBrand ? l.navTower : l.navLetter,
                       isSelected: _currentIndex == 2,
                       onTap: () => setState(() => _currentIndex = 2),
                     ),

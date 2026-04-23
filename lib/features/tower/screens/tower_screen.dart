@@ -199,8 +199,13 @@ class _TowerScreenState extends State<TowerScreen>
               SliverToBoxAdapter(
                 child: Column(
                   children: [
-                    // ── 타워 시각화 ─────────────────────────────────────────
-                    _buildTowerVisualization(score, user, hasPremium),
+                    // Build 163: Brand 는 타워 시각화 유지, Free/Premium 은
+                    // "성장하는 레터 캐릭터" 로 교체. 유저의 `characterEmoji`
+                    // + 컴패니언 + 악세사리 스택을 hero 로 노출.
+                    if (user.isBrand)
+                      _buildTowerVisualization(score, user, hasPremium)
+                    else
+                      _buildCharacterVisualization(state, user),
                     // ── 유저 정보 카드 ────────────────────────────────────────
                     _buildUserCard(context, user, score),
                     const SizedBox(height: 16),
@@ -222,6 +227,160 @@ class _TowerScreenState extends State<TowerScreen>
           ),
         );
       },
+    );
+  }
+
+  /// Build 163: Free/Premium 유저 hero 영역 — 성장 캐릭터 중심.
+  /// 타워 대신 큰 캐릭터 이모지 + 컴패니언/악세사리 + 레벨 pill.
+  /// 유저가 앱 켜면 "내 레터 캐릭터가 지금 Level N" 을 즉시 인지.
+  Widget _buildCharacterVisualization(AppState state, UserProfile user) {
+    final char = state.currentCharacterEmoji;
+    final companion = state.activeCompanionEmoji;
+    final accessory = state.activeAccessoryEmoji;
+    final level = state.currentLevel;
+    final progress = state.levelProgress;
+    final accent = user.isPremium ? AppColors.gold : AppColors.teal;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 24, 16, 20),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            accent.withValues(alpha: 0.16),
+            accent.withValues(alpha: 0.04),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(
+          color: accent.withValues(alpha: 0.4),
+          width: 1.4,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: accent.withValues(alpha: 0.16),
+            blurRadius: 24,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 캐릭터 stack — 아바타 배경 + 중앙 캐릭터 + 악세사리/컴패니언
+          AnimatedBuilder(
+            animation: _float,
+            builder: (_, __) => Transform.translate(
+              offset: Offset(0, _float.value * 0.5),
+              child: SizedBox(
+                width: 160,
+                height: 160,
+                child: Stack(
+                  alignment: Alignment.center,
+                  clipBehavior: Clip.none,
+                  children: [
+                    // 외곽 글로우 링
+                    AnimatedBuilder(
+                      animation: _glow,
+                      builder: (_, __) => Container(
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: accent.withValues(
+                              alpha: 0.25 + _glow.value * 0.25,
+                            ),
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                    // 아바타 본체
+                    Container(
+                      width: 132,
+                      height: 132,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.bgCard.withValues(alpha: 0.95),
+                        border: Border.all(color: accent, width: 2.5),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        char,
+                        style: const TextStyle(fontSize: 72),
+                      ),
+                    ),
+                    // 머리 위 악세사리
+                    if (accessory != null)
+                      Positioned(
+                        top: 0,
+                        child: Text(
+                          accessory,
+                          style: const TextStyle(fontSize: 38),
+                        ),
+                      ),
+                    // 오른쪽 하단 컴패니언
+                    if (companion != null)
+                      Positioned(
+                        bottom: 4,
+                        right: 4,
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: AppColors.bgCard,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: accent.withValues(alpha: 0.6),
+                              width: 1.5,
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            companion,
+                            style: const TextStyle(fontSize: 26),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          // 레벨 라벨 (이름·Lv)
+          Text(
+            state.levelLabel,
+            style: AppText.title.copyWith(color: accent),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 10),
+          // 진척 바
+          SizedBox(
+            width: 220,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppRadius.chip / 2),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 6,
+                backgroundColor: AppColors.bgSurface,
+                valueColor: AlwaysStoppedAnimation(accent),
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Lv $level',
+            style: AppText.small.copyWith(
+              color: AppColors.textMuted,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

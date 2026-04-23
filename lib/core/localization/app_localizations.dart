@@ -12072,6 +12072,25 @@ class AppL10n {
     'th': 'หอคอย',
   });
 
+  /// Build 163: Free/Premium 전용 탭 라벨 — 타워 대신 "레터" 캐릭터 성장
+  /// 경험. Brand 는 `navTower` 유지.
+  String get navLetter => _t({
+    'ko': '레터',
+    'en': 'Letter',
+    'ja': 'レター',
+    'zh': '信使',
+    'fr': 'Lettre',
+    'de': 'Letter',
+    'es': 'Letter',
+    'pt': 'Letter',
+    'ru': 'Letter',
+    'tr': 'Letter',
+    'ar': 'ليتر',
+    'it': 'Letter',
+    'hi': 'लेटर',
+    'th': 'เลตเตอร์',
+  });
+
 // ── Offline Banner ──────────────────────────────────────────────────────────
 
   String get offlineDisconnected => _t({
