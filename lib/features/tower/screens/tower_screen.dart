@@ -214,16 +214,19 @@ class _TowerScreenState extends State<TowerScreen>
                     ],
                     // ── 유저 정보 카드 ────────────────────────────────────────
                     _buildUserCard(context, user, score),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
                     // ── 활동 통계 ─────────────────────────────────────────────
                     _buildStatsGrid(context, score),
-                    const SizedBox(height: 16),
-                    // ── 타워 레벨 업 가이드 ──────────────────────────────────
-                    _buildLevelUpGuide(context, score),
-                    const SizedBox(height: 16),
-                    // ── 성취 배지 ─────────────────────────────────────────────
-                    _buildAchievements(context, score),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
+                    // Build 180: Free/Premium 은 레벨업 가이드 숨김 — 레터 hero
+                    // 의 로드맵 pill (Build 177) 과 중복. Brand 만 타워 진척 안내.
+                    if (user.isBrand) ...[
+                      _buildLevelUpGuide(context, score),
+                      const SizedBox(height: 14),
+                    ],
+                    // Build 180: 성취 배지 ExpansionTile 로 접기.
+                    _buildAchievementsCollapsible(context, score, user.languageCode),
+                    const SizedBox(height: 14),
                     _buildCommunityTowers(context, state),
                     const SizedBox(height: 40),
                   ],
@@ -1369,6 +1372,75 @@ class _TowerScreenState extends State<TowerScreen>
                 ],
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build 180: 성취 배지를 ExpansionTile 로 감싼 collapsed 기본 wrapper.
+  /// 획득 뱃지 수만 타이틀에 노출 — 자세한 그리드는 탭해서 펼침.
+  Widget _buildAchievementsCollapsible(
+    BuildContext ctx, ActivityScore score, String lang) {
+    final l = AppL10n.of(lang);
+    // 획득 수 계산은 `_buildAchievements` 와 동일 로직을 여기서 직접 세어
+    // 헤더 정보로 사용. 실제 그리드 렌더링은 기존 `_buildAchievements` 위임.
+    int earned = 0;
+    if (score.sentCount >= 1) earned++;
+    if (score.sentCount >= 10) earned++;
+    if (score.sentCount >= 50) earned++;
+    if (score.sentCount >= 100) earned++;
+    if (score.receivedCount >= 1) earned++;
+    if (score.receivedCount >= 10) earned++;
+    if (score.receivedCount >= 50) earned++;
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(
+          color: AppColors.textMuted.withValues(alpha: 0.15),
+          width: 0.8,
+        ),
+      ),
+      child: Theme(
+        data: Theme.of(ctx).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 14),
+          childrenPadding: EdgeInsets.zero,
+          iconColor: AppColors.textMuted,
+          collapsedIconColor: AppColors.textMuted,
+          title: Row(
+            children: [
+              const Text('🏅', style: TextStyle(fontSize: 16)),
+              const SizedBox(width: 8),
+              Text(
+                l.towerAchievementBadges,
+                style: AppText.title.copyWith(
+                  color: AppColors.textPrimary,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
+                decoration: BoxDecoration(
+                  color: AppColors.gold.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                ),
+                child: Text(
+                  '$earned',
+                  style: AppText.caption.copyWith(
+                    color: AppColors.gold,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 10,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          children: [
+            _buildAchievements(ctx, score),
           ],
         ),
       ),
