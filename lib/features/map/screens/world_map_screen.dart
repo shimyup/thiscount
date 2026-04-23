@@ -354,11 +354,26 @@ class _WorldMapScreenState extends State<WorldMapScreen>
               right: 0,
               child: const _MapHeader(),
             ),
-            // Build 142: 헤더 바로 아래로 슬라이드-다운 되는 브랜드 홍보
-            // 배너 광고. 앱 시작 직후 1회 노출 (세션 플래그 기반). 탭하면
-            // 지도가 해당 편지 위치로 이동 + 닫힘. 8초 후 자동 접힘.
+            // Build 165: 국가 점프 스크롤 바 — 수평 스크롤 칩으로 다른 나라
+            // 지도로 원탭 이동. 기존 "수동 줌아웃 후 드래그" 산만함 해소.
             Positioned(
               top: 56,
+              left: 0,
+              right: 0,
+              child: SafeArea(
+                bottom: false,
+                child: _CountryJumpBar(
+                  myCountry: state.currentUser.country,
+                  onJump: (lat, lng) {
+                    HapticFeedback.lightImpact();
+                    _mapController.move(ll.LatLng(lat, lng), 5.5);
+                  },
+                ),
+              ),
+            ),
+            // Build 142: 헤더·국가 바 아래로 슬라이드-다운 브랜드 홍보 배너.
+            Positioned(
+              top: 104,
               left: 0,
               right: 0,
               child: SafeArea(
@@ -3063,6 +3078,108 @@ class _DailyGreetingPill extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Build 165: 지도 상단 수평 국가 점프 바.
+/// `LogisticsHubs.hubs` 의 30+ 국가 중심 좌표를 칩으로 스크롤. 탭 시 지도 이동.
+/// 내 국가를 맨 앞으로 정렬하고 gold 테두리 강조. 각 칩: 플래그 + 현지어 이름.
+class _CountryJumpBar extends StatelessWidget {
+  final String myCountry;
+  final void Function(double lat, double lng) onJump;
+  const _CountryJumpBar({required this.myCountry, required this.onJump});
+
+  /// 대표 국가 리스트 — LogisticsHubs 에 정의된 주요 hub 중 선별.
+  /// (Flag emoji + Korean country name from LogisticsHubs key).
+  static const List<({String name, String flag, double lat, double lng})>
+      _countries = [
+    (name: '대한민국', flag: '🇰🇷', lat: 37.5665, lng: 126.978),
+    (name: '일본', flag: '🇯🇵', lat: 35.6762, lng: 139.6503),
+    (name: '미국', flag: '🇺🇸', lat: 40.7128, lng: -74.006),
+    (name: '중국', flag: '🇨🇳', lat: 39.9042, lng: 116.4074),
+    (name: '영국', flag: '🇬🇧', lat: 51.5074, lng: -0.1278),
+    (name: '프랑스', flag: '🇫🇷', lat: 48.8566, lng: 2.3522),
+    (name: '독일', flag: '🇩🇪', lat: 52.52, lng: 13.405),
+    (name: '이탈리아', flag: '🇮🇹', lat: 41.9028, lng: 12.4964),
+    (name: '스페인', flag: '🇪🇸', lat: 40.4168, lng: -3.7038),
+    (name: '브라질', flag: '🇧🇷', lat: -15.7942, lng: -47.8822),
+    (name: '인도', flag: '🇮🇳', lat: 28.6139, lng: 77.209),
+    (name: '호주', flag: '🇦🇺', lat: -33.8688, lng: 151.2093),
+    (name: '캐나다', flag: '🇨🇦', lat: 43.6532, lng: -79.3832),
+    (name: '멕시코', flag: '🇲🇽', lat: 19.4326, lng: -99.1332),
+    (name: '러시아', flag: '🇷🇺', lat: 55.7558, lng: 37.6173),
+    (name: '터키', flag: '🇹🇷', lat: 41.0082, lng: 28.9784),
+    (name: '태국', flag: '🇹🇭', lat: 13.7563, lng: 100.5018),
+    (name: '싱가포르', flag: '🇸🇬', lat: 1.3521, lng: 103.8198),
+    (name: '베트남', flag: '🇻🇳', lat: 21.0285, lng: 105.8542),
+    (name: '이집트', flag: '🇪🇬', lat: 30.0444, lng: 31.2357),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    // 내 국가 맨 앞, 그 외 기존 순서.
+    final myIdx = _countries.indexWhere((c) => c.name == myCountry);
+    final sorted = myIdx > 0
+        ? [_countries[myIdx], ..._countries.where((c) => c.name != myCountry)]
+        : _countries;
+    return Container(
+      height: 42,
+      margin: const EdgeInsets.only(top: 2),
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        itemCount: sorted.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 6),
+        itemBuilder: (_, i) {
+          final c = sorted[i];
+          final isMine = c.name == myCountry;
+          return Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+              onTap: () => onJump(c.lat, c.lng),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 11,
+                  vertical: 7,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.bgCard.withValues(alpha: 0.85),
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                  border: Border.all(
+                    color: isMine
+                        ? AppColors.gold.withValues(alpha: 0.7)
+                        : AppColors.textMuted.withValues(alpha: 0.25),
+                    width: isMine ? 1.4 : 0.8,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(c.flag, style: const TextStyle(fontSize: 13)),
+                    const SizedBox(width: 5),
+                    Text(
+                      _countryLabel(context, c.name),
+                      style: AppText.caption.copyWith(
+                        color: isMine
+                            ? AppColors.gold
+                            : AppColors.textSecondary,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  String _countryLabel(BuildContext context, String koName) {
+    final lang = context.read<AppState>().currentUser.languageCode;
+    return CountryL10n.localizedName(koName, lang);
   }
 }
 
