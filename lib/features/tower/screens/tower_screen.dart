@@ -90,6 +90,9 @@ class _TowerScreenState extends State<TowerScreen>
             purchase.isBrand ||
             user.isPremium ||
             user.isBrand;
+        // Build 183: Free/Premium 레터 탭에서 "타워" 표기 숨김. Brand 는
+        // 기존 타워 네러티브 유지 — 사업자에게는 건물 은유가 여전히 유효.
+        final isBrand = user.isBrand || purchase.isBrand;
 
         // 타워 단계 상승 감지 → 강렬한 햅틱 피드백
         final currentTier = score.tier;
@@ -122,7 +125,7 @@ class _TowerScreenState extends State<TowerScreen>
                     colors: [AppColors.goldLight, AppColors.gold],
                   ).createShader(b),
                   child: Text(
-                    _l.towerMyTower,
+                    isBrand ? _l.towerMyTower : _l.letterMyCharacter,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 20,
@@ -174,19 +177,22 @@ class _TowerScreenState extends State<TowerScreen>
                       );
                     },
                   ),
-                  // 타워 꾸미기 버튼 (프리미엄)
-                  TextButton.icon(
-                    onPressed: () => _showTowerCustomizer(context, state),
-                    icon: const Text('🎨', style: TextStyle(fontSize: 14)),
-                    label: Text(
-                      _l.towerCustomize,
-                      style: const TextStyle(
-                        color: AppColors.gold,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
+                  // 타워 꾸미기 버튼 — Build 183: Brand 만 노출.
+                  // Free/Premium 은 레터 캐릭터 탭이라 "타워 꾸미기" 가
+                  // 맥락 불일치. 향후 캐릭터 커스터마이저 별도 구현 시 재등장.
+                  if (isBrand)
+                    TextButton.icon(
+                      onPressed: () => _showTowerCustomizer(context, state),
+                      icon: const Text('🎨', style: TextStyle(fontSize: 14)),
+                      label: Text(
+                        _l.towerCustomize,
+                        style: const TextStyle(
+                          color: AppColors.gold,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
-                  ),
                   IconButton(
                     onPressed: () => _showMoreMenu(context, state),
                     icon: const Icon(

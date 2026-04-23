@@ -923,6 +923,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           // ⑤ 팔로잉/팔로워 탭
                           _buildFollowSection(ctx, state, user),
                           const SizedBox(height: 16),
+                          // Build 183: "계정 설정" 섹션을 하나의 ExpansionTile
+                          // 뒤로 숨겨 프로필 스캔을 가볍게. 탭하면 아래 계정/
+                          // 공개/알림/화면/앱정보/계정관리 전체가 펼쳐진다.
+                          // 기존 섹션 구조는 유지 → 필요할 때만 꺼냄.
+                          _SettingsCollapseButton(
+                            label: _l.profileSettingsCollapseLabel,
+                            sublabel: _l.profileSettingsCollapseSublabel,
+                            children: [
                           // ── 계정 ──
                           _settingsGroup(_l.profileAccountSection, [
                             _groupTile(
@@ -1101,6 +1109,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               isLast: true,
                             ),
                           ]),
+                            ],
+                          ),
                           const SizedBox(height: 60),
                         ],
                       ),
@@ -2435,6 +2445,113 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: AppColors.textMuted.withValues(alpha: 0.08),
             ),
           ),
+      ],
+    );
+  }
+}
+
+/// Build 183: 프로필 하단 "설정" 전체 섹션을 접었다 펼 수 있는 버튼 + 컨테이너.
+/// 기본은 접힘 — 프로필 스캔을 가볍게. 탭하면 자식들이 펼쳐진다.
+class _SettingsCollapseButton extends StatefulWidget {
+  final String label;
+  final String sublabel;
+  final List<Widget> children;
+
+  const _SettingsCollapseButton({
+    required this.label,
+    required this.sublabel,
+    required this.children,
+  });
+
+  @override
+  State<_SettingsCollapseButton> createState() =>
+      _SettingsCollapseButtonState();
+}
+
+class _SettingsCollapseButtonState extends State<_SettingsCollapseButton> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: InkWell(
+            onTap: () => setState(() => _expanded = !_expanded),
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 14, vertical: 14,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.bgCard,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _expanded
+                      ? AppColors.gold.withValues(alpha: 0.5)
+                      : AppColors.textMuted.withValues(alpha: 0.18),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.settings_rounded,
+                    size: 20,
+                    color: _expanded
+                        ? AppColors.gold
+                        : AppColors.textSecondary,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.label,
+                          style: TextStyle(
+                            color: _expanded
+                                ? AppColors.gold
+                                : AppColors.textPrimary,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          widget.sublabel,
+                          style: const TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 11.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  AnimatedRotation(
+                    turns: _expanded ? 0.5 : 0.0,
+                    duration: const Duration(milliseconds: 220),
+                    child: Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: _expanded
+                          ? AppColors.gold
+                          : AppColors.textMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        AnimatedCrossFade(
+          firstChild: const SizedBox.shrink(),
+          secondChild: Column(children: widget.children),
+          crossFadeState: _expanded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
+          duration: const Duration(milliseconds: 240),
+        ),
       ],
     );
   }

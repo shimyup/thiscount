@@ -9,6 +9,7 @@ import 'package:gal/gal.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:screen_protector/screen_protector.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/letter_style.dart';
@@ -53,9 +54,18 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   bool _hasLiked = false;
   int _userRating = 0; // 0 = 미선택, 1-5 = 별점
 
+  bool _voucherProtectOn = false;
+
   @override
   void initState() {
     super.initState();
+    // Build 183: 교환권 편지 화면 전체도 스크린샷/recording 차단. 본문 보기
+    // 단계에서 먼저 활성 → 풀스크린 뷰어도 자체적으로 재-활성 (중첩 안전).
+    if (widget.letter.category == LetterCategory.voucher) {
+      _voucherProtectOn = true;
+      ScreenProtector.preventScreenshotOn();
+      ScreenProtector.protectDataLeakageWithBlur();
+    }
     // Build 182: content 가 비어 있으면 Firestore 에서 재조회 (백그라운드).
     // 성공 시 AppState notifyListeners → Consumer 가 본문을 다시 렌더한다.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -112,6 +122,10 @@ class _LetterReadScreenState extends State<LetterReadScreen>
 
   @override
   void dispose() {
+    if (_voucherProtectOn) {
+      ScreenProtector.preventScreenshotOff();
+      ScreenProtector.protectDataLeakageWithBlurOff();
+    }
     _openController.dispose();
     super.dispose();
   }
@@ -2347,12 +2361,14 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   /// 이미지 URL이 로컬 파일 경로인지 네트워크 URL인지 판별하여 적절한 위젯 반환
   // ── 풀스크린 이미지 뷰어 ──────────────────────────────────────────────────
   void _openFullscreenImage(BuildContext context, String imageUrl) {
+    final isVoucher = widget.letter.category == LetterCategory.voucher;
     Navigator.of(context).push(
       MaterialPageRoute(
         fullscreenDialog: true,
         builder: (_) => _FullscreenImageViewer(
           imageUrl: imageUrl,
           heroTag: 'letter_image_${widget.letter.id}',
+          isVoucher: isVoucher,
         ),
       ),
     );
@@ -2473,8 +2489,14 @@ class _LetterBgPainter extends CustomPainter {
 class _FullscreenImageViewer extends StatefulWidget {
   final String imageUrl;
   final String heroTag;
+  // Build 183: 교환권 이미지 전용 플래그 — screenshot/recording 차단 활성.
+  final bool isVoucher;
 
-  const _FullscreenImageViewer({required this.imageUrl, required this.heroTag});
+  const _FullscreenImageViewer({
+    required this.imageUrl,
+    required this.heroTag,
+    this.isVoucher = false,
+  });
 
   @override
   State<_FullscreenImageViewer> createState() => _FullscreenImageViewerState();
@@ -2483,6 +2505,26 @@ class _FullscreenImageViewer extends StatefulWidget {
 class _FullscreenImageViewerState extends State<_FullscreenImageViewer> {
   bool _isSaving = false;
   bool _savedOk = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isVoucher) {
+      // Android: FLAG_SECURE — 시스템 레벨 스크린샷/recording 차단.
+      // iOS: capture 감지 시 내부 blur overlay (플러그인 제공).
+      ScreenProtector.preventScreenshotOn();
+      ScreenProtector.protectDataLeakageWithBlur();
+    }
+  }
+
+  @override
+  void dispose() {
+    if (widget.isVoucher) {
+      ScreenProtector.preventScreenshotOff();
+      ScreenProtector.protectDataLeakageWithBlurOff();
+    }
+    super.dispose();
+  }
 
   Future<void> _saveImage() async {
     if (_isSaving) return;

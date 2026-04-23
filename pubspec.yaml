@@ -3,7 +3,7 @@ description: "Letter Go - Send letters to the world"
 publish_to: 'none'
 homepage: 'https://globaldrift.com'
 issue_tracker: 'https://globaldrift.com/support'
-version: 1.0.0+182
+version: 1.0.0+183
 
 environment:
   sdk: ^3.11.0
@@ -37,6 +37,8 @@ dependencies:
   share_plus: ^10.0.0
   encrypt: ^5.0.3
   audioplayers: ^6.1.0
+  # Android FLAG_SECURE + iOS screen-capture detection. 교환권 뷰어에서 호출.
+  screen_protector: ^1.4.5+1
 
 dependency_overrides:
   # objective_c 9.x (native assets)가 iOS 시뮬레이터에서 SdkRoot 미설정으로

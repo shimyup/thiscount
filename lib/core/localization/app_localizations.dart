@@ -7166,6 +7166,75 @@ class AppL10n {
     'th': 'ลบจดหมายแล้ว',
   });
 
+  // Build 183: 받은 편지 스와이프 — 우측(→) 사용 완료 라벨.
+  String get inboxMarkUsed => _t({
+    'ko': '사용 완료',
+    'en': 'Mark used',
+    'ja': '使用済み',
+    'zh': '标记已用',
+    'fr': 'Utilisé',
+    'de': 'Benutzt',
+    'es': 'Usar',
+    'pt': 'Usado',
+    'ru': 'Использовано',
+    'tr': 'Kullanıldı',
+    'ar': 'استخدم',
+    'it': 'Usato',
+    'hi': 'प्रयुक्त',
+    'th': 'ใช้แล้ว',
+  });
+
+  String get inboxAlreadyUsed => _t({
+    'ko': '이미 사용',
+    'en': 'Used',
+    'ja': '使用済',
+    'zh': '已使用',
+    'fr': 'Utilisé',
+    'de': 'Verwendet',
+    'es': 'Usado',
+    'pt': 'Usado',
+    'ru': 'Использ.',
+    'tr': 'Kullanıldı',
+    'ar': 'مستخدم',
+    'it': 'Usato',
+    'hi': 'प्रयुक्त',
+    'th': 'ใช้แล้ว',
+  });
+
+  String get inboxMarkedUsed => _t({
+    'ko': '✅ 사용 완료로 표시했어요',
+    'en': '✅ Marked as used',
+    'ja': '✅ 使用済みに設定しました',
+    'zh': '✅ 已标记为已使用',
+    'fr': '✅ Marqué comme utilisé',
+    'de': '✅ Als benutzt markiert',
+    'es': '✅ Marcado como usado',
+    'pt': '✅ Marcado como usado',
+    'ru': '✅ Отмечено как использованное',
+    'tr': '✅ Kullanıldı olarak işaretlendi',
+    'ar': '✅ تم التعليم كمستخدم',
+    'it': '✅ Contrassegnato come usato',
+    'hi': '✅ प्रयुक्त के रूप में चिह्नित',
+    'th': '✅ ทำเครื่องหมายว่าใช้แล้ว',
+  });
+
+  String get inboxAlreadyUsedSnack => _t({
+    'ko': '이미 사용 완료된 편지예요',
+    'en': 'Already marked as used',
+    'ja': '既に使用済みです',
+    'zh': '已是已使用状态',
+    'fr': 'Déjà marqué comme utilisé',
+    'de': 'Bereits als benutzt markiert',
+    'es': 'Ya marcado como usado',
+    'pt': 'Já marcado como usado',
+    'ru': 'Уже использовано',
+    'tr': 'Zaten kullanıldı',
+    'ar': 'تم تعليمه كمستخدم',
+    'it': 'Già contrassegnato come usato',
+    'hi': 'पहले से प्रयुक्त चिह्नित',
+    'th': 'ใช้แล้วอยู่แล้ว',
+  });
+
   String get inboxEmptyReceived => _t({
     'ko': '조건에 맞는 받은 편지가 없어요',
     'en': 'No received letters match the filter',
@@ -7645,6 +7714,42 @@ class AppL10n {
     'it': 'Buoni',
     'hi': 'वाउचर',
     'th': 'บัตรแลก',
+  });
+
+  // Build 183: 받은 편지 필터에서 brand 제거 후 일반(general) 필터 신설.
+  String get inboxFilterGeneral => _t({
+    'ko': '일반',
+    'en': 'General',
+    'ja': '一般',
+    'zh': '普通',
+    'fr': 'Général',
+    'de': 'Allgemein',
+    'es': 'General',
+    'pt': 'Geral',
+    'ru': 'Общие',
+    'tr': 'Genel',
+    'ar': 'عام',
+    'it': 'Generale',
+    'hi': 'सामान्य',
+    'th': 'ทั่วไป',
+  });
+
+  // Build 183: 수집첩 정렬에 "사용 완료" 추가. 이미 redeemed 된 편지만 보임.
+  String get inboxSortUsedOnly => _t({
+    'ko': '사용 완료',
+    'en': 'Used',
+    'ja': '使用済み',
+    'zh': '已使用',
+    'fr': 'Utilisé',
+    'de': 'Benutzt',
+    'es': 'Usados',
+    'pt': 'Usados',
+    'ru': 'Использованные',
+    'tr': 'Kullanılmış',
+    'ar': 'مستخدم',
+    'it': 'Usati',
+    'hi': 'प्रयुक्त',
+    'th': 'ใช้แล้ว',
   });
 
   String get inboxStatusInTransit => _t({
@@ -10158,21 +10263,22 @@ class AppL10n {
     'th': 'หอคอยชุมชน',
   });
 
+  // Build 183: "세계 랭킹" → "레터 순위" (letter-centric renaming).
   String get mapWorldRanking => _t({
-    'ko': '세계 랭킹',
-    'en': 'World Ranking',
-    'ja': '世界ランキング',
-    'zh': '世界排名',
-    'fr': 'Classement mondial',
-    'de': 'Weltrangliste',
-    'es': 'Ranking mundial',
-    'pt': 'Ranking mundial',
-    'ru': 'Мировой рейтинг',
-    'tr': 'Dünya Sıralaması',
-    'ar': 'التصنيف العالمي',
-    'it': 'Classifica mondiale',
-    'hi': 'विश्व रैंकिंग',
-    'th': 'อันดับโลก',
+    'ko': '레터 순위',
+    'en': 'Letter Ranking',
+    'ja': 'レターランキング',
+    'zh': '信使排名',
+    'fr': 'Classement Letter',
+    'de': 'Letter-Rangliste',
+    'es': 'Ranking de Letter',
+    'pt': 'Ranking de Letter',
+    'ru': 'Рейтинг Letter',
+    'tr': 'Letter Sıralaması',
+    'ar': 'تصنيف Letter',
+    'it': 'Classifica Letter',
+    'hi': 'Letter रैंकिंग',
+    'th': 'อันดับ Letter',
   });
 
   String get mapBuildingFloors => _t({
@@ -15423,70 +15529,73 @@ class AppL10n {
     'th': 'ระดับสมาชิก',
   });
 
+  // Build 183: 일반 회원(Free/Premium) 등급 설명을 "레터" 트랙 서사로 통일.
+  // 이전엔 "pickup only", "photo/link letters" 같은 기능 나열이었으나 유저는
+  // Letter 캐릭터가 성장하는 내러티브를 기대. Brand 만 광고주 기능 구분 유지.
   String get mapHelpTierFreeTitle => _t({
-    'ko': 'Free — 편지 줍기 전용',
-    'en': 'Free — pickup only',
-    'ja': 'Free — 手紙を拾う専用',
-    'zh': 'Free — 仅拾取',
-    'fr': 'Free — ramassage seul',
-    'de': 'Free — nur Aufsammeln',
-    'es': 'Free — solo recoger',
-    'pt': 'Free — apenas apanhar',
-    'ru': 'Free — только сбор',
-    'tr': 'Free — yalnızca toplama',
-    'ar': 'Free — التقاط فقط',
-    'it': 'Free — solo raccolta',
-    'hi': 'Free — केवल उठाना',
-    'th': 'Free — เก็บเท่านั้น',
+    'ko': 'Free — 🎟 레터 줍기',
+    'en': 'Free — 🎟 Pick up Letters',
+    'ja': 'Free — 🎟 Letter を拾う',
+    'zh': 'Free — 🎟 拾取 Letter',
+    'fr': 'Free — 🎟 Ramasser des Letters',
+    'de': 'Free — 🎟 Letters aufsammeln',
+    'es': 'Free — 🎟 Recoger Letters',
+    'pt': 'Free — 🎟 Apanhar Letters',
+    'ru': 'Free — 🎟 Собирать Letters',
+    'tr': 'Free — 🎟 Letter topla',
+    'ar': 'Free — 🎟 التقاط Letter',
+    'it': 'Free — 🎟 Raccogli Letter',
+    'hi': 'Free — 🎟 Letter उठाएँ',
+    'th': 'Free — 🎟 เก็บ Letter',
   });
   String get mapHelpTierFreeBody => _t({
-    'ko': '200m 반경 안의 할인·홍보 편지를 주워 사용하세요. 쿨다운 60분.',
-    'en': 'Pick up promo/coupon letters within 200m. 60-min cooldown.',
-    'ja': '200m 圏内の割引・プロモ手紙を拾って使えます。クールダウン 60 分。',
-    'zh': '拾取 200 米范围内的优惠·促销信件。冷却 60 分钟。',
-    'fr': 'Ramasse les coupons dans un rayon de 200 m. Cooldown 60 min.',
-    'de': 'Coupons im 200-m-Radius aufsammeln. 60 min Abklingzeit.',
-    'es': 'Recoge cupones en 200 m. Cooldown 60 min.',
-    'pt': 'Apanha cupões em 200 m. Cooldown 60 min.',
-    'ru': 'Подбор в радиусе 200 м. Перезарядка 60 мин.',
-    'tr': '200 m yarıçapta topla. 60 dk cooldown.',
-    'ar': 'التقاط في نطاق 200 م. تبريد 60 دقيقة.',
-    'it': 'Raccogli entro 200 m. Cooldown 60 min.',
-    'hi': '200 मी में उठाएँ। कूलडाउन 60 मिनट।',
-    'th': 'เก็บในรัศมี 200 ม. คูลดาวน์ 60 นาที',
+    'ko': '200m 반경 안의 레터를 주워 내 수집첩에 담고 사용하세요. 레벨이 오를수록 반경이 늘어나고 레터가 함께 성장합니다. 쿨다운 60분.',
+    'en': 'Pick up Letters within 200 m into your inbox. Your radius grows with each level as your Letter levels up. 60-min cooldown.',
+    'ja': '200m 圏内の Letter を拾って受信箱に集めよう。レベルが上がるほど半径も Letter も成長。クールダウン 60 分。',
+    'zh': '拾取 200 米范围内的 Letter 到收件箱。等级越高半径越大，Letter 也一同成长。冷却 60 分钟。',
+    'fr': 'Ramasse les Letters dans un rayon de 200 m — ta portée grandit avec ton Letter. Cooldown 60 min.',
+    'de': 'Letters im 200-m-Radius aufsammeln. Mit jedem Level wächst Radius und dein Letter. 60 min Abklingzeit.',
+    'es': 'Recoge Letters en 200 m — tu radio crece con tu Letter. Cooldown 60 min.',
+    'pt': 'Apanha Letters em 200 m — o teu raio cresce com o teu Letter. Cooldown 60 min.',
+    'ru': 'Собирайте Letter в радиусе 200 м — радиус растёт вместе с вашим Letter. Перезарядка 60 мин.',
+    'tr': '200 m yarıçapta Letter topla. Her seviyede yarıçap ve Letter büyür. 60 dk cooldown.',
+    'ar': 'التقاط Letter في نطاق 200 م. يزداد النطاق مع نمو Letter الخاص بك. تبريد 60 دقيقة.',
+    'it': 'Raccogli Letter entro 200 m — il tuo raggio cresce col tuo Letter. Cooldown 60 min.',
+    'hi': '200 मी में Letter उठाएँ। Letter बढ़ने पर परिधि भी बढ़ती है। कूलडाउन 60 मिनट।',
+    'th': 'เก็บ Letter ในรัศมี 200 ม. — รัศมีและ Letter เติบโตไปด้วยกัน คูลดาวน์ 60 นาที',
   });
 
   String get mapHelpTierPremiumTitle => _t({
-    'ko': 'Premium — 📸 사진·🔗 링크 홍보 편지',
-    'en': 'Premium — 📸 photo + 🔗 link letters',
-    'ja': 'Premium — 📸 写真・🔗 リンク PR 手紙',
-    'zh': 'Premium — 📸 照片 + 🔗 链接推广信',
-    'fr': 'Premium — lettres 📸 photo + 🔗 lien',
-    'de': 'Premium — 📸 Foto + 🔗 Link-Briefe',
-    'es': 'Premium — cartas 📸 foto + 🔗 enlace',
-    'pt': 'Premium — cartas 📸 foto + 🔗 link',
-    'ru': 'Premium — письма с 📸 и 🔗',
-    'tr': 'Premium — 📸 fotoğraf + 🔗 link mektuplar',
-    'ar': 'Premium — رسائل 📸 صور + 🔗 روابط',
-    'it': 'Premium — lettere 📸 foto + 🔗 link',
-    'hi': 'Premium — 📸 फ़ोटो + 🔗 लिंक पत्र',
-    'th': 'Premium — จดหมาย 📸 รูป + 🔗 ลิงก์',
+    'ko': 'Premium — ✉️ 내 레터 뿌리기',
+    'en': 'Premium — ✉️ Drop your Letters',
+    'ja': 'Premium — ✉️ 自分の Letter を配る',
+    'zh': 'Premium — ✉️ 投放自己的 Letter',
+    'fr': 'Premium — ✉️ Déposer tes Letters',
+    'de': 'Premium — ✉️ Eigene Letters verteilen',
+    'es': 'Premium — ✉️ Lanza tus Letters',
+    'pt': 'Premium — ✉️ Lança os teus Letters',
+    'ru': 'Premium — ✉️ Раскладывайте свои Letters',
+    'tr': 'Premium — ✉️ Kendi Letter\'larını bırak',
+    'ar': 'Premium — ✉️ وزّع رسائل Letter',
+    'it': 'Premium — ✉️ Rilascia i tuoi Letter',
+    'hi': 'Premium — ✉️ अपने Letter बिखेरें',
+    'th': 'Premium — ✉️ ปล่อย Letter ของคุณ',
   });
   String get mapHelpTierPremiumBody => _t({
-    'ko': '1km 반경 · 쿨다운 10분. 내 채널/SNS 링크와 사진으로 나를 홍보하는 편지를 세계에 뿌리세요.',
-    'en': '1 km radius · 10-min cooldown. Promote yourself with photos and channel/SNS links dropped worldwide.',
-    'ja': '1km 圏 · クールダウン 10 分。写真とチャンネルリンクで自己PR する手紙を世界に届けます。',
-    'zh': '1 公里范围 · 冷却 10 分钟。用照片和频道链接将自己推广到世界。',
-    'fr': 'Rayon 1 km · cooldown 10 min. Mets-toi en avant avec photos et liens.',
-    'de': '1 km · 10 min Cooldown. Mit Fotos & Kanal-Links weltweit sichtbar.',
-    'es': 'Rango 1 km · cooldown 10 min. Promociónate con fotos y enlaces.',
-    'pt': 'Raio 1 km · cooldown 10 min. Promove-te com fotos e links.',
-    'ru': 'Радиус 1 км · перезарядка 10 мин. Продвигайтесь с фото и ссылками.',
-    'tr': '1 km · 10 dk cooldown. Fotoğraf + linklerle kendini tanıt.',
-    'ar': 'نطاق 1 كم · تبريد 10 دقائق. روّج بالصور والروابط.',
-    'it': 'Raggio 1 km · cooldown 10 min. Promuoviti con foto e link.',
-    'hi': '1 किमी · कूलडाउन 10 मिनट. फ़ोटो व लिंक से स्वयं प्रमोट.',
-    'th': 'รัศมี 1 กม. · คูลดาวน์ 10 นาที โปรโมตตัวเองด้วยรูปและลิงก์',
+    'ko': '1km 반경으로 주우면서 📸 사진 · 🔗 링크가 달린 내 레터를 세계 지도에 떨어뜨릴 수 있어요. 내 레터가 빠르게 성장합니다. 쿨다운 10분.',
+    'en': '1 km pickup radius + drop your own Letters with 📸 photos and 🔗 links on the map. Your Letter levels up faster. 10-min cooldown.',
+    'ja': '1km 圏で拾いつつ、📸 写真・🔗 リンクを添えた自分の Letter を世界に配れます。Letter の成長が早まります。クールダウン 10 分。',
+    'zh': '1 公里范围内拾取 + 投放带 📸 照片和 🔗 链接的自己的 Letter。Letter 成长更快。冷却 10 分钟。',
+    'fr': 'Rayon 1 km · dépose tes Letters avec photos et liens. Ton Letter grandit plus vite. Cooldown 10 min.',
+    'de': '1 km · verteile eigene Letters mit Fotos & Links weltweit. Dein Letter wächst schneller. 10 min Cooldown.',
+    'es': '1 km · lanza tus Letters con fotos y enlaces. Tu Letter crece más rápido. Cooldown 10 min.',
+    'pt': '1 km · lança os teus Letters com fotos e links. O teu Letter cresce mais rápido. Cooldown 10 min.',
+    'ru': 'Радиус 1 км · раскладывайте свои Letters с фото и ссылками. Ваш Letter растёт быстрее. Перезарядка 10 мин.',
+    'tr': '1 km · kendi Letter\'larını fotoğraf ve linklerle dağıt. Letter\'ın daha hızlı büyür. 10 dk cooldown.',
+    'ar': 'نطاق 1 كم · وزّع رسائلك بصور وروابط. ينمو Letter الخاص بك أسرع. تبريد 10 دقائق.',
+    'it': '1 km · rilascia i tuoi Letter con foto e link. Il tuo Letter cresce più velocemente. Cooldown 10 min.',
+    'hi': '1 किमी · अपने Letter फ़ोटो और लिंक सहित बिखेरें। आपका Letter तेज़ी से बढ़ता है। कूलडाउन 10 मिनट।',
+    'th': 'รัศมี 1 กม. · ปล่อย Letter พร้อมรูปและลิงก์ Letter เติบโตเร็วขึ้น คูลดาวน์ 10 นาที',
   });
 
   String get mapHelpTierBrandTitle => _t({
@@ -16241,6 +16350,41 @@ class AppL10n {
     'ar': 'إدارة الحساب', 'it': 'Gestione account', 'hi': 'खाता प्रबंधन', 'th': 'จัดการบัญชี',
   });
 
+  // Build 183: 프로필 "설정" 섹션 접기 버튼 라벨.
+  String get profileSettingsCollapseLabel => _t({
+    'ko': '계정 · 알림 · 앱 설정',
+    'en': 'Account · Notifications · App Settings',
+    'ja': 'アカウント · 通知 · アプリ設定',
+    'zh': '账户 · 通知 · 应用设置',
+    'fr': 'Compte · Notifications · Paramètres',
+    'de': 'Konto · Mitteilungen · App-Einstellungen',
+    'es': 'Cuenta · Notificaciones · Ajustes',
+    'pt': 'Conta · Notificações · Configurações',
+    'ru': 'Аккаунт · Уведомления · Настройки',
+    'tr': 'Hesap · Bildirimler · Uygulama',
+    'ar': 'الحساب · الإشعارات · الإعدادات',
+    'it': 'Account · Notifiche · Impostazioni',
+    'hi': 'खाता · सूचनाएँ · ऐप सेटिंग्स',
+    'th': 'บัญชี · การแจ้งเตือน · การตั้งค่า',
+  });
+
+  String get profileSettingsCollapseSublabel => _t({
+    'ko': '탭해서 펼치기',
+    'en': 'Tap to expand',
+    'ja': 'タップで展開',
+    'zh': '点击展开',
+    'fr': 'Toucher pour ouvrir',
+    'de': 'Tippen zum Öffnen',
+    'es': 'Toca para abrir',
+    'pt': 'Toca para abrir',
+    'ru': 'Нажмите, чтобы открыть',
+    'tr': 'Açmak için dokun',
+    'ar': 'اضغط للفتح',
+    'it': 'Tocca per aprire',
+    'hi': 'खोलने के लिए टैप करें',
+    'th': 'แตะเพื่อเปิด',
+  });
+
   String get profileNickname => _t({
     'ko': '닉네임', 'en': 'Nickname', 'ja': 'ニックネーム', 'zh': '昵称',
     'fr': 'Pseudo', 'de': 'Spitzname', 'es': 'Apodo',
@@ -16643,6 +16787,14 @@ class AppL10n {
     'ar': 'برجي', 'it': 'La mia torre', 'hi': 'मेरा टावर', 'th': 'หอคอยของฉัน',
   });
 
+  // Build 183: Free/Premium 용 "내 레터" 타이틀 — 타워 대신.
+  String get letterMyCharacter => _t({
+    'ko': '내 레터', 'en': 'My Letter', 'ja': 'マイレター', 'zh': '我的信使',
+    'fr': 'Ma lettre', 'de': 'Mein Letter', 'es': 'Mi carta',
+    'pt': 'Meu Letter', 'ru': 'Мой Letter', 'tr': 'Letter\'ım',
+    'ar': 'Letter الخاص بي', 'it': 'Il mio Letter', 'hi': 'मेरा Letter', 'th': 'Letter ของฉัน',
+  });
+
   String get towerEditProfile => _t({
     'ko': '프로필 편집', 'en': 'Edit Profile', 'ja': 'プロフィール編集', 'zh': '编辑资料',
     'fr': 'Modifier le profil', 'de': 'Profil bearbeiten', 'es': 'Editar perfil',
@@ -16906,11 +17058,14 @@ class AppL10n {
     'ar': 'ارتفاع البرج', 'it': 'Altezza torre', 'hi': 'टावर की ऊँचाई', 'th': 'ความสูงหอคอย',
   });
 
+  // Build 183: Brand 쪽에서는 타워 맥락 유지, Free/Premium 은 어차피
+  // 이 키가 참조 안 되는 쪽에서 letter 네이밍 써야 함. 공용 라벨이라 letter
+  // 네이밍으로 통일.
   String get towerWorldRanking => _t({
-    'ko': '세계 랭킹', 'en': 'World Ranking', 'ja': '世界ランキング', 'zh': '世界排名',
-    'fr': 'Classement mondial', 'de': 'Weltrangliste', 'es': 'Ranking mundial',
-    'pt': 'Ranking mundial', 'ru': 'Мировой рейтинг', 'tr': 'Dünya sıralaması',
-    'ar': 'التصنيف العالمي', 'it': 'Classifica mondiale', 'hi': 'विश्व रैंकिंग', 'th': 'อันดับโลก',
+    'ko': '레터 순위', 'en': 'Letter Ranking', 'ja': 'レターランキング', 'zh': '信使排名',
+    'fr': 'Classement Letter', 'de': 'Letter-Rangliste', 'es': 'Ranking de Letter',
+    'pt': 'Ranking de Letter', 'ru': 'Рейтинг Letter', 'tr': 'Letter Sıralaması',
+    'ar': 'تصنيف Letter', 'it': 'Classifica Letter', 'hi': 'Letter रैंकिंग', 'th': 'อันดับ Letter',
   });
 
   String towerMyRank(int rank) => _t({
@@ -19359,21 +19514,23 @@ class AppL10n {
   });
 
   // ── 레벨업 배너 ─────────────────────────────────────────────────────────
+  // Build 183: 레벨업 배너 — 레터 중심으로 리프레임. "기능 해금" 이 아니라
+  // "레터 성장" 내러티브.
   String get levelUpBannerTitle => _t({
-    'ko': '새 기능이 해금됐어요',
-    'en': 'New feature unlocked',
-    'ja': '新機能が解放されました',
-    'zh': '解锁新功能',
-    'fr': 'Nouvelle fonctionnalité débloquée',
-    'de': 'Neue Funktion freigeschaltet',
-    'es': 'Nueva función desbloqueada',
-    'pt': 'Novo recurso desbloqueado',
-    'ru': 'Открыта новая функция',
-    'tr': 'Yeni özellik açıldı',
-    'ar': 'تم فتح ميزة جديدة',
-    'it': 'Nuova funzione sbloccata',
-    'hi': 'नई सुविधा खुली',
-    'th': 'ปลดล็อกฟีเจอร์ใหม่',
+    'ko': '레터가 성장했어요',
+    'en': 'Your Letter has grown',
+    'ja': 'Letterが成長しました',
+    'zh': '你的 Letter 成长了',
+    'fr': 'Votre Letter a grandi',
+    'de': 'Dein Letter ist gewachsen',
+    'es': 'Tu Letter ha crecido',
+    'pt': 'Seu Letter cresceu',
+    'ru': 'Ваш Letter вырос',
+    'tr': 'Letter\'ın büyüdü',
+    'ar': 'نما Letter الخاص بك',
+    'it': 'Il tuo Letter è cresciuto',
+    'hi': 'आपका Letter बढ़ा',
+    'th': 'Letter ของคุณเติบโต',
   });
 
   String get userLevelNewbieWelcome => _t({
@@ -19393,21 +19550,22 @@ class AppL10n {
     'th': 'พร้อมส่งจดหมายฉบับแรกหรือยัง?',
   });
 
+  // Build 183: "탑 레벨" → 레터 레벨. 타워 잔상 제거.
   String get userLevelBeginnerWelcome => _t({
-    'ko': '🏠 나의 탑 레벨이 공개되었어요',
-    'en': '🏠 Your tower level is now visible',
-    'ja': '🏠 あなたのタワーレベルが公開されました',
-    'zh': '🏠 你的塔楼等级已公开',
-    'fr': '🏠 Votre niveau de tour est maintenant visible',
-    'de': '🏠 Deine Turm-Stufe ist nun sichtbar',
-    'es': '🏠 Tu nivel de torre ahora es visible',
-    'pt': '🏠 Seu nível de torre agora é visível',
-    'ru': '🏠 Ваш уровень башни теперь виден',
-    'tr': '🏠 Kule seviyen artık görünür',
-    'ar': '🏠 أصبح مستوى برجك مرئيًا',
-    'it': '🏠 Il livello della tua torre è ora visibile',
-    'hi': '🏠 आपका टॉवर स्तर अब दिखाई दे रहा है',
-    'th': '🏠 ระดับหอคอยของคุณแสดงแล้ว',
+    'ko': '✉️ 레터 레벨이 공개되었어요',
+    'en': '✉️ Your Letter level is now visible',
+    'ja': '✉️ Letterレベルが公開されました',
+    'zh': '✉️ 你的 Letter 等级已公开',
+    'fr': '✉️ Votre niveau Letter est désormais visible',
+    'de': '✉️ Dein Letter-Level ist nun sichtbar',
+    'es': '✉️ Tu nivel de Letter ahora es visible',
+    'pt': '✉️ Seu nível de Letter agora é visível',
+    'ru': '✉️ Ваш уровень Letter теперь виден',
+    'tr': '✉️ Letter seviyen artık görünür',
+    'ar': '✉️ أصبح مستوى Letter مرئيًا',
+    'it': '✉️ Il livello del tuo Letter è ora visibile',
+    'hi': '✉️ आपका Letter स्तर अब दिखाई दे रहा है',
+    'th': '✉️ ระดับ Letter ของคุณแสดงแล้ว',
   });
 
   String get userLevelCasualWelcome => _t({

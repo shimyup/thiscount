@@ -460,22 +460,32 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      // 필터가 "주변만" 상태면 대상 편지가 숨겨져 두 번째 이후
-                      // 탭부터 위치가 안 보임 — 전체보기로 강제 전환.
                       final target = ll.LatLng(
                         hint.letter.destinationLocation.latitude,
                         hint.letter.destinationLocation.longitude,
                       );
+                      // Build 183: 근본 원인 수정.
+                      // (1) 세션 persist debounce (Build 151, 2초 지연) 을
+                      //     먼저 취소 — 이전 수동 이동의 결과가 SharedPreferences
+                      //     에 덮어써지는 경쟁 방지 + 다음 복원 실패 차단.
+                      // (2) 필터를 "전체보기" 로 돌려 대상 편지 마커가 실제로
+                      //     렌더되도록.
+                      // (3) zoom nudge 를 **Future.delayed** 로 분리. 같은
+                      //     프레임에서 두 번의 move() 를 연속 호출하면 flutter_map
+                      //     8.x 는 두 번째만 반영하고 시각적 변화가 없다. 160ms
+                      //     사이로 띄워 두 번의 카메라 이벤트가 독립적으로
+                      //     처리되게 한다.
+                      _positionSaveDebounce?.cancel();
                       setState(() {
                         _showNearbyOnly = false;
                       });
-                      // 이미 같은 위치/줌 이면 move 가 시각적 변화를 일으키지
-                      // 못할 수 있음 — 줌을 살짝 흔들어 카메라 재이동 강제.
-                      final curZoom = _mapController.camera.zoom;
-                      if ((curZoom - 14.0).abs() < 0.01) {
-                        _mapController.move(target, 13.6);
-                      }
-                      _mapController.move(target, 14.0);
+                      // 조건 없이 무조건 zoom out → zoom in — 이미 같은 위치여도
+                      // 사용자에게 "이동했다" 는 피드백을 주기 위함.
+                      _mapController.move(target, 12.8);
+                      Future.delayed(const Duration(milliseconds: 160), () {
+                        if (!mounted) return;
+                        _mapController.move(target, 14.0);
+                      });
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
