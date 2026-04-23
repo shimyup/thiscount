@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../progression/user_progress.dart';
 import '../brand/brand_analytics_card.dart';
+import '../brand/brand_checklist_card.dart';
 import '../hunt_wallet/hunt_wallet_card.dart';
 import '../journey/journey_card.dart';
 import '../reflection/weekly_reflection_card.dart';
@@ -890,6 +891,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           // 집계 + 전환율 + 국가별 상위 리스트. Firestore 에서
                           // 실시간 조회하므로 광고주가 캠페인 효과를 볼 수 있음.
                           if (user.isBrand) ...[
+                            // Build 156: 신규 Brand 온보딩 체크리스트
+                            // (3/3 완료 시 자동 숨김).
+                            const BrandChecklistCard(),
+                            const SizedBox(height: 10),
                             const BrandAnalyticsCard(),
                             const SizedBox(height: 10),
                           ],

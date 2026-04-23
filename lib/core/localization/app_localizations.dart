@@ -4620,6 +4620,123 @@ class AppL10n {
     'th': 'โดย',
   });
 
+  // Build 156: 신규 Brand 온보딩 체크리스트 카드.
+  String get brandChecklistTitle => _t({
+    'ko': '시작 가이드',
+    'en': 'Getting Started',
+    'ja': 'スタートガイド',
+    'zh': '开始指南',
+    'fr': 'Pour commencer',
+    'de': 'Erste Schritte',
+    'es': 'Primeros pasos',
+    'pt': 'Primeiros passos',
+    'ru': 'С чего начать',
+    'tr': 'Başlangıç rehberi',
+    'ar': 'دليل البدء',
+    'it': 'Per iniziare',
+    'hi': 'शुरुआत',
+    'th': 'คู่มือเริ่มต้น',
+  });
+
+  String get brandChecklistStep1Title => _t({
+    'ko': '사업자 인증 제출',
+    'en': 'Submit business verification',
+    'ja': '事業者認証を提出',
+    'zh': '提交企业认证',
+    'fr': 'Vérification d\'entreprise',
+    'de': 'Geschäftsverifizierung',
+    'es': 'Verificación comercial',
+    'pt': 'Verificação empresarial',
+    'ru': 'Подтверждение бизнеса',
+    'tr': 'İşletme doğrulama',
+    'ar': 'التحقق من النشاط',
+    'it': 'Verifica aziendale',
+    'hi': 'व्यवसाय सत्यापन',
+    'th': 'ยืนยันธุรกิจ',
+  });
+  String get brandChecklistStep1Body => _t({
+    'ko': '프로필에 ✅ 뱃지가 붙어 수신자 신뢰도 상승',
+    'en': 'Get a ✅ badge — boosts recipient trust',
+    'ja': 'プロフィールに ✅ — 受信者の信頼度 UP',
+    'zh': '获得 ✅ 徽章，提升收件人信任度',
+    'fr': 'Obtiens le badge ✅ — gagne la confiance',
+    'de': '✅ Abzeichen — mehr Vertrauen',
+    'es': 'Consigue el badge ✅ — más confianza',
+    'pt': 'Ganha o badge ✅ — mais confiança',
+    'ru': 'Получите ✅ — повышение доверия',
+    'tr': '✅ rozeti al — güven artışı',
+    'ar': 'احصل على شارة ✅ — زيادة الثقة',
+    'it': 'Ottieni il badge ✅ — più fiducia',
+    'hi': '✅ बैज पाएँ — विश्वास बढ़ाएँ',
+    'th': 'รับป้าย ✅ — เพิ่มความน่าเชื่อถือ',
+  });
+
+  String get brandChecklistStep2Title => _t({
+    'ko': '첫 캠페인 발송',
+    'en': 'Send first campaign',
+    'ja': '最初のキャンペーンを発送',
+    'zh': '发送首个营销活动',
+    'fr': 'Lance ta première campagne',
+    'de': 'Erste Kampagne senden',
+    'es': 'Envía tu primera campaña',
+    'pt': 'Lança a primeira campanha',
+    'ru': 'Запустите первую кампанию',
+    'tr': 'İlk kampanyanı gönder',
+    'ar': 'أطلق أول حملة',
+    'it': 'Lancia la prima campagna',
+    'hi': 'पहला अभियान भेजें',
+    'th': 'ส่งแคมเปญแรก',
+  });
+  String get brandChecklistStep2Body => _t({
+    'ko': '🎟 할인권 / 🎁 교환권 / ✉️ 일반 중 골라 보내기 탭 활용',
+    'en': 'Pick 🎟 coupon / 🎁 voucher / ✉️ general, tap Send',
+    'ja': '🎟 / 🎁 / ✉️ から選んで送信タブで配布',
+    'zh': '选择 🎟 优惠券 / 🎁 代金券 / ✉️ 普通，点击发送',
+    'fr': 'Choisis 🎟 / 🎁 / ✉️ et envoie via Envoyer',
+    'de': 'Wähle 🎟 / 🎁 / ✉️ und sende',
+    'es': 'Elige 🎟 / 🎁 / ✉️ y envía',
+    'pt': 'Escolhe 🎟 / 🎁 / ✉️ e envia',
+    'ru': 'Выберите 🎟/🎁/✉️ и отправьте',
+    'tr': '🎟/🎁/✉️ seç ve gönder',
+    'ar': 'اختر 🎟 / 🎁 / ✉️ وأرسل',
+    'it': 'Scegli 🎟 / 🎁 / ✉️ e invia',
+    'hi': '🎟 / 🎁 / ✉️ चुनें और भेजें',
+    'th': 'เลือก 🎟 / 🎁 / ✉️ แล้วส่ง',
+  });
+
+  String get brandChecklistStep3Title => _t({
+    'ko': '첫 픽업 받기',
+    'en': 'Reach first pickup',
+    'ja': '最初のピックアップ獲得',
+    'zh': '获得首次拾取',
+    'fr': 'Premier ramassage',
+    'de': 'Erster Aufpickung',
+    'es': 'Primera recogida',
+    'pt': 'Primeira apanha',
+    'ru': 'Первое получение',
+    'tr': 'İlk toplama',
+    'ar': 'أول التقاط',
+    'it': 'Primo ritiro',
+    'hi': 'पहला पिकअप',
+    'th': 'ได้รับการเก็บครั้งแรก',
+  });
+  String get brandChecklistStep3Body => _t({
+    'ko': '아래 대시보드에 픽업·사용·전환율이 실시간 업데이트',
+    'en': 'Dashboard below updates picks · uses · conversion live',
+    'ja': '下のダッシュボードでピック・使用・転換率をリアルタイム確認',
+    'zh': '下方仪表板实时更新拾取·使用·转化率',
+    'fr': 'Le tableau de bord ci-dessous se met à jour en direct',
+    'de': 'Dashboard unten aktualisiert Picks/Nutzung/Konversion live',
+    'es': 'El panel debajo se actualiza en vivo',
+    'pt': 'O painel abaixo atualiza em tempo real',
+    'ru': 'Панель ниже обновляется в реальном времени',
+    'tr': 'Aşağıdaki panel canlı güncellenir',
+    'ar': 'اللوحة أدناه تُحدَّث مباشرة',
+    'it': 'Il pannello sotto si aggiorna dal vivo',
+    'hi': 'नीचे डैशबोर्ड लाइव अपडेट होता है',
+    'th': 'แดชบอร์ดด้านล่างอัปเดตแบบเรียลไทม์',
+  });
+
   // Build 155: 내 레벨 SNS 공유 텍스트.
   String shareMyLevelText({
     required int level,
