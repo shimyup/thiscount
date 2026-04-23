@@ -12072,6 +12072,126 @@ class AppL10n {
     'th': 'หอคอย',
   });
 
+  /// Build 166: GPS 필수 동의 플로우 (약관 + skip 경고).
+  String get gpsTermsHeader => _t({
+    'ko': 'GPS 사용 동의',
+    'en': 'GPS Consent',
+    'ja': 'GPS 使用同意',
+    'zh': 'GPS 使用同意',
+    'fr': 'Consentement GPS',
+    'de': 'GPS-Einwilligung',
+    'es': 'Consentimiento GPS',
+    'pt': 'Consentimento GPS',
+    'ru': 'Согласие на GPS',
+    'tr': 'GPS İzni',
+    'ar': 'موافقة GPS',
+    'it': 'Consenso GPS',
+    'hi': 'GPS सहमति',
+    'th': 'ยินยอม GPS',
+  });
+
+  String get gpsTermsBody => _t({
+    'ko': '• 내 위치 주변의 편지를 주울 수 있어요\n• 내가 보낸 편지의 출발 지점을 기록해요\n• 위치 정보는 서비스 제공 외에 사용하지 않아요\n\n❗ 동의하지 않으면 편지를 보내거나 줍을 수 없어요.',
+    'en': '• Pick up letters dropped near you\n• Mark the origin of letters you send\n• Location is used only for this service\n\n❗ Without consent you cannot pick up or send letters.',
+    'ja': '• 周辺の手紙を拾えます\n• 送った手紙の出発地点を記録します\n• 位置情報はサービス提供以外に使用しません\n\n❗ 同意しないと手紙を送ったり拾ったりできません。',
+    'zh': '• 拾起你身边的信件\n• 记录你寄出信件的出发地\n• 位置信息仅用于本服务\n\n❗ 不同意将无法收发信件。',
+    'fr': '• Ramasser les lettres déposées près de toi\n• Marquer le point de départ des lettres envoyées\n• Utilisé uniquement pour ce service\n\n❗ Sans consentement, impossible d\'envoyer ou ramasser.',
+    'de': '• Briefe in deiner Nähe aufsammeln\n• Absendeort deiner Briefe markieren\n• Nur für diesen Dienst verwendet\n\n❗ Ohne Zustimmung kannst du keine Briefe senden oder aufsammeln.',
+    'es': '• Recoge cartas cerca de ti\n• Marca el origen de tus cartas\n• Solo se usa para este servicio\n\n❗ Sin consentimiento no puedes enviar ni recoger.',
+    'pt': '• Apanha cartas perto de ti\n• Marca a origem das tuas cartas\n• Usado só para este serviço\n\n❗ Sem consentimento não podes enviar nem apanhar.',
+    'ru': '• Подбирайте письма рядом\n• Отмечайте место отправки\n• Используется только для этого сервиса\n\n❗ Без согласия нельзя отправлять или подбирать.',
+    'tr': '• Yakınındaki mektupları topla\n• Gönderdiğin mektubun başlangıç noktasını işaretle\n• Yalnızca bu hizmet için\n\n❗ İzin vermeden gönderme / toplama yok.',
+    'ar': '• التقط الرسائل القريبة\n• سجّل نقطة إرسال رسائلك\n• تُستخدم لهذه الخدمة فقط\n\n❗ بدون الموافقة لا يمكنك الإرسال أو الالتقاط.',
+    'it': '• Raccogli lettere vicino a te\n• Segna il punto di partenza\n• Usata solo per questo servizio\n\n❗ Senza consenso non puoi inviare o raccogliere.',
+    'hi': '• आस-पास के पत्र उठाएँ\n• भेजे पत्रों का मूल चिह्नित\n• सेवा के लिए ही उपयोग\n\n❗ सहमति बिना भेजना/उठाना असंभव.',
+    'th': '• เก็บจดหมายรอบตัว\n• บันทึกจุดส่งของคุณ\n• ใช้เฉพาะบริการนี้\n\n❗ ไม่ยินยอม = ส่ง/เก็บไม่ได้',
+  });
+
+  String get gpsAgreeAndContinue => _t({
+    'ko': '동의하고 계속하기',
+    'en': 'Agree & Continue',
+    'ja': '同意して続ける',
+    'zh': '同意并继续',
+    'fr': 'Accepter & Continuer',
+    'de': 'Zustimmen & Weiter',
+    'es': 'Aceptar y Continuar',
+    'pt': 'Aceitar e Continuar',
+    'ru': 'Согласиться и продолжить',
+    'tr': 'Kabul Et ve Devam',
+    'ar': 'موافقة ومتابعة',
+    'it': 'Accetta e Continua',
+    'hi': 'सहमत व जारी',
+    'th': 'ยอมรับและต่อไป',
+  });
+
+  String get gpsSkipWarningTitle => _t({
+    'ko': '정말 건너뛸까요?',
+    'en': 'Skip location?',
+    'ja': '本当にスキップ?',
+    'zh': '真的跳过?',
+    'fr': 'Vraiment ignorer?',
+    'de': 'Wirklich überspringen?',
+    'es': '¿Saltar de verdad?',
+    'pt': 'Saltar mesmo?',
+    'ru': 'Точно пропустить?',
+    'tr': 'Gerçekten atla?',
+    'ar': 'تخطي حقًا؟',
+    'it': 'Saltare davvero?',
+    'hi': 'वास्तव में छोड़ें?',
+    'th': 'ข้ามจริง?',
+  });
+
+  String get gpsSkipWarningBody => _t({
+    'ko': 'GPS 동의 없이는 다음 기능을 사용할 수 없어요:\n\n• 📍 주변 편지 줍기 불가\n• ✉️ 편지 발송 불가 (Premium/Brand)\n• 🗺 내 위치 마커 표시 불가\n\n설정에서 언제든지 다시 허용할 수 있지만, 지금 동의하는 것을 강력히 권장합니다.',
+    'en': 'Without GPS consent the following are disabled:\n\n• 📍 Pick up nearby letters\n• ✉️ Send letters (Premium/Brand)\n• 🗺 Show your location marker\n\nYou can enable it later in Settings, but we strongly recommend consenting now.',
+    'ja': 'GPS 同意なしでは次の機能が使えません:\n\n• 📍 周辺の手紙を拾う\n• ✉️ 手紙を送る (Premium/Brand)\n• 🗺 自分の位置マーカー\n\n設定から後で許可できますが、今すぐ同意することを強くお勧めします。',
+    'zh': '没有 GPS 同意将无法使用:\n\n• 📍 拾起附近信件\n• ✉️ 发送信件 (Premium/Brand)\n• 🗺 显示我的位置\n\n可在设置中重新允许，但强烈建议现在同意。',
+    'fr': 'Sans consentement GPS, désactivé:\n\n• 📍 Ramasser des lettres\n• ✉️ Envoyer (Premium/Brand)\n• 🗺 Marqueur de position\n\nActivable plus tard dans Paramètres, mais nous recommandons fortement maintenant.',
+    'de': 'Ohne GPS deaktiviert:\n\n• 📍 Briefe aufsammeln\n• ✉️ Briefe senden (Premium/Brand)\n• 🗺 Eigene Position\n\nSpäter in Einstellungen aktivierbar, jetzt empfohlen.',
+    'es': 'Sin GPS estará deshabilitado:\n\n• 📍 Recoger cartas\n• ✉️ Enviar (Premium/Brand)\n• 🗺 Tu marcador\n\nActívalo luego en Ajustes, pero ahora es recomendable.',
+    'pt': 'Sem GPS fica desativado:\n\n• 📍 Apanhar cartas\n• ✉️ Enviar (Premium/Brand)\n• 🗺 Teu marcador\n\nPodes ativar depois, mas recomendamos agora.',
+    'ru': 'Без GPS недоступно:\n\n• 📍 Подбор писем\n• ✉️ Отправка (Premium/Brand)\n• 🗺 Ваш маркер\n\nМожно включить позже в настройках, но рекомендуем сейчас.',
+    'tr': 'GPS onayı olmadan kapalı:\n\n• 📍 Mektup toplama\n• ✉️ Gönderme (Premium/Brand)\n• 🗺 Konumun\n\nSonra ayarlardan açabilirsin, şimdi öneriyoruz.',
+    'ar': 'دون GPS معطل:\n\n• 📍 التقاط الرسائل\n• ✉️ الإرسال (Premium/Brand)\n• 🗺 موقعك\n\nيمكن تفعيله لاحقًا من الإعدادات، ولكن يُنصح الآن.',
+    'it': 'Senza GPS disabilitato:\n\n• 📍 Raccogli lettere\n• ✉️ Invia (Premium/Brand)\n• 🗺 Tuo marcatore\n\nAttivabile poi in Impostazioni, ma consigliato ora.',
+    'hi': 'GPS बिना अक्षम:\n\n• 📍 पत्र उठाना\n• ✉️ भेजना (Premium/Brand)\n• 🗺 आपका मार्कर\n\nसेटिंग्स में बाद में चालू करें, अभी सुझावित.',
+    'th': 'ไม่มี GPS จะปิดใช้:\n\n• 📍 เก็บจดหมาย\n• ✉️ ส่ง (Premium/Brand)\n• 🗺 ตำแหน่งของคุณ\n\nเปิดภายหลังในตั้งค่าได้ แต่แนะนำตอนนี้',
+  });
+
+  String get gpsSkipBack => _t({
+    'ko': '← 동의하기',
+    'en': '← Agree',
+    'ja': '← 同意',
+    'zh': '← 同意',
+    'fr': '← Accepter',
+    'de': '← Zustimmen',
+    'es': '← Aceptar',
+    'pt': '← Aceitar',
+    'ru': '← Согласиться',
+    'tr': '← Kabul',
+    'ar': '← موافقة',
+    'it': '← Accetta',
+    'hi': '← सहमत',
+    'th': '← ยอมรับ',
+  });
+
+  String get gpsSkipContinueLimited => _t({
+    'ko': '제한 모드로 진행',
+    'en': 'Continue limited',
+    'ja': '制限モードで続行',
+    'zh': '以受限模式继续',
+    'fr': 'Mode limité',
+    'de': 'Eingeschränkt fortfahren',
+    'es': 'Modo limitado',
+    'pt': 'Modo limitado',
+    'ru': 'Ограниченный режим',
+    'tr': 'Sınırlı devam',
+    'ar': 'متابعة محدودة',
+    'it': 'Modalità limitata',
+    'hi': 'सीमित जारी',
+    'th': 'ต่อแบบจำกัด',
+  });
+
   /// Build 164: 지도에서 유저 GPS 기준 가장 가까운 편지 마커 상단 라벨.
   String get mapNearestLetterLabel => _t({
     'ko': '가장 가까운',

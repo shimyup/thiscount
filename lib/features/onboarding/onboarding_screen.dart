@@ -251,8 +251,66 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  /// 위치 권한 없이 다음으로 건너뜀 (앱스토어 가이드라인 준수)
-  void _skipLocationPermission() {
+  /// Build 166: 위치 권한 건너뛰기 전 강한 경고 모달.
+  /// "GPS 미동의 시 편지 줍기·보내기 불가" 를 명시하고 유저가 명시적으로
+  /// "제한 모드로 진행" 을 탭해야만 skip. App Store 가이드라인 준수 + 사용성
+  /// 저하 방지 (빈 앱 경험).
+  Future<void> _skipLocationPermission() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.bgCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            const Text('⚠️', style: TextStyle(fontSize: 26)),
+            const SizedBox(width: 10),
+            Flexible(
+              child: Text(
+                _l.gpsSkipWarningTitle,
+                style: const TextStyle(
+                  color: AppColors.error,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          _l.gpsSkipWarningBody,
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 13.5,
+            height: 1.6,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(
+              _l.gpsSkipBack,
+              style: const TextStyle(
+                color: AppColors.gold,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(
+              _l.gpsSkipContinueLimited,
+              style: const TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 12.5,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
     _pageCtrl.nextPage(
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOut,
@@ -674,7 +732,57 @@ class _LocationPermissionPage extends StatelessWidget {
                 ),
               ),
               if (!isGranted && !isChecking) ...[
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
+                // Build 166: GPS 필수 동의 — 약관·제한사항 명시 박스.
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.bgCard.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppColors.gold.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.privacy_tip_rounded,
+                            color: AppColors.gold,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              l.gpsTermsHeader,
+                              style: const TextStyle(
+                                color: AppColors.gold,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        l.gpsTermsBody,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 11.5,
+                          height: 1.55,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
                 GestureDetector(
                   onTap: onRequest,
                   child: Container(
@@ -683,27 +791,24 @@ class _LocationPermissionPage extends StatelessWidget {
                       vertical: 14,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.gold.withValues(alpha: 0.15),
+                      color: AppColors.gold,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: AppColors.gold.withValues(alpha: 0.4),
-                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(
-                          Icons.location_on_rounded,
-                          color: AppColors.gold,
+                          Icons.check_circle_rounded,
+                          color: AppColors.bgDeep,
                           size: 20,
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          l.locationAllow,
+                          l.gpsAgreeAndContinue,
                           style: const TextStyle(
-                            color: AppColors.gold,
+                            color: AppColors.bgDeep,
                             fontSize: 15,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                       ],
