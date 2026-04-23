@@ -417,8 +417,85 @@ class _TowerScreenState extends State<TowerScreen>
           // Build 171: 다음 해금 로드맵 (동반자·악세사리·캐릭터 중 가장 가까운 것)
           const SizedBox(height: 14),
           _buildNextUnlockRow(state, accent, user.languageCode),
+          // Build 173: 레터 생일 · 가입 기념일. 오늘이 생일이면 🎂 배너,
+          // 그 외엔 "Letter 와 함께한 N일" 또는 "D-N" pill.
+          const SizedBox(height: 8),
+          _buildBirthdayOrAgeRow(state, accent, user.languageCode),
         ],
       ),
+    );
+  }
+
+  /// Build 173: 레터 생일 축하 배너 또는 경과일/D-N 칩.
+  Widget _buildBirthdayOrAgeRow(AppState state, Color accent, String lang) {
+    final l = AppL10n.of(lang);
+    if (state.isLetterBirthdayToday) {
+      // 생일 축하 — pink 배경 + 🎂 이모지
+      final years = state.letterAgeYears;
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              const Color(0xFFFFB86B).withValues(alpha: 0.25),
+              AppColors.gold.withValues(alpha: 0.12),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+          border: Border.all(
+            color: const Color(0xFFFFB86B).withValues(alpha: 0.6),
+            width: 1.2,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('🎂', style: TextStyle(fontSize: 16)),
+            const SizedBox(width: 6),
+            Text(
+              years > 0
+                  ? l.letterBirthdayAnniversary(years)
+                  : l.letterBirthdayFirstDay,
+              style: AppText.small.copyWith(
+                color: const Color(0xFFFFB86B),
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    // 평일 — 경과일 + 다음 생일 D-N
+    final days = state.daysSinceJoined;
+    final untilBday = state.daysUntilNextBirthday;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          l.letterAgeDays(days),
+          style: AppText.caption.copyWith(
+            color: AppColors.textMuted,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        if (untilBday <= 30) ...[
+          const SizedBox(width: 6),
+          Text(
+            '·',
+            style: TextStyle(color: AppColors.textMuted.withValues(alpha: 0.5)),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            l.letterBirthdayUpcoming(untilBday),
+            style: AppText.caption.copyWith(
+              color: accent.withValues(alpha: 0.85),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ],
     );
   }
 

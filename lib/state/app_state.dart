@@ -637,6 +637,50 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     return _letterAccessories[earned.last];
   }
 
+  // ── 레터 생일 · Build 173 ────────────────────────────────────────────────
+  // `joinedAt` 기준 매년 같은 월·일 → 레터 생일. 첫 해는 1주년, 두 번째 해는
+  // 2주년. 가입 당일도 "태어난 날" 로 인정해 Day 0 축하 가능.
+  // Brand 는 제외 (캐릭터 없음).
+
+  /// 오늘이 유저의 레터 생일 (가입 기념일) 인지.
+  /// joinedAt 이 오늘과 동일한 month·day 이면 true. 가입 연도 자체는 무관.
+  bool get isLetterBirthdayToday {
+    if (_currentUser.isBrand) return false;
+    final now = DateTime.now();
+    final j = _currentUser.joinedAt;
+    return j.month == now.month && j.day == now.day;
+  }
+
+  /// 가입 후 경과 일수 (캐릭터 "나이" 표시용).
+  int get daysSinceJoined {
+    final now = DateTime.now();
+    return now.difference(_currentUser.joinedAt).inDays;
+  }
+
+  /// 가입 후 경과 연도 (기념일 차수, 0 = 가입 첫 해).
+  int get letterAgeYears {
+    if (_currentUser.isBrand) return 0;
+    final now = DateTime.now();
+    final j = _currentUser.joinedAt;
+    int years = now.year - j.year;
+    if (now.month < j.month ||
+        (now.month == j.month && now.day < j.day)) {
+      years--;
+    }
+    return years < 0 ? 0 : years;
+  }
+
+  /// 다음 레터 생일까지 남은 일수. 생일 당일 = 0.
+  int get daysUntilNextBirthday {
+    final now = DateTime.now();
+    final j = _currentUser.joinedAt;
+    var next = DateTime(now.year, j.month, j.day);
+    if (next.isBefore(DateTime(now.year, now.month, now.day))) {
+      next = DateTime(now.year + 1, j.month, j.day);
+    }
+    return next.difference(DateTime(now.year, now.month, now.day)).inDays;
+  }
+
   // ── Brand 사업자 인증 (Build 127) ───────────────────────────────────────
   // Brand 계정이 진짜 사업자인지 입력·저장·(후속) 관리자 승인. 승인 완료
   // 시점(brandVerifiedAt) 이 찍히면 지도 아바타 플래그 앞에 ✅ 노출.

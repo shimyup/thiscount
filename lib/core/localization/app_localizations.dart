@@ -12266,6 +12266,82 @@ class AppL10n {
     'th': 'ใกล้ที่สุด',
   });
 
+  /// Build 173: 레터 생일 (가입 기념일) 카피.
+  String letterBirthdayAnniversary(int years) {
+    switch (languageCode) {
+      case 'ko': return '🎉 레터와 함께 $years주년!';
+      case 'ja': return '🎉 レターと $years 周年！';
+      case 'zh': return '🎉 与 Letter 同行 $years 周年！';
+      case 'fr': return '🎉 $years ans avec Letter !';
+      case 'de': return '🎉 $years Jahre mit Letter!';
+      case 'es': return '🎉 $years años con Letter!';
+      case 'pt': return '🎉 $years anos com Letter!';
+      case 'ru': return '🎉 $years лет с Letter!';
+      case 'tr': return '🎉 Letter ile $years. yıl!';
+      case 'ar': return '🎉 $years سنوات مع Letter!';
+      case 'it': return '🎉 $years anni con Letter!';
+      case 'hi': return '🎉 Letter के साथ $years साल!';
+      case 'th': return '🎉 $years ปีกับ Letter!';
+      default: return '🎉 $years years with Letter!';
+    }
+  }
+
+  String get letterBirthdayFirstDay => _t({
+    'ko': '🎂 오늘이 당신의 레터 생일이에요',
+    'en': '🎂 Today is your Letter\'s birthday',
+    'ja': '🎂 今日はあなたのレターの誕生日',
+    'zh': '🎂 今天是你 Letter 的生日',
+    'fr': "🎂 C'est l'anniversaire de ta lettre",
+    'de': '🎂 Heute ist dein Letter-Geburtstag',
+    'es': '🎂 Hoy es el cumple de tu Letter',
+    'pt': '🎂 Hoje é o aniversário do teu Letter',
+    'ru': '🎂 Сегодня день рождения вашего Letter',
+    'tr': "🎂 Bugün Letter'ının doğum günü",
+    'ar': '🎂 اليوم عيد ميلاد ليترك',
+    'it': '🎂 Oggi è il compleanno del tuo Letter',
+    'hi': '🎂 आज आपके Letter का जन्मदिन',
+    'th': '🎂 วันนี้ Letter ของคุณครบรอบ',
+  });
+
+  String letterAgeDays(int days) {
+    switch (languageCode) {
+      case 'ko': return '레터와 함께 $days일째';
+      case 'ja': return 'レターと $days 日目';
+      case 'zh': return '与 Letter 同行 $days 天';
+      case 'fr': return '$days jours avec Letter';
+      case 'de': return '$days Tage mit Letter';
+      case 'es': return '$days días con Letter';
+      case 'pt': return '$days dias com Letter';
+      case 'ru': return '$days дней с Letter';
+      case 'tr': return 'Letter ile $days gün';
+      case 'ar': return '$days أيام مع Letter';
+      case 'it': return '$days giorni con Letter';
+      case 'hi': return 'Letter के साथ $days दिन';
+      case 'th': return '$days วันกับ Letter';
+      default: return '$days days with Letter';
+    }
+  }
+
+  String letterBirthdayUpcoming(int daysRemaining) {
+    if (daysRemaining == 0) return letterBirthdayFirstDay;
+    switch (languageCode) {
+      case 'ko': return '생일까지 D-$daysRemaining';
+      case 'ja': return '誕生日まで D-$daysRemaining';
+      case 'zh': return '距生日 D-$daysRemaining';
+      case 'fr': return 'Anniv dans $daysRemaining j';
+      case 'de': return 'Geburtstag in $daysRemaining T';
+      case 'es': return 'Cumple en $daysRemaining d';
+      case 'pt': return 'Aniversário em $daysRemaining d';
+      case 'ru': return 'День рожд. через $daysRemaining д';
+      case 'tr': return 'Doğum günü $daysRemaining gün';
+      case 'ar': return 'عيد الميلاد بعد $daysRemaining يوم';
+      case 'it': return 'Compleanno tra $daysRemaining g';
+      case 'hi': return 'जन्मदिन D-$daysRemaining';
+      case 'th': return 'วันเกิดอีก $daysRemaining วัน';
+      default: return 'Birthday in $daysRemaining d';
+    }
+  }
+
   /// Build 171: 레터 이름 수정 다이얼로그 라벨 (Free/Premium 전용).
   String get profileDialogLetterNameTitle => _t({
     'ko': '내 레터 이름',
