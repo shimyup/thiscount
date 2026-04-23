@@ -4620,6 +4620,78 @@ class AppL10n {
     'th': 'โดย',
   });
 
+  // Build 155: 내 레벨 SNS 공유 텍스트.
+  String shareMyLevelText({
+    required int level,
+    required String trail,
+    required int collected,
+  }) {
+    switch (languageCode) {
+      case 'ko':
+        return 'Letter Go 에서 Level $level 도달 $trail\n지금까지 편지 $collected 통 수집 중!\nhttps://letter-go.com';
+      case 'ja':
+        return 'Letter Go でレベル $level に到達 $trail\n今までに手紙 $collected 通を収集中！\nhttps://letter-go.com';
+      case 'zh':
+        return 'Letter Go 达到 Level $level $trail\n目前收集了 $collected 封信件！\nhttps://letter-go.com';
+      case 'fr':
+        return 'Niveau $level atteint sur Letter Go $trail\n$collected lettres collectées !\nhttps://letter-go.com';
+      case 'de':
+        return 'Level $level in Letter Go erreicht $trail\n$collected Briefe gesammelt!\nhttps://letter-go.com';
+      case 'es':
+        return 'Nivel $level en Letter Go $trail\n$collected cartas recogidas!\nhttps://letter-go.com';
+      case 'pt':
+        return 'Nível $level no Letter Go $trail\n$collected cartas apanhadas!\nhttps://letter-go.com';
+      case 'ru':
+        return 'Достигнут уровень $level в Letter Go $trail\nСобрано $collected писем!\nhttps://letter-go.com';
+      case 'tr':
+        return "Letter Go'da Level $level $trail\n$collected mektup topladım!\nhttps://letter-go.com";
+      case 'ar':
+        return 'وصلت إلى المستوى $level في Letter Go $trail\nجمعت $collected رسالة!\nhttps://letter-go.com';
+      case 'it':
+        return 'Livello $level su Letter Go $trail\n$collected lettere raccolte!\nhttps://letter-go.com';
+      case 'hi':
+        return 'Letter Go पर स्तर $level $trail\n$collected पत्र एकत्र!\nhttps://letter-go.com';
+      case 'th':
+        return 'ถึง Level $level ใน Letter Go $trail\nเก็บจดหมายแล้ว $collected ฉบับ!\nhttps://letter-go.com';
+      default:
+        return 'Level $level on Letter Go $trail\n$collected letters collected!\nhttps://letter-go.com';
+    }
+  }
+
+  String get shareMyLevelSubject => _t({
+    'ko': 'Letter Go 내 레벨',
+    'en': 'My Letter Go level',
+    'ja': 'Letter Go の私のレベル',
+    'zh': '我的 Letter Go 等级',
+    'fr': 'Mon niveau Letter Go',
+    'de': 'Mein Letter Go Level',
+    'es': 'Mi nivel en Letter Go',
+    'pt': 'Meu nível Letter Go',
+    'ru': 'Мой уровень в Letter Go',
+    'tr': 'Letter Go seviyem',
+    'ar': 'مستواي في Letter Go',
+    'it': 'Il mio livello su Letter Go',
+    'hi': 'मेरा Letter Go स्तर',
+    'th': 'เลเวลของฉันใน Letter Go',
+  });
+
+  String get shareFailed => _t({
+    'ko': '공유 실패 — 잠시 후 다시 시도해주세요',
+    'en': 'Share failed — please try again',
+    'ja': '共有に失敗しました — 後でもう一度お試しください',
+    'zh': '分享失败 — 请稍后重试',
+    'fr': "Échec du partage — réessayez",
+    'de': 'Teilen fehlgeschlagen — erneut versuchen',
+    'es': 'Error al compartir — reintenta',
+    'pt': 'Falha ao partilhar — tenta de novo',
+    'ru': 'Не удалось поделиться — попробуйте позже',
+    'tr': 'Paylaşım başarısız — tekrar dene',
+    'ar': 'فشل المشاركة — حاول مرة أخرى',
+    'it': 'Condivisione fallita — riprova',
+    'hi': 'शेयर विफल — पुनः प्रयास करें',
+    'th': 'แชร์ไม่สำเร็จ — ลองอีกครั้ง',
+  });
+
   // Build 154: 주말 부스트 칩.
   String get weekendBoostLabel => _t({
     'ko': '주말 부스트',

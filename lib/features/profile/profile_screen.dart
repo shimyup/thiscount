@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../progression/user_progress.dart';
 import '../brand/brand_analytics_card.dart';
@@ -85,6 +86,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // ── 닉네임 수정 (shared_profile_dialogs.dart로 위임) ──────────────────────
   void _editUsername(BuildContext ctx, AppState state) {
     showEditUsernameDialog(ctx, state);
+  }
+
+  /// Build 155: 내 레벨·캐릭터 SNS 공유. share_plus 로 시스템 공유 시트 호출.
+  /// 텍스트 + 앱 링크만 공유 (캔버스 이미지 렌더링은 scope 밖 — 추후 필요 시
+  /// ShareCardService 에 `shareLevelCard` 메서드 추가).
+  Future<void> _shareMyLevel(BuildContext ctx, AppState state) async {
+    final l = AppL10n.of(state.currentUser.languageCode);
+    final char = state.currentCharacterEmoji;
+    final companion = state.activeCompanionEmoji;
+    final accessory = state.activeAccessoryEmoji;
+    final trail = [
+      if (accessory != null) accessory,
+      char,
+      if (companion != null) companion,
+    ].join(' ');
+    final text = l.shareMyLevelText(
+      level: state.currentLevel,
+      trail: trail,
+      collected: state.inbox.length,
+    );
+    try {
+      await Share.share(text, subject: l.shareMyLevelSubject);
+    } catch (e) {
+      if (ctx.mounted) {
+        ScaffoldMessenger.of(ctx).showSnackBar(
+          SnackBar(
+            content: Text(l.shareFailed),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 
   // ── SNS 링크 수정 ──────────────────────────────────────────────────────────
@@ -1612,6 +1645,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
               ),
+              // Build 155: 내 레벨/컴패니언 공유 버튼 — 파워 유저가 SNS 에
+              // 자신의 진척을 공유해 신규 유저 유입 (바이럴 루프).
+              InkWell(
+                onTap: () => _shareMyLevel(ctx, state),
+                borderRadius: BorderRadius.circular(6),
+                child: Container(
+                  padding: const EdgeInsets.all(5),
+                  child: const Icon(
+                    Icons.ios_share_rounded,
+                    size: 16,
+                    color: AppColors.teal,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 8,
