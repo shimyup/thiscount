@@ -5232,37 +5232,6 @@ class _VoucherImagePreview extends StatelessWidget {
   }
 }
 
-// ── 편지지 배경 (향후 사용 예정) ────────────────────────────────────────────
-// ignore: unused_element
-class _PaperBackground extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: MediaQuery.of(context).size,
-      painter: _PaperPainter(),
-    );
-  }
-}
-
-class _PaperPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final linePaint = Paint()
-      ..color = AppColors.gold.withValues(alpha: 0.025)
-      ..strokeWidth = 0.5;
-    for (double y = 80; y < size.height; y += 28) {
-      canvas.drawLine(Offset(24, y), Offset(size.width - 24, y), linePaint);
-    }
-    final marginPaint = Paint()
-      ..color = AppColors.gold.withValues(alpha: 0.04)
-      ..strokeWidth = 1.0;
-    canvas.drawLine(const Offset(56, 0), Offset(56, size.height), marginPaint);
-  }
-
-  @override
-  bool shouldRepaint(_) => false;
-}
-
 // ── 부가 옵션 섹션 (접이식) ──────────────────────────────────────────────────
 // Compose 모달에서 편지 본문 아래에 두는 보조 옵션(테마·퀵픽·SNS·익명·스타일·
 // 이미지·운세·최근·4월의 도시) 을 하나의 ExpansionTile 로 묶는다. 기본은 접힘
