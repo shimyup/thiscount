@@ -120,6 +120,140 @@ class AppColors {
   static const Color nearbyBorder = Color(0x66F0C35A);
 }
 
+/// Build 159: 앱 전역 타이포 스케일.
+/// 539 개 분산된 `fontSize` 참조를 수렴시키기 위한 semantic tokens.
+/// 기존 값은 유지하되 신규 위젯은 반드시 이 스케일 중 하나를 사용.
+///
+/// 스케일 (모든 값 `TextStyle` — color 는 호출자가 덮어씀):
+///   caption   11 / w500  — 최소 라벨·보조 텍스트
+///   small     12 / w600  — 작은 라벨·뱃지
+///   body      14 / w500  — 본문 기본
+///   bodyBold  14 / w700  — 본문 강조
+///   title     16 / w800  — 카드 제목
+///   heading   20 / w800  — 섹션 헤더
+///   display   26 / w900  — 페이지 타이틀 (수집첩 등)
+class AppText {
+  AppText._();
+
+  static const TextStyle caption = TextStyle(
+    fontSize: 11,
+    fontWeight: FontWeight.w500,
+    height: 1.3,
+  );
+  static const TextStyle small = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w600,
+    height: 1.35,
+  );
+  static const TextStyle body = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    height: 1.45,
+  );
+  static const TextStyle bodyBold = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w700,
+    height: 1.4,
+  );
+  static const TextStyle title = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w800,
+    letterSpacing: -0.2,
+    height: 1.3,
+  );
+  static const TextStyle heading = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w800,
+    letterSpacing: -0.3,
+    height: 1.25,
+  );
+  static const TextStyle display = TextStyle(
+    fontSize: 26,
+    fontWeight: FontWeight.w900,
+    letterSpacing: -0.5,
+    height: 1.2,
+  );
+}
+
+/// Build 159: 간격 토큰 — padding/margin/gap 에 공통 사용.
+/// 기존 8/12/14/16/20/28 혼재 → 표준 5단계로 수렴.
+class AppSpacing {
+  AppSpacing._();
+
+  static const double xs = 4;
+  static const double sm = 8;
+  static const double md = 12;
+  static const double lg = 16;
+  static const double xl = 20;
+  static const double xxl = 28;
+
+  // 편의 EdgeInsets 헬퍼.
+  static const EdgeInsets allXs = EdgeInsets.all(xs);
+  static const EdgeInsets allSm = EdgeInsets.all(sm);
+  static const EdgeInsets allMd = EdgeInsets.all(md);
+  static const EdgeInsets allLg = EdgeInsets.all(lg);
+  static const EdgeInsets allXl = EdgeInsets.all(xl);
+
+  // 수평/수직 개별.
+  static const EdgeInsets hSm = EdgeInsets.symmetric(horizontal: sm);
+  static const EdgeInsets hMd = EdgeInsets.symmetric(horizontal: md);
+  static const EdgeInsets hLg = EdgeInsets.symmetric(horizontal: lg);
+}
+
+/// Build 159: 모서리 반경 토큰 — 483 개 분산된 값을 5단계로 수렴.
+///   chip    8  — pill·chip·small button
+///   button 12  — 일반 button·input field
+///   card   16  — card·container
+///   sheet  22  — bottom sheet·large modal
+///   pill  999  — full-rounded pill
+class AppRadius {
+  AppRadius._();
+
+  static const double chip = 8;
+  static const double button = 12;
+  static const double card = 16;
+  static const double sheet = 22;
+  static const double pill = 999;
+}
+
+/// Build 159: 캐노니컬 로딩 인디케이터.
+/// 17 개 CircularProgressIndicator 의 색·크기 분산을 일관화 (gold / 2px).
+class AppLoading {
+  AppLoading._();
+
+  /// 버튼 안·작은 공간용 (16×16, stroke 2).
+  static const Widget small = SizedBox(
+    width: 16,
+    height: 16,
+    child: CircularProgressIndicator(
+      color: AppColors.gold,
+      strokeWidth: 2,
+    ),
+  );
+
+  /// 화면 중앙 기본 로더 (24×24, stroke 2).
+  static const Widget medium = SizedBox(
+    width: 24,
+    height: 24,
+    child: CircularProgressIndicator(
+      color: AppColors.gold,
+      strokeWidth: 2,
+    ),
+  );
+
+  /// 전체 화면 로딩 (기본 size, stroke 3).
+  static const Widget large = Center(
+    child: SizedBox(
+      width: 36,
+      height: 36,
+      child: CircularProgressIndicator(
+        color: AppColors.gold,
+        strokeWidth: 3,
+      ),
+    ),
+  );
+}
+
 class AppTheme {
   static ThemeData get darkTheme {
     return ThemeData(
