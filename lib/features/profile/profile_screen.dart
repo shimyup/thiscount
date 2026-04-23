@@ -863,9 +863,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return Scaffold(
           backgroundColor: AppTimeColors.of(ctx).bgDeep,
           body: _loading
-              ? const Center(
-                  child: CircularProgressIndicator(color: AppColors.teal),
-                )
+              // Build 160: AppLoading.large — teal → gold 로 통일 (로더 색
+              // 분산 해소). Center 로 감싸 full-screen 중앙 배치.
+              ? AppLoading.large
               : CustomScrollView(
                   slivers: [
                     _buildSliverAppBar(ctx, user, state, purchase),

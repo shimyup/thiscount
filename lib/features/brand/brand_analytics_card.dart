@@ -79,10 +79,9 @@ class _BrandAnalyticsCardState extends State<BrandAnalyticsCard> {
               Expanded(
                 child: Text(
                   l.brandAnalyticsTitle,
-                  style: const TextStyle(
+                  // Build 160: AppText.bodyBold (14/w800) 토큰 적용.
+                  style: AppText.bodyBold.copyWith(
                     color: AppColors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
