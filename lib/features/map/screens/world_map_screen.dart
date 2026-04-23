@@ -405,6 +405,30 @@ class _WorldMapScreenState extends State<WorldMapScreen>
             // Build 120: 나침반 힌트 배너 — 반경 안에 편지가 없을 때 가장 가까운
             // 바깥쪽 편지의 방향·거리를 한 줄로 알려준다. "앱을 열었는데 반경 0통"
             // 인 죽은 상태를 "저쪽으로 150m 가면 있어요" 로 전환.
+            // Build 152: 반경 안에 편지 있을 때 시간대별 인사 + 카운트 pill.
+            // 기존 나침반 슬롯과 상호 배타 — 둘 다 top 220 에 배치하되
+            // nearbyLetters.isNotEmpty 이면 인사 pill, 비어있으면 방향 안내.
+            if (state.nearbyLetters.isNotEmpty &&
+                !state.hasNearbyAlert)
+              Positioned(
+                top: 220,
+                left: 16,
+                right: 16,
+                child: _DailyGreetingPill(
+                  count: state.nearbyLetters.length,
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    setState(() => _showNearbyOnly = true);
+                    _mapController.move(
+                      ll.LatLng(
+                        state.currentUser.latitude,
+                        state.currentUser.longitude,
+                      ),
+                      14.0,
+                    );
+                  },
+                ),
+              ),
             if (state.nearbyLetters.isEmpty && state.worldLetters.isNotEmpty)
               Builder(builder: (ctx) {
                 final hint = _nearestLetterCompass(state);
@@ -2869,6 +2893,90 @@ class _UnreadDeliveredMarker extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+/// Build 152: 지도 상단 시간대별 인사 + 근처 편지 카운트 pill.
+/// `nearbyLetters.isNotEmpty` 일 때만 표시 — 반경 안에 진짜 줍을 게 있어야
+/// 동기화된 호출. 탭하면 근처 필터 on + 줌 14 로 이동.
+class _DailyGreetingPill extends StatelessWidget {
+  final int count;
+  final VoidCallback onTap;
+  const _DailyGreetingPill({required this.count, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final langCode = context.read<AppState>().currentUser.languageCode;
+    final l10n = AppL10n.of(langCode);
+    final hour = DateTime.now().hour;
+    String emoji;
+    String greeting;
+    if (hour >= 5 && hour < 12) {
+      emoji = '🌅';
+      greeting = l10n.dailyGreetingMorning;
+    } else if (hour >= 12 && hour < 18) {
+      emoji = '☀️';
+      greeting = l10n.dailyGreetingAfternoon;
+    } else if (hour >= 18 && hour < 22) {
+      emoji = '🌇';
+      greeting = l10n.dailyGreetingEvening;
+    } else {
+      emoji = '🌙';
+      greeting = l10n.dailyGreetingNight;
+    }
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppColors.teal.withValues(alpha: 0.22),
+              AppColors.teal.withValues(alpha: 0.10),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: AppColors.teal.withValues(alpha: 0.5),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.28),
+              blurRadius: 10,
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 16)),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                l10n.dailyGreetingCount(greeting, count),
+                style: const TextStyle(
+                  color: AppColors.teal,
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: AppColors.teal,
+              size: 11,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

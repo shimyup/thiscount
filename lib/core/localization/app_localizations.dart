@@ -4620,6 +4620,106 @@ class AppL10n {
     'th': 'โดย',
   });
 
+  // Build 152: 시간대별 인사 pill — 반경 안에 편지 있을 때 표시.
+  String get dailyGreetingMorning => _t({
+    'ko': '좋은 아침',
+    'en': 'Good morning',
+    'ja': 'おはよう',
+    'zh': '早上好',
+    'fr': 'Bonjour',
+    'de': 'Guten Morgen',
+    'es': 'Buenos días',
+    'pt': 'Bom dia',
+    'ru': 'Доброе утро',
+    'tr': 'Günaydın',
+    'ar': 'صباح الخير',
+    'it': 'Buongiorno',
+    'hi': 'सुप्रभात',
+    'th': 'อรุณสวัสดิ์',
+  });
+  String get dailyGreetingAfternoon => _t({
+    'ko': '오후의 한 템포',
+    'en': 'Afternoon check',
+    'ja': '午後のひと休み',
+    'zh': '下午时光',
+    'fr': 'Pause de l\'après-midi',
+    'de': 'Nachmittagspause',
+    'es': 'Pausa de la tarde',
+    'pt': 'Pausa da tarde',
+    'ru': 'Полуденная пауза',
+    'tr': 'Öğleden sonra molası',
+    'ar': 'استراحة العصر',
+    'it': 'Pausa pomeridiana',
+    'hi': 'दोपहर की जाँच',
+    'th': 'ช่วงบ่าย',
+  });
+  String get dailyGreetingEvening => _t({
+    'ko': '오늘의 마무리',
+    'en': 'Evening wrap-up',
+    'ja': '今日の締めくくり',
+    'zh': '傍晚收尾',
+    'fr': 'Fin de journée',
+    'de': 'Feierabend-Check',
+    'es': 'Final del día',
+    'pt': 'Fim de dia',
+    'ru': 'Завершение дня',
+    'tr': 'Akşam özeti',
+    'ar': 'ختام اليوم',
+    'it': 'Chiusura di giornata',
+    'hi': 'दिन का अंत',
+    'th': 'สรุปเย็นนี้',
+  });
+  String get dailyGreetingNight => _t({
+    'ko': '심야 탐험',
+    'en': 'Late-night hunt',
+    'ja': '深夜の探索',
+    'zh': '深夜探索',
+    'fr': 'Chasse de nuit',
+    'de': 'Nacht-Suche',
+    'es': 'Caza nocturna',
+    'pt': 'Caça noturna',
+    'ru': 'Ночная охота',
+    'tr': 'Gece avı',
+    'ar': 'صيد ليلي',
+    'it': 'Caccia notturna',
+    'hi': 'देर रात की खोज',
+    'th': 'สำรวจดึก',
+  });
+
+  /// 시간대 인사 + "근처 N통" 결합 포맷.
+  String dailyGreetingCount(String greeting, int count) {
+    switch (languageCode) {
+      case 'ko':
+        return '$greeting · 근처 $count통 대기';
+      case 'ja':
+        return '$greeting · 近くに $count 通待機';
+      case 'zh':
+        return '$greeting · 附近 $count 封待拾';
+      case 'fr':
+        return '$greeting · $count lettres à proximité';
+      case 'de':
+        return '$greeting · $count in der Nähe';
+      case 'es':
+        return '$greeting · $count cerca';
+      case 'pt':
+        return '$greeting · $count perto';
+      case 'ru':
+        return '$greeting · $count рядом';
+      case 'tr':
+        return '$greeting · yakında $count';
+      case 'ar':
+        return '$greeting · $count قريبة';
+      case 'it':
+        return '$greeting · $count vicino';
+      case 'hi':
+        return '$greeting · $count पास में';
+      case 'th':
+        return '$greeting · $count ฉบับใกล้';
+      default:
+        return '$greeting · $count nearby';
+    }
+  }
+
   // Build 149: 첫 실행 시 자동 배치되는 튜토리얼 환영 편지 — 반경 안에 1통
   // 반드시 줍기 가능한 상태로 지도에 뿌려 빈 지도 경험 해소.
   String get tutorialLetterSenderName => _t({
