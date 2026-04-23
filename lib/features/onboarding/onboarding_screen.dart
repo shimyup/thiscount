@@ -712,6 +712,8 @@ class _LocationPermissionPage extends StatelessWidget {
                 ),
               ],
               if (isChecking)
+                // Build 160: AppLoading.medium — 기존 CircularProgressIndicator
+                // 직접 정의 → 캐노니컬 토큰.
                 const Padding(
                   padding: EdgeInsets.only(top: 32),
                   child: CircularProgressIndicator(
