@@ -231,9 +231,14 @@ class _TowerScreenState extends State<TowerScreen>
                       const SizedBox(height: 14),
                     ],
                     // Build 180: 성취 배지 ExpansionTile 로 접기.
-                    _buildAchievementsCollapsible(context, score, user.languageCode),
+                    // Build 184: isBrand 전달 → 타워 티어 성취는 Brand 한정.
+                    _buildAchievementsCollapsible(
+                      context, score, user.languageCode, isBrand,
+                    ),
                     const SizedBox(height: 14),
-                    _buildCommunityTowers(context, state),
+                    // Build 184: 커뮤니티 타워 랭킹 — Brand 만. Free/Premium 은
+                    // 타워 은유 전반을 숨겨 레터 캐릭터 내러티브 통일.
+                    if (isBrand) _buildCommunityTowers(context, state),
                     const SizedBox(height: 40),
                   ],
                 ),
@@ -928,7 +933,10 @@ class _TowerScreenState extends State<TowerScreen>
                           ),
                         ),
                         const SizedBox(height: 8),
-                        // ── 타워 이름 편집 버튼 ──────────────────────────────
+                        // ── 타워 이름 편집 버튼 — Build 184: Brand 전용 ──
+                        // Free/Premium 은 레터 캐릭터 탭이라 "타워 이름" 이라는
+                        // 개념 자체가 불일치. Brand 만 사업체 명칭 의미로 유지.
+                        if (user.isBrand)
                         GestureDetector(
                           onTap: () => showEditTowerNameDialog(
                             ctx,
@@ -1034,25 +1042,29 @@ class _TowerScreenState extends State<TowerScreen>
                           ],
                         ),
                         const SizedBox(height: 4),
-                        // 티어 배지
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.gold.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '${score.tier.emoji}  ${score.tier.labelL(user.languageCode)}',
-                            style: const TextStyle(
-                              color: AppColors.gold,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
+                        // 티어 배지 — Build 184: Brand 전용.
+                        // Free/Premium 은 건물 비유(오두막/빌딩/마천루) 대신
+                        // 이미 레터 hero 에서 XP 레벨 + 캐릭터 에볼루션 표시.
+                        // 중복 및 맥락 불일치 해소 위해 숨김.
+                        if (user.isBrand)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.gold.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '${score.tier.emoji}  ${score.tier.labelL(user.languageCode)}',
+                              style: const TextStyle(
+                                color: AppColors.gold,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
-                        ),
                       ],
                     ),
                   ),
@@ -1153,8 +1165,11 @@ class _TowerScreenState extends State<TowerScreen>
             ],
           ),
           const SizedBox(height: 12),
-          // 10단계 타워 게이지 바
-          _buildTierGauge(ctx, score),
+          // 10단계 타워 게이지 바 — Build 184: Brand 전용.
+          // Free/Premium 은 XP 레벨(1–50) + 레터 캐릭터 진화 로 별도 진척 표현
+          // 되므로 건물 10단계 게이지는 중복·맥락 불일치.
+          if (ctx.read<AppState>().currentUser.isBrand)
+            _buildTierGauge(ctx, score),
         ],
       ),
     );
@@ -1387,7 +1402,8 @@ class _TowerScreenState extends State<TowerScreen>
   /// Build 180: 성취 배지를 ExpansionTile 로 감싼 collapsed 기본 wrapper.
   /// 획득 뱃지 수만 타이틀에 노출 — 자세한 그리드는 탭해서 펼침.
   Widget _buildAchievementsCollapsible(
-    BuildContext ctx, ActivityScore score, String lang) {
+    BuildContext ctx, ActivityScore score, String lang,
+    [bool isBrandViewer = true]) {
     final l = AppL10n.of(lang);
     // 획득 수 계산은 `_buildAchievements` 와 동일 로직을 여기서 직접 세어
     // 헤더 정보로 사용. 실제 그리드 렌더링은 기존 `_buildAchievements` 위임.
@@ -1446,7 +1462,7 @@ class _TowerScreenState extends State<TowerScreen>
             ],
           ),
           children: [
-            _buildAchievements(ctx, score),
+            _buildAchievements(ctx, score, isBrandViewer),
           ],
         ),
       ),
@@ -1454,9 +1470,12 @@ class _TowerScreenState extends State<TowerScreen>
   }
 
   // ── 성취 배지 ────────────────────────────────────────────────────────────────
-  Widget _buildAchievements(BuildContext ctx, ActivityScore score) {
+  // Build 184: [isBrandViewer] true 면 타워 티어 배지(집·빌딩·마천루·랜드마크)
+  // 포함, false(Free/Premium) 이면 편지 활동 + 인기만.
+  Widget _buildAchievements(
+    BuildContext ctx, ActivityScore score, [bool isBrandViewer = true]) {
     final _al = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
-    final achievements = [
+    final achievements = <_Achievement>[
       // ── letter activity ──────────────────────────────────────────
       _Achievement(
         emoji: '🌱',
@@ -1482,25 +1501,6 @@ class _TowerScreenState extends State<TowerScreen>
         desc: _al.towerBadgeTravelerDesc,
         unlocked: score.sentCount >= 10,
       ),
-      // ── tower tier achievements ──────────────────────────────────────
-      _Achievement(
-        emoji: '🏡',
-        title: _al.towerBadgeHouseBuilder,
-        desc: _al.towerBadgeHouseBuilderDesc, // house (15pts)
-        unlocked: score.towerHeight >= 15,
-      ),
-      _Achievement(
-        emoji: '🏢',
-        title: _al.towerBadgeBuildingArchitect,
-        desc: _al.towerBadgeBuildingArchitectDesc, // building (50pts)
-        unlocked: score.towerHeight >= 50,
-      ),
-      _Achievement(
-        emoji: '🏙️',
-        title: _al.towerBadgeSkyscraper,
-        desc: _al.towerBadgeSkyscraperDesc, // skyscraper (120pts)
-        unlocked: score.towerHeight >= 120,
-      ),
       // ── popularity / special ──────────────────────────────────────────
       _Achievement(
         emoji: '❤️',
@@ -1508,13 +1508,39 @@ class _TowerScreenState extends State<TowerScreen>
         desc: _al.towerBadgePopularDesc,
         unlocked: score.likeCount >= 10,
       ),
-      _Achievement(
-        emoji: '🗼',
-        title: _al.towerBadgeLegendaryLandmark,
-        desc: _al.towerBadgeLegendaryLandmarkDesc, // landmark (330pts)
-        unlocked: score.towerHeight >= 330,
-      ),
     ];
+    if (isBrandViewer) {
+      // ── tower tier achievements — Brand only. Free/Premium 은 레터
+      // 캐릭터 갤러리 (Build 174) 가 동일한 역할 수행.
+      achievements.insertAll(4, [
+        _Achievement(
+          emoji: '🏡',
+          title: _al.towerBadgeHouseBuilder,
+          desc: _al.towerBadgeHouseBuilderDesc, // house (15pts)
+          unlocked: score.towerHeight >= 15,
+        ),
+        _Achievement(
+          emoji: '🏢',
+          title: _al.towerBadgeBuildingArchitect,
+          desc: _al.towerBadgeBuildingArchitectDesc, // building (50pts)
+          unlocked: score.towerHeight >= 50,
+        ),
+        _Achievement(
+          emoji: '🏙️',
+          title: _al.towerBadgeSkyscraper,
+          desc: _al.towerBadgeSkyscraperDesc, // skyscraper (120pts)
+          unlocked: score.towerHeight >= 120,
+        ),
+      ]);
+      achievements.add(
+        _Achievement(
+          emoji: '🗼',
+          title: _al.towerBadgeLegendaryLandmark,
+          desc: _al.towerBadgeLegendaryLandmarkDesc, // landmark (330pts)
+          unlocked: score.towerHeight >= 330,
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
