@@ -8305,21 +8305,24 @@ class AppL10n {
     'th': '📸 รูป + 🔗 ลิงก์ช่อง · 30/วัน',
   });
 
+  // Build 185: Premium 혜택에서 타워 언급 제거 — Premium = 레터 트랙.
+  // 캐릭터 커스터마이즈(컴패니언/악세사리)는 Build 125 이후 Premium 전용,
+  // 특급 배송은 이전부터 유지.
   String get premiumFeature4 => _t({
-    'ko': '타워 커스텀 색상 · 특급 배송 3통/일',
-    'en': 'Custom tower color · 3 express deliveries/day',
-    'ja': 'タワーカスタムカラー · 特急配送 3/日',
-    'zh': '塔楼自定义颜色 · 特快配送 3/日',
-    'fr': 'Couleur de tour personnalisée · 3 livraisons express/jour',
-    'de': 'Eigene Turmfarbe · 3 Express-Lieferungen/Tag',
-    'es': 'Color de torre personalizado · 3 entregas exprés/día',
-    'pt': 'Cor de torre personalizada · 3 entregas expressas/dia',
-    'ru': 'Свой цвет башни · 3 экспресса/день',
-    'tr': 'Özel kule rengi · 3 ekspres/gün',
-    'ar': 'لون برج مخصّص · 3 توصيلات سريعة/يوم',
-    'it': 'Colore torre personalizzato · 3 espressi/giorno',
-    'hi': 'कस्टम टावर रंग · 3 एक्सप्रेस/दिन',
-    'th': 'สีหอคอยกำหนดเอง · ด่วน 3/วัน',
+    'ko': '🎨 레터 캐릭터 커스터마이즈 · 특급 배송 3통/일',
+    'en': '🎨 Letter character customize · 3 express deliveries/day',
+    'ja': '🎨 Letter キャラカスタム · 特急配送 3/日',
+    'zh': '🎨 Letter 角色定制 · 特快配送 3/日',
+    'fr': '🎨 Personnalisation du Letter · 3 livraisons express/jour',
+    'de': '🎨 Letter-Charakter anpassen · 3 Express-Lieferungen/Tag',
+    'es': '🎨 Personaliza tu Letter · 3 entregas exprés/día',
+    'pt': '🎨 Personaliza o teu Letter · 3 entregas expressas/dia',
+    'ru': '🎨 Кастомизация Letter · 3 экспресса/день',
+    'tr': '🎨 Letter karakter özelleştirme · 3 ekspres/gün',
+    'ar': '🎨 تخصيص شخصية Letter · 3 توصيلات سريعة/يوم',
+    'it': '🎨 Personalizza il Letter · 3 espressi/giorno',
+    'hi': '🎨 Letter कस्टमाइज़ · 3 एक्सप्रेस/दिन',
+    'th': '🎨 ปรับแต่ง Letter · ด่วน 3/วัน',
   });
 
   // Build 118: Free 플랜 카드도 픽업 중심으로 재배치 — 반경·쿨다운 제약을
@@ -9359,11 +9362,12 @@ class AppL10n {
     'hi': '���ल्क भेजें', 'th': 'ส่งจำนวนมาก',
   });
 
+  // Build 185: 비교표 행 이름에서 타워 표현 제거. 레터 커스터마이즈로 통일.
   String get premiumCompareTowerCustom => _t({
-    'ko': '타워 커스텀', 'en': 'Tower custom', 'ja': 'タワーカスタム', 'zh': '塔楼自定义',
-    'fr': 'Tour personnalisée', 'de': 'Turm-Anpassung', 'es': 'Torre personalizada', 'pt': 'Torre personalizada',
-    'ru': 'Кастомная башня', 'tr': 'Özel kule', 'ar': 'برج مخصص', 'it': 'Torre personalizzata',
-    'hi': 'कस्टम टावर', 'th': 'หอคอยกำหนดเอง',
+    'ko': '커스터마이즈', 'en': 'Customize', 'ja': 'カスタマイズ', 'zh': '自定义',
+    'fr': 'Personnaliser', 'de': 'Anpassung', 'es': 'Personalización', 'pt': 'Personalizar',
+    'ru': 'Кастомизация', 'tr': 'Özelleştirme', 'ar': 'تخصيص', 'it': 'Personalizzazione',
+    'hi': 'कस्टमाइज़', 'th': 'ปรับแต่ง',
   });
 
   String get premiumCompareBadge => _t({
@@ -10161,21 +10165,23 @@ class AppL10n {
     'th': 'มีอะไรอยู่ที่นี่?',
   });
 
+  // Build 185: 지도 상단 공용 라벨 — 타워 표현 제거. 모든 티어에 "내 레터"
+  // 로 통일 (Brand 는 sender identity 로 해석 가능, Free/Premium 은 캐릭터).
   String get mapMyTower => _t({
-    'ko': '내 타워',
-    'en': 'My Tower',
-    'ja': 'マイタワー',
-    'zh': '我的塔',
-    'fr': 'Ma tour',
-    'de': 'Mein Turm',
-    'es': 'Mi torre',
-    'pt': 'Minha torre',
-    'ru': 'Моя башня',
-    'tr': 'Kulem',
-    'ar': 'برجي',
-    'it': 'La mia torre',
-    'hi': 'मेरा टावर',
-    'th': 'หอคอยของฉัน',
+    'ko': '내 레터',
+    'en': 'My Letter',
+    'ja': 'マイレター',
+    'zh': '我的 Letter',
+    'fr': 'Mon Letter',
+    'de': 'Mein Letter',
+    'es': 'Mi Letter',
+    'pt': 'Meu Letter',
+    'ru': 'Мой Letter',
+    'tr': 'Letter\'ım',
+    'ar': 'Letter الخاص بي',
+    'it': 'Il mio Letter',
+    'hi': 'मेरा Letter',
+    'th': 'Letter ของฉัน',
   });
 
   String get mapFloorUnit => _t({
@@ -10195,21 +10201,22 @@ class AppL10n {
     'th': 'ชั้น',
   });
 
+  // Build 185: 근처 타워 → 근처 Letter 사용자.
   String mapNearbyTowers(int count) => _t({
-    'ko': '근처 타워 $count개',
-    'en': '$count Nearby Towers',
-    'ja': '近くのタワー ${count}個',
-    'zh': '附近 $count 个塔',
-    'fr': '$count tours à proximité',
-    'de': '$count Türme in der Nähe',
-    'es': '$count torres cercanas',
-    'pt': '$count torres próximas',
-    'ru': '$count ближайших башен',
-    'tr': '$count yakın kule',
-    'ar': '$count أبراج قريبة',
-    'it': '$count torri vicine',
-    'hi': '$count पास के टॉवर',
-    'th': '$count หอคอยใกล้เคียง',
+    'ko': '근처 Letter $count명',
+    'en': '$count Nearby Letters',
+    'ja': '近くの Letter ${count}人',
+    'zh': '附近 $count 位 Letter',
+    'fr': '$count Letters à proximité',
+    'de': '$count Letters in der Nähe',
+    'es': '$count Letters cercanos',
+    'pt': '$count Letters próximos',
+    'ru': '$count ближайших Letter',
+    'tr': '$count yakın Letter',
+    'ar': '$count Letter قريبة',
+    'it': '$count Letter vicini',
+    'hi': '$count पास के Letter',
+    'th': 'Letter ใกล้เคียง $count',
   });
 
   String mapLetterFrom(String country) => _t({
@@ -10246,21 +10253,22 @@ class AppL10n {
     'th': '$readCount/$maxReaders อ่านแล้ว · แตะเพื่อรับ',
   });
 
+  // Build 185: "커뮤니티 타워" → "커뮤니티 Letter" — 타 사용자 마커 라벨.
   String get mapCommunityTower => _t({
-    'ko': '커뮤니티 타워',
-    'en': 'Community Tower',
-    'ja': 'コミュニティタワー',
-    'zh': '社区塔',
-    'fr': 'Tour communautaire',
-    'de': 'Community-Turm',
-    'es': 'Torre comunitaria',
-    'pt': 'Torre comunitária',
-    'ru': 'Общественная башня',
-    'tr': 'Topluluk Kulesi',
-    'ar': 'برج المجتمع',
-    'it': 'Torre della comunità',
-    'hi': 'कम्युनिटी टावर',
-    'th': 'หอคอยชุมชน',
+    'ko': '커뮤니티 Letter',
+    'en': 'Community Letter',
+    'ja': 'コミュニティ Letter',
+    'zh': '社区 Letter',
+    'fr': 'Letter de la communauté',
+    'de': 'Community-Letter',
+    'es': 'Letter de la comunidad',
+    'pt': 'Letter da comunidade',
+    'ru': 'Letter сообщества',
+    'tr': 'Topluluk Letter',
+    'ar': 'Letter المجتمع',
+    'it': 'Letter della comunità',
+    'hi': 'कम्युनिटी Letter',
+    'th': 'Letter ชุมชน',
   });
 
   // Build 183: "세계 랭킹" → "레터 순위" (letter-centric renaming).
@@ -10281,38 +10289,39 @@ class AppL10n {
     'th': 'อันดับ Letter',
   });
 
+  // Build 185: 건물 층수 · 타워 높이 → 활동 레벨 (letter-centric metric).
   String get mapBuildingFloors => _t({
-    'ko': '건물 층수',
-    'en': 'Building Floors',
-    'ja': '建物の階数',
-    'zh': '建筑层数',
-    'fr': 'Étages du bâtiment',
-    'de': 'Gebäudestockwerke',
-    'es': 'Pisos del edificio',
-    'pt': 'Andares do prédio',
-    'ru': 'Этажи здания',
-    'tr': 'Bina Katları',
-    'ar': 'طوابق المبنى',
-    'it': 'Piani del palazzo',
-    'hi': 'भवन की मंज़िलें',
-    'th': 'ชั้นของอาคาร',
+    'ko': '활동 레벨',
+    'en': 'Activity Level',
+    'ja': 'アクティビティレベル',
+    'zh': '活跃等级',
+    'fr': 'Niveau d\'activité',
+    'de': 'Aktivitätsstufe',
+    'es': 'Nivel de actividad',
+    'pt': 'Nível de atividade',
+    'ru': 'Уровень активности',
+    'tr': 'Aktivite Seviyesi',
+    'ar': 'مستوى النشاط',
+    'it': 'Livello di attività',
+    'hi': 'गतिविधि स्तर',
+    'th': 'ระดับกิจกรรม',
   });
 
   String get mapTowerHeight => _t({
-    'ko': '타워 높이',
-    'en': 'Tower Height',
-    'ja': 'タワーの高さ',
-    'zh': '塔高',
-    'fr': 'Hauteur de la tour',
-    'de': 'Turmhöhe',
-    'es': 'Altura de la torre',
-    'pt': 'Altura da torre',
-    'ru': 'Высота башни',
-    'tr': 'Kule Yüksekliği',
-    'ar': 'ارتفاع البرج',
-    'it': 'Altezza della torre',
-    'hi': 'टावर की ऊँचाई',
-    'th': 'ความสูงหอคอย',
+    'ko': '활동 레벨',
+    'en': 'Activity Level',
+    'ja': 'アクティビティレベル',
+    'zh': '活跃等级',
+    'fr': 'Niveau d\'activité',
+    'de': 'Aktivitätsstufe',
+    'es': 'Nivel de actividad',
+    'pt': 'Nível de atividade',
+    'ru': 'Уровень активности',
+    'tr': 'Aktivite Seviyesi',
+    'ar': 'مستوى النشاط',
+    'it': 'Livello di attività',
+    'hi': 'गतिविधि स्तर',
+    'th': 'ระดับกิจกรรม',
   });
 
   String get mapClose => _t({

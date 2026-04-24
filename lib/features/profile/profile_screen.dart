@@ -917,9 +917,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             _buildTowerProgressCard(ctx, user),
                             const SizedBox(height: 12),
                           ],
-                          // ④ 우표 앨범 배너
-                          _buildStampAlbumBanner(ctx, state),
-                          const SizedBox(height: 12),
+                          // ④ 우표 앨범 배너 — Build 185: Brand 숨김.
+                          // Brand 는 ROI 대시보드가 프로필 주력이고 우표 수집은
+                          // Free/Premium 게임플레이 요소.
+                          if (!user.isBrand) ...[
+                            _buildStampAlbumBanner(ctx, state),
+                            const SizedBox(height: 12),
+                          ],
                           // ⑤ 팔로잉/팔로워 탭
                           _buildFollowSection(ctx, state, user),
                           const SizedBox(height: 16),

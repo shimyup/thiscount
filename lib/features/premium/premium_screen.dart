@@ -70,7 +70,8 @@ class PremiumScreen extends StatelessWidget {
           '📸  ${l.premiumFeature3}', // 하루 30통 + 사진·링크 (promotion primary)
           '📍  ${l.premiumFeature1}', // 줍기 반경 1km
           '⏱  ${l.premiumFeature2}', // 쿨다운 10분
-          '🎨  ${l.premiumFeature4}', // 타워 커스텀 + 특급
+          // Build 185: 🎨 이모지는 l10n 본문에 포함됨. prefix 제거.
+          l.premiumFeature4,
         ];
 
         return Scaffold(
