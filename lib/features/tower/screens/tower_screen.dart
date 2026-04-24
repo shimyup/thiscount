@@ -90,9 +90,11 @@ class _TowerScreenState extends State<TowerScreen>
             purchase.isBrand ||
             user.isPremium ||
             user.isBrand;
-        // Build 183: Free/Premium 레터 탭에서 "타워" 표기 숨김. Brand 는
-        // 기존 타워 네러티브 유지 — 사업자에게는 건물 은유가 여전히 유효.
-        final isBrand = user.isBrand || purchase.isBrand;
+        // Build 187: Free/Premium 레터 탭에서 "타워" 표기 숨김. 핵심 수정 —
+        // 이전엔 `user.isBrand || purchase.isBrand` 였는데, 테스트/베타에서
+        // `purchase.isBrand` 가 true 로 걸려 일반 회원에게도 타워 UI 가 노출.
+        // Brand 정체성은 서버 등록된 user.isBrand 만 기준으로 판정.
+        final isBrand = user.isBrand;
 
         // 타워 단계 상승 감지 → 강렬한 햅틱 피드백
         final currentTier = score.tier;
@@ -135,48 +137,52 @@ class _TowerScreenState extends State<TowerScreen>
                 ),
                 actions: [
                   // 레벨 뱃지 (앱바 오른쪽 — 타워 카드와 완전 분리)
-                  AnimatedBuilder(
-                    animation: _glowController,
-                    builder: (_, __) {
-                      final tierColor = _communityTierColor(score.tier);
-                      return Container(
-                        margin: const EdgeInsets.symmetric(
-                          vertical: 10,
-                          horizontal: 4,
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.bgCard.withValues(alpha: 0.95),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: tierColor.withValues(
-                              alpha: 0.5 + _glow.value * 0.3,
-                            ),
-                            width: 1.2,
+                  // Build 187: Brand 전용. Free/Premium 은 레터 hero 카드에 이미
+                  // XP 레벨(1~50) 이 노출되므로 "Lv.N 오두막" 같은 건물 티어 pill
+                  // 은 중복 + 맥락 불일치.
+                  if (isBrand)
+                    AnimatedBuilder(
+                      animation: _glowController,
+                      builder: (_, __) {
+                        final tierColor = _communityTierColor(score.tier);
+                        return Container(
+                          margin: const EdgeInsets.symmetric(
+                            vertical: 10,
+                            horizontal: 4,
                           ),
-                          boxShadow: [
-                            BoxShadow(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.bgCard.withValues(alpha: 0.95),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
                               color: tierColor.withValues(
-                                alpha: _glow.value * 0.25,
+                                alpha: 0.5 + _glow.value * 0.3,
                               ),
-                              blurRadius: 8,
+                              width: 1.2,
                             ),
-                          ],
-                        ),
-                        child: Text(
-                          'Lv.${score.tier.tierNumber}  ${score.tier.labelL(_lc)}',
-                          style: TextStyle(
-                            color: tierColor,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
+                            boxShadow: [
+                              BoxShadow(
+                                color: tierColor.withValues(
+                                  alpha: _glow.value * 0.25,
+                                ),
+                                blurRadius: 8,
+                              ),
+                            ],
                           ),
-                        ),
-                      );
-                    },
-                  ),
+                          child: Text(
+                            'Lv.${score.tier.tierNumber}  ${score.tier.labelL(_lc)}',
+                            style: TextStyle(
+                              color: tierColor,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   // 타워 꾸미기 버튼 — Build 183: Brand 만 노출.
                   // Free/Premium 은 레터 캐릭터 탭이라 "타워 꾸미기" 가
                   // 맥락 불일치. 향후 캐릭터 커스터마이저 별도 구현 시 재등장.
