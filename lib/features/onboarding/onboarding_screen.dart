@@ -359,6 +359,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 title: _l.onboarding3Title,
                 body: _l.onboarding3Body,
                 gradient: const [Color(0xFF0F1A30), Color(0xFF1A2A50)],
+                // Build 186: 줍기는 모든 티어 가능 — "Free + Premium + Brand".
+                tiers: [
+                  _TierBadge(_l.tierLabelFree, AppColors.teal),
+                  _TierBadge(_l.tierLabelPremium, AppColors.gold),
+                  _TierBadge(_l.tierLabelBrand, const Color(0xFFFF8A5C)),
+                ],
               ),
               _IntroPage(
                 // Build 140: 기존 onboarding4 (🎁 benefits) 슬롯 재활용, 카피
@@ -367,6 +373,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 title: _l.onboarding4Title,
                 body: _l.onboarding4Body,
                 gradient: const [Color(0xFF15102A), Color(0xFF2A1A50)],
+                // Build 186: 편지 뿌리기는 Premium + Brand 만. Free 배제를
+                // 시각적으로 명시해 gate 시 혼선 예방.
+                tiers: [
+                  _TierBadge(_l.tierLabelPremium, AppColors.gold),
+                  _TierBadge(_l.tierLabelBrand, const Color(0xFFFF8A5C)),
+                ],
               ),
               _IntroPage(
                 emoji: '🚀',
@@ -1272,12 +1284,17 @@ class _IntroPage extends StatelessWidget {
   final String title;
   final String body;
   final List<Color> gradient;
+  // Build 186: 티어 뱃지 칩 (선택). 해당 슬라이드가 어느 tier 에게 적용되는지
+  // 한 눈에 표현. 예: 🎟 줍기 = [Free, Premium, Brand] / 📸 홍보 = [Premium, Brand].
+  // null 이면 렌더 안 함 (기존 동작).
+  final List<_TierBadge>? tiers;
 
   const _IntroPage({
     required this.emoji,
     required this.title,
     required this.body,
     required this.gradient,
+    this.tiers,
   });
 
   @override
@@ -1311,7 +1328,7 @@ class _IntroPage extends StatelessWidget {
                   child: Text(emoji, style: const TextStyle(fontSize: 56)),
                 ),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 32),
               Text(
                 title,
                 textAlign: TextAlign.center,
@@ -1322,6 +1339,15 @@ class _IntroPage extends StatelessWidget {
                   height: 1.3,
                 ),
               ),
+              if (tiers != null) ...[
+                const SizedBox(height: 12),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: tiers!.map((t) => _tierChip(t)).toList(),
+                ),
+              ],
               const SizedBox(height: 20),
               Text(
                 body,
@@ -1338,4 +1364,35 @@ class _IntroPage extends StatelessWidget {
       ),
     );
   }
+
+  Widget _tierChip(_TierBadge t) {
+    final color = t.color;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: color.withValues(alpha: 0.55),
+          width: 1,
+        ),
+      ),
+      child: Text(
+        t.label,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.3,
+        ),
+      ),
+    );
+  }
+}
+
+/// Build 186: 온보딩 슬라이드에서 "이 기능은 어느 티어용?" 를 시각 표현.
+class _TierBadge {
+  final String label;
+  final Color color;
+  const _TierBadge(this.label, this.color);
 }

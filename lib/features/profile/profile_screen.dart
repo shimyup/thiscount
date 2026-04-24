@@ -897,6 +897,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             const SizedBox(height: 12),
                             const BrandAnalyticsCard(),
                             const SizedBox(height: 12),
+                            // Build 186: ExactDrop 크레딧 카드 — Brand 본인이
+                            // 남은 크레딧을 확인하고 구매 요청을 직접 띄울 수
+                            // 있는 진입. 현재 결제는 admin 승인 플로우라 버튼은
+                            // "문의" 시트를 띄움 (실결제 wiring 은 후속).
+                            _BrandExactDropCreditsCard(
+                              credits: state.brandExactDropCredits,
+                            ),
+                            const SizedBox(height: 12),
                           ],
                           // ①-2 나의 여정 카드 — 누적 지표가 있을 때만 표시
                           const JourneyCard(
@@ -2450,6 +2458,162 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// Build 186: Brand 프로필에 노출되는 ExactDrop 크레딧 현황 + 구매 요청 카드.
+/// 크레딧은 ExactDrop (정확한 좌표 드롭, 100통 단위) 을 사용하기 위한 필수
+/// 선결제 자원. 기존엔 admin 화면 안쪽에서만 확인 가능해 Brand 가 "내가 몇 통
+/// 쏠 수 있는지" 를 알기 어려웠다. 버튼 탭 시 구매 문의 시트 (현재는 안내만).
+class _BrandExactDropCreditsCard extends StatelessWidget {
+  final int credits;
+  const _BrandExactDropCreditsCard({required this.credits});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    final orange = const Color(0xFFFF8A5C);
+    final low = credits < 10;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          border: Border.all(
+            color: (low ? AppColors.error : orange)
+                .withValues(alpha: 0.35),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Text('🎯', style: TextStyle(fontSize: 18)),
+                const SizedBox(width: 8),
+                Text(
+                  l10n.brandExactDropCreditsTitle,
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  l10n.brandExactDropCreditsCount(credits),
+                  style: TextStyle(
+                    color: low ? AppColors.error : orange,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.brandExactDropCreditsHint,
+              style: const TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 12,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => _showPurchaseInfo(context, l10n),
+                icon: const Icon(Icons.shopping_bag_rounded, size: 16),
+                label: Text(l10n.brandExactDropCreditsBuyBtn),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: orange,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPurchaseInfo(BuildContext ctx, AppL10n l10n) {
+    showModalBottomSheet(
+      context: ctx,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => Container(
+        decoration: const BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+        ),
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: AppColors.textMuted.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const Text('🎯', style: TextStyle(fontSize: 40)),
+            const SizedBox(height: 12),
+            Text(
+              l10n.brandExactDropCreditsSheetTitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.gold,
+                fontSize: 17,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              l10n.brandExactDropCreditsSheetBody,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 13.5,
+                height: 1.6,
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(ctx),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.gold,
+                  foregroundColor: AppColors.bgDeep,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  l10n.brandOnlyAcknowledge,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

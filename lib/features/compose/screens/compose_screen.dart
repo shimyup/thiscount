@@ -1953,22 +1953,43 @@ class _ComposeScreenState extends State<ComposeScreen>
                 color: _isExpressMode ? AppColors.gold : AppColors.textMuted,
               ),
               const SizedBox(width: 8),
+              // Build 186: Premium 유저가 오늘 특급 배송을 모두 쓰면 "내일 00:00
+              // 리필" 보조 라인으로 리셋 시각을 명시. 기존엔 "X/3" 만 보여서
+              // "언제 리필?" 혼선.
               Expanded(
-                child: Text(
-                  state.currentUser.isBrand
-                      ? (_isExpressMode
-                            ? '⚡ ${l10n.composeBrandExpressOn}'
-                            : '⚡ ${l10n.composeBrandExpress}')
-                      : (_isExpressMode
-                            ? '⚡ ${l10n.composePremiumExpressOn(state.todayPremiumExpressSentCount, state.premiumExpressDailyLimit)}'
-                            : '⚡ ${l10n.composePremiumExpress(state.premiumExpressDailyLimit)}'),
-                  style: TextStyle(
-                    color: _isExpressMode
-                        ? AppColors.gold
-                        : AppColors.textSecondary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      state.currentUser.isBrand
+                          ? (_isExpressMode
+                                ? '⚡ ${l10n.composeBrandExpressOn}'
+                                : '⚡ ${l10n.composeBrandExpress}')
+                          : (_isExpressMode
+                                ? '⚡ ${l10n.composePremiumExpressOn(state.todayPremiumExpressSentCount, state.premiumExpressDailyLimit)}'
+                                : '⚡ ${l10n.composePremiumExpress(state.premiumExpressDailyLimit)}'),
+                      style: TextStyle(
+                        color: _isExpressMode
+                            ? AppColors.gold
+                            : AppColors.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (!state.currentUser.isBrand &&
+                        state.remainingPremiumExpressCount == 0) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        l10n.composePremiumExpressResetAt,
+                        style: TextStyle(
+                          color: AppColors.textMuted,
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
               Switch(

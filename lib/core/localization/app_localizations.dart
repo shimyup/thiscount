@@ -4286,6 +4286,25 @@ class AppL10n {
     'th': 'พรีเมียมด่วน เปิด · ใช้แล้ว $used/$limit',
   });
 
+  // Build 186: 프리미엄 특급 배송이 오늘 다 소진됐을 때 리셋 시각 안내.
+  // 현재 구현상 midnight local 리셋이므로 "내일 00시" 로 표시.
+  String get composePremiumExpressResetAt => _t({
+    'ko': '💫 내일 00시 자동 리필',
+    'en': '💫 Refills at midnight',
+    'ja': '💫 深夜0時にリフィル',
+    'zh': '💫 凌晨 0 点刷新',
+    'fr': '💫 Recharge à minuit',
+    'de': '💫 Setzt um Mitternacht zurück',
+    'es': '💫 Se recarga a medianoche',
+    'pt': '💫 Recarrega à meia-noite',
+    'ru': '💫 Сброс в полночь',
+    'tr': '💫 Gece yarısı yenilenir',
+    'ar': '💫 يُعاد عند منتصف الليل',
+    'it': '💫 Si ricarica a mezzanotte',
+    'hi': '💫 आधी रात को रिफिल',
+    'th': '💫 เติมใหม่เที่ยงคืน',
+  });
+
   String composePremiumExpress(int limit) => _t({
     'ko': '프리미엄 특급 배송 (하루 ${limit}통)',
     'en': 'Premium Express ($limit/day)',
@@ -10253,6 +10272,46 @@ class AppL10n {
     'th': '$readCount/$maxReaders อ่านแล้ว · แตะเพื่อรับ',
   });
 
+  // Build 186: 온보딩 슬라이드의 티어 뱃지 라벨 (일관된 브랜딩).
+  String get tierLabelFree => _t({
+    'ko': 'Free', 'en': 'Free', 'ja': 'Free', 'zh': 'Free',
+    'fr': 'Free', 'de': 'Free', 'es': 'Free', 'pt': 'Free',
+    'ru': 'Free', 'tr': 'Free', 'ar': 'Free', 'it': 'Free',
+    'hi': 'Free', 'th': 'Free',
+  });
+
+  String get tierLabelPremium => _t({
+    'ko': 'Premium', 'en': 'Premium', 'ja': 'Premium', 'zh': 'Premium',
+    'fr': 'Premium', 'de': 'Premium', 'es': 'Premium', 'pt': 'Premium',
+    'ru': 'Premium', 'tr': 'Premium', 'ar': 'Premium', 'it': 'Premium',
+    'hi': 'Premium', 'th': 'Premium',
+  });
+
+  String get tierLabelBrand => _t({
+    'ko': 'Brand', 'en': 'Brand', 'ja': 'Brand', 'zh': 'Brand',
+    'fr': 'Brand', 'de': 'Brand', 'es': 'Brand', 'pt': 'Brand',
+    'ru': 'Brand', 'tr': 'Brand', 'ar': 'Brand', 'it': 'Brand',
+    'hi': 'Brand', 'th': 'Brand',
+  });
+
+  // Build 186: 픽업 쿨다운 상시 pill — MM:SS 로 남은 시간 표시.
+  String mapCooldownPill(String mmss) => _t({
+    'ko': '다음 줍기까지 $mmss',
+    'en': 'Next pickup in $mmss',
+    'ja': '次の拾得まで $mmss',
+    'zh': '下次拾取 $mmss',
+    'fr': 'Prochain ramassage dans $mmss',
+    'de': 'Nächstes Aufsammeln in $mmss',
+    'es': 'Próxima recogida en $mmss',
+    'pt': 'Próxima recolha em $mmss',
+    'ru': 'Следующий сбор через $mmss',
+    'tr': 'Sonraki toplama $mmss',
+    'ar': 'الالتقاط التالي خلال $mmss',
+    'it': 'Prossimo ritiro in $mmss',
+    'hi': 'अगली पिकअप $mmss',
+    'th': 'เก็บครั้งถัดไปใน $mmss',
+  });
+
   // Build 185: "커뮤니티 타워" → "커뮤니티 Letter" — 타 사용자 마커 라벨.
   String get mapCommunityTower => _t({
     'ko': '커뮤니티 Letter',
@@ -14655,6 +14714,109 @@ class AppL10n {
     'it': 'Capito',
     'hi': 'समझ गया',
     'th': 'เข้าใจแล้ว',
+  });
+
+  // Build 186: Brand 프로필의 ExactDrop 크레딧 카드.
+  String get brandExactDropCreditsTitle => _t({
+    'ko': 'ExactDrop 크레딧',
+    'en': 'ExactDrop Credits',
+    'ja': 'ExactDrop クレジット',
+    'zh': 'ExactDrop 额度',
+    'fr': 'Crédits ExactDrop',
+    'de': 'ExactDrop-Guthaben',
+    'es': 'Créditos ExactDrop',
+    'pt': 'Créditos ExactDrop',
+    'ru': 'Кредиты ExactDrop',
+    'tr': 'ExactDrop Kredileri',
+    'ar': 'أرصدة ExactDrop',
+    'it': 'Crediti ExactDrop',
+    'hi': 'ExactDrop क्रेडिट',
+    'th': 'เครดิต ExactDrop',
+  });
+
+  String brandExactDropCreditsCount(int n) => _t({
+    'ko': '$n 통',
+    'en': '$n left',
+    'ja': '残り$n 通',
+    'zh': '剩余 $n',
+    'fr': '$n restants',
+    'de': '$n übrig',
+    'es': '$n restantes',
+    'pt': '$n restantes',
+    'ru': 'Осталось $n',
+    'tr': '$n kaldı',
+    'ar': 'متبقي $n',
+    'it': '$n rimasti',
+    'hi': '$n शेष',
+    'th': 'เหลือ $n',
+  });
+
+  String get brandExactDropCreditsHint => _t({
+    'ko': '정확한 좌표에 편지를 떨어뜨리려면 크레딧이 필요해요. 100통 단위로 구매.',
+    'en': 'Credits are required to drop letters at exact coordinates. Sold in 100-letter packs.',
+    'ja': '正確な座標に手紙を配るには ExactDrop クレジットが必要。100通単位で購入。',
+    'zh': '向精确坐标投放信件需要 ExactDrop 额度。以 100 封为单位购买。',
+    'fr': 'Crédits requis pour lancer des lettres à des coordonnées précises. Packs de 100.',
+    'de': 'Guthaben nötig, um Briefe an exakten Koordinaten abzulegen. 100er-Pakete.',
+    'es': 'Se necesitan créditos para lanzar cartas en coordenadas exactas. Paquetes de 100.',
+    'pt': 'Créditos necessários para lançar cartas em coordenadas exatas. Pacotes de 100.',
+    'ru': 'Нужны кредиты для сброса писем по точным координатам. Пакеты по 100.',
+    'tr': 'Tam koordinatlara mektup bırakmak için kredi gerekli. 100\'lü paketler.',
+    'ar': 'الأرصدة مطلوبة لإسقاط الرسائل في إحداثيات دقيقة. عبوات من 100.',
+    'it': 'Servono crediti per lanciare lettere in coordinate esatte. Pacchetti da 100.',
+    'hi': 'सटीक निर्देशांक पर पत्र गिराने के लिए क्रेडिट चाहिए। 100 के पैक।',
+    'th': 'ต้องใช้เครดิตเพื่อปล่อยจดหมายที่พิกัดแม่นยำ แพ็ก 100 ฉบับ',
+  });
+
+  String get brandExactDropCreditsBuyBtn => _t({
+    'ko': '💎 100통 구매 (₩10,000)',
+    'en': '💎 Buy 100 (\$7.99)',
+    'ja': '💎 100通を購入 (¥1,100)',
+    'zh': '💎 购买 100 封 (¥50)',
+    'fr': '💎 Acheter 100 (€7.99)',
+    'de': '💎 100 kaufen (€7.99)',
+    'es': '💎 Comprar 100 (€7.99)',
+    'pt': '💎 Comprar 100 (€7.99)',
+    'ru': '💎 Купить 100 (₽749)',
+    'tr': '💎 100 satın al (₺299)',
+    'ar': '💎 اشترِ 100 (\$7.99)',
+    'it': '💎 Compra 100 (€7.99)',
+    'hi': '💎 100 खरीदें (\$7.99)',
+    'th': '💎 ซื้อ 100 (฿299)',
+  });
+
+  String get brandExactDropCreditsSheetTitle => _t({
+    'ko': 'ExactDrop 크레딧 구매 안내',
+    'en': 'How to buy ExactDrop credits',
+    'ja': 'ExactDrop クレジットの購入案内',
+    'zh': '购买 ExactDrop 额度',
+    'fr': 'Acheter des crédits ExactDrop',
+    'de': 'ExactDrop-Guthaben kaufen',
+    'es': 'Comprar créditos ExactDrop',
+    'pt': 'Comprar créditos ExactDrop',
+    'ru': 'Купить кредиты ExactDrop',
+    'tr': 'ExactDrop kredisi satın al',
+    'ar': 'شراء أرصدة ExactDrop',
+    'it': 'Acquistare crediti ExactDrop',
+    'hi': 'ExactDrop क्रेडिट खरीदें',
+    'th': 'วิธีซื้อเครดิต ExactDrop',
+  });
+
+  String get brandExactDropCreditsSheetBody => _t({
+    'ko': '지금은 앱 내 결제가 준비 중이라 관리자 승인으로만 지급돼요.\nsupport@lettergo.app 으로 사업자명과 필요한 통 수를 알려주시면 24시간 안에 충전해 드립니다.',
+    'en': 'In-app purchase is coming soon. For now, credits are granted by admin.\nEmail support@lettergo.app with your business name and desired quantity — topped up within 24 hours.',
+    'ja': 'アプリ内決済は準備中で、現在は管理者承認で支給されます。\nsupport@lettergo.app へ事業者名と希望通数を送ってください。24時間以内にチャージします。',
+    'zh': '应用内购买正在准备中，目前通过管理员审批发放。\n请发送企业名称和所需数量至 support@lettergo.app，24 小时内充值。',
+    'fr': 'L\'achat intégré arrive bientôt. En attendant, les crédits sont octroyés par un admin.\nEnvoyez support@lettergo.app votre nom d\'entreprise et quantité — rechargé sous 24h.',
+    'de': 'In-App-Kauf kommt bald. Bis dahin werden Guthaben von Admins vergeben.\nMail an support@lettergo.app mit Firmennamen und Menge — innerhalb 24h aufgeladen.',
+    'es': 'La compra dentro de la app llegará pronto. Por ahora, los admins asignan créditos.\nEnvíe a support@lettergo.app el nombre de su empresa y la cantidad — recarga en 24h.',
+    'pt': 'Compra na app em breve. Por agora, créditos são concedidos por admin.\nEmail support@lettergo.app com o nome da empresa e quantidade — em 24h.',
+    'ru': 'Встроенная покупка скоро. Пока кредиты выдаёт администратор.\nПишите на support@lettergo.app с названием бизнеса и количеством — начисление в 24ч.',
+    'tr': 'Uygulama içi satın alma yakında. Şimdilik admin kredi veriyor.\nsupport@lettergo.app adresine işletme adı ve miktarı yazın — 24 saat içinde yüklenir.',
+    'ar': 'الشراء داخل التطبيق قريبًا. حاليًا يمنح المسؤول الأرصدة.\nراسل support@lettergo.app باسم النشاط والعدد — شحن خلال 24 ساعة.',
+    'it': 'Acquisto in-app in arrivo. Per ora i crediti sono concessi dall\'admin.\nScrivi a support@lettergo.app con nome azienda e quantità — caricato entro 24h.',
+    'hi': 'इन-ऐप खरीदारी जल्द आ रही है। अभी क्रेडिट एडमिन द्वारा दिए जाते हैं।\nsupport@lettergo.app पर व्यवसाय नाम और मात्रा भेजें — 24 घंटे में लोड।',
+    'th': 'ซื้อในแอปกำลังมา ตอนนี้แอดมินเป็นผู้อนุมัติ\nส่งชื่อธุรกิจและจำนวนที่ต้องการไปยัง support@lettergo.app — เติมภายใน 24 ชม.',
   });
 
   // 카테고리별 redemption 필드 설명 + 힌트 (할인권 코드 vs 교환권 이미지).

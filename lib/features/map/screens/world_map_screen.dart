@@ -418,6 +418,62 @@ class _WorldMapScreenState extends State<WorldMapScreen>
               ),
             // Brand-only send banner removed — 포지셔닝 변경으로 브랜드도
             // 편지를 주울 수 있게 됨. 배너를 띄울 이유가 사라짐.
+            // Build 186: 픽업 쿨다운 pill — `nearbyPickupRemainingCooldown` 가
+            // null 이 아닐 때만 상시 표시. `_tickNotifier` 가 1초마다 갱신되어
+            // MM:SS 카운트다운이 실시간으로 줄어듦. Free 60분 / Premium·Brand
+            // 10분. "지금 왜 못 줍지?" 하는 혼선 제거.
+            ValueListenableBuilder<int>(
+              valueListenable: _tickNotifier,
+              builder: (_, __, ___) {
+                final remaining = state.nearbyPickupRemainingCooldown;
+                if (remaining == null) return const SizedBox.shrink();
+                final mins = remaining.inMinutes;
+                final secs = remaining.inSeconds % 60;
+                final mmss = mins > 0
+                    ? '${mins}m ${secs.toString().padLeft(2, '0')}s'
+                    : '${secs}s';
+                return Positioned(
+                  top: 180,
+                  left: 16,
+                  right: 16,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 9,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.bgCard.withValues(alpha: 0.92),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.textMuted.withValues(alpha: 0.35),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.25),
+                          blurRadius: 8,
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('⏱', style: TextStyle(fontSize: 14)),
+                        const SizedBox(width: 6),
+                        Text(
+                          l10n.mapCooldownPill(mmss),
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
             // Build 120: 나침반 힌트 배너 — 반경 안에 편지가 없을 때 가장 가까운
             // 바깥쪽 편지의 방향·거리를 한 줄로 알려준다. "앱을 열었는데 반경 0통"
             // 인 죽은 상태를 "저쪽으로 150m 가면 있어요" 로 전환.
