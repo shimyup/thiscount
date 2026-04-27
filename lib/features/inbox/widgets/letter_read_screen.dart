@@ -143,7 +143,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.letterReadCannotOpenLink(urlStr)),
-          backgroundColor: const Color(0xFF1F2D44),
+          backgroundColor: AppColors.bgSurface,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -380,7 +380,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
               ScaffoldMessenger.of(ctx).showSnackBar(
                 SnackBar(
                   content: Text(l10n.dmBlocked(letter.senderName)),
-                  backgroundColor: const Color(0xFF1F2D44),
+                  backgroundColor: AppColors.bgSurface,
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -452,7 +452,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                         border: Border.all(
                           color: selectedReason == r
                               ? AppColors.error.withValues(alpha: 0.6)
-                              : const Color(0xFF1F2D44),
+                              : AppColors.bgSurface,
                         ),
                       ),
                       child: Row(
@@ -500,7 +500,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                       border: Border.all(
                         color: selectedReason == 'direct'
                             ? AppColors.error.withValues(alpha: 0.6)
-                            : const Color(0xFF1F2D44),
+                            : AppColors.bgSurface,
                       ),
                     ),
                     child: Row(
@@ -557,13 +557,13 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: const BorderSide(
-                            color: Color(0xFF1F2D44),
+                            color: AppColors.bgSurface,
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: const BorderSide(
-                            color: Color(0xFF1F2D44),
+                            color: AppColors.bgSurface,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
@@ -601,7 +601,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                       ScaffoldMessenger.of(ctx).showSnackBar(
                         SnackBar(
                           content: Text(l10n.letterReadReportSubmitted(reason)),
-                          backgroundColor: const Color(0xFF1F2D44),
+                          backgroundColor: AppColors.bgSurface,
                           behavior: SnackBarBehavior.floating,
                         ),
                       );
@@ -630,7 +630,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
         decoration: BoxDecoration(
           color: AppColors.bgCard,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFF1F2D44)),
+          border: Border.all(color: AppColors.bgSurface),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -716,7 +716,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                       border: Border.all(
                         color: _hasLiked
                             ? AppColors.gold.withValues(alpha: 0.5)
-                            : const Color(0xFF1F2D44),
+                            : AppColors.bgSurface,
                       ),
                     ),
                     child: Row(
@@ -752,16 +752,16 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFF8A5C).withValues(alpha: 0.1),
+                        color: AppColors.coupon.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: const Color(0xFFFF8A5C).withValues(alpha: 0.3),
+                          color: AppColors.coupon.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Text(
                         l10n.letterReadVerifiedAccount,
                         style: TextStyle(
-                          color: Color(0xFFFF8A5C),
+                          color: AppColors.coupon,
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                         ),
@@ -975,7 +975,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                         child: Text(
                           l10n.letterReadVerifiedBadge,
                           style: TextStyle(
-                            color: Color(0xFFFF8A5C),
+                            color: AppColors.coupon,
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
                           ),
@@ -1106,7 +1106,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                                       content: Text(
                                         l10n.letterReadFollowed(letter.senderName),
                                       ),
-                                      backgroundColor: const Color(0xFF0D1421),
+                                      backgroundColor: AppColors.bgDeep,
                                       behavior: SnackBarBehavior.floating,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(10),
@@ -1129,7 +1129,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                                   border: Border.all(
                                     color: isFollowing
                                         ? AppColors.teal.withValues(alpha: 0.5)
-                                        : const Color(0xFF1F2D44),
+                                        : AppColors.bgSurface,
                                   ),
                                 ),
                                 child: Text(
@@ -1241,7 +1241,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                   decoration: BoxDecoration(
                     color: AppColors.bgSurface,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFF1F2D44)),
+                    border: Border.all(color: AppColors.bgSurface),
                   ),
                   child: Text(
                     l10n.letterReadLater,
@@ -1648,7 +1648,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF1F2D44)),
+        border: Border.all(color: AppColors.bgSurface),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2260,7 +2260,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF1F2D44)),
+        border: Border.all(color: AppColors.bgSurface),
       ),
       child: Row(
         children: [

@@ -290,12 +290,12 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                       radius: state.pickupRadiusMeters,
                       useRadiusInMeter: true,
                       color: state.currentUser.isBrand
-                          ? const Color(0xFFFF8A5C).withValues(alpha: 0.07)
+                          ? AppColors.coupon.withValues(alpha: 0.07)
                           : state.currentUser.isPremium
                               ? AppColors.gold.withValues(alpha: 0.10)
                               : AppColors.teal.withValues(alpha: 0.10),
                       borderColor: state.currentUser.isBrand
-                          ? const Color(0xFFFF8A5C).withValues(alpha: 0.70)
+                          ? AppColors.coupon.withValues(alpha: 0.70)
                           : state.currentUser.isPremium
                               ? AppColors.gold.withValues(alpha: 0.75)
                               : AppColors.teal.withValues(alpha: 0.75),
@@ -1966,7 +1966,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 decoration: BoxDecoration(
                   color: AppColors.bgSurface,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF1F2D44)),
+                  border: Border.all(color: AppColors.bgSurface),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -2362,7 +2362,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          backgroundColor: const Color(0xFF0D1421),
+          backgroundColor: AppColors.bgDeep,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -2496,7 +2496,7 @@ class _MyLocationButtonState extends State<_MyLocationButton> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(l10n.mapLocationPermissionRequired),
-              backgroundColor: const Color(0xFF1F2D44),
+              backgroundColor: AppColors.bgSurface,
             ),
           );
         }
@@ -2514,7 +2514,7 @@ class _MyLocationButtonState extends State<_MyLocationButton> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(l10n.mapCannotGetLocation),
-            backgroundColor: const Color(0xFF1F2D44),
+            backgroundColor: AppColors.bgSurface,
           ),
         );
       }
@@ -2701,7 +2701,7 @@ class _TransportMarker extends StatelessWidget {
         final tierGlowColor = isBrandExpress
             ? const Color(0xFFFFD700)
             : letter.senderTier == LetterSenderTier.brand
-            ? const Color(0xFFFF8A5C)
+            ? AppColors.coupon
             : letter.senderTier == LetterSenderTier.premium
             ? AppColors.gold
             : color;
@@ -2805,7 +2805,7 @@ class _TransportMarker extends StatelessWidget {
                   width: 10,
                   height: 10,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFF8A5C),
+                    color: AppColors.coupon,
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.black26, width: 0.5),
                   ),
@@ -2903,7 +2903,7 @@ class _UnreadDeliveredMarker extends StatelessWidget {
 
         // 등급별 글로우 색상 (외곽 pulse 링)
         final glowColor = showAsBrand
-            ? const Color(0xFFFF8A5C)
+            ? AppColors.coupon
             : showAsPremium
             ? AppColors.gold
             : Colors.white;
@@ -3049,14 +3049,14 @@ class _UnreadDeliveredMarker extends StatelessWidget {
                   color: const Color(0xFF3A1F10).withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(4),
                   border: Border.all(
-                    color: const Color(0xFFFF8A5C).withValues(alpha: 0.5),
+                    color: AppColors.coupon.withValues(alpha: 0.5),
                     width: 0.5,
                   ),
                 ),
                 child: Text(
                   letter.senderName,
                   style: const TextStyle(
-                    color: Color(0xFFFF8A5C),
+                    color: AppColors.coupon,
                     fontSize: 8,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.2,
@@ -3283,7 +3283,7 @@ class _MapHeader extends StatelessWidget {
       (s) => s.currentUser.isPremium,
     );
     final tierTint = isBrand
-        ? const Color(0xFFFF8A5C).withValues(alpha: 0.10)
+        ? AppColors.coupon.withValues(alpha: 0.10)
         : isPremium
             ? AppColors.gold.withValues(alpha: 0.08)
             : Colors.transparent;
@@ -3378,7 +3378,7 @@ class _WeekendBoostChip extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [
-                  Color(0xFFFF8A5C),
+                  AppColors.coupon,
                   Color(0xFFFFB86B),
                 ],
                 begin: Alignment.topLeft,
@@ -3387,7 +3387,7 @@ class _WeekendBoostChip extends StatelessWidget {
               borderRadius: BorderRadius.circular(22),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFFF8A5C).withValues(alpha: 0.35),
+                  color: AppColors.coupon.withValues(alpha: 0.35),
                   blurRadius: 8,
                 ),
               ],
@@ -3537,7 +3537,7 @@ class _MapHelpButton extends StatelessWidget {
               Text(
                 l10n.mapHelpHowToSection,
                 style: const TextStyle(
-                  color: Color(0xFFFF8A5C),
+                  color: AppColors.coupon,
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0.4,
@@ -4348,7 +4348,7 @@ class _BrandTowerMarker extends StatelessWidget {
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFF6B35),
+                    color: AppColors.coupon,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: AppColors.bgCard, width: 1.8),
                     boxShadow: [
@@ -4423,7 +4423,7 @@ class _MyTowerMarker extends StatelessWidget {
   });
 
   Color _accent() {
-    if (isBrand) return const Color(0xFFFF8A5C);
+    if (isBrand) return AppColors.coupon;
     if (isPremium) return AppColors.gold;
     return AppColors.teal;
   }
@@ -4600,7 +4600,7 @@ class _MyTowerMarker extends StatelessWidget {
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFF6B35),
+                    color: AppColors.coupon,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: AppColors.bgCard, width: 1.8),
                     boxShadow: [

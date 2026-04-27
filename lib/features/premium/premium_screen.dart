@@ -323,7 +323,7 @@ class PremiumScreen extends StatelessWidget {
                                 : l.koEn('관리자 전용', 'Admin Only')
                             : '',
                     badgeColor: isBrand
-                        ? const Color(0xFFFF8A5C)
+                        ? AppColors.coupon
                         : AppColors.textMuted,
                     features: [
                       '✉️  ${l.premiumBrandFeature1}',
@@ -370,7 +370,7 @@ class PremiumScreen extends StatelessWidget {
                     loading: isBuyingBrand,
                     color: brandDisabled
                         ? AppColors.textMuted
-                        : const Color(0xFFFF8A5C),
+                        : AppColors.coupon,
                     actionLabel: isBrand
                         ? l.premiumNoDowngrade
                         : brandDisabled
@@ -553,47 +553,66 @@ class _ActivePlanBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppL10n.of(context.read<AppState>().currentUser.languageCode);
-    final color = isBrand ? const Color(0xFFFF8A5C) : AppColors.gold;
-    final icon = isBrand ? '🏷️' : '👑';
-    final label = isBrand ? 'Brand / Creator ${l.premiumActiveLabel}' : 'Premium ${l.premiumActiveLabel}';
+    final color = isBrand ? AppColors.coupon : AppColors.gold;
+    final ink = isBrand
+        ? const Color(0xFF1A0008)
+        : const Color(0xFF1A1300);
+    final label = isBrand
+        ? 'Brand / Creator ${l.premiumActiveLabel}'
+        : 'Premium ${l.premiumActiveLabel}';
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(22, 18, 22, 18),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            color.withValues(alpha: 0.15),
-            color.withValues(alpha: 0.04),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.4)),
+        color: color,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.4),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          Text(icon, style: const TextStyle(fontSize: 36)),
-          const SizedBox(width: 16),
+          Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: ink,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.check_rounded,
+              color: color,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  label,
+                  label.toUpperCase(),
                   style: TextStyle(
-                    color: color,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
+                    color: ink.withValues(alpha: 0.7),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.66,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   l.premiumActivePlan,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
+                  style: TextStyle(
+                    color: ink,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
                   ),
                 ),
               ],
@@ -612,40 +631,50 @@ class _PremiumHeroBanner extends StatelessWidget {
     final l = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
+      padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.gold.withValues(alpha: 0.12),
-            AppColors.gold.withValues(alpha: 0.03),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
+        color: AppColors.gold,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.4),
+            blurRadius: 32,
+            offset: const Offset(0, 12),
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('👑', style: TextStyle(fontSize: 52)),
-          const SizedBox(height: 12),
           const Text(
-            'Letter Go Premium',
+            'AIR MAIL · PREMIUM',
             style: TextStyle(
-              color: AppColors.gold,
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.5,
+              color: Color(0xB31A1300),
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.66,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
+          const Text(
+            'Letter Go\nPremium.',
+            style: TextStyle(
+              color: Color(0xFF1A1300),
+              fontSize: 32,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -1.2,
+              height: 1.05,
+            ),
+          ),
+          const SizedBox(height: 10),
           Text(
             l.premiumHeroTitle,
-            textAlign: TextAlign.center,
             style: const TextStyle(
-              color: AppColors.textSecondary,
+              color: Color(0xA61A1300),
               fontSize: 14,
-              height: 1.6,
+              fontWeight: FontWeight.w600,
+              height: 1.5,
+              letterSpacing: -0.1,
             ),
           ),
         ],
@@ -686,92 +715,96 @@ class _PlanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isHighlight = color == AppColors.gold || color == AppColors.coupon;
+    final cardBg = isHighlight ? color : AppColors.bgCard;
+    final ink = isHighlight
+        ? (color == AppColors.gold
+              ? const Color(0xFF1A1300)
+              : const Color(0xFF1A0008))
+        : AppColors.textPrimary;
+    final muted = isHighlight
+        ? ink.withValues(alpha: 0.65)
+        : AppColors.textSecondary;
+    final divider = isHighlight
+        ? ink.withValues(alpha: 0.16)
+        : AppColors.bgSurface;
+
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.4), width: 1.5),
+        color: cardBg,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.4),
+            blurRadius: 32,
+            offset: const Offset(0, 12),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 헤더
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  color.withValues(alpha: 0.12),
-                  color.withValues(alpha: 0.03),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(20),
-              ),
-            ),
-            child: Row(
+          // 헤더 — eyebrow + 큰 가격
+          Padding(
+            padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(emoji, style: const TextStyle(fontSize: 28)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            name,
-                            style: TextStyle(
-                              color: color,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          if (badge.isNotEmpty) ...[
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: badgeColor,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                badge,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
+                Row(
+                  children: [
+                    Text(
+                      name.toUpperCase(),
+                      style: TextStyle(
+                        color: muted,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.66,
                       ),
-                      const SizedBox(height: 4),
-                      RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: price,
-                              style: TextStyle(
-                                color: color,
-                                fontSize: 22,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            TextSpan(
-                              text: period,
-                              style: const TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
+                    ),
+                    if (badge.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isHighlight ? ink : badgeColor,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          badge.toUpperCase(),
+                          style: TextStyle(
+                            color: isHighlight ? cardBg : Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.4,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 12),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: price,
+                        style: TextStyle(
+                          color: ink,
+                          fontSize: 36,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -1.4,
+                          height: 1,
+                        ),
+                      ),
+                      TextSpan(
+                        text: period,
+                        style: TextStyle(
+                          color: muted,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -780,93 +813,105 @@ class _PlanCard extends StatelessWidget {
               ],
             ),
           ),
-
-          // 기능 목록 + 버튼
+          Container(height: 1, color: divider),
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(22, 16, 22, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ...features.map(
-                  (f) => Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: Text(
-                      f,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 13,
-                        height: 1.4,
+              children: features
+                  .map(
+                    (f) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 5),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 6),
+                            child: Container(
+                              width: 5,
+                              height: 5,
+                              decoration: BoxDecoration(
+                                color: ink,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              f,
+                              style: TextStyle(
+                                color: ink,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                height: 1.45,
+                                letterSpacing: -0.1,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: isActive
-                      ? Container(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: color.withValues(alpha: 0.4),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.check_circle_rounded,
-                                color: color,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                AppL10n.of(
-                                  context
-                                      .read<AppState>()
-                                      .currentUser
-                                      .languageCode,
-                                ).premiumActivePlanLabel,
-                                style: TextStyle(
-                                  color: color,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : ElevatedButton(
-                          onPressed: onTap,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: color,
-                            foregroundColor: AppColors.bgDeep,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: loading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: AppColors.bgDeep,
-                                  ),
-                                )
-                              : Text(
-                                  actionLabel,
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
+                  )
+                  .toList(),
+            ),
+          ),
+          Container(height: 1, color: divider),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: SizedBox(
+              width: double.infinity,
+              child: isActive
+                  ? Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: isHighlight
+                            ? ink.withValues(alpha: 0.12)
+                            : AppColors.bgSurface,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Text(
+                        AppL10n.of(
+                          context.read<AppState>().currentUser.languageCode,
+                        ).premiumActivePlanLabel,
+                        style: TextStyle(
+                          color: ink,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.1,
                         ),
-                ),
-              ],
+                      ),
+                    )
+                  : GestureDetector(
+                      onTap: loading ? null : onTap,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: isHighlight ? ink : AppColors.textPrimary,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: loading
+                            ? SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: cardBg,
+                                ),
+                              )
+                            : Text(
+                                actionLabel,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                  color: isHighlight ? cardBg : AppColors.bgDeep,
+                                  letterSpacing: -0.2,
+                                ),
+                              ),
+                      ),
+                    ),
             ),
           ),
         ],
@@ -1844,15 +1889,15 @@ class _BrandExtraTileState extends State<_BrandExtraTile> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                const Color(0xFFFF8A5C).withValues(alpha: 0.08),
-                const Color(0xFFFF6B35).withValues(alpha: 0.04),
+                AppColors.coupon.withValues(alpha: 0.08),
+                AppColors.coupon.withValues(alpha: 0.04),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: const Color(0xFFFF8A5C).withValues(alpha: 0.3),
+              color: AppColors.coupon.withValues(alpha: 0.3),
             ),
           ),
           child: Column(
@@ -1864,12 +1909,12 @@ class _BrandExtraTileState extends State<_BrandExtraTile> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFF8A5C).withValues(alpha: 0.15),
+                      color: AppColors.coupon.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
                       Icons.add_circle_outline_rounded,
-                      color: Color(0xFFFF8A5C),
+                      color: AppColors.coupon,
                       size: 20,
                     ),
                   ),
@@ -1908,7 +1953,7 @@ class _BrandExtraTileState extends State<_BrandExtraTile> {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFF8A5C),
+                      color: AppColors.coupon,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Text(
@@ -2002,7 +2047,7 @@ class _BrandExtraTileState extends State<_BrandExtraTile> {
                         ? null
                         : () => _onBuy(appState),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF8A5C),
+                      backgroundColor: AppColors.coupon,
                       foregroundColor: Colors.white,
                       disabledBackgroundColor: AppColors.bgCard,
                       padding: const EdgeInsets.symmetric(vertical: 13),
@@ -2178,7 +2223,7 @@ class _DebugPremiumToggle extends StatelessWidget {
                           brand: true,
                         ),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFFFF8A5C),
+                          foregroundColor: AppColors.coupon,
                           side: BorderSide(
                             color: const Color(
                               0xFFFF8A5C,
@@ -2532,7 +2577,7 @@ void _showBrandUpgradeDialog({
           child: Text(
             l10n.premiumBrandSchedule,
             style: TextStyle(
-              color: Color(0xFFFF8A5C),
+              color: AppColors.coupon,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -2562,7 +2607,7 @@ void _showBrandUpgradeDialog({
                 : '⏰ $formatted ${l10n.premiumPendingBrandAfter}',
             style: const TextStyle(color: Colors.white),
           ),
-          backgroundColor: const Color(0xFFFF8A5C),
+          backgroundColor: AppColors.coupon,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

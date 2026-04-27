@@ -325,7 +325,7 @@ class _InboxScreenState extends State<InboxScreen>
                         end: Alignment.centerRight,
                         colors: [
                           const Color(0xFFFF5A4B).withValues(alpha: 0.18),
-                          const Color(0xFFFF8A5C).withValues(alpha: 0.10),
+                          AppColors.coupon.withValues(alpha: 0.10),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(10),
@@ -340,7 +340,7 @@ class _InboxScreenState extends State<InboxScreen>
                           child: Text(
                             l10n.expirySirenTitle(expiring.length),
                             style: const TextStyle(
-                              color: Color(0xFFFF8A5C),
+                              color: AppColors.coupon,
                               fontSize: 12.5,
                               fontWeight: FontWeight.w800,
                               height: 1.35,
@@ -675,30 +675,34 @@ class _InboxScreenState extends State<InboxScreen>
   Widget _buildTabBar() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF1F2D44)),
+        borderRadius: BorderRadius.circular(999),
       ),
       child: TabBar(
         controller: _tabController,
         indicator: BoxDecoration(
-          color: AppColors.gold.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.gold.withValues(alpha: 0.4)),
+          color: AppColors.textPrimary,
+          borderRadius: BorderRadius.circular(999),
         ),
         indicatorSize: TabBarIndicatorSize.tab,
-        labelColor: AppColors.gold,
-        unselectedLabelColor: AppColors.textMuted,
-        labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+        dividerColor: Colors.transparent,
+        labelColor: AppColors.bgDeep,
+        unselectedLabelColor: AppColors.textSecondary,
+        labelStyle: const TextStyle(
+          fontWeight: FontWeight.w700,
+          fontSize: 13,
+          letterSpacing: -0.1,
+        ),
         unselectedLabelStyle: const TextStyle(
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          fontSize: 13,
+          letterSpacing: -0.1,
         ),
         tabs: [
-          Tab(text: '📬 ${_l10n(context).inboxTabReceived}'),
-          Tab(text: '📤 ${_l10n(context).inboxTabSent}'),
-          // DM 탭 제거
+          Tab(text: _l10n(context).inboxTabReceived),
+          Tab(text: _l10n(context).inboxTabSent),
         ],
       ),
     );
@@ -1304,32 +1308,31 @@ class _LetterCard extends StatelessWidget {
         children: [
           AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               color: isLocked
                   ? AppColors.bgCard.withValues(alpha: 0.4)
-                  : _isUnread
-                  ? AppColors.bgCard
-                  : AppColors.bgCard.withValues(alpha: 0.6),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isLocked
-                    ? AppColors.textMuted.withValues(alpha: 0.3)
-                    : _isUnread
-                    ? AppColors.gold.withValues(alpha: 0.5)
-                    : const Color(0xFF1F2D44),
-                width: _isUnread ? 1.5 : 1.0,
-              ),
+                  : AppColors.bgCard,
+              borderRadius: BorderRadius.circular(22),
+              border: _isUnread
+                  ? Border.all(color: AppColors.gold, width: 1.5)
+                  : null,
               boxShadow: _isUnread && !isLocked
                   ? [
                       BoxShadow(
-                        color: AppColors.gold.withValues(alpha: 0.1),
-                        blurRadius: 12,
-                        spreadRadius: 1,
+                        color: AppColors.gold.withValues(alpha: 0.15),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
                       ),
                     ]
-                  : null,
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1991,7 +1994,7 @@ class _SentDetailSheet extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF1F2D44)),
+        border: Border.all(color: AppColors.bgSurface),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -2204,7 +2207,7 @@ class _RouteStep extends StatelessWidget {
                     ? AppColors.gold
                     : isActive
                     ? AppColors.teal.withValues(alpha: 0.4)
-                    : const Color(0xFF1F2D44),
+                    : AppColors.bgSurface,
                 width: isCurrent ? 2 : 1,
               ),
             ),
@@ -2387,7 +2390,7 @@ class _DMTab extends StatelessWidget {
                   border: Border.all(
                     color: session.unreadCount > 0
                         ? AppColors.teal.withValues(alpha: 0.4)
-                        : const Color(0xFF1F2D44),
+                        : AppColors.bgSurface,
                   ),
                 ),
                 child: Row(
@@ -2534,7 +2537,7 @@ class _FollowListTab extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.bgCard,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFF1F2D44)),
+            border: Border.all(color: AppColors.bgSurface),
           ),
           child: Row(
             children: [

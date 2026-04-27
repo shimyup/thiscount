@@ -363,7 +363,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 tiers: [
                   _TierBadge(_l.tierLabelFree, AppColors.teal),
                   _TierBadge(_l.tierLabelPremium, AppColors.gold),
-                  _TierBadge(_l.tierLabelBrand, const Color(0xFFFF8A5C)),
+                  _TierBadge(_l.tierLabelBrand, AppColors.coupon),
                 ],
               ),
               _IntroPage(
@@ -377,7 +377,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 // 시각적으로 명시해 gate 시 혼선 예방.
                 tiers: [
                   _TierBadge(_l.tierLabelPremium, AppColors.gold),
-                  _TierBadge(_l.tierLabelBrand, const Color(0xFFFF8A5C)),
+                  _TierBadge(_l.tierLabelBrand, AppColors.coupon),
                 ],
               ),
               _IntroPage(
@@ -426,62 +426,68 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Page indicators
+                    // v5 progress bar — 가는 막대
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(_totalPages, (i) {
-                        final isActive = i == _currentPage;
-                        return AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          width: isActive ? 24 : 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: isActive
-                                ? AppColors.gold
-                                : AppColors.textMuted,
-                            borderRadius: BorderRadius.circular(4),
+                        final isActive = i <= _currentPage;
+                        return Expanded(
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            margin: EdgeInsets.only(
+                              right: i < _totalPages - 1 ? 4 : 0,
+                            ),
+                            height: 3,
+                            decoration: BoxDecoration(
+                              color: isActive
+                                  ? AppColors.textPrimary
+                                  : AppColors.bgSurface,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
                           ),
                         );
                       }),
                     ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _nextPage,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.gold,
-                          foregroundColor: AppColors.bgDeep,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
+                    const SizedBox(height: 20),
+                    // v5 CTA — 흰색 pill
+                    GestureDetector(
+                      onTap: _nextPage,
+                      child: Container(
+                        width: double.infinity,
+                        height: 56,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: AppColors.textPrimary,
+                          borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
                           _currentPage == 1 && !_locationGranted
                               ? (_locationChecking
                                     ? _l.checking
-                                    : '📍 ${_l.locationAllow}')
+                                    : _l.locationAllow)
                               : _currentPage < _totalPages - 1
                               ? _l.next
                               : _l.getStarted,
                           style: const TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.bgDeep,
+                            letterSpacing: -0.2,
                           ),
                         ),
                       ),
                     ),
-                    // 위치 권한 페이지: "나중에" 스킵 버튼 (앱스토어 가이드라인)
                     if (_currentPage == 1 && !_locationGranted && !_locationChecking)
-                      TextButton(
-                        onPressed: _skipLocationPermission,
-                        child: Text(
-                          _l.skip,
-                          style: const TextStyle(
-                            color: AppColors.textMuted,
-                            fontSize: 13,
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: TextButton(
+                          onPressed: _skipLocationPermission,
+                          child: Text(
+                            _l.skip,
+                            style: const TextStyle(
+                              color: AppColors.textMuted,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                       ),
@@ -532,97 +538,93 @@ class _CountrySelectionPageState extends State<_CountrySelectionPage> {
         .toList();
 
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF070B14), Color(0xFF0D1F3C)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
+      color: AppColors.bgDeep,
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 40, 24, 140),
+          padding: const EdgeInsets.fromLTRB(28, 32, 28, 140),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('🌍', style: TextStyle(fontSize: 48)),
-              const SizedBox(height: 16),
               Text(
                 widget.l.onboardingCountryTitle,
                 style: const TextStyle(
                   color: AppColors.textPrimary,
-                  fontSize: 24,
+                  fontSize: 32,
                   fontWeight: FontWeight.w800,
+                  letterSpacing: -1.2,
+                  height: 1.1,
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               Text(
                 widget.l.onboardingCountrySubtitle,
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  height: 1.45,
+                  letterSpacing: -0.15,
+                ),
               ),
               const SizedBox(height: 20),
-              // Search field
               Container(
                 decoration: BoxDecoration(
                   color: AppColors.bgCard,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF1F2D44)),
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 child: TextField(
                   controller: _searchCtrl,
-                  style: const TextStyle(color: AppColors.textPrimary),
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
                   onChanged: (v) => setState(() => _query = v),
                   decoration: InputDecoration(
                     hintText: widget.l.onboardingSearchCountry,
-                    hintStyle: const TextStyle(color: AppColors.textMuted),
+                    hintStyle: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontWeight: FontWeight.w500,
+                    ),
                     prefixIcon: const Icon(
                       Icons.search_rounded,
                       color: AppColors.textMuted,
                       size: 20,
                     ),
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               Expanded(
                 child: ListView.builder(
                   itemCount: filtered.length,
                   itemBuilder: (_, i) {
                     final c = filtered[i];
                     final isSelected = widget.selectedFlag == c['flag'];
-                    return InkWell(
+                    return GestureDetector(
                       onTap: () => widget.onCountrySelected(
                         c['name']!,
                         c['flag']!,
                         c['lang']!,
                       ),
-                      borderRadius: BorderRadius.circular(12),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         margin: const EdgeInsets.only(bottom: 6),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 10,
-                        ),
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? AppColors.gold.withValues(alpha: 0.15)
-                              : AppColors.bgCard.withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isSelected
-                                ? AppColors.gold.withValues(alpha: 0.5)
-                                : Colors.transparent,
-                          ),
+                              ? AppColors.textPrimary
+                              : AppColors.bgCard,
+                          borderRadius: BorderRadius.circular(16),
                         ),
                         child: Row(
                           children: [
                             Text(
                               c['flag']!,
-                              style: const TextStyle(fontSize: 26),
+                              style: const TextStyle(fontSize: 22),
                             ),
                             const SizedBox(width: 14),
                             Expanded(
@@ -630,31 +632,25 @@ class _CountrySelectionPageState extends State<_CountrySelectionPage> {
                                 c['name']!,
                                 style: TextStyle(
                                   color: isSelected
-                                      ? AppColors.gold
+                                      ? AppColors.bgDeep
                                       : AppColors.textPrimary,
-                                  fontWeight: isSelected
-                                      ? FontWeight.w700
-                                      : FontWeight.normal,
+                                  fontWeight: FontWeight.w700,
                                   fontSize: 15,
+                                  letterSpacing: -0.2,
                                 ),
                               ),
                             ),
                             Text(
                               LanguageConfig.languageNames[c['lang']] ??
                                   c['lang']!,
-                              style: const TextStyle(
-                                color: AppColors.textMuted,
+                              style: TextStyle(
+                                color: isSelected
+                                    ? AppColors.bgDeep.withValues(alpha: 0.55)
+                                    : AppColors.textMuted,
                                 fontSize: 12,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                            if (isSelected) ...[
-                              const SizedBox(width: 8),
-                              const Icon(
-                                Icons.check_circle_rounded,
-                                color: AppColors.gold,
-                                size: 18,
-                              ),
-                            ],
                           ],
                         ),
                       ),
@@ -688,156 +684,126 @@ class _LocationPermissionPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppL10n.of(langCode);
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF060C18), Color(0xFF0A1A30)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
+      color: AppColors.bgDeep,
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(32, 60, 32, 160),
+          padding: const EdgeInsets.fromLTRB(28, 32, 28, 160),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 500),
-                width: 120,
-                height: 120,
+              const Spacer(),
+              // 큰 라인 아이콘
+              Container(
+                width: 64,
+                height: 64,
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
+                  color: isGranted ? AppColors.letter : AppColors.bgCard,
                   shape: BoxShape.circle,
-                  color: (isGranted ? AppColors.teal : AppColors.gold)
-                      .withValues(alpha: 0.1),
-                  border: Border.all(
-                    color: (isGranted ? AppColors.teal : AppColors.gold)
-                        .withValues(alpha: 0.5),
-                    width: 2,
-                  ),
                 ),
-                child: Center(
-                  child: Text(
-                    isGranted ? '✅' : '📍',
-                    style: const TextStyle(fontSize: 52),
-                  ),
+                child: Icon(
+                  isGranted
+                      ? Icons.check_rounded
+                      : Icons.location_on_outlined,
+                  size: 32,
+                  color: isGranted
+                      ? const Color(0xFF0A1A00)
+                      : AppColors.textPrimary,
                 ),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 28),
               Text(
                 isGranted ? l.locationGranted : l.locationRequired,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: isGranted ? AppColors.teal : AppColors.textPrimary,
-                  height: 1.3,
+                style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
+                  letterSpacing: -1.2,
+                  height: 1.1,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
               Text(
                 isGranted ? l.locationGrantedBody : l.locationRequiredBody,
-                textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 15,
                   color: AppColors.textSecondary,
-                  height: 1.7,
+                  fontWeight: FontWeight.w500,
+                  height: 1.5,
+                  letterSpacing: -0.15,
                 ),
               ),
               if (!isGranted && !isChecking) ...[
-                const SizedBox(height: 24),
-                // Build 166: GPS 필수 동의 — 약관·제한사항 명시 박스.
+                const SizedBox(height: 22),
+                // GPS 약관 박스 — v5 클린
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
+                  padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
                   decoration: BoxDecoration(
-                    color: AppColors.bgCard.withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: AppColors.gold.withValues(alpha: 0.4),
-                    ),
+                    color: AppColors.bgCard,
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.privacy_tip_rounded,
-                            color: AppColors.gold,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              l.gpsTermsHeader,
-                              style: const TextStyle(
-                                color: AppColors.gold,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.3,
-                              ),
-                            ),
-                          ),
-                        ],
+                      Text(
+                        l.gpsTermsHeader.toUpperCase(),
+                        style: const TextStyle(
+                          color: AppColors.gold,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.66,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         l.gpsTermsBody,
                         style: const TextStyle(
                           color: AppColors.textSecondary,
-                          fontSize: 11.5,
-                          height: 1.55,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          height: 1.45,
+                          letterSpacing: -0.1,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 GestureDetector(
                   onTap: onRequest,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 28,
-                      vertical: 14,
-                    ),
+                    width: double.infinity,
+                    height: 56,
+                    alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: AppColors.gold,
-                      borderRadius: BorderRadius.circular(14),
+                      color: AppColors.textPrimary,
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.check_circle_rounded,
-                          color: AppColors.bgDeep,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          l.gpsAgreeAndContinue,
-                          style: const TextStyle(
-                            color: AppColors.bgDeep,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      l.gpsAgreeAndContinue,
+                      style: const TextStyle(
+                        color: AppColors.bgDeep,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.2,
+                      ),
                     ),
                   ),
                 ),
               ],
               if (isChecking)
-                // Build 160: AppLoading.medium — 기존 CircularProgressIndicator
-                // 직접 정의 → 캐노니컬 토큰.
                 const Padding(
-                  padding: EdgeInsets.only(top: 32),
-                  child: CircularProgressIndicator(
-                    color: AppColors.gold,
-                    strokeWidth: 2,
+                  padding: EdgeInsets.only(top: 28),
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: AppColors.textPrimary,
+                      strokeWidth: 2,
+                    ),
                   ),
                 ),
+              const Spacer(flex: 2),
             ],
           ),
         ),
@@ -853,8 +819,6 @@ class _PremiumPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const gradient = [Color(0xFF0B0618), Color(0xFF1A0B2E)];
-
     // 무료 기능
     final freeFeatures = [
       l.onboardingFreeFeat1,
@@ -873,7 +837,7 @@ class _PremiumPage extends StatelessWidget {
       },
       {'emoji': '⏱', 'text': l.onboardingPremiumFeat2, 'color': AppColors.teal},
       {'emoji': '✈️', 'text': l.onboardingPremiumFeat3, 'color': AppColors.gold},
-      {'emoji': '🎨', 'text': l.onboardingPremiumFeat4, 'color': const Color(0xFFFF8A5C)},
+      {'emoji': '🎨', 'text': l.onboardingPremiumFeat4, 'color': AppColors.coupon},
     ];
     final dayTimeline = [
       {
@@ -901,76 +865,66 @@ class _PremiumPage extends StatelessWidget {
     ];
 
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: gradient,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
+      color: AppColors.bgDeep,
       child: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(24, 36, 24, 160),
+          padding: const EdgeInsets.fromLTRB(28, 32, 28, 160),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── 헤더 ──
-              Center(
-                child: Column(
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.gold.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // 왕관 아이콘
                     Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: AppColors.gold,
                         shape: BoxShape.circle,
-                        gradient: RadialGradient(
-                          colors: [
-                            AppColors.gold.withValues(alpha: 0.25),
-                            AppColors.gold.withValues(alpha: 0.05),
-                          ],
-                        ),
-                        border: Border.all(
-                          color: AppColors.gold.withValues(alpha: 0.5),
-                          width: 1.5,
-                        ),
-                      ),
-                      child: const Center(
-                        child: Text('👑', style: TextStyle(fontSize: 38)),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(width: 6),
                     Text(
-                      l.labelLetterGoPremium,
-                      style: TextStyle(
+                      l.labelLetterGoPremium.toUpperCase(),
+                      style: const TextStyle(
                         color: AppColors.gold,
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 2.5,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      l.onboardingPremiumTitle,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        height: 1.3,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      l.onboardingPremiumSubtitle,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 13,
-                        height: 1.6,
+                        letterSpacing: 0.66,
                       ),
                     ),
                   ],
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                l.onboardingPremiumTitle,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 32,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -1.2,
+                  height: 1.1,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                l.onboardingPremiumSubtitle,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  height: 1.45,
+                  letterSpacing: -0.15,
                 ),
               ),
               const SizedBox(height: 28),
@@ -1300,64 +1254,46 @@ class _IntroPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: gradient,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
+      color: AppColors.bgDeep,
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(32, 60, 32, 160),
+          padding: const EdgeInsets.fromLTRB(28, 32, 28, 160),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.bgCard.withValues(alpha: 0.5),
-                  border: Border.all(
-                    color: AppColors.gold.withValues(alpha: 0.3),
-                    width: 1.5,
-                  ),
-                ),
-                child: Center(
-                  child: Text(emoji, style: const TextStyle(fontSize: 56)),
-                ),
-              ),
-              const SizedBox(height: 32),
+              const Spacer(),
+              Text(emoji, style: const TextStyle(fontSize: 56)),
+              const SizedBox(height: 28),
               Text(
                 title,
-                textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 32,
+                  fontWeight: FontWeight.w800,
                   color: AppColors.textPrimary,
-                  height: 1.3,
+                  letterSpacing: -1.2,
+                  height: 1.1,
                 ),
               ),
               if (tiers != null) ...[
                 const SizedBox(height: 12),
                 Wrap(
-                  alignment: WrapAlignment.center,
                   spacing: 6,
                   runSpacing: 6,
                   children: tiers!.map((t) => _tierChip(t)).toList(),
                 ),
               ],
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
               Text(
                 body,
-                textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 15,
                   color: AppColors.textSecondary,
-                  height: 1.7,
+                  fontWeight: FontWeight.w500,
+                  height: 1.5,
+                  letterSpacing: -0.15,
                 ),
               ),
+              const Spacer(flex: 2),
             ],
           ),
         ),
@@ -1366,24 +1302,19 @@ class _IntroPage extends StatelessWidget {
   }
 
   Widget _tierChip(_TierBadge t) {
-    final color = t.color;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.14),
+        color: t.color,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: color.withValues(alpha: 0.55),
-          width: 1,
-        ),
       ),
       child: Text(
-        t.label,
-        style: TextStyle(
-          color: color,
+        t.label.toUpperCase(),
+        style: const TextStyle(
+          color: Color(0xFF1A0008),
           fontSize: 11,
           fontWeight: FontWeight.w800,
-          letterSpacing: 0.3,
+          letterSpacing: 0.5,
         ),
       ),
     );

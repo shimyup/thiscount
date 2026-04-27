@@ -808,7 +808,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         decoration: BoxDecoration(
           color: AppColors.bgCard,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFF1F2D44)),
+          border: Border.all(color: AppColors.bgSurface),
         ),
         child: Column(
           children: [
@@ -1177,7 +1177,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         : isPrem
         ? '👑 Premium'
         : null;
-    final planColor = isBrand ? const Color(0xFFFF8A5C) : AppColors.gold;
+    final planColor = isBrand ? AppColors.coupon : AppColors.gold;
 
     return SliverAppBar(
       expandedHeight: 270,
@@ -1440,7 +1440,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ? '₩4,900/mo'
         : _ql.profileFree;
     final planColor = isBrand
-        ? const Color(0xFFFF8A5C)
+        ? AppColors.coupon
         : isPremium
         ? AppColors.gold
         : AppColors.textMuted;
@@ -1927,7 +1927,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           border: Border.all(
                             color: isCurrent
                                 ? AppColors.gold.withValues(alpha: 0.6)
-                                : const Color(0xFF1F2D44),
+                                : AppColors.bgSurface,
                             width: isCurrent ? 1.3 : 1,
                           ),
                         ),
@@ -2473,7 +2473,7 @@ class _BrandExactDropCreditsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
-    final orange = const Color(0xFFFF8A5C);
+    final orange = AppColors.coupon;
     final low = credits < 10;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),

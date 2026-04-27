@@ -1709,7 +1709,7 @@ class _TowerScreenState extends State<TowerScreen>
                   border: Border.all(
                     color: idx == 0
                         ? AppColors.gold.withValues(alpha: 0.3)
-                        : const Color(0xFF1F2D44),
+                        : AppColors.bgSurface,
                   ),
                 ),
                 child: Row(
@@ -2110,7 +2110,7 @@ class _TowerScreenState extends State<TowerScreen>
               decoration: BoxDecoration(
                 color: AppColors.bgSurface,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF1F2D44)),
+                border: Border.all(color: AppColors.bgSurface),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -2594,7 +2594,7 @@ class _TowerScreenState extends State<TowerScreen>
                                               ? AppColors.gold.withValues(alpha: 0.65)
                                               : isPremiumOnly
                                                   ? const Color(0xFF8B65FF).withValues(alpha: 0.22)
-                                                  : const Color(0xFF1F2D44),
+                                                  : AppColors.bgSurface,
                                           width: isSelected ? 1.8 : 1,
                                         ),
                                         boxShadow: isSelected
@@ -3108,7 +3108,7 @@ class _TowerScreenState extends State<TowerScreen>
                 );
               },
             ),
-            const Divider(color: Color(0xFF1F2D44)),
+            const Divider(color: AppColors.bgSurface),
             ListTile(
               leading: const Icon(Icons.mail_rounded, color: AppColors.teal),
               title: Text(
@@ -3145,7 +3145,7 @@ class _TowerScreenState extends State<TowerScreen>
                 _showLetterManagement(ctx, state, showSent: true);
               },
             ),
-            const Divider(color: Color(0xFF1F2D44)),
+            const Divider(color: AppColors.bgSurface),
             ListTile(
               leading: const Icon(
                 Icons.logout_rounded,
@@ -3241,7 +3241,7 @@ class _TowerScreenState extends State<TowerScreen>
                           decoration: BoxDecoration(
                             color: AppColors.bgSurface,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFF1F2D44)),
+                            border: Border.all(color: AppColors.bgSurface),
                           ),
                           child: Row(
                             children: [
@@ -3427,7 +3427,7 @@ class _TowerScreenState extends State<TowerScreen>
           color: isOn ? AppColors.gold.withValues(alpha: 0.14) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isOn ? AppColors.gold.withValues(alpha: 0.55) : const Color(0xFF1F2D44),
+            color: isOn ? AppColors.gold.withValues(alpha: 0.55) : AppColors.bgSurface,
             width: isOn ? 1.5 : 1,
           ),
         ),
@@ -3467,7 +3467,7 @@ class _StatCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF1F2D44)),
+        border: Border.all(color: AppColors.bgSurface),
       ),
       child: Column(
         children: [

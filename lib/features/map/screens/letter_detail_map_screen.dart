@@ -86,7 +86,7 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
           return Scaffold(
             backgroundColor: AppColors.bgDeep,
             appBar: AppBar(
-              backgroundColor: const Color(0xFF0D1421),
+              backgroundColor: AppColors.bgDeep,
               leading: IconButton(
                 icon: const Icon(
                   Icons.arrow_back_rounded,
@@ -132,7 +132,7 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
     final routeIcon = _routeIcon(letter);
     final routeColor = _routeColor(letter);
     return AppBar(
-      backgroundColor: const Color(0xFF0D1421),
+      backgroundColor: AppColors.bgDeep,
       elevation: 0,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_rounded, color: AppColors.gold),
@@ -272,7 +272,7 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
 
     if (points.isEmpty) {
       return Container(
-        color: const Color(0xFF0A0F1A),
+        color: AppColors.bgDeep,
         child: Center(
           child: Text(l10n.mapNoRouteInfo, style: const TextStyle(color: AppColors.textMuted)),
         ),
@@ -569,8 +569,8 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
 
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFF0D1421),
-        border: Border(top: BorderSide(color: Color(0xFF1F2D44))),
+        color: AppColors.bgDeep,
+        border: Border(top: BorderSide(color: AppColors.bgSurface)),
       ),
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
