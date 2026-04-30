@@ -37,9 +37,9 @@ class StampAlbumScreen extends StatelessWidget {
       ..sort((a, b) => b.count.compareTo(a.count));
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0D1421),
+      backgroundColor: AppColors.bgDeep,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0D1421),
+        backgroundColor: AppColors.bgDeep,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(
@@ -91,25 +91,10 @@ class StampAlbumScreen extends StatelessWidget {
   ) {
     return Container(
       margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF1A3A2A), Color(0xFF0D2219)],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.gold.withValues(alpha: 0.4),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.gold.withValues(alpha: 0.15),
-            blurRadius: 20,
-            spreadRadius: 2,
-          ),
-        ],
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(22),
       ),
       child: Row(
         children: [
@@ -118,7 +103,7 @@ class StampAlbumScreen extends StatelessWidget {
             width: 64,
             height: 80,
             decoration: BoxDecoration(
-              color: const Color(0xFF0D5C2F),
+              color: AppColors.letter,
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
                 color: AppColors.gold.withValues(alpha: 0.6),
@@ -225,85 +210,44 @@ class StampAlbumScreen extends StatelessWidget {
   }
 
   Widget _buildStamp(BuildContext context, _StampEntry stamp, int index, AppL10n l, String langCode) {
-    final colors = [
-      [const Color(0xFF1A3A4A), const Color(0xFF0D2230)],
-      [const Color(0xFF3A1A2A), const Color(0xFF230D18)],
-      [const Color(0xFF1A3A1A), const Color(0xFF0D2210)],
-      [const Color(0xFF3A2A1A), const Color(0xFF23180D)],
-      [const Color(0xFF1A1A3A), const Color(0xFF0D0D23)],
-    ];
-    final colorPair = colors[stamp.country.hashCode.abs() % colors.length];
-
     return GestureDetector(
       onTap: () => _showStampDetail(context, stamp, l, langCode),
       child: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: colorPair,
-          ),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: AppColors.gold.withValues(alpha: 0.35),
-            width: 1,
-          ),
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.circular(16),
         ),
-        child: Stack(
-          children: [
-            // 우표 점선 테두리
-            Positioned.fill(
-              child: CustomPaint(
-                painter: _StampBorderPainter(
-                  AppColors.gold.withValues(alpha: 0.2),
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(stamp.flag, style: const TextStyle(fontSize: 32)),
+              const SizedBox(height: 8),
+              Text(
+                CountryL10n.localizedName(stamp.country, langCode),
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.1,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                l.stampLettersCount(stamp.count).toUpperCase(),
+                style: const TextStyle(
+                  color: AppColors.gold,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
                 ),
               ),
-            ),
-            // 내용
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(stamp.flag, style: const TextStyle(fontSize: 32)),
-                  const SizedBox(height: 6),
-                  Text(
-                    CountryL10n.localizedName(stamp.country, langCode),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.gold.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: AppColors.gold.withValues(alpha: 0.4),
-                      ),
-                    ),
-                    child: Text(
-                      l.stampLettersCount(stamp.count),
-                      style: const TextStyle(
-                        color: AppColors.gold,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -312,7 +256,7 @@ class StampAlbumScreen extends StatelessWidget {
   void _showStampDetail(BuildContext context, _StampEntry stamp, AppL10n l, String langCode) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1A2535),
+      backgroundColor: AppColors.bgCard,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),

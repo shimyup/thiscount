@@ -215,7 +215,7 @@ class _AdminScreenState extends State<AdminScreen> {
           _sectionHeader(l.koEn('👥 회원 관리', '👥 User Management')),
           _actionTile(
             icon: Icons.people_rounded,
-            iconColor: const Color(0xFF60A5FA),
+            iconColor: AppColors.map,
             label: l.koEn('전체 회원 목록', 'All Users'),
             subtitle: l.koEn(
               'Firestore에서 회원 조회 · 검색 · 차단',
@@ -228,7 +228,7 @@ class _AdminScreenState extends State<AdminScreen> {
           ),
           _actionTile(
             icon: Icons.monitor_heart_rounded,
-            iconColor: const Color(0xFF34D399),
+            iconColor: AppColors.success,
             label: l.koEn('테스터 대시보드', 'Tester Dashboard'),
             subtitle: l.koEn(
               '실시간 테스터 현황 · 편지 · 지도 동기화 상태',
@@ -371,7 +371,7 @@ class _AdminScreenState extends State<AdminScreen> {
           // 시스템 편지 발송
           _actionTile(
             icon: Icons.mark_email_unread_rounded,
-            iconColor: const Color(0xFF818CF8),
+            iconColor: AppColors.streak,
             label: l.koEn('시스템 편지 발송', 'Send System Letter'),
             subtitle: l.koEn(
               '현재 위치에서 내 받은 편지함으로 테스트 편지 생성',
@@ -740,7 +740,7 @@ class _AdminScreenState extends State<AdminScreen> {
                         child: _tierButton(
                           '🏷️ Brand',
                           isActive: user.isBrand,
-                          color: const Color(0xFFA78BFA),
+                          color: AppColors.streak,
                           onTap: () {
                             purchase.debugSetTier(
                               isPremium: true,
@@ -1167,7 +1167,7 @@ class _AdminScreenState extends State<AdminScreen> {
           children: [
             const Icon(
               Icons.mark_email_unread_rounded,
-              color: Color(0xFF818CF8),
+              color: AppColors.streak,
               size: 20,
             ),
             const SizedBox(width: 8),
@@ -1221,7 +1221,7 @@ class _AdminScreenState extends State<AdminScreen> {
             child: Text(
               l.koEn('발송', 'Send'),
               style: TextStyle(
-                color: Color(0xFF818CF8),
+                color: AppColors.streak,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -1678,7 +1678,7 @@ class _AdminScreenState extends State<AdminScreen> {
             '${state.adminInTransitCount}통',
             '${state.adminInTransitCount} letters',
           ),
-          const Color(0xFF818CF8),
+          AppColors.streak,
         ),
         _statCard(
           l.koEn('🚩 신고', '🚩 Reports'),
@@ -2264,9 +2264,9 @@ class _TesterDashboardScreenState extends State<_TesterDashboardScreen>
     final letterType = lt['letterType'] as String? ?? 'normal';
 
     final statusColor = switch (status) {
-      'inTransit' => const Color(0xFF60A5FA),
-      'delivered' || 'read' => const Color(0xFF34D399),
-      'deliveredFar' => const Color(0xFFFBBF24),
+      'inTransit' => AppColors.map,
+      'delivered' || 'read' => AppColors.success,
+      'deliveredFar' => AppColors.warning,
       _ => AppColors.textMuted,
     };
 

@@ -113,7 +113,7 @@ class ShareCardService {
 
     // 은은한 별
     final starPaint = Paint()
-      ..color = const Color(0xFFF0C35A).withValues(alpha: 0.45);
+      ..color = AppColors.gold.withValues(alpha: 0.45);
     const seeds = <List<double>>[
       [120, 180, 3.0],
       [880, 240, 2.0],
@@ -150,7 +150,7 @@ class ShareCardService {
       l10n.shareCardHeader(''),
       offset: const Offset(80, 280),
       fontSize: 68,
-      color: const Color(0xFFF0C35A),
+      color: AppColors.gold,
       weight: FontWeight.w800,
       maxLines: 2,
     );
@@ -183,7 +183,7 @@ class ShareCardService {
     canvas.drawPath(
       path,
       Paint()
-        ..color = const Color(0xFFF0C35A)
+        ..color = AppColors.gold
         ..style = PaintingStyle.stroke
         ..strokeWidth = 5
         ..strokeCap = StrokeCap.round,
@@ -276,7 +276,7 @@ class ShareCardService {
       '〰️  $brandName',
       offset: const Offset(80, 1780),
       fontSize: 44,
-      color: const Color(0xFFF0C35A),
+      color: AppColors.gold,
       weight: FontWeight.w700,
     );
   }
@@ -420,7 +420,7 @@ class ShareCardService {
       '🗺  ${l10n.journeyTitle}',
       offset: const Offset(80, 180),
       fontSize: 56,
-      color: const Color(0xFFF0C35A),
+      color: AppColors.gold,
       weight: FontWeight.w800,
     );
     _drawText(
@@ -465,7 +465,7 @@ class ShareCardService {
         '✈️  ${l10n.journeyLongestDistance}',
         offset: const Offset(120, 720),
         fontSize: 36,
-        color: const Color(0xFFF0C35A),
+        color: AppColors.gold,
         weight: FontWeight.w700,
       );
       _drawText(
@@ -510,7 +510,7 @@ class ShareCardService {
       '〰️  $brandName',
       offset: const Offset(80, 1780),
       fontSize: 44,
-      color: const Color(0xFFF0C35A),
+      color: AppColors.gold,
       weight: FontWeight.w700,
     );
 
@@ -630,7 +630,7 @@ class ShareCardService {
       '🧭  ${l10n.letterGalleryTitle}',
       offset: const Offset(80, 160),
       fontSize: 40,
-      color: const Color(0xFFF0C35A).withValues(alpha: 0.85),
+      color: AppColors.gold.withValues(alpha: 0.85),
       weight: FontWeight.w700,
     );
 
@@ -643,7 +643,7 @@ class ShareCardService {
       Offset(centerX, centerY),
       radius,
       Paint()
-        ..color = const Color(0xFFF0C35A).withValues(alpha: 0.35)
+        ..color = AppColors.gold.withValues(alpha: 0.35)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 8,
     );
@@ -701,7 +701,7 @@ class ShareCardService {
       levelLabel,
       offset: const Offset(80, 1260),
       fontSize: 40,
-      color: const Color(0xFFF0C35A),
+      color: AppColors.gold,
       weight: FontWeight.w800,
       maxWidth: size.width - 160,
       maxLines: 1,
@@ -741,7 +741,7 @@ class ShareCardService {
       '〰️  $brandName',
       offset: const Offset(80, 1780),
       fontSize: 44,
-      color: const Color(0xFFF0C35A),
+      color: AppColors.gold,
       weight: FontWeight.w800,
     );
 

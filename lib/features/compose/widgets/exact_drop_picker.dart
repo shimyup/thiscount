@@ -131,7 +131,7 @@ class _ExactDropPickerState extends State<ExactDropPicker> {
                 children: const [
                   Icon(
                     Icons.place_rounded,
-                    color: Color(0xFFFF5959),
+                    color: AppColors.error,
                     size: 44,
                   ),
                   SizedBox(height: 36),

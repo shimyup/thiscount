@@ -275,10 +275,10 @@ class _InboxScreenState extends State<InboxScreen>
                       vertical: 9,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF00BFA5).withValues(alpha: 0.1),
+                      color: AppColors.teal.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: const Color(0xFF00BFA5).withValues(alpha: 0.3),
+                        color: AppColors.teal.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Row(
@@ -1397,7 +1397,7 @@ class _LetterCard extends StatelessWidget {
                                             LetterCategory.voucher
                                     ? const LinearGradient(
                                         colors: [
-                                          Color(0xFF00BFA5),
+                                          AppColors.teal,
                                           Color(0xFF4DD0E1),
                                         ],
                                       )

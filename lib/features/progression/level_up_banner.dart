@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/localization/app_localizations.dart';
 import '../../core/services/feedback_service.dart';
+import '../../core/theme/app_theme.dart';
 import '../../state/app_state.dart';
 import 'user_level.dart';
 
@@ -43,7 +44,7 @@ class LevelUpBanner {
                   Text(
                     l10n.levelUpBannerTitle,
                     style: const TextStyle(
-                      color: Color(0xFFF0C35A),
+                      color: AppColors.gold,
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                     ),
@@ -61,7 +62,7 @@ class LevelUpBanner {
                     Text(
                       radiusLine,
                       style: const TextStyle(
-                        color: Color(0xFF00BFA5),
+                        color: AppColors.teal,
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                       ),
@@ -77,7 +78,7 @@ class LevelUpBanner {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
-            color: const Color(0xFFF0C35A).withValues(alpha: 0.4),
+            color: AppColors.gold.withValues(alpha: 0.4),
           ),
         ),
         duration: const Duration(seconds: 4),

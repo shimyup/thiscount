@@ -172,21 +172,10 @@ class PremiumGateSheet extends StatelessWidget {
           // 기존 작은 뱃지는 한 줄이라 눈에 잘 안 띈다는 페르소나 4 지적 반영.
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            padding: const EdgeInsets.fromLTRB(22, 18, 22, 18),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.gold.withValues(alpha: 0.18),
-                  AppColors.gold.withValues(alpha: 0.06),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: AppColors.gold.withValues(alpha: 0.45),
-                width: 1.2,
-              ),
+              color: AppColors.gold,
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -194,28 +183,28 @@ class PremiumGateSheet extends StatelessWidget {
                 Text(
                   l10n.premiumGatePriceLabel,
                   style: const TextStyle(
-                    color: AppColors.gold,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.3,
+                    color: Color(0xFF1A1300),
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.7,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(
                       Icons.check_circle_rounded,
                       size: 13,
-                      color: AppColors.gold,
+                      color: Color(0xFF1A1300),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       l10n.premiumGateAssurance,
-                      style: TextStyle(
-                        color: AppColors.gold.withValues(alpha: 0.85),
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
+                      style: const TextStyle(
+                        color: Color(0xCC1A1300),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],

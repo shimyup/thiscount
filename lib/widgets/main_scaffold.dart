@@ -219,7 +219,7 @@ class _MainScaffoldState extends State<MainScaffold> {
                               ? Icons.edit_note_rounded
                               : Icons.workspace_premium_rounded),
                       accent: isBrand
-                          ? const Color(0xFFFF8A5C)
+                          ? AppColors.coupon
                           : AppColors.gold,
                       onTap: () => _openCompose(ctx),
                     ),
@@ -286,17 +286,20 @@ class _ComposeNavItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 30,
-              height: 30,
+              width: 32,
+              height: 32,
+              alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: accent.withValues(alpha: 0.12),
+                color: accent,
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: accent.withValues(alpha: 0.55),
-                  width: 1.2,
-                ),
               ),
-              child: Icon(icon, color: accent, size: 20),
+              child: Icon(
+                icon,
+                color: accent == AppColors.gold
+                    ? const Color(0xFF1A1300)
+                    : AppColors.bgDeep,
+                size: 18,
+              ),
             ),
             const SizedBox(height: 3),
             Text(

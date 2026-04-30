@@ -389,7 +389,7 @@ class _DmConversationScreenState extends State<DmConversationScreen> {
             ],
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(1),
-              child: Container(height: 1, color: const Color(0xFF1F2D44)),
+              child: Container(height: 1, color: AppColors.bgSurface),
             ),
           ),
           body: Column(
@@ -489,7 +489,7 @@ class _DmConversationScreenState extends State<DmConversationScreen> {
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: const Color(0xFF1F2D44)),
+          child: Container(height: 1, color: AppColors.bgSurface),
         ),
       ),
       body: Center(
@@ -606,19 +606,12 @@ class _DmConversationScreenState extends State<DmConversationScreen> {
                 vertical: 10,
               ),
               decoration: BoxDecoration(
-                color: isMe
-                    ? AppColors.gold.withValues(alpha: 0.15)
-                    : AppColors.bgCard,
+                color: isMe ? AppColors.gold : AppColors.bgCard,
                 borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(16),
-                  topRight: const Radius.circular(16),
-                  bottomLeft: Radius.circular(isMe ? 16 : 4),
-                  bottomRight: Radius.circular(isMe ? 4 : 16),
-                ),
-                border: Border.all(
-                  color: isMe
-                      ? AppColors.gold.withValues(alpha: 0.3)
-                      : const Color(0xFF1F2D44),
+                  topLeft: const Radius.circular(20),
+                  topRight: const Radius.circular(20),
+                  bottomLeft: Radius.circular(isMe ? 20 : 6),
+                  bottomRight: Radius.circular(isMe ? 6 : 20),
                 ),
               ),
               child: Column(
@@ -628,18 +621,23 @@ class _DmConversationScreenState extends State<DmConversationScreen> {
                     msg.content,
                     style: TextStyle(
                       color: isMe
-                          ? AppColors.textPrimary
-                          : AppColors.textSecondary,
+                          ? const Color(0xFF1A1300)
+                          : AppColors.textPrimary,
                       fontSize: 14,
+                      fontWeight: FontWeight.w500,
                       height: 1.5,
+                      letterSpacing: -0.1,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     _formatTime(msg.sentAt),
-                    style: const TextStyle(
-                      color: AppColors.textMuted,
+                    style: TextStyle(
+                      color: isMe
+                          ? const Color(0xFF1A1300).withValues(alpha: 0.55)
+                          : AppColors.textMuted,
                       fontSize: 10,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
@@ -658,7 +656,7 @@ class _DmConversationScreenState extends State<DmConversationScreen> {
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
       decoration: BoxDecoration(
         color: AppColors.bgCard,
-        border: const Border(top: BorderSide(color: Color(0xFF1F2D44))),
+        border: const Border(top: BorderSide(color: AppColors.bgSurface)),
       ),
       child: SafeArea(
         top: false,
@@ -670,7 +668,6 @@ class _DmConversationScreenState extends State<DmConversationScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.bgSurface,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: const Color(0xFF1F2D44)),
                 ),
                 child: TextField(
                   controller: _controller,

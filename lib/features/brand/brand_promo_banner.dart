@@ -171,7 +171,7 @@ class _BrandPromoBannerState extends State<BrandPromoBanner>
           padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFFFFE082), AppColors.gold],
+              colors: [AppColors.goldLight, AppColors.gold],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -248,7 +248,7 @@ class _BrandPromoBannerState extends State<BrandPromoBanner>
                 child: Text(
                   l10n.brandPromoBannerCTA,
                   style: const TextStyle(
-                    color: Color(0xFFFFE082),
+                    color: AppColors.goldLight,
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.4,
@@ -288,7 +288,7 @@ class _BrandPromoBannerState extends State<BrandPromoBanner>
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFFFFE082), AppColors.gold],
+              colors: [AppColors.goldLight, AppColors.gold],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),

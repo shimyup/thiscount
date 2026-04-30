@@ -1553,7 +1553,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       isScrollControlled: true,
       builder: (_) => Container(
         decoration: const BoxDecoration(
-          color: Color(0xFF1A2535),
+          color: AppColors.bgCard,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
