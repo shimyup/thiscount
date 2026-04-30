@@ -1326,37 +1326,21 @@ class _ComposeScreenState extends State<ComposeScreen>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 14),
-                            // Build 189: Brand compose flow 5 버그 수정 (재구성).
-                            // (1) 🌍 나라 선택 카드 — **항상** 표시 (bulk 토글해도
-                            //     유지). 기존엔 bulk 모드 ON 이면 destination card
-                            //     자체가 사라져 선택 국가가 UI 에서 없어짐.
-                            // (2) 🎟/🎁/✉️ 브랜드 카테고리 — 항상.
-                            // (3) ✍️ 편지 본문 — **위로 이동**. 대량 발송 패널이
-                            //     아래로 커져도 본문은 항상 viewport 상단에 고정.
-                            // (4) 📦 대량 발송 토글 (Brand) + 패널 — 본문 아래.
-                            // (5) ⚡ 특급 배송 토글 — 항상.
+                            // Build 201 — 사용자 요청 재배치:
+                            //   1) 나라 선택
+                            //   2) 대량 발송 (나라와 편지종류 사이)
+                            //   3) 특급 배송 (대량 밑)
+                            //   4) 편지 종류 (Brand 카테고리)
+                            //   5) 오늘의 영감 (강조)
+                            //   6) 편지 꾸미기 (StyleBar)
+                            //   7) 더 많은 옵션 (접히는 섹션 — SNS/익명/이미지 등)
+                            //   8) 편지 본문 (가장 아래)
+                            //   9) 보내기 버튼
                             if (!_isReply)
                               _buildDestinationCard(state, hasPremium),
                             if (!_isReply) const SizedBox(height: 8),
-                            // Build 113: 브랜드는 destination 바로 아래에서
-                            // 🎟/🎁/✉️ 중 하나를 한 탭으로 선택.
-                            // Build 128: Free/Premium 에게도 카테고리 패널을
-                            // 노출해 "할인권/교환권은 Brand 에서 발송" 임을
-                            // 명시. 쿠폰/교환권 칩은 비활성 + 탭 시 업그레이드
-                            // 안내 시트 오픈.
-                            if (!_isReply) _buildBrandCategoryPanel(state),
-                            if (!_isReply) const SizedBox(height: 8),
 
-                            // ── STEP 2: 편지 본문 — Build 189 에서 bulk 패널
-                            // 위로 재배치. bulk 모드 ON 시 본문이 아래로 밀려
-                            // 안 보이던 버그 해소.
-                            _buildLetterBody(),
-                            const SizedBox(height: 16),
-
-                            // ── STEP 3: 대량 발송 — Brand 전용 (본문 뒤) ─────
-                            // Build 189: 대량 발송 토글에 명시적 "끄기" X 버튼
-                            // 추가 (bulk 모드 활성 시 상단 banner) — 창 닫기 외
-                            // 에도 모드 해제가 명확.
+                            // ── 대량 발송 (Brand) — 나라와 편지종류 사이 ──
                             if (!_isReply && isBrand) ...[
                               if (_isBulkMode) _buildActiveModeBanner(state),
                               _buildBulkModeToggle(),
@@ -1366,24 +1350,30 @@ class _ComposeScreenState extends State<ComposeScreen>
                                 const SizedBox(height: 8),
                               ],
                             ],
-                            // 프리미엄 특급 배송 — 항상 노출 (bulk 모드와 독립).
+                            // ── 특급 배송 — 대량 밑 ──
                             if (!_isReply) _buildExpressToggle(state, hasPremium),
                             if (!_isReply) const SizedBox(height: 8),
 
-                            // ── STEP 3: 부가 옵션 (접히는 섹션) ─────────────
-                            // 목적지 + 본문이 가장 중요한 결정이므로 나머지
-                            // 보조 옵션(테마·퀵픽·SNS·익명·스타일·이미지 등)은
-                            // 하나의 ExpansionTile로 묶어 스크롤 부담을 줄인다.
+                            // ── 편지 종류 (Brand 카테고리 / 일반에겐 안내 시트) ──
+                            if (!_isReply) _buildBrandCategoryPanel(state),
+                            if (!_isReply) const SizedBox(height: 8),
+
+                            // ── 오늘의 영감 (강조 노출) ──
+                            if (!_isReply) ...[
+                              _buildLuckyLetterButton(),
+                              const SizedBox(height: 10),
+                              _buildRecallLastLetterButton(),
+                              const SizedBox(height: 10),
+                            ],
+
+                            // ── 편지 꾸미기 (StyleBar) — 편지지 위쪽 ──
+                            _buildStyleBar(),
+                            const SizedBox(height: 10),
+
+                            // ── 더 많은 옵션 (접히는 섹션) — 편지지 위쪽 ──
                             _ComposeOptionsSection(
                               title: l10n.composeOptionsSectionTitle,
                               children: [
-                                // "오늘의 영감" 통합 카드 제거 (Build 107):
-                                // 앱 포지셔닝이 "느린 소셜 편지 · 펜팔" 에서
-                                // "브랜드 홍보 · 할인권 유통" 중심으로 전환되며
-                                // "오늘 뭘 쓸까?" 류 글감 도움 UI 는 더 이상 주력이
-                                // 아니다. 요일 테마·퀵픽·월별 도시 builder 는 코드에
-                                // 남겨두되 (다른 곳에서 참조 가능성) 이 섹션에서만
-                                // 렌더링에서 빠진다.
                                 if (!_isReply)
                                   _buildSocialToggle(hasPremium: hasPremium),
                                 if (!_isReply && _attachSocial && hasPremium) ...[
@@ -1395,8 +1385,6 @@ class _ComposeScreenState extends State<ComposeScreen>
                                 if (!_isReply && isBrand) const SizedBox(height: 10),
                                 if (!_isReply && isBrand) _buildBrandOptions(state),
                                 const SizedBox(height: 10),
-                                _buildStyleBar(),
-                                const SizedBox(height: 10),
                                 _buildImageAttachButton(
                                   state,
                                   hasPremium: hasPremium,
@@ -1406,14 +1394,12 @@ class _ComposeScreenState extends State<ComposeScreen>
                                   const SizedBox(height: 10),
                                   _buildImagePreview(),
                                 ],
-                                const SizedBox(height: 16),
-                                _buildLuckyLetterButton(),
-                                if (!_isReply) ...[
-                                  const SizedBox(height: 8),
-                                  _buildRecallLastLetterButton(),
-                                ],
                               ],
                             ),
+                            const SizedBox(height: 16),
+
+                            // ── 편지 본문 (가장 아래) ──
+                            _buildLetterBody(),
                             const SizedBox(height: 40),
                           ],
                         ),
@@ -1736,44 +1722,65 @@ class _ComposeScreenState extends State<ComposeScreen>
 
   Widget _buildLuckyLetterButton() {
     final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    // Build 201: 강조 노출 — 솔리드 노란 카드 + 큰 헤드라인 + 큰 아이콘.
     return GestureDetector(
       onTap: _applyLuckyLetter,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
         decoration: BoxDecoration(
-          gradient: _isLuckyLetter
-              ? LinearGradient(
-                  colors: [
-                    AppColors.gold.withValues(alpha: 0.25),
-                    AppColors.coupon.withValues(alpha: 0.15),
-                  ],
-                )
-              : LinearGradient(colors: [AppColors.bgCard, AppColors.bgCard]),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: _isLuckyLetter
-                ? AppColors.gold.withValues(alpha: 0.7)
-                : AppColors.textMuted.withValues(alpha: 0.25),
-            width: 1.5,
-          ),
+          color: AppColors.gold,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.gold.withValues(alpha: 0.35),
+              blurRadius: 18,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
         child: Row(
           children: [
-            const Text('🍀', style: TextStyle(fontSize: 22)),
-            const SizedBox(width: 12),
+            Container(
+              width: 44,
+              height: 44,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
+                color: Color(0xFF1A1300),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                _isLuckyLetter
+                    ? Icons.autorenew_rounded
+                    : Icons.auto_awesome_rounded,
+                color: AppColors.gold,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _isLuckyLetter ? l10n.composeLuckyApplied : l10n.composeLuckySend,
+                    'TODAY · INSPIRATION',
                     style: TextStyle(
-                      color: _isLuckyLetter
-                          ? AppColors.gold
-                          : AppColors.textPrimary,
-                      fontSize: 13,
+                      color: const Color(0xFF1A1300).withValues(alpha: 0.7),
+                      fontSize: 11,
                       fontWeight: FontWeight.w700,
+                      letterSpacing: 0.66,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _isLuckyLetter
+                        ? l10n.composeLuckyApplied
+                        : l10n.composeLuckySend,
+                    style: const TextStyle(
+                      color: Color(0xFF1A1300),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.3,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -1781,22 +1788,16 @@ class _ComposeScreenState extends State<ComposeScreen>
                     _isLuckyLetter
                         ? l10n.composeLuckyAppliedSub
                         : l10n.composeLuckySendSub,
-                    style: const TextStyle(
-                      color: AppColors.textMuted,
-                      fontSize: 11,
+                    style: TextStyle(
+                      color: const Color(0xFF1A1300).withValues(alpha: 0.65),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
-            ),
-            Icon(
-              _isLuckyLetter
-                  ? Icons.autorenew_rounded
-                  : Icons.auto_awesome_rounded,
-              color: _isLuckyLetter
-                  ? AppColors.gold
-                  : AppColors.textMuted,
-              size: 18,
             ),
           ],
         ),
@@ -4023,89 +4024,49 @@ class _ComposeScreenState extends State<ComposeScreen>
     final l10n = AppL10n.of(state.currentUser.languageCode);
     final langCode = state.currentUser.languageCode;
     final allCountries = AppState.countries;
+    // Build 201: destination 카드에서 이미 선택한 나라가 있으면 자동으로 bulk target.
+    // 사용자 요청 — 대량 발송에서 나라 재선택 안 하고 몇 통 보낼지만 선택.
+    if (!_isBulkRandom &&
+        _bulkTargets.isEmpty &&
+        _selectedCountry.isNotEmpty) {
+      final match = allCountries.firstWhere(
+        (c) => c['name'] == _selectedCountry,
+        orElse: () => const <String, String>{},
+      );
+      if (match.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() {
+              _bulkTargets.add({
+                'country': match['name'],
+                'flag': match['flag'],
+                'lat': double.parse(match['lat']!),
+                'lng': double.parse(match['lng']!),
+              });
+            });
+          }
+        });
+      }
+    }
     final panelColor = _isExpressMode
         ? AppColors.gold
         : AppColors.coupon;
+    final hasFixedTarget = !_isBulkRandom && _selectedCountry.isNotEmpty;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: _isExpressMode
-            ? AppColors.gold.withValues(alpha: 0.05)
-            : AppColors.bgCard,
+        color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: panelColor.withValues(alpha: 0.45),
-          width: _isExpressMode ? 1.5 : 1.0,
+          width: 1.0,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── 특송 토글 ──────────────────────────────────────────────────
-          GestureDetector(
-            onTap: () => setState(() => _isExpressMode = !_isExpressMode),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: _isExpressMode
-                    ? AppColors.gold.withValues(alpha: 0.12)
-                    : AppColors.bgSurface,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: _isExpressMode
-                      ? AppColors.gold.withValues(alpha: 0.6)
-                      : AppColors.textMuted.withValues(alpha: 0.2),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.bolt_rounded,
-                    color: _isExpressMode
-                        ? AppColors.gold
-                        : AppColors.textMuted,
-                    size: 17,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _isExpressMode
-                              ? '⚡ ${l10n.composeExpressOnShort}'
-                              : '⚡ ${l10n.composeExpressModeBrand}',
-                          style: TextStyle(
-                            color: _isExpressMode
-                                ? AppColors.gold
-                                : AppColors.textMuted,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        if (_isExpressMode)
-                          Text(
-                            l10n.composeExpressDeliveryEachCountry,
-                            style: TextStyle(
-                              color: AppColors.gold,
-                              fontSize: 10,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  Switch(
-                    value: _isExpressMode,
-                    onChanged: (v) => setState(() => _isExpressMode = v),
-                    activeColor: AppColors.gold,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ],
-              ),
-            ),
-          ),
           // 나라당 발송 수
-          const SizedBox(height: 10),
+          const SizedBox(height: 2),
           Row(
             children: [
               Text(
@@ -4248,93 +4209,81 @@ class _ComposeScreenState extends State<ComposeScreen>
               ),
             ),
           ),
-          const SizedBox(height: 12),
-          // 헤더 + 나라 그리드 (랜덤 모드 OFF일 때만)
-          if (!_isBulkRandom) ...[
-            Row(
-              children: [
-                Text(
-                  '🌍 ${l10n.composeSelectTargetCountry}',
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
+          // Build 201: destination 카드에서 이미 선택한 나라가 자동으로
+          // bulk target. 따라서 나라 그리드 제거. 단 hasFixedTarget=false
+          // (나라 선택 안 됨 + 랜덤 모드도 아님) 일 때만 안내 메시지 표시.
+          if (hasFixedTarget) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 14, vertical: 10,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.bgSurface,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.gps_fixed_rounded,
+                    size: 16,
+                    color: AppColors.gold,
                   ),
-                ),
-                const Spacer(),
-                Text(
-                  l10n.composeSelectedCount(_bulkTargets.length),
-                  style: TextStyle(
-                    color: panelColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      CountryL10n.localizedName(_selectedCountry, langCode),
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                  Text(
+                    l10n.composeCountUnit(_sendPerCountry),
+                    style: TextStyle(
+                      color: panelColor,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 10),
-            // 나라 그리드
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: allCountries.map((c) {
-                final selected = _bulkTargets.any(
-                  (t) => t['country'] == c['name'],
-                );
-                return GestureDetector(
-                  onTap: () => setState(() {
-                    if (selected) {
-                      _bulkTargets.removeWhere((t) => t['country'] == c['name']);
-                    } else {
-                      _bulkTargets.add({
-                        'country': c['name'],
-                        'flag': c['flag'],
-                        'lat': double.parse(c['lat']!),
-                        'lng': double.parse(c['lng']!),
-                      });
-                    }
-                  }),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: selected
-                          ? AppColors.coupon.withValues(alpha: 0.2)
-                          : AppColors.bgSurface,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: selected
-                            ? AppColors.coupon
-                            : AppColors.textMuted.withValues(alpha: 0.25),
-                        width: selected ? 1.5 : 1,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(c['flag']!, style: const TextStyle(fontSize: 14)),
-                        const SizedBox(width: 5),
-                        Text(
-                          CountryL10n.localizedName(c['name']!, langCode),
-                          style: TextStyle(
-                          color: selected
-                              ? AppColors.coupon
-                              : AppColors.textSecondary,
-                          fontSize: 11,
-                          fontWeight: selected
-                              ? FontWeight.w700
-                              : FontWeight.w400,
-                        ),
-                      ),
-                    ],
+          ] else if (!_isBulkRandom) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 14, vertical: 10,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.bgSurface,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.info_outline_rounded,
+                    size: 16,
+                    color: AppColors.textMuted,
                   ),
-                ),
-              );
-            }).toList(),
-          ),
-          ],  // end if (!_isBulkRandom)
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.composeSelectTargetCountry,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 10),
           // 총 발송 요약
           if (_isBulkRandom)

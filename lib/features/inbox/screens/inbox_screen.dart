@@ -1765,7 +1765,7 @@ class _LetterFilterBar extends StatelessWidget {
 
   const _LetterFilterBar({required this.activeFilter, required this.onChanged});
 
-  String _label(LetterFilterType type, AppL10n l10n) {
+  String _textLabel(LetterFilterType type, AppL10n l10n) {
     switch (type) {
       case LetterFilterType.all:
         return l10n.inboxFilterAll;
@@ -1776,54 +1776,143 @@ class _LetterFilterBar extends StatelessWidget {
       case LetterFilterType.waitingPickup:
         return l10n.inboxFilterWaiting;
       case LetterFilterType.brand:
-        return '🏢 ${l10n.inboxFilterBrand}';
+        return l10n.inboxFilterBrand;
       case LetterFilterType.coupon:
-        return '🎟 ${l10n.inboxFilterCoupon}';
+        return l10n.inboxFilterCoupon;
       case LetterFilterType.voucher:
-        return '🎁 ${l10n.inboxFilterVoucher}';
+        return l10n.inboxFilterVoucher;
       case LetterFilterType.general:
-        return '✉️ ${l10n.inboxFilterGeneral}';
+        return l10n.inboxFilterGeneral;
     }
+  }
+
+  void _openSheet(BuildContext ctx, AppL10n l10n) {
+    showModalBottomSheet(
+      context: ctx,
+      backgroundColor: AppColors.bgCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (sheetCtx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: AppColors.textMuted.withValues(alpha: 0.35),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                l10n.inboxFilterAll.toUpperCase(),
+                style: const TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.66,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ..._visibleFilters.map((type) {
+                final selected = type == activeFilter;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Material(
+                    color: selected ? AppColors.gold : AppColors.bgSurface,
+                    borderRadius: BorderRadius.circular(14),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.of(sheetCtx).pop();
+                        onChanged(type);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _textLabel(type, l10n),
+                                style: TextStyle(
+                                  color: selected
+                                      ? const Color(0xFF1A1300)
+                                      : AppColors.textPrimary,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.2,
+                                ),
+                              ),
+                            ),
+                            if (selected)
+                              const Icon(
+                                Icons.check_rounded,
+                                color: Color(0xFF1A1300),
+                                size: 20,
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
-    return SizedBox(
-      height: 42,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
-        // 4개만 렌더 (_visibleFilters) — 나머지 enum 값(read/inTransit/waiting) 숨김
-        children: _visibleFilters.map((type) {
-          final selected = type == activeFilter;
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: ChoiceChip(
-              label: Text(
-                _label(type, l10n),
-                style: TextStyle(
-                  color: selected ? AppColors.bgDeep : AppColors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
+    final activeLabel = _textLabel(activeFilter, l10n);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
+      child: GestureDetector(
+        onTap: () => _openSheet(context, l10n),
+        child: Container(
+          height: 42,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: AppColors.bgCard,
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.filter_list_rounded,
+                size: 18,
+                color: AppColors.textPrimary,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  activeLabel,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.2,
+                  ),
                 ),
               ),
-              selected: selected,
-              onSelected: (_) => onChanged(type),
-              selectedColor: AppColors.gold,
-              backgroundColor: AppColors.bgCard,
-              side: BorderSide(
-                color: selected
-                    ? AppColors.gold.withValues(alpha: 0.75)
-                    : const Color(0xFF304256),
+              const Icon(
+                Icons.expand_more_rounded,
+                size: 20,
+                color: AppColors.textMuted,
               ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              showCheckmark: false,
-            ),
-          );
-        }).toList(),
+            ],
+          ),
+        ),
       ),
     );
   }

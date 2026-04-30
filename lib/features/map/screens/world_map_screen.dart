@@ -397,7 +397,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
             if (state.hasNearbyAlert &&
                 state.isFeatureUnlocked(UnlockableFeature.nearbyPickup))
               Positioned(
-                top: 220,
+                top: 130,
                 left: 16,
                 right: 16,
                 child: _NearbyAlertBanner(
@@ -483,7 +483,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
             if (state.nearbyLetters.isNotEmpty &&
                 !state.hasNearbyAlert)
               Positioned(
-                top: 220,
+                top: 130,
                 left: 16,
                 right: 16,
                 child: _DailyGreetingPill(
@@ -631,40 +631,8 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 ],
               ),
             ),
-            // ── 하단 통계 바 ───────────────────────────────────────────────
-            Positioned(
-              bottom: 20,
-              left: 16,
-              right: 16,
-              child: _StatsBar(
-                l10n: l10n,
-                state: state,
-                mapController: _mapController,
-                userLat: state.currentUser.latitude,
-                userLng: state.currentUser.longitude,
-                onShowAll: () {
-                  setState(() => _showNearbyOnly = false);
-                  _mapController.move(
-                    ll.LatLng(
-                      state.currentUser.latitude,
-                      state.currentUser.longitude,
-                    ),
-                    3.0,
-                  );
-                },
-                onShowNearby: () {
-                  setState(() => _showNearbyOnly = true);
-                  _mapController.move(
-                    ll.LatLng(
-                      state.currentUser.latitude,
-                      state.currentUser.longitude,
-                    ),
-                    12.0,
-                  );
-                },
-                onGoToInbox: widget.onGoToInbox,
-              ),
-            ),
+            // 하단 통계 바 폐기 (Build 201) — 사용자 요청. 핵심 액션은 우측 quick
+            // action 버튼 (전체보기·줌·내 위치) 으로 이미 커버됨.
           ],
         );
       },
@@ -3160,14 +3128,13 @@ class _DailyGreetingPill extends StatelessWidget {
 /// Build 165: 지도 상단 수평 국가 점프 바.
 /// `LogisticsHubs.hubs` 의 30+ 국가 중심 좌표를 칩으로 스크롤. 탭 시 지도 이동.
 /// 내 국가를 맨 앞으로 정렬하고 gold 테두리 강조. 각 칩: 플래그 + 현지어 이름.
-/// v5 (Build 200) snap-scroll country bar with center arrow.
+/// v5 (Build 201) 좌우 화살표 버튼 navigation country bar.
 ///
 /// 변경:
-/// - 시각성 ↑: 높이 32→52, solid card 배경, gold/white pill 강조, 큰 flag
-/// - 중앙 화살표 ▼ — 현재 국가 표시
-/// - 스크롤 속도 ↓ (BouncingScrollPhysics + scroll velocity 감속)
-/// - 스냅 동작: 스크롤 멈추면 가장 가까운 국가 칩이 화살표 아래로 정렬,
-///   해당 국가 위치로 지도 자동 이동.
+/// - 스크롤 폐기 → ◀ ▶ 좌우 버튼으로 한 칸씩 이동
+/// - 가운데 큰 카드: 현재 국가 (flag + name) 가 항상 중앙에 표시
+/// - 버튼 탭 시 햅틱 + 다음 국가 위치로 지도 자동 이동
+/// - 끝에 도달하면 wrap-around (처음으로 / 끝으로)
 class _CountryJumpBar extends StatefulWidget {
   final String myCountry;
   final void Function(double lat, double lng) onJump;
@@ -3197,25 +3164,18 @@ class _CountryJumpBar extends StatefulWidget {
     (name: '이집트', flag: '🇪🇬', lat: 30.0444, lng: 31.2357),
   ];
 
-  // 칩 너비 (snap 단위)
-  static const double itemWidth = 84.0;
-
   @override
   State<_CountryJumpBar> createState() => _CountryJumpBarState();
 }
 
 class _CountryJumpBarState extends State<_CountryJumpBar> {
-  late ScrollController _ctrl;
-  int _activeIdx = 0;
-  bool _userScrolling = false;
-
+  int _idx = 0;
   late List<({String name, String flag, double lat, double lng})> _sorted;
 
   @override
   void initState() {
     super.initState();
     _sortCountries();
-    _ctrl = ScrollController();
   }
 
   @override
@@ -3239,172 +3199,98 @@ class _CountryJumpBarState extends State<_CountryJumpBar> {
         : List.of(_CountryJumpBar._countries);
   }
 
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  void _snapToNearest() {
-    if (!_ctrl.hasClients) return;
-    final offset = _ctrl.offset;
-    final idx = (offset / _CountryJumpBar.itemWidth).round().clamp(
-          0,
-          _sorted.length - 1,
-        );
-    final target = idx * _CountryJumpBar.itemWidth;
-    _ctrl
-        .animateTo(
-          target,
-          duration: const Duration(milliseconds: 240),
-          curve: Curves.easeOutCubic,
-        )
-        .then((_) {
-          if (!mounted) return;
-          setState(() => _activeIdx = idx);
-          final c = _sorted[idx];
-          widget.onJump(c.lat, c.lng);
-        });
-  }
-
-  bool _onScrollNotification(ScrollNotification n) {
-    if (n is ScrollStartNotification) {
-      _userScrolling = true;
-    } else if (n is ScrollUpdateNotification && _userScrolling) {
-      // 실시간 active idx 업데이트 (햅틱 fired)
-      final idx = (n.metrics.pixels / _CountryJumpBar.itemWidth).round().clamp(
-            0,
-            _sorted.length - 1,
-          );
-      if (idx != _activeIdx) {
-        setState(() => _activeIdx = idx);
-        // 탁탁 걸리는 햅틱
-        Feedback.forTap(context);
-      }
-    } else if (n is ScrollEndNotification && _userScrolling) {
-      _userScrolling = false;
-      _snapToNearest();
-    }
-    return false;
+  void _step(int delta) {
+    final n = _sorted.length;
+    final next = (_idx + delta + n) % n;
+    setState(() => _idx = next);
+    Feedback.forTap(context);
+    final c = _sorted[next];
+    widget.onJump(c.lat, c.lng);
   }
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 60,
-      child: Stack(
+    final c = _sorted[_idx];
+    final lang = context.read<AppState>().currentUser.languageCode;
+    final name = CountryL10n.localizedName(c.name, lang);
+    return Container(
+      height: 56,
+      margin: const EdgeInsets.symmetric(horizontal: 12),
+      child: Row(
         children: [
-          // 좌우 페이드 + 화살표 + 칩 리스트
-          Positioned.fill(
-            child: NotificationListener<ScrollNotification>(
-              onNotification: _onScrollNotification,
-              child: LayoutBuilder(
-                builder: (ctx, box) {
-                  final sidePad = (box.maxWidth - _CountryJumpBar.itemWidth) / 2;
-                  return ListView.builder(
-                    controller: _ctrl,
-                    scrollDirection: Axis.horizontal,
-                    physics: const _SlowSnapScrollPhysics(),
-                    padding: EdgeInsets.symmetric(horizontal: sidePad),
-                    itemCount: _sorted.length,
-                    itemBuilder: (_, i) => _chip(i),
-                  );
-                },
-              ),
-            ),
-          ),
-          // 중앙 화살표 (▼)
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Center(
+          _ArrowBtn(icon: Icons.chevron_left_rounded, onTap: () => _step(-1)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 220),
+              transitionBuilder: (child, anim) =>
+                  FadeTransition(opacity: anim, child: child),
               child: Container(
-                width: _CountryJumpBar.itemWidth,
-                height: 12,
-                alignment: Alignment.bottomCenter,
-                child: const Icon(
-                  Icons.arrow_drop_down_rounded,
-                  size: 28,
+                key: ValueKey(c.name),
+                height: double.infinity,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
                   color: AppColors.gold,
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.gold.withValues(alpha: 0.35),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(c.flag, style: const TextStyle(fontSize: 22)),
+                    const SizedBox(width: 10),
+                    Flexible(
+                      child: Text(
+                        name,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFF1A1300),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
+          const SizedBox(width: 8),
+          _ArrowBtn(icon: Icons.chevron_right_rounded, onTap: () => _step(1)),
         ],
-      ),
-    );
-  }
-
-  Widget _chip(int i) {
-    final c = _sorted[i];
-    final isActive = i == _activeIdx;
-    return SizedBox(
-      width: _CountryJumpBar.itemWidth,
-      child: Center(
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: isActive ? AppColors.gold : AppColors.bgCard,
-            borderRadius: BorderRadius.circular(AppRadius.pill),
-            boxShadow: isActive
-                ? [
-                    BoxShadow(
-                      color: AppColors.gold.withValues(alpha: 0.4),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(c.flag, style: const TextStyle(fontSize: 14)),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  CountryL10n.localizedName(
-                    c.name,
-                    context.read<AppState>().currentUser.languageCode,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: isActive
-                        ? const Color(0xFF1A1300)
-                        : AppColors.textPrimary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
 }
 
-/// 스냅 + 감속 스크롤 물리 — 사용자가 휙 던져도 빠르게 못 가도록 마찰력 ↑.
-class _SlowSnapScrollPhysics extends ScrollPhysics {
-  const _SlowSnapScrollPhysics({super.parent});
+class _ArrowBtn extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _ArrowBtn({required this.icon, required this.onTap});
 
   @override
-  _SlowSnapScrollPhysics applyTo(ScrollPhysics? ancestor) =>
-      _SlowSnapScrollPhysics(parent: buildParent(ancestor));
-
-  @override
-  double get minFlingVelocity => 80.0; // 기본 50 → 80 (튕김 무뎌짐)
-
-  @override
-  double get maxFlingVelocity => 1200.0; // 기본 8000 → 1200 (최고 속도 6배 감소)
-
-  @override
-  SpringDescription get spring =>
-      const SpringDescription(mass: 60, stiffness: 80, damping: 1);
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.bgCard,
+      shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: SizedBox(
+          width: 44,
+          height: 44,
+          child: Icon(icon, color: AppColors.textPrimary, size: 24),
+        ),
+      ),
+    );
+  }
 }
 
 // ── 상단 헤더 ──────────────────────────────────────────────────────────────────
@@ -4190,156 +4076,6 @@ class _TransitInfoSheet extends StatelessWidget {
   }
 }
 
-// ── 하단 통계 바 (인터랙티브 네비게이션) ────────────────────────────────────────
-class _StatsBar extends StatelessWidget {
-  final AppL10n l10n;
-  final AppState state;
-  final MapController mapController;
-  final double userLat;
-  final double userLng;
-  final VoidCallback onShowAll;
-  final VoidCallback onShowNearby;
-  final VoidCallback? onGoToInbox;
-
-  const _StatsBar({
-    required this.l10n,
-    required this.state,
-    required this.mapController,
-    required this.userLat,
-    required this.userLng,
-    required this.onShowAll,
-    required this.onShowNearby,
-    this.onGoToInbox,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final timeColors = AppTimeColors.of(context);
-    // Build 176: 4-cell grid → 1 hero pill + inline muted row. 시각 밀도 50% 감소.
-    // 핵심 action "📍 근처" 가 주인공, 나머지는 줄글 형식으로 보조 표시.
-    final nearbyCount = state.nearbyLetters.length;
-    final hasNearby = nearbyCount > 0;
-    final unread = state.unreadCount;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppRadius.pill),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(AppRadius.pill),
-          onTap: onShowNearby,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-            decoration: BoxDecoration(
-              color: timeColors.bgCard.withValues(alpha: 0.78),
-              borderRadius: BorderRadius.circular(AppRadius.pill),
-              border: Border.all(
-                color: hasNearby
-                    ? AppColors.teal.withValues(alpha: 0.5)
-                    : timeColors.accent.withValues(alpha: 0.22),
-                width: hasNearby ? 1.2 : 0.8,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Primary hero: 📍 근처 N통
-                Text('📍', style: const TextStyle(fontSize: 15)),
-                const SizedBox(width: 6),
-                Text(
-                  '$nearbyCount',
-                  style: AppText.title.copyWith(
-                    color: hasNearby
-                        ? AppColors.teal
-                        : AppColors.textPrimary,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  l10n.mapNearby,
-                  style: AppText.small.copyWith(
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Container(
-                  width: 1, height: 16,
-                  color: AppColors.textMuted.withValues(alpha: 0.25),
-                ),
-                const SizedBox(width: 10),
-                // Secondary muted inline — tap 으로 inbox 이동.
-                GestureDetector(
-                  onTap: onGoToInbox,
-                  behavior: HitTestBehavior.opaque,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '📬 ${state.inbox.length}',
-                        style: AppText.caption.copyWith(
-                          color: unread > 0
-                              ? AppColors.gold
-                              : AppColors.textMuted,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      if (unread > 0) ...[
-                        const SizedBox(width: 3),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 5, vertical: 1),
-                          decoration: BoxDecoration(
-                            color: AppColors.gold,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            '$unread',
-                            style: const TextStyle(
-                              color: AppColors.bgDeep,
-                              fontSize: 9,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                      ],
-                      const SizedBox(width: 8),
-                      Text(
-                        '✍️ ${state.sent.length}',
-                        style: AppText.caption.copyWith(
-                          color: AppColors.textMuted,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                // 전체 버튼 아이콘화 — 탭 시 세계 지도 zoom out.
-                GestureDetector(
-                  onTap: onShowAll,
-                  behavior: HitTestBehavior.opaque,
-                  child: Icon(
-                    Icons.public_rounded,
-                    size: 16,
-                    color: AppColors.textMuted.withValues(alpha: 0.7),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 // ── 겹침 선택 타일 ───────────────────────────────────────────────────────────
 class _DisambiguationTile extends StatelessWidget {
