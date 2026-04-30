@@ -2575,14 +2575,14 @@ class _TowerScreenState extends State<TowerScreen>
                                         color: isSelected
                                             ? AppColors.gold.withValues(alpha: 0.12)
                                             : isPremiumOnly
-                                                ? const Color(0xFF8B65FF).withValues(alpha: 0.07)
+                                                ? AppColors.streak.withValues(alpha: 0.07)
                                                 : AppColors.bgSurface.withValues(alpha: 0.8),
                                         borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
                                           color: isSelected
                                               ? AppColors.gold.withValues(alpha: 0.65)
                                               : isPremiumOnly
-                                                  ? const Color(0xFF8B65FF).withValues(alpha: 0.22)
+                                                  ? AppColors.streak.withValues(alpha: 0.22)
                                                   : AppColors.bgSurface,
                                           width: isSelected ? 1.8 : 1,
                                         ),
@@ -2614,7 +2614,7 @@ class _TowerScreenState extends State<TowerScreen>
                                             Text(
                                               isPremiumOnly ? '⭐' : 'Lv.$vTier',
                                               style: TextStyle(
-                                                color: isPremiumOnly ? const Color(0xFF8B65FF) : AppColors.gold.withValues(alpha: 0.6),
+                                                color: isPremiumOnly ? AppColors.streak : AppColors.gold.withValues(alpha: 0.6),
                                                 fontSize: 8,
                                               ),
                                             ),
@@ -3038,7 +3038,7 @@ class _TowerScreenState extends State<TowerScreen>
           end: Alignment.bottomRight,
           colors: [
             color.withValues(alpha: alpha),
-            const Color(0xFF1E293B).withValues(alpha: 0.85),
+            AppColors.bgCard.withValues(alpha: 0.85),
           ],
         ),
         border: Border(
@@ -3543,7 +3543,7 @@ class _LetterTipRotatorState extends State<_LetterTipRotator> {
         text: state.letterAgeYears > 0
             ? l.letterBirthdayAnniversary(state.letterAgeYears)
             : l.letterBirthdayFirstDay,
-        color: const Color(0xFFFFB86B),
+        color: AppColors.coupon,
         emoji: '🎂',
       );
     }

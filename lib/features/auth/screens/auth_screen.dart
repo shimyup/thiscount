@@ -492,7 +492,7 @@ class _LoginTabState extends State<_LoginTab> {
                       ? const Icon(
                           Icons.check_rounded,
                           size: 14,
-                          color: Color(0xFF0D1421),
+                          color: AppColors.bgDeep,
                         )
                       : null,
                 ),
@@ -714,7 +714,7 @@ class _LoginTabState extends State<_LoginTab> {
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.gold,
-                foregroundColor: const Color(0xFF0D1421),
+                foregroundColor: AppColors.bgDeep,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -920,7 +920,7 @@ class _LoginTabState extends State<_LoginTab> {
                       height: 16,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Color(0xFF0D1421),
+                        color: AppColors.bgDeep,
                       ),
                     )
                   : Text(

@@ -1803,7 +1803,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                   l10n.letterReadFollowedToast,
                   style: const TextStyle(color: Colors.white),
                 ),
-                backgroundColor: const Color(0xFF1A1A2A),
+                backgroundColor: AppColors.bgCard,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -1851,7 +1851,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                     l10n.letterReadMutedToast,
                     style: const TextStyle(color: Colors.white),
                   ),
-                  backgroundColor: const Color(0xFF1A1A2A),
+                  backgroundColor: AppColors.bgCard,
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -1896,8 +1896,8 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                   ]
                 : expiringSoon
                     ? [
-                        const Color(0xFFFFB86B).withValues(alpha: 0.16),
-                        const Color(0xFFFFB86B).withValues(alpha: 0.04),
+                        AppColors.coupon.withValues(alpha: 0.16),
+                        AppColors.coupon.withValues(alpha: 0.04),
                       ]
                     : [
                         AppColors.teal.withValues(alpha: 0.14),
@@ -1911,7 +1911,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
             color: disabled
                 ? const Color(0xFF4A5A75).withValues(alpha: 0.45)
                 : expiringSoon
-                    ? const Color(0xFFFFB86B).withValues(alpha: 0.55)
+                    ? AppColors.coupon.withValues(alpha: 0.55)
                     : AppColors.teal.withValues(alpha: 0.45),
             width: 1.2,
           ),
@@ -1932,7 +1932,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                       color: disabled
                           ? AppColors.textMuted
                           : expiringSoon
-                              ? const Color(0xFFFFB86B)
+                              ? AppColors.coupon
                               : AppColors.teal,
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
@@ -2058,7 +2058,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
     final color = expired
         ? AppColors.textMuted
         : expiringSoon
-            ? const Color(0xFFFFB86B)
+            ? AppColors.coupon
             : AppColors.teal;
     return Row(
       children: [

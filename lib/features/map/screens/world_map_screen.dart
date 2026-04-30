@@ -825,8 +825,8 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   ),
                 ),
                 backgroundColor: state.currentUser.isPremium
-                    ? const Color(0xFF7C4A00)
-                    : const Color(0xFF004D47),
+                    ? AppColors.goldDark
+                    : AppColors.tealDark,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -1209,7 +1209,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                             vertical: 1 * scale,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEF4444),
+                            color: AppColors.error,
                             borderRadius: BorderRadius.circular(8 * scale),
                             border: Border.all(color: AppColors.bgCard, width: 1.2),
                           ),
@@ -1386,7 +1386,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
           end: Alignment.bottomRight,
           colors: [
             color.withValues(alpha: alpha),
-            const Color(0xFF1E293B).withValues(alpha: 0.85),
+            AppColors.bgCard.withValues(alpha: 0.85),
           ],
         ),
         border: Border(
@@ -2919,7 +2919,7 @@ class _UnreadDeliveredMarker extends StatelessWidget {
         final innerBorderColor = isCoupon
             ? AppColors.teal
             : isVoucher
-                ? const Color(0xFFFFB86B)
+                ? AppColors.coupon
                 : glowColor;
 
         // 편지함 컨테이너 배경색
@@ -3379,7 +3379,7 @@ class _WeekendBoostChip extends StatelessWidget {
               gradient: const LinearGradient(
                 colors: [
                   AppColors.coupon,
-                  Color(0xFFFFB86B),
+                  AppColors.coupon,
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,

@@ -103,17 +103,17 @@ class _ExactDropPickerState extends State<ExactDropPicker> {
                         child: Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: const Color(0xFFFF8A5C)
+                            color: AppColors.coupon
                                 .withValues(alpha: 0.22),
                             border: Border.all(
-                              color: const Color(0xFFFF8A5C),
+                              color: AppColors.coupon,
                               width: 2,
                             ),
                           ),
                           alignment: Alignment.center,
                           child: const Icon(
                             Icons.history_rounded,
-                            color: Color(0xFFFF8A5C),
+                            color: AppColors.coupon,
                             size: 18,
                           ),
                         ),

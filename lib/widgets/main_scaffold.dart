@@ -575,7 +575,7 @@ class _DashedLine extends StatelessWidget {
             (_) => Container(
               width: dashWidth,
               height: 1.2,
-              color: const Color(0xFF6B4A00).withValues(alpha: 0.45),
+              color: AppColors.goldDark.withValues(alpha: 0.45),
             ),
           ),
         );

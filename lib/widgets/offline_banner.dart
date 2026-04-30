@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/localization/app_localizations.dart';
 import '../core/services/connectivity_service.dart';
+import '../core/theme/app_theme.dart';
 import '../state/app_state.dart';
 
 class OfflineBanner extends StatefulWidget {
@@ -64,7 +65,7 @@ class _OfflineBannerContent extends StatelessWidget {
     final l = AppL10n.of(langCode);
     return Container(
       width: double.infinity,
-      color: const Color(0xFF8B1A1A),
+      color: AppColors.error,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [

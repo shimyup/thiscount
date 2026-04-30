@@ -201,7 +201,7 @@ class HuntWalletCard extends StatelessWidget {
     final tierMax = isBrand ? 1000 : (isPremium ? 1490 : 690);
     final pct = (current / tierMax).clamp(0.0, 1.0);
     final accent = isBrand
-        ? const Color(0xFFFF8A5C)
+        ? AppColors.coupon
         : (isPremium ? AppColors.gold : AppColors.teal);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

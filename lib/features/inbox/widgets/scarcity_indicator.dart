@@ -43,7 +43,7 @@ class ScarcityIndicator extends StatelessWidget {
     if (remaining == 1) {
       return _buildCard(
         icon: Icons.hourglass_bottom_rounded,
-        color: const Color(0xFFFF8A5C),
+        color: AppColors.coupon,
         title: l10n.scarcityLastReaderTitle,
         subtitle: l10n.scarcityLastReaderSub(readCount, maxReaders),
       );

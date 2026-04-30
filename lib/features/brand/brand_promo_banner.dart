@@ -201,7 +201,7 @@ class _BrandPromoBannerState extends State<BrandPromoBanner>
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              color: Color(0xFF6B4A00),
+                              color: AppColors.goldDark,
                               fontSize: 11,
                               fontWeight: FontWeight.w800,
                               letterSpacing: 0.5,
@@ -212,7 +212,7 @@ class _BrandPromoBannerState extends State<BrandPromoBanner>
                         Text(
                           l10n.brandPromoBannerAdLabel,
                           style: TextStyle(
-                            color: const Color(0xFF6B4A00)
+                            color: AppColors.goldDark
                                 .withValues(alpha: 0.55),
                             fontSize: 9,
                             fontWeight: FontWeight.w700,
@@ -227,7 +227,7 @@ class _BrandPromoBannerState extends State<BrandPromoBanner>
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: Color(0xFF2B1A00),
+                        color: AppColors.goldDark,
                         fontSize: 14.5,
                         fontWeight: FontWeight.w900,
                         height: 1.15,
@@ -242,7 +242,7 @@ class _BrandPromoBannerState extends State<BrandPromoBanner>
                   horizontal: 10, vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2B1A00),
+                  color: AppColors.goldDark,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -263,7 +263,7 @@ class _BrandPromoBannerState extends State<BrandPromoBanner>
                   padding: const EdgeInsets.all(6),
                   child: Icon(
                     Icons.close_rounded,
-                    color: const Color(0xFF6B4A00).withValues(alpha: 0.7),
+                    color: AppColors.goldDark.withValues(alpha: 0.7),
                     size: 18,
                   ),
                 ),
@@ -309,7 +309,7 @@ class _BrandPromoBannerState extends State<BrandPromoBanner>
               Text(
                 l10n.brandPromoBannerAdLabel.replaceAll('·', '').trim(),
                 style: const TextStyle(
-                  color: Color(0xFF2B1A00),
+                  color: AppColors.goldDark,
                   fontSize: 10,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0.5,

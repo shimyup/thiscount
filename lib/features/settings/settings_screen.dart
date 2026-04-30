@@ -509,11 +509,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   fillColor: AppColors.bgSurface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFF1F2D44)),
+                    borderSide: const BorderSide(color: AppColors.bgSurface),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFF1F2D44)),
+                    borderSide: const BorderSide(color: AppColors.bgSurface),
                   ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 ),

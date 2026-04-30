@@ -48,7 +48,7 @@ class BrandOnlyGateSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final langCode = Localizations.localeOf(context).languageCode;
     final l10n = AppL10n.of(langCode);
-    final orange = const Color(0xFFFF8A5C);
+    final orange = AppColors.coupon;
 
     return Container(
       decoration: const BoxDecoration(

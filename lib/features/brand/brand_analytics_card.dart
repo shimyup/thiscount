@@ -393,12 +393,12 @@ class _Sparkline extends StatelessWidget {
                             colors: isToday
                                 ? [
                                     AppColors.coupon,
-                                    const Color(0xFFFFB86B),
+                                    AppColors.coupon,
                                   ]
                                 : [
                                     AppColors.coupon
                                         .withValues(alpha: 0.55),
-                                    const Color(0xFFFFB86B)
+                                    AppColors.coupon
                                         .withValues(alpha: 0.35),
                                   ],
                             begin: Alignment.topCenter,

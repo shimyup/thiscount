@@ -324,13 +324,13 @@ class _InboxScreenState extends State<InboxScreen>
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                         colors: [
-                          const Color(0xFFFF5A4B).withValues(alpha: 0.18),
+                          AppColors.coupon.withValues(alpha: 0.18),
                           AppColors.coupon.withValues(alpha: 0.10),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: const Color(0xFFFF5A4B).withValues(alpha: 0.55),
+                        color: AppColors.coupon.withValues(alpha: 0.55),
                         width: 1.2,
                       ),
                     ),
@@ -351,7 +351,7 @@ class _InboxScreenState extends State<InboxScreen>
                         Text(
                           l10n.expirySirenCta,
                           style: const TextStyle(
-                            color: Color(0xFFFF5A4B),
+                            color: AppColors.coupon,
                             fontSize: 11.5,
                             fontWeight: FontWeight.w700,
                           ),
@@ -990,7 +990,7 @@ class _InboxTab extends StatelessWidget {
                     alignment: Alignment.centerRight,
                     padding: const EdgeInsets.only(right: 20),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF8B1A1A),
+                      color: AppColors.error,
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Column(
@@ -1020,7 +1020,7 @@ class _InboxTab extends StatelessWidget {
                         ScaffoldMessenger.of(ctx).showSnackBar(
                           SnackBar(
                             content: Text(l10n.inboxAlreadyUsedSnack),
-                            backgroundColor: const Color(0xFF1A2332),
+                            backgroundColor: AppColors.bgCard,
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
@@ -1046,7 +1046,7 @@ class _InboxTab extends StatelessWidget {
                     return await showDialog<bool>(
                           context: ctx,
                           builder: (dialogCtx) => AlertDialog(
-                            backgroundColor: const Color(0xFF1A2332),
+                            backgroundColor: AppColors.bgCard,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
@@ -1056,7 +1056,7 @@ class _InboxTab extends StatelessWidget {
                             ),
                             content: Text(
                               l10n.inboxDeleteConfirm,
-                              style: const TextStyle(color: Color(0xFF8899AA)),
+                              style: const TextStyle(color: AppColors.textSecondary),
                             ),
                             actions: [
                               TextButton(
@@ -1064,14 +1064,14 @@ class _InboxTab extends StatelessWidget {
                                     Navigator.pop(dialogCtx, false),
                                 child: Text(
                                   l10n.inboxCancel,
-                                  style: const TextStyle(color: Color(0xFF8899AA)),
+                                  style: const TextStyle(color: AppColors.textSecondary),
                                 ),
                               ),
                               TextButton(
                                 onPressed: () => Navigator.pop(dialogCtx, true),
                                 child: Text(
                                   l10n.inboxDelete,
-                                  style: const TextStyle(color: Color(0xFFFF6B6B)),
+                                  style: const TextStyle(color: AppColors.coupon),
                                 ),
                               ),
                             ],
@@ -1085,7 +1085,7 @@ class _InboxTab extends StatelessWidget {
                       ScaffoldMessenger.of(ctx).showSnackBar(
                         SnackBar(
                           content: Text(l10n.inboxDeleted),
-                          backgroundColor: const Color(0xFF1A2332),
+                          backgroundColor: AppColors.bgCard,
                           behavior: SnackBarBehavior.floating,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -1167,7 +1167,7 @@ class _SentTab extends StatelessWidget {
                     alignment: Alignment.centerRight,
                     padding: const EdgeInsets.only(right: 20),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF8B1A1A),
+                      color: AppColors.error,
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Column(
@@ -1194,7 +1194,7 @@ class _SentTab extends StatelessWidget {
                     return await showDialog<bool>(
                           context: ctx,
                           builder: (dialogCtx) => AlertDialog(
-                            backgroundColor: const Color(0xFF1A2332),
+                            backgroundColor: AppColors.bgCard,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
@@ -1204,7 +1204,7 @@ class _SentTab extends StatelessWidget {
                             ),
                             content: Text(
                               l10n.inboxDeleteConfirm,
-                              style: const TextStyle(color: Color(0xFF8899AA)),
+                              style: const TextStyle(color: AppColors.textSecondary),
                             ),
                             actions: [
                               TextButton(
@@ -1212,14 +1212,14 @@ class _SentTab extends StatelessWidget {
                                     Navigator.pop(dialogCtx, false),
                                 child: Text(
                                   l10n.inboxCancel,
-                                  style: const TextStyle(color: Color(0xFF8899AA)),
+                                  style: const TextStyle(color: AppColors.textSecondary),
                                 ),
                               ),
                               TextButton(
                                 onPressed: () => Navigator.pop(dialogCtx, true),
                                 child: Text(
                                   l10n.inboxDelete,
-                                  style: const TextStyle(color: Color(0xFFFF6B6B)),
+                                  style: const TextStyle(color: AppColors.coupon),
                                 ),
                               ),
                             ],
@@ -1232,7 +1232,7 @@ class _SentTab extends StatelessWidget {
                     ScaffoldMessenger.of(ctx).showSnackBar(
                       SnackBar(
                         content: Text(l10n.inboxDeleted),
-                        backgroundColor: const Color(0xFF1A2332),
+                        backgroundColor: AppColors.bgCard,
                         behavior: SnackBarBehavior.floating,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),

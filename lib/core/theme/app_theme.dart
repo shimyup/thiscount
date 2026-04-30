@@ -331,7 +331,7 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: Color(0xFF1F2D44), width: 1),
+          side: const BorderSide(color: AppColors.bgSurface, width: 1),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -355,11 +355,11 @@ class AppTheme {
         fillColor: AppColors.bgSurface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF1F2D44)),
+          borderSide: const BorderSide(color: AppColors.bgSurface),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF1F2D44)),
+          borderSide: const BorderSide(color: AppColors.bgSurface),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -376,7 +376,7 @@ class AppTheme {
         elevation: 0,
       ),
       dividerTheme: const DividerThemeData(
-        color: Color(0xFF1F2D44),
+        color: AppColors.bgSurface,
         thickness: 1,
       ),
       iconTheme: const IconThemeData(color: AppColors.textSecondary),
