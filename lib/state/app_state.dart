@@ -5837,6 +5837,20 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final id = 'sent_${DateTime.now().millisecondsSinceEpoch}';
     final fromCity = LatLng(_currentUser.latitude, _currentUser.longitude);
 
+    // ── 실제 위치 기반 발신국 결정 ─────────────────────────────────────────
+    // 사용자 프로필 country (회원가입 시 선택) 와 실제 GPS 위치가 다른 경우
+    // (예: 한국 회원이 호주 여행 중) — 발신국은 실제 위치 기준이 맞다.
+    // GeocodingService 의 country bounds 로 좌표 → 국가 매핑.
+    final geoSvc = GeocodingService.instance;
+    final detected = geoSvc.isInitialized
+        ? geoSvc.findCountryByCoord(
+            _currentUser.latitude,
+            _currentUser.longitude,
+          )
+        : null;
+    final actualSenderCountry = detected?['name'] ?? _currentUser.country;
+    final actualSenderFlag = detected?['flag'] ?? _currentUser.countryFlag;
+
     double finalLat;
     double finalLng;
     String? toCityName;
@@ -5913,9 +5927,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     }
     final toCity = LatLng(finalLat, finalLng);
 
-    final isDomestic = _currentUser.country == destinationCountry;
+    final isDomestic = actualSenderCountry == destinationCountry;
     final segments = LogisticsHubs.buildRoute(
-      fromCountry: _currentUser.country,
+      fromCountry: actualSenderCountry,
       fromCity: fromCity,
       toCountry: destinationCountry,
       toCity: toCity,
@@ -5950,8 +5964,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       id: id,
       senderId: _currentUser.id,
       senderName: _currentUser.username,
-      senderCountry: _currentUser.country,
-      senderCountryFlag: _currentUser.countryFlag,
+      // 실제 위치 기반 — 한국 회원이 호주 여행 중 발송 시 senderCountry='호주'.
+      // 좌표 매칭 실패(바다 등) 시 프로필 country 폴백.
+      senderCountry: actualSenderCountry,
+      senderCountryFlag: actualSenderFlag,
       content: content,
       originLocation: fromCity,
       destinationLocation: toCity,
@@ -6145,6 +6161,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     const expressTotalMin = 5; // 특송: 5분 즉시 배송
     final now = DateTime.now();
     final fromCity = LatLng(_currentUser.latitude, _currentUser.longitude);
+    // 실제 위치 기반 발신국 (호주 여행 중인 한국 회원도 호주 발송으로 표시)
+    final geoSvc = GeocodingService.instance;
+    final detected = geoSvc.isInitialized
+        ? geoSvc.findCountryByCoord(
+            _currentUser.latitude,
+            _currentUser.longitude,
+          )
+        : null;
+    final actualSenderCountry = detected?['name'] ?? _currentUser.country;
+    final actualSenderFlag = detected?['flag'] ?? _currentUser.countryFlag;
     final usedCityKeys = <String>{};
     int sent = 0;
 
@@ -6175,7 +6201,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       final toCity = LatLng(cityLat, cityLng);
 
       final segments = LogisticsHubs.buildRoute(
-        fromCountry: _currentUser.country,
+        fromCountry: actualSenderCountry,
         fromCity: fromCity,
         toCountry: destinationCountry,
         toCity: toCity,
@@ -6190,8 +6216,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         id: id,
         senderId: _currentUser.id,
         senderName: _currentUser.username,
-        senderCountry: _currentUser.country,
-        senderCountryFlag: _currentUser.countryFlag,
+        senderCountry: actualSenderCountry,
+        senderCountryFlag: actualSenderFlag,
         content: content,
         originLocation: fromCity,
         destinationLocation: toCity,
@@ -6761,6 +6787,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final fromCity = LatLng(_currentUser.latitude, _currentUser.longitude);
     final toCity = LatLng(destLat, destLng);
 
+    // 실제 위치 기반 발신국 (프로필 country 와 다를 수 있음)
+    final geoSvc = GeocodingService.instance;
+    final detected = geoSvc.isInitialized
+        ? geoSvc.findCountryByCoord(
+            _currentUser.latitude,
+            _currentUser.longitude,
+          )
+        : null;
+    final actualSenderCountry = detected?['name'] ?? _currentUser.country;
+    final actualSenderFlag = detected?['flag'] ?? _currentUser.countryFlag;
+
     // 현지 언어 3단계 표시 주소 (표시 전용)
     final displayAddr = await GeocodingService.getDisplayAddress(
       destLat,
@@ -6769,7 +6806,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     );
 
     final segments = LogisticsHubs.buildRoute(
-      fromCountry: _currentUser.country,
+      fromCountry: actualSenderCountry,
       fromCity: fromCity,
       toCountry: destinationCountry,
       toCity: toCity,
@@ -6784,8 +6821,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       id: id,
       senderId: _currentUser.id,
       senderName: _currentUser.username,
-      senderCountry: _currentUser.country,
-      senderCountryFlag: _currentUser.countryFlag,
+      senderCountry: actualSenderCountry,
+      senderCountryFlag: actualSenderFlag,
       content: content,
       originLocation: fromCity,
       destinationLocation: toCity,

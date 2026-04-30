@@ -156,6 +156,42 @@ class GeocodingService {
   /// 캐시된 주소 수
   int cachedCountOf(String country) => _addressCache[country]?.length ?? 0;
 
+  /// 좌표를 포함하는 나라 찾기 (실제 위치 기반).
+  /// 미국·러시아·캐나다 등 큰 나라가 더 작은 나라를 포함하지 않도록
+  /// 박스 면적 작은 순으로 정렬한 후 첫 매칭 반환.
+  ///
+  /// 반환: {'name', 'flag', 'iso'} 또는 null (어느 나라 박스에도 안 들어감 — 바다 등)
+  Map<String, String>? findCountryByCoord(double lat, double lng) {
+    if (_bounds == null) return null;
+    final candidates = <Map<String, dynamic>>[];
+    _bounds!.forEach((name, value) {
+      if (_excludedCountries.contains(name)) return;
+      final b = value as Map<String, dynamic>;
+      final latMin = (b['lat_min'] as num).toDouble();
+      final latMax = (b['lat_max'] as num).toDouble();
+      final lngMin = (b['lng_min'] as num).toDouble();
+      final lngMax = (b['lng_max'] as num).toDouble();
+      if (lat >= latMin && lat <= latMax && lng >= lngMin && lng <= lngMax) {
+        final area = (latMax - latMin) * (lngMax - lngMin);
+        candidates.add({
+          'name': name,
+          'flag': (b['flag'] as String?) ?? '🏳️',
+          'iso': (b['iso'] as String?) ?? '',
+          'area': area,
+        });
+      }
+    });
+    if (candidates.isEmpty) return null;
+    candidates.sort((a, b) =>
+        (a['area'] as double).compareTo(b['area'] as double));
+    final c = candidates.first;
+    return {
+      'name': c['name'] as String,
+      'flag': c['flag'] as String,
+      'iso': c['iso'] as String,
+    };
+  }
+
   /// 나라 경계 내 랜덤 좌표 생성 (API 없이)
   Map<String, double>? randomCoordinate(String country) {
     final b = _bounds?[country] as Map<String, dynamic>?;
