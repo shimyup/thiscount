@@ -3160,13 +3160,19 @@ class _DailyGreetingPill extends StatelessWidget {
 /// Build 165: 지도 상단 수평 국가 점프 바.
 /// `LogisticsHubs.hubs` 의 30+ 국가 중심 좌표를 칩으로 스크롤. 탭 시 지도 이동.
 /// 내 국가를 맨 앞으로 정렬하고 gold 테두리 강조. 각 칩: 플래그 + 현지어 이름.
-class _CountryJumpBar extends StatelessWidget {
+/// v5 (Build 200) snap-scroll country bar with center arrow.
+///
+/// 변경:
+/// - 시각성 ↑: 높이 32→52, solid card 배경, gold/white pill 강조, 큰 flag
+/// - 중앙 화살표 ▼ — 현재 국가 표시
+/// - 스크롤 속도 ↓ (BouncingScrollPhysics + scroll velocity 감속)
+/// - 스냅 동작: 스크롤 멈추면 가장 가까운 국가 칩이 화살표 아래로 정렬,
+///   해당 국가 위치로 지도 자동 이동.
+class _CountryJumpBar extends StatefulWidget {
   final String myCountry;
   final void Function(double lat, double lng) onJump;
   const _CountryJumpBar({required this.myCountry, required this.onJump});
 
-  /// 대표 국가 리스트 — LogisticsHubs 에 정의된 주요 hub 중 선별.
-  /// (Flag emoji + Korean country name from LogisticsHubs key).
   static const List<({String name, String flag, double lat, double lng})>
       _countries = [
     (name: '대한민국', flag: '🇰🇷', lat: 37.5665, lng: 126.978),
@@ -3191,77 +3197,214 @@ class _CountryJumpBar extends StatelessWidget {
     (name: '이집트', flag: '🇪🇬', lat: 30.0444, lng: 31.2357),
   ];
 
+  // 칩 너비 (snap 단위)
+  static const double itemWidth = 84.0;
+
+  @override
+  State<_CountryJumpBar> createState() => _CountryJumpBarState();
+}
+
+class _CountryJumpBarState extends State<_CountryJumpBar> {
+  late ScrollController _ctrl;
+  int _activeIdx = 0;
+  bool _userScrolling = false;
+
+  late List<({String name, String flag, double lat, double lng})> _sorted;
+
+  @override
+  void initState() {
+    super.initState();
+    _sortCountries();
+    _ctrl = ScrollController();
+  }
+
+  @override
+  void didUpdateWidget(_CountryJumpBar old) {
+    super.didUpdateWidget(old);
+    if (old.myCountry != widget.myCountry) {
+      _sortCountries();
+      setState(() {});
+    }
+  }
+
+  void _sortCountries() {
+    final myIdx = _CountryJumpBar._countries
+        .indexWhere((c) => c.name == widget.myCountry);
+    _sorted = myIdx > 0
+        ? [
+            _CountryJumpBar._countries[myIdx],
+            ..._CountryJumpBar._countries
+                .where((c) => c.name != widget.myCountry),
+          ]
+        : List.of(_CountryJumpBar._countries);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _snapToNearest() {
+    if (!_ctrl.hasClients) return;
+    final offset = _ctrl.offset;
+    final idx = (offset / _CountryJumpBar.itemWidth).round().clamp(
+          0,
+          _sorted.length - 1,
+        );
+    final target = idx * _CountryJumpBar.itemWidth;
+    _ctrl
+        .animateTo(
+          target,
+          duration: const Duration(milliseconds: 240),
+          curve: Curves.easeOutCubic,
+        )
+        .then((_) {
+          if (!mounted) return;
+          setState(() => _activeIdx = idx);
+          final c = _sorted[idx];
+          widget.onJump(c.lat, c.lng);
+        });
+  }
+
+  bool _onScrollNotification(ScrollNotification n) {
+    if (n is ScrollStartNotification) {
+      _userScrolling = true;
+    } else if (n is ScrollUpdateNotification && _userScrolling) {
+      // 실시간 active idx 업데이트 (햅틱 fired)
+      final idx = (n.metrics.pixels / _CountryJumpBar.itemWidth).round().clamp(
+            0,
+            _sorted.length - 1,
+          );
+      if (idx != _activeIdx) {
+        setState(() => _activeIdx = idx);
+        // 탁탁 걸리는 햅틱
+        Feedback.forTap(context);
+      }
+    } else if (n is ScrollEndNotification && _userScrolling) {
+      _userScrolling = false;
+      _snapToNearest();
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
-    // 내 국가 맨 앞, 그 외 기존 순서.
-    final myIdx = _countries.indexWhere((c) => c.name == myCountry);
-    final sorted = myIdx > 0
-        ? [_countries[myIdx], ..._countries.where((c) => c.name != myCountry)]
-        : _countries;
-    // Build 176: 국가 바 컴팩트화 — 42→32 높이, 더 작은 칩, 투명 배경.
-    return Container(
-      height: 32,
-      margin: const EdgeInsets.only(top: 2),
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemCount: sorted.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 4),
-        itemBuilder: (_, i) {
-          final c = sorted[i];
-          final isMine = c.name == myCountry;
-          return Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(AppRadius.pill),
-              onTap: () => onJump(c.lat, c.lng),
+    return SizedBox(
+      height: 60,
+      child: Stack(
+        children: [
+          // 좌우 페이드 + 화살표 + 칩 리스트
+          Positioned.fill(
+            child: NotificationListener<ScrollNotification>(
+              onNotification: _onScrollNotification,
+              child: LayoutBuilder(
+                builder: (ctx, box) {
+                  final sidePad = (box.maxWidth - _CountryJumpBar.itemWidth) / 2;
+                  return ListView.builder(
+                    controller: _ctrl,
+                    scrollDirection: Axis.horizontal,
+                    physics: const _SlowSnapScrollPhysics(),
+                    padding: EdgeInsets.symmetric(horizontal: sidePad),
+                    itemCount: _sorted.length,
+                    itemBuilder: (_, i) => _chip(i),
+                  );
+                },
+              ),
+            ),
+          ),
+          // 중앙 화살표 (▼)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 9,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  // 반투명 한층 더 — 지도가 더 많이 드러남.
-                  color: isMine
-                      ? AppColors.gold.withValues(alpha: 0.10)
-                      : AppColors.bgCard.withValues(alpha: 0.55),
-                  borderRadius: BorderRadius.circular(AppRadius.pill),
-                  border: Border.all(
-                    color: isMine
-                        ? AppColors.gold.withValues(alpha: 0.55)
-                        : AppColors.textMuted.withValues(alpha: 0.15),
-                    width: isMine ? 1.0 : 0.6,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(c.flag, style: const TextStyle(fontSize: 11)),
-                    const SizedBox(width: 4),
-                    Text(
-                      _countryLabel(context, c.name),
-                      style: AppText.caption.copyWith(
-                        color: isMine
-                            ? AppColors.gold
-                            : AppColors.textSecondary.withValues(alpha: 0.8),
-                        fontWeight: FontWeight.w700,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ],
+                width: _CountryJumpBar.itemWidth,
+                height: 12,
+                alignment: Alignment.bottomCenter,
+                child: const Icon(
+                  Icons.arrow_drop_down_rounded,
+                  size: 28,
+                  color: AppColors.gold,
                 ),
               ),
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
 
-  String _countryLabel(BuildContext context, String koName) {
-    final lang = context.read<AppState>().currentUser.languageCode;
-    return CountryL10n.localizedName(koName, lang);
+  Widget _chip(int i) {
+    final c = _sorted[i];
+    final isActive = i == _activeIdx;
+    return SizedBox(
+      width: _CountryJumpBar.itemWidth,
+      child: Center(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: isActive ? AppColors.gold : AppColors.bgCard,
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+            boxShadow: isActive
+                ? [
+                    BoxShadow(
+                      color: AppColors.gold.withValues(alpha: 0.4),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(c.flag, style: const TextStyle(fontSize: 14)),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  CountryL10n.localizedName(
+                    c.name,
+                    context.read<AppState>().currentUser.languageCode,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: isActive
+                        ? const Color(0xFF1A1300)
+                        : AppColors.textPrimary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
+}
+
+/// 스냅 + 감속 스크롤 물리 — 사용자가 휙 던져도 빠르게 못 가도록 마찰력 ↑.
+class _SlowSnapScrollPhysics extends ScrollPhysics {
+  const _SlowSnapScrollPhysics({super.parent});
+
+  @override
+  _SlowSnapScrollPhysics applyTo(ScrollPhysics? ancestor) =>
+      _SlowSnapScrollPhysics(parent: buildParent(ancestor));
+
+  @override
+  double get minFlingVelocity => 80.0; // 기본 50 → 80 (튕김 무뎌짐)
+
+  @override
+  double get maxFlingVelocity => 1200.0; // 기본 8000 → 1200 (최고 속도 6배 감소)
+
+  @override
+  SpringDescription get spring =>
+      const SpringDescription(mass: 60, stiffness: 80, damping: 1);
 }
 
 // ── 상단 헤더 ──────────────────────────────────────────────────────────────────

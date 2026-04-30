@@ -6,35 +6,47 @@ import '../../../core/localization/country_names.dart';
 import '../../../models/letter.dart';
 import '../../../state/app_state.dart';
 
+/// v5 Stamp Album.
+///
+/// 이전 (Build 198): emoji 만 큰 grid 3-col → 컨텐츠 식별 어렵고 시각적으로 답답.
+/// 신규 (Build 200): 리스트 뷰 — 작은 flag + 큰 국가명 + 편지 수 + 최근 수신일.
+/// 정보 밀도와 가독성 우선.
 class StampAlbumScreen extends StatelessWidget {
   const StampAlbumScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // inbox 리스트만 구독 → 다른 AppState 변경에는 rebuild 안 함
     final inbox = context.select<AppState, List<Letter>>((s) => s.inbox);
     final langCode = context.select<AppState, String>(
       (s) => s.currentUser.languageCode,
     );
     final l = AppL10n.of(langCode);
 
-    // 받은 편지에서 발신 국가 수집 (중복 제거, 나라별 편지 수)
+    // 받은 편지에서 발신 국가 수집
     final Map<String, _StampEntry> stamps = {};
     for (final letter in inbox) {
       final key = letter.senderCountry;
+      final arrived = letter.arrivedAt ?? letter.sentAt;
       if (stamps.containsKey(key)) {
         stamps[key]!.count++;
+        if (arrived.isAfter(stamps[key]!.lastReceivedAt)) {
+          stamps[key]!.lastReceivedAt = arrived;
+        }
+        if (arrived.isBefore(stamps[key]!.firstReceivedAt)) {
+          stamps[key]!.firstReceivedAt = arrived;
+        }
       } else {
         stamps[key] = _StampEntry(
           country: letter.senderCountry,
           flag: letter.senderCountryFlag,
           count: 1,
-          firstReceivedAt: letter.arrivedAt ?? DateTime.now(),
+          firstReceivedAt: arrived,
+          lastReceivedAt: arrived,
         );
       }
     }
     final stampList = stamps.values.toList()
-      ..sort((a, b) => b.count.compareTo(a.count));
+      ..sort((a, b) => b.lastReceivedAt.compareTo(a.lastReceivedAt));
 
     return Scaffold(
       backgroundColor: AppColors.bgDeep,
@@ -44,121 +56,65 @@ class StampAlbumScreen extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_rounded,
-            color: Colors.white,
+            color: AppColors.textPrimary,
             size: 20,
           ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: ShaderMask(
-          shaderCallback: (b) => const LinearGradient(
-            colors: [AppColors.goldLight, AppColors.gold],
-          ).createShader(b),
-          child: Text(
-            l.stampAlbumTitle,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-            ),
+        title: Text(
+          l.stampAlbumTitle,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.3,
           ),
         ),
       ),
-      body: Column(
-        children: [
-          // 여권 표지 스타일 헤더
-          _buildPassportHeader(
-            context,
-            stampList.length,
-            inbox.length,
-            l,
-          ),
-          // 스탬프 그리드
-          Expanded(
-            child: stampList.isEmpty
-                ? _buildEmpty(context, l)
-                : _buildStampGrid(context, stampList, l, langCode),
-          ),
-        ],
-      ),
+      body: stampList.isEmpty
+          ? _buildEmpty(context, l)
+          : Column(
+              children: [
+                _buildHeader(stampList.length, inbox.length, l),
+                const SizedBox(height: 6),
+                Expanded(
+                  child: ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+                    itemCount: stampList.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (context, i) =>
+                        _buildStampRow(context, stampList[i], l, langCode),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 
-  Widget _buildPassportHeader(
-    BuildContext context,
-    int countryCount,
-    int totalLetters,
-    AppL10n l,
-  ) {
+  // ── 헤더 (v5 stat 카드 — UPPERCASE eyebrow + 큰 숫자) ──────────────────────
+  Widget _buildHeader(int countryCount, int totalLetters, AppL10n l) {
     return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(22),
+      margin: const EdgeInsets.fromLTRB(20, 4, 20, 14),
+      padding: const EdgeInsets.fromLTRB(22, 18, 22, 18),
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(22),
       ),
       child: Row(
         children: [
-          // 여권 아이콘
-          Container(
-            width: 64,
-            height: 80,
-            decoration: BoxDecoration(
-              color: AppColors.letter,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: AppColors.gold.withValues(alpha: 0.6),
-                width: 1,
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('🌍', style: TextStyle(fontSize: 24)),
-                const SizedBox(height: 4),
-                Text(
-                  l.labelPassport,
-                  style: TextStyle(
-                    color: AppColors.gold,
-                    fontSize: 7,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1,
-                  ),
-                ),
-              ],
+          Expanded(
+            child: _statCell(
+              value: '$countryCount',
+              label: l.stampVisited,
+              color: AppColors.gold,
             ),
           ),
-          const SizedBox(width: 16),
+          Container(width: 0.5, height: 32, color: AppColors.bgSurface),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l.appName,
-                  style: TextStyle(
-                    color: AppColors.gold,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  l.stampAlbumSubtitle,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    _headerStat('🌏', l.stampCountriesCount(countryCount), l.stampVisited),
-                    const SizedBox(width: 16),
-                    _headerStat('💌', l.stampLettersCount(totalLetters), l.stampReceived),
-                  ],
-                ),
-              ],
+            child: _statCell(
+              value: '$totalLetters',
+              label: l.stampReceived,
+              color: AppColors.textPrimary,
             ),
           ),
         ],
@@ -166,84 +122,120 @@ class StampAlbumScreen extends StatelessWidget {
     );
   }
 
-  Widget _headerStat(String emoji, String value, String label) {
+  Widget _statCell({
+    required String value,
+    required String label,
+    required Color color,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Text(emoji, style: const TextStyle(fontSize: 12)),
-            const SizedBox(width: 4),
-            Text(
-              value,
-              style: const TextStyle(
-                color: AppColors.gold,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
         Text(
-          label,
-          style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+          value,
+          style: TextStyle(
+            color: color,
+            fontSize: 28,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.7,
+            height: 1,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label.toUpperCase(),
+          style: const TextStyle(
+            color: AppColors.textMuted,
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.4,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildStampGrid(BuildContext context, List<_StampEntry> stamps, AppL10n l, String langCode) {
-    return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 0.82,
-      ),
-      itemCount: stamps.length,
-      itemBuilder: (context, index) {
-        final stamp = stamps[index];
-        return _buildStamp(context, stamp, index, l, langCode);
-      },
-    );
-  }
-
-  Widget _buildStamp(BuildContext context, _StampEntry stamp, int index, AppL10n l, String langCode) {
-    return GestureDetector(
-      onTap: () => _showStampDetail(context, stamp, l, langCode),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.bgCard,
-          borderRadius: BorderRadius.circular(16),
-        ),
+  // ── 스탬프 행 — flag + 국가명 + 편지 수 + 최근 수신일 ──────────────────────
+  Widget _buildStampRow(
+    BuildContext context,
+    _StampEntry stamp,
+    AppL10n l,
+    String langCode,
+  ) {
+    return Material(
+      color: AppColors.bgCard,
+      borderRadius: BorderRadius.circular(18),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => _showStampDetail(context, stamp, l, langCode),
         child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+          child: Row(
             children: [
-              Text(stamp.flag, style: const TextStyle(fontSize: 32)),
-              const SizedBox(height: 8),
-              Text(
-                CountryL10n.localizedName(stamp.country, langCode),
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.1,
+              // 작은 원형 flag
+              Container(
+                width: 44,
+                height: 44,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  color: AppColors.bgSurface,
+                  shape: BoxShape.circle,
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+                child: Text(stamp.flag, style: const TextStyle(fontSize: 22)),
               ),
-              const SizedBox(height: 6),
-              Text(
-                l.stampLettersCount(stamp.count).toUpperCase(),
-                style: const TextStyle(
-                  color: AppColors.gold,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.4,
+              const SizedBox(width: 14),
+              // 국가명 + 메타 (왼쪽)
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      CountryL10n.localizedName(stamp.country, langCode),
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.3,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _relativeDate(stamp.lastReceivedAt, l),
+                      style: const TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // 카운트 (오른쪽)
+              RichText(
+                textAlign: TextAlign.right,
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: '${stamp.count}',
+                      style: const TextStyle(
+                        color: AppColors.gold,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                        height: 1,
+                      ),
+                    ),
+                    const TextSpan(
+                      text: '\nLETTERS',
+                      style: TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -253,61 +245,114 @@ class StampAlbumScreen extends StatelessWidget {
     );
   }
 
-  void _showStampDetail(BuildContext context, _StampEntry stamp, AppL10n l, String langCode) {
+  // ── 상세 시트 ─────────────────────────────────────────────────────────────
+  void _showStampDetail(
+    BuildContext context,
+    _StampEntry stamp,
+    AppL10n l,
+    String langCode,
+  ) {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.bgCard,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(24, 14, 24, 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(2),
+            Center(
+              child: Container(
+                width: 36,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: AppColors.textMuted.withValues(alpha: 0.35),
+                  borderRadius: BorderRadius.circular(999),
+                ),
               ),
             ),
-            Text(stamp.flag, style: const TextStyle(fontSize: 56)),
-            const SizedBox(height: 12),
-            Text(
-              CountryL10n.localizedName(stamp.country, langCode),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 22),
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _detailStat('💌', l.stampReceivedCount(stamp.count)),
-                const SizedBox(width: 24),
-                _detailStat('📅', l.stampFirstReceived(_formatDate(stamp.firstReceivedAt))),
+                Container(
+                  width: 64,
+                  height: 64,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(
+                    color: AppColors.bgSurface,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(stamp.flag, style: const TextStyle(fontSize: 32)),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        CountryL10n.localizedName(stamp.country, langCode),
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${stamp.count} ${l.stampReceived}',
+                        style: const TextStyle(
+                          color: AppColors.gold,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 24),
+            _detailRow(
+              label: l.stampFirstReceived(_formatDate(stamp.firstReceivedAt))
+                  .split(' ')
+                  .first,
+              value: _formatDate(stamp.firstReceivedAt),
+            ),
+            const SizedBox(height: 12),
+            _detailRow(
+              label: 'LAST',
+              value: _formatDate(stamp.lastReceivedAt),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _detailStat(String emoji, String text) {
+  Widget _detailRow({required String label, required String value}) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 16)),
-        const SizedBox(width: 6),
         Text(
-          text,
-          style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
+          label.toUpperCase(),
+          style: const TextStyle(
+            color: AppColors.textMuted,
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.4,
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ],
     );
@@ -317,28 +362,67 @@ class StampAlbumScreen extends StatelessWidget {
     return '${dt.year}.${dt.month.toString().padLeft(2, '0')}.${dt.day.toString().padLeft(2, '0')}';
   }
 
+  String _relativeDate(DateTime dt, AppL10n l) {
+    final now = DateTime.now();
+    final diff = now.difference(dt);
+    final lc = l.languageCode;
+    final isKo = lc == 'ko';
+    if (diff.inMinutes < 60) {
+      return isKo ? '${diff.inMinutes}분 전' : '${diff.inMinutes}m ago';
+    }
+    if (diff.inHours < 24) {
+      return isKo ? '${diff.inHours}시간 전' : '${diff.inHours}h ago';
+    }
+    if (diff.inDays < 7) {
+      return isKo ? '${diff.inDays}일 전' : '${diff.inDays}d ago';
+    }
+    return _formatDate(dt);
+  }
+
   Widget _buildEmpty(BuildContext context, AppL10n l) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text('📭', style: TextStyle(fontSize: 56)),
-          const SizedBox(height: 16),
-          Text(
-            l.stampEmptyTitle,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
+                color: AppColors.bgCard,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.collections_bookmark_outlined,
+                color: AppColors.textMuted,
+                size: 28,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            l.stampEmptyBody,
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
-            textAlign: TextAlign.center,
-          ),
-        ],
+            const SizedBox(height: 20),
+            Text(
+              l.stampEmptyTitle,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.3,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l.stampEmptyBody,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                height: 1.45,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -348,52 +432,14 @@ class _StampEntry {
   final String country;
   final String flag;
   int count;
-  final DateTime firstReceivedAt;
+  DateTime firstReceivedAt;
+  DateTime lastReceivedAt;
 
   _StampEntry({
     required this.country,
     required this.flag,
     required this.count,
     required this.firstReceivedAt,
+    required this.lastReceivedAt,
   });
-}
-
-class _StampBorderPainter extends CustomPainter {
-  final Color color;
-  _StampBorderPainter(this.color);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 1
-      ..style = PaintingStyle.stroke;
-
-    const dotSize = 4.0;
-    const gap = 6.0;
-
-    for (double x = dotSize; x < size.width - dotSize; x += dotSize + gap) {
-      canvas.drawCircle(Offset(x, 3), 2, paint..style = PaintingStyle.fill);
-    }
-    for (double x = dotSize; x < size.width - dotSize; x += dotSize + gap) {
-      canvas.drawCircle(
-        Offset(x, size.height - 3),
-        2,
-        paint..style = PaintingStyle.fill,
-      );
-    }
-    for (double y = dotSize; y < size.height - dotSize; y += dotSize + gap) {
-      canvas.drawCircle(Offset(3, y), 2, paint..style = PaintingStyle.fill);
-    }
-    for (double y = dotSize; y < size.height - dotSize; y += dotSize + gap) {
-      canvas.drawCircle(
-        Offset(size.width - 3, y),
-        2,
-        paint..style = PaintingStyle.fill,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(_StampBorderPainter old) => false;
 }
