@@ -32,6 +32,17 @@ class FirebaseConfig {
     defaultValue: 'lettergo-147eb.firebasestorage.app',
   );
 
+  /// Firebase Storage 활성화 여부.
+  /// Firebase 가 2024 부터 Storage 를 Blaze 플랜 전용으로 변경. Spark 무료
+  /// 플랜에서는 이 값을 `false` 로 두고 클라이언트에서 업로드 경로 자체를
+  /// skip → 로컬 경로만 사용 (graceful degradation).
+  /// Blaze 업그레이드 후 빌드에 `--dart-define=FIREBASE_STORAGE_ENABLED=true`
+  /// 주입하면 즉시 활성화.
+  static const bool storageEnabled = bool.fromEnvironment(
+    'FIREBASE_STORAGE_ENABLED',
+    defaultValue: false,
+  );
+
   // Firestore REST API 기본 URL
   static String get firestoreBase =>
       'https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents';

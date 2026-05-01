@@ -34,6 +34,17 @@ class StorageService {
     String contentType = 'image/jpeg',
   }) async {
     if (!FirebaseConfig.kFirebaseEnabled) return null;
+    // Build 208: Storage 가 비활성(Spark 플랜 등) 이면 즉시 null 반환 →
+    // 호출자가 로컬 경로 fallback 사용. 네트워크 시도 자체를 안 하므로 30초
+    // 타임아웃 대기 시간 절약.
+    if (!FirebaseConfig.storageEnabled) {
+      if (kDebugMode) {
+        debugPrint(
+          '[Storage] 업로드 스킵: FIREBASE_STORAGE_ENABLED=false (Blaze 미활성)',
+        );
+      }
+      return null;
+    }
     if (!FirebaseAuthService.isSignedIn) {
       if (kDebugMode) {
         debugPrint('[Storage] 업로드 스킵: 로그인 안 됨');

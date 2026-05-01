@@ -71,6 +71,18 @@
 
 ## 4. Storage 규칙 요약 (`storage.rules`)
 
+> ⚠️ **현재 Storage 비활성** — Firebase 가 2024 부터 Storage 를 Blaze
+> (종량제) 플랜 전용으로 변경. 프로젝트가 Spark (무료) 플랜이라면
+> `FIREBASE_STORAGE_ENABLED=false` 로 두고 클라이언트에서 업로드 자체를
+> skip 한다 (`storage_service.dart` 가 즉시 null 반환 → 호출자가 로컬 경로
+> 사용). 사용자 이미지는 디바이스에만 저장되며 다른 기기에서 안 보인다.
+>
+> Blaze 업그레이드 후:
+>   1. Firebase Console > Storage > 시작하기 → 위치 `asia-northeast3` 선택
+>   2. `firebase deploy --only storage` 로 아래 규칙 적용
+>   3. 빌드 시 `--dart-define=FIREBASE_STORAGE_ENABLED=true` 주입
+
+
 | 경로 | read | write | delete |
 |------|------|-------|--------|
 | `vouchers/**` | signedIn | signedIn + image/* + 10MB | signedIn |
