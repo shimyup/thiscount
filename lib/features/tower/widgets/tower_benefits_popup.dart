@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../state/app_state.dart';
 
@@ -56,6 +57,7 @@ class _BenefitsDialogState extends State<_BenefitsDialog> {
     final user = state.currentUser;
     final isBrand = user.isBrand;
     final isPremium = user.isPremium;
+    final l = AppL10n.of(user.languageCode);
 
     return Dialog(
       backgroundColor: AppColors.bgCard,
@@ -74,10 +76,10 @@ class _BenefitsDialogState extends State<_BenefitsDialog> {
                 children: [
                   const Text('📬', style: TextStyle(fontSize: 26)),
                   const SizedBox(width: 10),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      '내 레터 성장 가이드',
-                      style: TextStyle(
+                      l.towerBenefitsTitle,
+                      style: const TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
@@ -108,40 +110,41 @@ class _BenefitsDialogState extends State<_BenefitsDialog> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _section(
-                        title: '레벨업으로 얻는 것',
+                        title: l.towerBenefitsLevelUpSection,
                         emoji: '🚀',
-                        children: const [
+                        children: [
                           _BulletRow(
                             emoji: '📍',
-                            text: '픽업 반경 확장 — 레벨당 +10m',
+                            text: l.towerBenefitsBulletRadius,
                           ),
                           _BulletRow(
                             emoji: '🎖',
-                            text: '명예 호칭 진화 — 견습→숙련→마을 우체장→…→전설의 편지꾼',
+                            text: l.towerBenefitsBulletTitles,
                           ),
                           _BulletRow(
                             emoji: '🐣',
-                            text: '캐릭터/컴패니언/악세사리 해금',
+                            text: l.towerBenefitsBulletUnlocks,
                           ),
                           _BulletRow(
                             emoji: '✉️',
-                            text: 'XP = 픽업×10 + 발송×5 + 거리 보너스',
+                            text: l.towerScoreFormula,
                           ),
                         ],
                       ),
                       const SizedBox(height: 14),
                       _section(
-                        title: '내 회원 등급 혜택',
+                        title: l.towerBenefitsTierSection,
                         emoji: '👑',
                         children: [
                           _TierBenefitRow(
                             label: 'Free',
                             color: AppColors.textSecondary,
                             highlight: !isPremium && !isBrand,
-                            bullets: const [
-                              '편지 줍기 200m 반경',
-                              '60분 쿨다운',
-                              '받은 편지 답장은 가능',
+                            myTierLabel: l.towerBenefitsMyTierBadge,
+                            bullets: [
+                              l.towerBenefitsFreeFeat1,
+                              l.towerBenefitsFreeFeat2,
+                              l.towerBenefitsFreeFeat3,
                             ],
                           ),
                           const SizedBox(height: 8),
@@ -149,10 +152,11 @@ class _BenefitsDialogState extends State<_BenefitsDialog> {
                             label: 'Premium',
                             color: AppColors.gold,
                             highlight: isPremium && !isBrand,
-                            bullets: const [
-                              '편지 줍기 1km 반경 + 10분 쿨다운',
-                              '📸 사진 첨부 + 🔗 채널/SNS 링크 발송',
-                              '일 30통 / 월 500통 발송',
+                            myTierLabel: l.towerBenefitsMyTierBadge,
+                            bullets: [
+                              l.towerBenefitsPremiumFeat1,
+                              l.towerBenefitsPremiumFeat2,
+                              l.towerBenefitsPremiumFeat3,
                             ],
                           ),
                           const SizedBox(height: 8),
@@ -160,10 +164,11 @@ class _BenefitsDialogState extends State<_BenefitsDialog> {
                             label: 'Brand',
                             color: AppColors.coupon,
                             highlight: isBrand,
-                            bullets: const [
-                              '🎟 할인권 · 🎁 교환권 캠페인 발송',
-                              '🎯 정확한 위치 지정 · 대량 발송',
-                              '일 200통 / 월 10,000통 + ROI 분석',
+                            myTierLabel: l.towerBenefitsMyTierBadge,
+                            bullets: [
+                              l.towerBenefitsBrandFeat1,
+                              l.towerBenefitsBrandFeat2,
+                              l.towerBenefitsBrandFeat3,
                             ],
                           ),
                         ],
@@ -205,9 +210,9 @@ class _BenefitsDialogState extends State<_BenefitsDialog> {
                               : null,
                         ),
                         const SizedBox(width: 8),
-                        const Text(
-                          '다시 보지 않기',
-                          style: TextStyle(
+                        Text(
+                          l.commonDontShowAgain,
+                          style: const TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -228,9 +233,9 @@ class _BenefitsDialogState extends State<_BenefitsDialog> {
                         color: AppColors.gold,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Text(
-                        '확인',
-                        style: TextStyle(
+                      child: Text(
+                        l.commonConfirm,
+                        style: const TextStyle(
                           color: Color(0xFF1A1300),
                           fontSize: 14,
                           fontWeight: FontWeight.w800,
@@ -330,11 +335,13 @@ class _TierBenefitRow extends StatelessWidget {
   final String label;
   final Color color;
   final bool highlight;
+  final String myTierLabel;
   final List<String> bullets;
   const _TierBenefitRow({
     required this.label,
     required this.color,
     required this.highlight,
+    required this.myTierLabel,
     required this.bullets,
   });
 
@@ -379,7 +386,7 @@ class _TierBenefitRow extends StatelessWidget {
               if (highlight) ...[
                 const SizedBox(width: 8),
                 Text(
-                  '내 등급',
+                  myTierLabel,
                   style: TextStyle(
                     color: color,
                     fontSize: 10.5,

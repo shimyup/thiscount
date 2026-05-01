@@ -714,19 +714,20 @@ class _ComposeScreenState extends State<ComposeScreen>
   /// Build 207: 본문 PII 패턴 감지.
   /// 편지 본문은 공개 데이터로 취급되므로 사용자가 실수로 전화번호/주민번호/
   /// 카드번호를 적어 발송하지 못하게 발송 직전 confirm 시트로 한 번 잡는다.
-  /// 매칭된 패턴 라벨을 반환 (없으면 null).
+  /// 매칭된 패턴 라벨(현재 사용자 언어로 localize 됨)을 반환 (없으면 null).
   String? _detectPii(String text) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     // 한국 휴대전화 (010-1234-5678 / 01012345678 / 010 1234 5678)
     final phoneRegex = RegExp(r'01[016789][\s\-]?\d{3,4}[\s\-]?\d{4}');
-    if (phoneRegex.hasMatch(text)) return '전화번호';
+    if (phoneRegex.hasMatch(text)) return l10n.piiLabelPhone;
     // 한국 주민등록번호 (앞6 - 뒤7)
     final rrnRegex = RegExp(r'\b\d{6}[\s\-]\d{7}\b');
-    if (rrnRegex.hasMatch(text)) return '주민등록번호';
+    if (rrnRegex.hasMatch(text)) return l10n.piiLabelKrRrn;
     // 카드번호 — 13~19자리 연속 또는 4-4-4-4 패턴
     final cardRegex = RegExp(
       r'(\b\d{4}[\s\-]\d{4}[\s\-]\d{4}[\s\-]\d{4}\b|\b\d{15,19}\b)',
     );
-    if (cardRegex.hasMatch(text)) return '카드번호';
+    if (cardRegex.hasMatch(text)) return l10n.piiLabelCard;
     return null;
   }
 
@@ -744,7 +745,7 @@ class _ComposeScreenState extends State<ComposeScreen>
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                '$label 가 포함됐어요',
+                l10n.piiDialogTitle(label),
                 style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 16,
@@ -755,7 +756,7 @@ class _ComposeScreenState extends State<ComposeScreen>
           ],
         ),
         content: Text(
-          '편지 본문은 받는 사람이 누구나 읽을 수 있어요.\n$label 같은 개인정보는 빼고 보내는 게 안전해요.\n그래도 그대로 보낼까요?',
+          l10n.piiDialogBody(label),
           style: const TextStyle(
             color: AppColors.textSecondary,
             fontSize: 13,
@@ -772,9 +773,9 @@ class _ComposeScreenState extends State<ComposeScreen>
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text(
-              '그래도 보내기',
-              style: TextStyle(color: AppColors.error),
+            child: Text(
+              l10n.piiSendAnyway,
+              style: const TextStyle(color: AppColors.error),
             ),
           ),
         ],

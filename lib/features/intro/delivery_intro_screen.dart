@@ -96,9 +96,9 @@ class _DeliveryIntroScreenState extends State<DeliveryIntroScreen>
                               ink: const Color(0xFF1A0008),
                               label: 'BLUE BOTTLE',
                               big: '1+1',
-                              small: ' 아메리카노',
+                              small: ' AMERICANO',
                               codeLeft: 'D-2',
-                              codeRight: '7일',
+                              codeRight: '7d',
                               rotate: -0.087,
                               translate: const Offset(-12, -28),
                               opacity:

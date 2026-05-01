@@ -20499,4 +20499,257 @@ class AppL10n {
     'th': 'ค้นหาบนแผนที่',
   });
 
+  // ── Build 211: i18n keys for Build 205-210 hardcoded strings ─────────────
+
+  // Tower benefits popup (Build 205)
+  String get towerBenefitsTitle => _t({
+    'ko': '내 레터 성장 가이드', 'en': 'Your Letter Growth Guide', 'ja': 'レター成長ガイド', 'zh': '我的信件成长指南',
+    'fr': 'Votre guide de croissance Letter', 'de': 'Dein Letter-Wachstumsleitfaden', 'es': 'Guía de crecimiento de tu carta',
+    'pt': 'Guia de crescimento da carta', 'ru': 'Руководство роста', 'tr': 'Letter Büyüme Rehberi',
+    'ar': 'دليل نمو الرسائل', 'it': 'Guida crescita Letter', 'hi': 'लेटर ग्रोथ गाइड', 'th': 'คู่มือการเติบโตของเลตเตอร์',
+  });
+
+  String get towerBenefitsLevelUpSection => _t({
+    'ko': '레벨업으로 얻는 것', 'en': 'What level-ups unlock', 'ja': 'レベルアップで得られるもの', 'zh': '升级解锁内容',
+    'fr': 'Récompenses de niveau', 'de': 'Level-Up Belohnungen', 'es': 'Recompensas por subir de nivel',
+    'pt': 'Recompensas de nível', 'ru': 'Награды за уровень', 'tr': 'Seviye atlama ödülleri',
+    'ar': 'مكافآت المستوى', 'it': 'Ricompense livello', 'hi': 'स्तर पुरस्कार', 'th': 'รางวัลเลเวลอัพ',
+  });
+
+  String get towerBenefitsBulletRadius => _t({
+    'ko': '픽업 반경 확장 — 레벨당 +10m', 'en': 'Pickup radius expands — +10m per level', 'ja': 'ピックアップ範囲拡大 — レベルごとに+10m', 'zh': '拾取半径扩展 — 每级+10m',
+    'fr': 'Rayon de ramassage +10m par niveau', 'de': 'Abholradius +10m pro Level', 'es': 'Radio de recogida +10m por nivel',
+    'pt': 'Raio +10m por nível', 'ru': 'Радиус +10м за уровень', 'tr': 'Toplama yarıçapı +10m / seviye',
+    'ar': 'نطاق الالتقاط +10م لكل مستوى', 'it': 'Raggio +10m per livello', 'hi': 'पिकअप +10m प्रति स्तर', 'th': 'รัศมีรับ +10m/เลเวล',
+  });
+
+  String get towerBenefitsBulletTitles => _t({
+    'ko': '명예 호칭 진화 — 견습→숙련→…→전설의 편지꾼', 'en': 'Title evolves — Apprentice → … → Legendary', 'ja': '称号進化 — 見習い→…→伝説', 'zh': '称号进化 — 学徒→…→传奇',
+    'fr': 'Titres évoluent — Apprenti → … → Légendaire', 'de': 'Titel entwickeln sich', 'es': 'Títulos evolucionan',
+    'pt': 'Títulos evoluem', 'ru': 'Звания развиваются', 'tr': 'Unvanlar gelişir',
+    'ar': 'الألقاب تتطور', 'it': 'Titoli evolvono', 'hi': 'उपाधियाँ विकसित होती हैं', 'th': 'ฉายาก้าวหน้า',
+  });
+
+  String get towerBenefitsBulletUnlocks => _t({
+    'ko': '캐릭터/컴패니언/악세사리 해금', 'en': 'Unlock characters / companions / accessories', 'ja': 'キャラクター/コンパニオン/アクセサリー解放', 'zh': '解锁角色/伙伴/配饰',
+    'fr': 'Personnages/compagnons/accessoires', 'de': 'Charaktere/Begleiter/Accessoires', 'es': 'Personajes/compañeros/accesorios',
+    'pt': 'Personagens/companheiros/acessórios', 'ru': 'Персонажи/спутники/аксессуары', 'tr': 'Karakter/yoldaş/aksesuar',
+    'ar': 'شخصيات/رفقاء/إكسسوارات', 'it': 'Personaggi/compagni/accessori', 'hi': 'पात्र/साथी/सहायक', 'th': 'ตัวละคร/คู่หู/ของประดับ',
+  });
+
+  String get towerBenefitsTierSection => _t({
+    'ko': '내 회원 등급 혜택', 'en': 'Your tier benefits', 'ja': '会員等級特典', 'zh': '会员等级权益',
+    'fr': 'Avantages selon votre niveau', 'de': 'Vorteile deiner Stufe', 'es': 'Beneficios de tu nivel',
+    'pt': 'Benefícios do seu nível', 'ru': 'Преимущества уровня', 'tr': 'Üyelik avantajları',
+    'ar': 'مزايا الفئة', 'it': 'Vantaggi del tuo livello', 'hi': 'टियर लाभ', 'th': 'สิทธิ์ตามระดับ',
+  });
+
+  String get towerBenefitsFreeFeat1 => _t({
+    'ko': '편지 줍기 200m 반경', 'en': 'Pickup within 200m radius', 'ja': '200m範囲で手紙を拾える', 'zh': '200m半径拾取',
+    'fr': 'Ramassage 200m', 'de': 'Abholung 200m', 'es': 'Recogida 200m',
+    'pt': 'Coleta 200m', 'ru': 'Подбор 200м', 'tr': '200m içinde toplama',
+    'ar': 'نطاق 200م', 'it': 'Raccolta 200m', 'hi': '200m पिकअप', 'th': 'รับในรัศมี 200m',
+  });
+
+  String get towerBenefitsFreeFeat2 => _t({
+    'ko': '60분 쿨다운', 'en': '60min cooldown', 'ja': '60分クールダウン', 'zh': '60分钟冷却',
+    'fr': 'Délai 60min', 'de': '60min Cooldown', 'es': 'Espera 60min',
+    'pt': 'Espera 60min', 'ru': 'Ожидание 60мин', 'tr': '60dk bekleme',
+    'ar': 'تبريد 60د', 'it': 'Attesa 60min', 'hi': '60मि कूलडाउन', 'th': 'พัก 60 นาที',
+  });
+
+  String get towerBenefitsFreeFeat3 => _t({
+    'ko': '받은 편지 답장은 가능', 'en': 'Replies to received letters allowed', 'ja': '受信した手紙への返信可能', 'zh': '可回复已收信件',
+    'fr': 'Réponses possibles', 'de': 'Antworten möglich', 'es': 'Respuestas posibles',
+    'pt': 'Respostas possíveis', 'ru': 'Можно отвечать', 'tr': 'Yanıt verilebilir',
+    'ar': 'يمكن الرد', 'it': 'Risposte consentite', 'hi': 'उत्तर देना संभव', 'th': 'ตอบจดหมายได้',
+  });
+
+  String get towerBenefitsPremiumFeat1 => _t({
+    'ko': '편지 줍기 1km 반경 + 10분 쿨다운', 'en': '1km pickup radius + 10min cooldown', 'ja': '1kmピックアップ + 10分クールダウン', 'zh': '1km半径 + 10分钟冷却',
+    'fr': 'Ramassage 1km, 10min', 'de': '1km Abholung + 10min', 'es': 'Recogida 1km + 10min',
+    'pt': 'Coleta 1km + 10min', 'ru': 'Подбор 1км + 10мин', 'tr': '1km alma + 10dk',
+    'ar': 'نطاق 1كم + 10د', 'it': 'Raccolta 1km + 10min', 'hi': '1km पिकअप + 10मि', 'th': 'รับ 1km + 10นาที',
+  });
+
+  String get towerBenefitsPremiumFeat2 => _t({
+    'ko': '📸 사진 첨부 + 🔗 채널/SNS 링크 발송', 'en': '📸 Photo + 🔗 social link sending', 'ja': '📸 写真 + 🔗 SNSリンク送信', 'zh': '📸 照片 + 🔗 社交链接发送',
+    'fr': '📸 Photo + 🔗 lien social', 'de': '📸 Foto + 🔗 Social Link', 'es': '📸 Foto + 🔗 enlace social',
+    'pt': '📸 Foto + 🔗 link social', 'ru': '📸 Фото + 🔗 ссылка', 'tr': '📸 Fotoğraf + 🔗 sosyal bağlantı',
+    'ar': '📸 صورة + 🔗 رابط', 'it': '📸 Foto + 🔗 link social', 'hi': '📸 फोटो + 🔗 लिंक', 'th': '📸 รูป + 🔗 ลิงก์',
+  });
+
+  String get towerBenefitsPremiumFeat3 => _t({
+    'ko': '일 30통 / 월 500통 발송', 'en': '30/day · 500/month send quota', 'ja': '日30通 / 月500通', 'zh': '日30 / 月500',
+    'fr': '30/jour · 500/mois', 'de': '30/Tag · 500/Monat', 'es': '30/día · 500/mes',
+    'pt': '30/dia · 500/mês', 'ru': '30/день · 500/мес', 'tr': '30/gün · 500/ay',
+    'ar': '30/يوم · 500/شهر', 'it': '30/giorno · 500/mese', 'hi': '30/दिन · 500/माह', 'th': '30/วัน · 500/เดือน',
+  });
+
+  String get towerBenefitsBrandFeat1 => _t({
+    'ko': '🎟 할인권 · 🎁 교환권 캠페인 발송', 'en': '🎟 Coupon · 🎁 Voucher campaigns', 'ja': '🎟 割引券 · 🎁 引換券キャンペーン', 'zh': '🎟 优惠券 · 🎁 兑换券推广',
+    'fr': '🎟 Coupon · 🎁 Bon campagnes', 'de': '🎟 Gutschein · 🎁 Voucher Kampagnen', 'es': '🎟 Cupón · 🎁 Vale campañas',
+    'pt': '🎟 Cupom · 🎁 Voucher campanhas', 'ru': '🎟 Купон · 🎁 Ваучер кампании', 'tr': '🎟 Kupon · 🎁 Voucher kampanyaları',
+    'ar': '🎟 قسيمة · 🎁 سند حملات', 'it': '🎟 Coupon · 🎁 Voucher campagne', 'hi': '🎟 कूपन · 🎁 वाउचर अभियान', 'th': '🎟 คูปอง · 🎁 บัตรกำนัล',
+  });
+
+  String get towerBenefitsBrandFeat2 => _t({
+    'ko': '🎯 정확한 위치 지정 · 대량 발송', 'en': '🎯 Exact-drop · bulk sending', 'ja': '🎯 正確な位置指定 · 一括送信', 'zh': '🎯 精确位置 · 批量发送',
+    'fr': '🎯 Drop exact · envoi en masse', 'de': '🎯 Exakter Drop · Massenversand', 'es': 'Drop exacto · envío masivo',
+    'pt': 'Drop exato · envio em massa', 'ru': 'Точная точка · массовая рассылка', 'tr': 'Tam konum · toplu gönderim',
+    'ar': '🎯 موقع دقيق · إرسال جماعي', 'it': '🎯 Drop esatto · invio in massa', 'hi': '🎯 सटीक · बल्क', 'th': '🎯 ตำแหน่ง · ส่งจำนวนมาก',
+  });
+
+  String get towerBenefitsBrandFeat3 => _t({
+    'ko': '일 200통 / 월 10,000통 + ROI 분석', 'en': '200/day · 10K/month + ROI analytics', 'ja': '日200 / 月10,000 + ROI分析', 'zh': '日200 / 月10K + ROI分析',
+    'fr': '200/jour · 10K/mois + ROI', 'de': '200/Tag · 10K/Monat + ROI', 'es': '200/día · 10K/mes + ROI',
+    'pt': '200/dia · 10K/mês + ROI', 'ru': '200/день · 10К/мес + ROI', 'tr': '200/gün · 10K/ay + ROI',
+    'ar': '200/يوم · 10K/شهر + ROI', 'it': '200/giorno · 10K/mese + ROI', 'hi': '200/दिन · 10K/माह + ROI', 'th': '200/วัน · 10K/เดือน + ROI',
+  });
+
+  String get commonDontShowAgain => _t({
+    'ko': '다시 보지 않기', 'en': "Don't show again", 'ja': '次回から表示しない', 'zh': '不再显示',
+    'fr': 'Ne plus afficher', 'de': 'Nicht mehr anzeigen', 'es': 'No mostrar de nuevo',
+    'pt': 'Não mostrar novamente', 'ru': 'Не показывать снова', 'tr': 'Tekrar gösterme',
+    'ar': 'لا تظهر مرة أخرى', 'it': 'Non mostrare più', 'hi': 'फिर से न दिखाएँ', 'th': 'ไม่แสดงอีก',
+  });
+
+  String get commonConfirm => _t({
+    'ko': '확인', 'en': 'OK', 'ja': '確認', 'zh': '确定',
+    'fr': 'OK', 'de': 'OK', 'es': 'OK',
+    'pt': 'OK', 'ru': 'ОК', 'tr': 'Tamam',
+    'ar': 'موافق', 'it': 'OK', 'hi': 'ठीक है', 'th': 'ตกลง',
+  });
+
+  String get towerBenefitsMyTierBadge => _t({
+    'ko': '내 등급', 'en': 'My tier', 'ja': '現在の等級', 'zh': '我的等级',
+    'fr': 'Mon niveau', 'de': 'Mein Level', 'es': 'Mi nivel',
+    'pt': 'Meu nível', 'ru': 'Мой уровень', 'tr': 'Seviyem',
+    'ar': 'فئتي', 'it': 'Mio livello', 'hi': 'मेरा स्तर', 'th': 'ระดับของฉัน',
+  });
+
+  // PII linter (Build 207)
+  String get piiLabelPhone => _t({
+    'ko': '전화번호', 'en': 'Phone number', 'ja': '電話番号', 'zh': '电话号码',
+    'fr': 'Numéro de téléphone', 'de': 'Telefonnummer', 'es': 'Número de teléfono',
+    'pt': 'Número de telefone', 'ru': 'Телефон', 'tr': 'Telefon numarası',
+    'ar': 'رقم الهاتف', 'it': 'Numero di telefono', 'hi': 'फोन नंबर', 'th': 'หมายเลขโทรศัพท์',
+  });
+
+  String get piiLabelKrRrn => _t({
+    'ko': '주민등록번호', 'en': 'Resident registration number', 'ja': '住民登録番号', 'zh': '居民登记号码',
+    'fr': 'Numéro d\'identité', 'de': 'Personalausweisnummer', 'es': 'DNI',
+    'pt': 'Número de identidade', 'ru': 'ИНН', 'tr': 'Kimlik no',
+    'ar': 'رقم الهوية', 'it': 'Codice fiscale', 'hi': 'पहचान संख्या', 'th': 'เลขประจำตัว',
+  });
+
+  String get piiLabelCard => _t({
+    'ko': '카드번호', 'en': 'Card number', 'ja': 'カード番号', 'zh': '卡号',
+    'fr': 'Numéro de carte', 'de': 'Kartennummer', 'es': 'Número de tarjeta',
+    'pt': 'Número do cartão', 'ru': 'Номер карты', 'tr': 'Kart numarası',
+    'ar': 'رقم البطاقة', 'it': 'Numero carta', 'hi': 'कार्ड नंबर', 'th': 'หมายเลขบัตร',
+  });
+
+  String piiDialogTitle(String label) => _t({
+    'ko': '$label 가 포함됐어요', 'en': '$label detected', 'ja': '$label が含まれています', 'zh': '检测到$label',
+    'fr': '$label détecté', 'de': '$label erkannt', 'es': '$label detectado',
+    'pt': '$label detectado', 'ru': 'Найдено: $label', 'tr': '$label algılandı',
+    'ar': 'تم الكشف عن $label', 'it': '$label rilevato', 'hi': '$label मिला', 'th': 'พบ $label',
+  });
+
+  String piiDialogBody(String label) => _t({
+    'ko': '편지 본문은 받는 사람이 누구나 읽을 수 있어요.\n$label 같은 개인정보는 빼고 보내는 게 안전해요.\n그래도 그대로 보낼까요?',
+    'en': 'Letter content is publicly readable.\nIt is safer to remove $label before sending.\nSend it anyway?',
+    'ja': '手紙本文は誰でも読めます。\n$label のような個人情報は除いた方が安全です。\nそのまま送りますか？',
+    'zh': '信件正文任何人都能阅读。\n建议移除$label等个人信息。\n仍然发送吗？',
+    'fr': 'Le contenu est public.\nMieux vaut retirer $label.\nEnvoyer quand même ?',
+    'de': 'Briefinhalt ist öffentlich.\nBitte $label entfernen.\nTrotzdem senden?',
+    'es': 'El contenido es público.\nQuita $label antes de enviar.\n¿Enviar igualmente?',
+    'pt': 'O conteúdo é público.\nRemova $label antes.\nEnviar mesmo assim?',
+    'ru': 'Текст письма публичен.\nЛучше убрать $label.\nОтправить всё равно?',
+    'tr': 'Mektup içeriği herkese açık.\n$label kaldırın.\nYine de gönderilsin mi?',
+    'ar': 'محتوى الرسالة عام.\nاحذف $label.\nأرسل على أي حال؟',
+    'it': 'Il contenuto è pubblico.\nRimuovi $label prima.\nInvio comunque?',
+    'hi': 'पत्र सार्वजनिक है।\n$label हटाएं।\nफिर भी भेजें?',
+    'th': 'เนื้อหาเป็นสาธารณะ\nลบ $label\nส่งต่อไหม?',
+  });
+
+  String get piiSendAnyway => _t({
+    'ko': '그래도 보내기', 'en': 'Send anyway', 'ja': 'そのまま送信', 'zh': '仍然发送',
+    'fr': 'Envoyer quand même', 'de': 'Trotzdem senden', 'es': 'Enviar igualmente',
+    'pt': 'Enviar mesmo assim', 'ru': 'Отправить', 'tr': 'Yine de gönder',
+    'ar': 'أرسل على أي حال', 'it': 'Invia comunque', 'hi': 'फिर भी भेजें', 'th': 'ส่งต่อไป',
+  });
+
+  // Tower customizer (Brand-only, hardcoded since 2024) — Build 211 i18n.
+  String get towerCustomizeTabVehicle => _t({
+    'ko': '🚗 이동수단', 'en': '🚗 Vehicle', 'ja': '🚗 乗り物', 'zh': '🚗 交通工具',
+    'fr': '🚗 Véhicule', 'de': '🚗 Fahrzeug', 'es': '🚗 Vehículo',
+    'pt': '🚗 Veículo', 'ru': '🚗 Транспорт', 'tr': '🚗 Araç',
+    'ar': '🚗 المركبة', 'it': '🚗 Veicolo', 'hi': '🚗 वाहन', 'th': '🚗 ยานพาหนะ',
+  });
+
+  String get towerCustomizeTabSkin => _t({
+    'ko': '🏢 타워스킨', 'en': '🏢 Tower skin', 'ja': '🏢 タワースキン', 'zh': '🏢 塔皮肤',
+    'fr': '🏢 Habillage', 'de': '🏢 Turmskin', 'es': '🏢 Apariencia',
+    'pt': '🏢 Skin da torre', 'ru': '🏢 Внешний вид', 'tr': '🏢 Kule görünümü',
+    'ar': '🏢 مظهر البرج', 'it': '🏢 Skin torre', 'hi': '🏢 टावर स्किन', 'th': '🏢 สกินหอคอย',
+  });
+
+  String get towerCustomizeVehicleSection => _t({
+    'ko': '이동수단 장식', 'en': 'Vehicle decoration', 'ja': '乗り物装飾', 'zh': '交通工具装饰',
+    'fr': 'Décoration véhicule', 'de': 'Fahrzeugdekoration', 'es': 'Decoración de vehículo',
+    'pt': 'Decoração de veículo', 'ru': 'Транспорт декор', 'tr': 'Araç süslemesi',
+    'ar': 'زخرفة المركبة', 'it': 'Decorazione veicolo', 'hi': 'वाहन सजावट', 'th': 'ตกแต่งยานพาหนะ',
+  });
+
+  String get towerCustomizeRoofSection => _t({
+    'ko': '🏠 지붕 스타일', 'en': '🏠 Roof style', 'ja': '🏠 屋根スタイル', 'zh': '🏠 屋顶风格',
+    'fr': '🏠 Style toit', 'de': '🏠 Dachstil', 'es': '🏠 Estilo de techo',
+    'pt': '🏠 Estilo do telhado', 'ru': '🏠 Стиль крыши', 'tr': '🏠 Çatı stili',
+    'ar': '🏠 نمط السقف', 'it': '🏠 Stile tetto', 'hi': '🏠 छत शैली', 'th': '🏠 รูปแบบหลังคา',
+  });
+
+  String get towerCustomizeWindowSection => _t({
+    'ko': '🪟 창문 스타일', 'en': '🪟 Window style', 'ja': '🪟 窓スタイル', 'zh': '🪟 窗户风格',
+    'fr': '🪟 Style fenêtre', 'de': '🪟 Fensterstil', 'es': '🪟 Estilo de ventana',
+    'pt': '🪟 Estilo da janela', 'ru': '🪟 Стиль окон', 'tr': '🪟 Pencere stili',
+    'ar': '🪟 نمط النافذة', 'it': '🪟 Stile finestra', 'hi': '🪟 खिड़की शैली', 'th': '🪟 รูปแบบหน้าต่าง',
+  });
+
+  /// 타워 커스터마이즈 항목 label 통합 lookup (vehicle/roof/window).
+  /// 데이터 구조의 label 키(한국어) 를 받아 현재 언어로 변환.
+  String towerItemLabel(String koreanKey) {
+    const map = {
+      // Vehicles
+      '여객기': {'en': 'Airliner', 'ja': '旅客機', 'zh': '客机', 'fr': 'Avion', 'de': 'Flugzeug', 'es': 'Avión', 'pt': 'Avião', 'ru': 'Самолёт', 'tr': 'Uçak', 'ar': 'طائرة', 'it': 'Aereo', 'hi': 'विमान', 'th': 'เครื่องบิน'},
+      '로켓': {'en': 'Rocket', 'ja': 'ロケット', 'zh': '火箭', 'fr': 'Fusée', 'de': 'Rakete', 'es': 'Cohete', 'pt': 'Foguete', 'ru': 'Ракета', 'tr': 'Roket', 'ar': 'صاروخ', 'it': 'Razzo', 'hi': 'रॉकेट', 'th': 'จรวด'},
+      'UFO': {'en': 'UFO', 'ja': 'UFO', 'zh': 'UFO', 'fr': 'OVNI', 'de': 'UFO', 'es': 'OVNI', 'pt': 'OVNI', 'ru': 'НЛО', 'tr': 'UFO', 'ar': 'UFO', 'it': 'UFO', 'hi': 'UFO', 'th': 'UFO'},
+      '열기구': {'en': 'Hot air balloon', 'ja': '熱気球', 'zh': '热气球', 'fr': 'Montgolfière', 'de': 'Heißluftballon', 'es': 'Globo aerostático', 'pt': 'Balão', 'ru': 'Воздушный шар', 'tr': 'Sıcak hava balonu', 'ar': 'منطاد', 'it': 'Mongolfiera', 'hi': 'हॉट एयर बैलून', 'th': 'บอลลูน'},
+      '여객선': {'en': 'Cruise ship', 'ja': '客船', 'zh': '客轮', 'fr': 'Paquebot', 'de': 'Kreuzfahrtschiff', 'es': 'Crucero', 'pt': 'Cruzeiro', 'ru': 'Лайнер', 'tr': 'Yolcu gemisi', 'ar': 'سفينة ركاب', 'it': 'Crociera', 'hi': 'क्रूज़', 'th': 'เรือสำราญ'},
+      '증기기차': {'en': 'Steam train', 'ja': '蒸気機関車', 'zh': '蒸汽火车', 'fr': 'Train à vapeur', 'de': 'Dampflok', 'es': 'Tren de vapor', 'pt': 'Trem a vapor', 'ru': 'Паровоз', 'tr': 'Buharlı tren', 'ar': 'قطار بخاري', 'it': 'Treno a vapore', 'hi': 'भाप ट्रेन', 'th': 'รถไฟไอน้ำ'},
+      '헬리콥터': {'en': 'Helicopter', 'ja': 'ヘリコプター', 'zh': '直升机', 'fr': 'Hélicoptère', 'de': 'Hubschrauber', 'es': 'Helicóptero', 'pt': 'Helicóptero', 'ru': 'Вертолёт', 'tr': 'Helikopter', 'ar': 'مروحية', 'it': 'Elicottero', 'hi': 'हेलीकॉप्टर', 'th': 'เฮลิคอปเตอร์'},
+      '나룻배': {'en': 'Rowboat', 'ja': '渡し舟', 'zh': '小船', 'fr': 'Barque', 'de': 'Ruderboot', 'es': 'Barca', 'pt': 'Barco a remo', 'ru': 'Лодка', 'tr': 'Sandal', 'ar': 'قارب', 'it': 'Barca a remi', 'hi': 'नौका', 'th': 'เรือพาย'},
+      '산타썰매': {'en': 'Sleigh', 'ja': 'サンタのそり', 'zh': '雪橇', 'fr': 'Traîneau', 'de': 'Schlitten', 'es': 'Trineo', 'pt': 'Trenó', 'ru': 'Сани', 'tr': 'Kızak', 'ar': 'مزلجة', 'it': 'Slitta', 'hi': 'स्लेज', 'th': 'เลื่อน'},
+      '낙하산': {'en': 'Parachute', 'ja': 'パラシュート', 'zh': '降落伞', 'fr': 'Parachute', 'de': 'Fallschirm', 'es': 'Paracaídas', 'pt': 'Paraquedas', 'ru': 'Парашют', 'tr': 'Paraşüt', 'ar': 'مظلة', 'it': 'Paracadute', 'hi': 'पैराशूट', 'th': 'ร่มชูชีพ'},
+      '소형비행기': {'en': 'Small plane', 'ja': '小型機', 'zh': '小型飞机', 'fr': 'Petit avion', 'de': 'Kleinflugzeug', 'es': 'Avioneta', 'pt': 'Aviãozinho', 'ru': 'Самолётик', 'tr': 'Küçük uçak', 'ar': 'طائرة صغيرة', 'it': 'Aereo piccolo', 'hi': 'छोटा विमान', 'th': 'เครื่องเล็ก'},
+      '스피드보트': {'en': 'Speedboat', 'ja': 'スピードボート', 'zh': '快艇', 'fr': 'Hors-bord', 'de': 'Schnellboot', 'es': 'Lancha', 'pt': 'Lancha', 'ru': 'Катер', 'tr': 'Sürat teknesi', 'ar': 'قارب سريع', 'it': 'Motoscafo', 'hi': 'स्पीडबोट', 'th': 'สปีดโบ๊ท'},
+      // Roof
+      '기본': {'en': 'Default', 'ja': '基本', 'zh': '默认', 'fr': 'Par défaut', 'de': 'Standard', 'es': 'Predeterminado', 'pt': 'Padrão', 'ru': 'По умолч.', 'tr': 'Varsayılan', 'ar': 'افتراضي', 'it': 'Predefinito', 'hi': 'डिफ़ॉल्ट', 'th': 'ค่าเริ่มต้น'},
+      '뾰족': {'en': 'Pointed', 'ja': '尖り屋根', 'zh': '尖顶', 'fr': 'Pointu', 'de': 'Spitz', 'es': 'Puntiagudo', 'pt': 'Pontudo', 'ru': 'Острая', 'tr': 'Sivri', 'ar': 'مدبب', 'it': 'A punta', 'hi': 'नुकीला', 'th': 'แหลม'},
+      '돔': {'en': 'Dome', 'ja': 'ドーム', 'zh': '圆顶', 'fr': 'Dôme', 'de': 'Kuppel', 'es': 'Cúpula', 'pt': 'Cúpula', 'ru': 'Купол', 'tr': 'Kubbe', 'ar': 'قبة', 'it': 'Cupola', 'hi': 'गुंबद', 'th': 'โดม'},
+      '평지붕': {'en': 'Flat', 'ja': '平屋根', 'zh': '平顶', 'fr': 'Plat', 'de': 'Flach', 'es': 'Plano', 'pt': 'Plano', 'ru': 'Плоская', 'tr': 'Düz', 'ar': 'مسطح', 'it': 'Piatto', 'hi': 'सपाट', 'th': 'แบน'},
+      '안테나': {'en': 'Antenna', 'ja': 'アンテナ', 'zh': '天线', 'fr': 'Antenne', 'de': 'Antenne', 'es': 'Antena', 'pt': 'Antena', 'ru': 'Антенна', 'tr': 'Anten', 'ar': 'هوائي', 'it': 'Antenna', 'hi': 'एंटेना', 'th': 'เสาอากาศ'},
+      // Window
+      '사각': {'en': 'Square', 'ja': '四角', 'zh': '方形', 'fr': 'Carré', 'de': 'Quadrat', 'es': 'Cuadrada', 'pt': 'Quadrada', 'ru': 'Квадрат', 'tr': 'Kare', 'ar': 'مربع', 'it': 'Quadrata', 'hi': 'चौकोर', 'th': 'สี่เหลี่ยม'},
+      '원형': {'en': 'Round', 'ja': '丸窓', 'zh': '圆形', 'fr': 'Rond', 'de': 'Rund', 'es': 'Redonda', 'pt': 'Redonda', 'ru': 'Круг', 'tr': 'Yuvarlak', 'ar': 'دائري', 'it': 'Rotonda', 'hi': 'गोल', 'th': 'กลม'},
+      '아치': {'en': 'Arch', 'ja': 'アーチ', 'zh': '拱形', 'fr': 'Arche', 'de': 'Bogen', 'es': 'Arco', 'pt': 'Arco', 'ru': 'Арка', 'tr': 'Kemer', 'ar': 'قوس', 'it': 'Arco', 'hi': 'आर्च', 'th': 'โค้ง'},
+      '모던': {'en': 'Modern', 'ja': 'モダン', 'zh': '现代', 'fr': 'Moderne', 'de': 'Modern', 'es': 'Moderna', 'pt': 'Moderna', 'ru': 'Модерн', 'tr': 'Modern', 'ar': 'حديث', 'it': 'Moderna', 'hi': 'आधुनिक', 'th': 'ทันสมัย'},
+    };
+    if (languageCode == 'ko') return koreanKey;
+    final entry = map[koreanKey];
+    if (entry == null) return koreanKey;
+    return entry[languageCode] ?? entry['en'] ?? koreanKey;
+  }
+
 }

@@ -2701,9 +2701,9 @@ class _TowerScreenState extends State<TowerScreen>
                               scrollDirection: Axis.horizontal,
                               child: Row(
                                 children: [
-                                  _buildCustomizeTab('🚗 이동수단', 0, _customizeTabIndex, () { setS(() { _customizeTabIndex = 0; }); }),
+                                  _buildCustomizeTab(_tl.towerCustomizeTabVehicle, 0, _customizeTabIndex, () { setS(() { _customizeTabIndex = 0; }); }),
                                   const SizedBox(width: 8),
-                                  _buildCustomizeTab('🏢 타워스킨', 1, _customizeTabIndex, () { setS(() { _customizeTabIndex = 1; }); }),
+                                  _buildCustomizeTab(_tl.towerCustomizeTabSkin, 1, _customizeTabIndex, () { setS(() { _customizeTabIndex = 1; }); }),
                                 ],
                               ),
                             ),
@@ -2711,7 +2711,7 @@ class _TowerScreenState extends State<TowerScreen>
                             // Transport vehicles tab
                             if (_customizeTabIndex == 0) ...[
                               Text(
-                                '이동수단 장식',
+                                _tl.towerCustomizeVehicleSection,
                                 style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w600),
                               ),
                               const SizedBox(height: 10),
@@ -2728,7 +2728,7 @@ class _TowerScreenState extends State<TowerScreen>
                                 itemBuilder: (ctx3, i) {
                                   final v = transportVehicles[i];
                                   final vEmoji = v['emoji'] as String;
-                                  final vLabel = v['label'] as String;
+                                  final vLabel = _tl.towerItemLabel(v['label'] as String);
                                   final vTier = v['tier'] as int;
                                   final isSelected = selectedEmoji == vEmoji;
                                   // Unlock logic: tier -1 = premium only, 0 = always free, N = requires tierNumber >= N
@@ -2847,9 +2847,9 @@ class _TowerScreenState extends State<TowerScreen>
                         const SizedBox(height: 22),
 
                         // ── 지붕 스타일 ──
-                        const Text(
-                          '🏠 지붕 스타일',
-                          style: TextStyle(
+                        Text(
+                          _tl.towerCustomizeRoofSection,
+                          style: const TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -2885,7 +2885,7 @@ class _TowerScreenState extends State<TowerScreen>
                                       Text('${r['icon']}', style: const TextStyle(fontSize: 18)),
                                       const SizedBox(height: 4),
                                       Text(
-                                        '${r['label']}',
+                                        _tl.towerItemLabel(r['label'] as String),
                                         style: TextStyle(
                                           color: isSel ? AppColors.gold : AppColors.textMuted,
                                           fontSize: 9,
@@ -2902,9 +2902,9 @@ class _TowerScreenState extends State<TowerScreen>
                         const SizedBox(height: 22),
 
                         // ── 창문 스타일 ──
-                        const Text(
-                          '🪟 창문 스타일',
-                          style: TextStyle(
+                        Text(
+                          _tl.towerCustomizeWindowSection,
+                          style: const TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -2940,7 +2940,7 @@ class _TowerScreenState extends State<TowerScreen>
                                       Text('${w['icon']}', style: const TextStyle(fontSize: 18)),
                                       const SizedBox(height: 4),
                                       Text(
-                                        '${w['label']}',
+                                        _tl.towerItemLabel(w['label'] as String),
                                         style: TextStyle(
                                           color: isSel ? AppColors.gold : AppColors.textMuted,
                                           fontSize: 9,
