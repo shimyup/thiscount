@@ -129,12 +129,50 @@ class _InboxScreenState extends State<InboxScreen>
   }
 
   void _scrollToFirstUnread(List<Letter> letters) {
-    final idx = letters.indexWhere((l) => l.status == DeliveryStatus.delivered);
-    if (idx < 0) return;
-    // 필터바 높이(56) + 체인배너(0 or 80) + 카드 높이 추정(110px)
+    final unreadIdx =
+        letters.indexWhere((l) => l.status == DeliveryStatus.delivered);
+    if (unreadIdx < 0) return;
+    // Build 205.1: 필터=전체 일 때는 카테고리별 그룹 헤더가 사이에 끼어 들어가
+    // 단순히 letterIdx × itemH 로 오프셋을 계산하면 헤더 만큼 어긋난다.
+    // 이전 카테고리에 속한 letter 개수 + 헤더 1개씩을 더해 실제 row 위치 계산.
     const double filterBarH = 56.0;
     const double itemH = 110.0;
-    final double target = filterBarH + idx * itemH;
+    const double headerH = 36.0; // _CategorySectionHeader 의 vertical 합계 근사
+    final unreadLetter = letters[unreadIdx];
+    int rowIdx = 0;
+    if (_inboxFilter == LetterFilterType.all) {
+      // 일반 → 할인권 → 교환권 순서대로 헤더 + 그룹 letters 누적.
+      final order = [
+        LetterCategory.general,
+        LetterCategory.coupon,
+        LetterCategory.voucher,
+      ];
+      for (final cat in order) {
+        final group = letters.where((l) => l.category == cat).toList();
+        if (group.isEmpty) continue;
+        rowIdx += 1; // header
+        if (cat == unreadLetter.category) {
+          rowIdx += group.indexOf(unreadLetter);
+          break;
+        } else {
+          rowIdx += group.length;
+        }
+      }
+    } else {
+      rowIdx = unreadIdx;
+    }
+    final isAll = _inboxFilter == LetterFilterType.all;
+    final headerCount = isAll
+        ? letters.map((l) => l.category).toSet().take(3).length
+        : 0;
+    // 더 정확한 추정: 위에서 누적한 rowIdx 를 row 별 평균 높이로 환산.
+    // 헤더 ≪ letter card 라 letter idx 기준 + headers 보정으로 충분.
+    final precedingHeaders = isAll
+        ? rowIdx - unreadIdx // 누적 row - 누적 letter (= 앞쪽 헤더 수)
+        : 0;
+    final double target = filterBarH +
+        unreadIdx * itemH +
+        precedingHeaders.clamp(0, headerCount) * headerH;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_inboxScrollController.hasClients) {
         _inboxScrollController.animateTo(

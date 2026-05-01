@@ -13,6 +13,7 @@ import '../features/profile/profile_screen.dart';
 import '../features/streak/streak_badge.dart';
 import '../features/progression/level_up_banner.dart';
 import '../features/brand/brand_ad_modal.dart';
+import '../features/tower/widgets/tower_benefits_popup.dart';
 import 'offline_banner.dart';
 
 class MainScaffold extends StatefulWidget {
@@ -49,7 +50,27 @@ class _MainScaffoldState extends State<MainScaffold> {
       });
       // Build 205: 첫 번째 광고 trigger 는 build() 의 reactive 경로에서 처리.
       // (이전 build 202 의 1.2s 단발 호출은 새 광고 도착 시 재발사 안 됐음.)
+      // initialIndex 가 Tower 탭이면 혜택 팝업도 즉시 노출.
+      if (_currentIndex == 2) {
+        Future.delayed(const Duration(milliseconds: 600), () {
+          if (mounted) TowerBenefitsPopup.showIfDue(context);
+        });
+      }
     });
+  }
+
+  /// Build 205.1: 레터(타워) 탭으로 전환할 때마다 호출. 다시보지않기가 켜져
+  /// 있으면 popup 내부에서 noop. IndexedStack 으로 항상 build 되어 있는
+  /// TowerScreen 의 initState 에서 호출하면 Map 에 머물러 있는 사용자에게도
+  /// 팝업이 떠 버리는 문제 회피.
+  void _switchToTab(int next) {
+    final wasOnTower = _currentIndex == 2;
+    setState(() => _currentIndex = next);
+    if (next == 2 && !wasOnTower) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) TowerBenefitsPopup.showIfDue(context);
+      });
+    }
   }
 
   void _openCompose(BuildContext ctx) async {
@@ -247,7 +268,7 @@ class _MainScaffoldState extends State<MainScaffold> {
                           : Icons.catching_pokemon_rounded,
                       label: isBrand ? l.navTower : l.navLetter,
                       isSelected: _currentIndex == 2,
-                      onTap: () => setState(() => _currentIndex = 2),
+                      onTap: () => _switchToTab(2),
                     ),
                   ),
                   Expanded(

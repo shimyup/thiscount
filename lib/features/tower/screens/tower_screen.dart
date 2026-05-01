@@ -15,7 +15,6 @@ import '../../settings/settings_screen.dart';
 import '../../premium/premium_screen.dart';
 import '../../../widgets/shared_profile_dialogs.dart';
 import '../../brand/brand_analytics_card.dart';
-import '../widgets/tower_benefits_popup.dart';
 
 class TowerScreen extends StatefulWidget {
   const TowerScreen({super.key});
@@ -69,11 +68,9 @@ class _TowerScreenState extends State<TowerScreen>
 
     _towerRiseController.forward();
 
-    // Build 205: 레터(타워) 탭 첫 진입 시 혜택 가이드 팝업.
-    // 사용자가 "다시 보지 않기" 를 켤 때까지 매 진입마다 노출.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) TowerBenefitsPopup.showIfDue(context);
-    });
+    // Build 205.1: 혜택 팝업 trigger 는 MainScaffold 의 탭 전환 콜백에서
+    // 처리. TowerScreen 은 IndexedStack 에 의해 앱 시작 시 한 번 build 되므로
+    // 여기서 호출하면 사용자가 Map 탭에 머물러 있어도 팝업이 떠 버린다.
   }
 
   @override

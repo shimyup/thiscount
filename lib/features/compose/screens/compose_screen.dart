@@ -1630,7 +1630,13 @@ class _ComposeScreenState extends State<ComposeScreen>
               Expanded(
                 child: GestureDetector(
                   onTap: () {
-                    setState(() => _isRandom = true);
+                    setState(() {
+                      _isRandom = true;
+                      // Build 205.1: 랜덤으로 전환하면 대량 발송 타깃도 비움.
+                      // 안 비우면 다시 country 모드로 전환했을 때 이전 나라가
+                      // 살아 있어 사용자 의도와 어긋난다.
+                      _bulkTargets.clear();
+                    });
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
