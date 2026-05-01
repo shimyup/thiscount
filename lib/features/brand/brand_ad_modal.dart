@@ -20,12 +20,16 @@ import '../inbox/widgets/letter_read_screen.dart';
 ///
 /// 트리거:
 /// - main_scaffold initState 의 postFrameCallback 에서 1회 호출
-/// - hasShownToday 체크로 같은 날 중복 노출 방지
+/// - 마지막으로 노출한 광고 letter.id 와 다르면 표시 (= 새 광고 도착마다 1회)
 /// - featuredBrandPromo 가 null 이면 미노출
+///
+/// Build 205: 이전엔 "하루 1회" 정책이었으나 테스트/베타 기간 동안 새 캠페인
+/// 이 들어왔는지 사용자가 즉시 인지하도록 letter.id 기반 dedup 으로 변경.
+/// 같은 광고는 두 번 안 뜨고, 새 광고는 즉시 뜬다.
 class BrandAdModal {
-  static const String _prefKey = 'brand_ad_last_shown_date';
+  static const String _prefKey = 'brand_ad_last_shown_letter_id';
 
-  /// 오늘 이미 한 번 보여준 적이 없고 활성 브랜드 광고가 있으면 표시.
+  /// 가장 최근 광고 letter 를 아직 본 적 없으면 표시.
   static Future<void> showIfDue(BuildContext context) async {
     if (!context.mounted) return;
     final state = context.read<AppState>();
@@ -33,13 +37,12 @@ class BrandAdModal {
     if (promo == null) return;
 
     final prefs = await SharedPreferences.getInstance();
-    final lastShown = prefs.getString(_prefKey);
-    final today = DateTime.now().toIso8601String().substring(0, 10); // YYYY-MM-DD
-    if (lastShown == today) return;
+    final lastShownId = prefs.getString(_prefKey);
+    if (lastShownId == promo.id) return;
 
     if (!context.mounted) return;
     HapticFeedback.lightImpact();
-    await prefs.setString(_prefKey, today);
+    await prefs.setString(_prefKey, promo.id);
 
     showDialog<void>(
       context: context,

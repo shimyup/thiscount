@@ -25,6 +25,9 @@ class MainScaffold extends StatefulWidget {
 
 class _MainScaffoldState extends State<MainScaffold> {
   late int _currentIndex = widget.initialIndex;
+  // Build 205: 마지막으로 광고 모달을 trigger 시도한 promo letter id. 같은
+  // id 가 다시 build 되면 무시 — id 가 바뀌면(새 광고 도착) 다시 trigger.
+  String? _lastTriggeredAdId;
 
   late final List<Widget> _pages = [
     WorldMapScreen(onGoToInbox: () => setState(() => _currentIndex = 1)),
@@ -44,10 +47,8 @@ class _MainScaffoldState extends State<MainScaffold> {
       Future.delayed(const Duration(milliseconds: 400), () {
         if (mounted) LevelUpBanner.showIfLevelUp(context);
       });
-      // Build 202: 온보딩 직후 1회 브랜드 광고 modal (반쪽 크기, 사진 + 닫기/편지받기)
-      Future.delayed(const Duration(milliseconds: 1200), () {
-        if (mounted) BrandAdModal.showIfDue(context);
-      });
+      // Build 205: 첫 번째 광고 trigger 는 build() 의 reactive 경로에서 처리.
+      // (이전 build 202 의 1.2s 단발 호출은 새 광고 도착 시 재발사 안 됐음.)
     });
   }
 
@@ -109,6 +110,17 @@ class _MainScaffoldState extends State<MainScaffold> {
     final isBrand = context.select<AppState, bool>(
       (s) => s.currentUser.isBrand,
     );
+    // Build 205: 새 브랜드 광고 도착 시마다 모달 재trigger.
+    // featuredBrandPromo.id 만 select 해 build 폭발 방지.
+    final currentAdId = context.select<AppState, String?>(
+      (s) => s.featuredBrandPromo?.id,
+    );
+    if (currentAdId != null && currentAdId != _lastTriggeredAdId) {
+      _lastTriggeredAdId = currentAdId;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) BrandAdModal.showIfDue(context);
+      });
+    }
     final l = AppL10n.of(langCode);
     return Scaffold(
       backgroundColor: Colors.transparent,

@@ -1737,6 +1737,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      // Build 205: 백그라운드 동안 wall-clock 기반 진행을 즉시 catch-up.
+      // (timer 없이도 한 번 sync — 진행이 멈춰 보이지 않게)
+      _reconcileLetterStatuses();
       // 포그라운드 복귀 → 타이머 재시작
       if (_deliveryTimer == null || !_deliveryTimer!.isActive) {
         _startDeliverySimulation();
@@ -5349,11 +5352,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // ── 배송 시뮬레이션 ────────────────────────────────────────────────────────
   void _startDeliverySimulation() {
     _deliveryTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-      bool changed = false;
-      final now = DateTime.now();
-      final List<Letter> dailyToInbox = [];
+      _runDeliveryTick();
+    });
+  }
 
-      for (final letter in _worldLetters) {
+  void _runDeliveryTick({bool triggerNotifications = true}) {
+    bool changed = false;
+    final now = DateTime.now();
+    final List<Letter> dailyToInbox = [];
+
+    for (final letter in _worldLetters) {
         // deliveredFar 편지: 유저가 반경 이내로 이동하면 nearYou로 변경
         if (letter.status == DeliveryStatus.deliveredFar) {
           final dist = letter.destinationLocation.distanceTo(
@@ -5362,7 +5370,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           if (dist <= pickupRadiusMeters) {
             letter.status = DeliveryStatus.nearYou;
             _hasNearbyAlert = true;
-            _triggerNearbyNotification(letter);
+            if (triggerNotifications) _triggerNearbyNotification(letter);
             changed = true;
           }
           continue;
@@ -5407,15 +5415,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             // 실제 반경 이내
             letter.status = DeliveryStatus.nearYou;
             _hasNearbyAlert = true;
-            _triggerNearbyNotification(letter);
+            if (triggerNotifications) _triggerNearbyNotification(letter);
           } else {
             // 반경 밖에 있으면 deliveredFar (지도에 표시되지만 열 수 없음)
             letter.status = DeliveryStatus.deliveredFar;
-            NotificationService.showLetterArrivedNotification(
-              senderCountry: letter.senderCountry,
-              senderFlag: letter.senderCountryFlag,
-              langCode: _currentUser.languageCode,
-            );
+            if (triggerNotifications) {
+              NotificationService.showLetterArrivedNotification(
+                senderCountry: letter.senderCountry,
+                senderFlag: letter.senderCountryFlag,
+                langCode: _currentUser.languageCode,
+              );
+            }
           }
           letter.arrivedAt ??= now;
           changed = true;
@@ -5441,7 +5451,6 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         _saveToPrefs();
         notifyListeners();
       }
-    });
   }
 
   // ── AI 자동 편지 발송 (하루 3통, 랜덤 3개국 → 유저 나라 랜덤 주소) ──────────

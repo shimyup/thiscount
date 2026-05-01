@@ -15,6 +15,7 @@ import '../../settings/settings_screen.dart';
 import '../../premium/premium_screen.dart';
 import '../../../widgets/shared_profile_dialogs.dart';
 import '../../brand/brand_analytics_card.dart';
+import '../widgets/tower_benefits_popup.dart';
 
 class TowerScreen extends StatefulWidget {
   const TowerScreen({super.key});
@@ -67,6 +68,12 @@ class _TowerScreenState extends State<TowerScreen>
     );
 
     _towerRiseController.forward();
+
+    // Build 205: 레터(타워) 탭 첫 진입 시 혜택 가이드 팝업.
+    // 사용자가 "다시 보지 않기" 를 켤 때까지 매 진입마다 노출.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) TowerBenefitsPopup.showIfDue(context);
+    });
   }
 
   @override

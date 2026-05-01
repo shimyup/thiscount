@@ -76,13 +76,16 @@ class _LetterReadScreenState extends State<LetterReadScreen>
       }
     });
     // 3단계 개봉 시퀀스 — 총 1500ms
-    //   Phase 1 (0 → 0.3, 400ms) : 봉투가 살짝 나타남 + light haptic
-    //   Phase 2 (0.3 → 0.6, 350ms): 봉인 터짐 느낌 + medium haptic
-    //   Phase 3 (0.6 → 1.0, 750ms): 편지 본문 펼침 (scale + opacity)
+    //   Phase 1 (0 → 0.3, ~400ms) : 봉투가 살짝 나타남 + light haptic
+    //   Phase 2 (0.3 → 0.6, ~350ms): 봉인 터짐 느낌 + medium haptic
+    //   Phase 3 (0.6 → 1.0, ~750ms): 편지 본문 펼침 (scale + opacity)
     //
-    // 각 단계 시작 시 다른 햅틱 강도로 "줍기 → 개봉" 분리감을 강화한다.
-    // 전체 controller 는 0~1 의 연속값이지만, 본문의 AnimatedBuilder 가
-    // value 구간별로 다른 변환을 적용하므로 시각적으로 3단 분리된다.
+    // Build 205: 이전엔 `await _openController.animateTo` 체인 + 중간에
+    // `await HapticFeedback.heavyImpact()` 가 있어 플랫폼/시뮬레이터에 따라
+    // 햅틱 Future 가 늦거나 영영 resolve 안 되면 마지막 단계가 안 돌고 본문이
+    // 영영 안 보였다. 단일 `forward()` + status listener 로 단순화하고 햅틱은
+    // 모두 fire-and-forget. 또한 상태가 어떻든 `dispose` 직전에 `_isOpened`
+    // true 보장 로직 + 포커스 시점 `mounted` 체크.
     _openController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
@@ -91,32 +94,40 @@ class _LetterReadScreenState extends State<LetterReadScreen>
       parent: _openController,
       curve: Curves.easeOutCubic,
     );
-    Future.delayed(const Duration(milliseconds: 300), () async {
+    _openController.addStatusListener((s) {
+      if (s == AnimationStatus.completed && mounted && !_isOpened) {
+        setState(() => _isOpened = true);
+      }
+    });
+    // 단계별 햅틱: value 가 phase boundary 를 처음 지날 때 한 번씩 발화.
+    bool firedPhase2 = false;
+    bool firedPhase3 = false;
+    _openController.addListener(() {
+      final v = _openController.value;
+      if (!firedPhase2 && v >= 0.3) {
+        firedPhase2 = true;
+        FeedbackService.onLetterOpen();
+      }
+      if (!firedPhase3 && v >= 0.6) {
+        firedPhase3 = true;
+        HapticFeedback.heavyImpact();
+      }
+    });
+    Future.delayed(const Duration(milliseconds: 250), () {
       if (!mounted) return;
-      // Phase 1: 봉투가 떠오름
       HapticFeedback.lightImpact();
-      await _openController.animateTo(
-        0.3,
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeOutCubic,
-      );
-      if (!mounted) return;
-      // Phase 2: 봉인 터짐 — FeedbackService 의 onLetterOpen 이 medium + click
-      FeedbackService.onLetterOpen();
-      await _openController.animateTo(
-        0.6,
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeOutCubic,
-      );
-      if (!mounted) return;
-      // Phase 3: 편지 펼침 — 가장 길게, 여유 있게
-      await HapticFeedback.heavyImpact();
-      await _openController.animateTo(
-        1.0,
-        duration: const Duration(milliseconds: 750),
-        curve: Curves.easeOutCubic,
-      );
-      if (mounted) setState(() => _isOpened = true);
+      _openController.forward();
+    });
+    // 안전망 — 어떤 이유든 1.6s 가 지나도 _isOpened 가 false 면 강제로 켠다.
+    // 본문은 _openAnimation 이 1.0 이면 자연스럽게 풀-페이드인. listener 가
+    // 못 따라온 corner case 보완.
+    Future.delayed(const Duration(milliseconds: 1700), () {
+      if (mounted && !_isOpened) {
+        setState(() => _isOpened = true);
+        if (_openController.status != AnimationStatus.completed) {
+          _openController.value = 1.0;
+        }
+      }
     });
   }
 
