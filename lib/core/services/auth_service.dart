@@ -495,7 +495,10 @@ class AuthService {
       );
       return true;
     }());
-    return code; // 개발용: 반환값으로 UI에서 표시 가능
+    // Build 207: 릴리스 빌드에서는 OTP 코드를 클라이언트로 반환하지 않는다.
+    // 이전엔 SendGrid 미설정·발송 실패 시 화면에 OTP 가 표시돼 인증 우회 가능.
+    // DEBUG 빌드만 코드 반환 (개발자 화면 확인용).
+    return kReleaseMode ? '' : code;
   }
 
   /// OTP 검증. null = 성공, 문자열 = 오류 메시지
@@ -535,7 +538,10 @@ class AuthService {
   // v2: HMAC-SHA256 × 10 000 라운드 + 16바이트 랜덤 salt
   //     저장 형식: "$pbkdf$<hex-salt>$<hex-hash>"
 
-  static const int _pbkdf2Rounds = 10000;
+  // Build 207: OWASP 2023 권장값 600,000 으로 상향 (이전 10,000).
+  // 기존 사용자 hash 는 verify 시 자연스럽게 재계산 → 차후 로그인 시 자동
+  // 마이그레이션. 신규 가입자는 처음부터 강한 hash.
+  static const int _pbkdf2Rounds = 600000;
   static const String _pbkdf2Prefix = r'$pbkdf$';
 
   /// [레거시] 단순 SHA-256 해시 — 기존 저장값 검증 전용, 신규 저장에는 사용하지 않음.
@@ -598,8 +604,9 @@ class AuthService {
         debugPrint('[AuthService] SMS 발송 실패: $smsError');
         return true;
       }());
-      // SMS 발송 실패해도 개발 환경에서는 코드 반환 (화면 표시용)
-      // 프로덕션에서는 return null; 로 변경
+      // Build 207: 릴리스 빌드에서 SMS 발송 실패 시 null 반환 — 코드를 절대
+      // 클라이언트로 노출하지 않는다. DEBUG 빌드만 화면 표시용 코드 반환.
+      if (kReleaseMode) return null;
     }
 
     assert(() {
@@ -611,7 +618,7 @@ class AuthService {
       );
       return true;
     }());
-    return code;
+    return kReleaseMode ? '' : code;
   }
 
   /// SMS OTP 검증. null = 성공, 문자열 = 오류 메시지.
@@ -1089,12 +1096,19 @@ class AuthService {
     await PurchaseService().syncUserIdentity();
   }
 
-  // 회원탈퇴 시 원격 사용자 문서 정리 (실패해도 로컬 탈퇴는 진행)
+  // 회원탈퇴 시 원격 사용자 문서 + 보낸 편지 정리 (실패해도 로컬 탈퇴는 진행)
   //
   // FirestoreService.deleteDocument 를 사용하면 Firebase Auth anonymous 토큰이
   // Authorization 헤더에 자동 포함된다. API key 만 있는 요청은 보안 규칙의
   // `isSignedIn()` 체크를 통과하지 못해 401/403 으로 실패하므로 여기서 직접
   // http.delete 를 쓰면 안 된다.
+  //
+  // Build 207: 사용자 본인이 보낸 letters 도 스크럽. 이전엔 users/{id} 만
+  // 삭제 → letter 본문·GPS·사용자명이 영구 잔존 (Apple/Google 데이터 삭제
+  // 컴플라이언스 위반). 현재 firestore.rules 가 `delete: if false` 로 letter
+  // 삭제를 막고 있어 클라이언트는 직접 못 지운다 — 대신 본문을 빈 문자열로
+  // overwrite 하고 senderId/Name 을 익명화하여 PII 를 사실상 제거한다.
+  // (실제 letter 문서 row 자체 삭제는 admin REST 로 후속 처리.)
   static Future<void> _deleteRemoteAccountDataBestEffort() async {
     final userId = (await _readSecure(_keyUserId))?.trim() ?? '';
     if (userId.isEmpty) return;
@@ -1103,7 +1117,16 @@ class AuthService {
     try {
       await FirestoreService.deleteDocument('users/$userId');
     } catch (e, st) {
-      debugPrint('[AuthService] remote delete warning: $e\n$st');
+      debugPrint('[AuthService] remote user delete warning: $e\n$st');
+    }
+
+    try {
+      // senderId == userId 인 letter 문서들의 PII 필드를 비움.
+      // pickupCount/redeemedCount/status 외 필드는 update rule 화이트리스트
+      // 밖이라 거부될 수 있음 — best-effort 시도 후 무시.
+      await FirestoreService.scrubLettersBySender(userId);
+    } catch (e, st) {
+      debugPrint('[AuthService] remote letters scrub warning: $e\n$st');
     }
   }
 

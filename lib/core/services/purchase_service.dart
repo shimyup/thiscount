@@ -300,10 +300,18 @@ class PurchaseService extends ChangeNotifier {
   // 빌드 시 --dart-define=BETA_FREE_PREMIUM=true 로 활성화.
   // 릴리스 빌드에서도 Premium 구독을 무료로 즉시 활성화.
   // Brand 구독은 베타 기간 중 불가.
-  static const bool _isBetaFreePremium = bool.fromEnvironment(
+  //
+  // Build 207: BETA_DISABLE_IN_RELEASE (default true) 가 켜져 있으면 릴리스
+  // 빌드에서는 dart-define 으로 BETA_FREE_PREMIUM=true 를 줘도 무시. 정식 출시
+  // 빌드에 베타 플래그가 새어 들어가는 사고를 차단.
+  static const bool _isBetaFreePremiumRaw = bool.fromEnvironment(
     'BETA_FREE_PREMIUM',
     defaultValue: false,
   );
+  static bool get _isBetaFreePremium {
+    if (BetaConstants.disableInRelease && kReleaseMode) return false;
+    return _isBetaFreePremiumRaw;
+  }
 
   /// UI에서 베타 무료 프리미엄 모드 여부를 확인할 때 사용
   bool get isBetaFreePremium => _isBetaFreePremium;
@@ -922,6 +930,9 @@ class PurchaseService extends ChangeNotifier {
   /// 정식 출시 시 .env.local 에서 BETA_ADMIN_EMAIL 제거하면 자동으로 잠김.
   Future<void> applyTestEmailOverride(String? email) async {
     if (email == null || email.isEmpty) return;
+    // Build 207: 정식 출시 빌드에서는 BETA_ADMIN_EMAIL 주입돼 있어도 무시.
+    // 베타 기간이 끝나면 코드 변경 없이도 자동으로 막혀 있어야 함.
+    if (BetaConstants.disableInRelease && kReleaseMode) return;
     final isDebugTester =
         kDebugMode && email.toLowerCase() == DebugConstants.testBrandEmail;
     final isBetaAdmin = BetaConstants.isAdmin(email);

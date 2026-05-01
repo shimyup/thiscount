@@ -212,6 +212,55 @@ class FirestoreService {
     return false;
   }
 
+  /// Build 207: 회원 탈퇴 시 본인이 보낸 letters 의 PII 필드를 익명화.
+  /// firestore.rules 의 letter update 화이트리스트가 본문/발신자/좌표 변경을
+  /// 막고 있어 클라이언트가 직접 scrub 하지 못한다 — 대신 senderId 가 일치
+  /// 하는 letter 들의 status 를 'deletedBySender' 로 mark, 후속 admin REST
+  /// 작업에서 일괄 hard-delete.
+  static Future<int> scrubLettersBySender(String senderId) async {
+    if (!FirebaseConfig.kFirebaseEnabled) return 0;
+    if (senderId.isEmpty) return 0;
+    try {
+      final docs = await queryWhereEquals(
+        collectionId: 'letters',
+        field: 'senderId',
+        value: senderId,
+        limit: 500,
+      );
+      int marked = 0;
+      for (final doc in docs) {
+        // 'name' 은 'projects/.../databases/.../documents/letters/{id}' 형식.
+        final name = doc['name'] as String?;
+        if (name == null || name.isEmpty) continue;
+        final id = name.split('/').last;
+        if (id.isEmpty) continue;
+        try {
+          // status='deletedBySender' 만 PATCH (rule 화이트리스트 통과).
+          // updateMask 명시 안 하면 다른 필드를 비우려 시도해 거절될 수 있음.
+          final url = Uri.parse(
+            '${FirebaseConfig.firestoreBase}/letters/$id'
+            '?updateMask.fieldPaths=status',
+          );
+          final body = jsonEncode({
+            'fields': {
+              'status': {'stringValue': 'deletedBySender'},
+            },
+          });
+          await http
+              .patch(url, headers: _headers, body: body)
+              .timeout(const Duration(seconds: 8));
+          marked++;
+        } catch (_) {
+          // 개별 letter 실패는 무시
+        }
+      }
+      return marked;
+    } catch (e, st) {
+      if (kDebugMode) debugPrint('[FirestoreService] scrubLetters 에러: $e\n$st');
+      return 0;
+    }
+  }
+
   // ── 단일 조건 쿼리 (field == value) ─────────────────────────────────────────
   static Future<List<Map<String, dynamic>>> queryWhereEquals({
     required String collectionId,

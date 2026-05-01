@@ -690,7 +690,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Brand 인증 정보 제출 — 사업자 번호 · 등록증 URL · 담당자 전화.
   /// 현재는 SharedPreferences 에 저장만. 관리자 승인은 후속 빌드.
-  /// `autoApprove=true` 로 호출 시(디버그/베타) 즉시 인증 완료 처리.
+  ///
+  /// Build 207: `autoApprove=true` 는 베타 기간(`!kReleaseMode` 또는
+  /// `BetaConstants.disableInRelease==false`) 에만 동작. 정식 출시 빌드에서
+  /// 클라이언트가 자가 승인하지 못하도록 차단. 향후 Cloud Function 으로
+  /// `verifyBrandRequest` 를 만들어 관리자 콘솔에서만 승인 가능하게 이전 예정.
   Future<void> submitBrandVerification({
     required String businessRegistrationNumber,
     required String businessRegistrationDocUrl,
@@ -702,7 +706,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _currentUser.businessRegistrationDocUrl =
         businessRegistrationDocUrl.trim();
     _currentUser.businessContactPhone = businessContactPhone.trim();
-    if (autoApprove) {
+    final allowAutoApprove = !kReleaseMode || !BetaConstants.disableInRelease;
+    if (autoApprove && allowAutoApprove) {
       _currentUser.brandVerifiedAt = DateTime.now();
     }
     final prefs = await SharedPreferences.getInstance();
@@ -1982,8 +1987,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     return 'aes:${base64Encode(combined)}';
   }
 
-  /// Decrypts AES-256-CBC (prefixed "aes:") or falls back to legacy XOR /
-  /// raw plaintext for backward compatibility.
+  /// Decrypts AES-256-CBC (prefixed "aes:") or legacy XOR base64.
+  ///
+  /// Build 207: 마지막 catch 의 `return cipher;` (평문 fallback) 제거.
+  /// 손상되거나 외부에서 주입된 데이터를 그대로 평문 처리하면 우회 위험.
+  /// 복호화 실패 시 빈 문자열 반환 → 호출부는 "데이터 없음" 으로 안전 처리.
   static String _decryptStr(String cipher, Uint8List key) {
     try {
       if (cipher.startsWith('aes:')) {
@@ -2004,7 +2012,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       }
       return utf8.decode(output);
     } catch (_) {
-      return cipher; // 구버전 평문 데이터 호환
+      // 복호화 실패 — 평문 fallback 금지. 빈 문자열로 안전하게 무효화.
+      if (kDebugMode) {
+        debugPrint('[Crypto] _decryptStr 실패 — 손상 데이터 무시');
+      }
+      return '';
     }
   }
 
@@ -2821,15 +2833,31 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (!FirebaseConfig.kFirebaseEnabled) return;
     if (!FirebaseAuthService.isSignedIn) return;
     try {
+      // Build 207: 익명 편지의 발신자 정보를 서버 사이드에서 stripping.
+      // 이전엔 isAnonymous=true 여도 senderId/Name 가 그대로 Firestore 에
+      // 들어가 letter.id 만 알면 발신자 역추적 가능. 클라이언트 + Firestore
+      // rules 양쪽에서 enforcement.
+      //   senderId  → "anon_<letterId>" (per-letter unique, 역추적 불가)
+      //   senderName → 고정 sentinel '__anonymous__' (UI 가 i18n 으로 치환)
+      // GPS origin 도 정확한 위치 노출 차단을 위해 destination 좌표로 통일.
+      final isAnon = letter.isAnonymous;
+      final firestoreSenderId = isAnon ? 'anon_${letter.id}' : letter.senderId;
+      final firestoreSenderName = isAnon ? '__anonymous__' : letter.senderName;
+      final firestoreOriginLat = isAnon
+          ? letter.destinationLocation.latitude
+          : letter.originLocation.latitude;
+      final firestoreOriginLng = isAnon
+          ? letter.destinationLocation.longitude
+          : letter.originLocation.longitude;
       await FirestoreService.setDocument('letters/${letter.id}', {
         'id': letter.id,
-        'senderId': letter.senderId,
-        'senderName': letter.senderName,
+        'senderId': firestoreSenderId,
+        'senderName': firestoreSenderName,
         'senderCountry': letter.senderCountry,
         'senderCountryFlag': letter.senderCountryFlag,
         'content': letter.content,
-        'originLat': letter.originLocation.latitude,
-        'originLng': letter.originLocation.longitude,
+        'originLat': firestoreOriginLat,
+        'originLng': firestoreOriginLng,
         'destLat': letter.destinationLocation.latitude,
         'destLng': letter.destinationLocation.longitude,
         'destinationCountry': letter.destinationCountry,
@@ -3724,13 +3752,20 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (_currentUser.id == 'guest') return;
     if (!FirebaseConfig.kFirebaseEnabled) return;
     try {
+      // Build 207: GPS 좌표 ~100m 정밀도로 coarsen.
+      // 이전엔 cm 정밀도 그대로 업로드 → 자택 핀포인트 가능. firestore.rules
+      // list 가 isMapPublic=true 만 노출하도록 강화됐어도 좌표 자체는 coarse
+      // 하게 보내는 게 PII 방어 layer. 픽업 반경(200m–1km)에 비해 100m 오차는
+      // 게임플레이 영향 미미.
+      final coarseLat = (_currentUser.latitude * 1000).round() / 1000.0;
+      final coarseLng = (_currentUser.longitude * 1000).round() / 1000.0;
       final fields = <String, Map<String, dynamic>>{
         'id': {'stringValue': _currentUser.id},
         'username': {'stringValue': _currentUser.username},
         'countryFlag': {'stringValue': _currentUser.countryFlag},
         'country': {'stringValue': _currentUser.country},
-        'latitude': {'doubleValue': _currentUser.latitude},
-        'longitude': {'doubleValue': _currentUser.longitude},
+        'latitude': {'doubleValue': coarseLat},
+        'longitude': {'doubleValue': coarseLng},
         'isUsernamePublic': {'booleanValue': _currentUser.isUsernamePublic},
         // 지도 노출은 명시적 opt-in 필드로 관리
         'isMapPublic': {'booleanValue': _currentUser.isUsernamePublic},
