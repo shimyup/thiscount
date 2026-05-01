@@ -4210,38 +4210,9 @@ class _ComposeScreenState extends State<ComposeScreen>
                 ],
               ),
             ),
-          ] else if (!_isBulkRandom) ...[
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14, vertical: 10,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.bgSurface,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.info_outline_rounded,
-                    size: 16,
-                    color: AppColors.textMuted,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      l10n.composeSelectTargetCountry,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ],
+          // Build 210: "나라를 선택하세요" hint 제거 — destination 카드에서
+          // 이미 안내. 대량 패널 안에서 또 묻는 것처럼 보이는 사용자 혼선 해소.
           const SizedBox(height: 10),
           // 총 발송 요약
           if (_isBulkRandom)

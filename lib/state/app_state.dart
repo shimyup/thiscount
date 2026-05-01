@@ -6032,9 +6032,36 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     }
     final toCity = LatLng(finalLat, finalLng);
 
-    final isDomestic = actualSenderCountry == destinationCountry;
+    // Build 210: 라우팅 fromCountry 강건화. 이전엔 GeocodingService 가
+    // 미초기화이거나 좌표가 box 매칭 안 되면 프로필 country 로 폴백 → 한국
+    // 회원이 호주에서 호주로 보낼 때 'KR→AU' 로 잘못 인식돼 공항 경유 항공
+    // 루트가 짜였다. 두 가지 방어 추가:
+    //   1) fromCity 와 toCity 가 충분히 가까우면(< 300km) 무조건 domestic 으로
+    //      간주. 두 좌표가 한 도시 권역 내라면 국가 식별 결과와 무관하게
+    //      트럭 단일 구간이 자연스럽다.
+    //   2) GeocodingService 가 detect 실패해도 destinationCountry box 안에
+    //      fromCity 가 들어가는지 한 번 더 체크. 들어가면 domestic 으로 강제.
+    String routingFromCountry = actualSenderCountry;
+    final fromToDistanceM = fromCity.distanceTo(toCity);
+    if (fromToDistanceM < 300000) {
+      // < 300km → 같은 나라로 간주 (대륙 어느 쪽이든)
+      routingFromCountry = destinationCountry;
+    } else if (geoSvc.isInitialized &&
+        actualSenderCountry != destinationCountry) {
+      // detect 결과가 dest 와 다르더라도 fromCity 좌표가 dest 박스 안이면
+      // domestic 으로 보정.
+      final destBoxCheck = geoSvc.findCountryByCoord(
+        fromCity.latitude,
+        fromCity.longitude,
+      );
+      if (destBoxCheck?['name'] == destinationCountry) {
+        routingFromCountry = destinationCountry;
+      }
+    }
+
+    final isDomestic = routingFromCountry == destinationCountry;
     final segments = LogisticsHubs.buildRoute(
-      fromCountry: actualSenderCountry,
+      fromCountry: routingFromCountry,
       fromCity: fromCity,
       toCountry: destinationCountry,
       toCity: toCity,
