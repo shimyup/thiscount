@@ -17,16 +17,6 @@ import '../../dm/dm_conversation_screen.dart';
 // 필터 바의 표시 목록에서만 빠진다.
 enum LetterFilterType { all, read, inTransit, waitingPickup, brand, coupon, voucher, general }
 
-/// Build 169: 수집첩 정렬 옵션. Build 183 에서 `usedOnly` 추가 + 아이콘 전용
-/// 렌더링. 사용 완료된 편지를 따로 조회해 "쿠폰 히스토리" 처럼 쓸 수 있게 함.
-enum InboxSortType {
-  newest,        // 최신 도착순 (기본)
-  expiringSoon,  // 만료 임박순 — redemptionExpiresAt 오름차순, null 은 끝
-  byBrand,       // 브랜드명 가나다순
-  byCategory,    // 카테고리별 (general → coupon → voucher)
-  usedOnly,      // 사용 완료된 편지만 (markRedeemed 처리된 것)
-}
-
 /// 필터 바에 노출되는 4개 타입. Build 183: brand 제거, general 추가.
 const List<LetterFilterType> _visibleFilters = [
   LetterFilterType.all,
@@ -103,49 +93,12 @@ class _InboxScreenState extends State<InboxScreen>
   final ScrollController _inboxScrollController = ScrollController();
   LetterFilterType _inboxFilter = LetterFilterType.all;
   LetterFilterType _sentFilter = LetterFilterType.all;
-  // Build 169: 수집첩 정렬 상태 (받은 편지 탭 전용).
-  InboxSortType _inboxSort = InboxSortType.newest;
   String _searchQuery = '';
   bool _searchMode = false;
   final TextEditingController _searchController = TextEditingController();
 
   AppL10n _l10n(BuildContext context) =>
       AppL10n.of(context.read<AppState>().currentUser.languageCode);
-
-  /// Build 169: 정렬 적용 — 원본 list 복사해 sort.
-  List<Letter> _applySort(List<Letter> letters, InboxSortType sort) {
-    final sorted = List<Letter>.from(letters);
-    switch (sort) {
-      case InboxSortType.newest:
-        // 기본 — 이미 `.reversed` 상태로 넘어옴, 건드리지 않음.
-        return sorted;
-      case InboxSortType.expiringSoon:
-        // redemptionExpiresAt null 은 맨 뒤, 있는 것끼리 오름차순.
-        sorted.sort((a, b) {
-          final ax = a.redemptionExpiresAt;
-          final bx = b.redemptionExpiresAt;
-          if (ax == null && bx == null) return 0;
-          if (ax == null) return 1;
-          if (bx == null) return -1;
-          return ax.compareTo(bx);
-        });
-        return sorted;
-      case InboxSortType.byBrand:
-        sorted.sort((a, b) =>
-            a.senderName.toLowerCase().compareTo(b.senderName.toLowerCase()));
-        return sorted;
-      case InboxSortType.byCategory:
-        int k(Letter l) => l.category.index;
-        sorted.sort((a, b) => k(a).compareTo(k(b)));
-        return sorted;
-      case InboxSortType.usedOnly:
-        // Build 183: 사용 완료된 편지만 — AppState 로 isLetterRedeemed 체크.
-        final state = context.read<AppState>();
-        return sorted
-            .where((l) => state.isLetterRedeemed(l.id))
-            .toList();
-    }
-  }
 
   List<Letter> _applySearch(List<Letter> letters) {
     final q = _searchQuery.trim().toLowerCase();
@@ -413,33 +366,25 @@ class _InboxScreenState extends State<InboxScreen>
                     controller: _tabController,
                     children: [
                       _InboxTab(
-                        letters: _applySort(
-                          _applyFilter(
-                            // 뮤트된 브랜드 편지는 인박스 리스트에서 숨김
-                            // (카드 자체 제거 — 필터와 무관하게 모든 탭에서).
-                            // Build 115: 팔로우한 브랜드 편지는 상단 고정.
-                            _sortFollowedFirst(
-                              state,
-                              state.inbox
-                                  .where((l) => !(l.senderIsBrand &&
-                                      state.isBrandMuted(l.senderId)))
-                                  .toList()
-                                  .reversed
-                                  .toList(),
-                            ),
-                            filter: _inboxFilter,
-                            isInbox: true,
+                        letters: _applyFilter(
+                          // 뮤트된 브랜드 편지는 인박스 리스트에서 숨김
+                          // (카드 자체 제거 — 필터와 무관하게 모든 탭에서).
+                          // Build 115: 팔로우한 브랜드 편지는 상단 고정.
+                          _sortFollowedFirst(
+                            state,
+                            state.inbox
+                                .where((l) => !(l.senderIsBrand &&
+                                    state.isBrandMuted(l.senderId)))
+                                .toList()
+                                .reversed
+                                .toList(),
                           ),
-                          _inboxSort,
+                          filter: _inboxFilter,
+                          isInbox: true,
                         ),
                         activeFilter: _inboxFilter,
                         onFilterChanged: (next) {
                           setState(() => _inboxFilter = next);
-                        },
-                        // Build 169: 정렬 상태 + 변경 콜백.
-                        activeSort: _inboxSort,
-                        onSortChanged: (next) {
-                          setState(() => _inboxSort = next);
                         },
                         onTap: (letter) => _openLetter(context, letter, state),
                         sentSinceLastUnlock: state.sentSinceLastUnlock,
@@ -865,9 +810,6 @@ class _InboxTab extends StatelessWidget {
   final List<Letter> letters;
   final LetterFilterType activeFilter;
   final ValueChanged<LetterFilterType> onFilterChanged;
-  // Build 169: 정렬 상태.
-  final InboxSortType activeSort;
-  final ValueChanged<InboxSortType> onSortChanged;
   final void Function(Letter) onTap;
   final int sentSinceLastUnlock;
   final bool canViewNext;
@@ -877,30 +819,68 @@ class _InboxTab extends StatelessWidget {
     required this.letters,
     required this.activeFilter,
     required this.onFilterChanged,
-    required this.activeSort,
-    required this.onSortChanged,
     required this.onTap,
     required this.sentSinceLastUnlock,
     required this.canViewNext,
     this.scrollController,
   });
 
+  /// Build 204: 필터=전체일 때 카테고리별 그룹 + 헤더 삽입. 특정 필터일 때는
+  /// 단일 그룹이라 헤더 없이 letter rows 만 반환.
+  List<_InboxRow> _buildRows(List<Letter> source, AppL10n l10n) {
+    if (activeFilter != LetterFilterType.all) {
+      return source.map((l) => _InboxLetterRow(l)).toList();
+    }
+    // 카테고리별 분리 — 원래 정렬 순서(팔로우 우선 + 최신순) 유지.
+    final general = <Letter>[];
+    final coupon = <Letter>[];
+    final voucher = <Letter>[];
+    for (final l in source) {
+      switch (l.category) {
+        case LetterCategory.coupon:
+          coupon.add(l);
+          break;
+        case LetterCategory.voucher:
+          voucher.add(l);
+          break;
+        case LetterCategory.general:
+          general.add(l);
+          break;
+      }
+    }
+    final out = <_InboxRow>[];
+    void appendGroup(List<Letter> group, String label, Color color) {
+      if (group.isEmpty) return;
+      out.add(_InboxHeaderRow(
+        label: label,
+        count: group.length,
+        color: color,
+      ));
+      for (final l in group) {
+        out.add(_InboxLetterRow(l));
+      }
+    }
+    // 일반 → 할인권 → 교환권 (브랜드 카테고리 패널과 동일한 순서).
+    appendGroup(general, l10n.inboxFilterGeneral, AppColors.textSecondary);
+    appendGroup(coupon, l10n.inboxFilterCoupon, AppColors.coupon);
+    appendGroup(voucher, l10n.inboxFilterVoucher, AppColors.gold);
+    return out;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     // 체인 룰 해제 — "3통 보내야 읽기" 게이트와 🔒 배너 모두 제거됨.
     // (unread / showChainBanner 계산이 필요 없어져 삭제.)
+    // Build 204: 필터가 전체일 때 같은 분류끼리 자동 그룹핑(일반→할인권→
+    // 교환권). 각 그룹 위에 작은 섹션 헤더를 끼워 넣어 시각 분리. 특정 필터
+    // 가 켜져 있으면 그룹이 1개뿐이라 헤더 없이 평이한 리스트.
+    final List<_InboxRow> rows = _buildRows(letters, l10n);
     return Column(
       children: [
         _LetterFilterBar(
           activeFilter: activeFilter,
           onChanged: onFilterChanged,
-        ),
-        // Build 169: 정렬 선택 칩 row — 필터 아래 얇은 띠.
-        _InboxSortBar(
-          activeSort: activeSort,
-          onChanged: onSortChanged,
-          l10n: l10n,
         ),
         if (letters.isEmpty)
           Expanded(
@@ -938,9 +918,17 @@ class _InboxTab extends StatelessWidget {
             child: ListView.builder(
               controller: scrollController,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              itemCount: letters.length,
+              itemCount: rows.length,
               itemBuilder: (ctx, i) {
-                final letter = letters[i];
+                final row = rows[i];
+                if (row is _InboxHeaderRow) {
+                  return _CategorySectionHeader(
+                    label: row.label,
+                    count: row.count,
+                    color: row.color,
+                  );
+                }
+                final letter = (row as _InboxLetterRow).letter;
                 // 체인 룰 해제로 잠금 표시 항상 false.
                 const isLocked = false;
                 // Build 183: 받은 편지 카드 양방향 스와이프 —
@@ -1663,96 +1651,68 @@ class _LetterCard extends StatelessWidget {
   }
 }
 
-/// Build 169: 수집첩 정렬 선택 바 — 4 가지 옵션 수평 chip.
-/// Filter 바 아래 얇은 띠로 배치. 기본 선택은 최신순.
-class _InboxSortBar extends StatelessWidget {
-  final InboxSortType activeSort;
-  final ValueChanged<InboxSortType> onChanged;
-  final AppL10n l10n;
+/// Build 204: 수집첩 동일 분류 그룹 헤더 + 행 모델.
+sealed class _InboxRow {}
 
-  const _InboxSortBar({
-    required this.activeSort,
-    required this.onChanged,
-    required this.l10n,
+class _InboxLetterRow extends _InboxRow {
+  final Letter letter;
+  _InboxLetterRow(this.letter);
+}
+
+class _InboxHeaderRow extends _InboxRow {
+  final String label;
+  final int count;
+  final Color color;
+  _InboxHeaderRow({
+    required this.label,
+    required this.count,
+    required this.color,
   });
+}
 
-  /// Build 183: 툴팁용 라벨 (accessibility + hover). 화면에는 이모지만.
-  String _label(InboxSortType type) {
-    switch (type) {
-      case InboxSortType.newest:
-        return l10n.inboxSortNewest;
-      case InboxSortType.expiringSoon:
-        return l10n.inboxSortExpiring;
-      case InboxSortType.byBrand:
-        return l10n.inboxSortByBrand;
-      case InboxSortType.byCategory:
-        return l10n.inboxSortByCategory;
-      case InboxSortType.usedOnly:
-        return l10n.inboxSortUsedOnly;
-    }
-  }
-
-  String _emoji(InboxSortType type) {
-    switch (type) {
-      case InboxSortType.newest:
-        return '🕐';
-      case InboxSortType.expiringSoon:
-        return '⏰';
-      case InboxSortType.byBrand:
-        return '🏢';
-      case InboxSortType.byCategory:
-        return '🎟';
-      case InboxSortType.usedOnly:
-        return '✅';
-    }
-  }
+class _CategorySectionHeader extends StatelessWidget {
+  final String label;
+  final int count;
+  final Color color;
+  const _CategorySectionHeader({
+    required this.label,
+    required this.count,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
-    // Build 183: 아이콘 전용 — 라벨은 Tooltip/Semantics 로만 노출. 화면을
-    // 깔끔하게 유지 + 공간 회수. 활성 아이콘은 gold tint + 굵은 테두리.
-    return Container(
-      height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 14, 4, 8),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          for (final type in InboxSortType.values) ...[
-            Tooltip(
-              message: _label(type),
-              child: Semantics(
-                label: _label(type),
-                button: true,
-                selected: activeSort == type,
-                child: InkWell(
-                  onTap: () => onChanged(type),
-                  borderRadius: BorderRadius.circular(AppRadius.pill),
-                  child: Container(
-                    width: 34,
-                    height: 32,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: activeSort == type
-                          ? AppColors.gold.withValues(alpha: 0.18)
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(AppRadius.pill),
-                      border: Border.all(
-                        color: activeSort == type
-                            ? AppColors.gold.withValues(alpha: 0.65)
-                            : AppColors.textMuted.withValues(alpha: 0.2),
-                        width: activeSort == type ? 1.3 : 0.8,
-                      ),
-                    ),
-                    child: Text(
-                      _emoji(type),
-                      style: const TextStyle(fontSize: 15),
-                    ),
-                  ),
-                ),
+          Container(width: 3, height: 14, color: color),
+          const SizedBox(width: 8),
+          Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.66,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              '$count',
+              style: TextStyle(
+                color: color,
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
               ),
             ),
-            if (type != InboxSortType.values.last) const SizedBox(width: 6),
-          ],
+          ),
         ],
       ),
     );

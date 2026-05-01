@@ -14,6 +14,7 @@ import '../../../state/app_state.dart';
 import '../../settings/settings_screen.dart';
 import '../../premium/premium_screen.dart';
 import '../../../widgets/shared_profile_dialogs.dart';
+import '../../brand/brand_analytics_card.dart';
 
 class TowerScreen extends StatefulWidget {
   const TowerScreen({super.key});
@@ -223,33 +224,35 @@ class _TowerScreenState extends State<TowerScreen>
                       const SizedBox(height: 8),
                       _buildCharacterGallery(state, user),
                     ],
-                    // ── Build 203: 유저 카드 + 스탯 그리드 통합 ──
-                    // 이전엔 별개 카드 2개로 분산 → 하나의 identity 카드로 통합.
-                    // 아바타/이름 위, 3-stat 인라인 row 아래.
+                    // Build 204: Brand 타워 화면 재구성 — 캠페인 분석을 핵심
+                    // 으로 끌어올리고 브랜드 정체성/성장 지표는 캠페인 맥락
+                    // 으로 통합. Free/Premium 은 기존 레터 캐릭터 흐름 유지.
                     if (user.isBrand) ...[
+                      // 1) 신원 카드 (브랜드명/타워명 편집 + 티어 배지)
                       _buildUserCard(context, user, score),
                       const SizedBox(height: 14),
+                      // 2) 캠페인 분석 — 브랜드 계정의 핵심 지표.
+                      const BrandAnalyticsCard(),
+                      const SizedBox(height: 14),
+                      // 3) 성장 게이지 — 캠페인 활동량이 곧 타워 성장이라는
+                      //    프레이밍으로 레이블 재작성 (_buildTierGauge 안에서 처리).
                       _buildStatsGrid(context, score),
                       const SizedBox(height: 14),
+                      // 4) 다음 마일스톤 (캠페인 리듬으로 표현).
+                      _buildLevelUpGuide(context, score),
+                      const SizedBox(height: 14),
+                      // 5) 커뮤니티 비교 (그대로).
+                      _buildCommunityTowers(context, state),
                     ] else ...[
                       _buildCombinedIdentityStats(context, user, score),
                       const SizedBox(height: 14),
-                    ],
-                    // Build 180: Free/Premium 은 레벨업 가이드 숨김 — 레터 hero
-                    // 의 로드맵 pill (Build 177) 과 중복. Brand 만 타워 진척 안내.
-                    if (user.isBrand) ...[
-                      _buildLevelUpGuide(context, score),
+                      // Build 180: 성취 배지 ExpansionTile — Free/Premium 만
+                      // 타워 화면에서 노출 (Brand 는 분석 데이터로 대체).
+                      _buildAchievementsCollapsible(
+                        context, score, user.languageCode, isBrand,
+                      ),
                       const SizedBox(height: 14),
                     ],
-                    // Build 180: 성취 배지 ExpansionTile 로 접기.
-                    // Build 184: isBrand 전달 → 타워 티어 성취는 Brand 한정.
-                    _buildAchievementsCollapsible(
-                      context, score, user.languageCode, isBrand,
-                    ),
-                    const SizedBox(height: 14),
-                    // Build 184: 커뮤니티 타워 랭킹 — Brand 만. Free/Premium 은
-                    // 타워 은유 전반을 숨겨 레터 캐릭터 내러티브 통일.
-                    if (isBrand) _buildCommunityTowers(context, state),
                     const SizedBox(height: 40),
                   ],
                 ),
@@ -1256,19 +1259,36 @@ class _TowerScreenState extends State<TowerScreen>
 
   Widget _buildStatsGrid(BuildContext ctx, ActivityScore score) {
     final _sl = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
+    final isBrandUser = ctx.read<AppState>().currentUser.isBrand;
+    // Build 204: Brand 에게는 "캠페인 성장" 으로 프레이밍 — 발송/픽업/답장이
+    // 곧 캠페인 활동량이고, 그게 곧 타워 성장이라는 일관된 메시지.
+    final title = isBrandUser
+        ? '📈 ${_sl.towerActivityStats}'
+        : _sl.towerActivityStats;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            _sl.towerActivityStats,
+            title,
             style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
               color: AppColors.textSecondary,
               letterSpacing: 1.0,
               fontWeight: FontWeight.w600,
             ),
           ),
+          if (isBrandUser) ...[
+            const SizedBox(height: 4),
+            Text(
+              _sl.towerScoreFormula,
+              style: const TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 11,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           Row(
             children: [

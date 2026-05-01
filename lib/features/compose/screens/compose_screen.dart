@@ -210,7 +210,9 @@ class _ComposeScreenState extends State<ComposeScreen>
 
   // ── 브랜드 대량 발송 ──────────────────────────────────────────────────────
   bool _isBulkMode = false; // 대량 발송 모드 여부
-  bool _isBulkRandom = false; // 랜덤 국가 대량 발송 모드
+  // Build 204: 별도 `_isBulkRandom` 토글 폐기 — 상단 destination 카드의
+  // `_isRandom` 을 그대로 따른다. 사용자가 한 번만 결정하도록 통일.
+  bool get _isBulkRandom => _isRandom;
   final List<Map<String, dynamic>> _bulkTargets = []; // 선택된 나라 목록
 
   // ── 브랜드 특송 ───────────────────────────────────────────────────────────
@@ -468,8 +470,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                         snap['isExactDropped'] as bool? ?? false;
                     _sendPerCountry =
                         (snap['sendPerCountry'] as num?)?.toInt() ?? 5;
-                    _isBulkRandom =
-                        snap['isBulkRandom'] as bool? ?? false;
+                    // Build 204: `isBulkRandom` 키 폐기 — _isRandom 이 단일 source.
                     _bulkTargets.clear();
                     final rawTargets = snap['bulkTargets'];
                     if (rawTargets is List) {
@@ -1326,11 +1327,11 @@ class _ComposeScreenState extends State<ComposeScreen>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 14),
-                            // Build 201 — 사용자 요청 재배치:
+                            // Build 204 — 사용자 요청 재배치:
                             //   1) 나라 선택
-                            //   2) 대량 발송 (나라와 편지종류 사이)
-                            //   3) 특급 배송 (대량 밑)
-                            //   4) 편지 종류 (Brand 카테고리)
+                            //   2) 편지 종류 (일반/할인/교환) — 나라 바로 아래
+                            //   3) 대량 발송 (Brand)
+                            //   4) 특급 배송
                             //   5) 오늘의 영감 (강조)
                             //   6) 편지 꾸미기 (StyleBar)
                             //   7) 더 많은 옵션 (접히는 섹션 — SNS/익명/이미지 등)
@@ -1340,9 +1341,14 @@ class _ComposeScreenState extends State<ComposeScreen>
                               _buildDestinationCard(state, hasPremium),
                             if (!_isReply) const SizedBox(height: 8),
 
-                            // ── 대량 발송 (Brand) — 나라와 편지종류 사이 ──
+                            // ── 편지 종류 (Brand 카테고리 / 일반에겐 안내 시트) ──
+                            if (!_isReply) _buildBrandCategoryPanel(state),
+                            if (!_isReply) const SizedBox(height: 8),
+
+                            // ── 대량 발송 (Brand) ──
+                            // Build 204: 활성 모드 배너 제거 — 토글 자체에 ON/OFF
+                            // 가 명확히 표시되어 두 곳에서 끄기 버튼이 중복.
                             if (!_isReply && isBrand) ...[
-                              if (_isBulkMode) _buildActiveModeBanner(state),
                               _buildBulkModeToggle(),
                               const SizedBox(height: 8),
                               if (_isBulkMode) ...[
@@ -1352,10 +1358,6 @@ class _ComposeScreenState extends State<ComposeScreen>
                             ],
                             // ── 특급 배송 — 대량 밑 ──
                             if (!_isReply) _buildExpressToggle(state, hasPremium),
-                            if (!_isReply) const SizedBox(height: 8),
-
-                            // ── 편지 종류 (Brand 카테고리 / 일반에겐 안내 시트) ──
-                            if (!_isReply) _buildBrandCategoryPanel(state),
                             if (!_isReply) const SizedBox(height: 8),
 
                             // ── 오늘의 영감 (강조 노출) ──
@@ -3947,77 +3949,8 @@ class _ComposeScreenState extends State<ComposeScreen>
     );
   }
 
-  /// Build 189: bulk/express 모드가 켜진 상태에서 명시적 "끄기" 를 제공하는 배너.
-  /// 모드를 모르고 닫아 버려서 발송 실수가 나는 걸 방지 + 되돌리기 가능.
-  Widget _buildActiveModeBanner(AppState state) {
-    final l10n = AppL10n.of(state.currentUser.languageCode);
-    final orange = AppColors.coupon;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: orange.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: orange.withValues(alpha: 0.55),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            const Text('📦', style: TextStyle(fontSize: 15)),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                l10n.composeBulkModeActive,
-                style: TextStyle(
-                  color: orange,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-            InkWell(
-              onTap: () {
-                setState(() {
-                  _isBulkMode = false;
-                  _bulkTargets.clear();
-                  _isExpressMode = false;
-                });
-              },
-              borderRadius: BorderRadius.circular(6),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.close_rounded,
-                      color: orange,
-                      size: 14,
-                    ),
-                    const SizedBox(width: 3),
-                    Text(
-                      l10n.composeDisableMode,
-                      style: TextStyle(
-                        color: orange,
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // Build 204: `_buildActiveModeBanner` 폐기 — 토글 자체가 ON 상태를 명확히
+  // 표시하고 끄기도 가능. 두 곳에서 끄기 버튼이 보여 사용자가 헷갈리는 문제 해소.
 
   // ── 브랜드 대량 발송 패널 ────────────────────────────────────────────────
   Widget _buildBulkSendPanel(AppState state) {
@@ -4147,71 +4080,11 @@ class _ComposeScreenState extends State<ComposeScreen>
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          // 랜덤 국가 토글
-          GestureDetector(
-            onTap: () => setState(() {
-              _isBulkRandom = !_isBulkRandom;
-              if (_isBulkRandom) _bulkTargets.clear();
-            }),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: _isBulkRandom
-                    ? AppColors.streak.withValues(alpha: 0.12)
-                    : AppColors.bgSurface,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: _isBulkRandom
-                      ? AppColors.streak.withValues(alpha: 0.6)
-                      : AppColors.textMuted.withValues(alpha: 0.2),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Text('🎲', style: const TextStyle(fontSize: 16)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.composeBulkRandomCountry,
-                          style: TextStyle(
-                            color: _isBulkRandom
-                                ? AppColors.streak
-                                : AppColors.textSecondary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        if (_isBulkRandom)
-                          Text(
-                            l10n.composeBulkRandomDesc,
-                            style: const TextStyle(
-                              color: AppColors.streak,
-                              fontSize: 10,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  Switch(
-                    value: _isBulkRandom,
-                    onChanged: (v) => setState(() {
-                      _isBulkRandom = v;
-                      if (v) _bulkTargets.clear();
-                    }),
-                    activeColor: AppColors.streak,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // Build 201: destination 카드에서 이미 선택한 나라가 자동으로
-          // bulk target. 따라서 나라 그리드 제거. 단 hasFixedTarget=false
-          // (나라 선택 안 됨 + 랜덤 모드도 아님) 일 때만 안내 메시지 표시.
+          // Build 204: 별도 "랜덤 국가" 토글 폐기 — 상단 destination 카드에서
+          // 이미 나라/랜덤을 선택했으므로 두 번 묻지 않는다. _isBulkRandom 은
+          // _isRandom getter 로 자동 동기화. 발송 시 destination 카드에서 이미
+          // 선택한 나라가 자동으로 bulk target. 단 hasFixedTarget=false
+          // (랜덤 모드) 일 때는 모든 나라로 무작위 발송.
           if (hasFixedTarget) ...[
             const SizedBox(height: 12),
             Container(
