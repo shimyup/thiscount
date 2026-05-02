@@ -115,7 +115,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   List<MapUser> get mapUsers => List.unmodifiable(_mapUsers);
   DateTime? _lastMapUsersFetchedAt;
   bool _isFetchingMapUsers = false;
-  static const Duration _mapUsersMinRefreshInterval = Duration(minutes: 10);
+  // Build 218: 베타 빌드에서는 30초로 짧게 — 테스터들이 같은 지도에서 서로
+  // 빨리 보이도록. 정식 빌드는 10분 유지 (비용/배터리).
+  static Duration get _mapUsersMinRefreshInterval =>
+      (kDebugMode || !BetaConstants.disableInRelease || !kReleaseMode)
+          ? const Duration(seconds: 30)
+          : const Duration(minutes: 10);
   static const int _mapUsersPageSize = 100;
   static const int _mapUsersMaxPages = 2;
   static const int _mapUsersMaxCount = 180;
@@ -161,8 +166,52 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   List<Letter> get sent => List.unmodifiable(_sent);
 
   // ── 2km 이내 편지 ─────────────────────────────────────────────────────────
-  List<Letter> get nearbyLetters =>
-      _worldLetters.where((l) => l.status == DeliveryStatus.nearYou).toList();
+  // Build 218: Premium Lv11+ 가 카테고리 선호를 설정하면 매칭 카테고리 편지가
+  // 리스트 앞쪽으로 오도록 정렬 부스트 (UI · 알림 · 가장 가까운 편지 추천에서
+  // 선호 카테고리 우선 노출).
+  List<Letter> get nearbyLetters {
+    final list = _worldLetters
+        .where((l) => l.status == DeliveryStatus.nearYou)
+        .toList();
+    final pref = preferredCategory;
+    if (pref != null && _currentUser.isPremium && currentLevel >= 11) {
+      list.sort((a, b) {
+        final aMatch = a.category == pref ? 0 : 1;
+        final bMatch = b.category == pref ? 0 : 1;
+        return aMatch.compareTo(bMatch);
+      });
+    }
+    return list;
+  }
+
+  // ── 카테고리 선호 (Premium Lv11+ 전용) ──────────────────────────────────
+  /// 선호 카테고리 잠금 해제 조건 — Brand 가 아니고 Premium Level 11 이상.
+  bool get isCategoryPreferenceUnlocked =>
+      !_currentUser.isBrand &&
+      _currentUser.isPremium &&
+      currentLevel >= 11;
+
+  /// 현재 선호 카테고리 (없으면 null).
+  LetterCategory? get preferredCategory {
+    final key = _currentUser.preferredCategoryKey;
+    if (key == null || key.isEmpty) return null;
+    return LetterCategoryExt.fromKey(key);
+  }
+
+  /// 선호 카테고리 변경. 잠금 해제 조건 미충족 시 false 반환.
+  /// `null` 또는 `LetterCategory.general` 전달 = 선호 해제 (랜덤).
+  bool setPreferredCategory(LetterCategory? c) {
+    if (!isCategoryPreferenceUnlocked) return false;
+    if (c == null || c == LetterCategory.general) {
+      _currentUser.preferredCategoryKey = null;
+    } else {
+      _currentUser.preferredCategoryKey = c.key;
+    }
+    notifyListeners();
+    _saveToPrefs();
+    _saveUserToFirestore();
+    return true;
+  }
 
   // ── 주변 편지 줍기 제한 (무료: 1시간, 프리미엄: 10분, 선착순) ─────────────
   /// 티어별 쿨다운: 프리미엄/브랜드 10분, 무료 60분
@@ -1745,6 +1794,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       // Build 205: 백그라운드 동안 wall-clock 기반 진행을 즉시 catch-up.
       // (timer 없이도 한 번 sync — 진행이 멈춰 보이지 않게)
       _reconcileLetterStatuses();
+      // Build 218: 진행도 sync 직후 1회 tick 으로 nearYou/deliveredFar
+      // 상태 전환 + UI 알림까지 즉시 반영. 5s timer 첫 발화 대기 없이
+      // 사용자가 "편지가 멈춰 있다" 고 느끼는 빈 frame 을 제거.
+      _runDeliveryTick(triggerNotifications: false);
       // 포그라운드 복귀 → 타이머 재시작
       if (_deliveryTimer == null || !_deliveryTimer!.isActive) {
         _startDeliverySimulation();
@@ -2129,6 +2182,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       // 타워 이름 / 언어 코드 영속 저장
       prefs.setString('customTowerName', _currentUser.customTowerName ?? '');
       prefs.setString('languageCode', _currentUser.languageCode);
+      // Build 218: 카테고리 선호 영속 저장 (Premium Lv11+)
+      prefs.setString(
+        'preferredCategoryKey',
+        _currentUser.preferredCategoryKey ?? '',
+      );
       prefs.setInt(
         'lastNearbyPickupAtMs',
         _lastNearbyPickupAt?.millisecondsSinceEpoch ?? 0,
@@ -2440,6 +2498,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       orElse: () => DisplayThemeMode.auto,
     );
 
+    // Build 218: 카테고리 선호 복원
+    final savedPreferredCategory =
+        prefs.getString('preferredCategoryKey') ?? '';
+    _currentUser.preferredCategoryKey =
+        savedPreferredCategory.isEmpty ? null : savedPreferredCategory;
+
     // 타워 이름 복원
     final savedTowerName = prefs.getString('customTowerName') ?? '';
     if (savedTowerName.isNotEmpty) {
@@ -2661,6 +2725,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
     if (changed) {
       _saveToPrefs();
+      // Build 218: 백그라운드에서 진행이 catch-up 됐어도 UI 가 안 바뀌면
+      // "편지가 가다가 멈춰 보이는" 체감 버그가 그대로 남는다. 명시적으로
+      // notify 해서 지도/수집첩이 즉시 새 상태로 다시 그려지게.
+      notifyListeners();
     }
   }
 
@@ -3228,6 +3296,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     unawaited(_runMapSync());
   }
 
+  /// Build 218: 사용자가 명시적으로 새로고침을 요청할 때 (지도 풀투리프레시 등).
+  /// fetchMapUsers cooldown 우회 + 즉시 1회.
+  Future<void> forceRefreshMapUsersAndLetters() async {
+    if (!FirebaseConfig.kFirebaseEnabled) return;
+    if (_currentUser.id.isEmpty || _currentUser.id == 'guest') return;
+    await Future.wait([
+      fetchMapUsers(force: true),
+      _runLetterSync(),
+    ]);
+  }
+
   Future<void> _runLetterSync() async {
     if (_syncPaused || _syncInFlight) return;
     _syncInFlight = true;
@@ -3662,6 +3741,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // 첫 실행 빈 지도 경험 해소 — 온보딩 직후 반경 안에 반드시 줍을 수 있는
     // 환영 편지가 보이도록.
     unawaited(_maybePlaceTutorialLetter());
+    // Build 218: 베타 테스트 기간 한정 — 다양한 카테고리/거리/발신자의 데모
+    // 편지 6~10통을 유저 반경 내 살포. 빈 지도에서 "주워도 아무 것도 안 뜸"
+    // 문제 해소. 정식 출시 빌드 (`disableInRelease=true` & kReleaseMode)
+    // 에서는 자동으로 비활성화.
+    unawaited(_maybeSeedDemoLetters());
   }
 
   /// Build 149: 첫 실행 시 유저 근처(~100m)에 환영 편지 1통 자동 배치.
@@ -3722,6 +3806,129 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       }
     } catch (e) {
       if (kDebugMode) debugPrint('[Tutorial] 환영 편지 배치 실패: $e');
+    }
+  }
+
+  /// Build 218: 베타 테스트 기간 전용 — 유저 반경 안쪽에 다양한 편지 8통 살포.
+  ///
+  /// 활성 조건 (모두 만족):
+  ///   - Brand 가 아닐 것 (광고주 ROI 오염 방지)
+  ///   - 좌표 확보됨
+  ///   - SharedPreferences `demo_letters_seeded_v1` 가 미설정
+  ///   - 베타 빌드 — `kDebugMode` 또는 `BetaConstants.disableInRelease == false`
+  ///
+  /// 배치 패턴:
+  ///   - 8 방위(N/NE/E/SE/S/SW/W/NW) 에 50~280m 거리로 분산
+  ///   - LetterCategory 3종 (general·coupon·voucher) 골고루 + 발신자 8개국 회전
+  ///   - status=delivered → 즉시 nearYou 로 전환되어 반경 안 줍기 가능
+  ///   - id prefix `demo_seed_` → 데모 표식. 실 픽업 통계와 분리 가능
+  Future<void> _maybeSeedDemoLetters() async {
+    try {
+      if (_currentUser.isBrand) return;
+      if (_currentUser.latitude == 0 && _currentUser.longitude == 0) return;
+      // 정식 출시 빌드에서는 비활성화 (베타 한정 기능)
+      final isBetaBuild =
+          kDebugMode || !BetaConstants.disableInRelease || !kReleaseMode;
+      if (!isBetaBuild) return;
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool('demo_letters_seeded_v1') == true) return;
+
+      final myLat = _currentUser.latitude;
+      final myLng = _currentUser.longitude;
+      final now = DateTime.now();
+      final rand = Random(now.millisecondsSinceEpoch);
+
+      // 8 방위 + 거리 (반경 200~1000m 내 분산)
+      const samples = <Map<String, Object>>[
+        {'bearingDeg': 0,   'distM': 60,  'sender': 'Emma',     'country': '영국',     'flag': '🇬🇧'},
+        {'bearingDeg': 45,  'distM': 110, 'sender': 'Yuki',     'country': '일본',     'flag': '🇯🇵'},
+        {'bearingDeg': 90,  'distM': 170, 'sender': 'Lucas',    'country': '브라질',   'flag': '🇧🇷'},
+        {'bearingDeg': 135, 'distM': 230, 'sender': 'Marie',    'country': '프랑스',   'flag': '🇫🇷'},
+        {'bearingDeg': 180, 'distM': 90,  'sender': 'James',    'country': '미국',     'flag': '🇺🇸'},
+        {'bearingDeg': 225, 'distM': 150, 'sender': 'Lina',     'country': '독일',     'flag': '🇩🇪'},
+        {'bearingDeg': 270, 'distM': 200, 'sender': 'Carlos',   'country': '스페인',   'flag': '🇪🇸'},
+        {'bearingDeg': 315, 'distM': 280, 'sender': 'Sofia',    'country': '아르헨티나','flag': '🇦🇷'},
+      ];
+
+      // 카테고리 풀 — Premium 카테고리 선호도 부스트가 켜져 있으면 50% 매칭.
+      final preferred = preferredCategory;
+      final boostActive =
+          preferred != null && _currentUser.isPremium && currentLevel >= 11;
+      LetterCategory pickCategory(int idx) {
+        if (boostActive && rand.nextDouble() < 0.5) return preferred;
+        // 8통 중 골고루: 4 general / 2 coupon / 2 voucher
+        if (idx == 1 || idx == 5) return LetterCategory.coupon;
+        if (idx == 3 || idx == 6) return LetterCategory.voucher;
+        return LetterCategory.general;
+      }
+
+      const sampleBodies = <String>[
+        '안녕하세요! 오늘 우연히 이 앱을 알게 되어 첫 편지를 보내요. 당신의 하루는 어떤가요?',
+        'こんにちは！世界の反対側から手紙を送ります。良い一日を！',
+        'Hello from across the world! Hope this little note brightens your day.',
+        '낯선 사람의 안부, 그 자체가 작은 선물이라고 믿어요. 항상 건강하세요.',
+        'Bonjour ! J\'envoie cette lettre depuis très loin. Quel temps fait-il chez toi ?',
+        '걷다가 우연히 발견한 편지가 누군가의 하루를 바꿀 수 있다면, 그게 마법이겠죠.',
+        '¡Hola! Envío esta carta con mucho cariño. Espero que te haga sonreír.',
+        'Wherever you are, may today be gentler than yesterday.',
+      ];
+
+      int placed = 0;
+      for (int i = 0; i < samples.length; i++) {
+        final s = samples[i];
+        final bearing = (s['bearingDeg'] as int) * pi / 180.0;
+        final distM = (s['distM'] as int).toDouble();
+        // 위도 1도 ≈ 111km. 경도 1도 ≈ cos(lat)·111km.
+        final dLat = (distM / 111000.0) * cos(bearing);
+        final dLng = (distM / (111000.0 * cos(myLat * pi / 180.0).abs().clamp(1e-6, 1.0))) * sin(bearing);
+        final lat = myLat + dLat;
+        final lng = myLng + dLng;
+        final cat = pickCategory(i);
+        final id = 'demo_seed_${i}_${now.millisecondsSinceEpoch}';
+        if (_worldLetters.any((l) => l.id == id)) continue;
+
+        _worldLetters.add(
+          Letter(
+            id: id,
+            senderId: 'demo_${s['flag']}',
+            senderName: s['sender'] as String,
+            senderCountry: s['country'] as String,
+            senderCountryFlag: s['flag'] as String,
+            content: sampleBodies[i % sampleBodies.length],
+            originLocation: LatLng(lat, lng),
+            destinationLocation: LatLng(lat, lng),
+            destinationCountry: _currentUser.country,
+            destinationCountryFlag: _currentUser.countryFlag,
+            destinationCity: null,
+            segments: const [],
+            currentSegmentIndex: 0,
+            status: DeliveryStatus.delivered, // 즉시 픽업 가능
+            sentAt: now.subtract(Duration(minutes: 30 + i * 5)),
+            arrivedAt: now,
+            arrivalTime: now,
+            estimatedTotalMinutes: 0,
+            isAnonymous: false,
+            senderIsBrand: false,
+            senderTier: LetterSenderTier.free,
+            category: cat,
+            acceptsReplies: true,
+            deliveryEmoji: cat == LetterCategory.coupon
+                ? '🎟'
+                : cat == LetterCategory.voucher
+                    ? '🎁'
+                    : '💌',
+          ),
+        );
+        placed++;
+      }
+
+      await prefs.setBool('demo_letters_seeded_v1', true);
+      if (placed > 0) notifyListeners();
+      if (kDebugMode) {
+        debugPrint('[DemoSeed] 데모 편지 $placed통 배치 (boost=$boostActive)');
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('[DemoSeed] 데모 편지 배치 실패: $e');
     }
   }
 
@@ -3859,6 +4066,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           'towerAccentEmoji': {'stringValue': _currentUser.towerAccentEmoji!},
         'towerRoofStyle': {'integerValue': '${_currentUser.towerRoofStyle}'},
         'towerWindowStyle': {'integerValue': '${_currentUser.towerWindowStyle}'},
+        // Build 218: 카테고리 선호 (Premium Lv11+ 한정)
+        if (_currentUser.preferredCategoryKey != null)
+          'preferredCategoryKey': {
+            'stringValue': _currentUser.preferredCategoryKey!,
+          },
       };
       // updateMask 를 명시해야 PATCH 가 다른 필드(예: 병렬로 쓰는 invite 정보)를
       // 삭제하지 않는다. 이걸 빼면 병렬 쓰기가 서로의 필드를 밀어내 0,0 좌표가

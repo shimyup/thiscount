@@ -455,6 +455,13 @@ class UserProfile {
   String? businessContactPhone;
   DateTime? brandVerifiedAt;
 
+  // ── 카테고리 선호 (Build 218) ───────────────────────────────────────────
+  // Premium Level 11 이상 유저가 "받고 싶은 편지 카테고리"를 지정할 수 있다.
+  // null = 미설정(랜덤). LetterCategory 의 키 문자열로 직렬화.
+  // 설정되어 있으면 매칭 카테고리 편지가 nearbyLetters · 데모 시드 · AI 발송에서
+  // 우선순위 가중치를 받는다. 강제 필터가 아니라 확률 부스트.
+  String? preferredCategoryKey;
+
   UserProfile({
     required this.id,
     required this.username,
@@ -486,6 +493,7 @@ class UserProfile {
     this.businessRegistrationDocUrl,
     this.businessContactPhone,
     this.brandVerifiedAt,
+    this.preferredCategoryKey,
   }) : activityScore = activityScore ?? ActivityScore(),
        joinedAt = joinedAt ?? DateTime.now(),
        followingIds = followingIds ?? [],

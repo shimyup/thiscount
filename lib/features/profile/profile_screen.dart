@@ -22,8 +22,10 @@ import '../../../core/services/auth_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/purchase_service.dart';
 import '../../../state/app_state.dart';
+import '../../../models/letter.dart';
 import '../../../models/user_profile.dart';
 import '../../../widgets/shared_profile_dialogs.dart';
+import '../premium/premium_gate_sheet.dart';
 import '../premium/premium_screen.dart';
 import 'stamp_album_screen.dart';
 
@@ -917,6 +919,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           // Free/Premium 게임플레이 요소.
                           if (!user.isBrand) ...[
                             _buildStampAlbumBanner(ctx, state),
+                            const SizedBox(height: 12),
+                          ],
+                          // Build 218: Premium Lv11+ 카테고리 선호 카드.
+                          // Brand 가 카테고리별로 보낸 편지 중, 내가 받고 싶은
+                          // 카테고리 매칭 확률을 높여준다 (50% 부스트).
+                          // Lv11 미만 / Free 는 잠금 상태로 노출 (업그레이드 유도).
+                          if (!user.isBrand) ...[
+                            _PreferredCategoryCard(state: state),
                             const SizedBox(height: 12),
                           ],
                           // ⑤ 팔로잉/팔로워 탭
@@ -2765,6 +2775,245 @@ class _FollowStatChip extends StatelessWidget {
           style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
         ),
       ],
+    );
+  }
+}
+
+/// Build 218: 카테고리 선호 카드 (Premium Lv11+ 전용)
+///
+/// Brand 가 발송하는 편지가 일반/할인권/교환권 3종으로 분기되는데,
+/// 이 카드는 유저가 "받고 싶은 카테고리"를 골라 매칭 확률을 부스트한다.
+///
+/// 잠금 조건:
+///   - Premium 미가입 → "Premium 가입" CTA
+///   - Premium Lv11 미만 → "Lv11 도달 후 잠금 해제" 안내 (xpToNextLevel 표시)
+///   - Lv11+ → 3개 칩 활성, 탭 시 즉시 적용
+///
+/// 부스트 동작:
+///   - `AppState.nearbyLetters` 가 매칭 카테고리를 리스트 앞쪽으로 정렬
+///   - 데모 시드 (베타) 가 50% 매칭 카테고리로 생성
+///   - Brand 광고/캠페인 노출 시 매칭 우선
+class _PreferredCategoryCard extends StatelessWidget {
+  final AppState state;
+  const _PreferredCategoryCard({required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    final user = state.currentUser;
+    final unlocked = state.isCategoryPreferenceUnlocked;
+    final selected = state.preferredCategory;
+    final level = state.currentLevel;
+
+    final lockReason = !user.isPremium
+        ? '🔒 Premium 가입 후 Lv 11 부터'
+        : (level < 11 ? '🔒 Lv $level → Lv 11 도달 시 잠금 해제' : null);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: unlocked
+              ? AppColors.teal.withValues(alpha: 0.45)
+              : AppColors.textMuted.withValues(alpha: 0.18),
+          width: unlocked ? 1.3 : 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('🎯', style: TextStyle(fontSize: 18)),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  '받고 싶은 편지 카테고리',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              if (unlocked && selected != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.teal.withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: const Text(
+                    'ON',
+                    style: TextStyle(
+                      color: AppColors.teal,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            unlocked
+                ? '브랜드가 보낸 편지 중 선택 카테고리의 픽업 확률이 올라가요.'
+                : (lockReason ?? '잠금 해제'),
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 12,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              for (final c in const [
+                LetterCategory.general,
+                LetterCategory.coupon,
+                LetterCategory.voucher,
+              ]) ...[
+                Expanded(
+                  child: _PreferredCategoryChip(
+                    category: c,
+                    isSelected: unlocked &&
+                        ((c == LetterCategory.general && selected == null) ||
+                            selected == c),
+                    isLocked: !unlocked,
+                    onTap: () {
+                      if (!unlocked) {
+                        if (!user.isPremium) {
+                          PremiumGateSheet.show(
+                            context,
+                            featureName: '카테고리 선호 부스트',
+                            featureEmoji: '🎯',
+                            description:
+                                'Premium 가입 후 Lv 11 도달 시, 받고 싶은 편지 카테고리를 지정하면 매칭 확률이 올라갑니다.',
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Lv 11 도달 후 잠금 해제 (현재 Lv $level)',
+                              ),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                        return;
+                      }
+                      // general 선택 = 선호 해제 (랜덤)
+                      state.setPreferredCategory(
+                        c == LetterCategory.general ? null : c,
+                      );
+                    },
+                  ),
+                ),
+                if (c != LetterCategory.voucher) const SizedBox(width: 8),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PreferredCategoryChip extends StatelessWidget {
+  final LetterCategory category;
+  final bool isSelected;
+  final bool isLocked;
+  final VoidCallback onTap;
+
+  const _PreferredCategoryChip({
+    required this.category,
+    required this.isSelected,
+    required this.isLocked,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final emoji = category == LetterCategory.coupon
+        ? '🎟'
+        : category == LetterCategory.voucher
+            ? '🎁'
+            : '✉️';
+    final label = category == LetterCategory.coupon
+        ? '할인권'
+        : category == LetterCategory.voucher
+            ? '교환권'
+            : '랜덤';
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Opacity(
+        opacity: isLocked ? 0.55 : 1.0,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.teal.withValues(alpha: 0.16)
+                : AppColors.bgSurface,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isSelected
+                  ? AppColors.teal
+                  : AppColors.textMuted.withValues(alpha: 0.3),
+              width: isSelected ? 1.4 : 1,
+            ),
+          ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Column(
+                children: [
+                  Text(emoji, style: const TextStyle(fontSize: 22)),
+                  const SizedBox(height: 4),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: isSelected
+                          ? AppColors.teal
+                          : AppColors.textSecondary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+              if (isLocked)
+                Positioned(
+                  top: -4,
+                  right: -4,
+                  child: Container(
+                    padding: const EdgeInsets.all(2.5),
+                    decoration: BoxDecoration(
+                      color: AppColors.coupon,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.bgCard,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.lock_rounded,
+                      size: 10,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
