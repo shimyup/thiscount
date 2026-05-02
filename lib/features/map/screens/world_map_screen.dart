@@ -488,8 +488,11 @@ class _WorldMapScreenState extends State<WorldMapScreen>
               Builder(builder: (ctx) {
                 final picked = state.brandMostRecentlyPickedUpLetter;
                 if (picked == null) return const SizedBox.shrink();
+                // Build 217: 위치를 하단으로 이동 — 상단의 country bar / brand
+                // promo banner 와 겹침 해소. 탭 시 _showNearbyOnly 해제 + 카메라
+                // 이동이 확실히 보이도록 zoom 14 단일 move 로 단순화.
                 return Positioned(
-                  top: 130,
+                  bottom: 96,
                   left: 16,
                   right: 16,
                   child: _BrandRecentPickupBanner(
@@ -501,10 +504,17 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                         picked.destinationLocation.longitude,
                       );
                       _positionSaveDebounce?.cancel();
-                      _mapController.move(target, 13.5);
-                      Future.delayed(const Duration(milliseconds: 160), () {
+                      // 필터 해제 — 마커가 'nearby only' 로 가려지면 안 보임.
+                      if (_showNearbyOnly) {
+                        setState(() => _showNearbyOnly = false);
+                      }
+                      // 두 단계로 zoom 적용 — flutter_map 의 같은-프레임 두 번
+                      // move() 무시 회피. 첫 번째 줌아웃, 두 번째 줌인 으로
+                      // "이동했다" 시각 피드백 명확.
+                      _mapController.move(target, 12.0);
+                      Future.delayed(const Duration(milliseconds: 180), () {
                         if (!mounted) return;
-                        _mapController.move(target, 15.0);
+                        _mapController.move(target, 14.5);
                       });
                     },
                   ),

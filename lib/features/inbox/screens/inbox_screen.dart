@@ -116,18 +116,9 @@ class _InboxScreenState extends State<InboxScreen>
   @override
   void initState() {
     super.initState();
-    // Build 213: Brand 사용자는 캠페인 추적이 핵심이므로 "보낸 편지" 탭을
-    // 기본으로. Free/Premium 은 받은 편지 우선 (기본값).
-    // initState 시점엔 context 가 준비됐어도 read 안전 — read-only 호출.
+    // Build 217: Brand 는 [보낸/받은] 순서로 탭 자체가 재배치되어 0번이 이미
+    // sent. 별도 자동 전환 불필요.
     _tabController = TabController(length: 2, vsync: this);
-    // 첫 frame 후 user.isBrand 확인하고 Brand 면 sent 탭으로 이동.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final state = context.read<AppState>();
-      if (state.currentUser.isBrand && _tabController.index != 1) {
-        _tabController.animateTo(1);
-      }
-    });
   }
 
   @override
@@ -412,46 +403,82 @@ class _InboxScreenState extends State<InboxScreen>
                 Expanded(
                   child: TabBarView(
                     controller: _tabController,
-                    children: [
-                      _InboxTab(
-                        letters: _applyFilter(
-                          // 뮤트된 브랜드 편지는 인박스 리스트에서 숨김
-                          // (카드 자체 제거 — 필터와 무관하게 모든 탭에서).
-                          // Build 115: 팔로우한 브랜드 편지는 상단 고정.
-                          _sortFollowedFirst(
-                            state,
-                            state.inbox
-                                .where((l) => !(l.senderIsBrand &&
-                                    state.isBrandMuted(l.senderId)))
-                                .toList()
-                                .reversed
-                                .toList(),
-                          ),
-                          filter: _inboxFilter,
-                          isInbox: true,
-                        ),
-                        activeFilter: _inboxFilter,
-                        onFilterChanged: (next) {
-                          setState(() => _inboxFilter = next);
-                        },
-                        onTap: (letter) => _openLetter(context, letter, state),
-                        sentSinceLastUnlock: state.sentSinceLastUnlock,
-                        canViewNext: state.canViewNextLetter,
-                        scrollController: _inboxScrollController,
-                      ),
-                      _SentTab(
-                        letters: _applyFilter(
-                          state.sent.reversed.toList(),
-                          filter: _sentFilter,
-                          isInbox: false,
-                        ),
-                        activeFilter: _sentFilter,
-                        onFilterChanged: (next) {
-                          setState(() => _sentFilter = next);
-                        },
-                      ),
-                      // DM 탭 제거 — 포지셔닝 변경으로 DM 기능 숨김.
-                    ],
+                    // Build 217: Brand 면 [보낸 / 받은] 순서. 그 외 기본 순.
+                    children: state.currentUser.isBrand
+                        ? [
+                            _SentTab(
+                              letters: _applyFilter(
+                                state.sent.reversed.toList(),
+                                filter: _sentFilter,
+                                isInbox: false,
+                              ),
+                              activeFilter: _sentFilter,
+                              onFilterChanged: (next) {
+                                setState(() => _sentFilter = next);
+                              },
+                            ),
+                            _InboxTab(
+                              letters: _applyFilter(
+                                _sortFollowedFirst(
+                                  state,
+                                  state.inbox
+                                      .where((l) => !(l.senderIsBrand &&
+                                          state.isBrandMuted(l.senderId)))
+                                      .toList()
+                                      .reversed
+                                      .toList(),
+                                ),
+                                filter: _inboxFilter,
+                                isInbox: true,
+                              ),
+                              activeFilter: _inboxFilter,
+                              onFilterChanged: (next) {
+                                setState(() => _inboxFilter = next);
+                              },
+                              onTap: (letter) =>
+                                  _openLetter(context, letter, state),
+                              sentSinceLastUnlock: state.sentSinceLastUnlock,
+                              canViewNext: state.canViewNextLetter,
+                              scrollController: _inboxScrollController,
+                            ),
+                          ]
+                        : [
+                            _InboxTab(
+                              letters: _applyFilter(
+                                _sortFollowedFirst(
+                                  state,
+                                  state.inbox
+                                      .where((l) => !(l.senderIsBrand &&
+                                          state.isBrandMuted(l.senderId)))
+                                      .toList()
+                                      .reversed
+                                      .toList(),
+                                ),
+                                filter: _inboxFilter,
+                                isInbox: true,
+                              ),
+                              activeFilter: _inboxFilter,
+                              onFilterChanged: (next) {
+                                setState(() => _inboxFilter = next);
+                              },
+                              onTap: (letter) =>
+                                  _openLetter(context, letter, state),
+                              sentSinceLastUnlock: state.sentSinceLastUnlock,
+                              canViewNext: state.canViewNextLetter,
+                              scrollController: _inboxScrollController,
+                            ),
+                            _SentTab(
+                              letters: _applyFilter(
+                                state.sent.reversed.toList(),
+                                filter: _sentFilter,
+                                isInbox: false,
+                              ),
+                              activeFilter: _sentFilter,
+                              onFilterChanged: (next) {
+                                setState(() => _sentFilter = next);
+                              },
+                            ),
+                          ],
                   ),
                 ),
               ],
@@ -666,6 +693,7 @@ class _InboxScreenState extends State<InboxScreen>
   }
 
   Widget _buildTabBar() {
+    final isBrand = context.read<AppState>().currentUser.isBrand;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       padding: const EdgeInsets.all(4),
@@ -693,10 +721,17 @@ class _InboxScreenState extends State<InboxScreen>
           fontSize: 13,
           letterSpacing: -0.1,
         ),
-        tabs: [
-          Tab(text: _l10n(context).inboxTabReceived),
-          Tab(text: _l10n(context).inboxTabSent),
-        ],
+        // Build 217: Brand 사용자는 [보낸 / 받은] 순서 — 캠페인 추적 우선.
+        // Free/Premium 은 [받은 / 보낸] 기본.
+        tabs: isBrand
+            ? [
+                Tab(text: _l10n(context).inboxTabSent),
+                Tab(text: _l10n(context).inboxTabReceived),
+              ]
+            : [
+                Tab(text: _l10n(context).inboxTabReceived),
+                Tab(text: _l10n(context).inboxTabSent),
+              ],
       ),
     );
   }

@@ -17319,11 +17319,13 @@ class AppL10n {
   // Build 183: Brand 쪽에서는 타워 맥락 유지, Free/Premium 은 어차피
   // 이 키가 참조 안 되는 쪽에서 letter 네이밍 써야 함. 공용 라벨이라 letter
   // 네이밍으로 통일.
+  /// Build 217: Brand 사용자에게는 "타워 순위" 라는 명칭이 더 적합 (캠페인 영향력
+  /// 컨텍스트). Free/Premium 은 캐릭터 없는 화면이라 이 키 자체가 referenced 안 됨.
   String get towerWorldRanking => _t({
-    'ko': '레터 순위', 'en': 'Letter Ranking', 'ja': 'レターランキング', 'zh': '信使排名',
-    'fr': 'Classement Letter', 'de': 'Letter-Rangliste', 'es': 'Ranking de Letter',
-    'pt': 'Ranking de Letter', 'ru': 'Рейтинг Letter', 'tr': 'Letter Sıralaması',
-    'ar': 'تصنيف Letter', 'it': 'Classifica Letter', 'hi': 'Letter रैंकिंग', 'th': 'อันดับ Letter',
+    'ko': '타워 순위', 'en': 'Tower Ranking', 'ja': 'タワーランキング', 'zh': '塔排名',
+    'fr': 'Classement de tours', 'de': 'Turm-Rangliste', 'es': 'Ranking de torres',
+    'pt': 'Ranking de torres', 'ru': 'Рейтинг башен', 'tr': 'Kule sıralaması',
+    'ar': 'تصنيف الأبراج', 'it': 'Classifica torri', 'hi': 'टावर रैंकिंग', 'th': 'อันดับหอคอย',
   });
 
   String towerMyRank(int rank) => _t({
