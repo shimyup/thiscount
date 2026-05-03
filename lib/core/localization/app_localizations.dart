@@ -8652,7 +8652,7 @@ class AppL10n {
 
   String get premiumBrandFeature5 => _t({
     'ko': '혜택에 신고 버튼 미표시',
-    'en': 'No report button on letters',
+    'en': 'No report button on rewards',
     'ja': '手紙に通報ボタン非表示',
     'zh': '信件不显示举报按钮',
     'fr': 'Pas de bouton de signalement sur les lettres',
@@ -8975,7 +8975,7 @@ class AppL10n {
 
   String get premiumGiftShareBody => _t({
     'ko': '앱에서 코드를 입력하면 1개월 프리미엄이 활성화돼요!\n✉️ 전 세계 혜택으로 인연을 만들어보세요.',
-    'en': 'Enter the code in the app to activate 1 month of Premium!\n✉️ Connect with people worldwide through letters.',
+    'en': 'Enter the code in the app to activate 1 month of Premium!\n📣 Connect with people worldwide through rewards.',
     'ja': 'アプリでコードを入力すると1ヶ月プレミアムが有効に！\n✉️ 世界中の人と手紙でつながろう。',
     'zh': '在应用中输入代码即可激活1个月高级版！\n✉️ 通过信件与全世界建立联系。',
     'fr': 'Entrez le code dans l\'appli pour activer 1 mois de Premium !\n✉️ Connectez-vous avec le monde entier par lettres.',
@@ -9281,7 +9281,7 @@ class AppL10n {
 
   String get premiumInviteShareTagline => _t({
     'ko': '전 세계와 혜택으로 연결되는 앱',
-    'en': 'Connect with the world through letters',
+    'en': 'Connect with the world through rewards',
     'ja': '世界中と手紙でつながるアプリ',
     'zh': '通过信件与全世界连接的应用',
     'fr': 'L\'appli qui vous connecte au monde par lettres',
@@ -9298,7 +9298,7 @@ class AppL10n {
 
   String get premiumInviteShareBody => _t({
     'ko': '코드 입력하면 보너스 발송권 지급!\n지도 위 혜택이 실시간으로 여행하고,\n낯선 이에게 닿는 특별한 경험을 해보세요 🌍',
-    'en': 'Enter the code to get bonus credits!\nWatch letters travel across the map in real time\nand reach someone special 🌍',
+    'en': 'Enter the code to get bonus credits!\nWatch rewards travel across the map in real time\nand reach someone special 🌍',
     'ja': 'コードを入力してボーナス送信権をゲット！\n地図上を手紙がリアルタイムで旅し、\n見知らぬ人に届く特別な体験を 🌍',
     'zh': '输入代码获取奖励额度！\n观看信件在地图上实时旅行\n到达陌生人的特别体验 🌍',
     'fr': 'Entrez le code pour obtenir des crédits bonus !\nRegardez les lettres voyager sur la carte en temps réel\net atteindre quelqu\'un de spécial 🌍',
@@ -9374,14 +9374,14 @@ class AppL10n {
   });
 
   String get premiumCompareDailyLetters => _t({
-    'ko': '일일 혜택', 'en': 'Daily letters', 'ja': '日次手紙', 'zh': '每日信件',
+    'ko': '일일 혜택', 'en': 'Daily rewards', 'ja': '日次手紙', 'zh': '每日信件',
     'fr': 'Lettres/jour', 'de': 'Tägliche Briefe', 'es': 'Cartas diarias', 'pt': 'Cartas diárias',
     'ru': 'Писем/день', 'tr': 'Günlük mektup', 'ar': 'رسائل يومية', 'it': 'Lettere/giorno',
     'hi': 'दैनिक पत्र', 'th': 'จดหมายรายวัน',
   });
 
   String get premiumCompareMonthlyLetters => _t({
-    'ko': '월 혜택', 'en': 'Monthly letters', 'ja': '月次手紙', 'zh': '每月信件',
+    'ko': '월 혜택', 'en': 'Monthly rewards', 'ja': '月次手紙', 'zh': '每月信件',
     'fr': 'Lettres/mois', 'de': 'Monatliche Briefe', 'es': 'Cartas mensuales', 'pt': 'Cartas mensais',
     'ru': 'Писем/месяц', 'tr': 'Aylık mektup', 'ar': 'رسائل شهرية', 'it': 'Lettere/mese',
     'hi': 'मासिक पत्र', 'th': 'จดหมายรายเดือน',
@@ -9430,7 +9430,7 @@ class AppL10n {
   });
 
   String get premiumCompareStyle => _t({
-    'ko': '혜택 스타일', 'en': 'Letter style', 'ja': '手紙スタイル', 'zh': '信件样式',
+    'ko': '혜택 스타일', 'en': 'Reward style', 'ja': '手紙スタイル', 'zh': '信件样式',
     'fr': 'Style de lettre', 'de': 'Briefstil', 'es': 'Estilo de carta', 'pt': 'Estilo de carta',
     'ru': 'Стиль письма', 'tr': 'Mektup stili', 'ar': 'نمط الرسالة', 'it': 'Stile lettera',
     'hi': 'पत्र शैली', 'th': 'สไตล์จดหมาย',
@@ -9980,7 +9980,7 @@ class AppL10n {
 
   String get mapLetterNotFound => _t({
     'ko': '혜택을 찾을 수 없습니다.',
-    'en': 'Letter not found.',
+    'en': 'Reward not found.',
     'ja': '手紙が見つかりません。',
     'zh': '找不到信件。',
     'fr': 'Lettre introuvable.',
@@ -10082,7 +10082,7 @@ class AppL10n {
 
   String mapMyLocationShown(String distKm) => _t({
     'ko': '내 위치 포인트 표시됨 · 현재 혜택과 약 ${distKm}km',
-    'en': 'My location shown · ~${distKm}km from letter',
+    'en': 'My location shown · ~${distKm}km from reward',
     'ja': '現在地表示中 · 手紙まで約${distKm}km',
     'zh': '已显示我的位置 · 距信件约${distKm}km',
     'fr': 'Ma position affichée · ~${distKm}km de la lettre',
@@ -10323,7 +10323,7 @@ class AppL10n {
 
   String mapLetterFrom(String country) => _t({
     'ko': '${country}에서 온 혜택',
-    'en': 'Letter from $country',
+    'en': 'Reward from $country',
     'ja': '${country}からの手紙',
     'zh': '来自${country}的信',
     'fr': 'Lettre de $country',
@@ -10485,7 +10485,7 @@ class AppL10n {
   // Build 185: "커뮤니티 타워" → "커뮤니티 Letter" — 타 사용자 마커 라벨.
   String get mapCommunityTower => _t({
     'ko': '커뮤니티 Letter',
-    'en': 'Community Letter',
+    'en': 'Community Reward',
     'ja': 'コミュニティ Letter',
     'zh': '社区 Letter',
     'fr': 'Letter de la communauté',
@@ -10589,7 +10589,7 @@ class AppL10n {
 
   String mapReceivedLetterFrom(String country) => _t({
     'ko': '${country}에서 온 혜택을 받았어요!',
-    'en': 'You received a letter from $country!',
+    'en': 'You received a reward from $country!',
     'ja': '${country}からの手紙を受け取りました！',
     'zh': '收到了来自${country}的信！',
     'fr': 'Vous avez reçu une lettre de $country !',
@@ -10606,7 +10606,7 @@ class AppL10n {
 
   String get mapPickUpLetter => _t({
     'ko': '혜택 수령하기',
-    'en': 'Pick Up Letter',
+    'en': 'Pick Up Reward',
     'ja': '手紙を受け取る',
     'zh': '领取信件',
     'fr': 'Récupérer la lettre',
@@ -10640,7 +10640,7 @@ class AppL10n {
 
   String get mapLocationPermissionDesc => _t({
     'ko': 'Thiscount는 홍보를 보내고 받기 위해 위치 권한이 필요합니다.\n설정 앱에서 위치 권한을 "앱 사용 중 허용" 으로 변경해주세요.',
-    'en': 'Thiscount needs location permission to send and receive letters.\nPlease change location permission to "While Using the App" in Settings.',
+    'en': 'Thiscount needs location permission to send and receive rewards.\nPlease change location permission to "While Using the App" in Settings.',
     'ja': 'Thiscountは手紙の送受信に位置情報の許可が必要です。\n設定アプリで位置情報を「アプリ使用中のみ許可」に変更してください。',
     'zh': 'Thiscount需要位置权限来发送和接收信件。\n请在设置中将位置权限更改为"使用App时允许"。',
     'fr': 'Thiscount a besoin de la localisation pour envoyer et recevoir des lettres.\nVeuillez activer « En cours d\'utilisation » dans les paramètres.',
@@ -10912,7 +10912,7 @@ class AppL10n {
 
   String get mapAllLetters => _t({
     'ko': '전체 혜택',
-    'en': 'All Letters',
+    'en': 'All Rewards',
     'ja': '全ての手紙',
     'zh': '全部信件',
     'fr': 'Toutes les lettres',
@@ -10929,7 +10929,7 @@ class AppL10n {
 
   String mapNearbyLettersArrived(int count) => _t({
     'ko': '혜택 ${count}개가 근처에 도착했어요!  탭해서 확인',
-    'en': '$count letter(s) arrived nearby! Tap to check',
+    'en': '$count reward(s) arrived nearby! Tap to check',
     'ja': '${count}通の手紙が近くに届きました！タップして確認',
     'zh': '${count}封信已到达附近！点击查看',
     'fr': '$count lettre(s) arrivée(s) à proximité ! Appuyez pour voir',
@@ -10950,7 +10950,7 @@ class AppL10n {
       emoji: '📩',
       text: _t({
         'ko': '혜택 ${count}개가 근처에 도착했어요! 탭해서 확인',
-        'en': '$count letter(s) arrived nearby! Tap to check',
+        'en': '$count reward(s) arrived nearby! Tap to check',
         'ja': '${count}通の手紙が近くに届きました！タップして確認',
         'zh': '${count}封信已到达附近！点击查看',
       }),
@@ -10959,7 +10959,7 @@ class AppL10n {
       emoji: '🌊',
       text: _t({
         'ko': '파도가 혜택 ${count}개를 해변에 밀어줬어요',
-        'en': 'Waves washed $count letter(s) ashore',
+        'en': 'Waves washed $count reward(s) ashore',
         'ja': '波が${count}通の手紙を浜辺に運びました',
         'zh': '海浪把${count}封信冲上了岸',
       }),
@@ -10968,7 +10968,7 @@ class AppL10n {
       emoji: '🎐',
       text: _t({
         'ko': '바람을 타고 혜택 ${count}개가 날아왔어요',
-        'en': '$count letter(s) blew in on the wind',
+        'en': '$count reward(s) blew in on the wind',
         'ja': '風に乗って${count}通の手紙が飛んできました',
         'zh': '${count}封信随风飘来了',
       }),
@@ -10977,7 +10977,7 @@ class AppL10n {
       emoji: '🕊️',
       text: _t({
         'ko': '비둘기가 혜택 ${count}개를 물고 왔어요',
-        'en': 'A dove brought $count letter(s) to you',
+        'en': 'A dove brought $count reward(s) to you',
         'ja': '鳩が${count}通の手紙を持ってきました',
         'zh': '鸽子带来了${count}封信',
       }),
@@ -10986,7 +10986,7 @@ class AppL10n {
       emoji: '✨',
       text: _t({
         'ko': '근처에서 혜택 ${count}개가 반짝이고 있어요',
-        'en': '$count letter(s) are sparkling nearby',
+        'en': '$count reward(s) are sparkling nearby',
         'ja': '近くで${count}通の手紙がキラキラ光っています',
         'zh': '附近有${count}封信在闪闪发光',
       }),
@@ -10995,7 +10995,7 @@ class AppL10n {
       emoji: '🍃',
       text: _t({
         'ko': '어디선가 혜택 ${count}개가 날아왔어요',
-        'en': '$count letter(s) drifted in from afar',
+        'en': '$count reward(s) drifted in from afar',
         'ja': 'どこかから${count}通の手紙が舞い込みました',
         'zh': '${count}封信从远方飘来',
       }),
@@ -11004,7 +11004,7 @@ class AppL10n {
       emoji: '💌',
       text: _t({
         'ko': '소중한 혜택 ${count}개가 기다리고 있어요',
-        'en': '$count precious letter(s) await you',
+        'en': '$count precious reward(s) await you',
         'ja': '大切な手紙が${count}通待っています',
         'zh': '${count}封珍贵的信在等你',
       }),
