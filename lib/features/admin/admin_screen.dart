@@ -327,7 +327,7 @@ class _AdminScreenState extends State<AdminScreen> {
                             const SizedBox(height: 4),
                             Text(
                               l.koEn(
-                                '편지 이동 시뮬레이션 속도를 높임',
+                                '혜택 이동 시뮬레이션 속도를 높임',
                                 'Increase letter travel simulation speed',
                               ),
                               style: TextStyle(

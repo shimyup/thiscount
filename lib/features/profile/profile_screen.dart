@@ -2830,7 +2830,7 @@ class _PreferredCategoryCard extends StatelessWidget {
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(
-                  '받고 싶은 편지 카테고리',
+                  '받고 싶은 혜택 카테고리',
                   style: TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 14,
@@ -2894,7 +2894,7 @@ class _PreferredCategoryCard extends StatelessWidget {
                             featureName: '카테고리 선호 부스트',
                             featureEmoji: '🎯',
                             description:
-                                'Premium 가입 후 Lv 11 도달 시, 받고 싶은 편지 카테고리를 지정하면 매칭 확률이 올라갑니다.',
+                                'Premium 가입 후 Lv 11 도달 시, 받고 싶은 혜택 카테고리를 지정하면 매칭 확률이 올라갑니다.',
                           );
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(

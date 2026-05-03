@@ -105,7 +105,7 @@ class _V5MapScreenState extends State<V5MapScreen> {
                         children: [
                           _filterChip('전체 12', V5Colors.coupon),
                           _filterChip('쿠폰 8', V5Colors.coupon),
-                          _filterChip('편지 3', V5Colors.letter),
+                          _filterChip('혜택 3', V5Colors.letter),
                           _filterChip('만료임박', null),
                         ],
                       ),

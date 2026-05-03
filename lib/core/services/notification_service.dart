@@ -69,7 +69,7 @@ const Map<String, Map<String, String>> _notiMessages = {
     'ru': 'Уведомление о письме в радиусе 500м',
   },
   'arrived_channel': {
-    'ko': '편지 도착 알림',
+    'ko': '혜택 도착 알림',
     'en': 'Letter Arrived',
     'ja': '手紙到着',
     'zh': '信件到达',
@@ -157,7 +157,7 @@ const Map<String, Map<String, String>> _notiMessages = {
     'ru': 'Уведомление о жалобе',
   },
   'report_desc': {
-    'ko': '편지가 신고되어 임시 차단되었을 때 알림',
+    'ko': '혜택이 신고되어 임시 차단되었을 때 알림',
     'en': 'Notification when a letter is reported and temporarily blocked',
     'ja': '手紙が報告されて一時的にブロックされた時の通知',
     'zh': '信件被举报并临时屏蔽时通知',
@@ -466,7 +466,7 @@ class NotificationService {
       'zh': '当信件到达500米以内时通知',
     },
     'letter_arrived': {
-      'ko': '편지 도착 알림',
+      'ko': '혜택 도착 알림',
       'en': 'Letter Arrival Alerts',
       'ja': '手紙到着通知',
       'zh': '信件到达通知',

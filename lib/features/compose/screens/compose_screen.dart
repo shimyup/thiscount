@@ -84,101 +84,207 @@ class _ComposeScreenState extends State<ComposeScreen>
   bool _isRandom = true;
   bool _isAnonymous = true;
   bool _attachSocial = false;
+  // Build 229: 사진+링크 첨부 카드 onTap → 첨부 영역으로 스크롤 + 토글 활성화.
+  final GlobalKey _attachAreaKey = GlobalKey();
   bool _isSending = false;
   int _charCount = 0;
   String? _imageFilePath; // 첨부 이미지 경로 (프리미엄)
   bool _isCompressingImage = false;
   static const int _maxChars = 1000;
 
-  // ── 오늘의 편지 (Today's Letter) ─────────────────────────────────────────
+  // ── 오늘의 글귀 (Today's Inspiration) ───────────────────────────────────
+  // Build 229: 펜팔 카피 → 홍보 메시지 샘플 10개로 전면 교체.
+  // Premium 사용자가 이 카드를 탭하면 자기 SNS·매장·제품 홍보 메시지 작성에
+  // 영감을 받을 수 있도록 다양한 카테고리 (음식/패션/이벤트/멤버십/콜라보/
+  // 신메뉴/굿즈/플래시세일/오픈안내/친환경) 의 실제 마케팅 문구 톤으로 재작성.
   bool _isLuckyLetter = false;
 
   static const Map<String, List<String>> _luckyQuotesByLang = {
     'ko': [
-      // 1. 일상의 행복
-      '안녕하세요, 이 편지를 받게 된 당신에게 따뜻한 인사를 전합니다.\n\n'
-          '오늘 하루, 작은 것들 속에서 행복을 발견하는 하루가 되기를 바랍니다. '
-          '아침에 마신 따뜻한 커피 한 잔, 스쳐 지나가는 바람, 창밖의 햇살 — '
-          '그 작은 것들이 모여 당신의 하루를 빛나게 만들어 줄 거예요.\n\n'
-          '어디선가 당신을 응원하고 있는 낯선 친구로부터. 🍀',
-      '안녕하세요, 이 편지가 당신에게 닿기를 바라며 씁니다.\n\n'
-          '세상은 참 넓고, 좋은 인연은 언제 어디서 시작될지 모릅니다. '
-          '이 편지가 그 시작이 된다면 정말 좋겠어요. '
-          '우리가 비록 이름도, 얼굴도 모르지만, 이렇게 편지로 이어진 것만으로도 '
-          '충분히 아름다운 인연이라고 생각합니다.\n\n'
-          '언젠가, 어딘가에서 만날 날을 기대하며. 💌',
-      '안녕하세요, 이 글이 당신에게 작은 힘이 되길 바랍니다.\n\n'
-          '지금 어떤 하루를 보내고 있든, 당신은 충분히 잘 하고 있어요. '
-          '완벽하지 않아도 괜찮고, 모든 걸 해내지 않아도 됩니다. '
-          '그냥 오늘 하루를 버텨낸 것만으로도, 당신은 이미 대단한 사람입니다.\n\n'
-          '포기하지 마세요. 멀리서 응원합니다. 💪',
-      '안녕하세요, 세상 어딘가에서 이 편지를 보냅니다.\n\n'
-          '매일 조금씩 나아가는 것, 그것만으로도 충분히 대단한 일입니다. '
-          '남들과 비교하지 말고, 어제의 나보다 조금만 더 나아가면 그걸로 충분해요. '
-          '당신의 속도로 걸어가는 삶이 가장 아름다운 삶입니다.\n\n'
-          '오늘도 수고 많으셨습니다. 🌟',
-      '안녕하세요, 이 편지를 받게 된 것도 하나의 인연이라 생각합니다.\n\n'
-          '세상은 생각보다 훨씬 따뜻한 사람들로 가득 차 있습니다. '
-          '때로는 낯선 사람의 작은 배려가 하루를 바꾸기도 하죠. '
-          '이 편지가 당신의 오늘에 그런 작은 온기가 되었으면 합니다.\n\n'
-          '당신 덕분에 세상이 조금 더 따뜻해집니다. 🌍',
+      // 1. 동네 카페 1+1
+      '🎁 오늘만! 단골 손님께 드리는 감사 이벤트\n\n'
+          '아메리카노 1+1 — 친구와 함께 와도 한 잔 가격으로!\n'
+          '저희 매장에 들러주신 분들께만 드리는 작은 선물입니다.\n\n'
+          '📍 위치 정보는 아래에 · 영업시간: 오전 9시~오후 9시\n'
+          '🔗 메뉴 보기: ',
+      // 2. 신메뉴 런칭
+      '✨ 3년을 기다려온 시그니처 디저트, 드디어 출시!\n\n'
+          '저희 셰프가 100번 넘는 시제품 끝에 완성한 단 하나의 디저트입니다.\n'
+          '첫 주 방문 손님께는 무료 시식 한 조각을 드려요.\n\n'
+          '#디저트추천 #신메뉴 #첫주오픈\n'
+          '🔗 매장 안내: ',
+      // 3. 한정판 굿즈 드롭
+      '📸 한정판 컬렉션 100개 드롭\n\n'
+          '온라인 단독 판매 · 24시간 후 종료.\n'
+          '이번 시즌이 마지막인 디자인이라, 수량이 정해져 있어요.\n\n'
+          '✋ 매장 픽업도 가능 (무료 포장)\n'
+          '🔗 지금 보러가기: ',
+      // 4. 멤버 전용 비밀 세일
+      '🌟 3주년 감사 이벤트 — 멤버에게만 드리는 50% 할인\n\n'
+          '평소엔 절대 안 나오는 가격, 오늘부터 7일간 단 한 번.\n'
+          '아래 코드를 결제 시 입력하시면 자동 적용됩니다.\n\n'
+          '🎟 쿠폰 코드: THANKS50 (선착순 200명)\n'
+          '🔗 사용처: ',
+      // 5. 첫 방문 환영
+      '☕ 처음 오시는 분 환영합니다!\n\n'
+          '이 메시지를 매장에서 보여주시면 음료 한 잔 무료.\n'
+          '저희 SNS 팔로우 + 좋아요만 부탁드릴게요. 그게 전부입니다.\n\n'
+          '@brandhandle · 인스타에서 만나요\n'
+          '🔗 SNS: ',
+      // 6. 신규 오픈 알림
+      '📦 #2호점 그랜드 오픈!\n\n'
+          '많은 사랑 덕분에 두 번째 매장을 열게 되었어요.\n'
+          '오픈 첫 주 방문 시 시그니처 디저트 한 조각 무료.\n\n'
+          '주말도 함께 응원해주세요. 💙\n'
+          '📍 새 매장: ',
+      // 7. 수강생 모집 마감
+      '💎 수강생 모집 D-3, 마지막 라운드입니다\n\n'
+          '저희만의 비밀 노하우를 공개하는 6주 클래스.\n'
+          '지난 기수 만족도 98% — 후기 1,200건 중 거의 전부 5점.\n\n'
+          '🔗 신청 페이지: \n'
+          '#클래스 #브랜딩 #실전노하우',
+      // 8. 라이브 공연 무료 티켓
+      '🎫 매주 토요일 19시 라이브 공연\n\n'
+          '선착순 50명에게 무료 입장 코드를 드립니다.\n'
+          '이 메시지를 받으신 분께만 드리는 우선권이에요.\n\n'
+          '🎤 #위크엔드라이브 #작은공연장\n'
+          '🔗 예약: ',
+      // 9. 친환경 브랜드 런칭
+      '🌱 100% 재활용 소재로 만든 첫 컬렉션\n\n'
+          '하나 사실 때마다 1그루 나무를 심는 데 동참됩니다.\n'
+          '환경을 생각하는 작은 시작, 함께해 주세요.\n\n'
+          '🌳 지금까지 심은 나무: 1,247그루\n'
+          '🔗 컬렉션 보기: ',
+      // 10. 플래시 세일
+      '⚡ 24시간 플래시 세일\n\n'
+          '전 품목 30% 할인 + 무료 배송 (3만원 이상).\n'
+          '내일 자정 자동 종료 — 알림 받으시고 놓치지 마세요.\n\n'
+          '🔗 지금 쇼핑: \n'
+          '#플래시세일 #오늘만',
     ],
     'en': [
-      'Hello, warm greetings to you who received this letter.\n\n'
-          'I hope today brings you joy in the little things — '
-          'a warm cup of coffee in the morning, a gentle breeze passing by, '
-          'sunlight streaming through the window. '
-          'Those small moments add up to make your day shine.\n\n'
-          'From a stranger cheering you on, somewhere out there. 🍀',
-      'Hello, I write this letter hoping it reaches you.\n\n'
-          'The world is vast, and beautiful connections can begin anywhere. '
-          'I would love it if this letter became one such beginning. '
-          'Even though we may never know each other\'s names or faces, '
-          'being connected through this letter is already something wonderful.\n\n'
-          'Looking forward to the day our paths might cross. 💌',
-      'Hello, I hope these words give you a little strength.\n\n'
-          'No matter what kind of day you\'re having, you\'re doing just fine. '
-          'It\'s okay not to be perfect. You don\'t have to do it all. '
-          'Just making it through today already makes you remarkable.\n\n'
-          'Don\'t give up. I\'m rooting for you from afar. 💪',
-      'Hello, I\'m sending this letter from somewhere in the world.\n\n'
-          'Moving forward little by little each day — that alone is incredible. '
-          'Don\'t compare yourself to others; just be a little better than yesterday, '
-          'and that\'s more than enough. A life lived at your own pace is the most beautiful life.\n\n'
-          'Thank you for all your hard work today. 🌟',
-      'Hello, I believe receiving this letter is a meaningful connection.\n\n'
-          'The world is full of warmer hearts than you might think. '
-          'Sometimes a small kindness from a stranger can change your whole day. '
-          'I hope this letter brings that kind of warmth to your today.\n\n'
-          'The world is a little warmer because of you. 🌍',
+      // 1. Local cafe 1+1
+      '🎁 Today only! A thank-you for our regulars.\n\n'
+          'Buy 1 Get 1 Free — Americano. Bring a friend, share the joy.\n'
+          'Just for those who stop by our shop.\n\n'
+          '📍 Location below · Open 9am–9pm\n'
+          '🔗 See menu: ',
+      // 2. New menu launch
+      '✨ Three years in the making — our signature dessert is here.\n\n'
+          'Our chef perfected this through 100+ trial batches. Just one item.\n'
+          'First-week visitors get a free taste.\n\n'
+          '#newmenu #firstweek #signature\n'
+          '🔗 Visit us: ',
+      // 3. Limited drop
+      '📸 Limited collection — only 100 pieces dropping.\n\n'
+          'Online exclusive · ends in 24 hours.\n'
+          'Last time this design will ever be made.\n\n'
+          '✋ Free in-store pickup\n'
+          '🔗 Shop now: ',
+      // 4. Members-only secret sale
+      '🌟 Anniversary thank-you — 50% off, members only.\n\n'
+          'A price we never offer publicly. 7 days, once a year.\n'
+          'Apply the code at checkout — works automatically.\n\n'
+          '🎟 Code: THANKS50 (first 200)\n'
+          '🔗 Shop: ',
+      // 5. First-visit welcome
+      '☕ Welcome on your first visit!\n\n'
+          'Show this message in store — one drink on us.\n'
+          'Just follow + like our SNS. That\'s all we ask.\n\n'
+          '@brandhandle · See you on Insta\n'
+          '🔗 SNS: ',
+      // 6. New store opening
+      '📦 Store #2 Grand Opening!\n\n'
+          'Thanks to your love, we\'re opening a second location.\n'
+          'Free signature dessert during opening week.\n\n'
+          'Weekends with us, too. 💙\n'
+          '📍 New shop: ',
+      // 7. Class enrollment deadline
+      '💎 Class enrollment closing in 3 days.\n\n'
+          'Our 6-week course — sharing the secrets we use daily.\n'
+          'Last cohort: 98% satisfaction across 1,200 reviews.\n\n'
+          '🔗 Apply: \n'
+          '#class #branding #realworld',
+      // 8. Live show free tickets
+      '🎫 Saturdays 7pm — live performance\n\n'
+          'First 50 people get free admission codes.\n'
+          'Priority for those who received this message.\n\n'
+          '🎤 #weekendlive #intimateshow\n'
+          '🔗 Reserve: ',
+      // 9. Eco brand launch
+      '🌱 First collection — 100% recycled materials.\n\n'
+          'Every purchase plants 1 tree.\n'
+          'A small start that matters. Join us.\n\n'
+          '🌳 Trees planted so far: 1,247\n'
+          '🔗 Collection: ',
+      // 10. Flash sale
+      '⚡ 24-hour flash sale\n\n'
+          '30% off everything + free shipping (over \$25).\n'
+          'Ends midnight tomorrow — set your reminder.\n\n'
+          '🔗 Shop now: \n'
+          '#flashsale #todayonly',
     ],
     'ja': [
-      'こんにちは、この手紙を受け取ったあなたに温かい挨拶を送ります。\n\n'
-          '今日一日、小さなことの中に幸せを見つける日になりますように。'
-          '朝の温かいコーヒー一杯、通り過ぎる風、窓の外の日差し — '
-          'その小さなものが集まって、あなたの一日を輝かせてくれるでしょう。\n\n'
-          'どこかであなたを応援している見知らぬ友人より。🍀',
-      'こんにちは、この手紙があなたに届くことを願って書いています。\n\n'
-          '世界は広く、素敵な縁はいつどこで始まるかわかりません。'
-          'この手紙がそのきっかけになれたら本当に嬉しいです。'
-          '名前も顔も知らない私たちですが、こうして手紙で繋がったことだけでも '
-          '十分に美しい縁だと思います。\n\n'
-          'いつか、どこかで会える日を楽しみにしています。💌',
-      'こんにちは、この言葉があなたの小さな力になることを願っています。\n\n'
-          '今どんな一日を過ごしていても、あなたは十分頑張っています。'
-          '完璧でなくてもいい、すべてをやり遂げなくてもいい。'
-          'ただ今日一日を乗り越えただけで、あなたはすでに素晴らしい人です。\n\n'
-          '諦めないでください。遠くから応援しています。💪',
-      'こんにちは、世界のどこかからこの手紙を送ります。\n\n'
-          '毎日少しずつ前に進むこと、それだけでも十分にすごいことです。'
-          '他人と比べず、昨日の自分より少しだけ前に進めばそれで十分。'
-          'あなたのペースで歩む人生が、一番美しい人生です。\n\n'
-          '今日もお疲れ様でした。🌟',
-      'こんにちは、この手紙を受け取ったことも一つの縁だと思います。\n\n'
-          '世界は思ったよりもずっと温かい人々で溢れています。'
-          '時には見知らぬ人の小さな思いやりが一日を変えることもあります。'
-          'この手紙があなたの今日にそんな小さな温もりになれたら幸いです。\n\n'
-          'あなたのおかげで世界は少し温かくなっています。🌍',
+      // 1. カフェ 1+1
+      '🎁 本日だけ！常連様への感謝イベント\n\n'
+          'アメリカーノ 1+1 — お友達とご一緒に、1杯分の値段で2杯。\n'
+          '当店にお立ち寄りくださった方への小さな贈り物です。\n\n'
+          '📍 位置情報は下部 · 営業: 9時〜21時\n'
+          '🔗 メニュー: ',
+      // 2. 新メニュー
+      '✨ 3年待ったシグネチャーデザート、ついにリリース！\n\n'
+          'シェフが100回以上の試作を経て完成させた一品。\n'
+          'オープン週来店の方には無料試食をお出しします。\n\n'
+          '#新メニュー #オープン週 #シグネチャー\n'
+          '🔗 店舗案内: ',
+      // 3. 限定グッズドロップ
+      '📸 限定100個のコレクション、ドロップ中\n\n'
+          'オンライン限定・24時間で終了。\n'
+          'このデザインが作られる最後のシーズンです。\n\n'
+          '✋ 店舗ピックアップも可能（無料）\n'
+          '🔗 今すぐチェック: ',
+      // 4. メンバー限定セール
+      '🌟 3周年感謝 — メンバーだけの 50% OFF\n\n'
+          '普段は絶対に出さない価格、今日から7日間、年に一度だけ。\n'
+          '決済時にコードを入力すると自動適用されます。\n\n'
+          '🎟 コード: THANKS50 (先着200名)\n'
+          '🔗 ショップ: ',
+      // 5. 初来店ウェルカム
+      '☕ 初めての方、ようこそ！\n\n'
+          'このメッセージを店頭で見せてくだされば、ドリンク1杯無料。\n'
+          'SNSフォロー＋いいねだけお願いします。それだけで結構です。\n\n'
+          '@brandhandle · インスタでお会いしましょう\n'
+          '🔗 SNS: ',
+      // 6. 新店オープン
+      '📦 2号店、グランドオープン！\n\n'
+          '皆様のおかげで2店舗目を出すことができました。\n'
+          'オープン週のご来店でシグネチャーデザートを無料で。\n\n'
+          '週末も一緒に応援してください。💙\n'
+          '📍 新店舗: ',
+      // 7. クラス募集締切
+      '💎 受講生募集 残り3日、最終ラウンド\n\n'
+          '私たちのノウハウを公開する6週間のクラスです。\n'
+          '前期満足度 98% — レビュー1,200件中ほぼ全て5点。\n\n'
+          '🔗 申し込みページ: \n'
+          '#クラス #ブランディング #実践',
+      // 8. ライブショー無料チケット
+      '🎫 毎週土曜19時 ライブパフォーマンス\n\n'
+          '先着50名様に無料入場コードを差し上げます。\n'
+          'このメッセージを受け取った方への優先案内です。\n\n'
+          '🎤 #週末ライブ #小さな会場\n'
+          '🔗 予約: ',
+      // 9. エコブランドローンチ
+      '🌱 100%リサイクル素材の最初のコレクション\n\n'
+          '1点購入ごとに、1本の木を植える活動に参加。\n'
+          '環境を考える小さな始まり、一緒にどうですか。\n\n'
+          '🌳 これまで植えた木: 1,247本\n'
+          '🔗 コレクション: ',
+      // 10. フラッシュセール
+      '⚡ 24時間フラッシュセール\n\n'
+          '全品30% OFF + 送料無料（3,000円以上）。\n'
+          '明日の0時で終了 — リマインダーを設定してお見逃しなく。\n\n'
+          '🔗 今すぐ買い物: \n'
+          '#フラッシュセール #本日限定',
     ],
   };
 
@@ -1467,10 +1573,13 @@ class _ComposeScreenState extends State<ComposeScreen>
                                 if (!_isReply && isBrand) const SizedBox(height: 10),
                                 if (!_isReply && isBrand) _buildBrandOptions(state),
                                 const SizedBox(height: 10),
-                                _buildImageAttachButton(
-                                  state,
-                                  hasPremium: hasPremium,
-                                  purchase: purchase,
+                                Container(
+                                  key: _attachAreaKey,
+                                  child: _buildImageAttachButton(
+                                    state,
+                                    hasPremium: hasPremium,
+                                    purchase: purchase,
+                                  ),
                                 ),
                                 if (_imageFilePath != null) ...[
                                   const SizedBox(height: 10),
@@ -3671,31 +3780,65 @@ class _ComposeScreenState extends State<ComposeScreen>
             ),
           ),
           const SizedBox(height: 10),
-          // CTA 칩 — 사진/링크 첨부 안내
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 10,
-              vertical: 6,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.bgCard,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: AppColors.gold.withValues(alpha: 0.45),
+          // Build 229: CTA 칩 탭 → 첨부 영역으로 스크롤 + SNS 링크 토글 켜기
+          GestureDetector(
+            onTap: _scrollToAttachArea,
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 8,
               ),
-            ),
-            child: Text(
-              l10n.composePremiumPromoCta,
-              style: const TextStyle(
-                color: AppColors.gold,
-                fontSize: 11.5,
-                fontWeight: FontWeight.w800,
+              decoration: BoxDecoration(
+                color: AppColors.bgCard,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: AppColors.gold.withValues(alpha: 0.45),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Expanded(
+                    child: Text(
+                      l10n.composePremiumPromoCta,
+                      style: const TextStyle(
+                        color: AppColors.gold,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  const Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 14,
+                    color: AppColors.gold,
+                  ),
+                ],
               ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  // Build 229: Premium 홍보 카드 CTA 탭 시 — 첨부 영역으로 스크롤 +
+  // SNS 링크 토글 자동 활성화 (한 번에 두 첨부 옵션 다 보이게).
+  void _scrollToAttachArea() {
+    setState(() {
+      _attachSocial = true;
+    });
+    HapticFeedback.lightImpact();
+    final ctx = _attachAreaKey.currentContext;
+    if (ctx != null) {
+      Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 420),
+        curve: Curves.easeInOutCubic,
+        alignment: 0.2,
+      );
+    }
   }
 
   // ── 브랜드 고급 옵션 (ExpansionTile 내부) ───────────────────────────────

@@ -227,7 +227,7 @@ extension TowerTierExt on TowerTier {
   // ── Next-goal descriptions (14 languages) ──────────────────────────────
   static const _nextGoals = <TowerTier, Map<String, String>>{
     TowerTier.shack: {
-      'ko': '편지 3개 받으면 농가주택으로!',
+      'ko': '혜택 3개 받으면 농가주택으로!',
       'en': 'Receive 3 letters to become a Farmhouse!',
       'ja': '手紙を3通受け取ると農家に！',
       'zh': '收到3封信即可升级为农舍！',

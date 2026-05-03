@@ -206,7 +206,7 @@ class V5PremiumScreen extends StatelessWidget {
                 _perkDivider(ink),
                 _perk('위치 정확 지정', '±5m'),
                 _perkDivider(ink),
-                _perk('편지 픽업 무제한', '기본 5/일'),
+                _perk('혜택 픽업 무제한', '기본 5/일'),
               ],
             ),
           ),

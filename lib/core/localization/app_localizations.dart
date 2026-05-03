@@ -2044,7 +2044,7 @@ class AppL10n {
   String weeklyReflectionSummary(int letters, int countries, int continents) {
     switch (languageCode) {
       case 'ko':
-        return '이번 주 당신의 편지 $letters통이 $countries개 나라·$continents개 대륙으로 떠났어요 🌍';
+        return '이번 주 당신의 홍보 $letters통이 $countries개 나라·$continents개 대륙으로 떠났어요 🌍';
       case 'ja':
         return '今週、あなたの手紙$letters通が$countriesヶ国・$continents大陸へと旅立ちました 🌍';
       case 'zh':

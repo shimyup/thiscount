@@ -72,7 +72,7 @@ class _V5InboxScreenState extends State<V5InboxScreen> {
                 children: [
                   _tabChip('전체', '12'),
                   _tabChip('쿠폰', '8'),
-                  _tabChip('편지', '3'),
+                  _tabChip('혜택', '3'),
                   _tabChip('만료', null),
                 ],
               ),
