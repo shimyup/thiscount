@@ -10,7 +10,7 @@ import '../../state/app_state.dart';
 ///
 /// 디자인 톤:
 /// - 🔥 이모지 + 일수 숫자
-/// - 골드 컬러 배경 (Letter Go 주요 액센트)
+/// - 골드 컬러 배경 (Thiscount 주요 액센트)
 /// - tight padding · 작은 사이즈 → 시선 방해 최소
 class StreakBadge extends StatelessWidget {
   final bool compact;

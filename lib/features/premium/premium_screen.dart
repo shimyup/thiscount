@@ -1197,7 +1197,7 @@ class _GiftCardSuccessDialog extends StatelessWidget {
                     '🎁 Thiscount ${l.premiumGiftShareTitle}\n'
                     '${l.premiumGiftShareCode}: $code\n\n'
                     '${l.premiumGiftShareBody}\n'
-                    '📲 https://lettergo.app/gift/$code';
+                    '📲 https://thiscount.io/gift/$code';
                 await _showShareOptions(
                   context,
                   shareText,
@@ -1452,7 +1452,7 @@ class _InviteRewardTileState extends State<_InviteRewardTile> {
                             '✉️ Thiscount — ${l10n.premiumInviteShareTagline}\n\n'
                             '${l10n.premiumMyInviteCode} 👉 $inviteCode\n\n'
                             '${l10n.premiumInviteShareBody}\n\n'
-                            '📲 https://lettergo.app/invite/$inviteCode';
+                            '📲 https://thiscount.io/invite/$inviteCode';
                         await _showShareOptions(
                           context,
                           shareText,

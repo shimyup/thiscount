@@ -600,7 +600,7 @@ class _LoginTabState extends State<_LoginTab> {
                           await AuthService.signUp(
                             username: testUser,
                             password: testPw,
-                            email: 'test@lettergo.app',
+                            email: 'test@thiscount.io',
                             country: '대한민국',
                             countryFlag: '🇰🇷',
                             langCode: _deviceLangCode(),

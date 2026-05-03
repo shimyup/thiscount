@@ -14,7 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// 4. 기존 getDisplayAddress() 기능도 유지
 class GeocodingService {
   static const _nominatimUrl = 'https://nominatim.openstreetmap.org/reverse';
-  static const _userAgent = 'LetterGo/1.0 (lettergo.app)';
+  static const _userAgent = 'Thiscount/1.0 (thiscount.io)';
   static const _cachePrefix = 'geo_addr_cache_';
   static const _maxCachePerCountry = 50;
   static const _prefetchCount = 15;

@@ -10556,20 +10556,20 @@ class AppL10n {
   });
 
   String get mapLocationPermissionDesc => _t({
-    'ko': 'LetterGo는 편지를 보내고 받기 위해 위치 권한이 필요합니다.\n설정 앱에서 위치 권한을 "앱 사용 중 허용" 으로 변경해주세요.',
-    'en': 'LetterGo needs location permission to send and receive letters.\nPlease change location permission to "While Using the App" in Settings.',
-    'ja': 'LetterGoは手紙の送受信に位置情報の許可が必要です。\n設定アプリで位置情報を「アプリ使用中のみ許可」に変更してください。',
-    'zh': 'LetterGo需要位置权限来发送和接收信件。\n请在设置中将位置权限更改为"使用App时允许"。',
-    'fr': 'LetterGo a besoin de la localisation pour envoyer et recevoir des lettres.\nVeuillez activer « En cours d\'utilisation » dans les paramètres.',
-    'de': 'LetterGo benötigt den Standortzugriff zum Senden und Empfangen von Briefen.\nBitte ändern Sie die Standortberechtigung in den Einstellungen auf „Während der Nutzung".',
-    'es': 'LetterGo necesita permisos de ubicación para enviar y recibir cartas.\nPor favor, cambia el permiso a "Mientras se usa la app" en Ajustes.',
-    'pt': 'O LetterGo precisa de permissão de localização para enviar e receber cartas.\nAltere a permissão para "Durante o uso do app" nas Configurações.',
-    'ru': 'LetterGo нужен доступ к геолокации для отправки и получения писем.\nИзмените разрешение на «При использовании приложения» в Настройках.',
-    'tr': 'LetterGo mektup gönderip almak için konum iznine ihtiyaç duyar.\nLütfen Ayarlar\'dan konum iznini "Uygulama Kullanılırken" olarak değiştirin.',
-    'ar': 'يحتاج LetterGo إلى إذن الموقع لإرسال واستلام الرسائل.\nيرجى تغيير إذن الموقع إلى "أثناء استخدام التطبيق" في الإعدادات.',
-    'it': 'LetterGo ha bisogno del permesso di localizzazione per inviare e ricevere lettere.\nModifica il permesso su "Durante l\'uso dell\'app" nelle Impostazioni.',
-    'hi': 'LetterGo को पत्र भेजने और प्राप्त करने के लिए स्थान अनुमति चाहिए।\nकृपया सेटिंग्स में स्थान अनुमति को "ऐप उपयोग के दौरान" में बदलें।',
-    'th': 'LetterGo ต้องการสิทธิ์ตำแหน่งเพื่อส่งและรับจดหมาย\nกรุณาเปลี่ยนสิทธิ์ตำแหน่งเป็น "ขณะใช้แอป" ในการตั้งค่า',
+    'ko': 'Thiscount는 편지를 보내고 받기 위해 위치 권한이 필요합니다.\n설정 앱에서 위치 권한을 "앱 사용 중 허용" 으로 변경해주세요.',
+    'en': 'Thiscount needs location permission to send and receive letters.\nPlease change location permission to "While Using the App" in Settings.',
+    'ja': 'Thiscountは手紙の送受信に位置情報の許可が必要です。\n設定アプリで位置情報を「アプリ使用中のみ許可」に変更してください。',
+    'zh': 'Thiscount需要位置权限来发送和接收信件。\n请在设置中将位置权限更改为"使用App时允许"。',
+    'fr': 'Thiscount a besoin de la localisation pour envoyer et recevoir des lettres.\nVeuillez activer « En cours d\'utilisation » dans les paramètres.',
+    'de': 'Thiscount benötigt den Standortzugriff zum Senden und Empfangen von Briefen.\nBitte ändern Sie die Standortberechtigung in den Einstellungen auf „Während der Nutzung".',
+    'es': 'Thiscount necesita permisos de ubicación para enviar y recibir cartas.\nPor favor, cambia el permiso a "Mientras se usa la app" en Ajustes.',
+    'pt': 'O Thiscount precisa de permissão de localização para enviar e receber cartas.\nAltere a permissão para "Durante o uso do app" nas Configurações.',
+    'ru': 'Thiscount нужен доступ к геолокации для отправки и получения писем.\nИзмените разрешение на «При использовании приложения» в Настройках.',
+    'tr': 'Thiscount mektup gönderip almak için konum iznine ihtiyaç duyar.\nLütfen Ayarlar\'dan konum iznini "Uygulama Kullanılırken" olarak değiştirin.',
+    'ar': 'يحتاج Thiscount إلى إذن الموقع لإرسال واستلام الرسائل.\nيرجى تغيير إذن الموقع إلى "أثناء استخدام التطبيق" في الإعدادات.',
+    'it': 'Thiscount ha bisogno del permesso di localizzazione per inviare e ricevere lettere.\nModifica il permesso su "Durante l\'uso dell\'app" nelle Impostazioni.',
+    'hi': 'Thiscount को पत्र भेजने और प्राप्त करने के लिए स्थान अनुमति चाहिए।\nकृपया सेटिंग्स में स्थान अनुमति को "ऐप उपयोग के दौरान" में बदलें।',
+    'th': 'Thiscount ต้องการสิทธิ์ตำแหน่งเพื่อส่งและรับจดหมาย\nกรุณาเปลี่ยนสิทธิ์ตำแหน่งเป็น "ขณะใช้แอป" ในการตั้งค่า',
   });
 
   String get mapLater => _t({
@@ -14423,20 +14423,20 @@ class AppL10n {
   });
 
   String get composeBrandRedemptionHint => _t({
-    'ko': '예: LETTERGO20 결제 시 입력',
-    'en': 'e.g. Enter LETTERGO20 at checkout',
-    'ja': '例: 決済時に LETTERGO20 を入力',
-    'zh': '例：结账时输入 LETTERGO20',
-    'fr': 'ex : saisir LETTERGO20 au paiement',
-    'de': 'z.B. LETTERGO20 beim Bezahlen eingeben',
-    'es': 'ej: introduce LETTERGO20 al pagar',
-    'pt': 'ex: use LETTERGO20 no pagamento',
-    'ru': 'напр. введите LETTERGO20 при оплате',
-    'tr': 'örn: ödemede LETTERGO20 girin',
-    'ar': 'مثال: أدخل LETTERGO20 عند الدفع',
-    'it': 'es: inserisci LETTERGO20 al checkout',
-    'hi': 'उदा. चेकआउट पर LETTERGO20 दर्ज करें',
-    'th': 'เช่น ใส่ LETTERGO20 ตอนชำระ',
+    'ko': '예: THISCOUNT20 결제 시 입력',
+    'en': 'e.g. Enter THISCOUNT20 at checkout',
+    'ja': '例: 決済時に THISCOUNT20 を入力',
+    'zh': '例：结账时输入 THISCOUNT20',
+    'fr': 'ex : saisir THISCOUNT20 au paiement',
+    'de': 'z.B. THISCOUNT20 beim Bezahlen eingeben',
+    'es': 'ej: introduce THISCOUNT20 al pagar',
+    'pt': 'ex: use THISCOUNT20 no pagamento',
+    'ru': 'напр. введите THISCOUNT20 при оплате',
+    'tr': 'örn: ödemede THISCOUNT20 girin',
+    'ar': 'مثال: أدخل THISCOUNT20 عند الدفع',
+    'it': 'es: inserisci THISCOUNT20 al checkout',
+    'hi': 'उदा. चेकआउट पर THISCOUNT20 दर्ज करें',
+    'th': 'เช่น ใส่ THISCOUNT20 ตอนชำระ',
   });
 
   // ─────────────────────────────────────────────────────────────────────
@@ -14684,20 +14684,20 @@ class AppL10n {
   });
 
   String get categoryHelpCouponDesc => _t({
-    'ko': '웹사이트·앱에서 쓸 수 있는 코드 형식 쿠폰. 예: "LETTERGO20" 같은 문자열을 받은 사람이 결제 시 입력.',
-    'en': 'Code-based discount for online use. The receiver types your code (e.g. "LETTERGO20") at checkout.',
-    'ja': 'ウェブサイトやアプリで使えるコード形式のクーポン。例: "LETTERGO20" のような文字列を決済時に入力。',
-    'zh': '网站/APP 使用的代码形式优惠。例如 "LETTERGO20"，结账时输入即可。',
-    'fr': 'Code promo utilisable en ligne. Le destinataire tape ton code (ex : "LETTERGO20") au paiement.',
-    'de': 'Code-basierter Online-Rabatt. Empfänger gibt deinen Code (z. B. "LETTERGO20") an der Kasse ein.',
-    'es': 'Descuento con código para uso online. El receptor introduce tu código (ej. "LETTERGO20") al pagar.',
-    'pt': 'Código de desconto para uso online. O destinatário insere o código (ex. "LETTERGO20") no pagamento.',
-    'ru': 'Промокод для онлайн-оплаты. Получатель вводит ваш код (например, "LETTERGO20") при оплате.',
-    'tr': 'Online kullanım için kod. Alıcı ödemede kodunu ("LETTERGO20") girer.',
-    'ar': 'رمز خصم للاستخدام عبر الإنترنت. يُدخل المستلم الرمز (مثل "LETTERGO20") عند الدفع.',
-    'it': 'Codice sconto per uso online. Il destinatario inserisce il codice (es. "LETTERGO20") al checkout.',
-    'hi': 'ऑनलाइन उपयोग के लिए कोड-आधारित छूट। पाने वाला आपका कोड (जैसे "LETTERGO20") चेकआउट पर डालता है।',
-    'th': 'ส่วนลดแบบรหัสสำหรับใช้ออนไลน์ ผู้รับใส่รหัส (เช่น "LETTERGO20") ตอนชำระ',
+    'ko': '웹사이트·앱에서 쓸 수 있는 코드 형식 쿠폰. 예: "THISCOUNT20" 같은 문자열을 받은 사람이 결제 시 입력.',
+    'en': 'Code-based discount for online use. The receiver types your code (e.g. "THISCOUNT20") at checkout.',
+    'ja': 'ウェブサイトやアプリで使えるコード形式のクーポン。例: "THISCOUNT20" のような文字列を決済時に入力。',
+    'zh': '网站/APP 使用的代码形式优惠。例如 "THISCOUNT20"，结账时输入即可。',
+    'fr': 'Code promo utilisable en ligne. Le destinataire tape ton code (ex : "THISCOUNT20") au paiement.',
+    'de': 'Code-basierter Online-Rabatt. Empfänger gibt deinen Code (z. B. "THISCOUNT20") an der Kasse ein.',
+    'es': 'Descuento con código para uso online. El receptor introduce tu código (ej. "THISCOUNT20") al pagar.',
+    'pt': 'Código de desconto para uso online. O destinatário insere o código (ex. "THISCOUNT20") no pagamento.',
+    'ru': 'Промокод для онлайн-оплаты. Получатель вводит ваш код (например, "THISCOUNT20") при оплате.',
+    'tr': 'Online kullanım için kod. Alıcı ödemede kodunu ("THISCOUNT20") girer.',
+    'ar': 'رمز خصم للاستخدام عبر الإنترنت. يُدخل المستلم الرمز (مثل "THISCOUNT20") عند الدفع.',
+    'it': 'Codice sconto per uso online. Il destinatario inserisce il codice (es. "THISCOUNT20") al checkout.',
+    'hi': 'ऑनलाइन उपयोग के लिए कोड-आधारित छूट। पाने वाला आपका कोड (जैसे "THISCOUNT20") चेकआउट पर डालता है।',
+    'th': 'ส่วนลดแบบรหัสสำหรับใช้ออนไลน์ ผู้รับใส่รหัส (เช่น "THISCOUNT20") ตอนชำระ',
   });
 
   String get categoryHelpVoucherDesc => _t({
@@ -14890,20 +14890,20 @@ class AppL10n {
   });
 
   String get brandExactDropCreditsSheetBody => _t({
-    'ko': '지금은 앱 내 결제가 준비 중이라 관리자 승인으로만 지급돼요.\nsupport@lettergo.app 으로 사업자명과 필요한 통 수를 알려주시면 24시간 안에 충전해 드립니다.',
-    'en': 'In-app purchase is coming soon. For now, credits are granted by admin.\nEmail support@lettergo.app with your business name and desired quantity — topped up within 24 hours.',
-    'ja': 'アプリ内決済は準備中で、現在は管理者承認で支給されます。\nsupport@lettergo.app へ事業者名と希望通数を送ってください。24時間以内にチャージします。',
-    'zh': '应用内购买正在准备中，目前通过管理员审批发放。\n请发送企业名称和所需数量至 support@lettergo.app，24 小时内充值。',
-    'fr': 'L\'achat intégré arrive bientôt. En attendant, les crédits sont octroyés par un admin.\nEnvoyez support@lettergo.app votre nom d\'entreprise et quantité — rechargé sous 24h.',
-    'de': 'In-App-Kauf kommt bald. Bis dahin werden Guthaben von Admins vergeben.\nMail an support@lettergo.app mit Firmennamen und Menge — innerhalb 24h aufgeladen.',
-    'es': 'La compra dentro de la app llegará pronto. Por ahora, los admins asignan créditos.\nEnvíe a support@lettergo.app el nombre de su empresa y la cantidad — recarga en 24h.',
-    'pt': 'Compra na app em breve. Por agora, créditos são concedidos por admin.\nEmail support@lettergo.app com o nome da empresa e quantidade — em 24h.',
-    'ru': 'Встроенная покупка скоро. Пока кредиты выдаёт администратор.\nПишите на support@lettergo.app с названием бизнеса и количеством — начисление в 24ч.',
-    'tr': 'Uygulama içi satın alma yakında. Şimdilik admin kredi veriyor.\nsupport@lettergo.app adresine işletme adı ve miktarı yazın — 24 saat içinde yüklenir.',
-    'ar': 'الشراء داخل التطبيق قريبًا. حاليًا يمنح المسؤول الأرصدة.\nراسل support@lettergo.app باسم النشاط والعدد — شحن خلال 24 ساعة.',
-    'it': 'Acquisto in-app in arrivo. Per ora i crediti sono concessi dall\'admin.\nScrivi a support@lettergo.app con nome azienda e quantità — caricato entro 24h.',
-    'hi': 'इन-ऐप खरीदारी जल्द आ रही है। अभी क्रेडिट एडमिन द्वारा दिए जाते हैं।\nsupport@lettergo.app पर व्यवसाय नाम और मात्रा भेजें — 24 घंटे में लोड।',
-    'th': 'ซื้อในแอปกำลังมา ตอนนี้แอดมินเป็นผู้อนุมัติ\nส่งชื่อธุรกิจและจำนวนที่ต้องการไปยัง support@lettergo.app — เติมภายใน 24 ชม.',
+    'ko': '지금은 앱 내 결제가 준비 중이라 관리자 승인으로만 지급돼요.\nsupport@thiscount.io 으로 사업자명과 필요한 통 수를 알려주시면 24시간 안에 충전해 드립니다.',
+    'en': 'In-app purchase is coming soon. For now, credits are granted by admin.\nEmail support@thiscount.io with your business name and desired quantity — topped up within 24 hours.',
+    'ja': 'アプリ内決済は準備中で、現在は管理者承認で支給されます。\nsupport@thiscount.io へ事業者名と希望通数を送ってください。24時間以内にチャージします。',
+    'zh': '应用内购买正在准备中，目前通过管理员审批发放。\n请发送企业名称和所需数量至 support@thiscount.io，24 小时内充值。',
+    'fr': 'L\'achat intégré arrive bientôt. En attendant, les crédits sont octroyés par un admin.\nEnvoyez support@thiscount.io votre nom d\'entreprise et quantité — rechargé sous 24h.',
+    'de': 'In-App-Kauf kommt bald. Bis dahin werden Guthaben von Admins vergeben.\nMail an support@thiscount.io mit Firmennamen und Menge — innerhalb 24h aufgeladen.',
+    'es': 'La compra dentro de la app llegará pronto. Por ahora, los admins asignan créditos.\nEnvíe a support@thiscount.io el nombre de su empresa y la cantidad — recarga en 24h.',
+    'pt': 'Compra na app em breve. Por agora, créditos são concedidos por admin.\nEmail support@thiscount.io com o nome da empresa e quantidade — em 24h.',
+    'ru': 'Встроенная покупка скоро. Пока кредиты выдаёт администратор.\nПишите на support@thiscount.io с названием бизнеса и количеством — начисление в 24ч.',
+    'tr': 'Uygulama içi satın alma yakında. Şimdilik admin kredi veriyor.\nsupport@thiscount.io adresine işletme adı ve miktarı yazın — 24 saat içinde yüklenir.',
+    'ar': 'الشراء داخل التطبيق قريبًا. حاليًا يمنح المسؤول الأرصدة.\nراسل support@thiscount.io باسم النشاط والعدد — شحن خلال 24 ساعة.',
+    'it': 'Acquisto in-app in arrivo. Per ora i crediti sono concessi dall\'admin.\nScrivi a support@thiscount.io con nome azienda e quantità — caricato entro 24h.',
+    'hi': 'इन-ऐप खरीदारी जल्द आ रही है। अभी क्रेडिट एडमिन द्वारा दिए जाते हैं।\nsupport@thiscount.io पर व्यवसाय नाम और मात्रा भेजें — 24 घंटे में लोड।',
+    'th': 'ซื้อในแอปกำลังมา ตอนนี้แอดมินเป็นผู้อนุมัติ\nส่งชื่อธุรกิจและจำนวนที่ต้องการไปยัง support@thiscount.io — เติมภายใน 24 ชม.',
   });
 
   // 카테고리별 redemption 필드 설명 + 힌트 (할인권 코드 vs 교환권 이미지).
@@ -14925,12 +14925,12 @@ class AppL10n {
   });
 
   String get composeBrandCouponHint => _t({
-    'ko': '예: LETTERGO20', 'en': 'e.g. LETTERGO20', 'ja': '例: LETTERGO20',
-    'zh': '例：LETTERGO20', 'fr': 'ex : LETTERGO20', 'de': 'z. B. LETTERGO20',
-    'es': 'ej: LETTERGO20', 'pt': 'ex: LETTERGO20',
-    'ru': 'напр. LETTERGO20', 'tr': 'örn: LETTERGO20',
-    'ar': 'مثال: LETTERGO20', 'it': 'es: LETTERGO20',
-    'hi': 'उदा. LETTERGO20', 'th': 'เช่น LETTERGO20',
+    'ko': '예: THISCOUNT20', 'en': 'e.g. THISCOUNT20', 'ja': '例: THISCOUNT20',
+    'zh': '例：THISCOUNT20', 'fr': 'ex : THISCOUNT20', 'de': 'z. B. THISCOUNT20',
+    'es': 'ej: THISCOUNT20', 'pt': 'ex: THISCOUNT20',
+    'ru': 'напр. THISCOUNT20', 'tr': 'örn: THISCOUNT20',
+    'ar': 'مثال: THISCOUNT20', 'it': 'es: THISCOUNT20',
+    'hi': 'उदा. THISCOUNT20', 'th': 'เช่น THISCOUNT20',
   });
 
   String get composeBrandVoucherDesc => _t({
@@ -18152,11 +18152,11 @@ class AppL10n {
 
   // ── Hardcoded string l10n (formerly hardcoded) ─────────────────────────
 
-  String get labelLetterGoPremium => _t({
-    'ko': 'LETTER GO PREMIUM', 'en': 'LETTER GO PREMIUM', 'ja': 'LETTER GO PREMIUM', 'zh': 'LETTER GO PREMIUM',
-    'fr': 'LETTER GO PREMIUM', 'de': 'LETTER GO PREMIUM', 'es': 'LETTER GO PREMIUM',
-    'pt': 'LETTER GO PREMIUM', 'ru': 'LETTER GO PREMIUM', 'tr': 'LETTER GO PREMIUM',
-    'ar': 'LETTER GO PREMIUM', 'it': 'LETTER GO PREMIUM', 'hi': 'LETTER GO PREMIUM', 'th': 'LETTER GO PREMIUM',
+  String get labelThiscountPremium => _t({
+    'ko': 'THISCOUNT PREMIUM', 'en': 'THISCOUNT PREMIUM', 'ja': 'THISCOUNT PREMIUM', 'zh': 'THISCOUNT PREMIUM',
+    'fr': 'THISCOUNT PREMIUM', 'de': 'THISCOUNT PREMIUM', 'es': 'THISCOUNT PREMIUM',
+    'pt': 'THISCOUNT PREMIUM', 'ru': 'THISCOUNT PREMIUM', 'tr': 'THISCOUNT PREMIUM',
+    'ar': 'THISCOUNT PREMIUM', 'it': 'THISCOUNT PREMIUM', 'hi': 'THISCOUNT PREMIUM', 'th': 'THISCOUNT PREMIUM',
   });
 
   String get tierFree => _t({
