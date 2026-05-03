@@ -317,21 +317,23 @@ class AppL10n {
     'hi': 'संग्रह',
     'th': 'สะสม',
   });
+  // Build 223: '보내기/Send' → '홍보/Promo' — Premium = 홍보 편지 정체성과 일치.
+  // Free 회원은 _ComposeNavItem.isLocked 로 자물쇠 오버레이.
   String get navSend => _t({
-    'ko': '보내기',
-    'en': 'Send',
-    'ja': '送る',
-    'zh': '寄出',
-    'fr': 'Envoyer',
-    'de': 'Senden',
-    'es': 'Enviar',
-    'pt': 'Enviar',
-    'ru': 'Отправить',
-    'tr': 'Gönder',
-    'ar': 'إرسال',
-    'it': 'Invia',
-    'hi': 'भेजें',
-    'th': 'ส่ง',
+    'ko': '홍보',
+    'en': 'Promo',
+    'ja': '宣伝',
+    'zh': '推广',
+    'fr': 'Promo',
+    'de': 'Promo',
+    'es': 'Promo',
+    'pt': 'Promo',
+    'ru': 'Промо',
+    'tr': 'Promo',
+    'ar': 'ترويج',
+    'it': 'Promo',
+    'hi': 'प्रचार',
+    'th': 'โปร',
   });
 
   // Build 139: Brand 유저 전용 중앙 탭 라벨.

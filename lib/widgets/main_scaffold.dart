@@ -241,19 +241,23 @@ class _MainScaffoldState extends State<MainScaffold> {
                     ),
                   ),
                   Expanded(
-                    // Build 213: Free 도 "✉️ 편지 쓰기" 라벨로 노출 — 탭 시
-                    // PremiumGateSheet 가 떠 업그레이드 안내. 라벨이 보이지
-                    // 않아 발송 기능 자체가 사라진 줄 아는 사용자 혼선 해소.
+                    // Build 213/223: 등급별 라벨/아이콘
+                    //   Free    → 📣 홍보 (잠금 🔒) · 탭 시 PremiumGateSheet
+                    //   Premium → 📣 홍보 · 탭 시 compose 진입
+                    //   Brand   → 📣 캠페인 · 탭 시 compose 진입
+                    // Free 도 라벨 노출해 "여긴 잠긴 영역" 인지 → 탭하면
+                    // 업그레이드 안내. 사용자 혼선 + Premium 정체성 일관성.
                     child: _ComposeNavItem(
                       label: isBrand
                           ? l.navCampaign
                           : l.navSend,
                       icon: isBrand
                           ? Icons.campaign_rounded
-                          : Icons.edit_note_rounded,
+                          : Icons.campaign_outlined,
                       accent: isBrand
                           ? AppColors.coupon
                           : AppColors.gold,
+                      isLocked: !isBrand && !isPremium,
                       onTap: () => _openCompose(ctx),
                     ),
                   ),
@@ -288,27 +292,30 @@ class _MainScaffoldState extends State<MainScaffold> {
   }
 }
 
-// ── 중앙 CTA 탭 — 등급별 색상·아이콘·라벨 (Build 139) ──
-// Free → 💎 업그레이드 (gold), Premium → ✉️ 보내기 (gold),
-// Brand → 📣 캠페인 (orange) — 한 눈에 "지금 내 역할" 을 감지.
+// ── 중앙 CTA 탭 — 등급별 색상·아이콘·라벨 (Build 139, 223) ──
+// Free    → 📣 홍보 (gold + 🔒 lock) · tap → PremiumGate
+// Premium → 📣 홍보 (gold) · tap → compose
+// Brand   → 📣 캠페인 (orange) · tap → compose
 class _ComposeNavItem extends StatelessWidget {
   final String label;
   final IconData icon;
   final Color accent;
   final VoidCallback onTap;
+  final bool isLocked;
 
   const _ComposeNavItem({
     required this.label,
     required this.icon,
     required this.accent,
     required this.onTap,
+    this.isLocked = false,
   });
 
   @override
   Widget build(BuildContext context) {
     // Build 161: Semantics 라벨 — 스크린리더 대응.
     return Semantics(
-      label: label,
+      label: isLocked ? '$label (locked)' : label,
       button: true,
       child: GestureDetector(
       onTap: onTap,
@@ -318,27 +325,56 @@ class _ComposeNavItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 32,
-              height: 32,
+            // Build 223: Free 일 때 잠금 뱃지 overlay 추가
+            Stack(
+              clipBehavior: Clip.none,
               alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: accent,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                color: accent == AppColors.gold
-                    ? const Color(0xFF1A1300)
-                    : AppColors.bgDeep,
-                size: 18,
-              ),
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: isLocked
+                        ? accent.withValues(alpha: 0.55)
+                        : accent,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    icon,
+                    color: accent == AppColors.gold
+                        ? const Color(0xFF1A1300)
+                        : AppColors.bgDeep,
+                    size: 18,
+                  ),
+                ),
+                if (isLocked)
+                  Positioned(
+                    bottom: -2,
+                    right: -2,
+                    child: Container(
+                      width: 14,
+                      height: 14,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: AppColors.bgDeep,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: accent, width: 1.2),
+                      ),
+                      child: Icon(
+                        Icons.lock_rounded,
+                        size: 8,
+                        color: accent,
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 3),
             Text(
               label,
               style: TextStyle(
-                color: accent,
+                color: isLocked ? accent.withValues(alpha: 0.75) : accent,
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
               ),
