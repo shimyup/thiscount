@@ -7,6 +7,7 @@ import '../state/app_state.dart';
 import '../features/map/screens/world_map_screen.dart';
 import '../features/compose/screens/compose_screen.dart';
 import '../features/premium/premium_gate_sheet.dart';
+import '../features/premium/brand_comparison_sheet.dart';
 import '../features/inbox/screens/inbox_screen.dart';
 import '../features/tower/screens/tower_screen.dart';
 import '../features/profile/profile_screen.dart';
@@ -89,6 +90,12 @@ class _MainScaffoldState extends State<MainScaffold> {
         description: l.composeGateDesc,
       );
       return;
+    }
+    // Build 238: Premium(비-Brand) 회원이 발송 진입 시 한 번 Brand 비교 시트 노출.
+    // 자기 홍보 메시지 (사진+링크) 와 광고주 트랙 (쿠폰/대량/ExactDrop) 차이 환기.
+    if (state.currentUser.isPremium && !state.currentUser.isBrand) {
+      await BrandComparisonSheet.showOncePerSession(ctx);
+      if (!ctx.mounted) return;
     }
     final result = await Navigator.push<bool>(
       ctx,

@@ -319,16 +319,16 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                       radius: state.pickupRadiusMeters,
                       useRadiusInMeter: true,
                       color: state.currentUser.isBrand
-                          ? AppColors.coupon.withValues(alpha: 0.07)
+                          ? AppColors.coupon.withValues(alpha: 0.18)
                           : state.currentUser.isPremium
-                              ? AppColors.gold.withValues(alpha: 0.10)
-                              : AppColors.teal.withValues(alpha: 0.10),
+                              ? AppColors.gold.withValues(alpha: 0.20)
+                              : AppColors.teal.withValues(alpha: 0.22),
                       borderColor: state.currentUser.isBrand
-                          ? AppColors.coupon.withValues(alpha: 0.70)
+                          ? AppColors.coupon.withValues(alpha: 0.95)
                           : state.currentUser.isPremium
-                              ? AppColors.gold.withValues(alpha: 0.75)
-                              : AppColors.teal.withValues(alpha: 0.75),
-                      borderStrokeWidth: 2.0,
+                              ? AppColors.gold.withValues(alpha: 0.98)
+                              : AppColors.teal.withValues(alpha: 0.98),
+                      borderStrokeWidth: 3.0,
                     ),
                   ],
                 ),
@@ -1963,7 +1963,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                     ),
                   ),
                   const SizedBox(width: 10),
-                  // 건물 층수
+                  // 활동 레벨 (Build 238: tower "F" 접미사 제거 — 카운터 정체성)
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.all(14),
@@ -1977,7 +1977,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                       child: Column(
                         children: [
                           Text(
-                            '${floors}F',
+                            'Lv $floors',
                             style: TextStyle(
                               color: tierColor,
                               fontSize: 24,
@@ -2021,7 +2021,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                           ),
                         ),
                         Text(
-                          '${towerH.toInt()} / 240px',
+                          '${(towerH / 240.0 * 100).toInt()}%',
                           style: TextStyle(
                             color: tierColor,
                             fontSize: 11,

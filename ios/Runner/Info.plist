@@ -5,17 +5,17 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Your location is needed to discover nearby letters.</string>
+	<string>Your location is needed to discover nearby rewards.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Letter Go only uses your location while the app is open to find nearby letters. Background location is never accessed.</string>
+	<string>Thiscount only uses your location while the app is open to find nearby rewards. Background location is never accessed.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Photo library access is needed to change your profile picture.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Permission is needed to save your selected profile photo.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Camera access is needed to take photos for your letters.</string>
+	<string>Camera access is needed to take photos for your promos.</string>
 	<key>NSUserNotificationUsageDescription</key>
-	<string>Notifications let you know when new letters arrive nearby.</string>
+	<string>Notifications let you know when new rewards arrive nearby.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

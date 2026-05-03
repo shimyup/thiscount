@@ -1649,31 +1649,40 @@ class _ComposeScreenState extends State<ComposeScreen>
                             const SizedBox(height: 10),
 
                             // ── 더 많은 옵션 (접히는 섹션) — 편지지 위쪽 ──
+                            // Build 238: Premium(비-Brand)는 홍보 배지 카드 CTA 의
+                            // 첨부 바텀시트가 사진/링크를 처리 — 옵션창에서 중복 제거.
+                            // Brand/Free 는 기존대로 노출 (Free=잠금 안내, Brand=사용).
                             _ComposeOptionsSection(
                               title: l10n.composeOptionsSectionTitle,
                               children: [
-                                if (!_isReply)
+                                if (!_isReply && !(hasPremium && !isBrand))
                                   _buildSocialToggle(hasPremium: hasPremium),
-                                if (!_isReply && _attachSocial && hasPremium) ...[
+                                if (!_isReply &&
+                                    _attachSocial &&
+                                    hasPremium &&
+                                    isBrand) ...[
                                   const SizedBox(height: 10),
                                   _buildSocialInput(),
                                 ],
-                                if (!_isReply) const SizedBox(height: 10),
+                                if (!_isReply && !(hasPremium && !isBrand))
+                                  const SizedBox(height: 10),
                                 if (!_isReply) _buildAnonymousToggle(state),
                                 if (!_isReply && isBrand) const SizedBox(height: 10),
                                 if (!_isReply && isBrand) _buildBrandOptions(state),
-                                const SizedBox(height: 10),
-                                Container(
-                                  key: _attachAreaKey,
-                                  child: _buildImageAttachButton(
-                                    state,
-                                    hasPremium: hasPremium,
-                                    purchase: purchase,
-                                  ),
-                                ),
-                                if (_imageFilePath != null) ...[
+                                if (!(hasPremium && !isBrand)) ...[
                                   const SizedBox(height: 10),
-                                  _buildImagePreview(),
+                                  Container(
+                                    key: _attachAreaKey,
+                                    child: _buildImageAttachButton(
+                                      state,
+                                      hasPremium: hasPremium,
+                                      purchase: purchase,
+                                    ),
+                                  ),
+                                  if (_imageFilePath != null) ...[
+                                    const SizedBox(height: 10),
+                                    _buildImagePreview(),
+                                  ],
                                 ],
                               ],
                             ),
@@ -3553,7 +3562,11 @@ class _ComposeScreenState extends State<ComposeScreen>
 
     // Build 223: Premium (Brand 아님) → 단일 홍보 배지 카드.
     if (!isBrand && isPremium) {
-      return _buildPremiumPromoBadgeCard(l10n);
+      return _buildPremiumPromoBadgeCard(
+        l10n,
+        state,
+        context.read<PurchaseService>(),
+      );
     }
 
     return Container(
@@ -3804,7 +3817,11 @@ class _ComposeScreenState extends State<ComposeScreen>
 
   // Build 223: Premium 전용 홍보 편지 배지 카드 — 카테고리 3칩 단순화.
   // "당신의 발송은 자동으로 홍보 편지" 정체성 + 첨부 가능 항목 안내.
-  Widget _buildPremiumPromoBadgeCard(AppL10n l10n) {
+  Widget _buildPremiumPromoBadgeCard(
+    AppL10n l10n,
+    AppState state,
+    PurchaseService purchase,
+  ) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -3870,9 +3887,9 @@ class _ComposeScreenState extends State<ComposeScreen>
             ),
           ),
           const SizedBox(height: 10),
-          // Build 229: CTA 칩 탭 → 첨부 영역으로 스크롤 + SNS 링크 토글 켜기
+          // Build 238: CTA 칩 탭 → 첨부 바텀시트 (사진 + SNS 링크).
           GestureDetector(
-            onTap: _scrollToAttachArea,
+            onTap: () => _showAttachSheet(state, purchase),
             behavior: HitTestBehavior.opaque,
             child: Container(
               padding: const EdgeInsets.symmetric(
@@ -3913,22 +3930,239 @@ class _ComposeScreenState extends State<ComposeScreen>
     );
   }
 
-  // Build 229: Premium 홍보 카드 CTA 탭 시 — 첨부 영역으로 스크롤 +
-  // SNS 링크 토글 자동 활성화 (한 번에 두 첨부 옵션 다 보이게).
-  void _scrollToAttachArea() {
+  // Build 238: Premium 홍보 카드 CTA 탭 시 — 첨부 바텀시트 (사진 + SNS 링크).
+  // 옵션창에서 첨부 토글/버튼을 제거하고 단일 다이얼로그로 통합.
+  void _showAttachSheet(AppState state, PurchaseService purchase) {
+    final l10n = AppL10n.of(state.currentUser.languageCode);
+    HapticFeedback.lightImpact();
     setState(() {
       _attachSocial = true;
     });
-    HapticFeedback.lightImpact();
-    final ctx = _attachAreaKey.currentContext;
-    if (ctx != null) {
-      Scrollable.ensureVisible(
-        ctx,
-        duration: const Duration(milliseconds: 420),
-        curve: Curves.easeInOutCubic,
-        alignment: 0.2,
-      );
-    }
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetCtx) => StatefulBuilder(
+        builder: (ctx, setSheetState) {
+          final hasImage = _imageFilePath != null;
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom,
+            ),
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(12, 12, 12, 16),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+              decoration: BoxDecoration(
+                color: AppColors.bgCard,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: AppColors.gold.withValues(alpha: 0.45),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.textMuted,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      const Text('📣', style: TextStyle(fontSize: 22)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          l10n.composePremiumPromoLabel,
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // 사진 첨부 버튼
+                  GestureDetector(
+                    onTap: _isCompressingImage
+                        ? null
+                        : () async {
+                            await _pickImage(state, purchase);
+                            setSheetState(() {});
+                          },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 14,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.bgSurface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: hasImage
+                              ? AppColors.teal.withValues(alpha: 0.5)
+                              : AppColors.bgSurface,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          _isCompressingImage
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: AppColors.teal,
+                                  ),
+                                )
+                              : Icon(
+                                  hasImage
+                                      ? Icons.image_rounded
+                                      : Icons.add_photo_alternate_outlined,
+                                  color: hasImage
+                                      ? AppColors.teal
+                                      : AppColors.textSecondary,
+                                  size: 20,
+                                ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              _isCompressingImage
+                                  ? l10n.composeImageProcessing
+                                  : hasImage
+                                      ? l10n.composePhotoAttached
+                                      : '📸 ${l10n.composePhotoAttachPremium}',
+                              style: TextStyle(
+                                color: hasImage
+                                    ? AppColors.teal
+                                    : AppColors.textPrimary,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          if (!_isCompressingImage)
+                            Text(
+                              l10n.composeQuotaRemaining(
+                                state.remainingImageQuota,
+                              ),
+                              style: const TextStyle(
+                                color: AppColors.textMuted,
+                                fontSize: 11,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (hasImage) ...[
+                    const SizedBox(height: 10),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        File(_imageFilePath!),
+                        height: 140,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  // 채널/SNS 링크 입력
+                  Row(
+                    children: [
+                      const Text('🔗', style: TextStyle(fontSize: 17)),
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n.composeSnsLinkOptional,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _socialLinkController,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'https://instagram.com/your_id',
+                      hintStyle: const TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 13,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.link_rounded,
+                        color: AppColors.teal,
+                        size: 18,
+                      ),
+                      filled: true,
+                      fillColor: AppColors.bgSurface,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.teal,
+                          width: 1.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    l10n.composeSnsLinkSub,
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 11,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(sheetCtx).pop(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.gold,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        '완료',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   // ── 브랜드 고급 옵션 (ExpansionTile 내부) ───────────────────────────────

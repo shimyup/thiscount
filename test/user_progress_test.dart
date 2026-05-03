@@ -143,20 +143,20 @@ void main() {
   });
 
   group('xpLevelLabel', () {
-    test('level 1 → 견습 집배원', () {
-      expect(xpLevelLabel(1), contains('견습 집배원'));
+    test('level 1 → 새내기 카운터', () {
+      expect(xpLevelLabel(1), contains('새내기 카운터'));
     });
 
-    test('level 10 → 숙련 집배원', () {
-      expect(xpLevelLabel(10), contains('숙련 집배원'));
+    test('level 10 → 숙련 헌터', () {
+      expect(xpLevelLabel(10), contains('숙련 헌터'));
     });
 
-    test('level 50 → 전설의 편지꾼', () {
-      expect(xpLevelLabel(50), contains('전설의 편지꾼'));
+    test('level 50 → 전설의 카운터', () {
+      expect(xpLevelLabel(50), contains('전설의 카운터'));
     });
 
-    test('level 44 → 세계의 집배원장 (floor 40 bucket)', () {
-      expect(xpLevelLabel(44), contains('세계의 집배원장'));
+    test('level 44 → 세계의 카운터장 (floor 40 bucket)', () {
+      expect(xpLevelLabel(44), contains('세계의 카운터장'));
     });
   });
 }
