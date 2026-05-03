@@ -70,7 +70,7 @@ class _V5MainScaffoldState extends State<V5MainScaffold> {
         children: [
           _tab(0, Icons.location_on_outlined, '지도'),
           _tab(1, Icons.account_balance_wallet_outlined, '지갑', badge: 5),
-          _tab(2, Icons.workspace_premium_outlined, '레터'),
+          _tab(2, Icons.workspace_premium_outlined, '카운터'),
           _tab(3, Icons.person_outline, '나'),
         ],
       ),

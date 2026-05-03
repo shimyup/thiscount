@@ -10417,22 +10417,22 @@ class AppL10n {
     'th': 'Letter ชุมชน',
   });
 
-  // Build 183: "세계 랭킹" → "레터 순위" (letter-centric renaming).
+  // Build 220: "레터 순위" → "카운터 순위" (rebrand).
   String get mapWorldRanking => _t({
-    'ko': '레터 순위',
-    'en': 'Letter Ranking',
-    'ja': 'レターランキング',
-    'zh': '信使排名',
-    'fr': 'Classement Letter',
-    'de': 'Letter-Rangliste',
-    'es': 'Ranking de Letter',
-    'pt': 'Ranking de Letter',
-    'ru': 'Рейтинг Letter',
-    'tr': 'Letter Sıralaması',
-    'ar': 'تصنيف Letter',
-    'it': 'Classifica Letter',
-    'hi': 'Letter रैंकिंग',
-    'th': 'อันดับ Letter',
+    'ko': '카운터 순위',
+    'en': 'Counter Ranking',
+    'ja': 'カウンターランキング',
+    'zh': '计数器排名',
+    'fr': 'Classement Counter',
+    'de': 'Counter-Rangliste',
+    'es': 'Ranking de Counter',
+    'pt': 'Ranking de Counter',
+    'ru': 'Рейтинг Counter',
+    'tr': 'Counter Sıralaması',
+    'ar': 'تصنيف Counter',
+    'it': 'Classifica Counter',
+    'hi': 'Counter रैंकिंग',
+    'th': 'อันดับ Counter',
   });
 
   // Build 185: 건물 층수 · 타워 높이 → 활동 레벨 (letter-centric metric).
@@ -12566,55 +12566,55 @@ class AppL10n {
   String letterBirthdayAnniversary(int years) {
     switch (languageCode) {
       case 'ko': return '🎉 카운터와 함께 $years주년!';
-      case 'ja': return '🎉 レターと $years 周年！';
-      case 'zh': return '🎉 与 Letter 同行 $years 周年！';
-      case 'fr': return '🎉 $years ans avec Letter !';
-      case 'de': return '🎉 $years Jahre mit Letter!';
-      case 'es': return '🎉 $years años con Letter!';
-      case 'pt': return '🎉 $years anos com Letter!';
-      case 'ru': return '🎉 $years лет с Letter!';
-      case 'tr': return '🎉 Letter ile $years. yıl!';
-      case 'ar': return '🎉 $years سنوات مع Letter!';
-      case 'it': return '🎉 $years anni con Letter!';
-      case 'hi': return '🎉 Letter के साथ $years साल!';
-      case 'th': return '🎉 $years ปีกับ Letter!';
-      default: return '🎉 $years years with Letter!';
+      case 'ja': return '🎉 カウンターと $years 周年！';
+      case 'zh': return '🎉 与 Counter 同行 $years 周年！';
+      case 'fr': return '🎉 $years ans avec Counter !';
+      case 'de': return '🎉 $years Jahre mit Counter!';
+      case 'es': return '🎉 $years años con Counter!';
+      case 'pt': return '🎉 $years anos com Counter!';
+      case 'ru': return '🎉 $years лет с Counter!';
+      case 'tr': return '🎉 Counter ile $years. yıl!';
+      case 'ar': return '🎉 $years سنوات مع Counter!';
+      case 'it': return '🎉 $years anni con Counter!';
+      case 'hi': return '🎉 Counter के साथ $years साल!';
+      case 'th': return '🎉 $years ปีกับ Counter!';
+      default: return '🎉 $years years with Counter!';
     }
   }
 
   String get letterBirthdayFirstDay => _t({
     'ko': '🎂 오늘이 당신의 카운터 생일이에요',
-    'en': '🎂 Today is your Letter\'s birthday',
-    'ja': '🎂 今日はあなたのレターの誕生日',
-    'zh': '🎂 今天是你 Letter 的生日',
-    'fr': "🎂 C'est l'anniversaire de ta lettre",
-    'de': '🎂 Heute ist dein Letter-Geburtstag',
-    'es': '🎂 Hoy es el cumple de tu Letter',
-    'pt': '🎂 Hoje é o aniversário do teu Letter',
-    'ru': '🎂 Сегодня день рождения вашего Letter',
-    'tr': "🎂 Bugün Letter'ının doğum günü",
-    'ar': '🎂 اليوم عيد ميلاد ليترك',
-    'it': '🎂 Oggi è il compleanno del tuo Letter',
-    'hi': '🎂 आज आपके Letter का जन्मदिन',
-    'th': '🎂 วันนี้ Letter ของคุณครบรอบ',
+    'en': '🎂 Today is your Counter\'s birthday',
+    'ja': '🎂 今日はあなたのカウンターの誕生日',
+    'zh': '🎂 今天是你 Counter 的生日',
+    'fr': "🎂 C'est l'anniversaire de ton Counter",
+    'de': '🎂 Heute ist dein Counter-Geburtstag',
+    'es': '🎂 Hoy es el cumple de tu Counter',
+    'pt': '🎂 Hoje é o aniversário do teu Counter',
+    'ru': '🎂 Сегодня день рождения вашего Counter',
+    'tr': "🎂 Bugün Counter'ının doğum günü",
+    'ar': '🎂 اليوم عيد ميلاد كاونترك',
+    'it': '🎂 Oggi è il compleanno del tuo Counter',
+    'hi': '🎂 आज आपके Counter का जन्मदिन',
+    'th': '🎂 วันนี้ Counter ของคุณครบรอบ',
   });
 
   String letterAgeDays(int days) {
     switch (languageCode) {
       case 'ko': return '카운터와 함께 $days일째';
-      case 'ja': return 'レターと $days 日目';
-      case 'zh': return '与 Letter 同行 $days 天';
-      case 'fr': return '$days jours avec Letter';
-      case 'de': return '$days Tage mit Letter';
-      case 'es': return '$days días con Letter';
-      case 'pt': return '$days dias com Letter';
-      case 'ru': return '$days дней с Letter';
-      case 'tr': return 'Letter ile $days gün';
-      case 'ar': return '$days أيام مع Letter';
-      case 'it': return '$days giorni con Letter';
-      case 'hi': return 'Letter के साथ $days दिन';
-      case 'th': return '$days วันกับ Letter';
-      default: return '$days days with Letter';
+      case 'ja': return 'カウンターと $days 日目';
+      case 'zh': return '与 Counter 同行 $days 天';
+      case 'fr': return '$days jours avec Counter';
+      case 'de': return '$days Tage mit Counter';
+      case 'es': return '$days días con Counter';
+      case 'pt': return '$days dias com Counter';
+      case 'ru': return '$days дней с Counter';
+      case 'tr': return 'Counter ile $days gün';
+      case 'ar': return '$days أيام مع Counter';
+      case 'it': return '$days giorni con Counter';
+      case 'hi': return 'Counter के साथ $days दिन';
+      case 'th': return '$days วันกับ Counter';
+      default: return '$days days with Counter';
     }
   }
 
@@ -12643,42 +12643,42 @@ class AppL10n {
     'ko': '내 카운터 이름',
     'en': 'My Counter name',
     'ja': 'カウンターの名前',
-    'zh': '我的信使名',
-    'fr': 'Nom de ma lettre',
-    'de': 'Mein Letter-Name',
-    'es': 'Nombre de mi Letter',
-    'pt': 'Nome do meu Letter',
-    'ru': 'Имя моего Letter',
-    'tr': "Letter'imin adı",
-    'ar': 'اسم ليتر الخاص بي',
-    'it': 'Nome del mio Letter',
-    'hi': 'मेरे Letter का नाम',
-    'th': 'ชื่อ Letter ของฉัน',
+    'zh': '我的 Counter 名',
+    'fr': 'Nom de mon Counter',
+    'de': 'Mein Counter-Name',
+    'es': 'Nombre de mi Counter',
+    'pt': 'Nome do meu Counter',
+    'ru': 'Имя моего Counter',
+    'tr': "Counter'imin adı",
+    'ar': 'اسم كاونتر الخاص بي',
+    'it': 'Nome del mio Counter',
+    'hi': 'मेरे Counter का नाम',
+    'th': 'ชื่อ Counter ของฉัน',
   });
 
   String get profileDialogLetterNameHint => _t({
-    'ko': '예: 우체부 루나', 'en': 'e.g. Mailman Luna', 'ja': '例: 郵便配達のルナ',
-    'zh': '例：邮差露娜', 'fr': 'ex. Facteur Luna', 'de': 'z.B. Briefträger Luna',
-    'es': 'ej. Cartero Luna', 'pt': 'ex. Carteiro Luna', 'ru': 'напр. Почтальон Луна',
-    'tr': 'örn. Postacı Luna', 'ar': 'مثل: ساعي البريد لونا', 'it': 'es. Postino Luna',
-    'hi': 'उदा. डाकिया Luna', 'th': 'เช่น บุรุษไปรษณีย์ลูน่า',
+    'ko': '예: 쿠폰헌터 루나', 'en': 'e.g. Coupon Hunter Luna', 'ja': '例: クーポンハンタールナ',
+    'zh': '例：优惠券猎人露娜', 'fr': 'ex. Chasseuse de coupons Luna', 'de': 'z.B. Couponjägerin Luna',
+    'es': 'ej. Cazadora de cupones Luna', 'pt': 'ex. Caçadora de cupons Luna', 'ru': 'напр. Охотник за купонами Луна',
+    'tr': 'örn. Kupon Avcısı Luna', 'ar': 'مثل: صائد الكوبونات لونا', 'it': 'es. Cacciatore di coupon Luna',
+    'hi': 'उदा. कूपन हंटर Luna', 'th': 'เช่น นักล่าคูปองลูน่า',
   });
 
   String get profileDialogLetterNameDesc => _t({
     'ko': '내 카운터 캐릭터에 이름을 붙여보세요. 최대 20자.',
     'en': 'Give your Counter character a name. Max 20 chars.',
     'ja': 'カウンターキャラクターに名前を付けよう。最大20文字。',
-    'zh': '给你的信使起个名字。最多 20 字符。',
-    'fr': 'Donne un nom à ta lettre. 20 caractères max.',
-    'de': 'Gib deinem Letter einen Namen. Max 20 Zeichen.',
-    'es': 'Ponle un nombre a tu Letter. Máx. 20 caracteres.',
-    'pt': 'Dá um nome ao teu Letter. Máx 20 caracteres.',
-    'ru': 'Назови своего Letter. Макс 20 символов.',
-    'tr': "Letter'ına isim ver. En fazla 20 karakter.",
-    'ar': 'سمّ ليترك الخاص. 20 حرفًا بحد أقصى.',
-    'it': 'Dai un nome al tuo Letter. Max 20 caratteri.',
-    'hi': 'अपने Letter का नाम दें. अधिकतम 20 वर्ण.',
-    'th': 'ตั้งชื่อ Letter ของคุณ สูงสุด 20 ตัวอักษร',
+    'zh': '给你的 Counter 起个名字。最多 20 字符。',
+    'fr': 'Donne un nom à ton Counter. 20 caractères max.',
+    'de': 'Gib deinem Counter einen Namen. Max 20 Zeichen.',
+    'es': 'Ponle un nombre a tu Counter. Máx. 20 caracteres.',
+    'pt': 'Dá um nome ao teu Counter. Máx 20 caracteres.',
+    'ru': 'Назови своего Counter. Макс 20 символов.',
+    'tr': "Counter'ına isim ver. En fazla 20 karakter.",
+    'ar': 'سمّ كاونترك الخاص. 20 حرفًا بحد أقصى.',
+    'it': 'Dai un nome al tuo Counter. Max 20 caratteri.',
+    'hi': 'अपने Counter का नाम दें. अधिकतम 20 वर्ण.',
+    'th': 'ตั้งชื่อ Counter ของคุณ สูงสุด 20 ตัวอักษร',
   });
 
   /// Build 171: 카운터 캐릭터 로드맵 카드 (다음 해금까지).
@@ -12748,20 +12748,20 @@ class AppL10n {
     }
   }
 
-  /// Build 163: Free/Premium 전용 탭 라벨 — 타워 대신 "레터" 캐릭터 성장
-  /// 경험. Brand 는 `navTower` 유지.
+  /// Build 163 → 220: Free/Premium 전용 탭 라벨 — "카운터" 캐릭터 성장 경험.
+  /// Brand 는 `navTower` 유지.
   String get navLetter => _t({
-    'ko': '레터',
-    'en': 'Letter',
-    'ja': 'レター',
-    'zh': '信使',
-    'fr': 'Lettre',
-    'de': 'Letter',
-    'es': 'Letter',
-    'pt': 'Letter',
-    'ru': 'Letter',
-    'tr': 'Letter',
-    'ar': 'ليتر',
+    'ko': '카운터',
+    'en': 'Counter',
+    'ja': 'カウンター',
+    'zh': '计数器',
+    'fr': 'Counter',
+    'de': 'Counter',
+    'es': 'Counter',
+    'pt': 'Counter',
+    'ru': 'Counter',
+    'tr': 'Counter',
+    'ar': 'كاونتر',
     'it': 'Letter',
     'hi': 'लेटर',
     'th': 'เลตเตอร์',
@@ -14661,12 +14661,12 @@ class AppL10n {
   // 최소. l10n key 이름과 코드 심볼은 기존 `hunter*` 그대로 유지 (내부
   // 식별자, 사용자 노출 없음).
   String get hunterItemsTitle => _t({
-    'ko': '레터 아이템', 'en': 'Letter items', 'ja': 'レター アイテム',
-    'zh': 'Letter 道具', 'fr': 'Objets Letter', 'de': 'Letter-Ausrüstung',
-    'es': 'Objetos Letter', 'pt': 'Itens Letter',
-    'ru': 'Снаряжение Letter', 'tr': 'Letter eşyaları',
-    'ar': 'أدوات Letter', 'it': 'Oggetti Letter',
-    'hi': 'Letter सामान', 'th': 'ไอเท็ม Letter',
+    'ko': '카운터 아이템', 'en': 'Counter items', 'ja': 'カウンター アイテム',
+    'zh': 'Counter 道具', 'fr': 'Objets Counter', 'de': 'Counter-Ausrüstung',
+    'es': 'Objetos Counter', 'pt': 'Itens Counter',
+    'ru': 'Снаряжение Counter', 'tr': 'Counter eşyaları',
+    'ar': 'أدوات Counter', 'it': 'Oggetti Counter',
+    'hi': 'Counter सामान', 'th': 'ไอเท็ม Counter',
   });
 
   // ─────────────────────────────────────────────────────────────────────
@@ -19833,20 +19833,20 @@ class AppL10n {
   // Build 183: 레벨업 배너 — 레터 중심으로 리프레임. "기능 해금" 이 아니라
   // "카운터 성장" 내러티브.
   String get levelUpBannerTitle => _t({
-    'ko': '레터가 성장했어요',
-    'en': 'Your Letter has grown',
-    'ja': 'Letterが成長しました',
-    'zh': '你的 Letter 成长了',
-    'fr': 'Votre Letter a grandi',
-    'de': 'Dein Letter ist gewachsen',
-    'es': 'Tu Letter ha crecido',
-    'pt': 'Seu Letter cresceu',
-    'ru': 'Ваш Letter вырос',
-    'tr': 'Letter\'ın büyüdü',
-    'ar': 'نما Letter الخاص بك',
-    'it': 'Il tuo Letter è cresciuto',
-    'hi': 'आपका Letter बढ़ा',
-    'th': 'Letter ของคุณเติบโต',
+    'ko': '카운터가 성장했어요',
+    'en': 'Your Counter has grown',
+    'ja': 'カウンターが成長しました',
+    'zh': '你的 Counter 成长了',
+    'fr': 'Votre Counter a grandi',
+    'de': 'Dein Counter ist gewachsen',
+    'es': 'Tu Counter ha crecido',
+    'pt': 'Seu Counter cresceu',
+    'ru': 'Ваш Counter вырос',
+    'tr': 'Counter\'ın büyüdü',
+    'ar': 'نما Counter الخاص بك',
+    'it': 'Il tuo Counter è cresciuto',
+    'hi': 'आपका Counter बढ़ा',
+    'th': 'Counter ของคุณเติบโต',
   });
 
   String get userLevelNewbieWelcome => _t({

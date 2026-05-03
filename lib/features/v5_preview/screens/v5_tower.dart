@@ -17,7 +17,7 @@ class V5TowerScreen extends StatelessWidget {
             children: [
               _lvlTag(),
               const SizedBox(height: 12),
-              Text('레터.', style: V5Text.display.copyWith(fontSize: 32)),
+              Text('카운터.', style: V5Text.display.copyWith(fontSize: 32)),
               const SizedBox(height: 4),
               Text(
                 '47통째 함께 — 04.13부터',
