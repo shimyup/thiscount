@@ -38,7 +38,7 @@ class ShareCardService {
     required Letter letter,
     required String langCode,
     String tagline = '',
-    String brandName = 'Letter Go',
+    String brandName = 'Thiscount',
     String shareText = '',
   }) async {
     try {
@@ -371,7 +371,7 @@ class ShareCardService {
     required JourneyStats stats,
     required String langCode,
     required String username,
-    String brandName = 'Letter Go',
+    String brandName = 'Thiscount',
   }) async {
     if (stats.isEmpty) return false;
     try {
@@ -569,7 +569,7 @@ class ShareCardService {
     required int daysSinceJoined,
     required int collectedLetters,
     required String langCode,
-    String brandName = 'Letter Go',
+    String brandName = 'Thiscount',
   }) async {
     try {
       final bytes = await _renderCharacterCardBytes(

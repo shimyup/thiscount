@@ -92,7 +92,7 @@ class EmailService {
               'Content-Type': 'application/json',
             },
             body: jsonEncode({
-              'from': 'Letter Go <${FirebaseConfig.resendFromEmail}>',
+              'from': 'Thiscount <${FirebaseConfig.resendFromEmail}>',
               'to': [to],
               'subject': subject,
               'html': htmlBody,
@@ -155,7 +155,7 @@ class EmailService {
                   'to': [{'email': to}],
                 },
               ],
-              'from': {'email': FirebaseConfig.sendgridFromEmail, 'name': 'Letter Go'},
+              'from': {'email': FirebaseConfig.sendgridFromEmail, 'name': 'Thiscount'},
               'subject': subject,
               'content': [
                 {'type': 'text/plain', 'value': textBody},
@@ -219,15 +219,15 @@ class EmailService {
   // ── 이메일 제목 ─────────────────────────────────────────────────────────────
   static String _otpSubject(String langCode) {
     const subjects = <String, String>{
-      'ko': '[Letter Go] 이메일 인증 코드',
-      'en': '[Letter Go] Email Verification Code',
-      'ja': '[Letter Go] メール認証コード',
-      'zh': '[Letter Go] 邮箱验证码',
-      'fr': '[Letter Go] Code de vérification par e-mail',
-      'de': '[Letter Go] E-Mail-Bestätigungscode',
-      'es': '[Letter Go] Código de verificación de correo',
-      'pt': '[Letter Go] Código de verificação de e-mail',
-      'ru': '[Letter Go] Код подтверждения электронной почты',
+      'ko': '[Thiscount] 이메일 인증 코드',
+      'en': '[Thiscount] Email Verification Code',
+      'ja': '[Thiscount] メール認証コード',
+      'zh': '[Thiscount] 邮箱验证码',
+      'fr': '[Thiscount] Code de vérification par e-mail',
+      'de': '[Thiscount] E-Mail-Bestätigungscode',
+      'es': '[Thiscount] Código de verificación de correo',
+      'pt': '[Thiscount] Código de verificação de e-mail',
+      'ru': '[Thiscount] Код подтверждения электронной почты',
     };
     return subjects[langCode] ?? subjects['en']!;
   }
@@ -236,23 +236,23 @@ class EmailService {
   static String _otpTextBody(String code, String langCode) {
     switch (langCode) {
       case 'ko':
-        return 'Letter Go 인증 코드: $code\n이 코드는 10분 동안 유효합니다.\n본인이 요청하지 않은 경우 이 이메일을 무시하세요.';
+        return 'Thiscount 인증 코드: $code\n이 코드는 10분 동안 유효합니다.\n본인이 요청하지 않은 경우 이 이메일을 무시하세요.';
       case 'ja':
-        return 'Letter Go 認証コード: $code\nこのコードは10分間有効です。\nご自身が申請していない場合は、このメールを無視してください。';
+        return 'Thiscount 認証コード: $code\nこのコードは10分間有効です。\nご自身が申請していない場合は、このメールを無視してください。';
       case 'zh':
-        return 'Letter Go 验证码: $code\n此验证码10分钟内有效。\n如非本人操作，请忽略此邮件。';
+        return 'Thiscount 验证码: $code\n此验证码10分钟内有效。\n如非本人操作，请忽略此邮件。';
       case 'fr':
-        return 'Code de vérification Letter Go: $code\nCe code est valable 10 minutes.\nSi vous n\'avez pas fait cette demande, ignorez cet e-mail.';
+        return 'Code de vérification Thiscount: $code\nCe code est valable 10 minutes.\nSi vous n\'avez pas fait cette demande, ignorez cet e-mail.';
       case 'de':
-        return 'Letter Go Bestätigungscode: $code\nDieser Code ist 10 Minuten gültig.\nWenn Sie diese Anfrage nicht gestellt haben, ignorieren Sie diese E-Mail.';
+        return 'Thiscount Bestätigungscode: $code\nDieser Code ist 10 Minuten gültig.\nWenn Sie diese Anfrage nicht gestellt haben, ignorieren Sie diese E-Mail.';
       case 'es':
-        return 'Código de verificación de Letter Go: $code\nEste código es válido por 10 minutos.\nSi no solicitaste esto, ignora este correo.';
+        return 'Código de verificación de Thiscount: $code\nEste código es válido por 10 minutos.\nSi no solicitaste esto, ignora este correo.';
       case 'pt':
-        return 'Código de verificação Letter Go: $code\nEste código é válido por 10 minutos.\nSe não foi você, ignore este e-mail.';
+        return 'Código de verificação Thiscount: $code\nEste código é válido por 10 minutos.\nSe não foi você, ignore este e-mail.';
       case 'ru':
-        return 'Код подтверждения Letter Go: $code\nКод действителен 10 минут.\nЕсли вы не запрашивали это, проигнорируйте письмо.';
+        return 'Код подтверждения Thiscount: $code\nКод действителен 10 минут.\nЕсли вы не запрашивали это, проигнорируйте письмо.';
       default:
-        return 'Letter Go verification code: $code\nThis code is valid for 10 minutes.\nIf you did not request this, please ignore this email.';
+        return 'Thiscount verification code: $code\nThis code is valid for 10 minutes.\nIf you did not request this, please ignore this email.';
     }
   }
 
@@ -280,7 +280,7 @@ class EmailService {
 <body>
   <div class="card">
     <div class="logo">🍾</div>
-    <div class="title">Letter Go</div>
+    <div class="title">Thiscount</div>
     <p style="text-align:center; margin-bottom: 8px;">$subject</p>
     <div class="code-box">$code</div>
     <p class="note">$textContent</p>

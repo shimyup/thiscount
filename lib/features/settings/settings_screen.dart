@@ -818,7 +818,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           scheme: 'mailto',
                           path: 'support@airony.xyz',
                           queryParameters: {
-                            'subject': '[Letter Go] Support / 문의',
+                            'subject': '[Thiscount] Support / 문의',
                             'body': 'ID / 아이디: ${user.username}\nEmail / 이메일: ${user.email ?? "N/A"}\n\nMessage / 문의 내용:\n',
                           },
                         );
@@ -872,7 +872,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           scheme: 'mailto',
                           path: 'ceo@airony.xyz',
                           queryParameters: {
-                            'subject': 'Data Request - Letter Go',
+                            'subject': 'Data Request - Thiscount',
                             'body': 'I would like to request a copy of my personal data.\n\nUsername: ${user.username}\nEmail: ${user.email ?? "N/A"}',
                           },
                         );

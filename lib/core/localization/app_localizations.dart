@@ -4785,51 +4785,51 @@ class AppL10n {
   }) {
     switch (languageCode) {
       case 'ko':
-        return 'Letter Go 에서 Level $level 도달 $trail\n지금까지 편지 $collected 통 수집 중!\nhttps://letter-go.com';
+        return 'Thiscount 에서 Level $level 도달 $trail\n지금까지 편지 $collected 통 수집 중!\nhttps://letter-go.com';
       case 'ja':
-        return 'Letter Go でレベル $level に到達 $trail\n今までに手紙 $collected 通を収集中！\nhttps://letter-go.com';
+        return 'Thiscount でレベル $level に到達 $trail\n今までに手紙 $collected 通を収集中！\nhttps://letter-go.com';
       case 'zh':
-        return 'Letter Go 达到 Level $level $trail\n目前收集了 $collected 封信件！\nhttps://letter-go.com';
+        return 'Thiscount 达到 Level $level $trail\n目前收集了 $collected 封信件！\nhttps://letter-go.com';
       case 'fr':
-        return 'Niveau $level atteint sur Letter Go $trail\n$collected lettres collectées !\nhttps://letter-go.com';
+        return 'Niveau $level atteint sur Thiscount $trail\n$collected lettres collectées !\nhttps://letter-go.com';
       case 'de':
-        return 'Level $level in Letter Go erreicht $trail\n$collected Briefe gesammelt!\nhttps://letter-go.com';
+        return 'Level $level in Thiscount erreicht $trail\n$collected Briefe gesammelt!\nhttps://letter-go.com';
       case 'es':
-        return 'Nivel $level en Letter Go $trail\n$collected cartas recogidas!\nhttps://letter-go.com';
+        return 'Nivel $level en Thiscount $trail\n$collected cartas recogidas!\nhttps://letter-go.com';
       case 'pt':
-        return 'Nível $level no Letter Go $trail\n$collected cartas apanhadas!\nhttps://letter-go.com';
+        return 'Nível $level no Thiscount $trail\n$collected cartas apanhadas!\nhttps://letter-go.com';
       case 'ru':
-        return 'Достигнут уровень $level в Letter Go $trail\nСобрано $collected писем!\nhttps://letter-go.com';
+        return 'Достигнут уровень $level в Thiscount $trail\nСобрано $collected писем!\nhttps://letter-go.com';
       case 'tr':
-        return "Letter Go'da Level $level $trail\n$collected mektup topladım!\nhttps://letter-go.com";
+        return "Thiscount'da Level $level $trail\n$collected mektup topladım!\nhttps://letter-go.com";
       case 'ar':
-        return 'وصلت إلى المستوى $level في Letter Go $trail\nجمعت $collected رسالة!\nhttps://letter-go.com';
+        return 'وصلت إلى المستوى $level في Thiscount $trail\nجمعت $collected رسالة!\nhttps://letter-go.com';
       case 'it':
-        return 'Livello $level su Letter Go $trail\n$collected lettere raccolte!\nhttps://letter-go.com';
+        return 'Livello $level su Thiscount $trail\n$collected lettere raccolte!\nhttps://letter-go.com';
       case 'hi':
-        return 'Letter Go पर स्तर $level $trail\n$collected पत्र एकत्र!\nhttps://letter-go.com';
+        return 'Thiscount पर स्तर $level $trail\n$collected पत्र एकत्र!\nhttps://letter-go.com';
       case 'th':
-        return 'ถึง Level $level ใน Letter Go $trail\nเก็บจดหมายแล้ว $collected ฉบับ!\nhttps://letter-go.com';
+        return 'ถึง Level $level ใน Thiscount $trail\nเก็บจดหมายแล้ว $collected ฉบับ!\nhttps://letter-go.com';
       default:
-        return 'Level $level on Letter Go $trail\n$collected letters collected!\nhttps://letter-go.com';
+        return 'Level $level on Thiscount $trail\n$collected letters collected!\nhttps://letter-go.com';
     }
   }
 
   String get shareMyLevelSubject => _t({
-    'ko': 'Letter Go 내 레벨',
-    'en': 'My Letter Go level',
-    'ja': 'Letter Go の私のレベル',
-    'zh': '我的 Letter Go 等级',
-    'fr': 'Mon niveau Letter Go',
-    'de': 'Mein Letter Go Level',
-    'es': 'Mi nivel en Letter Go',
-    'pt': 'Meu nível Letter Go',
-    'ru': 'Мой уровень в Letter Go',
-    'tr': 'Letter Go seviyem',
-    'ar': 'مستواي في Letter Go',
-    'it': 'Il mio livello su Letter Go',
-    'hi': 'मेरा Letter Go स्तर',
-    'th': 'เลเวลของฉันใน Letter Go',
+    'ko': 'Thiscount 내 레벨',
+    'en': 'My Thiscount level',
+    'ja': 'Thiscount の私のレベル',
+    'zh': '我的 Thiscount 等级',
+    'fr': 'Mon niveau Thiscount',
+    'de': 'Mein Thiscount Level',
+    'es': 'Mi nivel en Thiscount',
+    'pt': 'Meu nível Thiscount',
+    'ru': 'Мой уровень в Thiscount',
+    'tr': 'Thiscount seviyem',
+    'ar': 'مستواي في Thiscount',
+    'it': 'Il mio livello su Thiscount',
+    'hi': 'मेरा Thiscount स्तर',
+    'th': 'เลเวลของฉันใน Thiscount',
   });
 
   String get shareFailed => _t({
@@ -5021,37 +5021,37 @@ class AppL10n {
   // Build 149: 첫 실행 시 자동 배치되는 튜토리얼 환영 편지 — 반경 안에 1통
   // 반드시 줍기 가능한 상태로 지도에 뿌려 빈 지도 경험 해소.
   String get tutorialLetterSenderName => _t({
-    'ko': 'Letter Go',
-    'en': 'Letter Go',
-    'ja': 'Letter Go',
-    'zh': 'Letter Go',
-    'fr': 'Letter Go',
-    'de': 'Letter Go',
-    'es': 'Letter Go',
-    'pt': 'Letter Go',
-    'ru': 'Letter Go',
-    'tr': 'Letter Go',
-    'ar': 'Letter Go',
-    'it': 'Letter Go',
-    'hi': 'Letter Go',
-    'th': 'Letter Go',
+    'ko': 'Thiscount',
+    'en': 'Thiscount',
+    'ja': 'Thiscount',
+    'zh': 'Thiscount',
+    'fr': 'Thiscount',
+    'de': 'Thiscount',
+    'es': 'Thiscount',
+    'pt': 'Thiscount',
+    'ru': 'Thiscount',
+    'tr': 'Thiscount',
+    'ar': 'Thiscount',
+    'it': 'Thiscount',
+    'hi': 'Thiscount',
+    'th': 'Thiscount',
   });
 
   String get tutorialLetterContent => _t({
-    'ko': '환영합니다! ✨\n\nLetter Go 에 오신 걸 환영해요. 이 편지를 주우면 줍기 경험을 미리 체험할 수 있어요.\n\n가까이 다가가서 편지를 탭해보세요. 지도 아래 📍 근처 카운터가 함께 반응할 거예요.\n\n앞으로 전 세계 브랜드들이 뿌리는 할인·이벤트 편지를 만나보세요!',
-    'en': 'Welcome to Letter Go! ✨\n\nPick up this letter to try the hunt experience. Walk close and tap it.\n\nThe 📍 Nearby counter on the map will light up as soon as you\'re in range.\n\nBrands from around the world drop coupons and event letters — happy hunting!',
-    'ja': 'Letter Go へようこそ！✨\n\nこの手紙を拾って体験を始めましょう。近づいてタップしてください。\n\n範囲に入ると地図の 📍 近くのカウンターが反応します。\n\n世界中のブランドが落とす割引・イベント手紙をお楽しみください！',
-    'zh': '欢迎来到 Letter Go！✨\n\n拾起这封信体验"拾取"玩法。靠近并点击它即可。\n\n进入范围后地图上的 📍 附近计数器会亮起。\n\n来自世界各地的品牌在此投放优惠与活动信件——祝你好运！',
-    'fr': 'Bienvenue dans Letter Go ! ✨\n\nRamasse cette lettre pour découvrir l\'expérience. Approche-toi et appuie dessus.\n\nLe compteur 📍 À proximité s\'allumera dès que tu seras à portée.\n\nDes marques du monde entier déposent coupons et lettres promo — bonne chasse !',
-    'de': 'Willkommen bei Letter Go! ✨\n\nHeb diesen Brief auf und probiere die Hunt-Erfahrung. Geh nah ran und tippe ihn an.\n\nDer 📍 In-der-Nähe-Zähler leuchtet auf, sobald du in Reichweite bist.\n\nMarken weltweit verteilen Rabatte und Event-Briefe — viel Spaß beim Sammeln!',
-    'es': '¡Bienvenido a Letter Go! ✨\n\nRecoge esta carta para probar la experiencia. Acércate y tócala.\n\nEl contador 📍 Cerca se iluminará en cuanto estés a tiro.\n\nMarcas de todo el mundo sueltan cupones y cartas de eventos — ¡buena caza!',
-    'pt': 'Bem-vindo ao Letter Go! ✨\n\nApanha esta carta para experimentar. Aproxima-te e toca.\n\nO contador 📍 Perto vai acender assim que estiveres no alcance.\n\nMarcas do mundo inteiro largam cupões e cartas de eventos — boa caça!',
-    'ru': 'Добро пожаловать в Letter Go! ✨\n\nПодберите это письмо, чтобы попробовать охоту. Подойдите и нажмите.\n\nСчётчик 📍 Рядом подсветится, как только вы окажетесь в зоне.\n\nБренды со всего мира разбрасывают купоны — удачной охоты!',
-    'tr': 'Letter Go\'ya hoş geldin! ✨\n\nBu mektubu toplayarak deneyimi başlat. Yaklaş ve dokun.\n\nMenzile girdiğin an 📍 Yakın sayacı parlayacak.\n\nDünya çapında markalar kuponlar bırakıyor — iyi avlanmalar!',
-    'ar': 'مرحبًا بك في Letter Go! ✨\n\nالتقط هذه الرسالة لتجربة اللعبة. اقترب واضغط عليها.\n\nعدّاد 📍 قريب سيضيء فور دخولك النطاق.\n\nعلامات تجارية من حول العالم تسقط القسائم — صيدًا موفقًا!',
-    'it': 'Benvenuto in Letter Go! ✨\n\nRaccogli questa lettera per provare l\'esperienza. Avvicinati e tocca.\n\nIl contatore 📍 Vicino si illuminerà appena sarai a portata.\n\nBrand di tutto il mondo lasciano coupon — buona caccia!',
-    'hi': 'Letter Go में आपका स्वागत है! ✨\n\nइस पत्र को उठाकर अनुभव शुरू करें. पास जाएँ और टैप करें.\n\nदायरे में आते ही नक्शे का 📍 पास काउंटर जलेगा.\n\nदुनिया भर के ब्रांड कूपन गिराते हैं — शुभ शिकार!',
-    'th': 'ยินดีต้อนรับสู่ Letter Go! ✨\n\nเก็บจดหมายฉบับนี้เพื่อทดลองใช้งาน เดินเข้าใกล้แล้วแตะ\n\nตัวนับ 📍 ใกล้ ๆ บนแผนที่จะสว่างเมื่อคุณอยู่ในรัศมี\n\nแบรนด์ทั่วโลกทิ้งคูปองไว้ — สนุกกับการค้นหา!',
+    'ko': '환영합니다! ✨\n\nThiscount 에 오신 걸 환영해요. 이 편지를 주우면 줍기 경험을 미리 체험할 수 있어요.\n\n가까이 다가가서 편지를 탭해보세요. 지도 아래 📍 근처 카운터가 함께 반응할 거예요.\n\n앞으로 전 세계 브랜드들이 뿌리는 할인·이벤트 편지를 만나보세요!',
+    'en': 'Welcome to Thiscount! ✨\n\nPick up this letter to try the hunt experience. Walk close and tap it.\n\nThe 📍 Nearby counter on the map will light up as soon as you\'re in range.\n\nBrands from around the world drop coupons and event letters — happy hunting!',
+    'ja': 'Thiscount へようこそ！✨\n\nこの手紙を拾って体験を始めましょう。近づいてタップしてください。\n\n範囲に入ると地図の 📍 近くのカウンターが反応します。\n\n世界中のブランドが落とす割引・イベント手紙をお楽しみください！',
+    'zh': '欢迎来到 Thiscount！✨\n\n拾起这封信体验"拾取"玩法。靠近并点击它即可。\n\n进入范围后地图上的 📍 附近计数器会亮起。\n\n来自世界各地的品牌在此投放优惠与活动信件——祝你好运！',
+    'fr': 'Bienvenue dans Thiscount ! ✨\n\nRamasse cette lettre pour découvrir l\'expérience. Approche-toi et appuie dessus.\n\nLe compteur 📍 À proximité s\'allumera dès que tu seras à portée.\n\nDes marques du monde entier déposent coupons et lettres promo — bonne chasse !',
+    'de': 'Willkommen bei Thiscount! ✨\n\nHeb diesen Brief auf und probiere die Hunt-Erfahrung. Geh nah ran und tippe ihn an.\n\nDer 📍 In-der-Nähe-Zähler leuchtet auf, sobald du in Reichweite bist.\n\nMarken weltweit verteilen Rabatte und Event-Briefe — viel Spaß beim Sammeln!',
+    'es': '¡Bienvenido a Thiscount! ✨\n\nRecoge esta carta para probar la experiencia. Acércate y tócala.\n\nEl contador 📍 Cerca se iluminará en cuanto estés a tiro.\n\nMarcas de todo el mundo sueltan cupones y cartas de eventos — ¡buena caza!',
+    'pt': 'Bem-vindo ao Thiscount! ✨\n\nApanha esta carta para experimentar. Aproxima-te e toca.\n\nO contador 📍 Perto vai acender assim que estiveres no alcance.\n\nMarcas do mundo inteiro largam cupões e cartas de eventos — boa caça!',
+    'ru': 'Добро пожаловать в Thiscount! ✨\n\nПодберите это письмо, чтобы попробовать охоту. Подойдите и нажмите.\n\nСчётчик 📍 Рядом подсветится, как только вы окажетесь в зоне.\n\nБренды со всего мира разбрасывают купоны — удачной охоты!',
+    'tr': 'Thiscount\'ya hoş geldin! ✨\n\nBu mektubu toplayarak deneyimi başlat. Yaklaş ve dokun.\n\nMenzile girdiğin an 📍 Yakın sayacı parlayacak.\n\nDünya çapında markalar kuponlar bırakıyor — iyi avlanmalar!',
+    'ar': 'مرحبًا بك في Thiscount! ✨\n\nالتقط هذه الرسالة لتجربة اللعبة. اقترب واضغط عليها.\n\nعدّاد 📍 قريب سيضيء فور دخولك النطاق.\n\nعلامات تجارية من حول العالم تسقط القسائم — صيدًا موفقًا!',
+    'it': 'Benvenuto in Thiscount! ✨\n\nRaccogli questa lettera per provare l\'esperienza. Avvicinati e tocca.\n\nIl contatore 📍 Vicino si illuminerà appena sarai a portata.\n\nBrand di tutto il mondo lasciano coupon — buona caccia!',
+    'hi': 'Thiscount में आपका स्वागत है! ✨\n\nइस पत्र को उठाकर अनुभव शुरू करें. पास जाएँ और टैप करें.\n\nदायरे में आते ही नक्शे का 📍 पास काउंटर जलेगा.\n\nदुनिया भर के ब्रांड कूपन गिराते हैं — शुभ शिकार!',
+    'th': 'ยินดีต้อนรับสู่ Thiscount! ✨\n\nเก็บจดหมายฉบับนี้เพื่อทดลองใช้งาน เดินเข้าใกล้แล้วแตะ\n\nตัวนับ 📍 ใกล้ ๆ บนแผนที่จะสว่างเมื่อคุณอยู่ในรัศมี\n\nแบรนด์ทั่วโลกทิ้งคูปองไว้ — สนุกกับการค้นหา!',
   });
 
   String get brandTicketDefaultBrand => _t({
@@ -8328,9 +8328,9 @@ class AppL10n {
   // 캐릭터 커스터마이즈(컴패니언/악세사리)는 Build 125 이후 Premium 전용,
   // 특급 배송은 이전부터 유지.
   String get premiumFeature4 => _t({
-    'ko': '🎨 레터 캐릭터 커스터마이즈 · 특급 배송 3통/일',
-    'en': '🎨 Letter character customize · 3 express deliveries/day',
-    'ja': '🎨 Letter キャラカスタム · 特急配送 3/日',
+    'ko': '🎨 카운터 캐릭터 커스터마이즈 · 특급 배송 3통/일',
+    'en': '🎨 Counter character customize · 3 express deliveries/day',
+    'ja': '🎨 Counter キャラカスタム · 特急配送 3/日',
     'zh': '🎨 Letter 角色定制 · 特快配送 3/日',
     'fr': '🎨 Personnalisation du Letter · 3 livraisons express/jour',
     'de': '🎨 Letter-Charakter anpassen · 3 Express-Lieferungen/Tag',
@@ -10187,9 +10187,9 @@ class AppL10n {
   // Build 185: 지도 상단 공용 라벨 — 타워 표현 제거. 모든 티어에 "내 레터"
   // 로 통일 (Brand 는 sender identity 로 해석 가능, Free/Premium 은 캐릭터).
   String get mapMyTower => _t({
-    'ko': '내 레터',
-    'en': 'My Letter',
-    'ja': 'マイレター',
+    'ko': '내 카운터',
+    'en': 'My Counter',
+    'ja': 'マイカウンター',
     'zh': '我的 Letter',
     'fr': 'Mon Letter',
     'de': 'Mein Letter',
@@ -12527,11 +12527,11 @@ class AppL10n {
     'th': 'ใกล้ที่สุด',
   });
 
-  /// Build 174: 레터 캐릭터 갤러리 (과거 티어 회고) 라벨.
+  /// Build 174: 카운터 캐릭터 갤러리 (과거 티어 회고) 라벨.
   String get letterGalleryTitle => _t({
-    'ko': '🧭 레터 진화 갤러리',
-    'en': '🧭 Letter Evolution',
-    'ja': '🧭 レター進化ギャラリー',
+    'ko': '🧭 카운터 진화 갤러리',
+    'en': '🧭 Counter Evolution',
+    'ja': '🧭 カウンター進化ギャラリー',
     'zh': '🧭 Letter 进化画廊',
     'fr': '🧭 Évolution Letter',
     'de': '🧭 Letter-Entwicklung',
@@ -12562,10 +12562,10 @@ class AppL10n {
     'th': 'ตัวตนในอดีตและอนาคต',
   });
 
-  /// Build 173: 레터 생일 (가입 기념일) 카피.
+  /// Build 173: 카운터 생일 (가입 기념일) 카피.
   String letterBirthdayAnniversary(int years) {
     switch (languageCode) {
-      case 'ko': return '🎉 레터와 함께 $years주년!';
+      case 'ko': return '🎉 카운터와 함께 $years주년!';
       case 'ja': return '🎉 レターと $years 周年！';
       case 'zh': return '🎉 与 Letter 同行 $years 周年！';
       case 'fr': return '🎉 $years ans avec Letter !';
@@ -12583,7 +12583,7 @@ class AppL10n {
   }
 
   String get letterBirthdayFirstDay => _t({
-    'ko': '🎂 오늘이 당신의 레터 생일이에요',
+    'ko': '🎂 오늘이 당신의 카운터 생일이에요',
     'en': '🎂 Today is your Letter\'s birthday',
     'ja': '🎂 今日はあなたのレターの誕生日',
     'zh': '🎂 今天是你 Letter 的生日',
@@ -12601,7 +12601,7 @@ class AppL10n {
 
   String letterAgeDays(int days) {
     switch (languageCode) {
-      case 'ko': return '레터와 함께 $days일째';
+      case 'ko': return '카운터와 함께 $days일째';
       case 'ja': return 'レターと $days 日目';
       case 'zh': return '与 Letter 同行 $days 天';
       case 'fr': return '$days jours avec Letter';
@@ -12638,11 +12638,11 @@ class AppL10n {
     }
   }
 
-  /// Build 171: 레터 이름 수정 다이얼로그 라벨 (Free/Premium 전용).
+  /// Build 171: 카운터 이름 수정 다이얼로그 라벨 (Free/Premium 전용).
   String get profileDialogLetterNameTitle => _t({
-    'ko': '내 레터 이름',
-    'en': 'My Letter name',
-    'ja': 'レターの名前',
+    'ko': '내 카운터 이름',
+    'en': 'My Counter name',
+    'ja': 'カウンターの名前',
     'zh': '我的信使名',
     'fr': 'Nom de ma lettre',
     'de': 'Mein Letter-Name',
@@ -12665,9 +12665,9 @@ class AppL10n {
   });
 
   String get profileDialogLetterNameDesc => _t({
-    'ko': '내 레터 캐릭터에 이름을 붙여보세요. 최대 20자.',
-    'en': 'Give your Letter character a name. Max 20 chars.',
-    'ja': 'レターキャラクターに名前を付けよう。最大20文字。',
+    'ko': '내 카운터 캐릭터에 이름을 붙여보세요. 최대 20자.',
+    'en': 'Give your Counter character a name. Max 20 chars.',
+    'ja': 'カウンターキャラクターに名前を付けよう。最大20文字。',
     'zh': '给你的信使起个名字。最多 20 字符。',
     'fr': 'Donne un nom à ta lettre. 20 caractères max.',
     'de': 'Gib deinem Letter einen Namen. Max 20 Zeichen.',
@@ -12681,7 +12681,7 @@ class AppL10n {
     'th': 'ตั้งชื่อ Letter ของคุณ สูงสุด 20 ตัวอักษร',
   });
 
-  /// Build 171: 레터 캐릭터 로드맵 카드 (다음 해금까지).
+  /// Build 171: 카운터 캐릭터 로드맵 카드 (다음 해금까지).
   String get letterRoadmapTitle => _t({
     'ko': '🎯 다음 해금', 'en': '🎯 Next unlock', 'ja': '🎯 次の解放',
     'zh': '🎯 下次解锁', 'fr': '🎯 Prochain déblocage', 'de': '🎯 Nächstes Freischalten',
@@ -14657,7 +14657,7 @@ class AppL10n {
   // Build 124: 유저 정체성 명칭 재확정 "레터 (Letter)".
   // Build 123 에서 "레고 (Lego)" 로 지정했지만 The LEGO Group 상표와
   // 직접 충돌(특히 中 乐高 / 日 レゴ / 글로벌 LEGO) 이라 "Letter" 로 전환.
-  // "Letter" 는 Letter Go 브랜드명의 핵심 요소이자 일반 명사로 상표 위험
+  // "Letter" 는 Thiscount 브랜드명의 핵심 요소이자 일반 명사로 상표 위험
   // 최소. l10n key 이름과 코드 심볼은 기존 `hunter*` 그대로 유지 (내부
   // 식별자, 사용자 노출 없음).
   String get hunterItemsTitle => _t({
@@ -15754,20 +15754,20 @@ class AppL10n {
 
   // Build 141: 지도 상단 ⓘ 도움말 시트 콘텐츠.
   String get mapHelpTitle => _t({
-    'ko': 'Letter Go 사용 안내',
-    'en': 'How to use Letter Go',
-    'ja': 'Letter Go の使い方',
-    'zh': 'Letter Go 使用指南',
-    'fr': 'Comment utiliser Letter Go',
-    'de': 'Letter Go verwenden',
-    'es': 'Cómo usar Letter Go',
-    'pt': 'Como usar Letter Go',
-    'ru': 'Как пользоваться Letter Go',
-    'tr': 'Letter Go nasıl kullanılır',
-    'ar': 'كيفية استخدام Letter Go',
-    'it': 'Come usare Letter Go',
-    'hi': 'Letter Go का उपयोग',
-    'th': 'วิธีใช้ Letter Go',
+    'ko': 'Thiscount 사용 안내',
+    'en': 'How to use Thiscount',
+    'ja': 'Thiscount の使い方',
+    'zh': 'Thiscount 使用指南',
+    'fr': 'Comment utiliser Thiscount',
+    'de': 'Thiscount verwenden',
+    'es': 'Cómo usar Thiscount',
+    'pt': 'Como usar Thiscount',
+    'ru': 'Как пользоваться Thiscount',
+    'tr': 'Thiscount nasıl kullanılır',
+    'ar': 'كيفية استخدام Thiscount',
+    'it': 'Come usare Thiscount',
+    'hi': 'Thiscount का उपयोग',
+    'th': 'วิธีใช้ Thiscount',
   });
 
   String get mapHelpTierSection => _t({
@@ -15824,7 +15824,7 @@ class AppL10n {
   });
 
   String get mapHelpTierPremiumTitle => _t({
-    'ko': 'Premium — ✉️ 내 레터 뿌리기',
+    'ko': 'Premium — ✉️ 내 카운터 뿌리기',
     'en': 'Premium — ✉️ Drop your Letters',
     'ja': 'Premium — ✉️ 自分の Letter を配る',
     'zh': 'Premium — ✉️ 投放自己的 Letter',
@@ -15840,7 +15840,7 @@ class AppL10n {
     'th': 'Premium — ✉️ ปล่อย Letter ของคุณ',
   });
   String get mapHelpTierPremiumBody => _t({
-    'ko': '1km 반경으로 주우면서 📸 사진 · 🔗 링크가 달린 내 레터를 세계 지도에 떨어뜨릴 수 있어요. 내 레터가 빠르게 성장합니다. 쿨다운 10분.',
+    'ko': '1km 반경으로 주우면서 📸 사진 · 🔗 링크가 달린 내 레터를 세계 지도에 떨어뜨릴 수 있어요. 내 카운터가 빠르게 성장합니다. 쿨다운 10분.',
     'en': '1 km pickup radius + drop your own Letters with 📸 photos and 🔗 links on the map. Your Letter levels up faster. 10-min cooldown.',
     'ja': '1km 圏で拾いつつ、📸 写真・🔗 リンクを添えた自分の Letter を世界に配れます。Letter の成長が早まります。クールダウン 10 分。',
     'zh': '1 公里范围内拾取 + 投放带 📸 照片和 🔗 链接的自己的 Letter。Letter 成长更快。冷却 10 分钟。',
@@ -17047,7 +17047,7 @@ class AppL10n {
 
   // Build 183: Free/Premium 용 "내 레터" 타이틀 — 타워 대신.
   String get letterMyCharacter => _t({
-    'ko': '내 레터', 'en': 'My Letter', 'ja': 'マイレター', 'zh': '我的信使',
+    'ko': '내 카운터', 'en': 'My Counter', 'ja': 'マイカウンター', 'zh': '我的信使',
     'fr': 'Ma lettre', 'de': 'Mein Letter', 'es': 'Mi carta',
     'pt': 'Meu Letter', 'ru': 'Мой Letter', 'tr': 'Letter\'ım',
     'ar': 'Letter الخاص بي', 'it': 'Il mio Letter', 'hi': 'मेरा Letter', 'th': 'Letter ของฉัน',
@@ -18660,7 +18660,7 @@ class AppL10n {
   });
 
   String get contentPolicyBody => _t({
-    'ko': 'Letter Go는 사용자의 프라이버시를 존중합니다.\n\n'
+    'ko': 'Thiscount는 사용자의 프라이버시를 존중합니다.\n\n'
         '📋 기본 원칙\n'
         '관리자는 사용자의 편지 내용을 일상적으로 열람하지 않습니다.\n\n'
         '🔍 열람이 이루어지는 경우\n'
@@ -18674,7 +18674,7 @@ class AppL10n {
         '4. 3회 이상 위반 시: 계정 영구 차단\n\n'
         '🔒 투명성\n'
         '열람 사유와 조치 결과를 기록하며, 사용자는 자신의 콘텐츠에 대한 조치 사유를 문의할 수 있습니다.',
-    'en': 'Letter Go respects your privacy.\n\n'
+    'en': 'Thiscount respects your privacy.\n\n'
         '📋 Core Principle\n'
         'Administrators do not routinely access your letter content.\n\n'
         '🔍 When Review Occurs\n'
@@ -18688,7 +18688,7 @@ class AppL10n {
         '4. 3+ violations: permanent account suspension\n\n'
         '🔒 Transparency\n'
         'Review reasons and outcomes are logged. Users may inquire about actions taken on their content.',
-    'ja': 'Letter Goはあなたのプライバシーを尊重します。\n\n'
+    'ja': 'Thiscountはあなたのプライバシーを尊重します。\n\n'
         '📋 基本原則\n'
         '管理者はあなたの手紙の内容を日常的に閲覧しません。\n\n'
         '🔍 閲覧が行われる場合\n'
@@ -18702,7 +18702,7 @@ class AppL10n {
         '4. 3回以上の違反：アカウント永久停止\n\n'
         '🔒 透明性\n'
         '閲覧理由と措置結果を記録し、ユーザーは自身のコンテンツに対する措置理由を問い合わせできます。',
-    'zh': 'Letter Go 尊重您的隐私。\n\n'
+    'zh': 'Thiscount 尊重您的隐私。\n\n'
         '📋 核心原则\n'
         '管理员不会日常访问您的信件内容。\n\n'
         '🔍 审查发生的情况\n'
@@ -18716,7 +18716,7 @@ class AppL10n {
         '4. 违规3次以上：永久封禁账号\n\n'
         '🔒 透明度\n'
         '审查原因和结果会被记录，用户可以查询对其内容采取的措施原因。',
-    'fr': 'Letter Go respecte votre vie privée.\n\n'
+    'fr': 'Thiscount respecte votre vie privée.\n\n'
         '📋 Principe fondamental\n'
         'Les administrateurs n\'accèdent pas régulièrement au contenu de vos lettres.\n\n'
         '🔍 Quand un examen a lieu\n'
@@ -18730,7 +18730,7 @@ class AppL10n {
         '4. 3+ violations : suspension permanente du compte\n\n'
         '🔒 Transparence\n'
         'Les raisons et résultats sont enregistrés. Les utilisateurs peuvent demander des explications.',
-    'de': 'Letter Go respektiert Ihre Privatsphäre.\n\n'
+    'de': 'Thiscount respektiert Ihre Privatsphäre.\n\n'
         '📋 Grundprinzip\n'
         'Administratoren greifen nicht routinemäßig auf Ihre Briefinhalte zu.\n\n'
         '🔍 Wann eine Überprüfung stattfindet\n'
@@ -18744,7 +18744,7 @@ class AppL10n {
         '4. 3+ Verstöße: dauerhafte Kontosperrung\n\n'
         '🔒 Transparenz\n'
         'Gründe und Ergebnisse werden protokolliert. Benutzer können Erklärungen anfordern.',
-    'es': 'Letter Go respeta su privacidad.\n\n'
+    'es': 'Thiscount respeta su privacidad.\n\n'
         '📋 Principio fundamental\n'
         'Los administradores no acceden rutinariamente al contenido de sus cartas.\n\n'
         '🔍 Cuándo se realiza una revisión\n'
@@ -18758,7 +18758,7 @@ class AppL10n {
         '4. 3+ violaciones: suspensión permanente\n\n'
         '🔒 Transparencia\n'
         'Las razones y resultados se registran. Los usuarios pueden consultar las acciones tomadas.',
-    'pt': 'Letter Go respeita sua privacidade.\n\n'
+    'pt': 'Thiscount respeita sua privacidade.\n\n'
         '📋 Princípio fundamental\n'
         'Administradores não acessam rotineiramente o conteúdo de suas cartas.\n\n'
         '🔍 Quando ocorre revisão\n'
@@ -18772,7 +18772,7 @@ class AppL10n {
         '4. 3+ violações: suspensão permanente\n\n'
         '🔒 Transparência\n'
         'Razões e resultados são registrados. Usuários podem consultar ações tomadas.',
-    'ru': 'Letter Go уважает вашу конфиденциальность.\n\n'
+    'ru': 'Thiscount уважает вашу конфиденциальность.\n\n'
         '📋 Основной принцип\n'
         'Администраторы не просматривают содержание ваших писем на регулярной основе.\n\n'
         '🔍 Когда проводится проверка\n'
@@ -18786,7 +18786,7 @@ class AppL10n {
         '4. 3+ нарушений: постоянная блокировка аккаунта\n\n'
         '🔒 Прозрачность\n'
         'Причины и результаты проверок фиксируются. Пользователи могут запросить информацию.',
-    'tr': 'Letter Go gizliliğinize saygı duyar.\n\n'
+    'tr': 'Thiscount gizliliğinize saygı duyar.\n\n'
         '📋 Temel İlke\n'
         'Yöneticiler mektup içeriğinize rutin olarak erişmez.\n\n'
         '🔍 İnceleme Ne Zaman Yapılır\n'
@@ -18800,7 +18800,7 @@ class AppL10n {
         '4. 3+ ihlal: kalıcı hesap askıya alma\n\n'
         '🔒 Şeffaflık\n'
         'İnceleme nedenleri ve sonuçları kaydedilir. Kullanıcılar bilgi talep edebilir.',
-    'ar': 'Letter Go يحترم خصوصيتك.\n\n'
+    'ar': 'Thiscount يحترم خصوصيتك.\n\n'
         '📋 المبدأ الأساسي\n'
         'لا يصل المسؤولون بشكل روتيني إلى محتوى رسائلك.\n\n'
         '🔍 متى تتم المراجعة\n'
@@ -18814,7 +18814,7 @@ class AppL10n {
         '4. 3+ مخالفات: تعليق دائم للحساب\n\n'
         '🔒 الشفافية\n'
         'يتم تسجيل الأسباب والنتائج. يمكن للمستخدمين الاستفسار عن الإجراءات المتخذة.',
-    'it': 'Letter Go rispetta la tua privacy.\n\n'
+    'it': 'Thiscount rispetta la tua privacy.\n\n'
         '📋 Principio fondamentale\n'
         'Gli amministratori non accedono regolarmente al contenuto delle tue lettere.\n\n'
         '🔍 Quando avviene la revisione\n'
@@ -18828,7 +18828,7 @@ class AppL10n {
         '4. 3+ violazioni: sospensione permanente dell\'account\n\n'
         '🔒 Trasparenza\n'
         'Motivazioni e risultati vengono registrati. Gli utenti possono richiedere informazioni.',
-    'hi': 'Letter Go आपकी गोपनीयता का सम्मान करता है।\n\n'
+    'hi': 'Thiscount आपकी गोपनीयता का सम्मान करता है।\n\n'
         '📋 मूल सिद्धांत\n'
         'प्रशासक आपके पत्र सामग्री को नियमित रूप से नहीं देखते।\n\n'
         '🔍 समीक्षा कब होती है\n'
@@ -18842,7 +18842,7 @@ class AppL10n {
         '4. 3+ उल्लंघन: स्थायी खाता निलंबन\n\n'
         '🔒 पारदर्शिता\n'
         'कारण और परिणाम दर्ज किए जाते हैं। उपयोगकर्ता कार्रवाई के बारे में पूछ सकते हैं।',
-    'th': 'Letter Go เคารพความเป็นส่วนตัวของคุณ\n\n'
+    'th': 'Thiscount เคารพความเป็นส่วนตัวของคุณ\n\n'
         '📋 หลักการพื้นฐาน\n'
         'ผู้ดูแลระบบไม่เข้าถึงเนื้อหาจดหมายของคุณเป็นประจำ\n\n'
         '🔍 เมื่อใดที่มีการตรวจสอบ\n'
@@ -18876,7 +18876,7 @@ class AppL10n {
   });
 
   String get communityGuidelinesBody => _t({
-    'ko': 'Letter Go는 전 세계 사용자가 편지를 통해 따뜻한 소통을 나누는 공간입니다.\n'
+    'ko': 'Thiscount는 전 세계 사용자가 편지를 통해 따뜻한 소통을 나누는 공간입니다.\n'
         '모든 사용자가 안전하고 즐거운 경험을 할 수 있도록 다음 규칙을 지켜주세요.\n\n'
         '✅ 권장 사항\n'
         '• 정중하고 친근한 톤으로 편지를 쓰세요\n'
@@ -18894,7 +18894,7 @@ class AppL10n {
         '• 2회: 일시적 서비스 제한\n'
         '• 3회 이상: 영구 계정 차단\n\n'
         '부적절한 편지를 받으면 편지 읽기 화면에서 🚩 버튼으로 신고해 주세요.',
-    'en': 'Letter Go is a space where users worldwide connect through letters.\n'
+    'en': 'Thiscount is a space where users worldwide connect through letters.\n'
         'Please follow these rules so everyone can have a safe, enjoyable experience.\n\n'
         '✅ Encouraged\n'
         '• Write letters with a polite, friendly tone\n'
@@ -18912,7 +18912,7 @@ class AppL10n {
         '• 2nd offense: Temporary service restriction\n'
         '• 3+ offenses: Permanent account suspension\n\n'
         'If you receive an inappropriate letter, please report it using the 🚩 button on the letter screen.',
-    'ja': 'Letter Goは世界中のユーザーが手紙でつながる場所です。\n'
+    'ja': 'Thiscountは世界中のユーザーが手紙でつながる場所です。\n'
         '安全で楽しい体験のために、以下のルールを守ってください。\n\n'
         '✅ 推奨事項\n'
         '• 丁寧で親しみやすいトーンで手紙を書いてください\n'
@@ -18930,7 +18930,7 @@ class AppL10n {
         '• 2回目：一時的なサービス制限\n'
         '• 3回以上：アカウント永久停止\n\n'
         '不適切な手紙を受け取った場合は、手紙画面の🚩ボタンで報告してください。',
-    'zh': 'Letter Go 是全球用户通过信件连接的空间。\n'
+    'zh': 'Thiscount 是全球用户通过信件连接的空间。\n'
         '请遵守以下规则，让每个人都能有安全、愉快的体验。\n\n'
         '✅ 鼓励的行为\n'
         '• 用礼貌、友好的语气写信\n'
@@ -18948,7 +18948,7 @@ class AppL10n {
         '• 第2次：暂时限制服务\n'
         '• 3次以上：永久封禁账号\n\n'
         '如收到不当信件，请在信件页面点击🚩按钮举报。',
-    'fr': 'Letter Go est un espace où les utilisateurs du monde entier communiquent par lettres.\n'
+    'fr': 'Thiscount est un espace où les utilisateurs du monde entier communiquent par lettres.\n'
         'Suivez ces règles pour que chacun puisse vivre une expérience sûre et agréable.\n\n'
         '✅ Recommandé\n'
         '• Écrivez avec un ton poli et amical\n'
@@ -18966,7 +18966,7 @@ class AppL10n {
         '• 2e infraction : Restriction temporaire\n'
         '• 3+ infractions : Suspension permanente\n\n'
         'Si vous recevez une lettre inappropriée, signalez-la avec le bouton 🚩.',
-    'de': 'Letter Go ist ein Raum, in dem Benutzer weltweit durch Briefe verbunden sind.\n'
+    'de': 'Thiscount ist ein Raum, in dem Benutzer weltweit durch Briefe verbunden sind.\n'
         'Bitte befolgen Sie diese Regeln für eine sichere, angenehme Erfahrung.\n\n'
         '✅ Empfohlen\n'
         '• Schreiben Sie höflich und freundlich\n'
@@ -18984,7 +18984,7 @@ class AppL10n {
         '• 2. Verstoß: Vorübergehende Einschränkung\n'
         '• 3+ Verstöße: Dauerhafte Kontosperrung\n\n'
         'Melden Sie unangemessene Briefe mit der 🚩-Taste.',
-    'es': 'Letter Go es un espacio donde usuarios de todo el mundo se conectan a través de cartas.\n'
+    'es': 'Thiscount es un espacio donde usuarios de todo el mundo se conectan a través de cartas.\n'
         'Siga estas reglas para que todos tengan una experiencia segura y agradable.\n\n'
         '✅ Recomendado\n'
         '• Escriba con un tono educado y amigable\n'
@@ -19002,7 +19002,7 @@ class AppL10n {
         '• 2ª infracción: Restricción temporal\n'
         '• 3+ infracciones: Suspensión permanente\n\n'
         'Si recibe una carta inapropiada, repórtela con el botón 🚩.',
-    'pt': 'Letter Go é um espaço onde usuários do mundo todo se conectam por cartas.\n'
+    'pt': 'Thiscount é um espaço onde usuários do mundo todo se conectam por cartas.\n'
         'Siga estas regras para que todos tenham uma experiência segura e agradável.\n\n'
         '✅ Recomendado\n'
         '• Escreva com um tom educado e amigável\n'
@@ -19020,7 +19020,7 @@ class AppL10n {
         '• 2ª infração: Restrição temporária\n'
         '• 3+ infrações: Suspensão permanente\n\n'
         'Se receber uma carta inadequada, denuncie com o botão 🚩.',
-    'ru': 'Letter Go — пространство, где пользователи со всего мира общаются через письма.\n'
+    'ru': 'Thiscount — пространство, где пользователи со всего мира общаются через письма.\n'
         'Соблюдайте эти правила для безопасного и приятного опыта.\n\n'
         '✅ Рекомендуется\n'
         '• Пишите вежливым и дружелюбным тоном\n'
@@ -19038,7 +19038,7 @@ class AppL10n {
         '• 2-е нарушение: Временное ограничение\n'
         '• 3+ нарушений: Постоянная блокировка аккаунта\n\n'
         'Если получите неприемлемое письмо, пожалуйтесь через кнопку 🚩.',
-    'tr': 'Letter Go, dünya genelinde kullanıcıların mektuplarla bağlandığı bir alandır.\n'
+    'tr': 'Thiscount, dünya genelinde kullanıcıların mektuplarla bağlandığı bir alandır.\n'
         'Herkesin güvenli ve keyifli bir deneyim yaşaması için bu kurallara uyun.\n\n'
         '✅ Önerilen\n'
         '• Kibar ve samimi bir tonla yazın\n'
@@ -19056,7 +19056,7 @@ class AppL10n {
         '• 2. ihlal: Geçici kısıtlama\n'
         '• 3+ ihlal: Kalıcı hesap askıya alma\n\n'
         'Uygunsuz bir mektup alırsanız 🚩 düğmesiyle bildirin.',
-    'ar': 'Letter Go مساحة يتواصل فيها المستخدمون حول العالم عبر الرسائل.\n'
+    'ar': 'Thiscount مساحة يتواصل فيها المستخدمون حول العالم عبر الرسائل.\n'
         'يرجى اتباع هذه القواعد ليحظى الجميع بتجربة آمنة وممتعة.\n\n'
         '✅ مُشجع\n'
         '• اكتب بنبرة مهذبة وودية\n'
@@ -19074,7 +19074,7 @@ class AppL10n {
         '• المخالفة الثانية: تقييد مؤقت\n'
         '• 3+ مخالفات: تعليق دائم للحساب\n\n'
         'إذا تلقيت رسالة غير لائقة، أبلغ عنها باستخدام زر 🚩.',
-    'it': 'Letter Go è uno spazio dove utenti di tutto il mondo si connettono tramite lettere.\n'
+    'it': 'Thiscount è uno spazio dove utenti di tutto il mondo si connettono tramite lettere.\n'
         'Segui queste regole per un\'esperienza sicura e piacevole per tutti.\n\n'
         '✅ Consigliato\n'
         '• Scrivi con un tono educato e amichevole\n'
@@ -19092,7 +19092,7 @@ class AppL10n {
         '• 2ª violazione: Restrizione temporanea\n'
         '• 3+ violazioni: Sospensione permanente\n\n'
         'Se ricevi una lettera inappropriata, segnalala con il pulsante 🚩.',
-    'hi': 'Letter Go एक ऐसा स्थान है जहां दुनिया भर के उपयोगकर्ता पत्रों के माध्यम से जुड़ते हैं।\n'
+    'hi': 'Thiscount एक ऐसा स्थान है जहां दुनिया भर के उपयोगकर्ता पत्रों के माध्यम से जुड़ते हैं।\n'
         'कृपया इन नियमों का पालन करें ताकि सभी को सुरक्षित, आनंददायक अनुभव मिले।\n\n'
         '✅ प्रोत्साहित\n'
         '• विनम्र, मैत्रीपूर्ण स्वर में लिखें\n'
@@ -19110,7 +19110,7 @@ class AppL10n {
         '• दूसरा उल्लंघन: अस्थायी प्रतिबंध\n'
         '• 3+ उल्लंघन: स्थायी खाता निलंबन\n\n'
         'अनुचित पत्र मिलने पर 🚩 बटन से रिपोर्ट करें।',
-    'th': 'Letter Go เป็นพื้นที่ที่ผู้ใช้ทั่วโลกเชื่อมต่อกันผ่านจดหมาย\n'
+    'th': 'Thiscount เป็นพื้นที่ที่ผู้ใช้ทั่วโลกเชื่อมต่อกันผ่านจดหมาย\n'
         'กรุณาปฏิบัติตามกฎเหล่านี้เพื่อให้ทุกคนมีประสบการณ์ที่ปลอดภัยและสนุกสนาน\n\n'
         '✅ แนะนำ\n'
         '• เขียนด้วยน้ำเสียงที่สุภาพและเป็นมิตร\n'
@@ -19831,7 +19831,7 @@ class AppL10n {
 
   // ── 레벨업 배너 ─────────────────────────────────────────────────────────
   // Build 183: 레벨업 배너 — 레터 중심으로 리프레임. "기능 해금" 이 아니라
-  // "레터 성장" 내러티브.
+  // "카운터 성장" 내러티브.
   String get levelUpBannerTitle => _t({
     'ko': '레터가 성장했어요',
     'en': 'Your Letter has grown',
@@ -20505,7 +20505,7 @@ class AppL10n {
 
   // Tower benefits popup (Build 205)
   String get towerBenefitsTitle => _t({
-    'ko': '내 레터 성장 가이드', 'en': 'Your Letter Growth Guide', 'ja': 'レター成長ガイド', 'zh': '我的信件成长指南',
+    'ko': '내 카운터 성장 가이드', 'en': 'Your Counter Growth Guide', 'ja': 'カウンター成長ガイド', 'zh': '我的信件成长指南',
     'fr': 'Votre guide de croissance Letter', 'de': 'Dein Letter-Wachstumsleitfaden', 'es': 'Guía de crecimiento de tu carta',
     'pt': 'Guia de crescimento da carta', 'ru': 'Руководство роста', 'tr': 'Letter Büyüme Rehberi',
     'ar': 'دليل نمو الرسائل', 'it': 'Guida crescita Letter', 'hi': 'लेटर ग्रोथ गाइड', 'th': 'คู่มือการเติบโตของเลตเตอร์',

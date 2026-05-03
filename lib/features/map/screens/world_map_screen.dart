@@ -3422,10 +3422,10 @@ class _MapHeader extends StatelessWidget {
             children: [
               // Build 146: 로고를 ✉️ 이모지 + 텍스트 조합으로 바꿔 브랜딩
               // 표현 강화. fontSize 18→16, weight w800→w900.
-              const Text('✉️', style: TextStyle(fontSize: 16)),
+              const Text('🎟', style: TextStyle(fontSize: 16)),
               const SizedBox(width: 6),
               const Text(
-                'Letter Go',
+                'Thiscount',
                 style: TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 16,
@@ -4220,9 +4220,10 @@ class _DisambiguationTile extends StatelessWidget {
   }
 }
 
-/// Build 128 — Brand 공식 발송인 전용: 원래의 타워 비주얼 복원.
-/// 레벨 시스템(XP/캐릭터 진화/아이템/동반자) 밖이므로, 사각형 타워 본체 +
-/// 티어 이모지 + 플래그 + 층수(floors) 만 표시. Build 121 이전과 동일.
+/// Build 128 — Brand 공식 발송인 전용: 타워 비주얼.
+/// Build 220: 타워 이모지 → "돈 쌓이는" 이미지로 교체. 브랜드 = 광고비 →
+/// 캠페인 효과(픽업·전환) 누적 → 돈이 쌓이는 비주얼 메타포. tier 별로
+/// 돈 단계가 진화 (🪙 → 💵 → 💰 → 💴 → 💶 → 💷 → 💎 → 🏦 → 🏆 → 👑).
 /// Build 127 ✅ 인증 뱃지는 플래그 앞에 유지.
 class _BrandTowerMarker extends StatelessWidget {
   final TowerTier tier;
@@ -4240,6 +4241,23 @@ class _BrandTowerMarker extends StatelessWidget {
     this.pendingLetterCount = 0,
     this.isBrandVerified = false,
   });
+
+  /// Build 220: 브랜드 티어별 "돈 쌓이는" 이모지.
+  /// 광고 캠페인 누적량 → 화폐 가치 진화로 시각화.
+  static String _moneyEmoji(TowerTier t) {
+    switch (t) {
+      case TowerTier.shack:      return '🪙'; // 동전
+      case TowerTier.cottage:    return '💵'; // 달러 지폐
+      case TowerTier.house:      return '💰'; // 돈 주머니
+      case TowerTier.townhouse:  return '💴'; // 엔
+      case TowerTier.building:   return '💶'; // 유로
+      case TowerTier.office:     return '💷'; // 파운드
+      case TowerTier.skyscraper: return '💸'; // 돈 날아가는
+      case TowerTier.supertall:  return '💎'; // 보석
+      case TowerTier.megatower:  return '🏦'; // 은행
+      case TowerTier.landmark:   return '👑'; // 왕관 (최고 단계)
+    }
+  }
 
   Color _tierColor() {
     switch (tier) {
@@ -4309,7 +4327,9 @@ class _BrandTowerMarker extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(tier.emoji, style: const TextStyle(fontSize: 18)),
+                    // Build 220: 타워 이모지 → 돈 누적 이모지로 교체
+                    Text(_moneyEmoji(tier),
+                        style: const TextStyle(fontSize: 18)),
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [

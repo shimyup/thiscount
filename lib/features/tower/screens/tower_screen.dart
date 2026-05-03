@@ -16,6 +16,23 @@ import '../../premium/premium_screen.dart';
 import '../../../widgets/shared_profile_dialogs.dart';
 import '../../brand/brand_analytics_card.dart';
 
+/// Build 220: Brand 티어별 "돈 쌓이는" 이모지.
+/// 광고 캠페인 누적량 → 화폐 가치 진화로 시각화.
+String _brandMoneyEmojiForTier(TowerTier t) {
+  switch (t) {
+    case TowerTier.shack:      return '🪙';
+    case TowerTier.cottage:    return '💵';
+    case TowerTier.house:      return '💰';
+    case TowerTier.townhouse:  return '💴';
+    case TowerTier.building:   return '💶';
+    case TowerTier.office:     return '💷';
+    case TowerTier.skyscraper: return '💸';
+    case TowerTier.supertall:  return '💎';
+    case TowerTier.megatower:  return '🏦';
+    case TowerTier.landmark:   return '👑';
+  }
+}
+
 class TowerScreen extends StatefulWidget {
   const TowerScreen({super.key});
 
@@ -912,7 +929,7 @@ class _TowerScreenState extends State<TowerScreen>
         ),
         child: Row(
           children: [
-            // 작은 타워 미니어처
+            // Build 220: Brand 인라인 신원 — 타워 이모지 → 돈 누적 이모지.
             Container(
               width: 52,
               height: 52,
@@ -922,7 +939,7 @@ class _TowerScreenState extends State<TowerScreen>
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Text(
-                score.tier.emoji,
+                _brandMoneyEmojiForTier(score.tier),
                 style: const TextStyle(fontSize: 28),
               ),
             ),

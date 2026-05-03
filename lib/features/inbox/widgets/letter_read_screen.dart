@@ -782,7 +782,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                         letter: letter,
                         langCode: state.currentUser.languageCode,
                         tagline: l10n.appTagline,
-                        brandName: 'Letter Go',
+                        brandName: 'Thiscount',
                       );
                     },
                     child: Tooltip(
