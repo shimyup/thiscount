@@ -32,7 +32,7 @@ enum UserLevel {
         return '첫 편지를 보내볼까요?';
       case UserLevel.beginner:
         // Build 188: "탑 레벨" → 레터 레벨. 일반 회원에게 타워 잔상 완전 제거.
-        return '✉️ 레터 레벨이 공개되었어요';
+        return '🎟 카운터 레벨이 공개되었어요';
       case UserLevel.casual:
         return '✉️ 오늘의 편지가 해금되었어요';
       case UserLevel.regular:

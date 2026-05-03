@@ -73,26 +73,27 @@ class _SplashScreenState extends State<SplashScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Spacer(),
+                  // Build 220+: 워드마크 letter·go. → thiscount.
+                  // 한 단어이지만 끝에 점(.) 으로 짧은 명령형 톤 유지.
                   RichText(
                     text: const TextSpan(
                       style: TextStyle(
-                        fontSize: 88,
+                        fontSize: 76,
                         fontWeight: FontWeight.w800,
                         color: AppColors.textPrimary,
-                        height: 0.92,
-                        letterSpacing: -5.2,
+                        height: 0.96,
+                        letterSpacing: -3.8,
                       ),
                       children: [
-                        TextSpan(text: 'letter'),
+                        TextSpan(text: 'thiscount'),
                         WidgetSpan(
                           alignment: PlaceholderAlignment.top,
                           baseline: TextBaseline.alphabetic,
                           child: Padding(
-                            padding: EdgeInsets.only(left: 4, top: 16),
+                            padding: EdgeInsets.only(left: 4, top: 14),
                             child: _Dot(),
                           ),
                         ),
-                        TextSpan(text: '\ngo.'),
                       ],
                     ),
                   ),
@@ -147,7 +148,7 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                       ),
                       Text(
-                        'GLOBAL POSTAL CO.',
+                        'THISCOUNT.IO',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textMuted,

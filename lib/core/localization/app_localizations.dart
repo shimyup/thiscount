@@ -606,40 +606,49 @@ class AppL10n {
     'th': 'ยังไม่ได้อ่าน',
   });
 
-  // ── Onboarding ────────────────────────────────────────────────────────────
+  // ── Onboarding (Build 224 재포지셔닝) ─────────────────────────────────────
+  // 1번 슬라이드: Thiscount 정체성 = 위치 기반 할인·홍보 보물찾기
   String get onboarding1Title => _t({
-    'ko': '🍾 메시지 인 어 보틀',
-    'en': '🍾 Message in a Bottle',
-    'ja': '🍾 メッセージ・イン・ア・ボトル',
-    'zh': '🍾 漂流瓶',
-    'fr': '🍾 Message dans une bouteille',
-    'de': '🍾 Flaschenpost',
-    'es': '🍾 Mensaje en una botella',
-    'pt': '🍾 Mensagem numa garrafa',
-    'ru': '🍾 Письмо в бутылке',
-    'tr': '🍾 Şişedeki Mesaj',
-    'ar': '🍾 رسالة في زجاجة',
-    'it': '🍾 Messaggio in bottiglia',
-    'hi': '🍾 बोतल में संदेश',
-    'th': '🍾 ข้อความในขวด',
+    'ko': '🎟 Thiscount',
+    'en': '🎟 Thiscount',
+    'ja': '🎟 Thiscount',
+    'zh': '🎟 Thiscount',
+    'fr': '🎟 Thiscount',
+    'de': '🎟 Thiscount',
+    'es': '🎟 Thiscount',
+    'pt': '🎟 Thiscount',
+    'ru': '🎟 Thiscount',
+    'tr': '🎟 Thiscount',
+    'ar': '🎟 Thiscount',
+    'it': '🎟 Thiscount',
+    'hi': '🎟 Thiscount',
+    'th': '🎟 Thiscount',
   });
   String get onboarding1Body => _t({
-    'ko': '세상 어딘가의 누군가에게 익명 편지를 보내세요. 실제 우편 배송 경로로 전달됩니다.',
+    'ko': '내 주변 지도 위에 떠 있는 할인·쿠폰을 주워 바로 사용해요. 브랜드는 편지로 홍보하고, 회원은 보물처럼 줍습니다.',
     'en':
-        'Send anonymous letters to someone, somewhere in the world. Delivered via real postal routes.',
-    'ja': '世界のどこかにいる誰かに匿名の手紙を送りましょう。実際の郵便ルートで届けられます。',
-    'zh': '向世界某处的某人发送匿名信。通过真实邮政路线递送。',
+        'Pick up discounts and coupons floating on the map around you, redeem instantly. Brands promote via letters; members hunt for treasures.',
+    'ja': '近くの地図に浮かぶ割引・クーポンを拾って即使用。ブランドは手紙で宣伝し、会員は宝物のように拾います。',
+    'zh': '捡起你身边地图上漂浮的折扣和优惠券，立即使用。品牌用信件推广，会员像寻宝一样捡取。',
     'fr':
-        'Envoyez des lettres anonymes à quelqu\'un quelque part dans le monde.',
-    'de': 'Sende anonyme Briefe an jemanden, irgendwo auf der Welt.',
-    'es': 'Envía cartas anónimas a alguien en algún lugar del mundo.',
-    'pt': 'Envie cartas anônimas para alguém em algum lugar do mundo.',
-    'ru': 'Отправляйте анонимные письма кому-то, где-то в мире.',
-    'tr': 'Dünyanın bir yerindeki birine anonim mektuplar gönderin.',
-    'ar': 'أرسل رسائل مجهولة إلى شخص ما في مكان ما في العالم.',
-    'it': 'Invia lettere anonime a qualcuno, da qualche parte nel mondo.',
-    'hi': 'दुनिया में कहीं किसी को अनाम पत्र भेजें।',
-    'th': 'ส่งจดหมายนิรนามถึงใครบางคนที่ไหนสักแห่งในโลก',
+        'Ramasse les remises et coupons qui flottent sur la carte autour de toi. Les marques font la promo par lettres; les membres chassent des trésors.',
+    'de':
+        'Sammle Rabatte und Coupons in deiner Nähe auf der Karte und löse sie sofort ein. Marken werben per Brief, Mitglieder gehen auf Schatzsuche.',
+    'es':
+        'Recoge descuentos y cupones que flotan en el mapa cerca de ti y úsalos al instante. Las marcas promocionan vía cartas; los miembros cazan tesoros.',
+    'pt':
+        'Apanha descontos e cupões que flutuam no mapa à tua volta e usa imediatamente. Marcas promovem por cartas; membros caçam tesouros.',
+    'ru':
+        'Подбирайте скидки и купоны на карте рядом с вами — используйте сразу. Бренды продвигают через письма, участники охотятся за сокровищами.',
+    'tr':
+        'Etrafındaki haritada yüzen indirim ve kuponları topla, hemen kullan. Markalar mektupla tanıtır, üyeler hazine avlar.',
+    'ar':
+        'التقط الخصومات والقسائم العائمة على الخريطة من حولك واستخدمها فورًا. الماركات تروّج عبر الرسائل والأعضاء يصطادون الكنوز.',
+    'it':
+        'Raccogli sconti e coupon che fluttuano sulla mappa intorno a te e usali subito. I brand promuovono via lettere; i membri cercano tesori.',
+    'hi':
+        'अपने आसपास नक्शे पर तैरते छूट और कूपन उठाएँ और तुरंत इस्तेमाल करें। ब्रांड पत्रों से प्रचार करते हैं; सदस्य खजाने ढूँढते हैं।',
+    'th': 'เก็บส่วนลดและคูปองที่ลอยอยู่บนแผนที่รอบตัวและใช้ทันที แบรนด์โปรโมตผ่านจดหมาย สมาชิกล่าสมบัติ',
   });
 
   String get onboarding2Title => _t({
@@ -14521,12 +14530,12 @@ class AppL10n {
   // Build 125: 사용자 정체성 "레터" 통일에 따라 "헌트 기록" → "레터 기록"
   // 으로 교체. 14개 언어 모두 Letter 브랜드명 정합 재작성.
   String get huntWalletTitle => _t({
-    'ko': '나의 레터 기록', 'en': 'My Letter Log', 'ja': '私のレター記録',
-    'zh': '我的 Letter 记录', 'fr': 'Mon journal Letter', 'de': 'Mein Letter-Log',
-    'es': 'Mi registro Letter', 'pt': 'Meu registro Letter',
-    'ru': 'Мой Letter-журнал', 'tr': 'Letter kaydım',
-    'ar': 'سجل Letter الخاص بي', 'it': 'Il mio diario Letter',
-    'hi': 'मेरा Letter लॉग', 'th': 'บันทึก Letter ของฉัน',
+    'ko': '나의 카운터 기록', 'en': 'My Counter Log', 'ja': '私のカウンター記録',
+    'zh': '我的 Counter 记录', 'fr': 'Mon journal Counter', 'de': 'Mein Counter-Log',
+    'es': 'Mi registro Counter', 'pt': 'Meu registro Counter',
+    'ru': 'Мой Counter-журнал', 'tr': 'Counter kaydım',
+    'ar': 'سجل Counter الخاص بي', 'it': 'Il mio diario Counter',
+    'hi': 'मेरा Counter लॉग', 'th': 'บันทึก Counter ของฉัน',
   });
   String get huntWalletPickupsMonth => _t({
     'ko': '이번 달 픽업', 'en': 'Pickups this month', 'ja': '今月のピックアップ',
@@ -19942,15 +19951,15 @@ class AppL10n {
 
   // Build 183: "탑 레벨" → 레터 레벨. 타워 잔상 제거.
   String get userLevelBeginnerWelcome => _t({
-    'ko': '✉️ 레터 레벨이 공개되었어요',
-    'en': '✉️ Your Letter level is now visible',
-    'ja': '✉️ Letterレベルが公開されました',
-    'zh': '✉️ 你的 Letter 等级已公开',
-    'fr': '✉️ Votre niveau Letter est désormais visible',
-    'de': '✉️ Dein Letter-Level ist nun sichtbar',
-    'es': '✉️ Tu nivel de Letter ahora es visible',
-    'pt': '✉️ Seu nível de Letter agora é visível',
-    'ru': '✉️ Ваш уровень Letter теперь виден',
+    'ko': '🎟 카운터 레벨이 공개되었어요',
+    'en': '🎟 Your Counter level is now visible',
+    'ja': '🎟 カウンターレベルが公開されました',
+    'zh': '🎟 你的 Counter 等级已公开',
+    'fr': '🎟 Votre niveau Counter est désormais visible',
+    'de': '🎟 Dein Counter-Level ist nun sichtbar',
+    'es': '🎟 Tu nivel de Counter ahora es visible',
+    'pt': '🎟 Seu nível de Counter agora é visível',
+    'ru': '🎟 Ваш уровень Counter теперь виден',
     'tr': '✉️ Letter seviyen artık görünür',
     'ar': '✉️ أصبح مستوى Letter مرئيًا',
     'it': '✉️ Il livello del tuo Letter è ora visibile',
