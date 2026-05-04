@@ -81,21 +81,22 @@ class AppL10n {
   // Build 172: 감성적 톤으로 리라이트. 실용성 (action verb) 보다 "혜택이 나를
   // 기다리는" 감성 앵커를 우선. "주워 쓰세요" 는 onboarding/CTA 에서 계속 등장.
   // 메인 스플래시에는 한 번 만나는 순간이라 여운 있는 카피.
+  // Build 241: 14개 언어 splash tagline 일괄 reward 통일.
   String get tagline => _t({
     'ko': '오늘, 혜택이 당신을 기다려요',
     'en': 'A reward is waiting for you today',
-    'ja': '今日、手紙があなたを待っています',
-    'zh': '今天，有一封信在等你',
-    'fr': "Aujourd'hui, une lettre vous attend",
-    'de': 'Heute wartet ein Brief auf dich',
-    'es': 'Hoy, una carta te espera',
-    'pt': 'Hoje, uma carta espera por ti',
-    'ru': 'Сегодня вас ждёт письмо',
-    'tr': 'Bugün seni bir mektup bekliyor',
-    'ar': 'اليوم، رسالة تنتظرك',
-    'it': 'Oggi, una lettera ti aspetta',
-    'hi': 'आज आपका एक पत्र इंतज़ार कर रहा है',
-    'th': 'วันนี้ มีจดหมายรอคุณอยู่',
+    'ja': '今日、特典があなたを待っています',
+    'zh': '今天，有奖励在等你',
+    'fr': "Aujourd'hui, une récompense vous attend",
+    'de': 'Heute wartet eine Belohnung auf dich',
+    'es': 'Hoy, una recompensa te espera',
+    'pt': 'Hoje, uma recompensa espera por ti',
+    'ru': 'Сегодня вас ждёт награда',
+    'tr': 'Bugün seni bir ödül bekliyor',
+    'ar': 'اليوم، مكافأة تنتظرك',
+    'it': 'Oggi, una ricompensa ti aspetta',
+    'hi': 'आज आपका एक पुरस्कार इंतज़ार कर रहा है',
+    'th': 'วันนี้ มีรางวัลรอคุณอยู่',
   });
 
   // ── Auth ──────────────────────────────────────────────────────────────────
@@ -510,34 +511,34 @@ class AppL10n {
   String get nearbyNotifTitle => _t({
     'ko': '📬 혜택이 도착했어요!',
     'en': '📬 A reward has arrived!',
-    'ja': '📬 手紙が届きました！',
-    'zh': '📬 信件已到达！',
-    'fr': '📬 Une lettre est arrivée!',
-    'de': '📬 Ein Brief ist angekommen!',
-    'es': '📬 ¡Ha llegado una carta!',
-    'pt': '📬 Uma carta chegou!',
-    'ru': '📬 Пришло письмо!',
-    'tr': '📬 Bir mektup geldi!',
-    'ar': '📬 وصلت رسالة!',
-    'it': '📬 È arrivata una lettera!',
-    'hi': '📬 एक पत्र आया है!',
-    'th': '📬 จดหมายมาถึงแล้ว!',
+    'ja': '📬 特典が届きました！',
+    'zh': '📬 奖励已到达！',
+    'fr': '📬 Une récompense est arrivée!',
+    'de': '📬 Eine Belohnung ist angekommen!',
+    'es': '📬 ¡Ha llegado una recompensa!',
+    'pt': '📬 Uma recompensa chegou!',
+    'ru': '📬 Пришла награда!',
+    'tr': '📬 Bir ödül geldi!',
+    'ar': '📬 وصلت مكافأة!',
+    'it': '📬 È arrivata una ricompensa!',
+    'hi': '📬 एक पुरस्कार आया है!',
+    'th': '📬 รางวัลมาถึงแล้ว!',
   });
   String get nearbyNotifBody => _t({
     'ko': '2km 이내에 혜택이 있어요. 앱에서 확인하세요!',
     'en': 'A reward is within 2km. Check it in the app!',
-    'ja': '2km以内に手紙があります。アプリで確認してください！',
-    'zh': '2公里内有一封信。在应用中查看！',
-    'fr': 'Une lettre est à moins de 2km. Vérifiez dans l\'app!',
-    'de': 'Ein Brief ist weniger als 2km entfernt. In der App prüfen!',
-    'es': 'Hay una carta a menos de 2km. ¡Revísala en la app!',
-    'pt': 'Há uma carta a menos de 2km. Verifique no app!',
-    'ru': 'Письмо в 2км от вас. Проверьте в приложении!',
-    'tr': '2km içinde bir mektup var. Uygulamada kontrol et!',
-    'ar': 'توجد رسالة على بعد 2 كم. تحقق من التطبيق!',
-    'it': 'C\'è una lettera a meno di 2km. Controlla nell\'app!',
-    'hi': '2 किमी के भीतर एक पत्र है। ऐप में चेक करें!',
-    'th': 'มีจดหมายอยู่ภายใน 2 กม. ตรวจสอบในแอป!',
+    'ja': '2km以内に特典があります。アプリで確認してください！',
+    'zh': '2公里内有奖励。在应用中查看！',
+    'fr': 'Une récompense est à moins de 2km. Vérifiez dans l\'app!',
+    'de': 'Eine Belohnung ist weniger als 2km entfernt. In der App prüfen!',
+    'es': 'Hay una recompensa a menos de 2km. ¡Revísala en la app!',
+    'pt': 'Há uma recompensa a menos de 2km. Verifique no app!',
+    'ru': 'Награда в 2км от вас. Проверьте в приложении!',
+    'tr': '2km içinde bir ödül var. Uygulamada kontrol et!',
+    'ar': 'توجد مكافأة على بعد 2 كم. تحقق من التطبيق!',
+    'it': 'C\'è una ricompensa a meno di 2km. Controlla nell\'app!',
+    'hi': '2 किमी के भीतर एक पुरस्कार है। ऐप में चेक करें!',
+    'th': 'มีรางวัลอยู่ภายใน 2 กม. ตรวจสอบในแอป!',
   });
 
   // ── Delivery status ───────────────────────────────────────────────────────
@@ -4866,35 +4867,36 @@ class AppL10n {
     required String trail,
     required int collected,
   }) {
+    // Build 241: 도메인 letter-go.com → thiscount.io + 편지/letter 어휘 정돈.
     switch (languageCode) {
       case 'ko':
-        return 'Thiscount 에서 Level $level 도달 $trail\n지금까지 편지 $collected 통 수집 중!\nhttps://letter-go.com';
+        return 'Thiscount 에서 Level $level 도달 $trail\n지금까지 혜택 $collected 개 수집 중!\nhttps://thiscount.io';
       case 'ja':
-        return 'Thiscount でレベル $level に到達 $trail\n今までに手紙 $collected 通を収集中！\nhttps://letter-go.com';
+        return 'Thiscount でレベル $level に到達 $trail\n今までに特典 $collected 個を収集中！\nhttps://thiscount.io';
       case 'zh':
-        return 'Thiscount 达到 Level $level $trail\n目前收集了 $collected 封信件！\nhttps://letter-go.com';
+        return 'Thiscount 达到 Level $level $trail\n目前收集了 $collected 个奖励！\nhttps://thiscount.io';
       case 'fr':
-        return 'Niveau $level atteint sur Thiscount $trail\n$collected lettres collectées !\nhttps://letter-go.com';
+        return 'Niveau $level atteint sur Thiscount $trail\n$collected récompenses collectées !\nhttps://thiscount.io';
       case 'de':
-        return 'Level $level in Thiscount erreicht $trail\n$collected Briefe gesammelt!\nhttps://letter-go.com';
+        return 'Level $level in Thiscount erreicht $trail\n$collected Belohnungen gesammelt!\nhttps://thiscount.io';
       case 'es':
-        return 'Nivel $level en Thiscount $trail\n$collected cartas recogidas!\nhttps://letter-go.com';
+        return 'Nivel $level en Thiscount $trail\n$collected recompensas recogidas!\nhttps://thiscount.io';
       case 'pt':
-        return 'Nível $level no Thiscount $trail\n$collected cartas apanhadas!\nhttps://letter-go.com';
+        return 'Nível $level no Thiscount $trail\n$collected recompensas apanhadas!\nhttps://thiscount.io';
       case 'ru':
-        return 'Достигнут уровень $level в Thiscount $trail\nСобрано $collected писем!\nhttps://letter-go.com';
+        return 'Достигнут уровень $level в Thiscount $trail\nСобрано $collected наград!\nhttps://thiscount.io';
       case 'tr':
-        return "Thiscount'da Level $level $trail\n$collected mektup topladım!\nhttps://letter-go.com";
+        return "Thiscount'da Level $level $trail\n$collected ödül topladım!\nhttps://thiscount.io";
       case 'ar':
-        return 'وصلت إلى المستوى $level في Thiscount $trail\nجمعت $collected رسالة!\nhttps://letter-go.com';
+        return 'وصلت إلى المستوى $level في Thiscount $trail\nجمعت $collected مكافأة!\nhttps://thiscount.io';
       case 'it':
-        return 'Livello $level su Thiscount $trail\n$collected lettere raccolte!\nhttps://letter-go.com';
+        return 'Livello $level su Thiscount $trail\n$collected ricompense raccolte!\nhttps://thiscount.io';
       case 'hi':
-        return 'Thiscount पर स्तर $level $trail\n$collected पत्र एकत्र!\nhttps://letter-go.com';
+        return 'Thiscount पर स्तर $level $trail\n$collected पुरस्कार एकत्र!\nhttps://thiscount.io';
       case 'th':
-        return 'ถึง Level $level ใน Thiscount $trail\nเก็บจดหมายแล้ว $collected ฉบับ!\nhttps://letter-go.com';
+        return 'ถึง Level $level ใน Thiscount $trail\nเก็บรางวัลแล้ว $collected รายการ!\nhttps://thiscount.io';
       default:
-        return 'Level $level on Thiscount $trail\n$collected letters collected!\nhttps://letter-go.com';
+        return 'Level $level on Thiscount $trail\n$collected rewards collected!\nhttps://thiscount.io';
     }
   }
 
@@ -15889,7 +15891,7 @@ class AppL10n {
     'th': 'Free — 🎟 เก็บ Letter',
   });
   String get mapHelpTierFreeBody => _t({
-    'ko': '200m 반경 안의 레터를 주워 내 수집첩에 담고 사용하세요. 레벨이 오를수록 반경이 늘어나고 레터가 함께 성장합니다. 쿨다운 60분.',
+    'ko': '200m 반경 안의 혜택을 주워 내 수집첩에 담고 사용하세요. 레벨이 오를수록 반경이 늘어나고 카운터도 함께 성장합니다. 쿨다운 60분.',
     'en': 'Pick up Rewards within 200 m into your collection. Your radius grows with each level as your Counter levels up. 60-min cooldown.',
     'ja': '200m 圏内の Letter を拾って受信箱に集めよう。レベルが上がるほど半径も Letter も成長。クールダウン 60 分。',
     'zh': '拾取 200 米范围内的 Letter 到收件箱。等级越高半径越大，Letter 也一同成长。冷却 60 分钟。',
@@ -15922,7 +15924,7 @@ class AppL10n {
     'th': 'Premium — ✉️ ปล่อย Letter ของคุณ',
   });
   String get mapHelpTierPremiumBody => _t({
-    'ko': '1km 반경으로 주우면서 📸 사진 · 🔗 링크가 달린 내 레터를 세계 지도에 떨어뜨릴 수 있어요. 내 카운터가 빠르게 성장합니다. 쿨다운 10분.',
+    'ko': '1km 반경으로 주우면서 📸 사진 · 🔗 링크가 달린 내 홍보를 세계 지도에 떨어뜨릴 수 있어요. 내 카운터가 빠르게 성장합니다. 쿨다운 10분.',
     'en': '1 km pickup radius + drop your own Promos with 📸 photos and 🔗 links on the map. Your Counter levels up faster. 10-min cooldown.',
     'ja': '1km 圏で拾いつつ、📸 写真・🔗 リンクを添えた自分の Letter を世界に配れます。Letter の成長が早まります。クールダウン 10 分。',
     'zh': '1 公里范围内拾取 + 投放带 📸 照片和 🔗 链接的自己的 Letter。Letter 成长更快。冷却 10 分钟。',
@@ -17946,7 +17948,7 @@ class AppL10n {
   });
 
   String get statusDelivered => _t({
-    'ko': '우편함 도착 💌',
+    'ko': '수집첩 도착 💌',
     'en': 'In your mailbox 💌',
     'ja': 'ポストに到着 💌',
     'zh': '已投入信箱 💌',
