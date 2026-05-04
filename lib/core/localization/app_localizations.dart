@@ -21012,4 +21012,250 @@ class AppL10n {
     'hi': 'पूर्ण', 'th': 'เสร็จ',
   });
 
+  // ── Build 242: Merchant Interest (가맹점 영입 — Cold-start 부트스트랩) ─
+  String get merchantHookCardTitle => _t({
+    'ko': '🏢 사장님이세요?',
+    'en': '🏢 Are you a merchant?',
+    'ja': '🏢 店舗オーナーですか？',
+    'zh': '🏢 您是商家吗？',
+    'fr': '🏢 Vous êtes commerçant ?',
+    'de': '🏢 Sind Sie Händler?',
+    'es': '🏢 ¿Eres comerciante?',
+    'pt': '🏢 É comerciante?',
+    'ru': '🏢 Вы продавец?',
+    'tr': '🏢 Mağaza sahibi misiniz?',
+    'ar': '🏢 هل أنت تاجر؟',
+    'it': '🏢 Sei un commerciante?',
+    'hi': '🏢 क्या आप व्यापारी हैं?',
+    'th': '🏢 คุณเป็นเจ้าของร้านใช่ไหม?',
+  });
+
+  String get merchantHookCardSub => _t({
+    'ko': '주변 첫 100 가맹점 무료 베타 모집 중',
+    'en': 'First 100 merchants — free beta',
+    'ja': '近隣 100 店舗ベータ無料募集中',
+    'zh': '招募首批 100 个商家 — 免费测试',
+    'fr': '100 premiers commerçants — bêta gratuite',
+    'de': 'Erste 100 Händler — kostenlose Beta',
+    'es': 'Primeros 100 comerciantes — beta gratuita',
+    'pt': 'Primeiros 100 comerciantes — beta gratuito',
+    'ru': 'Первые 100 продавцов — бесплатная бета',
+    'tr': 'İlk 100 işletme — ücretsiz beta',
+    'ar': 'أول 100 تاجر — تجربة مجانية',
+    'it': 'Primi 100 commercianti — beta gratuita',
+    'hi': 'पहले 100 व्यापारी — मुफ़्त बीटा',
+    'th': '100 ร้านค้าแรก — ทดลองฟรี',
+  });
+
+  String get merchantHookTitle => _t({
+    'ko': '주변 가맹점 모집 중',
+    'en': 'Recruiting local merchants',
+    'ja': '地域の店舗を募集中',
+    'zh': '招募本地商家',
+    'fr': 'Recrutement de commerçants locaux',
+    'de': 'Werben lokaler Händler',
+    'es': 'Reclutando comerciantes locales',
+    'pt': 'Recrutando comerciantes locais',
+    'ru': 'Набор местных продавцов',
+    'tr': 'Yerel işletme alımı',
+    'ar': 'توظيف التجار المحليين',
+    'it': 'Reclutamento commercianti locali',
+    'hi': 'स्थानीय व्यापारियों की भर्ती',
+    'th': 'รับสมัครร้านค้าท้องถิ่น',
+  });
+
+  String get merchantHookSubtitle => _t({
+    'ko': '내 가게의 쿠폰을 지도 위에 띄워서 손님이 직접 걸어오게 하세요. 베타 기간 무료.',
+    'en': 'Let your customers walk in by placing your coupons on the map. Free during beta.',
+    'ja': 'クーポンを地図に置いてお客様を歩かせよう。ベータ期間中無料。',
+    'zh': '把优惠券放在地图上，让顾客自己走进来。测试期免费。',
+    'fr': 'Faites venir vos clients en plaçant vos coupons sur la carte. Gratuit pendant la bêta.',
+    'de': 'Lassen Sie Kunden zu Ihnen kommen, indem Sie Coupons auf der Karte platzieren. Beta kostenlos.',
+    'es': 'Atrae clientes colocando tus cupones en el mapa. Gratis durante la beta.',
+    'pt': 'Atrai clientes colocando os teus cupões no mapa. Grátis durante a beta.',
+    'ru': 'Привлекайте клиентов, размещая купоны на карте. Бесплатно во время беты.',
+    'tr': 'Kuponlarınızı haritaya yerleştirerek müşterileri çekin. Beta süresi ücretsiz.',
+    'ar': 'استقطب العملاء بوضع قسائمك على الخريطة. مجاني خلال الفترة التجريبية.',
+    'it': 'Attira clienti mettendo i tuoi coupon sulla mappa. Gratis durante la beta.',
+    'hi': 'अपने कूपन मानचित्र पर रखकर ग्राहक आकर्षित करें। बीटा में मुफ़्त।',
+    'th': 'ดึงดูดลูกค้าโดยวางคูปองบนแผนที่ ฟรีช่วงทดลอง',
+  });
+
+  String get merchantBenefit1Title => _t({
+    'ko': '쿠폰·교환권 무제한 발행',
+    'en': 'Unlimited coupon issuance',
+    'ja': 'クーポン・引換券無制限',
+    'zh': '无限发行优惠券·兑换券',
+    'fr': 'Émission illimitée de coupons',
+    'de': 'Unbegrenzte Coupon-Ausgabe',
+    'es': 'Emisión ilimitada de cupones',
+    'pt': 'Emissão ilimitada de cupões',
+    'ru': 'Безлимитный выпуск купонов',
+    'tr': 'Sınırsız kupon yayını',
+    'ar': 'إصدار قسائم غير محدود',
+    'it': 'Emissione coupon illimitata',
+    'hi': 'असीमित कूपन जारी',
+    'th': 'ออกคูปองไม่จำกัด',
+  });
+
+  String get merchantBenefit1Body => _t({
+    'ko': '할인·이벤트·체험권을 지도 위에 자유롭게',
+    'en': 'Discounts, events, vouchers — all on the map',
+    'ja': '割引・イベント・体験券をすべて地図に',
+    'zh': '折扣·活动·体验券 — 全部放上地图',
+    'fr': 'Remises, événements, bons — tout sur la carte',
+    'de': 'Rabatte, Events, Gutscheine — alles auf der Karte',
+    'es': 'Descuentos, eventos, vales — todo en el mapa',
+    'pt': 'Descontos, eventos, vales — tudo no mapa',
+    'ru': 'Скидки, события, ваучеры — всё на карте',
+    'tr': 'İndirimler, etkinlikler, kuponlar — hepsi haritada',
+    'ar': 'خصومات، فعاليات، قسائم — كلها على الخريطة',
+    'it': 'Sconti, eventi, voucher — tutto sulla mappa',
+    'hi': 'छूट, इवेंट, वाउचर — सब मानचित्र पर',
+    'th': 'ส่วนลด อีเวนต์ บัตรกำนัล — บนแผนที่ทั้งหมด',
+  });
+
+  String get merchantBenefit2Title => _t({
+    'ko': 'ExactDrop — 정확한 위치 지정',
+    'en': 'ExactDrop — pinpoint targeting',
+    'ja': 'ExactDrop — 正確な位置指定',
+    'zh': 'ExactDrop — 精准位置投放',
+    'fr': 'ExactDrop — ciblage précis',
+    'de': 'ExactDrop — präzises Targeting',
+    'es': 'ExactDrop — ubicación exacta',
+    'pt': 'ExactDrop — localização exata',
+    'ru': 'ExactDrop — точное наведение',
+    'tr': 'ExactDrop — kesin hedefleme',
+    'ar': 'ExactDrop — استهداف دقيق',
+    'it': 'ExactDrop — targeting preciso',
+    'hi': 'ExactDrop — सटीक लक्ष्य',
+    'th': 'ExactDrop — เจาะตำแหน่งแม่นยำ',
+  });
+
+  String get merchantBenefit2Body => _t({
+    'ko': '내 매장 앞에 정확하게 쿠폰을 띄울 수 있어요',
+    'en': 'Drop coupons exactly in front of your store',
+    'ja': '店舗前にピンポイントでクーポンを配置',
+    'zh': '将优惠券精准放在店门口',
+    'fr': 'Déposez les coupons juste devant votre boutique',
+    'de': 'Coupons genau vor Ihrem Geschäft platzieren',
+    'es': 'Coloca cupones justo frente a tu tienda',
+    'pt': 'Coloca cupões mesmo em frente à tua loja',
+    'ru': 'Размещайте купоны прямо у магазина',
+    'tr': 'Kuponları mağazanızın önüne tam olarak yerleştirin',
+    'ar': 'ضع القسائم مباشرة أمام متجرك',
+    'it': 'Posiziona i coupon proprio davanti al tuo negozio',
+    'hi': 'अपने स्टोर के सामने ठीक कूपन रखें',
+    'th': 'วางคูปองตรงหน้าร้านของคุณ',
+  });
+
+  String get merchantBenefit3Title => _t({
+    'ko': '실시간 캠페인 분석',
+    'en': 'Real-time campaign analytics',
+    'ja': 'リアルタイム分析',
+    'zh': '实时活动分析',
+    'fr': 'Analyses en temps réel',
+    'de': 'Echtzeit-Kampagnenanalyse',
+    'es': 'Análisis en tiempo real',
+    'pt': 'Análises em tempo real',
+    'ru': 'Аналитика в реальном времени',
+    'tr': 'Gerçek zamanlı analiz',
+    'ar': 'تحليلات فورية',
+    'it': 'Analisi in tempo reale',
+    'hi': 'रीयल-टाइम विश्लेषण',
+    'th': 'วิเคราะห์เรียลไทม์',
+  });
+
+  String get merchantBenefit3Body => _t({
+    'ko': '픽업·사용·재방문률을 지표로 확인',
+    'en': 'Track pickups, redemptions, and revisits',
+    'ja': '受け取り・使用・再訪率を確認',
+    'zh': '查看领取·使用·回访指标',
+    'fr': 'Suivi ramassages, utilisations, retours',
+    'de': 'Abholungen, Einlösungen, Wiederbesuche verfolgen',
+    'es': 'Sigue recogidas, canjes y revisitas',
+    'pt': 'Acompanha recolhas, usos e revisitas',
+    'ru': 'Отслеживайте получения, использование, возвраты',
+    'tr': 'Alımları, kullanımları, tekrar ziyaretleri takip',
+    'ar': 'تتبع الاستلامات والاستخدامات والعودة',
+    'it': 'Traccia ritiri, utilizzi e visite di ritorno',
+    'hi': 'पिकअप, उपयोग, पुनरावलोकन ट्रैक करें',
+    'th': 'ติดตามการรับ การใช้ การกลับมา',
+  });
+
+  String get merchantBetaOffer => _t({
+    'ko': '베타 첫 100 가맹점 — 30일 무료 + 우선 광고 슬롯',
+    'en': 'First 100 beta merchants — 30 days free + priority slots',
+    'ja': 'ベータ先着 100 店 — 30 日無料 + 優先枠',
+    'zh': '前 100 家测试商家 — 30 天免费 + 优先位',
+    'fr': '100 premiers commerçants bêta — 30 jours gratuits + slots prioritaires',
+    'de': 'Erste 100 Beta-Händler — 30 Tage kostenlos + Priorität',
+    'es': 'Primeros 100 — 30 días gratis + slots prioritarios',
+    'pt': 'Primeiros 100 — 30 dias grátis + slots prioritários',
+    'ru': 'Первые 100 — 30 дней бесплатно + приоритет',
+    'tr': 'İlk 100 işletme — 30 gün ücretsiz + öncelik',
+    'ar': '100 الأوائل — 30 يومًا مجانًا + أولوية',
+    'it': 'Primi 100 — 30 giorni gratis + slot prioritari',
+    'hi': 'पहले 100 — 30 दिन मुफ़्त + प्राथमिकता',
+    'th': '100 รายแรก — 30 วันฟรี + สิทธิพิเศษ',
+  });
+
+  String get merchantInterestCta => _t({
+    'ko': '관심 등록 · 운영자가 연락드려요',
+    'en': 'Register interest · We\'ll reach out',
+    'ja': '関心登録 · 運営から連絡します',
+    'zh': '登记关注 · 我们会联系您',
+    'fr': 'Manifester intérêt · Nous vous contactons',
+    'de': 'Interesse melden · Wir melden uns',
+    'es': 'Registrar interés · Te contactaremos',
+    'pt': 'Registar interesse · Entraremos em contacto',
+    'ru': 'Записать интерес · Мы свяжемся',
+    'tr': 'İlgi kaydı · Sizinle iletişime geçeriz',
+    'ar': 'تسجيل اهتمام · سنتواصل',
+    'it': 'Manifesta interesse · Ti contatteremo',
+    'hi': 'रुचि दर्ज करें · हम संपर्क करेंगे',
+    'th': 'แสดงความสนใจ · เราจะติดต่อกลับ',
+  });
+
+  String get merchantThanksTitle => _t({
+    'ko': '관심 등록 완료',
+    'en': 'Interest registered',
+    'ja': '登録が完了しました',
+    'zh': '已登记关注',
+    'fr': 'Intérêt enregistré',
+    'de': 'Interesse registriert',
+    'es': 'Interés registrado',
+    'pt': 'Interesse registado',
+    'ru': 'Интерес зарегистрирован',
+    'tr': 'İlgi kaydedildi',
+    'ar': 'تم تسجيل الاهتمام',
+    'it': 'Interesse registrato',
+    'hi': 'रुचि दर्ज हो गई',
+    'th': 'ลงทะเบียนแล้ว',
+  });
+
+  String get merchantThanksBody => _t({
+    'ko': '운영자가 1-3일 내 연락드릴게요. 이메일/SNS DM 으로 안내드립니다.',
+    'en': 'We\'ll reach out in 1-3 days via email or social DM.',
+    'ja': '1-3日以内に運営からメール/DM でご連絡します。',
+    'zh': '我们将在 1-3 天内通过邮件/私信联系您。',
+    'fr': 'Nous vous contacterons sous 1-3 jours par email ou DM.',
+    'de': 'Wir melden uns in 1-3 Tagen per E-Mail oder DM.',
+    'es': 'Te contactaremos en 1-3 días por email o DM.',
+    'pt': 'Entraremos em contacto em 1-3 dias por email ou DM.',
+    'ru': 'Свяжемся в течение 1-3 дней по email или DM.',
+    'tr': '1-3 gün içinde e-posta veya DM ile ulaşacağız.',
+    'ar': 'سنتواصل خلال 1-3 أيام عبر البريد أو الرسائل.',
+    'it': 'Ti contatteremo entro 1-3 giorni via email o DM.',
+    'hi': '1-3 दिनों में ईमेल/DM से संपर्क करेंगे।',
+    'th': 'จะติดต่อภายใน 1-3 วันทาง email/DM',
+  });
+
+  String get merchantThanksClose => _t({
+    'ko': '닫기', 'en': 'Close', 'ja': '閉じる', 'zh': '关闭',
+    'fr': 'Fermer', 'de': 'Schließen', 'es': 'Cerrar', 'pt': 'Fechar',
+    'ru': 'Закрыть', 'tr': 'Kapat', 'ar': 'إغلاق', 'it': 'Chiudi',
+    'hi': 'बंद', 'th': 'ปิด',
+  });
+
 }

@@ -811,6 +811,28 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
+  /// Build 242: 가맹점 영입 관심 등록 — 빈 상태에서 일반 사용자가 누른
+  /// "사장님이세요?" 시트로부터 호출. Firestore `merchant_interest` 컬렉션에
+  /// 도시 + 언어 + 타임스탬프 저장. 운영자가 이 리스트로 closed beta 영업 진행.
+  /// 실패 시 throw — 시트 측에서 best-effort 캐치.
+  Future<void> recordMerchantInterest({
+    required String country,
+    required String countryFlag,
+    required String languageCode,
+  }) async {
+    final docId = 'interest_${_currentUser.id}_${DateTime.now().millisecondsSinceEpoch}';
+    await FirestoreService.setDocument('merchant_interest/$docId', {
+      'userId': _currentUser.id,
+      'username': _currentUser.username,
+      'country': country,
+      'countryFlag': countryFlag,
+      'languageCode': languageCode,
+      'lat': _currentUser.latitude,
+      'lng': _currentUser.longitude,
+      'createdAt': DateTime.now().toUtc().toIso8601String(),
+    });
+  }
+
   /// 앱 진입 / 첫 액티비티 시 호출. 하루 1회만 실제 증가, 중복 호출 안전.
   /// - 처음 접속: streak = 1
   /// - 어제 접속 → 오늘 재접속: streak++

@@ -9,6 +9,7 @@ import '../../../state/app_state.dart';
 import '../widgets/letter_read_screen.dart';
 import '../../map/screens/letter_detail_map_screen.dart';
 import '../../dm/dm_conversation_screen.dart';
+import '../../merchant/merchant_interest_sheet.dart';
 
 // 포지셔닝 변경 + Build 183 에서 brand 제거, general 추가.
 //   all · general · coupon · voucher
@@ -976,21 +977,40 @@ class _InboxTab extends StatelessWidget {
               final sub = nearby > 0
                   ? '$baseSub\n${l10n.inboxEmptyNearbyCount(nearby)}'
                   : baseSub;
-              return _EmptyState(
-                emoji: _emptyEmojiForFilter(activeFilter),
-                title: activeFilter == LetterFilterType.all
-                    ? l10n.inboxEmptyReceived
-                    : l10n.inboxEmptyForFilter(_filterName(activeFilter, l10n)),
-                subtitle: sub,
-                // 헌트 모드(쿠폰·교환권·브랜드)에서는 편지 쓰기 대신 지도로
-                // 유도한다 — "없는 편지"를 사용자가 직접 주우러 가야 하므로.
-                ctaLabel: _isHuntFilter(activeFilter)
-                    ? l10n.emptyStateExploreCta
-                    : l10n.emptyStateWriteCta,
-                onCtaTap: () => _isHuntFilter(activeFilter)
-                    ? Navigator.of(context).pushNamedAndRemoveUntil(
-                        '/home', (route) => false)
-                    : Navigator.of(context).pushNamed('/compose'),
+              return Stack(
+                children: [
+                  _EmptyState(
+                    emoji: _emptyEmojiForFilter(activeFilter),
+                    title: activeFilter == LetterFilterType.all
+                        ? l10n.inboxEmptyReceived
+                        : l10n.inboxEmptyForFilter(_filterName(activeFilter, l10n)),
+                    subtitle: sub,
+                    ctaLabel: _isHuntFilter(activeFilter)
+                        ? l10n.emptyStateExploreCta
+                        : l10n.emptyStateWriteCta,
+                    onCtaTap: () => _isHuntFilter(activeFilter)
+                        ? Navigator.of(context).pushNamedAndRemoveUntil(
+                            '/home', (route) => false)
+                        : Navigator.of(context).pushNamed('/compose'),
+                  ),
+                  // Build 242: 빈 상태 하단에 가맹점 영입 CTA — Cold-start
+                  // 양방향 마켓 부트스트랩의 핵심. Free/Premium 사용자에게
+                  // "사장님이세요?" 노출 → 실 가맹점 관심 캡처. Brand 등급은
+                  // 이미 가맹점이므로 노출 안 함. 이미 등록한 사용자도 숨김.
+                  if (!state.currentUser.isBrand)
+                    Positioned(
+                      left: 16,
+                      right: 16,
+                      bottom: 24,
+                      child: FutureBuilder<bool>(
+                        future: MerchantInterestSheet.isAlreadyRegistered(),
+                        builder: (ctx, snap) {
+                          if (snap.data == true) return const SizedBox.shrink();
+                          return _MerchantHookCard(l10n: l10n);
+                        },
+                      ),
+                    ),
+                ],
               );
             }),
           )
@@ -2554,6 +2574,60 @@ class _StatusBadge extends StatelessWidget {
 }
 
 // ── 빈 상태 ──────────────────────────────────────────────────────────────────
+/// Build 242: 빈 상태 하단의 가맹점 영입 카드. 일반 사용자가 누르면
+/// MerchantInterestSheet 노출 → 관심 등록 → Firestore + SharedPreferences 저장.
+class _MerchantHookCard extends StatelessWidget {
+  final AppL10n l10n;
+
+  const _MerchantHookCard({required this.l10n});
+
+  @override
+  Widget build(BuildContext context) {
+    final orange = AppColors.coupon;
+    return InkWell(
+      onTap: () => MerchantInterestSheet.show(context),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+        decoration: BoxDecoration(
+          color: orange.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: orange.withValues(alpha: 0.45)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.merchantHookCardTitle,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    l10n.merchantHookCardSub,
+                    style: TextStyle(
+                      color: orange,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward_rounded, color: orange, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _EmptyState extends StatelessWidget {
   final String emoji;
   final String title;
