@@ -35,7 +35,8 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     with TickerProviderStateMixin, WidgetsBindingObserver {
   static const String _permissionDialogDateKey =
       'world_map_permission_denied_forever_prompt_date';
-  static const double _towerLabelZoomThreshold = 4.8;
+  // Build 239: 카운터 라벨은 줌 거의 모든 단계에서 노출 (사용자 ID 항상 보이게).
+  static const double _towerLabelZoomThreshold = 3.0;
   // Build 151: 지도 줌/센터 세션 persistence 키.
   static const String _prefLastZoom = 'map_last_zoom';
   static const String _prefLastLat = 'map_last_lat';
@@ -1103,26 +1104,29 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       final rankLabel = rep.rank <= 3
           ? (rep.rank == 1 ? '🥇' : rep.rank == 2 ? '🥈' : '🥉')
           : '#${rep.rank}';
+      // Build 239: 라벨 우선순위 = 사용자 ID (@username) → 타워명 (있으면 fallback).
+      // 회원 식별이 최우선이라는 사용자 요청 반영.
       final hasUsername = rep.username != null && rep.username!.isNotEmpty;
-      final displayLabel = rep.towerName?.isNotEmpty == true
-          ? rep.towerName!
-          : (hasUsername ? '@${rep.username}' : null);
+      final displayLabel = hasUsername
+          ? '@${rep.username}'
+          : (rep.towerName?.isNotEmpty == true ? rep.towerName! : null);
       final labelText = displayLabel ?? '';
       final hasLabel = showLabels && labelText.isNotEmpty;
 
-      // 층수 제한 (마커 크기 제한)
-      final displayFloors = rep.floors.clamp(1, 15);
-      final floorH = (7.0 * scale).roundToDouble();
-      final towerW = (34 * scale).roundToDouble();
-      final roofH = (10 * scale).roundToDouble();
-      final towerBodyH = roofH + (displayFloors * floorH);
-      // 오라 여백
+      // Build 239: 타워 형식 → 카운터 원형 아바타로 교체.
+      // 회원 = 카운터 캐릭터, 타워 잔상 제거.
       final tierIdx = rep.tier.index;
       final hasAura = tierIdx >= 4; // Building 이상
       final hasParticles = tierIdx >= 6; // Skyscraper 이상
+      final avatarSize = (44 * scale).roundToDouble();
       final auraExtra = hasAura ? 14.0 * scale : 0.0;
-      final totalW = max(56.0, towerW + 24 + auraExtra * 2);
-      final totalH = towerBodyH + 36 * scale + (hasLabel ? 14.0 : 0.0) + auraExtra;
+      final totalW = max(64.0, avatarSize + 24 + auraExtra * 2);
+      final totalH =
+          avatarSize + 36 * scale + (hasLabel ? 14.0 : 0.0) + auraExtra;
+      // 활동 점수 라벨 (Lv N 으로 표시 — 옛 floor 표기 대체)
+      final levelLabel = 'Lv ${rep.floors}';
+      // 캐릭터 컨텍스트: Brand 는 🏢, 그 외 회원은 🎟 (카운터)
+      final centerEmoji = rep.tier == TowerTier.landmark ? '👑' : '🎟';
 
       markers.add(
         Marker(
@@ -1142,100 +1146,106 @@ class _WorldMapScreenState extends State<WorldMapScreen>
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                // ── 오라 + 타워 본체 ──
+                // ── 카운터 원형 아바타 (Build 239) ──
                 Stack(
                   clipBehavior: Clip.none,
                   alignment: Alignment.center,
                   children: [
                     // 오라 글로우 (Building+)
                     if (hasAura)
-                      Positioned.fill(
-                        child: Center(
-                          child: Container(
-                            width: towerW + 20 * scale,
-                            height: towerBodyH + 10 * scale,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(towerW * 0.5),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: tierColor.withValues(alpha: hasParticles ? 0.35 : 0.2),
-                                  blurRadius: hasParticles ? 20 * scale : 12 * scale,
-                                  spreadRadius: hasParticles ? 4 * scale : 2 * scale,
-                                ),
-                                if (hasParticles)
-                                  BoxShadow(
-                                    color: tierColor.withValues(alpha: 0.12),
-                                    blurRadius: 36 * scale,
-                                    spreadRadius: 8 * scale,
-                                  ),
-                              ],
+                      Container(
+                        width: avatarSize + 16 * scale,
+                        height: avatarSize + 16 * scale,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: tierColor.withValues(
+                                alpha: hasParticles ? 0.35 : 0.2,
+                              ),
+                              blurRadius: hasParticles ? 20 * scale : 12 * scale,
+                              spreadRadius:
+                                  hasParticles ? 4 * scale : 2 * scale,
                             ),
+                            if (hasParticles)
+                              BoxShadow(
+                                color: tierColor.withValues(alpha: 0.12),
+                                blurRadius: 36 * scale,
+                                spreadRadius: 8 * scale,
+                              ),
+                          ],
+                        ),
+                      ),
+                    // 외곽 링 (티어 색)
+                    Container(
+                      width: avatarSize + 6 * scale,
+                      height: avatarSize + 6 * scale,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: tierColor.withValues(alpha: 0.55),
+                          width: 1.5,
+                        ),
+                      ),
+                    ),
+                    // 본체 원형 — 중앙 카운터/플래그
+                    Container(
+                      width: avatarSize,
+                      height: avatarSize,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.bgSurface,
+                        border: Border.all(color: tierColor, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: tierColor.withValues(alpha: 0.25),
+                            blurRadius: 6,
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              centerEmoji,
+                              style: TextStyle(fontSize: 14 * scale),
+                            ),
+                            Text(
+                              rep.flag,
+                              style: TextStyle(fontSize: 12 * scale),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // Lv N 뱃지 (우하단)
+                    Positioned(
+                      right: -4 * scale,
+                      bottom: -2 * scale,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 5 * scale,
+                          vertical: 1.5 * scale,
+                        ),
+                        decoration: BoxDecoration(
+                          color: tierColor,
+                          borderRadius: BorderRadius.circular(8 * scale),
+                          border: Border.all(
+                            color: AppColors.bgCard,
+                            width: 1.2,
+                          ),
+                        ),
+                        child: Text(
+                          levelLabel,
+                          style: TextStyle(
+                            fontSize: 8 * scale,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
                           ),
                         ),
                       ),
-                    // 파티클 (Skyscraper+)
-                    if (hasParticles) ...[
-                      for (int pi = 0; pi < (tierIdx >= 8 ? 5 : 3); pi++)
-                        Positioned(
-                          top: (towerBodyH * 0.15 * pi) - 2 * scale,
-                          left: pi.isEven ? -3 * scale : null,
-                          right: pi.isOdd ? -3 * scale : null,
-                          child: Container(
-                            width: 3 * scale,
-                            height: 3 * scale,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: tierColor.withValues(alpha: 0.6),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: tierColor.withValues(alpha: 0.4),
-                                  blurRadius: 4 * scale,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
-                    // ── 타워 본체 ──
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // 장식 이모지 (지붕 위)
-                        if (rep.towerAccentEmoji != null)
-                          Padding(
-                            padding: EdgeInsets.only(bottom: 1 * scale),
-                            child: Text(
-                              rep.towerAccentEmoji!,
-                              style: TextStyle(fontSize: 10 * scale),
-                            ),
-                          ),
-                        // 국기 (지붕 위)
-                        Text(rep.flag, style: TextStyle(fontSize: 10 * scale)),
-                        // 지붕
-                        _buildTowerRoof(
-                          width: towerW + 6 * scale,
-                          height: roofH,
-                          color: tierColor,
-                          roofStyle: rep.towerRoofStyle,
-                          scale: scale,
-                        ),
-                        // 층 쌓기
-                        ...List.generate(displayFloors, (i) {
-                          final isBottom = i == displayFloors - 1;
-                          final fadeAlpha = 0.25 - (i / displayFloors) * 0.15;
-                          return _buildTowerFloor(
-                            width: towerW,
-                            height: floorH,
-                            color: tierColor,
-                            alpha: fadeAlpha.clamp(0.05, 0.25),
-                            isBottom: isBottom,
-                            borderWidth: 1.5 * scale,
-                            floorIndex: i,
-                            windowStyle: rep.towerWindowStyle,
-                            scale: scale,
-                          );
-                        }),
-                      ],
                     ),
                     // ── 클러스터 뱃지 ──
                     if (isCluster)
@@ -1323,6 +1333,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   }
 
   // ── 지붕 빌더 ──────────────────────────────────────────────────────────────
+  // ignore: unused_element
   Widget _buildTowerRoof({
     required double width,
     required double height,
@@ -1405,6 +1416,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   }
 
   // ── 층 빌더 ────────────────────────────────────────────────────────────────
+  // ignore: unused_element
   Widget _buildTowerFloor({
     required double width,
     required double height,
@@ -2068,7 +2080,15 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   }
 
   void _onLetterTap(BuildContext ctx, Letter letter, AppState state, AppL10n l10n, String langCode) {
-    if (letter.status == DeliveryStatus.nearYou) {
+    // Build 239: `delivered` (도착 후 미열람) 도 픽업 다이얼로그로 라우팅.
+    // 이전엔 `delivered` 가 `_showTransitInfo` 로 빠져 빈 시트처럼 보였음
+    // (특히 데모 시드 쿠폰 — status=delivered 로 시작하므로 첫 tick 전엔
+    // nearYou 로 승격되지 않아 사용자에게 "아무 반응 없음" 으로 인식됨).
+    // 픽업 다이얼로그는 거리 검증 (`pickUpLetter`) 이 내장되어 너무 멀면
+    // 에러 스낵바를 띄움.
+    if (letter.status == DeliveryStatus.nearYou ||
+        (letter.status == DeliveryStatus.delivered &&
+            !letter.isReadByRecipient)) {
       _showPickupDialog(ctx, letter, state, l10n, langCode);
     } else if (letter.status == DeliveryStatus.deliveredFar) {
       _showDeliveredFarDialog(ctx, letter, l10n);

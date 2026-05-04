@@ -10267,23 +10267,22 @@ class AppL10n {
     'th': 'มีอะไรอยู่ที่นี่?',
   });
 
-  // Build 185: 지도 상단 공용 라벨 — 타워 표현 제거. 모든 티어에 "내 레터"
-  // 로 통일 (Brand 는 sender identity 로 해석 가능, Free/Premium 은 캐릭터).
+  // Build 239: 지도 상단 공용 라벨 — 카운터 통일 (14개 언어 Letter 잔존 제거).
   String get mapMyTower => _t({
     'ko': '내 카운터',
     'en': 'My Counter',
     'ja': 'マイカウンター',
-    'zh': '我的 Letter',
-    'fr': 'Mon Letter',
-    'de': 'Mein Letter',
-    'es': 'Mi Letter',
-    'pt': 'Meu Letter',
-    'ru': 'Мой Letter',
-    'tr': 'Letter\'ım',
-    'ar': 'Letter الخاص بي',
-    'it': 'Il mio Letter',
-    'hi': 'मेरा Letter',
-    'th': 'Letter ของฉัน',
+    'zh': '我的计数器',
+    'fr': 'Mon Counter',
+    'de': 'Mein Counter',
+    'es': 'Mi Counter',
+    'pt': 'Meu Counter',
+    'ru': 'Мой Counter',
+    'tr': 'Counter\'ım',
+    'ar': 'Counter الخاص بي',
+    'it': 'Il mio Counter',
+    'hi': 'मेरा Counter',
+    'th': 'Counter ของฉัน',
   });
 
   String get mapFloorUnit => _t({
@@ -10303,22 +10302,22 @@ class AppL10n {
     'th': 'ชั้น',
   });
 
-  // Build 185: 근처 타워 → 근처 Letter 사용자.
+  // Build 239: 근처 카운터 (회원 마커 라벨) — Letter 잔존 제거.
   String mapNearbyTowers(int count) => _t({
-    'ko': '근처 Letter $count명',
-    'en': '$count Nearby Rewards',
-    'ja': '近くの Letter ${count}人',
-    'zh': '附近 $count 位 Letter',
-    'fr': '$count Letters à proximité',
-    'de': '$count Letters in der Nähe',
-    'es': '$count Letters cercanos',
-    'pt': '$count Letters próximos',
-    'ru': '$count ближайших Letter',
-    'tr': '$count yakın Letter',
-    'ar': '$count Letter قريبة',
-    'it': '$count Letter vicini',
-    'hi': '$count पास के Letter',
-    'th': 'Letter ใกล้เคียง $count',
+    'ko': '근처 카운터 $count명',
+    'en': '$count Nearby Counters',
+    'ja': '近くのカウンター${count}人',
+    'zh': '附近 $count 位计数器',
+    'fr': '$count Counters à proximité',
+    'de': '$count Counter in der Nähe',
+    'es': '$count Counters cercanos',
+    'pt': '$count Counters próximos',
+    'ru': '$count ближайших Counter',
+    'tr': '$count yakın Counter',
+    'ar': '$count Counter قريبة',
+    'it': '$count Counter vicini',
+    'hi': '$count पास के Counter',
+    'th': 'Counter ใกล้เคียง $count',
   });
 
   String mapLetterFrom(String country) => _t({
@@ -10482,22 +10481,22 @@ class AppL10n {
     'th': 'เก็บครั้งถัดไปใน $mmss',
   });
 
-  // Build 185: "커뮤니티 타워" → "커뮤니티 Letter" — 타 사용자 마커 라벨.
+  // Build 239: 커뮤니티 마커 라벨 — 카운터 통일 (Letter 잔존 제거).
   String get mapCommunityTower => _t({
-    'ko': '커뮤니티 Letter',
-    'en': 'Community Reward',
-    'ja': 'コミュニティ Letter',
-    'zh': '社区 Letter',
-    'fr': 'Letter de la communauté',
-    'de': 'Community-Letter',
-    'es': 'Letter de la comunidad',
-    'pt': 'Letter da comunidade',
-    'ru': 'Letter сообщества',
-    'tr': 'Topluluk Letter',
-    'ar': 'Letter المجتمع',
-    'it': 'Letter della comunità',
-    'hi': 'कम्युनिटी Letter',
-    'th': 'Letter ชุมชน',
+    'ko': '커뮤니티 카운터',
+    'en': 'Community Counter',
+    'ja': 'コミュニティカウンター',
+    'zh': '社区计数器',
+    'fr': 'Counter de la communauté',
+    'de': 'Community-Counter',
+    'es': 'Counter de la comunidad',
+    'pt': 'Counter da comunidade',
+    'ru': 'Counter сообщества',
+    'tr': 'Topluluk Counter',
+    'ar': 'Counter المجتمع',
+    'it': 'Counter della comunità',
+    'hi': 'कम्युनिटी Counter',
+    'th': 'Counter ชุมชน',
   });
 
   // Build 220: "레터 순위" → "카운터 순위" (rebrand).
