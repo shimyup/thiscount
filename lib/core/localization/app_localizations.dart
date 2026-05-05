@@ -7820,22 +7820,60 @@ class AppL10n {
     'th': 'บัตรแลก',
   });
 
-  // Build 183: 받은 혜택 필터에서 brand 제거 후 일반(general) 필터 신설.
+  // Build 251: '일반' → '메시지·홍보' (Free + Premium 발신자 모두 카테고리=general).
+  // Brand 의 쿠폰·교환권은 별도 필터, 그 외는 메시지/홍보로 통합.
   String get inboxFilterGeneral => _t({
-    'ko': '일반',
-    'en': 'General',
-    'ja': '一般',
-    'zh': '普通',
-    'fr': 'Général',
-    'de': 'Allgemein',
-    'es': 'General',
-    'pt': 'Geral',
-    'ru': 'Общие',
-    'tr': 'Genel',
-    'ar': 'عام',
-    'it': 'Generale',
-    'hi': 'सामान्य',
-    'th': 'ทั่วไป',
+    'ko': '메시지·홍보',
+    'en': 'Messages',
+    'ja': 'メッセージ',
+    'zh': '消息',
+    'fr': 'Messages',
+    'de': 'Nachrichten',
+    'es': 'Mensajes',
+    'pt': 'Mensagens',
+    'ru': 'Сообщения',
+    'tr': 'Mesajlar',
+    'ar': 'رسائل',
+    'it': 'Messaggi',
+    'hi': 'संदेश',
+    'th': 'ข้อความ',
+  });
+
+  // Build 251: 인박스 카드 발신자 티어 배지 — Premium 홍보 PROMO 라벨.
+  String get inboxBadgePromo => _t({
+    'ko': '홍보',
+    'en': 'PROMO',
+    'ja': 'プロモ',
+    'zh': '推广',
+    'fr': 'PROMO',
+    'de': 'PROMO',
+    'es': 'PROMO',
+    'pt': 'PROMO',
+    'ru': 'ПРОМО',
+    'tr': 'PROMO',
+    'ar': 'عرض',
+    'it': 'PROMO',
+    'hi': 'प्रोमो',
+    'th': 'โปรโม',
+  });
+
+  // Build 251: 인박스 카드 발신자 티어 배지 — Brand 혜택 REWARD 라벨 (호환성용,
+  // 현재 Brand 카드는 이미 쿠폰/교환권 라벨로 표시됨).
+  String get inboxBadgeReward => _t({
+    'ko': '혜택',
+    'en': 'REWARD',
+    'ja': '特典',
+    'zh': '奖励',
+    'fr': 'OFFRE',
+    'de': 'BELOHNUNG',
+    'es': 'OFERTA',
+    'pt': 'OFERTA',
+    'ru': 'НАГРАДА',
+    'tr': 'ÖDÜL',
+    'ar': 'مكافأة',
+    'it': 'OFFERTA',
+    'hi': 'इनाम',
+    'th': 'รางวัล',
   });
 
   // Build 183: 수집첩 정렬에 "사용 완료" 추가. 이미 redeemed 된 혜택만 보임.

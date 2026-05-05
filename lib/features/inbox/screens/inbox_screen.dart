@@ -1560,6 +1560,45 @@ class _LetterCard extends StatelessWidget {
                               ),
                             ),
                           ],
+                          // Build 251: Premium 발신자 (non-Brand) 의 홍보 메시지 배지.
+                          // 받은 혜택(Brand 쿠폰/교환권) vs 받은 홍보(Premium) 시각 구분.
+                          if (!letter.senderIsBrand &&
+                              letter.senderTier ==
+                                  LetterSenderTier.premium) ...[
+                            const SizedBox(width: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 5,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    AppColors.gold,
+                                    Color(0xFFFFD86B),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text('📣',
+                                      style: TextStyle(fontSize: 9)),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    l10n.inboxBadgePromo,
+                                    style: const TextStyle(
+                                      color: Color(0xFF1A1300),
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                           if (letter.senderId.startsWith('ai_')) ...[
                             const SizedBox(width: 4),
                             Container(
