@@ -3,7 +3,7 @@ description: "Thiscount - Send letters to the world"
 publish_to: 'none'
 homepage: 'https://globaldrift.com'
 issue_tracker: 'https://globaldrift.com/support'
-version: 1.0.0+93
+version: 1.0.0+94
 
 environment:
   sdk: ^3.11.0
