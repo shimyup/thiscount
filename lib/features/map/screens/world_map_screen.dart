@@ -54,6 +54,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   final bool _showRouteLines = true;
   bool _showNearbyOnly = false;
   final bool _showTowers = true;
+  // Build 250: 국가 점프 바 리셋 트리거 — "내 위치" 버튼 탭 시 증가시켜
+  // _CountryJumpBar 가 본인 국가 (인덱스 0) 으로 자동 복귀하게 함.
+  int _countryBarResetSignal = 0;
 
   @override
   void initState() {
@@ -420,6 +423,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 bottom: false,
                 child: _CountryJumpBar(
                   myCountry: state.currentUser.country,
+                  resetSignal: _countryBarResetSignal,
                   onJump: (lat, lng) {
                     HapticFeedback.lightImpact();
                     _mapController.move(ll.LatLng(lat, lng), 5.5);
@@ -723,8 +727,15 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   const SizedBox(height: 10),
                   _MyLocationButton(
                     mapController: _mapController,
-                    onLocationUpdated: (lat, lng) =>
-                        state.updateUserLocation(lat, lng),
+                    onLocationUpdated: (lat, lng) {
+                      state.updateUserLocation(lat, lng);
+                      // Build 250: 국가 점프 바도 본인 국가로 강제 복귀.
+                      // 이전엔 다른 나라 보다가 "내 위치" 누르면 지도만 이동하고
+                      // 국가 라벨은 그대로 남아있어 사용자 혼동.
+                      if (mounted) {
+                        setState(() => _countryBarResetSignal++);
+                      }
+                    },
                   ),
                 ],
               ),
@@ -3251,7 +3262,15 @@ class _DailyGreetingPill extends StatelessWidget {
 class _CountryJumpBar extends StatefulWidget {
   final String myCountry;
   final void Function(double lat, double lng) onJump;
-  const _CountryJumpBar({required this.myCountry, required this.onJump});
+  /// Build 250: 외부에서 "내 위치" 버튼 탭 시 카운터를 0번 (= 본인 국가) 으로
+  /// 강제 리셋시키는 트리거. int 값이 변경될 때마다 didUpdateWidget 가
+  /// _idx=0 으로 reset. 호출 측에서 setState 로 정수 증가시키면 됨.
+  final int resetSignal;
+  const _CountryJumpBar({
+    required this.myCountry,
+    required this.onJump,
+    this.resetSignal = 0,
+  });
 
   static const List<({String name, String flag, double lat, double lng})>
       _countries = [
@@ -3294,6 +3313,14 @@ class _CountryJumpBarState extends State<_CountryJumpBar> {
   @override
   void didUpdateWidget(_CountryJumpBar old) {
     super.didUpdateWidget(old);
+    // Build 250: resetSignal 증가 시 본인 국가 (인덱스 0) 으로 리셋. "내 위치"
+    // 탭 시 호출. 이전엔 다른 나라 보고 있으면 그대로 남아있어 사용자 혼동.
+    if (old.resetSignal != widget.resetSignal) {
+      setState(() {
+        _idx = 0;
+      });
+      return;
+    }
     if (old.myCountry != widget.myCountry) {
       _sortCountries();
       setState(() {});
@@ -3334,13 +3361,15 @@ class _CountryJumpBarState extends State<_CountryJumpBar> {
     final c = _sorted[_idx];
     final lang = context.read<AppState>().currentUser.languageCode;
     final name = CountryL10n.localizedName(c.name, lang);
+    // Build 250: 사용자 요청 — 국가 선택 바 크기 축소. height 56→44,
+    // fontSize 16→13.5, flag 22→18, 화살표 44→34, margin 12→16 으로 컴팩트.
     return Container(
-      height: 56,
-      margin: const EdgeInsets.symmetric(horizontal: 12),
+      height: 44,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
           _ArrowBtn(icon: Icons.chevron_left_rounded, onTap: () => _step(-1)),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           Expanded(
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 220),
@@ -3355,24 +3384,24 @@ class _CountryJumpBarState extends State<_CountryJumpBar> {
                   borderRadius: BorderRadius.circular(AppRadius.pill),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.gold.withValues(alpha: 0.35),
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
+                      color: AppColors.gold.withValues(alpha: 0.30),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(c.flag, style: const TextStyle(fontSize: 22)),
-                    const SizedBox(width: 10),
+                    Text(c.flag, style: const TextStyle(fontSize: 18)),
+                    const SizedBox(width: 8),
                     Flexible(
                       child: Text(
                         name,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Color(0xFF1A1300),
-                          fontSize: 16,
+                          fontSize: 13.5,
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.3,
                         ),
@@ -3383,7 +3412,7 @@ class _CountryJumpBarState extends State<_CountryJumpBar> {
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           _ArrowBtn(icon: Icons.chevron_right_rounded, onTap: () => _step(1)),
         ],
       ),
@@ -3404,10 +3433,11 @@ class _ArrowBtn extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
+        // Build 250: 화살표 버튼도 44→34 로 축소
         child: SizedBox(
-          width: 44,
-          height: 44,
-          child: Icon(icon, color: AppColors.textPrimary, size: 24),
+          width: 34,
+          height: 34,
+          child: Icon(icon, color: AppColors.textPrimary, size: 20),
         ),
       ),
     );
