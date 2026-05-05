@@ -1,7 +1,7 @@
 # Google Play Data Safety Draft (Code-Based)
 
 Date: 2026-04-01  
-Scope: current `Lettergo` codebase
+Scope: current `Thiscount` codebase (Bundle ID `io.thiscount`, Dart package `thiscount`)
 
 This draft is a practical starting point for the Play Console Data safety form.  
 Final submission should be reviewed with legal/policy owner.

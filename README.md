@@ -50,7 +50,7 @@ Both scripts load `.env.local` and inject `--dart-define` values automatically.
   - `./scripts/manage_firebase_secrets.sh status`
 
 Default vault path:
-- `../.secrets/lettergo`
+- `../.secrets/thiscount` (legacy `../.secrets/lettergo` 도 보존됨)
 
 Sensitive files managed:
 - `android/app/google-services.json`

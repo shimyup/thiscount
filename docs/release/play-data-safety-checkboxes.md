@@ -1,7 +1,7 @@
 # Play Console Data Safety (Checkbox Values, Final)
 
 Last updated: 2026-04-01  
-Basis: current `Lettergo` codebase + release build scripts (`FIREBASE_*`, `REVENUECAT_*` required)
+Basis: current `Thiscount` codebase (Bundle ID `io.thiscount`) + release build scripts (`FIREBASE_*`, `REVENUECAT_*` required)
 
 Use this in **Play Console > App content > Data safety**.
 

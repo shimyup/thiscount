@@ -3,7 +3,7 @@
 Use the text below in **App Review Information > Notes**.
 
 ## 1) App Overview
-Letter Go is a social letter app where users send letters globally and view delivery journeys on the map.
+Thiscount is a Flutter app where brands and users scatter promo/event/discount letters across the world; Free/Premium members hunt and pick them up via a map-based pickup loop.
 
 ## 2) Login / Account for Review
 - No pre-created account is required.
