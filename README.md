@@ -2,9 +2,10 @@
 
 Flutter mobile app for global letter exchange, map-based delivery tracking, and profile/tower progression.
 
-> Codebase identifiers (Dart package `letter_go`, Bundle ID `com.globaldrift.lettergo`,
-> Firebase project `lettergo-147eb`, parent folder `Lettergo/`) are intentionally
-> preserved for backwards compatibility. Display name only is "Thiscount".
+> Bundle ID is `io.thiscount`. Firebase project remains `lettergo-147eb`
+> (legacy slug, separate iOS/Android apps registered for `io.thiscount`).
+> Parent folder on disk is still `Lettergo/` (rename pending — affects
+> all worktrees, planned for separate session).
 
 ## Local setup
 

@@ -2,7 +2,7 @@
 ///
 /// 사용법:
 /// 1. Firebase 콘솔 (https://console.firebase.google.com) 에서 새 프로젝트 생성
-/// 2. iOS 앱 등록 (Bundle ID: com.globaldrift.lettergo)
+/// 2. iOS 앱 등록 (Bundle ID: io.thiscount)
 /// 3. GoogleService-Info.plist 다운로드 → ios/Runner/ 에 추가
 /// 4. 빌드 시 아래 dart-define 값 주입
 ///    --dart-define=FIREBASE_PROJECT_ID=...

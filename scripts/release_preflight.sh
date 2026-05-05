@@ -67,8 +67,8 @@ if [[ ! -f "$ROOT_DIR/ios/Runner/GoogleService-Info.plist" ]]; then
 fi
 
 # Firebase app id / package-bundle consistency checks
-EXPECTED_ANDROID_PACKAGE="com.globaldrift.lettergo"
-EXPECTED_IOS_BUNDLE_ID="com.globaldrift.lettergo"
+EXPECTED_ANDROID_PACKAGE="io.thiscount"
+EXPECTED_IOS_BUNDLE_ID="io.thiscount"
 
 if ! rg -q "\"package_name\"[[:space:]]*:[[:space:]]*\"$EXPECTED_ANDROID_PACKAGE\"" \
   "$ROOT_DIR/android/app/google-services.json"; then
