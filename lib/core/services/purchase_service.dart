@@ -41,11 +41,18 @@ class PurchaseProductIds {
   static const String _giftCardLegacy = 'letter_go_gift_1month';
   static const String _brandExtra1000Legacy = 'letter_go_brand_extra_1000';
 
-  // iOS (App Store Connect)
-  static const String _premiumMonthlyIos = 'letter_go_premium_monthly_ios';
-  static const String _brandMonthlyIos = 'letter_go_brand_monthly_ios';
-  static const String _giftCardIos = 'letter_go_gift_1month_ios';
-  static const String _brandExtra1000Ios = 'letter_go_brand_extra_1000_ios';
+  // iOS (App Store Connect — Bundle ID `io.thiscount` 신규 앱)
+  static const String _premiumMonthlyIos = 'thiscount_premium_monthly_ios';
+  static const String _brandMonthlyIos = 'thiscount_brand_monthly_ios';
+  static const String _giftCardIos = 'thiscount_gift_1month_ios';
+  static const String _brandExtra1000Ios = 'thiscount_brand_extra_1000_ios';
+
+  // 구 Bundle ID (`com.globaldrift.lettergo`) iOS product ID — 기존 사용자
+  // 영수증/restorePurchases 호환성을 위해 candidates 목록에 유지
+  static const String _premiumMonthlyIosLegacy = 'letter_go_premium_monthly_ios';
+  static const String _brandMonthlyIosLegacy = 'letter_go_brand_monthly_ios';
+  static const String _giftCardIosLegacy = 'letter_go_gift_1month_ios';
+  static const String _brandExtra1000IosLegacy = 'letter_go_brand_extra_1000_ios';
 
   // Android (Google Play Billing / RevenueCat import 결과)
   static const String _premiumMonthlyAndroid =
@@ -97,6 +104,7 @@ class PurchaseProductIds {
   static List<String> premiumMonthlyCandidates() => _orderedUnique([
     premiumMonthly,
     _premiumMonthlyIos,
+    _premiumMonthlyIosLegacy,
     _premiumMonthlyAndroid,
     _premiumMonthlyLegacy,
   ]);
@@ -104,6 +112,7 @@ class PurchaseProductIds {
   static List<String> brandMonthlyCandidates() => _orderedUnique([
     brandMonthly,
     _brandMonthlyIos,
+    _brandMonthlyIosLegacy,
     _brandMonthlyAndroid,
     _brandMonthlyLegacy,
   ]);
@@ -111,6 +120,7 @@ class PurchaseProductIds {
   static List<String> giftCardCandidates() => _orderedUnique([
     giftCard,
     _giftCardIos,
+    _giftCardIosLegacy,
     _giftCardAndroid,
     _giftCardLegacy,
   ]);
@@ -118,6 +128,7 @@ class PurchaseProductIds {
   static List<String> brandExtra1000Candidates() => _orderedUnique([
     brandExtra1000,
     _brandExtra1000Ios,
+    _brandExtra1000IosLegacy,
     _brandExtra1000Android,
     _brandExtra1000Legacy,
   ]);
