@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="${ENV_FILE:-$ROOT_DIR/.env.local}"
-SECRETS_DIR="${SECRETS_DIR:-$ROOT_DIR/../.secrets/lettergo}"
+SECRETS_DIR="${SECRETS_DIR:-$ROOT_DIR/../.secrets/thiscount}"
 
 if [[ -f "$ENV_FILE" ]]; then
   set -a

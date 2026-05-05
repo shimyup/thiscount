@@ -101,10 +101,10 @@ Test path:
 3. Test Premium/Brand/Gift products and Restore Purchases.
 
 In-app purchases:
-- letter_go_premium_monthly
-- letter_go_brand_monthly
-- letter_go_gift_1month
-- letter_go_brand_extra_1000
+- thiscount_premium_monthly_ios
+- thiscount_brand_monthly_ios
+- thiscount_gift_1month_ios
+- thiscount_brand_extra_1000_ios
 
 Expected behavior:
 - Restore may show Apple ID sign-in prompt on iOS (expected Apple behavior).

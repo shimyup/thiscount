@@ -18,11 +18,11 @@ Letter Go is a social letter app where users send letters globally and view deli
 - Path B: `Settings` -> `구독` -> premium screen
 - In some first-run cases, premium welcome can also appear after the first successful letter send.
 
-## 4) In-App Purchases to Test
-- Premium Monthly: `letter_go_premium_monthly`
-- Brand Monthly: `letter_go_brand_monthly`
-- Gift 1 Month: `letter_go_gift_1month`
-- Brand Extra 1000: `letter_go_brand_extra_1000`
+## 4) In-App Purchases to Test (iOS, Bundle ID `io.thiscount`)
+- Premium Monthly: `thiscount_premium_monthly_ios` (Auto-Renewable)
+- Brand Monthly: `thiscount_brand_monthly_ios` (Auto-Renewable)
+- Gift 1 Month: `thiscount_gift_1month_ios` (Non-Consumable)
+- Brand Extra 1000: `thiscount_brand_extra_1000_ios` (Consumable)
 
 Expected behavior:
 - Premium/Brand purchase opens native Apple purchase sheet.

@@ -9,10 +9,11 @@ Last updated: 2026-04-02
 사전 조건:
 - 앱은 릴리즈 빌드 설치본 사용
 - RevenueCat `default` Offering에 아래 4개 상품 연결 완료
-  - `letter_go_premium_monthly`
-  - `letter_go_brand_monthly`
-  - `letter_go_gift_1month`
-  - `letter_go_brand_extra_1000`
+  - iOS: `thiscount_premium_monthly_ios`, `thiscount_brand_monthly_ios`,
+    `thiscount_gift_1month_ios`, `thiscount_brand_extra_1000_ios`
+  - Android: `letter_go_premium_monthly`, `letter_go_brand_monthly`,
+    `letter_go_gift_1month`, `letter_go_brand_extra_1000` (Play Console
+    재등록 시 동일 ID 또는 thiscount_* 로 변경)
 - 테스트 계정 2개 준비
   - 일반 회원용 계정
   - Brand/Creator 계정 전환 확인용 계정
