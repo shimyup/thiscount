@@ -140,6 +140,8 @@ class _WorldMapScreenState extends State<WorldMapScreen>
 
   /// Build 151: 이전 세션 지도 위치·줌 복원. 저장된 값 없으면 유저 좌표로
   /// 초기 이동 (기존 로직).
+  /// Build 247: 첫 시작 시 전체 지도(zoom 2) → 내 위치(zoom 14) 부드럽게
+  /// 줌인 애니메이션 추가. 사용자에게 "어디서 → 어디로" 시각 컨텍스트 제공.
   Future<void> _restoreLastMapPosition(AppState state) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -148,26 +150,46 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       final savedLng = prefs.getDouble(_prefLastLng);
       if (!mounted) return;
       if (savedZoom != null && savedLat != null && savedLng != null) {
+        // 복귀 사용자 (저장값 있음): 즉시 마지막 지점으로 이동
         _mapController.move(ll.LatLng(savedLat, savedLng), savedZoom);
         _lastKnownZoom = savedZoom;
         return;
       }
     } catch (_) {}
-    // 저장값 없거나 실패 → 기존 로직 (유저 현재 위치).
-    // Build 246: 첫 시작 시 클로즈업 줌 (15.0) — 사용자가 즉시 주변 카운터/혜택을
-    // 볼 수 있도록. 이전엔 zoom 11 (도시 단위) 이라 마커가 너무 멀어 보였음.
-    // 기본 좌표 (서울 시청, lat 37.5665) 인 경우엔 zoom 13 (구 단위) — 신규
-    // 사용자가 위치 권한 허용 전이므로 너무 가까이 보면 빈 지도 인상.
+    // 저장값 없거나 실패 → 첫 시작: 전체 지도에서 줌인.
     if (!mounted) return;
     final lat = state.currentUser.latitude;
     final lng = state.currentUser.longitude;
+    if (lat == 0 && lng == 0) return;
     final isDefault =
         (lat - 37.5665).abs() < 0.001 && (lng - 126.978).abs() < 0.001;
-    if (lat != 0 && lng != 0) {
-      _mapController.move(
-        ll.LatLng(lat, lng),
-        isDefault ? 13.0 : 15.0,
-      );
+    final endZoom = isDefault ? 12.0 : 14.0;
+    // 첫 프레임 잠시 보여주고 (전체 지도 인상), 줌인 시작
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (!mounted) return;
+    await _animateZoomTo(ll.LatLng(lat, lng), endZoom);
+  }
+
+  /// Build 247: 부드러운 zoom-in 애니메이션. flutter_map 8.x 가 native
+  /// 애니메이션 메서드 미제공이라 수동 보간 (30 프레임 / 1.4초).
+  Future<void> _animateZoomTo(ll.LatLng target, double endZoom) async {
+    const totalDuration = Duration(milliseconds: 1400);
+    const frames = 30;
+    final stepMs = totalDuration.inMilliseconds ~/ frames;
+    final start = _mapController.camera;
+    final startLat = start.center.latitude;
+    final startLng = start.center.longitude;
+    final startZoom = start.zoom;
+    for (int i = 1; i <= frames; i++) {
+      if (!mounted) return;
+      final t = i / frames;
+      final eased = Curves.easeInOutCubic.transform(t);
+      final lat = startLat + (target.latitude - startLat) * eased;
+      final lng = startLng + (target.longitude - startLng) * eased;
+      final zoom = startZoom + (endZoom - startZoom) * eased;
+      _mapController.move(ll.LatLng(lat, lng), zoom);
+      _lastKnownZoom = zoom;
+      await Future.delayed(Duration(milliseconds: stepMs));
     }
   }
 
@@ -1128,8 +1150,19 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       final totalH =
           avatarSize + 36 * scale + (hasLabel ? 14.0 : 0.0) + auraExtra;
       // Build 246: Lv N 뱃지 제거 (사용자 요청 — 아이디만 노출).
-      // 캐릭터 컨텍스트: Brand 는 🏢, 그 외 회원은 🎟 (카운터)
-      final centerEmoji = rep.tier == TowerTier.landmark ? '👑' : '🎟';
+      // Build 247: 카운터 → 인물 이모지 (사용자별 stable 변형). 사용자 ID 해시로
+      // 인물 이모지 풀에서 1개 선택 → 같은 사용자는 항상 같은 이모지. 인간미 +
+      // 다양성 양립. landmark 티어(최고)는 👑 유지.
+      const personEmojis = [
+        '🧑', '👨', '👩', '🧒', '🧓',
+        '🧑‍🦱', '👨‍🦰', '👩‍🦱', '🧑‍🦳', '👨‍🦲',
+        '🧑‍🎓', '🧑‍💼', '🧑‍🚀', '🧑‍🎨', '🧑‍🍳',
+        '🥷', '🧙', '🦸', '🧝', '🤴',
+      ];
+      final hashIdx = rep.id.hashCode.abs() % personEmojis.length;
+      final centerEmoji = rep.tier == TowerTier.landmark
+          ? '👑'
+          : personEmojis[hashIdx];
 
       markers.add(
         Marker(
@@ -1703,8 +1736,21 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                     ),
                     child: Row(
                       children: [
-                        // Build 246: 옛 타워 이모지 → 🎟 카운터 통일
-                        const Text('🎟', style: TextStyle(fontSize: 22)),
+                        // Build 247: 인물 이모지 (마커와 동일 매핑)
+                        Text(
+                          u.tier == TowerTier.landmark
+                              ? '👑'
+                              : (() {
+                                  const pool = [
+                                    '🧑', '👨', '👩', '🧒', '🧓',
+                                    '🧑‍🦱', '👨‍🦰', '👩‍🦱', '🧑‍🦳', '👨‍🦲',
+                                    '🧑‍🎓', '🧑‍💼', '🧑‍🚀', '🧑‍🎨', '🧑‍🍳',
+                                    '🥷', '🧙', '🦸', '🧝', '🤴',
+                                  ];
+                                  return pool[u.id.hashCode.abs() % pool.length];
+                                })(),
+                          style: const TextStyle(fontSize: 22),
+                        ),
                         const SizedBox(width: 10),
                         Text(
                           u.flag,
@@ -1817,10 +1863,23 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                       ],
                     ),
                     child: Center(
-                      // Build 240: 타워 건물 이모지 → 카운터 통일 (마커 비주얼과 정합).
+                      // Build 247: 인포 시트 이모지 — 마커와 동일한 인물 이모지 매핑.
                       child: Text(
-                        '🎟 $flag',
-                        style: const TextStyle(fontSize: 14),
+                        () {
+                          if (tier == TowerTier.landmark) return '👑 $flag';
+                          if (other != null) {
+                            const pool = [
+                              '🧑', '👨', '👩', '🧒', '🧓',
+                              '🧑‍🦱', '👨‍🦰', '👩‍🦱', '🧑‍🦳', '👨‍🦲',
+                              '🧑‍🎓', '🧑‍💼', '🧑‍🚀', '🧑‍🎨', '🧑‍🍳',
+                              '🥷', '🧙', '🦸', '🧝', '🤴',
+                            ];
+                            final e = pool[other.id.hashCode.abs() % pool.length];
+                            return '$e $flag';
+                          }
+                          return '🧑 $flag';
+                        }(),
+                        style: const TextStyle(fontSize: 16),
                         maxLines: 1,
                         overflow: TextOverflow.fade,
                       ),

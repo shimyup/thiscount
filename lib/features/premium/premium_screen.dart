@@ -114,30 +114,17 @@ class _PremiumScreenState extends State<PremiumScreen> {
                     ),
                     onPressed: () => Navigator.pop(context),
                   ),
-            title: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  widget.isWelcomeMode
-                      ? '🎉 ${l.premiumPlanTitle}'
-                      : 'Thiscount Premium',
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '✈️  ${l.airMailPassLabel}',
-                  style: TextStyle(
-                    color: AppColors.gold.withValues(alpha: 0.9),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.8,
-                  ),
-                ),
-              ],
+            // Build 247: Air Mail Pass 서브브랜드 라벨 제거 — 사용자 요청.
+            // 'Thiscount Premium' 단일 라벨로 정리.
+            title: Text(
+              widget.isWelcomeMode
+                  ? '🎉 ${l.premiumPlanTitle}'
+                  : 'Thiscount Premium',
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+              ),
             ),
             centerTitle: true,
           ),

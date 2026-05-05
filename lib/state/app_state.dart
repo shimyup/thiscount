@@ -5724,13 +5724,27 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
         if (letter.status != DeliveryStatus.inTransit) continue;
 
+        // Build 247: 방어적 픽스 — inTransit 이지만 arrivalTime 이 null 인 letter
+        // 자동 보정. 이전엔 arrivalTime 없으면 progress 가 0 에서 멈춰서
+        // "보내던 혜택이 멈춰 보임" 증상. estimatedTotalMinutes 또는 segments
+        // 합으로 계산해서 즉시 채워줌.
+        if (letter.arrivalTime == null) {
+          final segMin = letter.segments.fold<int>(
+            0,
+            (s, seg) => s + (seg.estimatedMinutes <= 0 ? 1 : seg.estimatedMinutes),
+          );
+          final mins = letter.estimatedTotalMinutes > 0
+              ? letter.estimatedTotalMinutes
+              : (segMin > 0 ? segMin : 30); // 최후 fallback 30분
+          letter.arrivalTime = letter.sentAt.add(Duration(minutes: mins));
+          changed = true;
+        }
+
         if (_syncLetterProgressWithClock(letter, now)) {
           changed = true;
         }
 
-        final arrived = letter.arrivalTime != null
-            ? !now.isBefore(letter.arrivalTime!)
-            : letter.overallProgress >= 0.999;
+        final arrived = !now.isBefore(letter.arrivalTime!);
 
         if (arrived) {
           // daily_ 편지: 거리와 무관하게 자동으로 inbox로 이동
