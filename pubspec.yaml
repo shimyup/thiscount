@@ -1,9 +1,9 @@
-name: letter_go
+name: thiscount
 description: "Thiscount - Pick up coupons and discounts around you"
 publish_to: 'none'
 homepage: 'https://globaldrift.com'
 issue_tracker: 'https://globaldrift.com/support'
-version: 1.0.0+254
+version: 1.0.0+255
 
 environment:
   sdk: ^3.11.0

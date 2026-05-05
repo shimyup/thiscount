@@ -42,10 +42,10 @@ class PurchaseProductIds {
   static const String _brandExtra1000Legacy = 'letter_go_brand_extra_1000';
 
   // iOS (App Store Connect)
-  static const String _premiumMonthlyIos = 'letter_go_premium_monthly_ios';
-  static const String _brandMonthlyIos = 'letter_go_brand_monthly_ios';
-  static const String _giftCardIos = 'letter_go_gift_1month_ios';
-  static const String _brandExtra1000Ios = 'letter_go_brand_extra_1000_ios';
+  static const String _premiumMonthlyIos = 'thiscount_premium_monthly_ios';
+  static const String _brandMonthlyIos = 'thiscount_brand_monthly_ios';
+  static const String _giftCardIos = 'thiscount_gift_1month_ios';
+  static const String _brandExtra1000Ios = 'thiscount_brand_extra_1000_ios';
 
   // Android (Google Play Billing / RevenueCat import 결과)
   static const String _premiumMonthlyAndroid =

@@ -1,4 +1,4 @@
-package com.globaldrift.lettergo
+package io.thiscount
 
 import io.flutter.embedding.android.FlutterActivity
 

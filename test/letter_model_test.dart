@@ -1,8 +1,8 @@
 // Build 168: Letter 모델 + BrandAnalytics 핵심 비즈니스 로직 테스트.
 // 128-167 누적된 feature 중 회귀 방지 최소 커버리지.
 import 'package:flutter_test/flutter_test.dart';
-import 'package:letter_go/models/letter.dart';
-import 'package:letter_go/state/app_state.dart';
+import 'package:thiscount/models/letter.dart';
+import 'package:thiscount/state/app_state.dart';
 
 Letter _brandLetter({
   String id = 't1',

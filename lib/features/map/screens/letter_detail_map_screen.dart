@@ -334,7 +334,7 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
                 key: ValueKey('base_${mapLangCode}_$darkMode'),
                 urlTemplate: _mapTileUrl(mapLangCode, darkMode: darkMode),
                 subdomains: MapConfig.subdomains,
-                userAgentPackageName: 'com.globaldrift.lettergo',
+                userAgentPackageName: 'io.thiscount',
               ),
               // ── 현지어 레이블 오버레이 (야간 + CartoDB 폴백 시) ────────
               if (MapConfig.labelOverlayUrl(darkMode: darkMode) != null)
@@ -342,7 +342,7 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
                   key: ValueKey('label_${mapLangCode}_$darkMode'),
                   urlTemplate: MapConfig.labelOverlayUrl(darkMode: darkMode)!,
                   subdomains: MapConfig.subdomains,
-                  userAgentPackageName: 'com.globaldrift.lettergo',
+                  userAgentPackageName: 'io.thiscount',
                 ),
               // 경로 선
               PolylineLayer(polylines: _buildRoutePolylines(letter)),

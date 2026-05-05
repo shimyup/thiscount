@@ -1116,6 +1116,15 @@ class _ComposeScreenState extends State<ComposeScreen>
         }
       } else {
         for (final target in _bulkTargets) {
+          // target['precise']==true 이면 사용자가 destination 카드에서
+          // 정확한 위치를 지정한 것 — random 도시 산포 X, 모두 단일 좌표
+          // 단일점에 발송.
+          final preciseLat = target['precise'] == true
+              ? (target['lat'] as num).toDouble()
+              : null;
+          final preciseLng = target['precise'] == true
+              ? (target['lng'] as num).toDouble()
+              : null;
           totalSent += await state.sendBrandExpressBlast(
             content: content,
             destinationCountry: target['country'] as String,
@@ -1136,6 +1145,8 @@ class _ComposeScreenState extends State<ComposeScreen>
                 ? null
                 : _redemptionInfoController.text.trim(),
             redemptionExpiresAt: _computeRedemptionExpiresAt(),
+            preciseLat: preciseLat,
+            preciseLng: preciseLng,
           );
         }
       }
@@ -4657,11 +4668,16 @@ class _ComposeScreenState extends State<ComposeScreen>
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
             setState(() {
+              // 사용자가 destination 카드에서 정확한 위치(예: 매장 좌표)
+              // 를 골랐다면 country 중심이 아닌 그 좌표 사용. 안 그러면
+              // 대량 발송 시 country 중심으로 풀어져 산포됨.
+              final isPrecise = _destLat != 0 && _destLng != 0;
               _bulkTargets.add({
                 'country': match['name'],
                 'flag': match['flag'],
-                'lat': double.parse(match['lat']!),
-                'lng': double.parse(match['lng']!),
+                'lat': isPrecise ? _destLat : double.parse(match['lat']!),
+                'lng': isPrecise ? _destLng : double.parse(match['lng']!),
+                if (isPrecise) 'precise': true,
               });
             });
           }

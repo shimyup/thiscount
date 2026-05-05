@@ -6609,6 +6609,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     bool acceptsReplies = true,
     String? redemptionInfo,
     DateTime? redemptionExpiresAt,
+    double? preciseLat,
+    double? preciseLng,
   }) async {
     if (!_currentUser.isBrand) return 0;
 
@@ -6628,30 +6630,41 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final usedCityKeys = <String>{};
     int sent = 0;
 
+    final usePrecise = preciseLat != null && preciseLng != null;
     for (int i = 0; i < count; i++) {
       if (!_canSendLetterByDailyLimit()) break;
 
-      var cityData = CountryCities.randomCityWithOffset(
-        destinationCountry,
-        usedCityKeys: usedCityKeys,
-        languageCode: _currentUser.languageCode,
-      );
-      if (cityData == null) {
-        if (usedCityKeys.isEmpty) break; // 해당 국가 도시 데이터 없음
-        usedCityKeys.clear(); // 모든 도시 소진 → 중복 허용으로 재시도
-        cityData = CountryCities.randomCityWithOffset(
+      String cityName;
+      double cityLat;
+      double cityLng;
+      if (usePrecise) {
+        // 정확한 위치 모드: 모든 letter 가 동일 좌표 단일점 발송 (산포 X)
+        cityName = '';
+        cityLat = preciseLat;
+        cityLng = preciseLng;
+      } else {
+        var cityData = CountryCities.randomCityWithOffset(
           destinationCountry,
           usedCityKeys: usedCityKeys,
           languageCode: _currentUser.languageCode,
         );
-        if (cityData == null) break;
+        if (cityData == null) {
+          if (usedCityKeys.isEmpty) break; // 해당 국가 도시 데이터 없음
+          usedCityKeys.clear(); // 모든 도시 소진 → 중복 허용으로 재시도
+          cityData = CountryCities.randomCityWithOffset(
+            destinationCountry,
+            usedCityKeys: usedCityKeys,
+            languageCode: _currentUser.languageCode,
+          );
+          if (cityData == null) break;
+        }
+
+        cityName = cityData['name'] as String? ?? '';
+        usedCityKeys.add(CountryCities.cityKey(destinationCountry, cityName));
+
+        cityLat = (cityData['lat'] as num).toDouble();
+        cityLng = (cityData['lng'] as num).toDouble();
       }
-
-      final cityName = cityData['name'] as String? ?? '';
-      usedCityKeys.add(CountryCities.cityKey(destinationCountry, cityName));
-
-      final cityLat = (cityData['lat'] as num).toDouble();
-      final cityLng = (cityData['lng'] as num).toDouble();
       final toCity = LatLng(cityLat, cityLng);
 
       final segments = LogisticsHubs.buildRoute(

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:letter_go/features/progression/user_progress.dart';
+import 'package:thiscount/features/progression/user_progress.dart';
 
 void main() {
   group('UserProgress.calcXp', () {

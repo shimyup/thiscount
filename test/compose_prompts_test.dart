@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:letter_go/features/compose/compose_prompts.dart';
+import 'package:thiscount/features/compose/compose_prompts.dart';
 
 void main() {
   group('composeDailyPrompt', () {

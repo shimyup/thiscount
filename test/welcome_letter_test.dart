@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:letter_go/features/welcome/welcome_letter.dart';
-import 'package:letter_go/models/letter.dart';
+import 'package:thiscount/features/welcome/welcome_letter.dart';
+import 'package:thiscount/models/letter.dart';
 
 void main() {
   group('buildWelcomeLetter', () {
