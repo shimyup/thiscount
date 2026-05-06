@@ -1371,6 +1371,13 @@ class _SignupTabState extends State<_SignupTab> {
       await prefs.setString('consent_terms_ts', ts);
     } catch (_) {}
 
+    // Build 262: 신규 가입 7일 무료 Premium 부여 (cold-start 해소).
+    // 영구 어드민(ceo@airony.xyz) 은 isAdmin 처리에서 Premium 자격이 있어 별도
+    // trial 부여 불필요 — grantWelcomeTrial 내부에서 이미 Premium/Brand 면 no-op.
+    try {
+      await context.read<PurchaseService>().grantWelcomeTrial(days: 7);
+    } catch (_) {}
+
     final user = await AuthService.getCurrentUser();
     if (user != null) await widget.onSignupSuccess(user);
   }

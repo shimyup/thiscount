@@ -597,6 +597,24 @@ class PurchaseService extends ChangeNotifier {
     _scheduledPlanTarget = target;
   }
 
+  // ── 신규 가입 7일 무료 Premium (Build 262: cold-start 해소) ─────────────
+  /// 신규 가입 사용자에게 7일간 Premium 자동 부여. signUp 성공 직후 1회 호출.
+  /// 이미 Premium·Brand 인 사용자는 no-op (덮어쓰지 않음).
+  /// 7일 후 `purchaseGiftExpiry` 체크에서 자동 만료 → Free 복귀.
+  /// 영구 어드민(ceo@airony.xyz) 은 평생 Premium 이라 별도 처리 불필요.
+  Future<void> grantWelcomeTrial({int days = 7}) async {
+    if (_isPremium || _isBrand) return; // 이미 보유 → no-op
+    final prefs = await _getPrefs();
+    final expiry = DateTime.now().add(Duration(days: days));
+    _isPremium = true;
+    await _saveSecurePremiumState(isPremium: true, isBrand: false);
+    await prefs.setInt(
+      PrefKeys.purchaseGiftExpiry,
+      expiry.millisecondsSinceEpoch,
+    );
+    notifyListeners();
+  }
+
   // ── Premium 구매 ────────────────────────────────────────────────────────
   Future<bool> buyPremium() async {
     _startLoading(PurchaseOperation.premium);
