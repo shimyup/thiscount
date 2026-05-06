@@ -2240,7 +2240,7 @@ class _TesterDashboardScreenState extends State<_TesterDashboardScreen>
   Widget _buildLetterList() {
     if (_letters.isEmpty) {
       return const Center(
-          child: Text('No letters found',
+          child: Text('No messages found',
               style: TextStyle(color: AppColors.textMuted)));
     }
     return ListView.builder(
@@ -2349,7 +2349,7 @@ class _TesterDashboardScreenState extends State<_TesterDashboardScreen>
         title: const Text('Delete Letter',
             style: TextStyle(
                 color: AppColors.error, fontWeight: FontWeight.w700)),
-        content: const Text('Remove this letter from the server?',
+        content: const Text('Remove this message from the server?',
             style: TextStyle(color: AppColors.textSecondary)),
         actions: [
           TextButton(

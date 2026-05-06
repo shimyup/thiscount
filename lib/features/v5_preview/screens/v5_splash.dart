@@ -53,27 +53,15 @@ class _V5SplashScreenState extends State<V5SplashScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Spacer(),
-                    RichText(
-                      text: const TextSpan(
-                        style: TextStyle(
-                          fontSize: 88,
-                          fontWeight: FontWeight.w800,
-                          color: V5Colors.tx,
-                          height: 0.92,
-                          letterSpacing: -5.2,
-                        ),
-                        children: [
-                          TextSpan(text: 'letter'),
-                          WidgetSpan(
-                            alignment: PlaceholderAlignment.top,
-                            baseline: TextBaseline.alphabetic,
-                            child: Padding(
-                              padding: EdgeInsets.only(left: 4, top: 16),
-                              child: _Dot(),
-                            ),
-                          ),
-                          TextSpan(text: '\ngo.'),
-                        ],
+                    // Build 263: 옛 "letter.go." 워드마크 → "Thiscount" 정리.
+                    const Text(
+                      'Thiscount',
+                      style: TextStyle(
+                        fontSize: 88,
+                        fontWeight: FontWeight.w800,
+                        color: V5Colors.tx,
+                        height: 0.92,
+                        letterSpacing: -5.2,
                       ),
                     ),
                     const SizedBox(height: 18),

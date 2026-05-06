@@ -101,27 +101,15 @@ class _AuthScreenState extends State<AuthScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          RichText(
-            text: const TextSpan(
-              style: TextStyle(
-                fontSize: 56,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary,
-                height: 0.92,
-                letterSpacing: -3,
-              ),
-              children: [
-                TextSpan(text: 'letter'),
-                WidgetSpan(
-                  alignment: PlaceholderAlignment.top,
-                  baseline: TextBaseline.alphabetic,
-                  child: Padding(
-                    padding: EdgeInsets.only(left: 3, top: 12),
-                    child: _AuthDot(),
-                  ),
-                ),
-                TextSpan(text: 'go.'),
-              ],
+          // Build 263: 옛 "letter.go." 워드마크 → "Thiscount" 로 정리.
+          const Text(
+            'Thiscount',
+            style: TextStyle(
+              fontSize: 56,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textPrimary,
+              height: 0.92,
+              letterSpacing: -3,
             ),
           ),
           const SizedBox(height: 8),
