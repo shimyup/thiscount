@@ -25,9 +25,13 @@ void showNicknameCooldownSnack(BuildContext ctx, AppState state) {
   );
 }
 
-/// 타워 이름 수정 다이얼로그
+/// 타워 이름 / 레터 이름 수정 다이얼로그 (Build 171).
+/// 같은 `customTowerName` 필드를 공유하되 티어별 라벨 분기:
+///   Brand        → "타워 이름"
+///   Free/Premium → "레터 이름"
 void showEditTowerNameDialog(BuildContext ctx, AppState state) {
   final l = AppL10n.of(state.currentUser.languageCode);
+  final isBrand = state.currentUser.isBrand;
   final ctrl = TextEditingController(
     text: state.currentUser.customTowerName ?? '',
   );
@@ -37,7 +41,7 @@ void showEditTowerNameDialog(BuildContext ctx, AppState state) {
       backgroundColor: AppColors.bgCard,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Text(
-        l.profileDialogTowerNameTitle,
+        isBrand ? l.profileDialogTowerNameTitle : l.profileDialogLetterNameTitle,
         style: const TextStyle(color: AppColors.textPrimary),
       ),
       content: Column(
@@ -48,7 +52,9 @@ void showEditTowerNameDialog(BuildContext ctx, AppState state) {
             maxLength: 20,
             style: const TextStyle(color: AppColors.textPrimary),
             decoration: InputDecoration(
-              hintText: l.profileDialogTowerNameHint,
+              hintText: isBrand
+                  ? l.profileDialogTowerNameHint
+                  : l.profileDialogLetterNameHint,
               hintStyle: const TextStyle(color: AppColors.textMuted),
               counterStyle: const TextStyle(color: AppColors.textMuted),
               enabledBorder: const UnderlineInputBorder(
@@ -61,7 +67,9 @@ void showEditTowerNameDialog(BuildContext ctx, AppState state) {
           ),
           const SizedBox(height: 6),
           Text(
-            l.profileDialogTowerNameDesc,
+            isBrand
+                ? l.profileDialogTowerNameDesc
+                : l.profileDialogLetterNameDesc,
             style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
           ),
         ],

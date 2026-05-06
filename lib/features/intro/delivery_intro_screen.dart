@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -8,6 +6,8 @@ import '../../core/localization/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
 import '../../state/app_state.dart';
 
+/// v5 Wallet 디자인. 단일 페이지 + 자동 진행.
+/// 기존 flow 유지: 4.2s 후 /home, skip 버튼.
 class DeliveryIntroScreen extends StatefulWidget {
   const DeliveryIntroScreen({super.key});
 
@@ -26,7 +26,7 @@ class _DeliveryIntroScreenState extends State<DeliveryIntroScreen>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 3400),
+      duration: const Duration(milliseconds: 2400),
     )..repeat();
     _nextTimer = Timer(const Duration(milliseconds: 4200), _goHome);
   }
@@ -50,294 +50,223 @@ class _DeliveryIntroScreenState extends State<DeliveryIntroScreen>
       (s) => s.currentUser.languageCode,
     );
     final l = AppL10n.of(langCode);
-    final en = AppL10n.of('en');
-    final showEn = langCode != 'en';
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF081426), Color(0xFF0A1B31), Color(0xFF10243D)],
-          ),
-        ),
-        child: SafeArea(
-          child: Stack(
+      backgroundColor: AppColors.bgDeep,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Positioned.fill(child: _SoftParticles()),
               Align(
-                alignment: Alignment.topRight,
-                child: TextButton(
-                  onPressed: _goHome,
-                  child: Text(
-                    l.skip,
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w600,
+                alignment: Alignment.centerRight,
+                child: GestureDetector(
+                  onTap: _goHome,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 8,
+                    ),
+                    child: Text(
+                      l.skip,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 22),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      l.deliveryIntroTitle,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 27,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    if (showEn) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        en.deliveryIntroTitle,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: AppColors.textSecondary.withValues(alpha: 0.6),
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          fontStyle: FontStyle.italic,
+              const SizedBox(height: 24),
+              Expanded(
+                child: Center(
+                  child: AnimatedBuilder(
+                    animation: _controller,
+                    builder: (_, __) {
+                      // 카드 3장이 살짝 회전하며 stack
+                      return SizedBox(
+                        width: 240,
+                        height: 280,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            _miniCard(
+                              category: AppColors.coupon,
+                              ink: const Color(0xFF1A0008),
+                              label: 'BLUE BOTTLE',
+                              big: '1+1',
+                              small: ' AMERICANO',
+                              codeLeft: 'D-2',
+                              codeRight: '7d',
+                              rotate: -0.087,
+                              translate: const Offset(-12, -28),
+                              opacity:
+                                  0.85 +
+                                  0.15 * _controller.value.clamp(0, 1).toDouble(),
+                            ),
+                            _miniCard(
+                              category: AppColors.premium,
+                              ink: const Color(0xFF1A1300),
+                              label: 'AIR MAIL · PREMIUM',
+                              big: '@shimyup',
+                              codeLeft: 'SEQ',
+                              codeRight: '0421',
+                              rotate: 0,
+                              translate: const Offset(0, 0),
+                              opacity: 1,
+                            ),
+                            _miniCard(
+                              category: AppColors.coupon,
+                              ink: const Color(0xFF1A0008),
+                              label: 'CGV',
+                              big: '30%',
+                              small: ' OFF',
+                              codeLeft: 'D-9',
+                              codeRight: '14d',
+                              rotate: 0.087,
+                              translate: const Offset(12, 28),
+                              opacity: 0.95,
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                    const SizedBox(height: 10),
-                    Text(
-                      l.deliveryIntroSubtitle,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: AppColors.textSecondary.withValues(alpha: 0.95),
-                        fontSize: 14.5,
-                        height: 1.45,
-                      ),
-                    ),
-                    if (showEn) ...[
-                      const SizedBox(height: 3),
-                      Text(
-                        en.deliveryIntroSubtitle,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: AppColors.textSecondary.withValues(alpha: 0.5),
-                          fontSize: 12,
-                          fontStyle: FontStyle.italic,
-                          height: 1.4,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 30),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        height: 250,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: const Color(0xCC111B2B),
-                          border: Border.all(
-                            color: AppColors.gold.withValues(alpha: 0.28),
-                          ),
-                        ),
-                        child: AnimatedBuilder(
-                          animation: _controller,
-                          builder: (context, _) {
-                            return CustomPaint(
-                              painter: _TravelPathPainter(_controller.value),
-                              child: _MovingEmojis(progress: _controller.value),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    const _LoadingDots(),
-                  ],
+                      );
+                    },
+                  ),
                 ),
               ),
+              const SizedBox(height: 32),
+              Text(
+                l.deliveryIntroTitle,
+                style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                  fontSize: 32,
+                  height: 1.1,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(l.deliveryIntroSubtitle, style: Theme.of(context).textTheme.bodyLarge),
+              const SizedBox(height: 28),
+              _LoadingDots(),
             ],
           ),
         ),
       ),
     );
   }
-}
 
-class _MovingEmojis extends StatelessWidget {
-  final double progress;
-  const _MovingEmojis({required this.progress});
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final w = constraints.maxWidth;
-        final h = constraints.maxHeight;
-
-        Offset travel({
-          required double t,
-          required double y,
-          double amp = 0,
-          double phase = 0,
-        }) {
-          final x = -32 + (w + 64) * t;
-          final wave = amp * math.sin((t + phase) * 2 * math.pi);
-          return Offset(x, y + wave);
-        }
-
-        final carT = progress;
-        final planeT = (progress + 0.18) % 1;
-        final shipT = (progress + 0.38) % 1;
-
-        final car = travel(t: carT, y: h * 0.74, amp: 6, phase: 0.1);
-        final plane = travel(t: planeT, y: h * 0.28, amp: 16, phase: 0.25);
-        final ship = travel(t: shipT, y: h * 0.55, amp: 10, phase: 0.5);
-        final letter = travel(t: (progress + 0.06) % 1, y: h * 0.47, amp: 4);
-
-        return Stack(
-          children: [
-            Positioned(
-              left: car.dx,
-              top: car.dy,
-              child: const Text('🚗', style: TextStyle(fontSize: 30)),
+  Widget _miniCard({
+    required Color category,
+    required Color ink,
+    required String label,
+    String? big,
+    String? small,
+    String? bigText,
+    required String codeLeft,
+    required String codeRight,
+    required double rotate,
+    required Offset translate,
+    required double opacity,
+  }) {
+    return Transform.translate(
+      offset: translate,
+      child: Transform.rotate(
+        angle: rotate,
+        child: Opacity(
+          opacity: opacity.clamp(0, 1).toDouble(),
+          child: Container(
+            width: 220,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: category,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.4),
+                  blurRadius: 24,
+                  offset: const Offset(0, 12),
+                ),
+              ],
             ),
-            Positioned(
-              left: plane.dx,
-              top: plane.dy,
-              child: const Text('✈️', style: TextStyle(fontSize: 30)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: ink.withValues(alpha: 0.7),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.66,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (bigText != null)
+                  Text(
+                    bigText,
+                    style: TextStyle(
+                      color: ink,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      height: 1.3,
+                      letterSpacing: -0.4,
+                    ),
+                  )
+                else
+                  RichText(
+                    text: TextSpan(
+                      style: TextStyle(
+                        color: ink,
+                        fontSize: 30,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -1.2,
+                        height: 1,
+                      ),
+                      children: [
+                        TextSpan(text: big),
+                        if (small != null)
+                          TextSpan(
+                            text: small,
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: ink.withValues(alpha: 0.55),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: 18),
+                Container(
+                  padding: const EdgeInsets.only(top: 12),
+                  decoration: BoxDecoration(
+                    border: Border(top: BorderSide(color: ink, width: 1)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        codeLeft,
+                        style: TextStyle(
+                          color: ink,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                      Text(
+                        codeRight,
+                        style: TextStyle(
+                          color: ink,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            Positioned(
-              left: ship.dx,
-              top: ship.dy,
-              child: const Text('🚢', style: TextStyle(fontSize: 30)),
-            ),
-            Positioned(
-              left: letter.dx,
-              top: letter.dy,
-              child: const Text('💌', style: TextStyle(fontSize: 24)),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _TravelPathPainter extends CustomPainter {
-  final double progress;
-  const _TravelPathPainter(this.progress);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final linePaint = Paint()
-      ..color = AppColors.gold.withValues(alpha: 0.35)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6;
-
-    final glowPaint = Paint()
-      ..color = AppColors.teal.withValues(alpha: 0.18)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18);
-
-    final pulseX = (size.width - 16) * progress + 8;
-    canvas.drawCircle(Offset(pulseX, size.height * 0.5), 22, glowPaint);
-
-    final upper = Path()
-      ..moveTo(8, size.height * 0.30)
-      ..quadraticBezierTo(
-        size.width * 0.35,
-        size.height * 0.12,
-        size.width * 0.68,
-        size.height * 0.30,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.88,
-        size.height * 0.40,
-        size.width - 10,
-        size.height * 0.28,
-      );
-
-    final middle = Path()
-      ..moveTo(8, size.height * 0.54)
-      ..quadraticBezierTo(
-        size.width * 0.28,
-        size.height * 0.42,
-        size.width * 0.52,
-        size.height * 0.56,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.75,
-        size.height * 0.70,
-        size.width - 10,
-        size.height * 0.58,
-      );
-
-    final lower = Path()
-      ..moveTo(8, size.height * 0.78)
-      ..quadraticBezierTo(
-        size.width * 0.24,
-        size.height * 0.88,
-        size.width * 0.45,
-        size.height * 0.76,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.74,
-        size.height * 0.58,
-        size.width - 10,
-        size.height * 0.78,
-      );
-
-    _drawDashedPath(canvas, upper, linePaint);
-    _drawDashedPath(canvas, middle, linePaint);
-    _drawDashedPath(canvas, lower, linePaint);
-  }
-
-  void _drawDashedPath(Canvas canvas, Path path, Paint paint) {
-    for (final metric in path.computeMetrics()) {
-      const step = 12.0;
-      const dash = 6.0;
-      double distance = 0;
-      while (distance < metric.length) {
-        final end = math.min(distance + dash, metric.length);
-        canvas.drawPath(metric.extractPath(distance, end), paint);
-        distance += step;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _TravelPathPainter oldDelegate) {
-    return oldDelegate.progress != progress;
-  }
-}
-
-class _SoftParticles extends StatelessWidget {
-  const _SoftParticles();
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: Stack(
-        children: [
-          _spot(28, 90, 5),
-          _spot(74, 160, 4),
-          _spot(44, 250, 7),
-          _spot(82, 320, 5),
-          _spot(14, 390, 4),
-        ],
-      ),
-    );
-  }
-
-  Widget _spot(double xFactor, double y, double radius) {
-    return FractionallySizedBox(
-      alignment: Alignment(-1 + (xFactor / 50), -1 + (y / 450)),
-      child: Container(
-        width: radius * 2,
-        height: radius * 2,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.18),
-          shape: BoxShape.circle,
+          ),
         ),
       ),
     );
@@ -345,8 +274,6 @@ class _SoftParticles extends StatelessWidget {
 }
 
 class _LoadingDots extends StatefulWidget {
-  const _LoadingDots();
-
   @override
   State<_LoadingDots> createState() => _LoadingDotsState();
 }
@@ -372,25 +299,28 @@ class _LoadingDotsState extends State<_LoadingDots>
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 64,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, _) {
-          final tick = (_controller.value * 3).floor() + 1;
-          final dots = '.' * tick;
-          return Text(
-            dots,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: AppColors.goldLight,
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 3,
-            ),
-          );
-        },
-      ),
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        return Row(
+          children: List.generate(3, (i) {
+            final phase = (_controller.value + i / 3) % 1.0;
+            final opacity = (0.2 + 0.8 * (1 - (phase - 0.5).abs() * 2)).clamp(
+              0.2,
+              1.0,
+            );
+            return Container(
+              margin: const EdgeInsets.only(right: 6),
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: AppColors.premium.withValues(alpha: opacity),
+                shape: BoxShape.circle,
+              ),
+            );
+          }),
+        );
+      },
     );
   }
 }

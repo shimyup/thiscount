@@ -10,7 +10,7 @@ enum UserLevel {
   /// 가입 직후 — 기본 편지 작성 + 지도 + 인박스만 노출
   newbie(0),
 
-  /// 첫 편지 발송 후 — 타워 레벨·스탯 공개
+  /// 첫 편지 발송 후 — 레터 레벨·스탯 공개 (Build 188: "타워" 표기 제거)
   beginner(1),
 
   /// 5통 이상 발송 or 첫 답장 수신 — 오늘의 편지(자동 글귀) 해금
@@ -31,7 +31,8 @@ enum UserLevel {
       case UserLevel.newbie:
         return '첫 편지를 보내볼까요?';
       case UserLevel.beginner:
-        return '🏠 나의 탑 레벨이 공개되었어요';
+        // Build 188: "탑 레벨" → 레터 레벨. 일반 회원에게 타워 잔상 완전 제거.
+        return '🎟 카운터 레벨이 공개되었어요';
       case UserLevel.casual:
         return '✉️ 오늘의 편지가 해금되었어요';
       case UserLevel.regular:

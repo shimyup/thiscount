@@ -138,25 +138,25 @@ class ActivityScore {
 
   static const List<Map<String, String>> _fameTitles = [
     // 0 — shack
-    {'ko': '새내기 편지꾼', 'en': 'Novice Writer', 'ja': '初心者の手紙書き', 'zh': '新手写信人', 'fr': 'Écrivain Novice', 'de': 'Neuling', 'es': 'Escritor Novato', 'pt': 'Escritor Novato', 'ru': 'Начинающий Писатель', 'tr': 'Çaylak Yazar', 'ar': 'كاتب مبتدئ', 'it': 'Scrittore Novizio', 'hi': 'नौसिखिया लेखक', 'th': 'นักเขียนมือใหม่'},
+    {'ko': '새내기 카운터', 'en': 'Novice Counter', 'ja': '初心者カウンター', 'zh': '新手计数员', 'fr': 'Counter Novice', 'de': 'Neuling-Counter', 'es': 'Counter Novato', 'pt': 'Counter Novato', 'ru': 'Начинающий Counter', 'tr': 'Çaylak Counter', 'ar': 'Counter مبتدئ', 'it': 'Counter Novizio', 'hi': 'नौसिखिया Counter', 'th': 'Counter มือใหม่'},
     // 1 — cottage
-    {'ko': '이야기 수집가', 'en': 'Story Collector', 'ja': '物語の収集家', 'zh': '故事收藏家', 'fr': 'Collecteur d\'Histoires', 'de': 'Geschichtensammler', 'es': 'Coleccionista de Historias', 'pt': 'Colecionador de Histórias', 'ru': 'Собиратель Историй', 'tr': 'Hikâye Koleksiyoncusu', 'ar': 'جامع القصص', 'it': 'Collezionista di Storie', 'hi': 'कहानी संग्रहकर्ता', 'th': 'นักสะสมเรื่องราว'},
+    {'ko': '쿠폰 수집가', 'en': 'Coupon Collector', 'ja': 'クーポン収集家', 'zh': '优惠券收藏家', 'fr': 'Collecteur de Coupons', 'de': 'Coupon-Sammler', 'es': 'Coleccionista de Cupones', 'pt': 'Colecionador de Cupões', 'ru': 'Собиратель Купонов', 'tr': 'Kupon Koleksiyoncusu', 'ar': 'جامع القسائم', 'it': 'Collezionista di Coupon', 'hi': 'कूपन संग्रहकर्ता', 'th': 'นักสะสมคูปอง'},
     // 2 — house
-    {'ko': '바람의 심부름꾼', 'en': 'Wind Messenger', 'ja': '風の使い', 'zh': '风之信使', 'fr': 'Messager du Vent', 'de': 'Windbote', 'es': 'Mensajero del Viento', 'pt': 'Mensageiro do Vento', 'ru': 'Посланник Ветра', 'tr': 'Rüzgâr Ulağı', 'ar': 'رسول الرياح', 'it': 'Messaggero del Vento', 'hi': 'हवा का संदेशवाहक', 'th': 'ผู้ส่งสารแห่งสายลม'},
+    {'ko': '바람의 헌터', 'en': 'Wind Hunter', 'ja': '風のハンター', 'zh': '风之猎人', 'fr': 'Chasseur du Vent', 'de': 'Windjäger', 'es': 'Cazador del Viento', 'pt': 'Caçador do Vento', 'ru': 'Охотник Ветра', 'tr': 'Rüzgâr Avcısı', 'ar': 'صياد الرياح', 'it': 'Cacciatore del Vento', 'hi': 'हवा का शिकारी', 'th': 'นักล่าแห่งสายลม'},
     // 3 — townhouse
-    {'ko': '항구의 전령사', 'en': 'Harbor Herald', 'ja': '港の伝令', 'zh': '港口传令官', 'fr': 'Héraut du Port', 'de': 'Hafenherold', 'es': 'Heraldo del Puerto', 'pt': 'Arauto do Porto', 'ru': 'Вестник Гавани', 'tr': 'Liman Habercisi', 'ar': 'مبشر الميناء', 'it': 'Araldo del Porto', 'hi': 'बंदरगाह का दूत', 'th': 'ผู้ประกาศแห่งท่าเรือ'},
+    {'ko': '항구의 헌터', 'en': 'Harbor Hunter', 'ja': '港のハンター', 'zh': '港口猎人', 'fr': 'Chasseur du Port', 'de': 'Hafenjäger', 'es': 'Cazador del Puerto', 'pt': 'Caçador do Porto', 'ru': 'Охотник Гавани', 'tr': 'Liman Avcısı', 'ar': 'صياد الميناء', 'it': 'Cacciatore del Porto', 'hi': 'बंदरगाह का शिकारी', 'th': 'นักล่าแห่งท่าเรือ'},
     // 4 — building
-    {'ko': '바다의 기록자', 'en': 'Sea Chronicler', 'ja': '海の記録者', 'zh': '海洋记录者', 'fr': 'Chroniqueur des Mers', 'de': 'Meereschronist', 'es': 'Cronista del Mar', 'pt': 'Cronista do Mar', 'ru': 'Летописец Морей', 'tr': 'Deniz Vakanüvisi', 'ar': 'مؤرخ البحار', 'it': 'Cronista del Mare', 'hi': 'सागर का इतिहासकार', 'th': 'นักบันทึกแห่งท้องทะเล'},
+    {'ko': '도시의 발견러', 'en': 'City Finder', 'ja': '都市の発見者', 'zh': '城市发现者', 'fr': 'Découvreur de la Ville', 'de': 'Stadtentdecker', 'es': 'Descubridor de la Ciudad', 'pt': 'Descobridor da Cidade', 'ru': 'Исследователь Города', 'tr': 'Şehir Kâşifi', 'ar': 'مكتشف المدينة', 'it': 'Esploratore Urbano', 'hi': 'नगर खोजी', 'th': 'นักค้นพบแห่งเมือง'},
     // 5 — office
-    {'ko': '파도를 가르는 자', 'en': 'Wave Breaker', 'ja': '波を切る者', 'zh': '破浪者', 'fr': 'Briseur de Vagues', 'de': 'Wellenbrecher', 'es': 'Rompe Olas', 'pt': 'Quebra-ondas', 'ru': 'Рассекатель Волн', 'tr': 'Dalga Kıran', 'ar': 'كاسر الأمواج', 'it': 'Spezzaonde', 'hi': 'लहरों को चीरने वाला', 'th': 'ผู้ฝ่าคลื่น'},
+    {'ko': '골목의 명사수', 'en': 'Alley Sharpshooter', 'ja': '路地の名手', 'zh': '巷弄神射手', 'fr': 'Tireur des Ruelles', 'de': 'Gassen-Scharfschütze', 'es': 'Tirador de Callejones', 'pt': 'Atirador dos Becos', 'ru': 'Меткий Стрелок Переулков', 'tr': 'Sokak Nişancısı', 'ar': 'قناص الأزقة', 'it': 'Tiratore dei Vicoli', 'hi': 'गली के निशानेबाज़', 'th': 'มือฉมังแห่งตรอกซอย'},
     // 6 — skyscraper
-    {'ko': '천 개의 편지 주인', 'en': 'Master of a Thousand Letters', 'ja': '千の手紙の主', 'zh': '千信之主', 'fr': 'Maître des Mille Lettres', 'de': 'Herr der Tausend Briefe', 'es': 'Maestro de Mil Cartas', 'pt': 'Mestre das Mil Cartas', 'ru': 'Хозяин Тысячи Писем', 'tr': 'Bin Mektubun Efendisi', 'ar': 'سيد الألف رسالة', 'it': 'Maestro delle Mille Lettere', 'hi': 'हज़ार पत्रों का स्वामी', 'th': 'เจ้าแห่งพันจดหมาย'},
+    {'ko': '천 개의 혜택 주인', 'en': 'Master of a Thousand Rewards', 'ja': '千の特典の主', 'zh': '千福之主', 'fr': 'Maître des Mille Récompenses', 'de': 'Herr der Tausend Belohnungen', 'es': 'Maestro de Mil Recompensas', 'pt': 'Mestre das Mil Recompensas', 'ru': 'Хозяин Тысячи Наград', 'tr': 'Bin Ödülün Efendisi', 'ar': 'سيد الألف مكافأة', 'it': 'Maestro delle Mille Ricompense', 'hi': 'हज़ार पुरस्कारों का स्वामी', 'th': 'เจ้าแห่งพันรางวัล'},
     // 7 — supertall
-    {'ko': '영원한 항해사', 'en': 'Eternal Voyager', 'ja': '永遠の航海士', 'zh': '永恒航海家', 'fr': 'Voyageur Éternel', 'de': 'Ewiger Seefahrer', 'es': 'Viajero Eterno', 'pt': 'Viajante Eterno', 'ru': 'Вечный Мореплаватель', 'tr': 'Ebedî Gezgin', 'ar': 'المسافر الأبدي', 'it': 'Viaggiatore Eterno', 'hi': 'शाश्वत नाविक', 'th': 'นักเดินเรือนิรันดร์'},
+    {'ko': '영원한 사냥꾼', 'en': 'Eternal Hunter', 'ja': '永遠の狩人', 'zh': '永恒猎人', 'fr': 'Chasseur Éternel', 'de': 'Ewiger Jäger', 'es': 'Cazador Eterno', 'pt': 'Caçador Eterno', 'ru': 'Вечный Охотник', 'tr': 'Ebedî Avcı', 'ar': 'الصياد الأبدي', 'it': 'Cacciatore Eterno', 'hi': 'शाश्वत शिकारी', 'th': 'นักล่านิรันดร์'},
     // 8 — megatower
     {'ko': '세계를 연결하는 자', 'en': 'World Connector', 'ja': '世界を繋ぐ者', 'zh': '连结世界之人', 'fr': 'Connecteur du Monde', 'de': 'Weltverbinder', 'es': 'Conector del Mundo', 'pt': 'Conector do Mundo', 'ru': 'Связующий Миры', 'tr': 'Dünyaları Birleştiren', 'ar': 'رابط العوالم', 'it': 'Connettore del Mondo', 'hi': 'विश्व को जोड़ने वाला', 'th': 'ผู้เชื่อมโลก'},
     // 9 — landmark
-    {'ko': '전설의 필경원', 'en': 'Legendary Scribe', 'ja': '伝説の筆耕', 'zh': '传奇抄写员', 'fr': 'Scribe Légendaire', 'de': 'Legendärer Schreiber', 'es': 'Escriba Legendario', 'pt': 'Escriba Lendário', 'ru': 'Легендарный Писец', 'tr': 'Efsanevi Kâtip', 'ar': 'الكاتب الأسطوري', 'it': 'Scriba Leggendario', 'hi': 'पौराणिक लिपिकार', 'th': 'นักเขียนตำนาน'},
+    {'ko': '전설의 카운터', 'en': 'Legendary Counter', 'ja': '伝説のカウンター', 'zh': '传奇计数器', 'fr': 'Counter Légendaire', 'de': 'Legendärer Counter', 'es': 'Counter Legendario', 'pt': 'Counter Lendário', 'ru': 'Легендарный Counter', 'tr': 'Efsanevi Counter', 'ar': 'Counter الأسطوري', 'it': 'Counter Leggendario', 'hi': 'पौराणिक Counter', 'th': 'Counter ตำนาน'},
   ];
 }
 
@@ -227,7 +227,7 @@ extension TowerTierExt on TowerTier {
   // ── Next-goal descriptions (14 languages) ──────────────────────────────
   static const _nextGoals = <TowerTier, Map<String, String>>{
     TowerTier.shack: {
-      'ko': '편지 3개 받으면 농가주택으로!',
+      'ko': '혜택 3개 받으면 농가주택으로!',
       'en': 'Receive 3 letters to become a Farmhouse!',
       'ja': '手紙を3通受け取ると農家に！',
       'zh': '收到3封信即可升级为农舍！',
@@ -442,6 +442,26 @@ class UserProfile {
   String? phoneNumber; // 핸드폰 번호 (선택)
   String verifyMethod; // 인증 수단 ('email' or 'phone')
 
+  // ── Brand 인증 필드 (Build 127) ─────────────────────────────────────────
+  // Brand 계정이 "정식 등록 사업자" 임을 증명하기 위한 3종 세트. 인증 완료된
+  // Brand 는 지도 아바타 플래그 앞에 ✅ 인증 마크 노출.
+  // - businessRegistrationNumber: 사업자 등록번호 (예: "123-45-67890")
+  // - businessRegistrationDocUrl: 사업자 등록증 스캔/사진 URL
+  // - businessContactPhone: 담당자 연락처
+  // - brandVerifiedAt: 관리자 승인 완료 시점 (null = 미인증)
+  // 관리자 승인 플로우는 후속 스코프 — 현재 클라이언트는 입력·저장·상태 표시만.
+  String? businessRegistrationNumber;
+  String? businessRegistrationDocUrl;
+  String? businessContactPhone;
+  DateTime? brandVerifiedAt;
+
+  // ── 카테고리 선호 (Build 218) ───────────────────────────────────────────
+  // Premium Level 11 이상 유저가 "받고 싶은 편지 카테고리"를 지정할 수 있다.
+  // null = 미설정(랜덤). LetterCategory 의 키 문자열로 직렬화.
+  // 설정되어 있으면 매칭 카테고리 편지가 nearbyLetters · 데모 시드 · AI 발송에서
+  // 우선순위 가중치를 받는다. 강제 필터가 아니라 확률 부스트.
+  String? preferredCategoryKey;
+
   UserProfile({
     required this.id,
     required this.username,
@@ -469,6 +489,11 @@ class UserProfile {
     this.towerWindowStyle = 0,
     this.phoneNumber,
     this.verifyMethod = 'email',
+    this.businessRegistrationNumber,
+    this.businessRegistrationDocUrl,
+    this.businessContactPhone,
+    this.brandVerifiedAt,
+    this.preferredCategoryKey,
   }) : activityScore = activityScore ?? ActivityScore(),
        joinedAt = joinedAt ?? DateTime.now(),
        followingIds = followingIds ?? [],

@@ -10,7 +10,7 @@ import '../../state/app_state.dart';
 ///
 /// 디자인 톤:
 /// - 🔥 이모지 + 일수 숫자
-/// - 골드 컬러 배경 (Letter Go 주요 액센트)
+/// - 골드 컬러 배경 (Thiscount 주요 액센트)
 /// - tight padding · 작은 사이즈 → 시선 방해 최소
 class StreakBadge extends StatelessWidget {
   final bool compact;
@@ -66,10 +66,39 @@ class StreakBadge extends StatelessWidget {
 class StreakCelebrationBar {
   static void showIfIncreased(BuildContext context) {
     final state = context.read<AppState>();
+    final l10n = AppL10n.of(state.currentUser.languageCode);
+
+    // 방어권이 방금 사용됐다면 이쪽을 먼저 노출 (스트릭 증가 플래그 대신)
+    if (state.consumeStreakSavedFlag()) {
+      state.consumeStreakIncreaseFlag(); // 함께 소비 (중복 스낵바 방지)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Text('🎟️ ', style: TextStyle(fontSize: 20)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.streakFreezeUsedMessage(state.currentStreak),
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: AppColors.bgSurface,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
     if (!state.consumeStreakIncreaseFlag()) return;
     if (state.currentStreak <= 1) return; // 1일째는 너무 흔해 생략
 
-    final l10n = AppL10n.of(state.currentUser.languageCode);
     final message = l10n.streakMilestoneMessage(state.currentStreak);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -85,7 +114,7 @@ class StreakCelebrationBar {
             ),
           ],
         ),
-        backgroundColor: const Color(0xFF1F2D44),
+        backgroundColor: AppColors.bgSurface,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),

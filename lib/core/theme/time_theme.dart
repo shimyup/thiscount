@@ -3,6 +3,9 @@ import '../localization/language_config.dart';
 
 enum TimeOfDayPeriod { morning, day, evening, night }
 
+/// v5 마이그레이션:
+/// 시간대별 색 변동 → 단일 v5 wallet 톤으로 통일.
+/// 시간대 enum 자체는 여전히 외부에서 사용되므로 유지.
 class TimeTheme {
   final TimeOfDayPeriod period;
   final Color bgDeep;
@@ -11,7 +14,6 @@ class TimeTheme {
   final Color accent;
   final String emoji;
   final String label;
-  // 하늘 그라디언트 (상단 → 하단)
   final Color gradientTop;
   final Color gradientMid;
   final Color gradientBottom;
@@ -41,7 +43,6 @@ class TimeTheme {
     final utcNow = DateTime.now().toUtc();
     final localHour = (utcNow.hour + offset).floor() % 24;
     final h = localHour < 0 ? localHour + 24 : localHour;
-    // 낮/밤 두 가지만 적용 (오전 7시~오후 7시는 낮, 나머지는 밤)
     if (h >= 7 && h < 19) return TimeOfDayPeriod.day;
     return TimeOfDayPeriod.night;
   }
@@ -49,67 +50,34 @@ class TimeTheme {
   static TimeTheme forCountry(String country) =>
       forPeriod(getPeriodForCountry(country));
 
+  /// v5: 모든 period 가 동일한 dark wallet 톤 반환.
+  /// 시간대별 emoji/label 만 유지 (헤더 표시용).
   static TimeTheme forPeriod(TimeOfDayPeriod period) {
-    switch (period) {
-      // ── 🌅 새벽 (05:00-09:00) ─ 보라빛 새벽, 따뜻한 오렌지 노을 ────────────
+    final base = _base(period);
+    return TimeTheme(
+      period: period,
+      bgDeep: const Color(0xFF000000),
+      bgCard: const Color(0xFF141417),
+      bgSurface: const Color(0xFF1C1C1F),
+      accent: const Color(0xFFFFD60A),
+      emoji: base.$1,
+      label: base.$2,
+      gradientTop: const Color(0xFF000000),
+      gradientMid: const Color(0xFF050507),
+      gradientBottom: const Color(0xFF0A0A0C),
+    );
+  }
+
+  static (String, String) _base(TimeOfDayPeriod p) {
+    switch (p) {
       case TimeOfDayPeriod.morning:
-        return const TimeTheme(
-          period: TimeOfDayPeriod.morning,
-          bgDeep: Color(0xFF16093A),
-          bgCard: Color(0xFF211550),
-          bgSurface: Color(0xFF2C2068),
-          accent: Color(0xFFFFB347),
-          gradientTop: Color(0xFF3D1060), // 짙은 보라
-          gradientMid: Color(0xFF6B2E52), // 로즈 핑크
-          gradientBottom: Color(0xFF0D0E28), // 어두운 남색
-          emoji: '🌅',
-          label: 'Dawn',
-        );
-
-      // ── ☀️ 낮 (09:00-18:00) ─ 맑은 하늘, 깊은 바다 ──────────────────────────
+        return ('🌅', 'Dawn');
       case TimeOfDayPeriod.day:
-        return const TimeTheme(
-          period: TimeOfDayPeriod.day,
-          bgDeep: Color(0xFF04213E),
-          bgCard: Color(0xFF072E58),
-          bgSurface: Color(0xFF0B3C72),
-          accent: Color(0xFF38BEFF),
-          gradientTop: Color(0xFF1565C0), // 파란 하늘
-          gradientMid: Color(0xFF0A3D7A), // 깊은 파랑
-          gradientBottom: Color(0xFF021526), // 심해
-          emoji: '☀️',
-          label: 'Day',
-        );
-
-      // ── 🌆 저녁 (18:00-21:00) ─ 선셋 오렌지-레드 ──────────────────────────────
+        return ('☀️', 'Day');
       case TimeOfDayPeriod.evening:
-        return const TimeTheme(
-          period: TimeOfDayPeriod.evening,
-          bgDeep: Color(0xFF1E0608),
-          bgCard: Color(0xFF2E0E14),
-          bgSurface: Color(0xFF3E1620),
-          accent: Color(0xFFFF6B35),
-          gradientTop: Color(0xFF7B1E18), // 선셋 레드
-          gradientMid: Color(0xFF4A1020), // 어두운 로즈
-          gradientBottom: Color(0xFF0A0408), // 거의 블랙
-          emoji: '🌆',
-          label: 'Evening',
-        );
-
-      // ── 🌙 밤 (21:00-05:00) ─ 트루 다크모드 ──────────────────────────────────
+        return ('🌆', 'Evening');
       case TimeOfDayPeriod.night:
-        return const TimeTheme(
-          period: TimeOfDayPeriod.night,
-          bgDeep: Color(0xFF0A0A0A),
-          bgCard: Color(0xFF141414),
-          bgSurface: Color(0xFF1E1E1E),
-          accent: Color(0xFFB8B8B8),
-          gradientTop: Color(0xFF111111),
-          gradientMid: Color(0xFF0A0A0A),
-          gradientBottom: Color(0xFF050505),
-          emoji: '🌙',
-          label: 'Night',
-        );
+        return ('🌙', 'Night');
     }
   }
 }

@@ -1,17 +1,13 @@
 /// 앱 내에서 사용하는 외부 링크 URL 모음
 ///
-/// GitHub Pages 호스팅 방법:
-///   1. GitHub에서 새 repo 생성 (예: lettergo-privacy)
-///   2. 프로젝트의 docs/ 폴더를 해당 repo에 push
-///   3. repo 설정 → Pages → Source: "Deploy from a branch" → Branch: main / docs
-///   4. 아래 URL을 자신의 GitHub username으로 업데이트
-///
-/// 예시: https://shimyup.github.io/lettergo/privacy.html
+/// Build 221: 도메인 thiscount.io 등록 완료 (Namecheap, May 2026~).
+/// privacy/terms 페이지는 thiscount.io 호스팅으로 이전 예정 — 우선 URL만 업데이트.
+/// 페이지 미배포 시 출시 전 docs/privacy.html + docs/terms.html 을
+/// thiscount.io 에 정적 호스팅 필수 (Vercel/Netlify/Cloudflare Pages).
 abstract class AppLinks {
   // ── 개인정보 처리방침 ──────────────────────────────────────────────────────
-  // ✅ GitHub Pages 배포 완료 — https://shimyup.github.io/lettergo/privacy.html
   static const String privacyPolicy =
-      'https://shimyup.github.io/lettergo/privacy.html';
+      'https://thiscount.io/privacy.html';
 
   /// 가입 나라에 맞는 개인정보 처리방침 URL 반환
   ///   대한민국 → ?lang=ko (한국어)
@@ -23,7 +19,7 @@ abstract class AppLinks {
 
   // ── 이용약관 ─────────────────────────────────────────────────────────────
   static const String termsOfService =
-      'https://shimyup.github.io/lettergo/terms.html';
+      'https://thiscount.io/terms.html';
 
   /// 가입 나라에 맞는 이용약관 URL 반환
   static String termsForCountry(String country) {
@@ -32,5 +28,10 @@ abstract class AppLinks {
   }
 
   // ── 고객 지원 ────────────────────────────────────────────────────────────
+  // 도메인 thiscount.io 의 메일 호스팅 설정 후 support@thiscount.io 로 전환.
+  // 우선 기존 운영 메일 유지.
   static const String supportEmail = 'ceo@airony.xyz';
+
+  /// Build 221: 앱 마케팅 / 랜딩 페이지
+  static const String marketingSite = 'https://thiscount.io';
 }

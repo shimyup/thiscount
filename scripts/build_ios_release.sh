@@ -69,6 +69,16 @@ if [[ "${BETA_FREE_PREMIUM:-false}" == "true" ]]; then
   DART_DEFINES+=("--dart-define=BETA_FREE_PREMIUM=true")
 fi
 
+# 베타 업그레이드 시뮬레이터 — 사용자가 업그레이드 버튼을 누르면 RevenueCat
+# 에 실제 결제 요청 안 보내고 즉시 Premium/Brand 활성화. App Store Connect
+# 상품 미등록 상태에서도 베타 테스터가 흐름을 끝까지 체험 가능.
+# Default true (베타 기간) — 정식 출시 시 .env.local 에서 명시적으로
+# `BETA_UPGRADE_SIMULATOR=false` 로 끄거나 키 자체 제거.
+if [[ "${BETA_UPGRADE_SIMULATOR:-true}" == "true" ]]; then
+  echo "[ios] BETA_UPGRADE_SIMULATOR=true — upgrade will be granted without purchase."
+  DART_DEFINES+=("--dart-define=BETA_UPGRADE_SIMULATOR=true")
+fi
+
 # 베타 테스트 관리자 이메일 — 릴리스 빌드에서도 이 이메일만 관리자 패널/브랜드
 # 권한 활성. 정식 출시 시 .env.local 에서 BETA_ADMIN_EMAIL 제거하면 자동 잠김.
 if [[ -n "${BETA_ADMIN_EMAIL:-}" ]]; then
@@ -100,12 +110,54 @@ IOS_EXPORT_OPTIONS_PLIST="${IOS_EXPORT_OPTIONS_PLIST:-}"
 if [[ "$IOS_BUILD_MODE" == "ipa" ]]; then
   require_ios_signing_ready
   echo "[ios] building signed IPA for TestFlight..."
-  if [[ -n "$IOS_EXPORT_OPTIONS_PLIST" ]]; then
-    flutter build ipa --release \
-      --export-options-plist "$IOS_EXPORT_OPTIONS_PLIST" \
-      "${DART_DEFINES[@]}" "$@"
+  # Build 245+: 두 단계 빌드 — Flutter 가 archive 만 만들고, xcodebuild 가
+  # API Key 인증으로 직접 export. flutter build ipa 는 -authenticationKey* 플래그
+  # 를 지원 안 해서 서버 측 provisioning 갱신이 필요한 경우 실패.
+  ASC_KEY_ID="${ASC_API_KEY_ID:-PPC3B3JS5V}"
+  ASC_ISSUER_ID="${ASC_API_ISSUER_ID:-1cfdd647-e5d9-4f98-bcd6-fff8299f80ec}"
+  ASC_KEY_PATH="${ASC_API_KEY_PATH:-$HOME/private_keys/AuthKey_${ASC_KEY_ID}.p8}"
+  EXPORT_PLIST="${IOS_EXPORT_OPTIONS_PLIST:-$ROOT_DIR/ios/ExportOptions-AppStore.plist}"
+
+  if [[ -f "$ASC_KEY_PATH" && -f "$EXPORT_PLIST" ]]; then
+    echo "[ios] using ASC API Key flow ($ASC_KEY_ID)"
+    # 1) flutter archive (no IPA export — we'll handle that)
+    flutter build ipa --release --no-codesign "${DART_DEFINES[@]}" "$@" || true
+    flutter build ios --release --no-codesign "${DART_DEFINES[@]}" "$@" >/dev/null 2>&1 || true
+    # Archive 위치: build/ios/archive/Runner.xcarchive (flutter build ipa 가 생성)
+    if [[ ! -d "$ROOT_DIR/build/ios/archive/Runner.xcarchive" ]]; then
+      echo "[ios] ERROR: archive not created by flutter build ipa" >&2
+      exit 1
+    fi
+    # 2) ScreenPreventerKit dSYM 자동 생성 — Build 213/244 에서 반복 발견된 누락
+    SPK_BIN="$ROOT_DIR/build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app/Frameworks/ScreenPreventerKit.framework/ScreenPreventerKit"
+    if [[ -f "$SPK_BIN" ]]; then
+      DSYM_OUT="$ROOT_DIR/build/ios/archive/Runner.xcarchive/dSYMs/ScreenPreventerKit.framework.dSYM"
+      if [[ ! -d "$DSYM_OUT" ]]; then
+        echo "[ios] generating dSYM for ScreenPreventerKit..."
+        mkdir -p "$ROOT_DIR/build/ios/archive/Runner.xcarchive/dSYMs"
+        dsymutil "$SPK_BIN" -o "$DSYM_OUT" 2>/dev/null || true
+      fi
+    fi
+    # 3) xcodebuild export with API Key (uploads provisioning + signs IPA)
+    rm -rf "$ROOT_DIR/build/ios/ipa"
+    mkdir -p "$ROOT_DIR/build/ios/ipa"
+    xcodebuild -exportArchive \
+      -archivePath "$ROOT_DIR/build/ios/archive/Runner.xcarchive" \
+      -exportPath "$ROOT_DIR/build/ios/ipa" \
+      -exportOptionsPlist "$EXPORT_PLIST" \
+      -allowProvisioningUpdates \
+      -authenticationKeyPath "$ASC_KEY_PATH" \
+      -authenticationKeyID "$ASC_KEY_ID" \
+      -authenticationKeyIssuerID "$ASC_ISSUER_ID"
   else
-    flutter build ipa --release "${DART_DEFINES[@]}" "$@"
+    # Fallback to flutter build ipa (requires Xcode UI Apple ID auth)
+    if [[ -n "$IOS_EXPORT_OPTIONS_PLIST" ]]; then
+      flutter build ipa --release \
+        --export-options-plist "$IOS_EXPORT_OPTIONS_PLIST" \
+        "${DART_DEFINES[@]}" "$@"
+    else
+      flutter build ipa --release "${DART_DEFINES[@]}" "$@"
+    fi
   fi
   shopt -s nullglob
   ipa_files=("$ROOT_DIR"/build/ios/ipa/*.ipa)

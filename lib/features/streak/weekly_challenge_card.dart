@@ -85,7 +85,7 @@ class WeeklyChallengeCard extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              backgroundColor: const Color(0xFF1F2D44),
+                              backgroundColor: AppColors.bgSurface,
                               behavior: SnackBarBehavior.floating,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),

@@ -47,10 +47,23 @@ abstract class DebugConstants {
 ///   --dart-define=BETA_ADMIN_EMAIL=shimyup@gmail.com
 /// 값이 비어 있으면 릴리스 빌드에서 관리자 기능이 모두 차단됨.
 /// 정식 출시 전 .env.local 에서 BETA_ADMIN_EMAIL 제거하면 자동으로 잠김.
+///
+/// Build 207 강화:
+///   - `disableInRelease=true` (default) 면 릴리스 빌드에서 코드가 자동 차단.
+///     실수로 빌드 스크립트에 BETA_ADMIN_EMAIL 이 남아 있어도 안전.
+///   - 정식 출시 후에도 명시적으로 베타 관리자를 켜고 싶으면 빌드 시
+///     `--dart-define=BETA_DISABLE_IN_RELEASE=false` 로 override.
 abstract class BetaConstants {
   static const String adminEmail = String.fromEnvironment(
     'BETA_ADMIN_EMAIL',
     defaultValue: '',
+  );
+
+  /// 정식 출시 빌드에서 베타 관리자/free-premium 기능을 강제 차단할지 여부.
+  /// 기본 true — 빌드 스크립트 실수로부터 보호.
+  static const bool disableInRelease = bool.fromEnvironment(
+    'BETA_DISABLE_IN_RELEASE',
+    defaultValue: true,
   );
 
   static bool get isAdminEmailConfigured => adminEmail.isNotEmpty;

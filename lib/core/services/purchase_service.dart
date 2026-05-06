@@ -42,10 +42,10 @@ class PurchaseProductIds {
   static const String _brandExtra1000Legacy = 'letter_go_brand_extra_1000';
 
   // iOS (App Store Connect)
-  static const String _premiumMonthlyIos = 'letter_go_premium_monthly_ios';
-  static const String _brandMonthlyIos = 'letter_go_brand_monthly_ios';
-  static const String _giftCardIos = 'letter_go_gift_1month_ios';
-  static const String _brandExtra1000Ios = 'letter_go_brand_extra_1000_ios';
+  static const String _premiumMonthlyIos = 'thiscount_premium_monthly_ios';
+  static const String _brandMonthlyIos = 'thiscount_brand_monthly_ios';
+  static const String _giftCardIos = 'thiscount_gift_1month_ios';
+  static const String _brandExtra1000Ios = 'thiscount_brand_extra_1000_ios';
 
   // Android (Google Play Billing / RevenueCat import 결과)
   static const String _premiumMonthlyAndroid =
@@ -162,6 +162,15 @@ class PurchaseService extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   bool _initialized = false;
+
+  /// Build 215: 화면 진입 시 stale errorMessage 클리어용 public API.
+  /// 이전 buy 시도가 실패했더라도 다시 들어오면 깨끗한 상태로.
+  void clearError() {
+    if (_errorMessage != null) {
+      _errorMessage = null;
+      notifyListeners();
+    }
+  }
   Future<void>? _initializationFuture;
   bool _isRevenueCatConfigured = false;
   bool _customerInfoListenerAttached = false;
@@ -300,13 +309,34 @@ class PurchaseService extends ChangeNotifier {
   // 빌드 시 --dart-define=BETA_FREE_PREMIUM=true 로 활성화.
   // 릴리스 빌드에서도 Premium 구독을 무료로 즉시 활성화.
   // Brand 구독은 베타 기간 중 불가.
-  static const bool _isBetaFreePremium = bool.fromEnvironment(
+  //
+  // Build 207: BETA_DISABLE_IN_RELEASE (default true) 가 켜져 있으면 릴리스
+  // 빌드에서는 dart-define 으로 BETA_FREE_PREMIUM=true 를 줘도 무시. 정식 출시
+  // 빌드에 베타 플래그가 새어 들어가는 사고를 차단.
+  static const bool _isBetaFreePremiumRaw = bool.fromEnvironment(
     'BETA_FREE_PREMIUM',
     defaultValue: false,
   );
+  static bool get _isBetaFreePremium {
+    if (BetaConstants.disableInRelease && kReleaseMode) return false;
+    return _isBetaFreePremiumRaw;
+  }
 
   /// UI에서 베타 무료 프리미엄 모드 여부를 확인할 때 사용
   bool get isBetaFreePremium => _isBetaFreePremium;
+
+  // ── 베타 업그레이드 시뮬레이터 (TestFlight/베타 전용) ────────────────────────
+  // RevenueCat 상품이 App Store Connect 에 아직 미등록 / 미승인 상태에서도
+  // 베타 테스터가 업그레이드 흐름을 끝까지 체험할 수 있도록 가짜 구매로 처리.
+  // 빌드 시 --dart-define=BETA_UPGRADE_SIMULATOR=true 로 활성화.
+  // BETA_DISABLE_IN_RELEASE 와 독립 — 명시적으로 켜지 않으면 release 에서도 OFF.
+  static const bool _isBetaUpgradeSimulator = bool.fromEnvironment(
+    'BETA_UPGRADE_SIMULATOR',
+    defaultValue: false,
+  );
+
+  /// UI 에서 베타 시뮬레이터 모드 노출용.
+  bool get isBetaUpgradeSimulator => _isBetaUpgradeSimulator;
 
   static bool get _isRcKeyConfiguredForCurrentPlatform {
     final iosReady = _isValidRevenueCatKey(_RcKeys.ios, isAndroid: false);
@@ -570,13 +600,14 @@ class PurchaseService extends ChangeNotifier {
   // ── Premium 구매 ────────────────────────────────────────────────────────
   Future<bool> buyPremium() async {
     _startLoading(PurchaseOperation.premium);
-    if (!_isTestMode && !_isBetaFreePremium && !_isRcKeyConfiguredForCurrentPlatform) {
+    if (!_isTestMode && !_isBetaFreePremium && !_isBetaUpgradeSimulator &&
+        !_isRcKeyConfiguredForCurrentPlatform) {
       _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
       return false;
     }
 
-    // 디버그 빌드 or RevenueCat 미연동 or 베타 무료 프리미엄 → 로컬 활성화
-    if (_isTestMode || _isBetaFreePremium) {
+    // 디버그 빌드 or RevenueCat 미연동 or 베타 무료 프리미엄 or 시뮬레이터 → 로컬 활성화
+    if (_isTestMode || _isBetaFreePremium || _isBetaUpgradeSimulator) {
       return await _fakePurchase(() async {
         final prefs = await _getPrefs();
         _isPremium = true;
@@ -622,12 +653,14 @@ class PurchaseService extends ChangeNotifier {
       return false;
     }
 
-    if (!_isTestMode && !_isRcKeyConfiguredForCurrentPlatform) {
+    if (!_isTestMode && !_isBetaUpgradeSimulator &&
+        !_isRcKeyConfiguredForCurrentPlatform) {
       _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
       return false;
     }
 
-    if (_isTestMode) {
+    // 베타 시뮬레이터에서는 Brand 도 즉시 활성화 (캠페인 기능 체험용).
+    if (_isTestMode || _isBetaUpgradeSimulator) {
       return await _fakePurchase(() async {
         final prefs = await _getPrefs();
         _isBrand = true;
@@ -922,6 +955,9 @@ class PurchaseService extends ChangeNotifier {
   /// 정식 출시 시 .env.local 에서 BETA_ADMIN_EMAIL 제거하면 자동으로 잠김.
   Future<void> applyTestEmailOverride(String? email) async {
     if (email == null || email.isEmpty) return;
+    // Build 207: 정식 출시 빌드에서는 BETA_ADMIN_EMAIL 주입돼 있어도 무시.
+    // 베타 기간이 끝나면 코드 변경 없이도 자동으로 막혀 있어야 함.
+    if (BetaConstants.disableInRelease && kReleaseMode) return;
     final isDebugTester =
         kDebugMode && email.toLowerCase() == DebugConstants.testBrandEmail;
     final isBetaAdmin = BetaConstants.isAdmin(email);

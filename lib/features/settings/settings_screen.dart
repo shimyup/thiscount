@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../core/services/purchase_service.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../models/user_profile.dart';
@@ -28,6 +29,8 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _notifyNearby = true;
+  bool _notifyDaily = false;
+  PushMode _pushMode = PushMode.standard;
   bool _loading = true;
 
   @override
@@ -38,16 +41,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _loadPrefs() async {
     final prefs = await SharedPreferences.getInstance();
+    final mode = await NotificationService.loadPushMode();
     setState(() {
       _notifyNearby = prefs.getBool('notify_nearby') ?? true;
+      _notifyDaily = prefs.getBool('notify_daily_letter') ?? false;
+      _pushMode = mode;
       _loading = false;
     });
+  }
+
+  Future<void> _setPushMode(PushMode mode) async {
+    await NotificationService.setPushMode(mode);
+    setState(() => _pushMode = mode);
+    // Quiet/Standard로 전환했는데 daily가 꺼져 있으면 매일 리마인더 자동 해제
+    if (mode != PushMode.full && !_notifyDaily) {
+      await NotificationService.cancelDailyLetterReminder();
+    }
+    // 현재 daily 리마인더가 켜져 있다면 새 모드 기준으로 재평가해 재예약
+    if (_notifyDaily) {
+      final lang = context.read<AppState>().currentUser.languageCode;
+      await NotificationService.scheduleDailyLetterReminder(langCode: lang);
+    }
   }
 
   Future<void> _setNotifyNearby(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('notify_nearby', value);
     setState(() => _notifyNearby = value);
+  }
+
+  Future<void> _setNotifyDaily(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notify_daily_letter', value);
+    setState(() => _notifyDaily = value);
+    final lang = context.read<AppState>().currentUser.languageCode;
+    if (value) {
+      await NotificationService.requestPermissions();
+      await NotificationService.scheduleDailyLetterReminder(langCode: lang);
+    } else {
+      await NotificationService.cancelDailyLetterReminder();
+    }
   }
 
   // ── 닉네임 수정 (shared_profile_dialogs.dart로 위임) ──────────────────────
@@ -327,6 +360,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           TextButton(
             onPressed: () async {
+              // Firebase 세션이 살아있는 동안 마지막 위치·프로필을 Firestore로
+              // 한 번 더 스냅샷한다. 이래야 다른 회원의 지도에서 이 테스터의
+              // 타워가 "마지막 위치"로 정확히 유지된다.
+              await ctx.read<AppState>().snapshotUserForLogout();
               await AuthService.logout();
               if (ctx.mounted) {
                 Navigator.of(
@@ -449,16 +486,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('⚠️ 삭제되는 항목', style: TextStyle(color: AppColors.error, fontSize: 12, fontWeight: FontWeight.w700)),
+                    Text(l.settingsWithdrawItemsHeader, style: const TextStyle(color: AppColors.error, fontSize: 12, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 6),
-                    const Text('• 모든 편지 및 DM 기록\n• 타워 및 활동 점수\n• 스탬프 앨범\n• 계정 정보', style: TextStyle(color: AppColors.textMuted, fontSize: 12, height: 1.5)),
+                    Text(l.settingsWithdrawItemsList, style: const TextStyle(color: AppColors.textMuted, fontSize: 12, height: 1.5)),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
               // 유저명 입력 확인
               Text(
-                '확인을 위해 아이디 "$username"를 입력하세요:',
+                l.settingsWithdrawTypeUsernameToConfirm(username),
                 style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
               ),
               const SizedBox(height: 8),
@@ -472,11 +509,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   fillColor: AppColors.bgSurface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFF1F2D44)),
+                    borderSide: const BorderSide(color: AppColors.bgSurface),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFF1F2D44)),
+                    borderSide: const BorderSide(color: AppColors.bgSurface),
                   ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 ),
@@ -657,12 +694,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(height: 8),
                     // ── 알림 ────────────────────────────────────────────────
                     _sectionHeader(l.settingsNotifications),
+                    _buildPushModeRow(l),
                     _switchTile(
                       icon: Icons.notifications_active_rounded,
                       label: l.settingsNotifyNearby,
                       subtitle: l.settingsNotifyNearbyDesc,
                       value: _notifyNearby,
                       onChanged: _setNotifyNearby,
+                    ),
+                    _switchTile(
+                      icon: Icons.wb_sunny_rounded,
+                      label: l.settingsNotifyDaily,
+                      subtitle: l.settingsNotifyDailyDesc,
+                      value: _notifyDaily,
+                      onChanged: _setNotifyDaily,
                     ),
 
                     const SizedBox(height: 8),
@@ -762,18 +807,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                     const SizedBox(height: 8),
                     // ── 고객 지원 ───────────────────────────────────────────
-                    _sectionHeader('고객 지원'),
+                    _sectionHeader(l.settingsSupport),
                     _tile(
                       icon: Icons.help_outline_rounded,
-                      label: '문의하기',
-                      subtitle: '오류 신고 · 기능 제안 · 기타 문의',
+                      label: l.settingsContactUs,
+                      subtitle: l.settingsContactUsDesc,
                       onTap: () async {
+                        // 이메일 본문/제목은 bilingual 로 유지 (support 팀이 한국어)
                         final uri = Uri(
                           scheme: 'mailto',
                           path: 'support@airony.xyz',
                           queryParameters: {
-                            'subject': '[Letter Go] 문의 / Support',
-                            'body': '아이디: ${user.username}\n이메일: ${user.email ?? "N/A"}\n\n문의 내용:\n',
+                            'subject': '[Thiscount] Support / 문의',
+                            'body': 'ID / 아이디: ${user.username}\nEmail / 이메일: ${user.email ?? "N/A"}\n\nMessage / 문의 내용:\n',
                           },
                         );
                         try {
@@ -787,8 +833,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         if (!isPremium) return const SizedBox.shrink();
                         return _tile(
                           icon: Icons.subscriptions_outlined,
-                          label: '구독 관리',
-                          subtitle: 'App Store / Google Play에서 구독 변경',
+                          label: l.settingsManageSubscription,
+                          subtitle: l.settingsManageSubscriptionDesc,
                           onTap: () async {
                             // iOS: App Store 구독 관리 / Android: Play Store
                             const iosUrl = 'https://apps.apple.com/account/subscriptions';
@@ -826,7 +872,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           scheme: 'mailto',
                           path: 'ceo@airony.xyz',
                           queryParameters: {
-                            'subject': 'Data Request - Letter Go',
+                            'subject': 'Data Request - Thiscount',
                             'body': 'I would like to request a copy of my personal data.\n\nUsername: ${user.username}\nEmail: ${user.email ?? "N/A"}',
                           },
                         );
@@ -1061,6 +1107,94 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Text(
               l.authClose,
               style: const TextStyle(color: AppColors.teal),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPushModeRow(AppL10n l) {
+    final modes = [
+      (mode: PushMode.quiet, emoji: '🔕', label: l.pushModeQuiet),
+      (mode: PushMode.standard, emoji: '🛎', label: l.pushModeStandard),
+      (mode: PushMode.full, emoji: '📣', label: l.pushModeFull),
+    ];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l.pushModeLabel,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              for (int i = 0; i < modes.length; i++) ...[
+                if (i > 0) const SizedBox(width: 6),
+                Expanded(
+                  child: InkWell(
+                    onTap: () => _setPushMode(modes[i].mode),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _pushMode == modes[i].mode
+                            ? AppColors.teal.withValues(alpha: 0.15)
+                            : AppColors.bgSurface,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: _pushMode == modes[i].mode
+                              ? AppColors.teal
+                              : AppColors.textMuted.withValues(alpha: 0.3),
+                          width: _pushMode == modes[i].mode ? 1.5 : 1,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(modes[i].emoji,
+                              style: const TextStyle(fontSize: 18)),
+                          const SizedBox(height: 4),
+                          Text(
+                            modes[i].label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: _pushMode == modes[i].mode
+                                  ? AppColors.teal
+                                  : AppColors.textSecondary,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            _pushMode == PushMode.quiet
+                ? l.pushModeQuietDesc
+                : _pushMode == PushMode.standard
+                    ? l.pushModeStandardDesc
+                    : l.pushModeFullDesc,
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 11,
+              height: 1.4,
             ),
           ),
         ],

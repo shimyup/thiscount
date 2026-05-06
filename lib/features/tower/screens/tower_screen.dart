@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,8 +13,25 @@ import '../../../models/user_profile.dart';
 import '../../../state/app_state.dart';
 import '../../settings/settings_screen.dart';
 import '../../premium/premium_screen.dart';
-import 'package:dotted_border/dotted_border.dart';
 import '../../../widgets/shared_profile_dialogs.dart';
+// Build 248: brand_analytics_card import 제거 — 프로필 단일 노출로 정리
+
+/// Build 220: Brand 티어별 "돈 쌓이는" 이모지.
+/// 광고 캠페인 누적량 → 화폐 가치 진화로 시각화.
+String _brandMoneyEmojiForTier(TowerTier t) {
+  switch (t) {
+    case TowerTier.shack:      return '🪙';
+    case TowerTier.cottage:    return '💵';
+    case TowerTier.house:      return '💰';
+    case TowerTier.townhouse:  return '💴';
+    case TowerTier.building:   return '💶';
+    case TowerTier.office:     return '💷';
+    case TowerTier.skyscraper: return '💸';
+    case TowerTier.supertall:  return '💎';
+    case TowerTier.megatower:  return '🏦';
+    case TowerTier.landmark:   return '👑';
+  }
+}
 
 class TowerScreen extends StatefulWidget {
   const TowerScreen({super.key});
@@ -66,6 +84,10 @@ class _TowerScreenState extends State<TowerScreen>
     );
 
     _towerRiseController.forward();
+
+    // Build 205.1: 혜택 팝업 trigger 는 MainScaffold 의 탭 전환 콜백에서
+    // 처리. TowerScreen 은 IndexedStack 에 의해 앱 시작 시 한 번 build 되므로
+    // 여기서 호출하면 사용자가 Map 탭에 머물러 있어도 팝업이 떠 버린다.
   }
 
   @override
@@ -84,11 +106,17 @@ class _TowerScreenState extends State<TowerScreen>
         final _lc = user.languageCode;
         final _l = AppL10n.of(_lc);
         final score = user.activityScore;
+        // ignore: unused_local_variable
         final hasPremium =
             purchase.isPremium ||
             purchase.isBrand ||
             user.isPremium ||
             user.isBrand;
+        // Build 187: Free/Premium 레터 탭에서 "타워" 표기 숨김. 핵심 수정 —
+        // 이전엔 `user.isBrand || purchase.isBrand` 였는데, 테스트/베타에서
+        // `purchase.isBrand` 가 true 로 걸려 일반 회원에게도 타워 UI 가 노출.
+        // Brand 정체성은 서버 등록된 user.isBrand 만 기준으로 판정.
+        final isBrand = user.isBrand;
 
         // 타워 단계 상승 감지 → 강렬한 햅틱 피드백
         final currentTier = score.tier;
@@ -121,7 +149,7 @@ class _TowerScreenState extends State<TowerScreen>
                     colors: [AppColors.goldLight, AppColors.gold],
                   ).createShader(b),
                   child: Text(
-                    _l.towerMyTower,
+                    isBrand ? _l.towerMyTower : _l.letterMyCharacter,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 20,
@@ -131,61 +159,68 @@ class _TowerScreenState extends State<TowerScreen>
                 ),
                 actions: [
                   // 레벨 뱃지 (앱바 오른쪽 — 타워 카드와 완전 분리)
-                  AnimatedBuilder(
-                    animation: _glowController,
-                    builder: (_, __) {
-                      final tierColor = _communityTierColor(score.tier);
-                      return Container(
-                        margin: const EdgeInsets.symmetric(
-                          vertical: 10,
-                          horizontal: 4,
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.bgCard.withValues(alpha: 0.95),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: tierColor.withValues(
-                              alpha: 0.5 + _glow.value * 0.3,
-                            ),
-                            width: 1.2,
+                  // Build 187: Brand 전용. Free/Premium 은 레터 hero 카드에 이미
+                  // XP 레벨(1~50) 이 노출되므로 "Lv.N 오두막" 같은 건물 티어 pill
+                  // 은 중복 + 맥락 불일치.
+                  if (isBrand)
+                    AnimatedBuilder(
+                      animation: _glowController,
+                      builder: (_, __) {
+                        final tierColor = _communityTierColor(score.tier);
+                        return Container(
+                          margin: const EdgeInsets.symmetric(
+                            vertical: 10,
+                            horizontal: 4,
                           ),
-                          boxShadow: [
-                            BoxShadow(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.bgCard.withValues(alpha: 0.95),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
                               color: tierColor.withValues(
-                                alpha: _glow.value * 0.25,
+                                alpha: 0.5 + _glow.value * 0.3,
                               ),
-                              blurRadius: 8,
+                              width: 1.2,
                             ),
-                          ],
-                        ),
-                        child: Text(
-                          'Lv.${score.tier.tierNumber}  ${score.tier.labelL(_lc)}',
-                          style: TextStyle(
-                            color: tierColor,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
+                            boxShadow: [
+                              BoxShadow(
+                                color: tierColor.withValues(
+                                  alpha: _glow.value * 0.25,
+                                ),
+                                blurRadius: 8,
+                              ),
+                            ],
                           ),
+                          child: Text(
+                            'Lv.${score.tier.tierNumber}  ${score.tier.labelL(_lc)}',
+                            style: TextStyle(
+                              color: tierColor,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  // 타워 꾸미기 버튼 — Build 183: Brand 만 노출.
+                  // Free/Premium 은 레터 캐릭터 탭이라 "타워 꾸미기" 가
+                  // 맥락 불일치. 향후 캐릭터 커스터마이저 별도 구현 시 재등장.
+                  if (isBrand)
+                    TextButton.icon(
+                      onPressed: () => _showTowerCustomizer(context, state),
+                      icon: const Text('🎨', style: TextStyle(fontSize: 14)),
+                      label: Text(
+                        _l.towerCustomize,
+                        style: const TextStyle(
+                          color: AppColors.gold,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
                         ),
-                      );
-                    },
-                  ),
-                  // 타워 꾸미기 버튼 (프리미엄)
-                  TextButton.icon(
-                    onPressed: () => _showTowerCustomizer(context, state),
-                    icon: const Text('🎨', style: TextStyle(fontSize: 14)),
-                    label: Text(
-                      _l.towerCustomize,
-                      style: const TextStyle(
-                        color: AppColors.gold,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  ),
                   IconButton(
                     onPressed: () => _showMoreMenu(context, state),
                     icon: const Icon(
@@ -199,21 +234,38 @@ class _TowerScreenState extends State<TowerScreen>
               SliverToBoxAdapter(
                 child: Column(
                   children: [
-                    // ── 타워 시각화 ─────────────────────────────────────────
-                    _buildTowerVisualization(score, user, hasPremium),
-                    // ── 유저 정보 카드 ────────────────────────────────────────
-                    _buildUserCard(context, user, score),
-                    const SizedBox(height: 16),
-                    // ── 활동 통계 ─────────────────────────────────────────────
-                    _buildStatsGrid(context, score),
-                    const SizedBox(height: 16),
-                    // ── 타워 레벨 업 가이드 ──────────────────────────────────
-                    _buildLevelUpGuide(context, score),
-                    const SizedBox(height: 16),
-                    // ── 성취 배지 ─────────────────────────────────────────────
-                    _buildAchievements(context, score),
-                    const SizedBox(height: 16),
-                    _buildCommunityTowers(context, state),
+                    // Build 216: Brand 는 타워 비주얼 hero 폐기 — 캠페인 데이터가
+                    // 핵심. 이름 옆 inline 으로 작은 타워 칩만 노출.
+                    if (!user.isBrand) ...[
+                      _buildCharacterVisualization(state, user),
+                      const SizedBox(height: 8),
+                      _buildCharacterGallery(state, user),
+                    ],
+                    if (user.isBrand) ...[
+                      // 1) 인라인 신원 칩 — 작은 타워 미니어처 + 브랜드명
+                      _buildBrandInlineIdentity(context, user, score),
+                      const SizedBox(height: 14),
+                      // Build 248: BrandAnalyticsCard 제거 — 프로필 화면에만 단일
+                      // 노출 (사용자 요청: 중복 제거). 타워 화면은 활동 통계 +
+                      // 마일스톤 + 커뮤니티 비교에 집중.
+                      // 활동 통계 — 캠페인 활동량.
+                      _buildStatsGrid(context, score),
+                      const SizedBox(height: 14),
+                      // 다음 마일스톤 (캠페인 리듬).
+                      _buildLevelUpGuide(context, score),
+                      const SizedBox(height: 14),
+                      // 커뮤니티 비교.
+                      _buildCommunityTowers(context, state),
+                    ] else ...[
+                      _buildCombinedIdentityStats(context, user, score),
+                      const SizedBox(height: 14),
+                      // Build 180: 성취 배지 ExpansionTile — Free/Premium 만
+                      // 타워 화면에서 노출 (Brand 는 분석 데이터로 대체).
+                      _buildAchievementsCollapsible(
+                        context, score, user.languageCode, isBrand,
+                      ),
+                      const SizedBox(height: 14),
+                    ],
                     const SizedBox(height: 40),
                   ],
                 ),
@@ -224,6 +276,359 @@ class _TowerScreenState extends State<TowerScreen>
       },
     );
   }
+
+  /// Build 163: Free/Premium 유저 hero 영역 — 성장 캐릭터 중심.
+  /// 타워 대신 큰 캐릭터 이모지 + 컴패니언/악세사리 + 레벨 pill.
+  /// 유저가 앱 켜면 "내 레터 캐릭터가 지금 Level N" 을 즉시 인지.
+  Widget _buildCharacterVisualization(AppState state, UserProfile user) {
+    final char = state.currentCharacterEmoji;
+    final companion = state.activeCompanionEmoji;
+    final accessory = state.activeAccessoryEmoji;
+    final level = state.currentLevel;
+    final progress = state.levelProgress;
+    final accent = user.isPremium ? AppColors.gold : AppColors.teal;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 24, 16, 20),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            accent.withValues(alpha: 0.16),
+            accent.withValues(alpha: 0.04),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(
+          color: accent.withValues(alpha: 0.4),
+          width: 1.4,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: accent.withValues(alpha: 0.16),
+            blurRadius: 24,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 캐릭터 stack — 아바타 배경 + 중앙 캐릭터 + 악세사리/컴패니언
+          AnimatedBuilder(
+            animation: _float,
+            builder: (_, __) => Transform.translate(
+              offset: Offset(0, _float.value * 0.5),
+              child: SizedBox(
+                width: 160,
+                height: 160,
+                child: Stack(
+                  alignment: Alignment.center,
+                  clipBehavior: Clip.none,
+                  children: [
+                    // 외곽 글로우 링
+                    AnimatedBuilder(
+                      animation: _glow,
+                      builder: (_, __) => Container(
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: accent.withValues(
+                              alpha: 0.25 + _glow.value * 0.25,
+                            ),
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                    // 아바타 본체
+                    Container(
+                      width: 132,
+                      height: 132,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.bgCard.withValues(alpha: 0.95),
+                        border: Border.all(color: accent, width: 2.5),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        char,
+                        style: const TextStyle(fontSize: 72),
+                      ),
+                    ),
+                    // 머리 위 악세사리
+                    if (accessory != null)
+                      Positioned(
+                        top: 0,
+                        child: Text(
+                          accessory,
+                          style: const TextStyle(fontSize: 38),
+                        ),
+                      ),
+                    // 오른쪽 하단 컴패니언
+                    if (companion != null)
+                      Positioned(
+                        bottom: 4,
+                        right: 4,
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: AppColors.bgCard,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: accent.withValues(alpha: 0.6),
+                              width: 1.5,
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            companion,
+                            style: const TextStyle(fontSize: 26),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Build 171: 레터 이름 (커스텀) + 편집 아이콘. 미설정 시 "이름 없음 · 탭".
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => showEditTowerNameDialog(context, state),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    user.customTowerName?.isNotEmpty == true
+                        ? user.customTowerName!
+                        : AppL10n.of(user.languageCode)
+                            .profileDialogLetterNameHint,
+                    style: AppText.heading.copyWith(
+                      color: user.customTowerName?.isNotEmpty == true
+                          ? AppColors.textPrimary
+                          : AppColors.textMuted,
+                      fontStyle: user.customTowerName?.isNotEmpty == true
+                          ? FontStyle.normal
+                          : FontStyle.italic,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Icon(
+                  Icons.edit_rounded,
+                  size: 16,
+                  color: accent.withValues(alpha: 0.7),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+          // Build 177: 레벨 라벨 + Lv N 한 줄 통합 (separate rows 3개 → 1줄).
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                state.levelLabel,
+                style: AppText.title.copyWith(color: accent),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                ),
+                child: Text(
+                  'Lv $level',
+                  style: AppText.caption.copyWith(
+                    color: accent,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // 진척 바 (얇아짐 6→4px)
+          SizedBox(
+            width: 220,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppRadius.chip / 2),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 4,
+                backgroundColor: AppColors.bgSurface,
+                valueColor: AlwaysStoppedAnimation(accent),
+              ),
+            ),
+          ),
+          // Build 177: 3개 pill (로드맵·생일·나이) → 1 rotating tip 으로 merge.
+          const SizedBox(height: 12),
+          _LetterTipRotator(state: state, accent: accent, lang: user.languageCode),
+        ],
+      ),
+    );
+  }
+
+  /// Build 177: 레터 진행 관련 pill 3개 (생일·경과일·로드맵) 를 4초 간격
+  /// 자동 순환하는 단일 tip pill 로 merge. AnimatedSwitcher fade.
+  /// — 생일 당일은 우선순위 1 로 계속 고정.
+
+  /// Build 174: 레터 캐릭터 갤러리 — 10 티어 진화 그리드 회고.
+  /// 이미 지나온 티어는 풀 컬러 + 체크 오버레이, 현재 티어는 pulse glow,
+  /// 미래 티어는 회색/잠금 아이콘. "내가 어디에서 왔고 어디로 가는지" 시각화.
+  Widget _buildCharacterGallery(AppState state, UserProfile user) {
+    final l = AppL10n.of(user.languageCode);
+    final tiers = AppState.characterTierEmojis;
+    final currentLvl = state.currentLevel;
+    final currentTierIdx = ((currentLvl - 1) ~/ 5).clamp(0, tiers.length - 1);
+    // Build 177: 갤러리 ExpansionTile 로 wrap — 기본 접힘 상태.
+    // 유저가 원할 때만 10 티어 그리드 펼쳐보기.
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(
+          color: AppColors.textMuted.withValues(alpha: 0.15),
+          width: 0.8,
+        ),
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 14),
+          childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+          iconColor: AppColors.textMuted,
+          collapsedIconColor: AppColors.textMuted,
+          title: Row(
+            children: [
+              Text(
+                l.letterGalleryTitle,
+                style: AppText.title.copyWith(
+                  color: AppColors.textPrimary,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
+                decoration: BoxDecoration(
+                  color: AppColors.gold.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                ),
+                child: Text(
+                  '${currentTierIdx + 1} / ${tiers.length}',
+                  style: AppText.caption.copyWith(
+                    color: AppColors.gold,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 10,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(
+              l.letterGallerySubtitle,
+              style: AppText.caption.copyWith(
+                color: AppColors.textMuted,
+                fontSize: 10.5,
+              ),
+            ),
+          ),
+          children: [
+            // 10개 티어 그리드 (5×2)
+            GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 5,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              childAspectRatio: 0.85,
+            ),
+            itemCount: tiers.length,
+            itemBuilder: (_, i) {
+              final emoji = tiers[i];
+              final tierStartLvl = (i * 5) + 1;
+              final passed = i < currentTierIdx;
+              final current = i == currentTierIdx;
+              final locked = i > currentTierIdx;
+              return Container(
+                decoration: BoxDecoration(
+                  color: current
+                      ? AppColors.gold.withValues(alpha: 0.12)
+                      : passed
+                          ? AppColors.bgSurface
+                          : AppColors.bgDeep.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(AppRadius.chip),
+                  border: Border.all(
+                    color: current
+                        ? AppColors.gold.withValues(alpha: 0.6)
+                        : passed
+                            ? AppColors.teal.withValues(alpha: 0.3)
+                            : AppColors.textMuted.withValues(alpha: 0.15),
+                    width: current ? 1.4 : 0.8,
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Opacity(
+                      opacity: locked ? 0.25 : 1.0,
+                      child: ColorFiltered(
+                        colorFilter: locked
+                            ? const ColorFilter.matrix([
+                                0.2126, 0.7152, 0.0722, 0, 0,
+                                0.2126, 0.7152, 0.0722, 0, 0,
+                                0.2126, 0.7152, 0.0722, 0, 0,
+                                0,      0,      0,      1, 0,
+                              ])
+                            : const ColorFilter.mode(
+                                Colors.transparent, BlendMode.multiply),
+                        child: Text(
+                          emoji,
+                          style: const TextStyle(fontSize: 24),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Lv $tierStartLvl',
+                      style: AppText.caption.copyWith(
+                        color: current
+                            ? AppColors.gold
+                            : passed
+                                ? AppColors.teal.withValues(alpha: 0.8)
+                                : AppColors.textMuted.withValues(alpha: 0.5),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 9,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          ],  // ExpansionTile children
+        ),    // ExpansionTile
+      ),      // Theme
+    );        // Container
+  }
+
 
   // ── 타워 시각화 섹션 ─────────────────────────────────────────────────────────
   Widget _buildTowerVisualization(
@@ -251,9 +656,9 @@ class _TowerScreenState extends State<TowerScreen>
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                const Color(0xFF060D1A),
+                AppColors.bgDeep,
                 tierColor.withValues(alpha: 0.06),
-                const Color(0xFF0D1F3C),
+                AppColors.bgCard,
               ],
             ),
             border: Border.all(
@@ -288,8 +693,8 @@ class _TowerScreenState extends State<TowerScreen>
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          const Color(0xFF0D1F3C).withValues(alpha: 0.0),
-                          const Color(0xFF0D1F3C),
+                          AppColors.bgCard.withValues(alpha: 0.0),
+                          AppColors.bgCard,
                         ],
                       ),
                     ),
@@ -458,7 +863,8 @@ class _TowerScreenState extends State<TowerScreen>
                     builder: (animCtx, __) => Column(
                       children: [
                         Text(
-                          _l10n(animCtx).koEn('글자의 건축가', 'ARCHITECT OF WORDS'),
+                          // Build 249: "글자의 건축가" → "혜택의 발견자" (Thiscount 테마 정합)
+                          _l10n(animCtx).koEn('혜택의 발견자', 'REWARD HUNTER'),
                           style: TextStyle(
                             color: tierColor.withValues(
                               alpha: 0.5 + _glow.value * 0.3,
@@ -501,6 +907,146 @@ class _TowerScreenState extends State<TowerScreen>
   }
 
   // ── 유저 정보 카드 ───────────────────────────────────────────────────────────
+  /// Build 216: Brand 사용자 인라인 신원 카드 — 큰 타워 비주얼 대신 한 줄.
+  /// 좌측에 작은 타워 미니어처(48x48) + 우측에 이름·티어 + 편집 버튼.
+  /// 캠페인 분석 카드가 화면 핵심이 되도록 hero 영역 양보.
+  Widget _buildBrandInlineIdentity(
+    BuildContext ctx,
+    UserProfile user,
+    ActivityScore score,
+  ) {
+    final l = AppL10n.of(user.languageCode);
+    final tierColor = _communityTierColor(score.tier);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        decoration: BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: tierColor.withValues(alpha: 0.32),
+          ),
+        ),
+        child: Row(
+          children: [
+            // Build 220: Brand 인라인 신원 — 타워 이모지 → 돈 누적 이모지.
+            Container(
+              width: 52,
+              height: 52,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: tierColor.withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Text(
+                _brandMoneyEmojiForTier(score.tier),
+                style: const TextStyle(fontSize: 28),
+              ),
+            ),
+            const SizedBox(width: 14),
+            // 이름 + 티어 + 편집
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          user.customTowerName?.isNotEmpty == true
+                              ? user.customTowerName!
+                              : user.username,
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.3,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      // 인라인 티어 라벨 (작게)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: tierColor.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          score.tier.labelL(user.languageCode),
+                          style: TextStyle(
+                            color: tierColor,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        '${user.countryFlag}  ${user.country}',
+                        style: const TextStyle(
+                          color: AppColors.textMuted,
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // 편집 버튼 — 타워 이름
+                      InkWell(
+                        onTap: () => showEditTowerNameDialog(
+                          ctx,
+                          ctx.read<AppState>(),
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 3,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.edit_rounded,
+                                size: 11,
+                                color: AppColors.gold.withValues(alpha: 0.85),
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                l.towerSetNameHint.length > 8
+                                    ? '편집'
+                                    : l.towerSetNameHint,
+                                style: TextStyle(
+                                  color: AppColors.gold.withValues(alpha: 0.85),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildUserCard(
     BuildContext ctx,
     UserProfile user,
@@ -509,37 +1055,28 @@ class _TowerScreenState extends State<TowerScreen>
     final _l = AppL10n.of(user.languageCode);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: DottedBorder(
-        borderType: BorderType.RRect,
-        radius: const Radius.circular(20),
-        color: AppColors.gold.withValues(alpha: 0.4),
-        strokeWidth: 2,
-        dashPattern: const [6, 4],
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppColors.bgCard,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            children: [
+      child: Container(
+        padding: const EdgeInsets.all(22),
+        decoration: BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Column(
+          children: [
               Row(
                 children: [
-                  // 아바타
+                  // v5: 클린 원형 아바타
                   Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
+                    width: 56,
+                    height: 56,
+                    decoration: const BoxDecoration(
                       color: AppColors.bgSurface,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppColors.gold.withValues(alpha: 0.3),
-                      ),
+                      shape: BoxShape.circle,
                     ),
                     child: Center(
                       child: Text(
                         user.countryFlag,
-                        style: const TextStyle(fontSize: 30),
+                        style: const TextStyle(fontSize: 28),
                       ),
                     ),
                   ),
@@ -555,7 +1092,10 @@ class _TowerScreenState extends State<TowerScreen>
                           ),
                         ),
                         const SizedBox(height: 8),
-                        // ── 타워 이름 편집 버튼 ──────────────────────────────
+                        // ── 타워 이름 편집 버튼 — Build 184: Brand 전용 ──
+                        // Free/Premium 은 레터 캐릭터 탭이라 "타워 이름" 이라는
+                        // 개념 자체가 불일치. Brand 만 사업체 명칭 의미로 유지.
+                        if (user.isBrand)
                         GestureDetector(
                           onTap: () => showEditTowerNameDialog(
                             ctx,
@@ -661,25 +1201,29 @@ class _TowerScreenState extends State<TowerScreen>
                           ],
                         ),
                         const SizedBox(height: 4),
-                        // 티어 배지
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.gold.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '${score.tier.emoji}  ${score.tier.labelL(user.languageCode)}',
-                            style: const TextStyle(
-                              color: AppColors.gold,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
+                        // 티어 배지 — Build 184: Brand 전용.
+                        // Free/Premium 은 건물 비유(오두막/빌딩/마천루) 대신
+                        // 이미 레터 hero 에서 XP 레벨 + 캐릭터 에볼루션 표시.
+                        // 중복 및 맥락 불일치 해소 위해 숨김.
+                        if (user.isBrand)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.gold.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '${score.tier.emoji}  ${score.tier.labelL(user.languageCode)}',
+                              style: const TextStyle(
+                                color: AppColors.gold,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
-                        ),
                       ],
                     ),
                   ),
@@ -725,26 +1269,180 @@ class _TowerScreenState extends State<TowerScreen>
             ],
           ),
         ),
-      ),
     );
   }
 
   // ── 활동 통계 그리드 ─────────────────────────────────────────────────────────
+  /// Build 203: Free/Premium 전용 통합 카드 — 유저 아바타/이름 + 3-stat row.
+  /// 기존 _buildUserCard + _buildStatsGrid 두 카드를 하나로 합쳐 시각 밀도
+  /// 개선 + 직관성 향상.
+  Widget _buildCombinedIdentityStats(
+    BuildContext ctx,
+    UserProfile user,
+    ActivityScore score,
+  ) {
+    final l = AppL10n.of(user.languageCode);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(22, 20, 22, 18),
+        decoration: BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── 상단: 아바타 + 이름 ──
+            Row(
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(
+                    color: AppColors.bgSurface,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    user.countryFlag,
+                    style: const TextStyle(fontSize: 26),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        user.username,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.4,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        score.reputationTitleL(user.languageCode),
+                        style: const TextStyle(
+                          color: AppColors.gold,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            Container(height: 0.5, color: AppColors.bgSurface),
+            const SizedBox(height: 16),
+            // ── 하단: 3-stat row ──
+            Row(
+              children: [
+                Expanded(
+                  child: _statCellInline(
+                    value: '${score.receivedCount}',
+                    label: l.towerReceivedLetters,
+                    color: AppColors.gold,
+                  ),
+                ),
+                Container(width: 0.5, height: 32, color: AppColors.bgSurface),
+                Expanded(
+                  child: _statCellInline(
+                    value: '${score.replyCount}',
+                    label: l.towerReply,
+                    color: AppColors.teal,
+                  ),
+                ),
+                Container(width: 0.5, height: 32, color: AppColors.bgSurface),
+                Expanded(
+                  child: _statCellInline(
+                    value: '${score.sentCount}',
+                    label: l.towerSentLetters,
+                    color: AppColors.success,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _statCellInline({
+    required String value,
+    required String label,
+    required Color color,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            color: color,
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.6,
+            height: 1,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label.toUpperCase(),
+          style: const TextStyle(
+            color: AppColors.textMuted,
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.4,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+
   Widget _buildStatsGrid(BuildContext ctx, ActivityScore score) {
     final _sl = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
+    final isBrandUser = ctx.read<AppState>().currentUser.isBrand;
+    // Build 204: Brand 에게는 "캠페인 성장" 으로 프레이밍 — 발송/픽업/답장이
+    // 곧 캠페인 활동량이고, 그게 곧 타워 성장이라는 일관된 메시지.
+    final title = isBrandUser
+        ? '📈 ${_sl.towerActivityStats}'
+        : _sl.towerActivityStats;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            _sl.towerActivityStats,
+            title,
             style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
               color: AppColors.textSecondary,
               letterSpacing: 1.0,
               fontWeight: FontWeight.w600,
             ),
           ),
+          if (isBrandUser) ...[
+            const SizedBox(height: 4),
+            Text(
+              _sl.towerScoreFormula,
+              style: const TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 11,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           Row(
             children: [
@@ -780,8 +1478,11 @@ class _TowerScreenState extends State<TowerScreen>
             ],
           ),
           const SizedBox(height: 12),
-          // 10단계 타워 게이지 바
-          _buildTierGauge(ctx, score),
+          // 10단계 타워 게이지 바 — Build 184: Brand 전용.
+          // Free/Premium 은 XP 레벨(1–50) + 레터 캐릭터 진화 로 별도 진척 표현
+          // 되므로 건물 10단계 게이지는 중복·맥락 불일치.
+          if (ctx.read<AppState>().currentUser.isBrand)
+            _buildTierGauge(ctx, score),
         ],
       ),
     );
@@ -1011,10 +1712,83 @@ class _TowerScreenState extends State<TowerScreen>
     );
   }
 
+  /// Build 180: 성취 배지를 ExpansionTile 로 감싼 collapsed 기본 wrapper.
+  /// 획득 뱃지 수만 타이틀에 노출 — 자세한 그리드는 탭해서 펼침.
+  Widget _buildAchievementsCollapsible(
+    BuildContext ctx, ActivityScore score, String lang,
+    [bool isBrandViewer = true]) {
+    final l = AppL10n.of(lang);
+    // 획득 수 계산은 `_buildAchievements` 와 동일 로직을 여기서 직접 세어
+    // 헤더 정보로 사용. 실제 그리드 렌더링은 기존 `_buildAchievements` 위임.
+    int earned = 0;
+    if (score.sentCount >= 1) earned++;
+    if (score.sentCount >= 10) earned++;
+    if (score.sentCount >= 50) earned++;
+    if (score.sentCount >= 100) earned++;
+    if (score.receivedCount >= 1) earned++;
+    if (score.receivedCount >= 10) earned++;
+    if (score.receivedCount >= 50) earned++;
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(
+          color: AppColors.textMuted.withValues(alpha: 0.15),
+          width: 0.8,
+        ),
+      ),
+      child: Theme(
+        data: Theme.of(ctx).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 14),
+          childrenPadding: EdgeInsets.zero,
+          iconColor: AppColors.textMuted,
+          collapsedIconColor: AppColors.textMuted,
+          title: Row(
+            children: [
+              const Text('🏅', style: TextStyle(fontSize: 16)),
+              const SizedBox(width: 8),
+              Text(
+                l.towerAchievementBadges,
+                style: AppText.title.copyWith(
+                  color: AppColors.textPrimary,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
+                decoration: BoxDecoration(
+                  color: AppColors.gold.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                ),
+                child: Text(
+                  '$earned',
+                  style: AppText.caption.copyWith(
+                    color: AppColors.gold,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 10,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          children: [
+            _buildAchievements(ctx, score, isBrandViewer),
+          ],
+        ),
+      ),
+    );
+  }
+
   // ── 성취 배지 ────────────────────────────────────────────────────────────────
-  Widget _buildAchievements(BuildContext ctx, ActivityScore score) {
+  // Build 184: [isBrandViewer] true 면 타워 티어 배지(집·빌딩·마천루·랜드마크)
+  // 포함, false(Free/Premium) 이면 편지 활동 + 인기만.
+  Widget _buildAchievements(
+    BuildContext ctx, ActivityScore score, [bool isBrandViewer = true]) {
     final _al = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
-    final achievements = [
+    final achievements = <_Achievement>[
       // ── letter activity ──────────────────────────────────────────
       _Achievement(
         emoji: '🌱',
@@ -1040,25 +1814,6 @@ class _TowerScreenState extends State<TowerScreen>
         desc: _al.towerBadgeTravelerDesc,
         unlocked: score.sentCount >= 10,
       ),
-      // ── tower tier achievements ──────────────────────────────────────
-      _Achievement(
-        emoji: '🏡',
-        title: _al.towerBadgeHouseBuilder,
-        desc: _al.towerBadgeHouseBuilderDesc, // house (15pts)
-        unlocked: score.towerHeight >= 15,
-      ),
-      _Achievement(
-        emoji: '🏢',
-        title: _al.towerBadgeBuildingArchitect,
-        desc: _al.towerBadgeBuildingArchitectDesc, // building (50pts)
-        unlocked: score.towerHeight >= 50,
-      ),
-      _Achievement(
-        emoji: '🏙️',
-        title: _al.towerBadgeSkyscraper,
-        desc: _al.towerBadgeSkyscraperDesc, // skyscraper (120pts)
-        unlocked: score.towerHeight >= 120,
-      ),
       // ── popularity / special ──────────────────────────────────────────
       _Achievement(
         emoji: '❤️',
@@ -1066,13 +1821,39 @@ class _TowerScreenState extends State<TowerScreen>
         desc: _al.towerBadgePopularDesc,
         unlocked: score.likeCount >= 10,
       ),
-      _Achievement(
-        emoji: '🗼',
-        title: _al.towerBadgeLegendaryLandmark,
-        desc: _al.towerBadgeLegendaryLandmarkDesc, // landmark (330pts)
-        unlocked: score.towerHeight >= 330,
-      ),
     ];
+    if (isBrandViewer) {
+      // ── tower tier achievements — Brand only. Free/Premium 은 레터
+      // 캐릭터 갤러리 (Build 174) 가 동일한 역할 수행.
+      achievements.insertAll(4, [
+        _Achievement(
+          emoji: '🏡',
+          title: _al.towerBadgeHouseBuilder,
+          desc: _al.towerBadgeHouseBuilderDesc, // house (15pts)
+          unlocked: score.towerHeight >= 15,
+        ),
+        _Achievement(
+          emoji: '🏢',
+          title: _al.towerBadgeBuildingArchitect,
+          desc: _al.towerBadgeBuildingArchitectDesc, // building (50pts)
+          unlocked: score.towerHeight >= 50,
+        ),
+        _Achievement(
+          emoji: '🏙️',
+          title: _al.towerBadgeSkyscraper,
+          desc: _al.towerBadgeSkyscraperDesc, // skyscraper (120pts)
+          unlocked: score.towerHeight >= 120,
+        ),
+      ]);
+      achievements.add(
+        _Achievement(
+          emoji: '🗼',
+          title: _al.towerBadgeLegendaryLandmark,
+          desc: _al.towerBadgeLegendaryLandmarkDesc, // landmark (330pts)
+          unlocked: score.towerHeight >= 330,
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -1235,7 +2016,7 @@ class _TowerScreenState extends State<TowerScreen>
                   border: Border.all(
                     color: idx == 0
                         ? AppColors.gold.withValues(alpha: 0.3)
-                        : const Color(0xFF1F2D44),
+                        : AppColors.bgSurface,
                   ),
                 ),
                 child: Row(
@@ -1435,7 +2216,7 @@ class _TowerScreenState extends State<TowerScreen>
       case TowerTier.megatower:
         return const Color(0xFFFF9F43);
       case TowerTier.landmark:
-        return const Color(0xFFFF6B9D);
+        return AppColors.coupon;
     }
   }
 
@@ -1636,7 +2417,7 @@ class _TowerScreenState extends State<TowerScreen>
               decoration: BoxDecoration(
                 color: AppColors.bgSurface,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF1F2D44)),
+                border: Border.all(color: AppColors.bgSurface),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1950,7 +2731,7 @@ class _TowerScreenState extends State<TowerScreen>
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          color: const Color(0xFF0A1628),
+          color: AppColors.bgDeep,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: previewColor.withValues(alpha: 0.2),
@@ -2070,9 +2851,9 @@ class _TowerScreenState extends State<TowerScreen>
                               scrollDirection: Axis.horizontal,
                               child: Row(
                                 children: [
-                                  _buildCustomizeTab('🚗 이동수단', 0, _customizeTabIndex, () { setS(() { _customizeTabIndex = 0; }); }),
+                                  _buildCustomizeTab(_tl.towerCustomizeTabVehicle, 0, _customizeTabIndex, () { setS(() { _customizeTabIndex = 0; }); }),
                                   const SizedBox(width: 8),
-                                  _buildCustomizeTab('🏢 타워스킨', 1, _customizeTabIndex, () { setS(() { _customizeTabIndex = 1; }); }),
+                                  _buildCustomizeTab(_tl.towerCustomizeTabSkin, 1, _customizeTabIndex, () { setS(() { _customizeTabIndex = 1; }); }),
                                 ],
                               ),
                             ),
@@ -2080,7 +2861,7 @@ class _TowerScreenState extends State<TowerScreen>
                             // Transport vehicles tab
                             if (_customizeTabIndex == 0) ...[
                               Text(
-                                '이동수단 장식',
+                                _tl.towerCustomizeVehicleSection,
                                 style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w600),
                               ),
                               const SizedBox(height: 10),
@@ -2097,7 +2878,7 @@ class _TowerScreenState extends State<TowerScreen>
                                 itemBuilder: (ctx3, i) {
                                   final v = transportVehicles[i];
                                   final vEmoji = v['emoji'] as String;
-                                  final vLabel = v['label'] as String;
+                                  final vLabel = _tl.towerItemLabel(v['label'] as String);
                                   final vTier = v['tier'] as int;
                                   final isSelected = selectedEmoji == vEmoji;
                                   // Unlock logic: tier -1 = premium only, 0 = always free, N = requires tierNumber >= N
@@ -2112,15 +2893,15 @@ class _TowerScreenState extends State<TowerScreen>
                                         color: isSelected
                                             ? AppColors.gold.withValues(alpha: 0.12)
                                             : isPremiumOnly
-                                                ? const Color(0xFF8B65FF).withValues(alpha: 0.07)
+                                                ? AppColors.streak.withValues(alpha: 0.07)
                                                 : AppColors.bgSurface.withValues(alpha: 0.8),
                                         borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
                                           color: isSelected
                                               ? AppColors.gold.withValues(alpha: 0.65)
                                               : isPremiumOnly
-                                                  ? const Color(0xFF8B65FF).withValues(alpha: 0.22)
-                                                  : const Color(0xFF1F2D44),
+                                                  ? AppColors.streak.withValues(alpha: 0.22)
+                                                  : AppColors.bgSurface,
                                           width: isSelected ? 1.8 : 1,
                                         ),
                                         boxShadow: isSelected
@@ -2151,7 +2932,7 @@ class _TowerScreenState extends State<TowerScreen>
                                             Text(
                                               isPremiumOnly ? '⭐' : 'Lv.$vTier',
                                               style: TextStyle(
-                                                color: isPremiumOnly ? const Color(0xFF8B65FF) : AppColors.gold.withValues(alpha: 0.6),
+                                                color: isPremiumOnly ? AppColors.streak : AppColors.gold.withValues(alpha: 0.6),
                                                 fontSize: 8,
                                               ),
                                             ),
@@ -2216,9 +2997,9 @@ class _TowerScreenState extends State<TowerScreen>
                         const SizedBox(height: 22),
 
                         // ── 지붕 스타일 ──
-                        const Text(
-                          '🏠 지붕 스타일',
-                          style: TextStyle(
+                        Text(
+                          _tl.towerCustomizeRoofSection,
+                          style: const TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -2254,7 +3035,7 @@ class _TowerScreenState extends State<TowerScreen>
                                       Text('${r['icon']}', style: const TextStyle(fontSize: 18)),
                                       const SizedBox(height: 4),
                                       Text(
-                                        '${r['label']}',
+                                        _tl.towerItemLabel(r['label'] as String),
                                         style: TextStyle(
                                           color: isSel ? AppColors.gold : AppColors.textMuted,
                                           fontSize: 9,
@@ -2271,9 +3052,9 @@ class _TowerScreenState extends State<TowerScreen>
                         const SizedBox(height: 22),
 
                         // ── 창문 스타일 ──
-                        const Text(
-                          '🪟 창문 스타일',
-                          style: TextStyle(
+                        Text(
+                          _tl.towerCustomizeWindowSection,
+                          style: const TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -2309,7 +3090,7 @@ class _TowerScreenState extends State<TowerScreen>
                                       Text('${w['icon']}', style: const TextStyle(fontSize: 18)),
                                       const SizedBox(height: 4),
                                       Text(
-                                        '${w['label']}',
+                                        _tl.towerItemLabel(w['label'] as String),
                                         style: TextStyle(
                                           color: isSel ? AppColors.gold : AppColors.textMuted,
                                           fontSize: 9,
@@ -2575,7 +3356,7 @@ class _TowerScreenState extends State<TowerScreen>
           end: Alignment.bottomRight,
           colors: [
             color.withValues(alpha: alpha),
-            const Color(0xFF1E293B).withValues(alpha: 0.85),
+            AppColors.bgCard.withValues(alpha: 0.85),
           ],
         ),
         border: Border(
@@ -2634,7 +3415,7 @@ class _TowerScreenState extends State<TowerScreen>
                 );
               },
             ),
-            const Divider(color: Color(0xFF1F2D44)),
+            const Divider(color: AppColors.bgSurface),
             ListTile(
               leading: const Icon(Icons.mail_rounded, color: AppColors.teal),
               title: Text(
@@ -2671,7 +3452,7 @@ class _TowerScreenState extends State<TowerScreen>
                 _showLetterManagement(ctx, state, showSent: true);
               },
             ),
-            const Divider(color: Color(0xFF1F2D44)),
+            const Divider(color: AppColors.bgSurface),
             ListTile(
               leading: const Icon(
                 Icons.logout_rounded,
@@ -2767,7 +3548,7 @@ class _TowerScreenState extends State<TowerScreen>
                           decoration: BoxDecoration(
                             color: AppColors.bgSurface,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFF1F2D44)),
+                            border: Border.all(color: AppColors.bgSurface),
                           ),
                           child: Row(
                             children: [
@@ -2919,6 +3700,9 @@ class _TowerScreenState extends State<TowerScreen>
           ),
           TextButton(
             onPressed: () async {
+              // Firebase 세션 살아있을 때 마지막 위치 Firestore 반영 →
+              // 다른 회원 지도에서 타워가 "마지막 접속 위치"로 유지됨
+              await ctx.read<AppState>().snapshotUserForLogout();
               await AuthService.logout();
               if (ctx.mounted) {
                 Navigator.of(
@@ -2950,7 +3734,7 @@ class _TowerScreenState extends State<TowerScreen>
           color: isOn ? AppColors.gold.withValues(alpha: 0.14) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isOn ? AppColors.gold.withValues(alpha: 0.55) : const Color(0xFF1F2D44),
+            color: isOn ? AppColors.gold.withValues(alpha: 0.55) : AppColors.bgSurface,
             width: isOn ? 1.5 : 1,
           ),
         ),
@@ -2986,36 +3770,171 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      padding: const EdgeInsets.fromLTRB(14, 16, 14, 14),
       decoration: BoxDecoration(
         color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF1F2D44)),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 22)),
-          const SizedBox(height: 6),
+          Text(
+            label.toUpperCase(),
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.4,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 10),
           Text(
             value,
             style: TextStyle(
               color: color,
-              fontSize: 22,
+              fontSize: 26,
               fontWeight: FontWeight.w800,
+              letterSpacing: -0.7,
+              height: 1,
             ),
           ),
+          const SizedBox(height: 6),
           Text(
-            label,
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '+${contribution.toStringAsFixed(1)}pts',
+            '+${contribution.toStringAsFixed(1)} pts',
             style: TextStyle(
               color: color.withValues(alpha: 0.7),
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Build 177: 3개 정보 pill (생일·경과일·로드맵) 을 4초 순환 단일 pill 로 merge.
+/// 생일 당일은 고정, 그 외엔 [경과일, 로드맵] 2개만 순환.
+class _LetterTipRotator extends StatefulWidget {
+  final AppState state;
+  final Color accent;
+  final String lang;
+  const _LetterTipRotator({
+    required this.state,
+    required this.accent,
+    required this.lang,
+  });
+
+  @override
+  State<_LetterTipRotator> createState() => _LetterTipRotatorState();
+}
+
+class _LetterTipRotatorState extends State<_LetterTipRotator> {
+  int _idx = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!mounted) return;
+      setState(() => _idx = (_idx + 1) % 2);
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppL10n.of(widget.lang);
+    final state = widget.state;
+    // 생일 당일 → 고정 표시 (최고 우선순위).
+    if (state.isLetterBirthdayToday) {
+      return _pill(
+        text: state.letterAgeYears > 0
+            ? l.letterBirthdayAnniversary(state.letterAgeYears)
+            : l.letterBirthdayFirstDay,
+        color: AppColors.coupon,
+        emoji: '🎂',
+      );
+    }
+    // 순환 tip — 0: 경과일, 1: 로드맵
+    final lvl = state.currentLevel;
+    String? roadmapText;
+    int? roadmapLvl;
+    final candidates = <(int, String)>[];
+    for (final k in AppState.letterCompanionLevels) {
+      if (k > lvl) candidates.add((k, l.letterRoadmapCompanion(k)));
+    }
+    for (final k in AppState.letterAccessoryLevels) {
+      if (k > lvl) candidates.add((k, l.letterRoadmapAccessory(k)));
+    }
+    final nextCharLvl = (((lvl ~/ 5) + 1) * 5) + 1;
+    if (nextCharLvl <= 50) {
+      candidates.add((nextCharLvl - 1, l.letterRoadmapCharacter(nextCharLvl - 1)));
+    }
+    if (candidates.isNotEmpty) {
+      candidates.sort((a, b) => a.$1.compareTo(b.$1));
+      final next = candidates.first;
+      roadmapLvl = next.$1;
+      roadmapText = next.$2;
+    }
+    // 로드맵 없을 땐 (Lv 50 달성) 경과일만.
+    final showRoadmap = _idx == 1 && roadmapText != null;
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 320),
+      transitionBuilder: (child, anim) => FadeTransition(opacity: anim, child: child),
+      child: showRoadmap
+          ? _pill(
+              key: const ValueKey('roadmap'),
+              emoji: '🎯',
+              text: '$roadmapText · -${roadmapLvl! - lvl}',
+              color: widget.accent,
+            )
+          : _pill(
+              key: const ValueKey('age'),
+              emoji: '📫',
+              text: l.letterAgeDays(state.daysSinceJoined),
+              color: AppColors.textMuted,
+            ),
+    );
+  }
+
+  Widget _pill({
+    required String emoji,
+    required String text,
+    required Color color,
+    Key? key,
+  }) {
+    return Container(
+      key: key,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        border: Border.all(color: color.withValues(alpha: 0.25), width: 0.8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 12)),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppText.caption.copyWith(
+                color: color,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],

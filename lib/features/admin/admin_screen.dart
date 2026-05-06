@@ -215,7 +215,7 @@ class _AdminScreenState extends State<AdminScreen> {
           _sectionHeader(l.koEn('👥 회원 관리', '👥 User Management')),
           _actionTile(
             icon: Icons.people_rounded,
-            iconColor: const Color(0xFF60A5FA),
+            iconColor: AppColors.map,
             label: l.koEn('전체 회원 목록', 'All Users'),
             subtitle: l.koEn(
               'Firestore에서 회원 조회 · 검색 · 차단',
@@ -228,7 +228,7 @@ class _AdminScreenState extends State<AdminScreen> {
           ),
           _actionTile(
             icon: Icons.monitor_heart_rounded,
-            iconColor: const Color(0xFF34D399),
+            iconColor: AppColors.success,
             label: l.koEn('테스터 대시보드', 'Tester Dashboard'),
             subtitle: l.koEn(
               '실시간 테스터 현황 · 편지 · 지도 동기화 상태',
@@ -327,7 +327,7 @@ class _AdminScreenState extends State<AdminScreen> {
                             const SizedBox(height: 4),
                             Text(
                               l.koEn(
-                                '편지 이동 시뮬레이션 속도를 높임',
+                                '혜택 이동 시뮬레이션 속도를 높임',
                                 'Increase letter travel simulation speed',
                               ),
                               style: TextStyle(
@@ -371,13 +371,53 @@ class _AdminScreenState extends State<AdminScreen> {
           // 시스템 편지 발송
           _actionTile(
             icon: Icons.mark_email_unread_rounded,
-            iconColor: const Color(0xFF818CF8),
+            iconColor: AppColors.streak,
             label: l.koEn('시스템 편지 발송', 'Send System Letter'),
             subtitle: l.koEn(
               '현재 위치에서 내 받은 편지함으로 테스트 편지 생성',
               'Create a test letter to your inbox from current location',
             ),
             onTap: () => _sendSystemLetter(state),
+          ),
+          _divider(),
+          // 🎯 ExactDrop 크레딧 충전 (브랜드 전용 유료 기능) — Build 108
+          // 현재 잔고 + "100 충전" / "1000 충전" / "초기화" 버튼 3개.
+          // 실제 결제 연동은 후속. 관리자 수동 충전으로 운영.
+          _actionTile(
+            icon: Icons.location_searching_rounded,
+            iconColor: AppColors.gold,
+            label: l.koEn(
+              '🎯 ExactDrop 크레딧',
+              '🎯 ExactDrop Credits',
+            ),
+            subtitle: l.koEn(
+              '현재 잔고 ${state.brandExactDropCredits}통 · 100통 ₩10,000 패키지',
+              'Current balance ${state.brandExactDropCredits} · 100-pack ₩10,000',
+            ),
+            trailing: _badge(
+              '${state.brandExactDropCredits}',
+              AppColors.gold,
+            ),
+            onTap: () => _showExactDropGrantSheet(state),
+          ),
+          const SizedBox(height: 8),
+          _divider(),
+          // Build 127: Brand 사업자 인증 진입점 — 사업자 번호 · 등록증 URL ·
+          // 담당자 전화 입력 후 관리자 승인 대기. 승인 완료 시 지도 아바타에
+          // ✅ 뱃지 노출.
+          _actionTile(
+            icon: Icons.verified_user_rounded,
+            iconColor: state.isBrandVerified ? AppColors.teal : AppColors.gold,
+            label: l.brandVerificationTitle,
+            subtitle: state.isBrandVerified
+                ? l.brandVerificationStatusApproved
+                : (state.currentUser.businessRegistrationNumber != null
+                    ? l.brandVerificationStatusPending
+                    : l.brandVerificationSubtitle),
+            trailing: state.isBrandVerified
+                ? _badge('✅', AppColors.teal)
+                : _badge('📝', AppColors.gold),
+            onTap: () => _showBrandVerificationSheet(state, l),
           ),
           const SizedBox(height: 8),
 
@@ -700,7 +740,7 @@ class _AdminScreenState extends State<AdminScreen> {
                         child: _tierButton(
                           '🏷️ Brand',
                           isActive: user.isBrand,
-                          color: const Color(0xFFA78BFA),
+                          color: AppColors.streak,
                           onTap: () {
                             purchase.debugSetTier(
                               isPremium: true,
@@ -767,6 +807,348 @@ class _AdminScreenState extends State<AdminScreen> {
     );
   }
 
+  // ── 🎯 ExactDrop 크레딧 충전 시트 ────────────────────────────────────────
+  /// 브랜드가 유료로 "정확 좌표 드롭" 을 쓸 수 있게 관리자가 수동 크레딧 충전.
+  /// 현재 로컬 디바이스 잔고만 조정 — 실제 결제·서버 동기화는 후속 작업.
+  /// Build 127: Brand 사업자 인증 폼 시트 — 3필드 입력 + 제출.
+  /// 제출 시 `AppState.submitBrandVerification` 호출해 SharedPreferences
+  /// 저장. 관리자가 `approveBrandVerification()` 호출 시 `brandVerifiedAt`
+  /// 타임스탬프 기록 → 지도 아바타에 ✅.
+  void _showBrandVerificationSheet(AppState state, AppL10n l) {
+    final numberCtrl = TextEditingController(
+      text: state.currentUser.businessRegistrationNumber ?? '',
+    );
+    final docCtrl = TextEditingController(
+      text: state.currentUser.businessRegistrationDocUrl ?? '',
+    );
+    final phoneCtrl = TextEditingController(
+      text: state.currentUser.businessContactPhone ?? '',
+    );
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.bgCard,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetCtx) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(sheetCtx).viewInsets.bottom,
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.verified_user_rounded,
+                      color: AppColors.gold,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        l.brandVerificationTitle,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  l.brandVerificationSubtitle,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _verificationField(
+                  label: l.brandVerificationNumberLabel,
+                  controller: numberCtrl,
+                  hint: '123-45-67890',
+                  keyboard: TextInputType.number,
+                ),
+                const SizedBox(height: 10),
+                _verificationField(
+                  label: l.brandVerificationDocLabel,
+                  controller: docCtrl,
+                  hint: 'https://.../cert.pdf',
+                  keyboard: TextInputType.url,
+                ),
+                const SizedBox(height: 10),
+                _verificationField(
+                  label: l.brandVerificationPhoneLabel,
+                  controller: phoneCtrl,
+                  hint: '010-0000-0000',
+                  keyboard: TextInputType.phone,
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      await state.submitBrandVerification(
+                        businessRegistrationNumber: numberCtrl.text,
+                        businessRegistrationDocUrl: docCtrl.text,
+                        businessContactPhone: phoneCtrl.text,
+                        // 베타: 입력 즉시 자동 승인 → ✅ 표시.
+                        // 운영 시 관리자 검토 플로우로 교체 필요.
+                        autoApprove: true,
+                      );
+                      if (!sheetCtx.mounted) return;
+                      Navigator.pop(sheetCtx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(l.brandVerificationSubmittedToast),
+                          backgroundColor: AppColors.teal,
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.gold,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      l.brandVerificationSubmitCta,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _verificationField({
+    required String label,
+    required TextEditingController controller,
+    required String hint,
+    TextInputType? keyboard,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 5),
+        TextField(
+          controller: controller,
+          keyboardType: keyboard,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 13,
+          ),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 12,
+            ),
+            filled: true,
+            fillColor: AppColors.bgSurface,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: AppColors.bgSurface),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 10,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showExactDropGrantSheet(AppState state) {
+    final l = _l10n(context);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.bgCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetCtx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.location_searching_rounded,
+                      color: AppColors.gold,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        l.koEn(
+                          '🎯 ExactDrop 크레딧 충전',
+                          '🎯 Grant ExactDrop Credits',
+                        ),
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(sheetCtx),
+                      icon: const Icon(Icons.close_rounded),
+                      color: AppColors.textMuted,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l.koEn(
+                    '현재 잔고 · ${state.brandExactDropCredits}통',
+                    'Current balance · ${state.brandExactDropCredits}',
+                  ),
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _grantButton(
+                  label: l.koEn('+ 100통 (₩10,000)', '+ 100 (₩10,000)'),
+                  color: AppColors.gold,
+                  onTap: () async {
+                    await state.adminGrantExactDropCredits(100);
+                    if (!sheetCtx.mounted) return;
+                    Navigator.pop(sheetCtx);
+                    _showSnack(
+                      l.koEn('🎯 +100통 충전됨', '🎯 +100 credits granted'),
+                    );
+                  },
+                ),
+                const SizedBox(height: 10),
+                _grantButton(
+                  label: l.koEn('+ 1,000통 (₩100,000)', '+ 1,000 (₩100,000)'),
+                  color: AppColors.teal,
+                  onTap: () async {
+                    await state.adminGrantExactDropCredits(1000);
+                    if (!sheetCtx.mounted) return;
+                    Navigator.pop(sheetCtx);
+                    _showSnack(
+                      l.koEn('🎯 +1,000통 충전됨', '🎯 +1,000 credits granted'),
+                    );
+                  },
+                ),
+                const SizedBox(height: 10),
+                OutlinedButton(
+                  onPressed: () async {
+                    // 초기화 — 현재 잔고 전체 차감 (부호 반대로 adminGrant 호출 불가
+                    // 하므로 SharedPreferences 직접 조작 방식은 state API 상 없음.
+                    // 대신 consumeExactDropCredit 를 반복 호출해 0 으로 만듦.)
+                    while (state.brandExactDropCredits > 0) {
+                      final ok = await state.consumeExactDropCredit();
+                      if (!ok) break;
+                    }
+                    if (!sheetCtx.mounted) return;
+                    Navigator.pop(sheetCtx);
+                    _showSnack(
+                      l.koEn('🎯 크레딧 초기화됨', '🎯 Credits reset to 0'),
+                    );
+                  },
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(
+                      color: AppColors.textMuted,
+                      width: 0.8,
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 11),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    minimumSize: const Size.fromHeight(44),
+                  ),
+                  child: Text(
+                    l.koEn('초기화 (0 으로)', 'Reset to 0'),
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l.koEn(
+                    '* 실제 결제 연동은 후속 작업. 현재는 관리자 수동 충전만 지원.',
+                    '* Real-payment wiring is a follow-up. Manual grant only for now.',
+                  ),
+                  style: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 10,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _grantButton({
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return ElevatedButton(
+      onPressed: onTap,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        foregroundColor: AppColors.bgDeep,
+        padding: const EdgeInsets.symmetric(vertical: 13),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        minimumSize: const Size.fromHeight(48),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.3,
+        ),
+      ),
+    );
+  }
+
   // ── 시스템 편지 발송 ────────────────────────────────────────────────────────
   void _sendSystemLetter(AppState state) {
     final l = _l10n(context);
@@ -785,7 +1167,7 @@ class _AdminScreenState extends State<AdminScreen> {
           children: [
             const Icon(
               Icons.mark_email_unread_rounded,
-              color: Color(0xFF818CF8),
+              color: AppColors.streak,
               size: 20,
             ),
             const SizedBox(width: 8),
@@ -806,7 +1188,7 @@ class _AdminScreenState extends State<AdminScreen> {
             hintText: l.koEn('내용을 입력하세요...', 'Enter message...'),
             hintStyle: const TextStyle(color: AppColors.textMuted),
             enabledBorder: const OutlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF1F2D44)),
+              borderSide: BorderSide(color: AppColors.bgSurface),
             ),
             focusedBorder: const OutlineInputBorder(
               borderSide: BorderSide(color: AppColors.teal),
@@ -839,7 +1221,7 @@ class _AdminScreenState extends State<AdminScreen> {
             child: Text(
               l.koEn('발송', 'Send'),
               style: TextStyle(
-                color: Color(0xFF818CF8),
+                color: AppColors.streak,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -1080,7 +1462,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                 itemCount: ids.length,
                 separatorBuilder: (_, __) =>
-                    const Divider(color: Color(0xFF1F2D44), height: 1),
+                    const Divider(color: AppColors.bgSurface, height: 1),
                 itemBuilder: (_, i) => ListTile(
                   leading: const Icon(
                     Icons.pending_actions_rounded,
@@ -1198,7 +1580,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                 itemCount: ids.length,
                 separatorBuilder: (_, __) =>
-                    const Divider(color: Color(0xFF1F2D44), height: 1),
+                    const Divider(color: AppColors.bgSurface, height: 1),
                 itemBuilder: (_, i) => ListTile(
                   leading: const Icon(
                     Icons.block_rounded,
@@ -1260,7 +1642,7 @@ class _AdminScreenState extends State<AdminScreen> {
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(14),
         border: const Border.fromBorderSide(
-          BorderSide(color: Color(0xFF1F2D44), width: 1),
+          BorderSide(color: AppColors.bgSurface, width: 1),
         ),
       ),
       child: child,
@@ -1296,7 +1678,7 @@ class _AdminScreenState extends State<AdminScreen> {
             '${state.adminInTransitCount}통',
             '${state.adminInTransitCount} letters',
           ),
-          const Color(0xFF818CF8),
+          AppColors.streak,
         ),
         _statCard(
           l.koEn('🚩 신고', '🚩 Reports'),
@@ -1456,7 +1838,7 @@ class _AdminScreenState extends State<AdminScreen> {
 
   Widget _divider() {
     return const Divider(
-      color: Color(0xFF1F2D44),
+      color: AppColors.bgSurface,
       height: 1,
       indent: 16,
       endIndent: 16,
@@ -1775,7 +2157,7 @@ class _TesterDashboardScreenState extends State<_TesterDashboardScreen>
                         ),
                         if (isBrand) _badge('BRAND', AppColors.error),
                         if (isPremium && !isBrand)
-                          _badge('PRO', const Color(0xFFFFD700)),
+                          _badge('PRO', AppColors.gold),
                       ],
                     ),
                     if (towerName.isNotEmpty)
@@ -1882,9 +2264,9 @@ class _TesterDashboardScreenState extends State<_TesterDashboardScreen>
     final letterType = lt['letterType'] as String? ?? 'normal';
 
     final statusColor = switch (status) {
-      'inTransit' => const Color(0xFF60A5FA),
-      'delivered' || 'read' => const Color(0xFF34D399),
-      'deliveredFar' => const Color(0xFFFBBF24),
+      'inTransit' => AppColors.map,
+      'delivered' || 'read' => AppColors.success,
+      'deliveredFar' => AppColors.warning,
       _ => AppColors.textMuted,
     };
 

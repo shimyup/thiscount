@@ -9,6 +9,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../features/progression/user_level.dart';
+import '../features/progression/user_progress.dart';
+import '../features/welcome/welcome_letter.dart';
 import '../models/letter.dart';
 import '../models/user_profile.dart';
 import '../core/config/app_keys.dart';
@@ -17,6 +19,7 @@ import '../core/localization/language_config.dart';
 import '../core/localization/app_localizations.dart';
 import '../core/data/country_cities.dart';
 import '../core/services/notification_service.dart';
+import '../core/services/feedback_service.dart';
 import '../core/services/geocoding_service.dart';
 import '../core/services/firestore_service.dart';
 import '../core/services/firebase_auth_service.dart';
@@ -51,6 +54,11 @@ class MapUser {
   final TowerTier tier;
   final int floors;
   final int rank;
+  // Build 240: 실제 사용자 레벨 (1~50). receivedCount/sentCount 기반 근사 XP 로
+  // 계산 — Firestore 에 km 데이터가 저장되지 않아 정확한 XP 는 불가하지만
+  // 마커 라벨 용도엔 충분히 정합. 이전엔 floors(1~15) 를 'Lv N' 으로
+  // 잘못 노출해서 실 사용자 레벨과 mismatch 했음.
+  final int level;
   final String? username;
   final String? towerName; // 사용자 지정 타워 이름
   final String towerColor; // 타워 커스텀 색상 (hex)
@@ -66,6 +74,7 @@ class MapUser {
     required this.tier,
     required this.floors,
     required this.rank,
+    this.level = 1,
     this.username,
     this.towerName,
     this.towerColor = '#FFD700',
@@ -82,6 +91,7 @@ class MapUser {
     tier: tier,
     floors: floors,
     rank: rank ?? this.rank,
+    level: level,
     username: username,
     towerName: towerName,
     towerColor: towerColor,
@@ -112,7 +122,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   List<MapUser> get mapUsers => List.unmodifiable(_mapUsers);
   DateTime? _lastMapUsersFetchedAt;
   bool _isFetchingMapUsers = false;
-  static const Duration _mapUsersMinRefreshInterval = Duration(minutes: 10);
+  // Build 253: 시스템 시간 조작 감지 플래그. 다음 실행 시 lastSeenAt 보다
+  // 1분 이상 과거면 true. 향후 anti-cheat 백엔드 연동 신호.
+  bool _clockTamperingDetected = false;
+  bool get clockTamperingDetected => _clockTamperingDetected;
+  // Build 218: 베타 빌드에서는 30초로 짧게 — 테스터들이 같은 지도에서 서로
+  // 빨리 보이도록. 정식 빌드는 10분 유지 (비용/배터리).
+  static Duration get _mapUsersMinRefreshInterval =>
+      (kDebugMode || !BetaConstants.disableInRelease || !kReleaseMode)
+          ? const Duration(seconds: 30)
+          : const Duration(minutes: 10);
   static const int _mapUsersPageSize = 100;
   static const int _mapUsersMaxPages = 2;
   static const int _mapUsersMaxCount = 180;
@@ -158,8 +177,52 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   List<Letter> get sent => List.unmodifiable(_sent);
 
   // ── 2km 이내 편지 ─────────────────────────────────────────────────────────
-  List<Letter> get nearbyLetters =>
-      _worldLetters.where((l) => l.status == DeliveryStatus.nearYou).toList();
+  // Build 218: Premium Lv11+ 가 카테고리 선호를 설정하면 매칭 카테고리 편지가
+  // 리스트 앞쪽으로 오도록 정렬 부스트 (UI · 알림 · 가장 가까운 편지 추천에서
+  // 선호 카테고리 우선 노출).
+  List<Letter> get nearbyLetters {
+    final list = _worldLetters
+        .where((l) => l.status == DeliveryStatus.nearYou)
+        .toList();
+    final pref = preferredCategory;
+    if (pref != null && _currentUser.isPremium && currentLevel >= 11) {
+      list.sort((a, b) {
+        final aMatch = a.category == pref ? 0 : 1;
+        final bMatch = b.category == pref ? 0 : 1;
+        return aMatch.compareTo(bMatch);
+      });
+    }
+    return list;
+  }
+
+  // ── 카테고리 선호 (Premium Lv11+ 전용) ──────────────────────────────────
+  /// 선호 카테고리 잠금 해제 조건 — Brand 가 아니고 Premium Level 11 이상.
+  bool get isCategoryPreferenceUnlocked =>
+      !_currentUser.isBrand &&
+      _currentUser.isPremium &&
+      currentLevel >= 11;
+
+  /// 현재 선호 카테고리 (없으면 null).
+  LetterCategory? get preferredCategory {
+    final key = _currentUser.preferredCategoryKey;
+    if (key == null || key.isEmpty) return null;
+    return LetterCategoryExt.fromKey(key);
+  }
+
+  /// 선호 카테고리 변경. 잠금 해제 조건 미충족 시 false 반환.
+  /// `null` 또는 `LetterCategory.general` 전달 = 선호 해제 (랜덤).
+  bool setPreferredCategory(LetterCategory? c) {
+    if (!isCategoryPreferenceUnlocked) return false;
+    if (c == null || c == LetterCategory.general) {
+      _currentUser.preferredCategoryKey = null;
+    } else {
+      _currentUser.preferredCategoryKey = c.key;
+    }
+    notifyListeners();
+    _saveToPrefs();
+    _saveUserToFirestore();
+    return true;
+  }
 
   // ── 주변 편지 줍기 제한 (무료: 1시간, 프리미엄: 10분, 선착순) ─────────────
   /// 티어별 쿨다운: 프리미엄/브랜드 10분, 무료 60분
@@ -167,6 +230,44 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       (_currentUser.isPremium || _currentUser.isBrand)
       ? const Duration(minutes: 10)
       : const Duration(minutes: 60);
+
+  // ── 등급별 픽업 반경 ──────────────────────────────────────────────────
+  // 기본 반경:
+  //   무료     200m — 주변을 걸어야 편지가 잡히는 보물찾기 느낌
+  //   프리미엄 1km  — 여유 있게 탐험 가능
+  //   브랜드   1km  — Premium 과 동일 (줍기에 참여, 발송이 본업)
+  //
+  // 레벨 보너스 (Build 106):
+  //   Free/Premium 은 현재 레벨에서 (level - 1) × 10m 가 기본 반경에 더해진다.
+  //   Level 1 = +0m, Level 50 = +490m.
+  //     → Free 최대 690m, Premium 최대 1,490m.
+  //   Brand 는 레벨 시스템 외 (`currentLevel` 이 항상 0) 이라 보너스 0m.
+  //
+  // `nearYou` / `deliveredFar` 상태 전환과 픽업 시 거리 검증 모두 이 getter
+  // 를 통해 간다.
+  double get pickupRadiusMeters {
+    if (_currentUser.isBrand) return 1000;
+    final base = _currentUser.isPremium ? 1000.0 : 200.0;
+    final levelBonus = (currentLevel - 1).clamp(0, 49) * 10.0;
+    return base + levelBonus;
+  }
+
+  // ── 포인트 (Level 50 이후 초과 XP 누적) ─────────────────────────────────
+  // Level 50 도달 XP = (50-1)² × 50 = 120,050. 이후 쌓이는 XP 는 "포인트"
+  // 로 환산되어 추후 구독 결제 시 크레딧으로 사용할 수 있도록 적립된다.
+  // 환산 비율: 50 XP = 1 point (편지 5회 줍기 ≈ 1 point).
+  // 별도 영속 필드 없이 currentXp 에서 파생 — 항상 정합.
+  static const int _level50Threshold = 120050;
+  static const int _xpPerPoint = 50;
+
+  int get userPoints {
+    if (_currentUser.isBrand) return 0;
+    final xp = currentXp;
+    if (xp <= _level50Threshold) return 0;
+    return (xp - _level50Threshold) ~/ _xpPerPoint;
+  }
+
+  bool get hasMaxLevel => currentLevel >= 50;
 
   DateTime? _lastNearbyPickupAt;
 
@@ -192,9 +293,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   static Uint8List? _encKey; // 32바이트 XOR 키 (앱 최초 실행 시 생성)
 
   // ── 편지 교환 잠금 해제 카운터 ────────────────────────────────────────────
+  // "3통 보내야 다음 편지 읽기" 체인 룰은 Build 103 의 답장 무제한 정책과
+  // 정합성을 맞추기 위해 항상 해제. 값은 통계/표시 목적으로 유지하되 게이트
+  // 로직에서는 언제나 true 를 반환.
   int _sentSinceLastUnlock = 0;
   int get sentSinceLastUnlock => _sentSinceLastUnlock;
-  bool get canViewNextLetter => _sentSinceLastUnlock >= 3;
+  bool get canViewNextLetter => true;
 
   // ── 일일 발송 제한 ────────────────────────────────────────────────────────
   static const int _dailyLimitFree = 3;
@@ -217,8 +321,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   String _lastStreakCheckinDate = ''; // yyyy-MM-dd
   bool _streakJustIncreased = false;  // 방금 증가했는지 — UI 알림용
 
+  // ── 스트릭 방어권 (Streak Freeze) ───────────────────────────────────────
+  // 하루 놓쳐도 스트릭 1회 구제. 30일마다 1개씩 자동 충전 (최대 1개 보유).
+  int _streakFreezeTokens = 0;
+  String _streakFreezeLastRefill = ''; // yyyy-MM-dd — 마지막 충전·소비일
+  bool _streakJustSaved = false;       // 직전 체크인에서 방어권 소비했는지
+  static const int _streakFreezeMax = 1;
+  static const int _streakFreezeRefillDays = 30;
+
   int get currentStreak => _currentStreak;
   int get longestStreak => _longestStreak;
+  int get streakFreezeTokens => _streakFreezeTokens;
   bool get hasCheckedInToday =>
       _lastStreakCheckinDate == _dateKey(DateTime.now());
 
@@ -226,6 +339,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   bool consumeStreakIncreaseFlag() {
     if (!_streakJustIncreased) return false;
     _streakJustIncreased = false;
+    return true;
+  }
+
+  /// 스트릭 방어권이 방금 사용되었는지 — UI 스낵바용. 1회 소비.
+  bool consumeStreakSavedFlag() {
+    if (!_streakJustSaved) return false;
+    _streakJustSaved = false;
     return true;
   }
 
@@ -322,6 +442,61 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   UserLevel? _previousUserLevel;
   bool _justLeveledUp = false;
 
+  // ── XP / 레벨 1~50 시스템 (Free · Premium 전용) ──────────────────────────
+  //
+  // Brand 계정은 "공식 발송인(Postmaster)" 으로 레벨 시스템에서 완전히 제외.
+  // `currentLevel` getter 에서 Brand 분기로 0 (= 레벨 없음) 을 반환한다.
+  //
+  // XP 공식 (사용자 지시, `UserProgress.calcXp` 참조):
+  //   picked_count * 10
+  // + sent_count   * 5
+  // + sum_pickup_km * 0.1
+  // + sum_sent_km   * 0.05
+  //
+  // picked_count / sent_count 는 기존 `ActivityScore` 를 재활용. 거리 합계
+  // 두 개만 새 누적 필드로 관리하며 SharedPreferences 에 영속화한다.
+  double _sumPickupKm = 0.0;
+  double _sumSentKm = 0.0;
+  int _previousXpLevel = 1;
+
+  double get sumPickupKm => _sumPickupKm;
+  double get sumSentKm => _sumSentKm;
+
+  /// 현재 XP — Brand 계정은 0 반환 (레벨 시스템 외).
+  int get currentXp {
+    if (_currentUser.isBrand) return 0;
+    return UserProgress.calcXp(
+      pickedCount: _currentUser.activityScore.receivedCount,
+      sentCount: _currentUser.activityScore.sentCount,
+      sumPickupKm: _sumPickupKm,
+      sumSentKm: _sumSentKm,
+    );
+  }
+
+  /// 현재 레벨. Brand 는 0 (표시는 👑 배지로 대체).
+  int get currentLevel {
+    if (_currentUser.isBrand) return 0;
+    return UserProgress.calcLevel(currentXp);
+  }
+
+  /// 다음 레벨 도달까지 남은 XP. 50 레벨 또는 Brand 는 null.
+  int? get xpToNextLevel {
+    if (_currentUser.isBrand) return null;
+    return UserProgress.xpToNextLevel(currentXp);
+  }
+
+  /// 현재 레벨 내 진척도 (0.0 ~ 1.0). 진행 바에 사용. Brand 는 1.0.
+  double get levelProgress {
+    if (_currentUser.isBrand) return 1.0;
+    return UserProgress.levelProgress(currentXp);
+  }
+
+  /// 레벨 라벨 — UI 에서 직접 이 문자열만 렌더.
+  String get levelLabel {
+    if (_currentUser.isBrand) return '👑 공식 발송인';
+    return xpLevelLabel(currentLevel);
+  }
+
   /// 레벨업 일회성 플래그를 소비. UI 에서 축하 배너 표시 후 호출.
   /// 반환: 방금 달성한 레벨 (레벨업 아니면 null).
   UserLevel? consumeLevelUpFlag() {
@@ -330,21 +505,343 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     return userLevel;
   }
 
-  /// 레벨 변화 감지 — `sendLetter` 성공, 답장 수신, 체크인 등 주요 이벤트
-  /// 이후 호출. 실제 변화가 있으면 `_justLeveledUp = true`.
+  /// 레벨 변화 감지 — `sendLetter` 성공, 답장 수신, 체크인, 픽업 등 주요 이벤트
+  /// 이후 호출. UserLevel (5단계 호환) 또는 XP 레벨 (1~50) 중 어느 쪽이든
+  /// 올랐으면 `_justLeveledUp = true`.
   void _detectLevelUp() {
+    // 기존 UserLevel 5단계 진급
     final current = userLevel;
     if (_previousUserLevel != null &&
         current.rank > _previousUserLevel!.rank) {
       _justLeveledUp = true;
     }
     _previousUserLevel = current;
+    // XP 기반 1~50 레벨 진급 (Brand 는 currentLevel 이 항상 0 이라 트리거 안 됨)
+    final xpLevel = currentLevel;
+    if (xpLevel > 0 && xpLevel > _previousXpLevel) {
+      _justLeveledUp = true;
+      // Build 120: 마일스톤 레벨(2/5/10/25/50) 도달 시 별도 플래그 — UI 에서
+      // 축하 모달 트리거용. 단순 레벨업 배너보다 무거운 축하 모먼트.
+      if (_milestoneLevels.contains(xpLevel) &&
+          !_celebratedMilestones.contains(xpLevel)) {
+        _pendingMilestoneLevel = xpLevel;
+      }
+    }
+    _previousXpLevel = xpLevel;
+  }
+
+  // ── 레벨 마일스톤 축하 (Build 120, Build 126 재분배) ─────────────────────
+  // 레벨 시스템의 게임플레이 상 의미를 느끼게 하는 주요 마디. 한 번만 표시.
+  // Build 126: Lv 25–50 간 너무 큰 공백 해소를 위해 {2,5,10,25,50} →
+  // {2,5,10,20,35,50} 로 재분배. 마지막 20 → 50 도 공백 크지만 50 은 최종
+  // 전설이라 유지.
+  static const Set<int> _milestoneLevels = {2, 5, 10, 20, 35, 50};
+  int? _pendingMilestoneLevel;
+  final Set<int> _celebratedMilestones = {};
+
+  int? get pendingMilestoneLevel => _pendingMilestoneLevel;
+
+  Future<void> acknowledgeMilestone() async {
+    final lvl = _pendingMilestoneLevel;
+    if (lvl == null) return;
+    _pendingMilestoneLevel = null;
+    _celebratedMilestones.add(lvl);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      'celebratedMilestones',
+      _celebratedMilestones.map((e) => e.toString()).toList(),
+    );
+    notifyListeners();
+  }
+
+  // ── 헌터 캐릭터 이모지 진화 (Build 122) ──────────────────────────────────
+  // 타워/플래그 중심의 정적 마커 → 레벨에 따라 변하는 캐릭터 이모지. 10개
+  // 티어(5레벨씩) 에 한 개씩 매핑해 "내 레벨이 올라갈수록 지도에 보이는
+  // 내 모습이 달라진다" 는 RPG 식 진화감. 플래그는 보조 정보로 bottom pill
+  // 에 합쳐짐.
+  //
+  // 캐릭터 선정 원칙:
+  //   1) 모두 사람·인격체 이모지 (객체·도구 배제 — 도구는 hunter items 슬롯)
+  //   2) 스토리 아크 = 초보 → 활동적 → 기술 습득 → 달인 → 전설
+  //   3) 단일 코드포인트 사용 (ZWJ sequence 피해 OS 간 호환성)
+  static const List<String> _characterEmojisByTier = [
+    '🧑',  //  1–4  평범한 사람
+    '🚶',  //  5–9  걷기 시작
+    '🏃',  // 10–14 달리는 사람
+    '🧗',  // 15–19 등반가
+    '🕵',  // 20–24 탐정
+    '🥷',  // 25–29 닌자
+    '🧙',  // 30–34 마법사
+    '🦸',  // 35–39 영웅
+    '🧝',  // 40–44 요정·엘프
+    '👑',  // 45–50 전설의 왕관
+  ];
+
+  /// 특정 레벨(1–50)의 캐릭터 이모지. Brand 는 왕관 고정 (레벨 시스템 밖).
+  /// 0 이하/범위 밖은 첫 티어 이모지 반환.
+  static String characterEmojiForLevel(int level, {bool isBrand = false}) {
+    if (isBrand) return '👑';
+    if (level <= 0) return _characterEmojisByTier.first;
+    final tierIndex = ((level - 1) ~/ 5).clamp(0, _characterEmojisByTier.length - 1);
+    return _characterEmojisByTier[tierIndex];
+  }
+
+  /// 현재 사용자의 캐릭터 이모지 — UI 에서 바로 쓰도록 getter 제공.
+  String get currentCharacterEmoji => characterEmojiForLevel(
+        currentLevel,
+        isBrand: _currentUser.isBrand,
+      );
+
+  /// 전체 티어 진화 목록 — 프로필 설명/가이드 UI 에서 노출 가능.
+  static List<String> get characterTierEmojis =>
+      List.unmodifiable(_characterEmojisByTier);
+
+  // ── 헌터 아이템 (Build 121) ──────────────────────────────────────────────
+  // 타워 층 비주얼을 대체해 "주웠다 = 모았다" 감각을 주는 이모지 아이템. 5개
+  // 마일스톤 레벨에 한 개씩 매핑. 지도 아바타 좌상단에 가장 최근 획득 아이템
+  // 작게 노출, 프로필 HuntWalletCard 에 전체 슬롯 5칸 나열.
+  // Build 126: 5 → 6 슬롯. Lv 25–50 공백을 완화하기 위해 25 → 20 이동 +
+  // 35 (⚡) 신규 추가. 마일스톤 세트와 동일한 키 목록 유지.
+  static const Map<int, String> _hunterItemEmojis = {
+    2: '🎯',  // 조준 — 첫 마일스톤
+    5: '🧭',  // 나침반
+    10: '🗺', // 보물 지도
+    20: '🎒', // 여행자 배낭
+    35: '⚡', // 번개 — 중반 마일스톤 (Build 126 신규)
+    50: '👑', // 전설의 왕관
+  };
+
+  /// 특정 마일스톤 레벨의 아이템 이모지 (정의된 레벨이 아니면 null).
+  static String? hunterItemEmoji(int milestoneLevel) =>
+      _hunterItemEmojis[milestoneLevel];
+
+  /// 마일스톤 레벨 목록 (정렬된 오름차순) — UI 슬롯 렌더링용.
+  static List<int> get hunterMilestoneLevels =>
+      _milestoneLevels.toList()..sort();
+
+  /// 현재 사용자가 이미 획득한 헌터 아이템 레벨 목록 (오름차순).
+  /// 레벨이 마일스톤 기준 이상이면 아직 축하 모달을 안 봤어도 아이템은 소유.
+  List<int> get earnedHunterItemLevels {
+    if (_currentUser.isBrand) return const [];
+    final lvl = currentLevel;
+    return _milestoneLevels.where((m) => lvl >= m).toList()..sort();
+  }
+
+  /// 가장 높은 마일스톤의 아이템 이모지 (지도 아바타 뱃지용). 없으면 null.
+  String? get latestHunterItemEmoji {
+    if (_currentUser.isBrand) return null;
+    final earned = earnedHunterItemLevels;
+    if (earned.isEmpty) return null;
+    return _hunterItemEmojis[earned.last];
+  }
+
+  // ── 레터 동행 동물 (Companion) · Build 125 ──────────────────────────────
+  // 타워 층 대신 "내 레터와 함께 걷는 동물" 이모지 펫. 특정 레벨 달성 시
+  // 해금. 지도 아바타 옆·프로필에 노출. 게임성·캐릭터 애착 강화.
+  // Build 126: 18/28/38/48 을 15/25/35/45 로 당겨 Lv 25–45 중반 구간 공백
+  // 해소. 다른 시스템(아이템·악세사리) 과 언락 시점이 겹치지 않게 조정.
+  static const Map<int, String> _letterCompanions = {
+    3: '🐕',  // 강아지 — 첫 동반자
+    8: '🐈',  // 고양이
+    15: '🦊', // 여우
+    25: '🦉', // 부엉이
+    35: '🐉', // 드래곤
+    45: '🦄', // 유니콘 — 전설
+  };
+
+  static String? letterCompanionEmoji(int level) => _letterCompanions[level];
+  static List<int> get letterCompanionLevels =>
+      _letterCompanions.keys.toList()..sort();
+
+  List<int> get earnedCompanionLevels {
+    if (_currentUser.isBrand) return const [];
+    final lvl = currentLevel;
+    return _letterCompanions.keys.where((m) => lvl >= m).toList()..sort();
+  }
+
+  /// 현재 레터가 데리고 다니는 최상위 동반자 (지도 아바타 옆 노출).
+  String? get activeCompanionEmoji {
+    if (_currentUser.isBrand) return null;
+    final earned = earnedCompanionLevels;
+    if (earned.isEmpty) return null;
+    return _letterCompanions[earned.last];
+  }
+
+  // ── 레터 장식·악세사리 · Build 125 ───────────────────────────────────────
+  // 내 레터를 꾸미는 악세사리. 레벨 해금 방식. 프로필에 컬렉션 표시.
+  static const Map<int, String> _letterAccessories = {
+    4: '🎩',   // 실크햇
+    12: '🕶',  // 선글라스
+    20: '🎀',  // 리본
+    30: '💎',  // 보석
+    40: '🌈',  // 무지개
+    50: '⭐',  // 별
+  };
+
+  static String? letterAccessoryEmoji(int level) =>
+      _letterAccessories[level];
+  static List<int> get letterAccessoryLevels =>
+      _letterAccessories.keys.toList()..sort();
+
+  List<int> get earnedAccessoryLevels {
+    if (_currentUser.isBrand) return const [];
+    final lvl = currentLevel;
+    return _letterAccessories.keys.where((m) => lvl >= m).toList()..sort();
+  }
+
+  /// 현재 레터가 착용한 최상위 악세사리. 지도 아바타 머리 위에 올릴 수 있음.
+  String? get activeAccessoryEmoji {
+    if (_currentUser.isBrand) return null;
+    final earned = earnedAccessoryLevels;
+    if (earned.isEmpty) return null;
+    return _letterAccessories[earned.last];
+  }
+
+  // ── 레터 생일 · Build 173 ────────────────────────────────────────────────
+  // `joinedAt` 기준 매년 같은 월·일 → 레터 생일. 첫 해는 1주년, 두 번째 해는
+  // 2주년. 가입 당일도 "태어난 날" 로 인정해 Day 0 축하 가능.
+  // Brand 는 제외 (캐릭터 없음).
+
+  /// 오늘이 유저의 레터 생일 (가입 기념일) 인지.
+  /// joinedAt 이 오늘과 동일한 month·day 이면 true. 가입 연도 자체는 무관.
+  bool get isLetterBirthdayToday {
+    if (_currentUser.isBrand) return false;
+    final now = DateTime.now();
+    final j = _currentUser.joinedAt;
+    return j.month == now.month && j.day == now.day;
+  }
+
+  /// 가입 후 경과 일수 (캐릭터 "나이" 표시용).
+  int get daysSinceJoined {
+    final now = DateTime.now();
+    return now.difference(_currentUser.joinedAt).inDays;
+  }
+
+  /// 가입 후 경과 연도 (기념일 차수, 0 = 가입 첫 해).
+  int get letterAgeYears {
+    if (_currentUser.isBrand) return 0;
+    final now = DateTime.now();
+    final j = _currentUser.joinedAt;
+    int years = now.year - j.year;
+    if (now.month < j.month ||
+        (now.month == j.month && now.day < j.day)) {
+      years--;
+    }
+    return years < 0 ? 0 : years;
+  }
+
+  /// 다음 레터 생일까지 남은 일수. 생일 당일 = 0.
+  int get daysUntilNextBirthday {
+    final now = DateTime.now();
+    final j = _currentUser.joinedAt;
+    var next = DateTime(now.year, j.month, j.day);
+    if (next.isBefore(DateTime(now.year, now.month, now.day))) {
+      next = DateTime(now.year + 1, j.month, j.day);
+    }
+    return next.difference(DateTime(now.year, now.month, now.day)).inDays;
+  }
+
+  // ── Brand 사업자 인증 (Build 127) ───────────────────────────────────────
+  // Brand 계정이 진짜 사업자인지 입력·저장·(후속) 관리자 승인. 승인 완료
+  // 시점(brandVerifiedAt) 이 찍히면 지도 아바타 플래그 앞에 ✅ 노출.
+
+  bool get isBrandVerified =>
+      _currentUser.isBrand && _currentUser.brandVerifiedAt != null;
+
+  /// Brand 인증 정보 제출 — 사업자 번호 · 등록증 URL · 담당자 전화.
+  /// 현재는 SharedPreferences 에 저장만. 관리자 승인은 후속 빌드.
+  ///
+  /// Build 207: `autoApprove=true` 는 베타 기간(`!kReleaseMode` 또는
+  /// `BetaConstants.disableInRelease==false`) 에만 동작. 정식 출시 빌드에서
+  /// 클라이언트가 자가 승인하지 못하도록 차단. 향후 Cloud Function 으로
+  /// `verifyBrandRequest` 를 만들어 관리자 콘솔에서만 승인 가능하게 이전 예정.
+  Future<void> submitBrandVerification({
+    required String businessRegistrationNumber,
+    required String businessRegistrationDocUrl,
+    required String businessContactPhone,
+    bool autoApprove = false,
+  }) async {
+    _currentUser.businessRegistrationNumber =
+        businessRegistrationNumber.trim();
+    _currentUser.businessRegistrationDocUrl =
+        businessRegistrationDocUrl.trim();
+    _currentUser.businessContactPhone = businessContactPhone.trim();
+    final allowAutoApprove = !kReleaseMode || !BetaConstants.disableInRelease;
+    if (autoApprove && allowAutoApprove) {
+      _currentUser.brandVerifiedAt = DateTime.now();
+    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      'brandBusinessNumber',
+      _currentUser.businessRegistrationNumber ?? '',
+    );
+    await prefs.setString(
+      'brandRegistrationDocUrl',
+      _currentUser.businessRegistrationDocUrl ?? '',
+    );
+    await prefs.setString(
+      'brandContactPhone',
+      _currentUser.businessContactPhone ?? '',
+    );
+    final verifiedAt = _currentUser.brandVerifiedAt;
+    if (verifiedAt != null) {
+      await prefs.setInt(
+        'brandVerifiedAtMs',
+        verifiedAt.millisecondsSinceEpoch,
+      );
+    } else {
+      await prefs.remove('brandVerifiedAtMs');
+    }
+    notifyListeners();
+  }
+
+  /// 관리자 측에서 인증 승인 (후속 빌드에서 서버 동기화 예정). 현재 로컬.
+  Future<void> approveBrandVerification() async {
+    if (!_currentUser.isBrand) return;
+    _currentUser.brandVerifiedAt = DateTime.now();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(
+      'brandVerifiedAtMs',
+      _currentUser.brandVerifiedAt!.millisecondsSinceEpoch,
+    );
+    notifyListeners();
+  }
+
+  /// 인증 취소 (관리자 검토 후 반려 시).
+  Future<void> revokeBrandVerification() async {
+    _currentUser.brandVerifiedAt = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('brandVerifiedAtMs');
+    notifyListeners();
+  }
+
+  /// Build 242: 가맹점 영입 관심 등록 — 빈 상태에서 일반 사용자가 누른
+  /// "사장님이세요?" 시트로부터 호출. Firestore `merchant_interest` 컬렉션에
+  /// 도시 + 언어 + 타임스탬프 저장. 운영자가 이 리스트로 closed beta 영업 진행.
+  /// 실패 시 throw — 시트 측에서 best-effort 캐치.
+  Future<void> recordMerchantInterest({
+    required String country,
+    required String countryFlag,
+    required String languageCode,
+  }) async {
+    final docId = 'interest_${_currentUser.id}_${DateTime.now().millisecondsSinceEpoch}';
+    await FirestoreService.setDocument('merchant_interest/$docId', {
+      'userId': _currentUser.id,
+      'username': _currentUser.username,
+      'country': country,
+      'countryFlag': countryFlag,
+      'languageCode': languageCode,
+      'lat': _currentUser.latitude,
+      'lng': _currentUser.longitude,
+      'createdAt': DateTime.now().toUtc().toIso8601String(),
+    });
   }
 
   /// 앱 진입 / 첫 액티비티 시 호출. 하루 1회만 실제 증가, 중복 호출 안전.
   /// - 처음 접속: streak = 1
   /// - 어제 접속 → 오늘 재접속: streak++
-  /// - 어제 누락 (하루 이상 공백): streak = 1
+  /// - 2일 이상 공백 + 방어권 보유 + 공백이 정확히 1일: 방어권 소비, 스트릭 유지
+  /// - 그 외 공백: streak = 1
   /// - 오늘 이미 체크인: no-op
   void registerDailyStreakCheckin() {
     final today = DateTime.now();
@@ -354,17 +851,26 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       return; // 오늘 이미 처리
     }
 
+    _maybeRefillStreakFreeze(today);
+
     if (_lastStreakCheckinDate.isEmpty) {
-      // 첫 접속
+      // 첫 접속 — 방어권은 _maybeRefillStreakFreeze가 이미 지급했다
       _currentStreak = 1;
     } else {
-      // 어제 (today - 1) 와 비교
-      final yesterday = today.subtract(const Duration(days: 1));
-      final yesterdayKey = _dateKey(yesterday);
-      if (_lastStreakCheckinDate == yesterdayKey) {
+      final lastDate = _parseDateKey(_lastStreakCheckinDate);
+      final gapDays = lastDate == null
+          ? 2
+          : _dayDifference(lastDate, today);
+      if (gapDays == 1) {
         _currentStreak += 1;
+      } else if (gapDays == 2 && _streakFreezeTokens > 0) {
+        // 어제 하루 놓침 — 방어권으로 구제
+        _streakFreezeTokens -= 1;
+        _streakFreezeLastRefill = todayKey;
+        _streakJustSaved = true;
+        _currentStreak += 1; // 어제 접속한 것처럼 1 증가
       } else {
-        _currentStreak = 1; // 공백 → 리셋
+        _currentStreak = 1; // 2일 이상 공백 또는 토큰 없음 → 리셋
       }
     }
 
@@ -375,6 +881,45 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _streakJustIncreased = true;
     notifyListeners();
     _saveToPrefs();
+  }
+
+  void _maybeRefillStreakFreeze(DateTime today) {
+    if (_streakFreezeTokens >= _streakFreezeMax) return;
+    // 최초 1회 지급 — 신규 유저와 Build 95 이전부터 쓰던 기존 유저(마이그레이션)
+    // 모두 여기에서 토큰을 받는다. lastRefill이 비어 있으면 "지금 충전 기준선을
+    // 오늘로 설정"한다.
+    if (_streakFreezeLastRefill.isEmpty) {
+      _streakFreezeTokens = _streakFreezeMax;
+      _streakFreezeLastRefill = _dateKey(today);
+      return;
+    }
+    final lastRefill = _parseDateKey(_streakFreezeLastRefill);
+    if (lastRefill == null) return;
+    final gap = _dayDifference(lastRefill, today);
+    if (gap >= _streakFreezeRefillDays) {
+      _streakFreezeTokens = _streakFreezeMax;
+      _streakFreezeLastRefill = _dateKey(today);
+    }
+  }
+
+  DateTime? _parseDateKey(String yyyyMMdd) {
+    try {
+      final parts = yyyyMMdd.split('-');
+      if (parts.length != 3) return null;
+      return DateTime(
+        int.parse(parts[0]),
+        int.parse(parts[1]),
+        int.parse(parts[2]),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  int _dayDifference(DateTime a, DateTime b) {
+    final aDay = DateTime(a.year, a.month, a.day);
+    final bDay = DateTime(b.year, b.month, b.day);
+    return bDay.difference(aDay).inDays;
   }
 
   // ── 월간 발송 제한 ────────────────────────────────────────────────────────
@@ -391,6 +936,64 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   // ── 브랜드 추가 구매 월간 발송권 ───────────────────────────────────────────
   int _brandExtraMonthlyQuota = 0;
+
+  // ── 브랜드 정확 좌표 드롭 (ExactDrop) 크레딧 ─────────────────────────────
+  // Build 106: 지도에 편지를 정확히 찍어 뿌리는 기능은 유료 애드온으로 전환.
+  // 100통 패키지 = 10,000원. 관리자 패널에서 수동 충전 (RevenueCat / 실제
+  // 결제 연동은 후속 작업). 크레딧 0 이면 컴포즈 화면에서 "관리자 문의"
+  // 다이얼로그로 안내. 1통 발송 시 1 크레딧 차감.
+  int _brandExactDropCredits = 0;
+  int get brandExactDropCredits => _brandExactDropCredits;
+  bool get canUseExactDrop =>
+      _currentUser.isBrand && _brandExactDropCredits > 0;
+
+  Future<void> adminGrantExactDropCredits(int amount) async {
+    if (amount <= 0) return;
+    _brandExactDropCredits += amount;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('brandExactDropCredits', _brandExactDropCredits);
+    notifyListeners();
+  }
+
+  /// ExactDrop 로 편지 1통을 발송한 후 호출 — 크레딧 차감.
+  /// 잔고 부족 시 false 반환 (호출측에서 발송 중단).
+  Future<bool> consumeExactDropCredit() async {
+    if (_brandExactDropCredits <= 0) return false;
+    _brandExactDropCredits--;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('brandExactDropCredits', _brandExactDropCredits);
+    notifyListeners();
+    return true;
+  }
+
+  // ── 🎟 브랜드 홍보 팝업 — 티켓형 (Build 107) ────────────────────────────
+  // 로그인 직후 홈 화면에서 "신상 50% 할인 by 000 브랜드" 스타일의 티켓 팝업을
+  // 1회 노출. 유저가 닫으면 해당 세션 동안 재출현 금지 (`_promoShownThisSession`).
+  // 앱 재시작 시 플래그 리셋 → 다시 노출. 세션 플래그는 영속화하지 않는다.
+  //
+  // 팝업에 쓸 campaign 데이터는 현재 `_worldLetters` 중 브랜드가 보낸 최신
+  // 활성 편지 (`senderIsBrand=true`, `!isExpired`) 에서 파생. 만료 기간은
+  // 브랜드가 컴포즈 시 설정한 `expiresAt` 을 그대로 따른다 — 별도 설정 불필요.
+  bool _promoShownThisSession = false;
+  bool get promoShownThisSession => _promoShownThisSession;
+  void markPromoShownThisSession() {
+    _promoShownThisSession = true;
+  }
+
+  /// 현재 활성 중인 브랜드 홍보 편지 중 가장 최근 것을 반환.
+  /// 기준: senderIsBrand=true · 만료되지 않음 · coupon 또는 voucher 카테고리.
+  /// 없으면 null (팝업 미노출).
+  Letter? get featuredBrandPromo {
+    final now = DateTime.now();
+    final candidates = _worldLetters.where((l) =>
+        l.senderIsBrand &&
+        (l.category == LetterCategory.coupon ||
+            l.category == LetterCategory.voucher) &&
+        (l.expiresAt == null || l.expiresAt!.isAfter(now))).toList();
+    if (candidates.isEmpty) return null;
+    candidates.sort((a, b) => b.sentAt.compareTo(a.sentAt));
+    return candidates.first;
+  }
   int _inviteRewardCredits = 0;
   String _inviteCode = '';
   String? _appliedInviteCode;
@@ -756,6 +1359,179 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   final Set<String> _blockedSenderIds = {};
   Set<String> get blockedSenderIds => Set.unmodifiable(_blockedSenderIds);
 
+  // ── 유저가 직접 뮤트한 브랜드 (SharedPreferences 로 영속) ──────────────
+  // 편지 읽기 화면에서 "이 브랜드 편지 받지 않기" 탭으로 추가/해제. 뮤트된
+  // 브랜드의 새 편지는 수집첩에 합류할 때 필터링되어 인박스에서 제외됨
+  // (기존 편지는 그대로 유지 — 과거 수령한 혜택은 남김).
+  final Set<String> _mutedBrandIds = {};
+  Set<String> get mutedBrandIds => Set.unmodifiable(_mutedBrandIds);
+  bool isBrandMuted(String senderId) => _mutedBrandIds.contains(senderId);
+
+  Future<void> toggleBrandMute(String senderId) async {
+    if (senderId.isEmpty) return;
+    if (_mutedBrandIds.contains(senderId)) {
+      _mutedBrandIds.remove(senderId);
+    } else {
+      _mutedBrandIds.add(senderId);
+    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('mutedBrandIds', _mutedBrandIds.toList());
+    notifyListeners();
+  }
+
+  // ── 쿠폰 사용 완료 추적 (Build 108) ─────────────────────────────────────
+  // 수신자가 편지 안 할인 코드·링크를 실제로 써서 "사용 완료" 버튼을 누르면
+  // letterId 가 이 set 에 들어간다. SharedPreferences 로 영속. 브랜드 쪽에서
+  // 자기 편지들 중 얼마나 사용됐는지 집계해 편지 카드에 배지 노출 가능.
+  // 서버 동기화·브랜드 대시보드 대용량 집계는 후속 작업 — 현재는 로컬 추적만.
+  final Set<String> _redeemedLetterIds = {};
+  bool isLetterRedeemed(String letterId) =>
+      _redeemedLetterIds.contains(letterId);
+
+  /// 편지의 쿠폰/링크를 실제로 사용했음을 표시 (단방향 — 한번 사용 → 계속 사용됨).
+  Future<void> markLetterRedeemed(String letterId) async {
+    if (letterId.isEmpty) return;
+    if (_redeemedLetterIds.contains(letterId)) return;
+    _redeemedLetterIds.add(letterId);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      'redeemedLetterIds',
+      _redeemedLetterIds.toList(),
+    );
+    // Build 134: 이미 사용했으니 만료 임박 알림은 불필요 — 예약됐다면 취소.
+    unawaited(NotificationService.cancelCouponExpiryReminder(letterId));
+    // Build 138: 브랜드 편지 사용 완료 집계 — 브랜드 대시보드 conversion
+    // 계산 원천. 로컬 `_redeemedLetterIds` 와 별도로 서버에도 기록.
+    if (FirebaseConfig.kFirebaseEnabled) {
+      unawaited(
+        FirestoreService.incrementField(
+          path: 'letters/$letterId',
+          field: 'redeemedCount',
+        ),
+      );
+    }
+    notifyListeners();
+  }
+
+  /// 브랜드 대시보드 용 — 내가 보낸 편지 중 몇 통이 사용됐는지 (동일 디바이스 기준).
+  int get myRedeemedSentCount {
+    if (!_currentUser.isBrand) return 0;
+    return _sent.where((l) => _redeemedLetterIds.contains(l.id)).length;
+  }
+
+  // ── 브랜드 팔로우 (뮤트의 반대 — Build 115) ──────────────────────────────
+  // 관심 브랜드를 표시해두면 인박스 상단에 해당 브랜드 편지가 고정되고,
+  // 향후 신규 편지 알림 우선순위 판단에도 쓰일 수 있다. mute 와 상호배타 —
+  // follow 하면 mute 해제, mute 하면 follow 해제. 둘 다 SharedPreferences
+  // 영속.
+  final Set<String> _followedBrandIds = {};
+  Set<String> get followedBrandIds => Set.unmodifiable(_followedBrandIds);
+  bool isBrandFollowed(String senderId) =>
+      _followedBrandIds.contains(senderId);
+
+  Future<void> toggleBrandFollow(String senderId) async {
+    if (senderId.isEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    if (_followedBrandIds.contains(senderId)) {
+      _followedBrandIds.remove(senderId);
+    } else {
+      _followedBrandIds.add(senderId);
+      if (_mutedBrandIds.remove(senderId)) {
+        await prefs.setStringList('mutedBrandIds', _mutedBrandIds.toList());
+      }
+    }
+    await prefs.setStringList(
+      'followedBrandIds',
+      _followedBrandIds.toList(),
+    );
+    notifyListeners();
+  }
+
+  // ── 첫 픽업 축하 모먼트 (Build 115) ──────────────────────────────────────
+  // 신규 유저의 첫 편지 픽업은 온보딩-본격 사용 전환의 결정적 순간.
+  // 프로필/지도 어디서든 이 getter 가 true 면 축하 모달을 띄우고
+  // `acknowledgeFirstPickup()` 으로 플래그를 소진한다. 한 번 소진 후 다시
+  // true 되지 않음 (영구).
+  bool _hasCelebratedFirstPickup = false;
+  bool get shouldCelebrateFirstPickup =>
+      !_hasCelebratedFirstPickup && _myPickedUpLetterIds.isNotEmpty;
+
+  Future<void> acknowledgeFirstPickup() async {
+    if (_hasCelebratedFirstPickup) return;
+    _hasCelebratedFirstPickup = true;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('hasCelebratedFirstPickup', true);
+    notifyListeners();
+  }
+
+  // ── 헌트 지표 집계 (Build 115 "나의 헌트 기록" 카드용) ───────────────────
+  // 프로필 카드에서 "이번 달 얼마나 벌었나?" 감각을 만드는 핵심 수치. 쿠폰
+  // 편지만 카운트 — 일반 편지는 혜택 개념이 아님. arrivedAt 은 픽업 시점에
+  // 세팅되므로 월별 필터링의 기준 시각으로 쓴다.
+  DateTime get _startOfMonth {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, 1);
+  }
+
+  int get pickupsThisMonth => _inbox
+      .where((l) => l.arrivedAt != null && l.arrivedAt!.isAfter(_startOfMonth))
+      .length;
+
+  int get brandPickupsThisMonth => _inbox
+      .where((l) =>
+          l.senderIsBrand &&
+          l.arrivedAt != null &&
+          l.arrivedAt!.isAfter(_startOfMonth))
+      .length;
+
+  int get redemptionsThisMonth => _inbox
+      .where((l) =>
+          l.senderIsBrand &&
+          l.arrivedAt != null &&
+          l.arrivedAt!.isAfter(_startOfMonth) &&
+          _redeemedLetterIds.contains(l.id))
+      .length;
+
+  int get totalBrandPickups =>
+      _inbox.where((l) => l.senderIsBrand).length;
+  int get totalRedemptions => _redeemedLetterIds.length;
+
+  // 주간 (월요일 00:00 부터 현재까지) 픽업 수 — 주간 퀘스트 진행 바용.
+  // 로컬 타임존 기준. 일요일 자정에 자동 리셋. Build 116.
+  DateTime get _startOfWeek {
+    final now = DateTime.now();
+    final daysFromMonday = (now.weekday - DateTime.monday) % 7;
+    final monday = DateTime(now.year, now.month, now.day)
+        .subtract(Duration(days: daysFromMonday));
+    return monday;
+  }
+
+  int get pickupsThisWeek => _inbox
+      .where(
+          (l) => l.arrivedAt != null && l.arrivedAt!.isAfter(_startOfWeek))
+      .length;
+
+  /// 주간 헌트 퀘스트 기본 목표치 (현재 하드코딩 5통). Free/Premium/Brand
+  /// 동일. 추후 티어별 차등 도입 시 이 값만 조정하면 됨.
+  int get weeklyQuestGoal => 5;
+
+  // ── 만료 임박 쿠폰 (Build 115 "만료 사이렌" 배너용) ────────────────────────
+  // 받은 브랜드 쿠폰·교환권 중 24h 이내 만료 + 미사용. 인박스 상단 빨간
+  // 배너로 FOMO 트리거. 일반 브랜드 편지는 제외 (혜택 개념 없음).
+  List<Letter> get expiringSoonLetters {
+    final now = DateTime.now();
+    final cutoff = now.add(const Duration(hours: 24));
+    return _inbox
+        .where((l) =>
+            l.senderIsBrand &&
+            l.category != LetterCategory.general &&
+            l.expiresAt != null &&
+            l.expiresAt!.isAfter(now) &&
+            l.expiresAt!.isBefore(cutoff) &&
+            !_redeemedLetterIds.contains(l.id))
+        .toList();
+  }
+
   // ── 임시 차단 (신고 접수 → 관리자 검토 전까지) ──────────────────────────────
   final Set<String> _tempBlockedSenderIds = {};
   Set<String> get tempBlockedSenderIds =>
@@ -1048,6 +1824,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      // Build 205: 백그라운드 동안 wall-clock 기반 진행을 즉시 catch-up.
+      // (timer 없이도 한 번 sync — 진행이 멈춰 보이지 않게)
+      _reconcileLetterStatuses();
+      // Build 218: 진행도 sync 직후 1회 tick 으로 nearYou/deliveredFar
+      // 상태 전환 + UI 알림까지 즉시 반영. 5s timer 첫 발화 대기 없이
+      // 사용자가 "편지가 멈춰 있다" 고 느끼는 빈 frame 을 제거.
+      _runDeliveryTick(triggerNotifications: false);
       // 포그라운드 복귀 → 타이머 재시작
       if (_deliveryTimer == null || !_deliveryTimer!.isActive) {
         _startDeliverySimulation();
@@ -1290,8 +2073,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     return 'aes:${base64Encode(combined)}';
   }
 
-  /// Decrypts AES-256-CBC (prefixed "aes:") or falls back to legacy XOR /
-  /// raw plaintext for backward compatibility.
+  /// Decrypts AES-256-CBC (prefixed "aes:") or legacy XOR base64.
+  ///
+  /// Build 207: 마지막 catch 의 `return cipher;` (평문 fallback) 제거.
+  /// 손상되거나 외부에서 주입된 데이터를 그대로 평문 처리하면 우회 위험.
+  /// 복호화 실패 시 빈 문자열 반환 → 호출부는 "데이터 없음" 으로 안전 처리.
   static String _decryptStr(String cipher, Uint8List key) {
     try {
       if (cipher.startsWith('aes:')) {
@@ -1312,7 +2098,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       }
       return utf8.decode(output);
     } catch (_) {
-      return cipher; // 구버전 평문 데이터 호환
+      // 복호화 실패 — 평문 fallback 금지. 빈 문자열로 안전하게 무효화.
+      if (kDebugMode) {
+        debugPrint('[Crypto] _decryptStr 실패 — 손상 데이터 무시');
+      }
+      return '';
     }
   }
 
@@ -1361,6 +2151,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       prefs.setInt('streak_current', _currentStreak);
       prefs.setInt('streak_longest', _longestStreak);
       prefs.setString('streak_last_checkin', _lastStreakCheckinDate);
+      // 스트릭 방어권 (30일마다 1회 충전, 1일 공백 구제)
+      prefs.setInt('streak_freeze_tokens', _streakFreezeTokens);
+      prefs.setString('streak_freeze_last_refill', _streakFreezeLastRefill);
+      // XP 거리 누적 (Brand 계정도 필드는 보존해 다시 Free 로 전환 시 유지)
+      prefs.setDouble('sum_pickup_km', _sumPickupKm);
+      prefs.setDouble('sum_sent_km', _sumSentKm);
       // 주간 챌린지
       prefs.setStringList(
         'challenge_week_countries',
@@ -1419,6 +2215,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       // 타워 이름 / 언어 코드 영속 저장
       prefs.setString('customTowerName', _currentUser.customTowerName ?? '');
       prefs.setString('languageCode', _currentUser.languageCode);
+      // Build 218: 카테고리 선호 영속 저장 (Premium Lv11+)
+      prefs.setString(
+        'preferredCategoryKey',
+        _currentUser.preferredCategoryKey ?? '',
+      );
       prefs.setInt(
         'lastNearbyPickupAtMs',
         _lastNearbyPickupAt?.millisecondsSinceEpoch ?? 0,
@@ -1444,6 +2245,42 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         } catch (_) {}
       }
     }
+    // Build 202 — 테스트용 브랜드 광고 편지 (사진 + coupon 카테고리).
+    // BrandAdModal 의 featuredBrandPromo 가 이 편지를 픽업해서 온보딩 후 모달
+    // 노출. 실제로는 admin 업로드로 추가될 예정.
+    if (!_worldLetters.any((l) => l.id == 'brand_ad_seed')) {
+      final now = DateTime.now();
+      _worldLetters.add(Letter(
+        id: 'brand_ad_seed',
+        senderId: 'brand_seed',
+        senderName: 'Blue Bottle Coffee',
+        senderCountry: '대한민국',
+        senderCountryFlag: '🇰🇷',
+        content:
+            '아메리카노 1+1 쿠폰\n오늘 성수점에서 받아가세요. 첫 잔은 저희가 살게요.',
+        originLocation: const LatLng(37.5447, 127.0557),
+        destinationLocation: const LatLng(37.5447, 127.0557),
+        destinationCountry: '대한민국',
+        destinationCountryFlag: '🇰🇷',
+        destinationCity: '성수동',
+        segments: const [],
+        currentSegmentIndex: 0,
+        status: DeliveryStatus.delivered,
+        sentAt: now.subtract(const Duration(hours: 2)),
+        arrivedAt: now.subtract(const Duration(hours: 1)),
+        arrivalTime: now.subtract(const Duration(hours: 1)),
+        estimatedTotalMinutes: 60,
+        senderIsBrand: true,
+        senderTier: LetterSenderTier.brand,
+        category: LetterCategory.coupon,
+        acceptsReplies: false,
+        deliveryEmoji: '☕',
+        imageUrl:
+            'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800&q=80',
+        expiresAt: now.add(const Duration(days: 7)),
+      ));
+    }
+
     // 디버그 모드: 사진 예시 편지가 없으면 추가 (inbox 유무와 무관하게 항상 체크)
     if (kDebugMode && !_inbox.any((l) => l.id == 'inbox4_photo')) {
       _inbox.add(
@@ -1547,6 +2384,62 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _tempBlockedSenderIds.clear();
     _tempBlockedSenderIds.addAll(prefs.getStringList('temp_blocked') ?? []);
 
+    // 유저가 뮤트한 브랜드 복원
+    _mutedBrandIds.clear();
+    _mutedBrandIds.addAll(prefs.getStringList('mutedBrandIds') ?? []);
+
+    // 쿠폰 사용 완료 복원
+    _redeemedLetterIds.clear();
+    _redeemedLetterIds.addAll(prefs.getStringList('redeemedLetterIds') ?? []);
+
+    // 브랜드 팔로우 복원
+    _followedBrandIds.clear();
+    _followedBrandIds.addAll(prefs.getStringList('followedBrandIds') ?? []);
+
+    // Brand 사업자 인증 복원 (Build 127)
+    _currentUser.businessRegistrationNumber =
+        prefs.getString('brandBusinessNumber');
+    if (_currentUser.businessRegistrationNumber?.isEmpty ?? false) {
+      _currentUser.businessRegistrationNumber = null;
+    }
+    _currentUser.businessRegistrationDocUrl =
+        prefs.getString('brandRegistrationDocUrl');
+    if (_currentUser.businessRegistrationDocUrl?.isEmpty ?? false) {
+      _currentUser.businessRegistrationDocUrl = null;
+    }
+    _currentUser.businessContactPhone = prefs.getString('brandContactPhone');
+    if (_currentUser.businessContactPhone?.isEmpty ?? false) {
+      _currentUser.businessContactPhone = null;
+    }
+    final brandVerifiedMs = prefs.getInt('brandVerifiedAtMs');
+    _currentUser.brandVerifiedAt = brandVerifiedMs != null
+        ? DateTime.fromMillisecondsSinceEpoch(brandVerifiedMs)
+        : null;
+
+    // 레벨 마일스톤 축하 소진 이력 복원 (Build 120)
+    _celebratedMilestones
+      ..clear()
+      ..addAll(
+        (prefs.getStringList('celebratedMilestones') ?? const [])
+            .map(int.tryParse)
+            .whereType<int>(),
+      );
+
+    // 첫 픽업 축하 소진 여부 복원. Build 117 마이그레이션: Build 115 이전부터
+    // 이미 편지를 주운 사용자는 축하 키가 없으면서 픽업 이력이 있다. 그대로
+    // 두면 다음 실행에서 "첫 픽업!" 모달이 오발사하므로, 키 미존재 + prefs 의
+    // 픽업 이력이 비어있지 않으면 즉시 소진으로 백필. prefs 에서 직접 읽어서
+    // 로드 순서 의존성을 피한다 (`_myPickedUpLetterIds` 채워지는 시점이 뒤쪽).
+    _hasCelebratedFirstPickup =
+        prefs.getBool('hasCelebratedFirstPickup') ?? false;
+    if (!prefs.containsKey('hasCelebratedFirstPickup')) {
+      final prior = prefs.getStringList('myPickedUpLetterIds') ?? const [];
+      if (prior.isNotEmpty) {
+        _hasCelebratedFirstPickup = true;
+        await prefs.setBool('hasCelebratedFirstPickup', true);
+      }
+    }
+
     // 잠금 해제 카운터 복원
     _sentSinceLastUnlock = prefs.getInt('sentSinceLastUnlock') ?? 0;
     _dailySentCount = prefs.getInt('dailySentCount') ?? 0;
@@ -1558,6 +2451,21 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _currentStreak = prefs.getInt('streak_current') ?? 0;
     _longestStreak = prefs.getInt('streak_longest') ?? 0;
     _lastStreakCheckinDate = prefs.getString('streak_last_checkin') ?? '';
+    _streakFreezeTokens = prefs.getInt('streak_freeze_tokens') ?? 0;
+    _streakFreezeLastRefill =
+        prefs.getString('streak_freeze_last_refill') ?? '';
+    _sumPickupKm = prefs.getDouble('sum_pickup_km') ?? 0.0;
+    _sumSentKm = prefs.getDouble('sum_sent_km') ?? 0.0;
+    // 레거시 테스터: 거리 기록이 없을 때, 기존 활동량 기반으로 초기 추정 XP 를
+    // 확보해 레벨 라벨이 신규 유저처럼 보이지 않도록 한다. 정확한 누적값은
+    // 앞으로의 픽업·발송부터 실측이 덮어쓴다.
+    if (_sumPickupKm == 0.0 && _currentUser.activityScore.receivedCount > 0) {
+      _sumPickupKm = _currentUser.activityScore.receivedCount * 4000.0;
+    }
+    if (_sumSentKm == 0.0 && _currentUser.activityScore.sentCount > 0) {
+      _sumSentKm = _currentUser.activityScore.sentCount * 6000.0;
+    }
+    _previousXpLevel = currentLevel;
 
     // 주간 챌린지 복원
     _weeklyChallengeCountries
@@ -1584,6 +2492,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _pendingDMCount = prefs.getInt('pendingDMCount') ?? 0;
     _brandExtraMonthlyQuota =
         prefs.getInt(PrefKeys.brandExtraMonthlyQuota) ?? 0;
+    _brandExactDropCredits = prefs.getInt('brandExactDropCredits') ?? 0;
     _inviteRewardCredits = prefs.getInt(PrefKeys.inviteRewardCredits) ?? 0;
     final restoredOwnInviteCode = prefs.getString(PrefKeys.inviteCode);
     _inviteCode =
@@ -1621,6 +2530,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       (m) => m.name == displayThemeModeRaw,
       orElse: () => DisplayThemeMode.auto,
     );
+
+    // Build 218: 카테고리 선호 복원
+    final savedPreferredCategory =
+        prefs.getString('preferredCategoryKey') ?? '';
+    _currentUser.preferredCategoryKey =
+        savedPreferredCategory.isEmpty ? null : savedPreferredCategory;
 
     // 타워 이름 복원
     final savedTowerName = prefs.getString('customTowerName') ?? '';
@@ -1707,6 +2622,18 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       _saveToPrefs();
     }
 
+    // Build 253: SharedPreferences 스키마 버전 — iCloud/Android 백업 복구 시
+    // 옛 키 형식이 들어와도 안전하게 무시/마이그레이션. 현재 schema=1 으로
+    // 시작. 추후 키 이름이 바뀌거나 형식이 변경되면 schema 증가시키고
+    // _migrateSharedPrefs(oldVer, newVer) 분기 추가.
+    final schemaVer = prefs.getInt('shared_prefs_schema_version') ?? 1;
+    if (schemaVer < 1) {
+      // 미래의 마이그레이션 분기 (현재 v1 베이스라인)
+    }
+    if (schemaVer != 1) {
+      await prefs.setInt('shared_prefs_schema_version', 1);
+    }
+
     // AI 자동 편지 생성 (하루 5통)
     _lastAiLetterDateKey = prefs.getString('lastAiLetterDateKey') ?? '';
     _generateDailyAiLetters();
@@ -1716,11 +2643,80 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // ── Firebase 익명 로그인 + 서버 편지 동기화 ─────────────────────────────
     await _initFirebaseAndSync();
 
+    // Build 253: 시스템 시간 조작 감지 (client-side mitigation).
+    // 마지막 앱 실행 시각 (lastSeenAt) 기록 → 다음 실행 시 현재 시각이 그보다
+    // 과거이거나 7일 이상 미래로 점프했으면 "시간 변경 감지" 로 logged.
+    // 향후 anti-cheat 백엔드 연동 시 신호로 활용 가능.
+    final nowMs = DateTime.now().millisecondsSinceEpoch;
+    final lastSeenMs = prefs.getInt('lastSeenAtMs') ?? 0;
+    if (lastSeenMs > 0) {
+      final delta = nowMs - lastSeenMs;
+      if (delta < -60000) {
+        // 1분 이상 거꾸로 — 명백한 조작 가능성
+        if (kDebugMode) debugPrint('[CLOCK] backward jump detected: ${delta}ms');
+        _clockTamperingDetected = true;
+      } else if (delta > 7 * 24 * 3600 * 1000) {
+        // 7일 이상 미래 점프 — 의심 (단, 정상적으로 7일 이상 안 켰을 가능성도 있음)
+        if (kDebugMode) debugPrint('[CLOCK] suspicious forward jump: ${delta}ms');
+      }
+    }
+    await prefs.setInt('lastSeenAtMs', nowMs);
+
     // ── 시간 기반 편지 상태 보정 ─────────────────────────────────────────────
     // 앱이 꺼져 있던 동안 arrivalTime이 지난 편지를 즉시 도착 처리
     _reconcileLetterStatuses();
 
+    // ── 매일 오전 8시 "오늘의 편지" 리마인더 재예약 ─────────────────────────
+    // 사용자가 opt-in한 경우에만 예약. 재시작·시간대 변경·DST 보정을 겸해
+    // 매 앱 실행마다 다시 스케줄한다. (Opt-in 기본값은 false)
+    if (prefs.getBool('notify_daily_letter') ?? false) {
+      NotificationService.scheduleDailyLetterReminder(
+        langCode: _currentUser.languageCode,
+      );
+    }
+
+    // ── 도착 1시간 전 카운트다운 재예약 ─────────────────────────────────────
+    _rescheduleArrivalCountdown();
+
     notifyListeners();
+  }
+
+  /// 가장 임박한 미래 도착 편지 1건에 대해 도착 1시간 전 알림 스케줄.
+  /// 신규 편지 수신·앱 실행·AI 편지 생성 후에 호출한다.
+  void _rescheduleArrivalCountdown() {
+    try {
+      final now = DateTime.now();
+      // 2시간 이상 여유가 있는 편지만 — 리드타임이 너무 짧으면 무의미
+      Letter? next;
+      for (final l in [..._worldLetters, ..._inbox]) {
+        // 내가 보낸 편지는 제외 — 국내 근거리 발송(예: 서울→인천)이 목적지
+        // 100km 필터를 통과해 "도착 예정" 푸시로 잘못 걸리는 문제 방지
+        if (l.senderId == _currentUser.id) continue;
+        if (l.status != DeliveryStatus.inTransit) continue;
+        final at = l.arrivalTime;
+        if (at == null) continue;
+        if (at.isBefore(now.add(const Duration(hours: 2)))) continue;
+        // 목적지가 내 계정 위치 근방인지로 "나에게 오는 편지" 판단
+        final distKm = l.destinationLocation.distanceTo(
+              LatLng(_currentUser.latitude, _currentUser.longitude),
+            ) /
+            1000.0;
+        if (distKm > 100) continue;
+        if (next == null || at.isBefore(next.arrivalTime!)) {
+          next = l;
+        }
+      }
+      if (next == null) {
+        NotificationService.cancelArrivalCountdown();
+        return;
+      }
+      NotificationService.scheduleArrivalCountdown(
+        arrivalTime: next.arrivalTime!,
+        senderCountry: next.senderCountry,
+        senderFlag: next.senderCountryFlag,
+        langCode: _currentUser.languageCode,
+      );
+    } catch (_) {}
   }
 
   /// 앱 재시작 후 arrivalTime이 이미 지난 편지들의 상태를 즉시 보정한다.
@@ -1758,7 +2754,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         final dist = letter.destinationLocation.distanceTo(
           LatLng(_currentUser.latitude, _currentUser.longitude),
         );
-        if (dist <= 2000) {
+        if (dist <= pickupRadiusMeters) {
           letter.status = DeliveryStatus.nearYou;
           _hasNearbyAlert = true;
         } else {
@@ -1793,6 +2789,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
     if (changed) {
       _saveToPrefs();
+      // Build 218: 백그라운드에서 진행이 catch-up 됐어도 UI 가 안 바뀌면
+      // "편지가 가다가 멈춰 보이는" 체감 버그가 그대로 남는다. 명시적으로
+      // notify 해서 지도/수집첩이 즉시 새 상태로 다시 그려지게.
+      notifyListeners();
     }
   }
 
@@ -1899,6 +2899,27 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       final arrived = now.isAfter(arrivalTime);
       final status = arrived ? DeliveryStatus.delivered : DeliveryStatus.inTransit;
 
+      // Build 135: 쿠폰/교환권 메타 복원. senderTier 문자열 → enum.
+      LetterSenderTier tier = LetterSenderTier.free;
+      final tierStr = data['senderTier'] as String?;
+      if (tierStr == 'brand') {
+        tier = LetterSenderTier.brand;
+      } else if (tierStr == 'premium') {
+        tier = LetterSenderTier.premium;
+      }
+      final catKey = data['category'] as String?;
+      final category = LetterCategoryExt.fromKey(catKey);
+      final redInfoRaw = data['redemptionInfo'] as String?;
+      final redInfo = (redInfoRaw == null || redInfoRaw.isEmpty)
+          ? null
+          : redInfoRaw;
+      final redExpiresStr = data['redemptionExpiresAt'] as String?;
+      final redExpiresAt = redExpiresStr == null
+          ? null
+          : DateTime.tryParse(redExpiresStr);
+      final expStr = data['expiresAt'] as String?;
+      final expAt = expStr == null ? null : DateTime.tryParse(expStr);
+
       return Letter(
         id: data['id'] as String? ?? 'srv_${now.millisecondsSinceEpoch}',
         senderId: data['senderId'] as String? ?? '',
@@ -1922,6 +2943,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         fontStyle: (data['fontStyle'] as num?)?.toInt() ?? 0,
         imageUrl: data['imageUrl'] as String?,
         arrivedAt: arrived ? arrivalTime : null,
+        deliveryEmoji: data['deliveryEmoji'] as String?,
+        isAnonymous: data['isAnonymous'] as bool? ?? true,
+        category: category,
+        redemptionInfo: redInfo,
+        redemptionExpiresAt: redExpiresAt,
+        acceptsReplies: data['acceptsReplies'] as bool? ?? true,
+        senderIsBrand: data['senderIsBrand'] as bool? ?? (tier == LetterSenderTier.brand),
+        senderTier: tier,
+        brandUniquePerUser: data['brandUniquePerUser'] as bool? ?? false,
+        expiresAt: expAt,
       );
     } catch (e, st) {
       if (kDebugMode) debugPrint('[Firebase] Letter 변환 실패: $e\n$st');
@@ -1934,15 +2965,31 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (!FirebaseConfig.kFirebaseEnabled) return;
     if (!FirebaseAuthService.isSignedIn) return;
     try {
+      // Build 207: 익명 편지의 발신자 정보를 서버 사이드에서 stripping.
+      // 이전엔 isAnonymous=true 여도 senderId/Name 가 그대로 Firestore 에
+      // 들어가 letter.id 만 알면 발신자 역추적 가능. 클라이언트 + Firestore
+      // rules 양쪽에서 enforcement.
+      //   senderId  → "anon_<letterId>" (per-letter unique, 역추적 불가)
+      //   senderName → 고정 sentinel '__anonymous__' (UI 가 i18n 으로 치환)
+      // GPS origin 도 정확한 위치 노출 차단을 위해 destination 좌표로 통일.
+      final isAnon = letter.isAnonymous;
+      final firestoreSenderId = isAnon ? 'anon_${letter.id}' : letter.senderId;
+      final firestoreSenderName = isAnon ? '__anonymous__' : letter.senderName;
+      final firestoreOriginLat = isAnon
+          ? letter.destinationLocation.latitude
+          : letter.originLocation.latitude;
+      final firestoreOriginLng = isAnon
+          ? letter.destinationLocation.longitude
+          : letter.originLocation.longitude;
       await FirestoreService.setDocument('letters/${letter.id}', {
         'id': letter.id,
-        'senderId': letter.senderId,
-        'senderName': letter.senderName,
+        'senderId': firestoreSenderId,
+        'senderName': firestoreSenderName,
         'senderCountry': letter.senderCountry,
         'senderCountryFlag': letter.senderCountryFlag,
         'content': letter.content,
-        'originLat': letter.originLocation.latitude,
-        'originLng': letter.originLocation.longitude,
+        'originLat': firestoreOriginLat,
+        'originLng': firestoreOriginLng,
         'destLat': letter.destinationLocation.latitude,
         'destLng': letter.destinationLocation.longitude,
         'destinationCountry': letter.destinationCountry,
@@ -1957,6 +3004,20 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'letterType': letter.letterType.name,
         'status': letter.status.name,
         'senderTier': letter.senderTier.name,
+        // Build 135: 쿠폰/교환권 필드 전체 동기화. 이전엔 누락돼 다른 기기에서
+        // 주운 수신자가 할인 코드·교환권 이미지·유효기간을 볼 수 없었음.
+        'category': letter.category.key,
+        'redemptionInfo': letter.redemptionInfo ?? '',
+        if (letter.redemptionExpiresAt != null)
+          'redemptionExpiresAt':
+              letter.redemptionExpiresAt!.toIso8601String(),
+        'acceptsReplies': letter.acceptsReplies,
+        'senderIsBrand': letter.senderIsBrand,
+        'brandUniquePerUser': letter.brandUniquePerUser,
+        if (letter.expiresAt != null)
+          'expiresAt': letter.expiresAt!.toIso8601String(),
+        'isAnonymous': letter.isAnonymous,
+        if (letter.deliveryEmoji != null) 'deliveryEmoji': letter.deliveryEmoji,
       });
       if (kDebugMode) {
         debugPrint('[Firebase] 편지 업로드 완료: ${letter.id} → ${letter.destinationCountry}');
@@ -2075,6 +3136,119 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
+  /// Build 216: Brand 가 보낸 편지 중 가장 최근에 누군가 픽업한 letter.
+  /// Build 248: 정보 불일치 픽스 — 배너 카피 "캠페인이 픽업됐어요" 와 정합.
+  /// 이전엔 delivered/nearYou/deliveredFar (단순 "도착") 도 포함해 misleading.
+  /// 진짜 "픽업" = 수신자가 줍고 본문 읽음 (status=read) OR readCount>0
+  /// (다중 수신자 letter 의 경우 누군가 픽업했음).
+  /// readAt 기준 정렬, 없으면 null (배너 미노출).
+  Letter? get brandMostRecentlyPickedUpLetter {
+    if (!_currentUser.isBrand) return null;
+    Letter? best;
+    DateTime? bestAt;
+    for (final l in _sent) {
+      if (!l.senderIsBrand) continue;
+      final isTrulyPicked =
+          l.status == DeliveryStatus.read || l.readCount > 0;
+      if (!isTrulyPicked) continue;
+      final at = l.readAt ?? l.arrivedAt;
+      if (at == null) continue;
+      if (bestAt == null || at.isAfter(bestAt)) {
+        bestAt = at;
+        best = l;
+      }
+    }
+    return best;
+  }
+
+  /// Build 158: ExactDrop 화면에서 보여줄 "최근 발송 좌표" 추천 리스트.
+  /// 로컬 `_sent` 중 Brand 편지 역순 N개 destination. 서버 쿼리 불필요.
+  /// 과거 캠페인 좌표를 재활용하면 동일 동네 유저에게 반복 노출 가능.
+  List<LatLng> brandRecentDropCoordinates({int limit = 3}) {
+    if (!_currentUser.isBrand) return const [];
+    final coords = <LatLng>[];
+    final seen = <String>{};
+    for (final l in _sent.reversed) {
+      if (!l.senderIsBrand) continue;
+      final key =
+          '${l.destinationLocation.latitude.toStringAsFixed(3)},'
+          '${l.destinationLocation.longitude.toStringAsFixed(3)}';
+      if (seen.contains(key)) continue;
+      seen.add(key);
+      coords.add(l.destinationLocation);
+      if (coords.length >= limit) break;
+    }
+    return coords;
+  }
+
+  /// Build 138: 브랜드 분석 대시보드 데이터. Firestore 에서 내가 보낸
+  /// 편지들을 쿼리해 총 발송·총 픽업·총 사용·전환율 집계. Brand 유저가
+  /// 프로필 화면에서 자신의 캠페인 ROI 를 볼 수 있게 함.
+  ///
+  /// 네트워크 실패 시 `null` 반환 → UI 에서 "오프라인" 표시.
+  Future<BrandAnalytics?> fetchBrandAnalytics() async {
+    if (!_currentUser.isBrand) return null;
+    if (!FirebaseConfig.kFirebaseEnabled) return null;
+    try {
+      final docs = await FirestoreService.queryWhereEquals(
+        collectionId: 'letters',
+        field: 'senderId',
+        value: _currentUser.id,
+        limit: 500,
+      );
+      int totalSent = 0;
+      int totalPicked = 0;
+      int totalRedeemed = 0;
+      int couponSent = 0;
+      int voucherSent = 0;
+      final countryPicks = <String, int>{};
+      // Build 157: 최근 7일 일별 발송량. 오늘(=index 6) 까지 거슬러 7일치.
+      // 현재 Firestore 에 per-pickup timestamp 가 없어 "픽업 수" 는 일자별
+      // 귀속 불가 → 발송 리듬만 시각화 (brand activity 추이).
+      final now = DateTime.now();
+      final todayStart = DateTime(now.year, now.month, now.day);
+      final List<int> daily = List<int>.filled(7, 0);
+      for (final doc in docs) {
+        final map = FirestoreService.fromFirestoreDoc(doc);
+        totalSent++;
+        final picks = (map['pickupCount'] as num?)?.toInt() ?? 0;
+        final redeemed = (map['redeemedCount'] as num?)?.toInt() ?? 0;
+        totalPicked += picks;
+        totalRedeemed += redeemed;
+        final cat = map['category'] as String?;
+        if (cat == 'coupon') couponSent++;
+        if (cat == 'voucher') voucherSent++;
+        final country = map['destinationCountry'] as String? ?? '';
+        if (country.isNotEmpty && picks > 0) {
+          countryPicks[country] = (countryPicks[country] ?? 0) + picks;
+        }
+        // sentAt 이 ISO 문자열 — Letter.toJson 직렬화 기준 (app_state.dart 2712)
+        final sentAtStr = map['sentAt'] as String? ?? '';
+        final sentAt = DateTime.tryParse(sentAtStr);
+        if (sentAt != null) {
+          final sentDay = DateTime(sentAt.year, sentAt.month, sentAt.day);
+          final delta = todayStart.difference(sentDay).inDays;
+          if (delta >= 0 && delta < 7) {
+            // delta=0 → 오늘 (index 6), delta=6 → 6일 전 (index 0)
+            daily[6 - delta]++;
+          }
+        }
+      }
+      return BrandAnalytics(
+        totalSent: totalSent,
+        totalPicked: totalPicked,
+        totalRedeemed: totalRedeemed,
+        couponSent: couponSent,
+        voucherSent: voucherSent,
+        countryPicks: countryPicks,
+        dailySent: daily,
+      );
+    } catch (e, st) {
+      if (kDebugMode) debugPrint('[Analytics] fetchBrandAnalytics 실패: $e\n$st');
+      return null;
+    }
+  }
+
   /// 내가 보낸 편지를 Firestore 에서 조회해 _sent 에 보충.
   /// 이미 로컬에 있는 ID 는 건너뛴다.
   Future<void> _restoreSentLettersFromServer() async {
@@ -2183,6 +3357,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // 사용자 복귀한 순간엔 즉시 fetch 해서 새 편지 체감 시간 최소화
     unawaited(_runLetterSync());
     unawaited(_runMapSync());
+  }
+
+  /// Build 218: 사용자가 명시적으로 새로고침을 요청할 때 (지도 풀투리프레시 등).
+  /// fetchMapUsers cooldown 우회 + 즉시 1회.
+  Future<void> forceRefreshMapUsersAndLetters() async {
+    if (!FirebaseConfig.kFirebaseEnabled) return;
+    if (_currentUser.id.isEmpty || _currentUser.id == 'guest') return;
+    await Future.wait([
+      fetchMapUsers(force: true),
+      _runLetterSync(),
+    ]);
   }
 
   Future<void> _runLetterSync() async {
@@ -2492,9 +3677,34 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   /// 관리자: 특정 편지 삭제
+  ///
+  /// Build 207: firestore.rules 가 letters delete 를 차단(`if false`)했으므로
+  /// 클라이언트에서는 hard-delete 불가. 대신 status='deletedByAdmin' 으로
+  /// 마킹 (rule 의 update 화이트리스트 통과). 실제 row 삭제는 Cloud Function
+  /// 또는 admin SDK 가 후속 처리. 클라이언트 UI 는 이 status 를 보고 즉시
+  /// 숨김 처리.
   Future<bool> adminDeleteLetter(String letterId) async {
     if (!FirebaseConfig.kFirebaseEnabled) return false;
-    return FirestoreService.deleteDocument('letters/$letterId');
+    try {
+      final url = Uri.parse(
+        '${FirebaseConfig.firestoreBase}/letters/$letterId'
+        '?updateMask.fieldPaths=status',
+      );
+      final body = jsonEncode({
+        'fields': {
+          'status': {'stringValue': 'deletedByAdmin'},
+        },
+      });
+      // Bearer 토큰 포함된 PATCH — rule 의 update 화이트리스트 통과 필요.
+      await FirebaseAuthService.ensureValidToken();
+      final res = await http
+          .patch(url, headers: FirestoreService.authHeaders, body: body)
+          .timeout(const Duration(seconds: 10));
+      return res.statusCode == 200;
+    } catch (e) {
+      if (kDebugMode) debugPrint('[adminDeleteLetter] $e');
+      return false;
+    }
   }
 
   // ── 유저 세팅 (로그인/회원가입 후) ────────────────────────────────────────
@@ -2551,6 +3761,37 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     registerDailyStreakCheckin();
     // 초기 레벨 baseline 설정 (레벨업 감지에 사용)
     _previousUserLevel = userLevel;
+    // 첫 가입 유저에게 운영팀 웰컴 편지 시딩 (한 번만)
+    unawaited(_seedWelcomeLetterIfNeeded());
+  }
+
+  // 웰컴 편지: 유저별 1회만 시딩. 이미 존재하면 no-op.
+  Future<void> _seedWelcomeLetterIfNeeded() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final seedKey = 'welcome_letter_seeded_${_currentUser.id}';
+      if (prefs.getBool(seedKey) ?? false) return;
+      if (_inbox.any((l) => l.senderId == 'letter_go_welcome')) {
+        await prefs.setBool(seedKey, true);
+        return;
+      }
+      final letter = buildWelcomeLetter(
+        userId: _currentUser.id,
+        userCountry: _currentUser.country,
+        userCountryFlag: _currentUser.countryFlag,
+        userLat: _currentUser.latitude,
+        userLng: _currentUser.longitude,
+        langCode: _currentUser.languageCode.isNotEmpty
+            ? _currentUser.languageCode
+            : 'en',
+      );
+      _inbox.insert(0, letter);
+      await prefs.setBool(seedKey, true);
+      _saveToPrefs();
+      notifyListeners();
+    } catch (_) {
+      // 실패해도 유저 흐름을 막지 않음
+    }
   }
 
   // ── 위치 업데이트 ─────────────────────────────────────────────────────────
@@ -2559,6 +3800,201 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _currentUser.longitude = lng;
     notifyListeners();
     _saveUserToFirestore(); // 위치 변경 시 Firestore 업데이트
+    // Build 149: 유효한 좌표 첫 확보 시점에 튜토리얼 편지 1통 자동 배치.
+    // 첫 실행 빈 지도 경험 해소 — 온보딩 직후 반경 안에 반드시 줍을 수 있는
+    // 환영 편지가 보이도록.
+    unawaited(_maybePlaceTutorialLetter());
+    // Build 218: 베타 테스트 기간 한정 — 다양한 카테고리/거리/발신자의 데모
+    // 편지 6~10통을 유저 반경 내 살포. 빈 지도에서 "주워도 아무 것도 안 뜸"
+    // 문제 해소. 정식 출시 빌드 (`disableInRelease=true` & kReleaseMode)
+    // 에서는 자동으로 비활성화.
+    unawaited(_maybeSeedDemoLetters());
+  }
+
+  /// Build 149: 첫 실행 시 유저 근처(~100m)에 환영 편지 1통 자동 배치.
+  /// SharedPreferences 플래그로 한 번만 수행. Brand 유저는 제외 (광고주라서
+  /// 실제 편지 풀에 더미가 들어가면 ROI 대시보드 오염).
+  Future<void> _maybePlaceTutorialLetter() async {
+    try {
+      if (_currentUser.isBrand) return;
+      if (_currentUser.latitude == 0 && _currentUser.longitude == 0) return;
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool('tutorial_letter_placed') == true) return;
+
+      // 유저 반경 안쪽 (~100m 북쪽) 에 고정 위치로 생성.
+      // 1도 위도 ≈ 111km → 100m = 0.0009도.
+      final lat = _currentUser.latitude + 0.0009;
+      final lng = _currentUser.longitude;
+
+      final now = DateTime.now();
+      final id = 'tutorial_welcome_${_currentUser.id}';
+      // 이미 같은 id 존재 시 스킵 (중복 방지).
+      if (_worldLetters.any((l) => l.id == id)) {
+        await prefs.setBool('tutorial_letter_placed', true);
+        return;
+      }
+
+      final welcomeLetter = Letter(
+        id: id,
+        senderId: 'system_welcome',
+        senderName: _l10n.tutorialLetterSenderName,
+        senderCountry: _currentUser.country,
+        senderCountryFlag: _currentUser.countryFlag,
+        content: _l10n.tutorialLetterContent,
+        originLocation: LatLng(lat, lng),
+        destinationLocation: LatLng(lat, lng),
+        destinationCountry: _currentUser.country,
+        destinationCountryFlag: _currentUser.countryFlag,
+        destinationCity: null,
+        segments: const [],
+        currentSegmentIndex: 0,
+        status: DeliveryStatus.delivered, // 즉시 줍기 가능
+        sentAt: now,
+        arrivedAt: now,
+        arrivalTime: now,
+        estimatedTotalMinutes: 0,
+        isAnonymous: false,
+        senderIsBrand: false,
+        senderTier: LetterSenderTier.free,
+        category: LetterCategory.general,
+        acceptsReplies: false,
+        deliveryEmoji: '✨',
+      );
+
+      _worldLetters.add(welcomeLetter);
+      await prefs.setBool('tutorial_letter_placed', true);
+      notifyListeners();
+      if (kDebugMode) {
+        debugPrint('[Tutorial] 환영 편지 배치: ($lat, $lng)');
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Tutorial] 환영 편지 배치 실패: $e');
+    }
+  }
+
+  /// Build 218: 베타 테스트 기간 전용 — 유저 반경 안쪽에 다양한 편지 8통 살포.
+  ///
+  /// 활성 조건 (모두 만족):
+  ///   - Brand 가 아닐 것 (광고주 ROI 오염 방지)
+  ///   - 좌표 확보됨
+  ///   - SharedPreferences `demo_letters_seeded_v1` 가 미설정
+  ///   - 베타 빌드 — `kDebugMode` 또는 `BetaConstants.disableInRelease == false`
+  ///
+  /// 배치 패턴:
+  ///   - 8 방위(N/NE/E/SE/S/SW/W/NW) 에 50~280m 거리로 분산
+  ///   - LetterCategory 3종 (general·coupon·voucher) 골고루 + 발신자 8개국 회전
+  ///   - status=delivered → 즉시 nearYou 로 전환되어 반경 안 줍기 가능
+  ///   - id prefix `demo_seed_` → 데모 표식. 실 픽업 통계와 분리 가능
+  Future<void> _maybeSeedDemoLetters() async {
+    try {
+      if (_currentUser.isBrand) return;
+      if (_currentUser.latitude == 0 && _currentUser.longitude == 0) return;
+      // 정식 출시 빌드에서는 비활성화 (베타 한정 기능)
+      final isBetaBuild =
+          kDebugMode || !BetaConstants.disableInRelease || !kReleaseMode;
+      if (!isBetaBuild) return;
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool('demo_letters_seeded_v1') == true) return;
+
+      final myLat = _currentUser.latitude;
+      final myLng = _currentUser.longitude;
+      final now = DateTime.now();
+      final rand = Random(now.millisecondsSinceEpoch);
+
+      // 8 방위 + 거리 (Build 240: Free 픽업 반경 200m 안으로 압축 — 60~180m).
+      // 이전엔 230m/280m 가 Free 반경 밖이라 픽업 시 "거리 너무 멀다" 에러로
+      // 첫인상 혼동을 유발. 이제 모든 데모 쿠폰이 Free 사용자에게도 줍기 가능.
+      const samples = <Map<String, Object>>[
+        {'bearingDeg': 0,   'distM': 60,  'sender': 'Emma',     'country': '영국',     'flag': '🇬🇧'},
+        {'bearingDeg': 45,  'distM': 110, 'sender': 'Yuki',     'country': '일본',     'flag': '🇯🇵'},
+        {'bearingDeg': 90,  'distM': 170, 'sender': 'Lucas',    'country': '브라질',   'flag': '🇧🇷'},
+        {'bearingDeg': 135, 'distM': 130, 'sender': 'Marie',    'country': '프랑스',   'flag': '🇫🇷'},
+        {'bearingDeg': 180, 'distM': 90,  'sender': 'James',    'country': '미국',     'flag': '🇺🇸'},
+        {'bearingDeg': 225, 'distM': 150, 'sender': 'Lina',     'country': '독일',     'flag': '🇩🇪'},
+        {'bearingDeg': 270, 'distM': 80,  'sender': 'Carlos',   'country': '스페인',   'flag': '🇪🇸'},
+        {'bearingDeg': 315, 'distM': 180, 'sender': 'Sofia',    'country': '아르헨티나','flag': '🇦🇷'},
+      ];
+
+      // 카테고리 풀 — Premium 카테고리 선호도 부스트가 켜져 있으면 50% 매칭.
+      final preferred = preferredCategory;
+      final boostActive =
+          preferred != null && _currentUser.isPremium && currentLevel >= 11;
+      LetterCategory pickCategory(int idx) {
+        if (boostActive && rand.nextDouble() < 0.5) return preferred;
+        // 8통 중 골고루: 4 general / 2 coupon / 2 voucher
+        if (idx == 1 || idx == 5) return LetterCategory.coupon;
+        if (idx == 3 || idx == 6) return LetterCategory.voucher;
+        return LetterCategory.general;
+      }
+
+      const sampleBodies = <String>[
+        '안녕하세요! 오늘 우연히 이 앱을 알게 되어 첫 편지를 보내요. 당신의 하루는 어떤가요?',
+        'こんにちは！世界の反対側から手紙を送ります。良い一日を！',
+        'Hello from across the world! Hope this little note brightens your day.',
+        '낯선 사람의 안부, 그 자체가 작은 선물이라고 믿어요. 항상 건강하세요.',
+        'Bonjour ! J\'envoie cette lettre depuis très loin. Quel temps fait-il chez toi ?',
+        '걷다가 우연히 발견한 편지가 누군가의 하루를 바꿀 수 있다면, 그게 마법이겠죠.',
+        '¡Hola! Envío esta carta con mucho cariño. Espero que te haga sonreír.',
+        'Wherever you are, may today be gentler than yesterday.',
+      ];
+
+      int placed = 0;
+      for (int i = 0; i < samples.length; i++) {
+        final s = samples[i];
+        final bearing = (s['bearingDeg'] as int) * pi / 180.0;
+        final distM = (s['distM'] as int).toDouble();
+        // 위도 1도 ≈ 111km. 경도 1도 ≈ cos(lat)·111km.
+        final dLat = (distM / 111000.0) * cos(bearing);
+        final dLng = (distM / (111000.0 * cos(myLat * pi / 180.0).abs().clamp(1e-6, 1.0))) * sin(bearing);
+        final lat = myLat + dLat;
+        final lng = myLng + dLng;
+        final cat = pickCategory(i);
+        final id = 'demo_seed_${i}_${now.millisecondsSinceEpoch}';
+        if (_worldLetters.any((l) => l.id == id)) continue;
+
+        _worldLetters.add(
+          Letter(
+            id: id,
+            senderId: 'demo_${s['flag']}',
+            senderName: s['sender'] as String,
+            senderCountry: s['country'] as String,
+            senderCountryFlag: s['flag'] as String,
+            content: sampleBodies[i % sampleBodies.length],
+            originLocation: LatLng(lat, lng),
+            destinationLocation: LatLng(lat, lng),
+            destinationCountry: _currentUser.country,
+            destinationCountryFlag: _currentUser.countryFlag,
+            destinationCity: null,
+            segments: const [],
+            currentSegmentIndex: 0,
+            status: DeliveryStatus.delivered, // 즉시 픽업 가능
+            sentAt: now.subtract(Duration(minutes: 30 + i * 5)),
+            arrivedAt: now,
+            arrivalTime: now,
+            estimatedTotalMinutes: 0,
+            isAnonymous: false,
+            senderIsBrand: false,
+            senderTier: LetterSenderTier.free,
+            category: cat,
+            acceptsReplies: true,
+            deliveryEmoji: cat == LetterCategory.coupon
+                ? '🎟'
+                : cat == LetterCategory.voucher
+                    ? '🎁'
+                    : '💌',
+          ),
+        );
+        placed++;
+      }
+
+      await prefs.setBool('demo_letters_seeded_v1', true);
+      if (placed > 0) notifyListeners();
+      if (kDebugMode) {
+        debugPrint('[DemoSeed] 데모 편지 $placed통 배치 (boost=$boostActive)');
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('[DemoSeed] 데모 편지 배치 실패: $e');
+    }
   }
 
   // ── 타워 이름 업데이트 ─────────────────────────────────────────────────────
@@ -2622,58 +4058,96 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   // ── Firestore: 내 정보 저장/업데이트 ──────────────────────────────────────
-  Future<void> _saveUserToFirestore() async {
+  /// 로그아웃 직전 호출: 마지막 위치·프로필을 Firestore에 한 번 더 동기화하고
+  /// 완료까지 대기한다. Firebase 세션이 살아있는 동안 write가 성공하도록
+  /// 반드시 `AuthService.logout()` 전에 호출해야 한다.
+  ///
+  /// 이 메서드가 없으면, 로그아웃한 테스터의 최근 위치가 Firestore에 반영되지
+  /// 않은 채 세션만 종료되어, 다른 회원들의 지도에서 해당 타워가 누락되거나
+  /// 오래된 좌표로 남는 문제가 발생한다.
+  Future<void> snapshotUserForLogout() async {
+    if (_currentUser.id.isEmpty || _currentUser.id == 'guest') return;
+    if (!FirebaseConfig.kFirebaseEnabled) return;
+    await _saveUserToFirestore(markLoggedOut: true);
+  }
+
+  Future<void> _saveUserToFirestore({bool markLoggedOut = false}) async {
     if (_currentUser.id == 'guest') return;
     if (!FirebaseConfig.kFirebaseEnabled) return;
     try {
+      // Build 207: GPS 좌표 ~100m 정밀도로 coarsen.
+      // 이전엔 cm 정밀도 그대로 업로드 → 자택 핀포인트 가능. firestore.rules
+      // list 가 isMapPublic=true 만 노출하도록 강화됐어도 좌표 자체는 coarse
+      // 하게 보내는 게 PII 방어 layer. 픽업 반경(200m–1km)에 비해 100m 오차는
+      // 게임플레이 영향 미미.
+      final coarseLat = (_currentUser.latitude * 1000).round() / 1000.0;
+      final coarseLng = (_currentUser.longitude * 1000).round() / 1000.0;
+      final fields = <String, Map<String, dynamic>>{
+        'id': {'stringValue': _currentUser.id},
+        'username': {'stringValue': _currentUser.username},
+        'countryFlag': {'stringValue': _currentUser.countryFlag},
+        'country': {'stringValue': _currentUser.country},
+        'latitude': {'doubleValue': coarseLat},
+        'longitude': {'doubleValue': coarseLng},
+        'isUsernamePublic': {'booleanValue': _currentUser.isUsernamePublic},
+        // 지도 노출은 명시적 opt-in 필드로 관리
+        'isMapPublic': {'booleanValue': _currentUser.isUsernamePublic},
+        // 로그아웃 스냅샷 + 최근 활동 타임스탬프
+        'lastSeenAt': {
+          'timestampValue': DateTime.now().toUtc().toIso8601String(),
+        },
+        if (markLoggedOut)
+          'loggedOutAt': {
+            'timestampValue': DateTime.now().toUtc().toIso8601String(),
+          },
+        'receivedCount': {
+          'integerValue': '${_currentUser.activityScore.receivedCount}',
+        },
+        'replyCount': {
+          'integerValue': '${_currentUser.activityScore.replyCount}',
+        },
+        'sentCount': {
+          'integerValue': '${_currentUser.activityScore.sentCount}',
+        },
+        'likeCount': {
+          'integerValue': '${_currentUser.activityScore.likeCount}',
+        },
+        'inviteCode': {'stringValue': myInviteCode},
+        'inviteRewardCredits': {'integerValue': '$_inviteRewardCredits'},
+        'brandExtraMonthlyQuota': {
+          'integerValue': '$_brandExtraMonthlyQuota',
+        },
+        if (_appliedInviteCode != null)
+          'inviteAppliedCode': {'stringValue': _appliedInviteCode!},
+        if (_lastInviteRewardAt != null)
+          'inviteRewardAt': {
+            'timestampValue': _lastInviteRewardAt!.toUtc().toIso8601String(),
+          },
+        'updatedAt': {'stringValue': DateTime.now().toIso8601String()},
+        if (_currentUser.customTowerName != null)
+          'customTowerName': {'stringValue': _currentUser.customTowerName!},
+        'towerColor': {'stringValue': _currentUser.towerColor},
+        if (_currentUser.towerAccentEmoji != null)
+          'towerAccentEmoji': {'stringValue': _currentUser.towerAccentEmoji!},
+        'towerRoofStyle': {'integerValue': '${_currentUser.towerRoofStyle}'},
+        'towerWindowStyle': {'integerValue': '${_currentUser.towerWindowStyle}'},
+        // Build 218: 카테고리 선호 (Premium Lv11+ 한정)
+        if (_currentUser.preferredCategoryKey != null)
+          'preferredCategoryKey': {
+            'stringValue': _currentUser.preferredCategoryKey!,
+          },
+      };
+      // updateMask 를 명시해야 PATCH 가 다른 필드(예: 병렬로 쓰는 invite 정보)를
+      // 삭제하지 않는다. 이걸 빼면 병렬 쓰기가 서로의 필드를 밀어내 0,0 좌표가
+      // 남는 버그가 재현된다.
+      final maskParams = fields.keys
+          .map((k) => 'updateMask.fieldPaths=${Uri.encodeQueryComponent(k)}')
+          .join('&');
       final url = Uri.parse(
         '${FirebaseConfig.firestoreBase}/users/${_currentUser.id}'
-        '?key=${FirebaseConfig.apiKey}',
+        '?key=${FirebaseConfig.apiKey}&$maskParams',
       );
-      final body = jsonEncode({
-        'fields': {
-          'id': {'stringValue': _currentUser.id},
-          'username': {'stringValue': _currentUser.username},
-          'countryFlag': {'stringValue': _currentUser.countryFlag},
-          'country': {'stringValue': _currentUser.country},
-          'latitude': {'doubleValue': _currentUser.latitude},
-          'longitude': {'doubleValue': _currentUser.longitude},
-          'isUsernamePublic': {'booleanValue': _currentUser.isUsernamePublic},
-          // 지도 노출은 명시적 opt-in 필드로 관리
-          'isMapPublic': {'booleanValue': _currentUser.isUsernamePublic},
-          'receivedCount': {
-            'integerValue': '${_currentUser.activityScore.receivedCount}',
-          },
-          'replyCount': {
-            'integerValue': '${_currentUser.activityScore.replyCount}',
-          },
-          'sentCount': {
-            'integerValue': '${_currentUser.activityScore.sentCount}',
-          },
-          'likeCount': {
-            'integerValue': '${_currentUser.activityScore.likeCount}',
-          },
-          'inviteCode': {'stringValue': myInviteCode},
-          'inviteRewardCredits': {'integerValue': '$_inviteRewardCredits'},
-          'brandExtraMonthlyQuota': {
-            'integerValue': '$_brandExtraMonthlyQuota',
-          },
-          if (_appliedInviteCode != null)
-            'inviteAppliedCode': {'stringValue': _appliedInviteCode!},
-          if (_lastInviteRewardAt != null)
-            'inviteRewardAt': {
-              'timestampValue': _lastInviteRewardAt!.toUtc().toIso8601String(),
-            },
-          'updatedAt': {'stringValue': DateTime.now().toIso8601String()},
-          if (_currentUser.customTowerName != null)
-            'customTowerName': {'stringValue': _currentUser.customTowerName!},
-          'towerColor': {'stringValue': _currentUser.towerColor},
-          if (_currentUser.towerAccentEmoji != null)
-            'towerAccentEmoji': {'stringValue': _currentUser.towerAccentEmoji!},
-          'towerRoofStyle': {'integerValue': '${_currentUser.towerRoofStyle}'},
-          'towerWindowStyle': {'integerValue': '${_currentUser.towerWindowStyle}'},
-        },
-      });
+      final body = jsonEncode({'fields': fields});
       for (int attempt = 0; attempt < 3; attempt++) {
         try {
           await http.patch(
@@ -3576,6 +5050,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             final towerAccentRaw = parseString(fields, 'towerAccentEmoji');
             final towerAccent = towerAccentRaw.isEmpty ? null : towerAccentRaw;
 
+            // Build 240: receivedCount + sentCount 기반 근사 XP → level.
+            // Firestore 에 km 누적은 없지만 활동량 비례하므로 마커 라벨엔 충분.
+            final approxXp = score.receivedCount * 10 + score.sentCount * 5;
+            final approxLevel = UserProgress.calcLevel(approxXp);
             users.add(
               MapUser(
                 id: id,
@@ -3585,6 +5063,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
                 tier: score.tier,
                 floors: score.towerFloors,
                 rank: 0,
+                level: approxLevel,
                 username: isPublic ? username : null,
                 towerName: towerName,
                 towerColor: towerColorRaw,
@@ -4241,31 +5720,36 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // ── 배송 시뮬레이션 ────────────────────────────────────────────────────────
   void _startDeliverySimulation() {
     _deliveryTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-      bool changed = false;
-      final now = DateTime.now();
-      final List<Letter> dailyToInbox = [];
+      _runDeliveryTick();
+    });
+  }
 
-      for (final letter in _worldLetters) {
-        // deliveredFar 편지: 유저가 2km 이내로 이동하면 nearYou로 변경
+  void _runDeliveryTick({bool triggerNotifications = true}) {
+    bool changed = false;
+    final now = DateTime.now();
+    final List<Letter> dailyToInbox = [];
+
+    for (final letter in _worldLetters) {
+        // deliveredFar 편지: 유저가 반경 이내로 이동하면 nearYou로 변경
         if (letter.status == DeliveryStatus.deliveredFar) {
           final dist = letter.destinationLocation.distanceTo(
             LatLng(_currentUser.latitude, _currentUser.longitude),
           );
-          if (dist <= 2000) {
+          if (dist <= pickupRadiusMeters) {
             letter.status = DeliveryStatus.nearYou;
             _hasNearbyAlert = true;
-            _triggerNearbyNotification(letter);
+            if (triggerNotifications) _triggerNearbyNotification(letter);
             changed = true;
           }
           continue;
         }
 
-        // nearYou 편지: 유저가 2km 밖으로 이동하면 deliveredFar로 되돌림
+        // nearYou 편지: 유저가 반경 밖으로 이동하면 deliveredFar로 되돌림
         if (letter.status == DeliveryStatus.nearYou) {
           final dist = letter.destinationLocation.distanceTo(
             LatLng(_currentUser.latitude, _currentUser.longitude),
           );
-          if (dist > 2000) {
+          if (dist > pickupRadiusMeters) {
             letter.status = DeliveryStatus.deliveredFar;
             changed = true;
           }
@@ -4274,13 +5758,27 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
         if (letter.status != DeliveryStatus.inTransit) continue;
 
+        // Build 247: 방어적 픽스 — inTransit 이지만 arrivalTime 이 null 인 letter
+        // 자동 보정. 이전엔 arrivalTime 없으면 progress 가 0 에서 멈춰서
+        // "보내던 혜택이 멈춰 보임" 증상. estimatedTotalMinutes 또는 segments
+        // 합으로 계산해서 즉시 채워줌.
+        if (letter.arrivalTime == null) {
+          final segMin = letter.segments.fold<int>(
+            0,
+            (s, seg) => s + (seg.estimatedMinutes <= 0 ? 1 : seg.estimatedMinutes),
+          );
+          final mins = letter.estimatedTotalMinutes > 0
+              ? letter.estimatedTotalMinutes
+              : (segMin > 0 ? segMin : 30); // 최후 fallback 30분
+          letter.arrivalTime = letter.sentAt.add(Duration(minutes: mins));
+          changed = true;
+        }
+
         if (_syncLetterProgressWithClock(letter, now)) {
           changed = true;
         }
 
-        final arrived = letter.arrivalTime != null
-            ? !now.isBefore(letter.arrivalTime!)
-            : letter.overallProgress >= 0.999;
+        final arrived = !now.isBefore(letter.arrivalTime!);
 
         if (arrived) {
           // daily_ 편지: 거리와 무관하게 자동으로 inbox로 이동
@@ -4291,23 +5789,25 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             changed = true;
             continue;
           }
-          // 내 위치 2km 이내인지 확인
+          // 내 위치 반경 이내인지 확인
           final dist = letter.destinationLocation.distanceTo(
             LatLng(_currentUser.latitude, _currentUser.longitude),
           );
-          if (dist <= 2000) {
-            // 실제 2km 이내
+          if (dist <= pickupRadiusMeters) {
+            // 실제 반경 이내
             letter.status = DeliveryStatus.nearYou;
             _hasNearbyAlert = true;
-            _triggerNearbyNotification(letter);
+            if (triggerNotifications) _triggerNearbyNotification(letter);
           } else {
-            // 2km 밖에 있으면 deliveredFar (지도에 표시되지만 열 수 없음)
+            // 반경 밖에 있으면 deliveredFar (지도에 표시되지만 열 수 없음)
             letter.status = DeliveryStatus.deliveredFar;
-            NotificationService.showLetterArrivedNotification(
-              senderCountry: letter.senderCountry,
-              senderFlag: letter.senderCountryFlag,
-              langCode: _currentUser.languageCode,
-            );
+            if (triggerNotifications) {
+              NotificationService.showLetterArrivedNotification(
+                senderCountry: letter.senderCountry,
+                senderFlag: letter.senderCountryFlag,
+                langCode: _currentUser.languageCode,
+              );
+            }
           }
           letter.arrivedAt ??= now;
           changed = true;
@@ -4333,7 +5833,6 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         _saveToPrefs();
         notifyListeners();
       }
-    });
   }
 
   // ── AI 자동 편지 발송 (하루 3통, 랜덤 3개국 → 유저 나라 랜덤 주소) ──────────
@@ -4544,6 +6043,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       _worldLetters.add(letter);
     }
     _saveToPrefs();
+    _rescheduleArrivalCountdown();
     notifyListeners();
   }
 
@@ -4624,8 +6124,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // ── 근처 도착 알림 트리거 ────────────────────────────────────────────────────
 
   Future<void> _triggerNearbyNotification(Letter letter) async {
-    // 편지 도착 햅틱 (medium vibration)
-    HapticFeedback.mediumImpact();
+    // 편지 도착 피드백 (3단 light — 부드러운 우편함 노크)
+    FeedbackService.onLetterArrive();
     final prefs = await SharedPreferences.getInstance();
     final notifyEnabled = prefs.getBool('notify_nearby') ?? true;
     if (!notifyEnabled) return;
@@ -4745,6 +6245,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     bool isExpress = false, // 프리미엄/브랜드 특급 배송
     bool brandUniquePerUser = false, // 브랜드: 수신자당 1회 수신
     int? brandAutoExpireHours, // 브랜드: 자동 삭제 시간
+    LetterCategory category = LetterCategory.general, // 브랜드만 coupon/voucher 선택 가능
+    bool acceptsReplies = true, // 브랜드가 답장 받기 off로 보낼 수 있음
+    String? redemptionInfo, // 브랜드: 쿠폰/교환권 사용 안내 (자유 텍스트)
+    DateTime? redemptionExpiresAt, // Build 132: 브랜드 쿠폰/교환권 유효기간 (사용 가능 마지막 시각)
   }) async {
     if (!_canSendLetterByDailyLimit()) {
       return false;
@@ -4759,6 +6263,20 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
     final id = 'sent_${DateTime.now().millisecondsSinceEpoch}';
     final fromCity = LatLng(_currentUser.latitude, _currentUser.longitude);
+
+    // ── 실제 위치 기반 발신국 결정 ─────────────────────────────────────────
+    // 사용자 프로필 country (회원가입 시 선택) 와 실제 GPS 위치가 다른 경우
+    // (예: 한국 회원이 호주 여행 중) — 발신국은 실제 위치 기준이 맞다.
+    // GeocodingService 의 country bounds 로 좌표 → 국가 매핑.
+    final geoSvc = GeocodingService.instance;
+    final detected = geoSvc.isInitialized
+        ? geoSvc.findCountryByCoord(
+            _currentUser.latitude,
+            _currentUser.longitude,
+          )
+        : null;
+    final actualSenderCountry = detected?['name'] ?? _currentUser.country;
+    final actualSenderFlag = detected?['flag'] ?? _currentUser.countryFlag;
 
     double finalLat;
     double finalLng;
@@ -4836,9 +6354,36 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     }
     final toCity = LatLng(finalLat, finalLng);
 
-    final isDomestic = _currentUser.country == destinationCountry;
+    // Build 210: 라우팅 fromCountry 강건화. 이전엔 GeocodingService 가
+    // 미초기화이거나 좌표가 box 매칭 안 되면 프로필 country 로 폴백 → 한국
+    // 회원이 호주에서 호주로 보낼 때 'KR→AU' 로 잘못 인식돼 공항 경유 항공
+    // 루트가 짜였다. 두 가지 방어 추가:
+    //   1) fromCity 와 toCity 가 충분히 가까우면(< 300km) 무조건 domestic 으로
+    //      간주. 두 좌표가 한 도시 권역 내라면 국가 식별 결과와 무관하게
+    //      트럭 단일 구간이 자연스럽다.
+    //   2) GeocodingService 가 detect 실패해도 destinationCountry box 안에
+    //      fromCity 가 들어가는지 한 번 더 체크. 들어가면 domestic 으로 강제.
+    String routingFromCountry = actualSenderCountry;
+    final fromToDistanceM = fromCity.distanceTo(toCity);
+    if (fromToDistanceM < 300000) {
+      // < 300km → 같은 나라로 간주 (대륙 어느 쪽이든)
+      routingFromCountry = destinationCountry;
+    } else if (geoSvc.isInitialized &&
+        actualSenderCountry != destinationCountry) {
+      // detect 결과가 dest 와 다르더라도 fromCity 좌표가 dest 박스 안이면
+      // domestic 으로 보정.
+      final destBoxCheck = geoSvc.findCountryByCoord(
+        fromCity.latitude,
+        fromCity.longitude,
+      );
+      if (destBoxCheck?['name'] == destinationCountry) {
+        routingFromCountry = destinationCountry;
+      }
+    }
+
+    final isDomestic = routingFromCountry == destinationCountry;
     final segments = LogisticsHubs.buildRoute(
-      fromCountry: _currentUser.country,
+      fromCountry: routingFromCountry,
       fromCity: fromCity,
       toCountry: destinationCountry,
       toCity: toCity,
@@ -4873,8 +6418,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       id: id,
       senderId: _currentUser.id,
       senderName: _currentUser.username,
-      senderCountry: _currentUser.country,
-      senderCountryFlag: _currentUser.countryFlag,
+      // 실제 위치 기반 — 한국 회원이 호주 여행 중 발송 시 senderCountry='호주'.
+      // 좌표 매칭 실패(바다 등) 시 프로필 country 폴백.
+      senderCountry: actualSenderCountry,
+      senderCountryFlag: actualSenderFlag,
       content: content,
       originLocation: fromCity,
       destinationLocation: toCity,
@@ -4908,6 +6455,18 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       expiresAt: (_currentUser.isBrand && brandAutoExpireHours != null)
           ? now.add(Duration(minutes: totalMin) + Duration(hours: brandAutoExpireHours))
           : null,
+      // coupon/voucher 카테고리는 브랜드만 선택할 수 있도록 서버 사이드 가드
+      // 일반·프리미엄 유저가 어떤 방식으로 category 를 전달해도 general 로 강제.
+      category: _currentUser.isBrand ? category : LetterCategory.general,
+      // 답장 수락은 브랜드만 off 가능 — Free/Premium 은 항상 true 로 강제.
+      acceptsReplies: _currentUser.isBrand ? acceptsReplies : true,
+      // 쿠폰/교환권 사용 안내도 브랜드만 기록됨. 일반 유저가 넘겨도 무시.
+      redemptionInfo: _currentUser.isBrand ? redemptionInfo : null,
+      // Build 132: 쿠폰/교환권 유효기간 — coupon/voucher 카테고리일 때만 저장.
+      redemptionExpiresAt: (_currentUser.isBrand &&
+              category != LetterCategory.general)
+          ? redemptionExpiresAt
+          : null,
     );
 
     _worldLetters.add(letter);
@@ -4919,7 +6478,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _sentSinceLastUnlock++;
     // 주간 챌린지 진행도 갱신 (중복 국가는 자동으로 무시됨)
     _recordWeeklyChallengeSend(letter.destinationCountry);
-    // 레벨업 감지 (발송 수 증가로 레벨 바뀔 수 있음)
+    // 발송 거리 누적 — XP 공식의 "보낸 편지 거리" 원천
+    _sumSentKm += letter.originLocation.distanceTo(letter.destinationLocation) /
+        1000.0;
+    // 레벨업 감지 (발송 수 + 거리 증가로 레벨 바뀔 수 있음)
     _detectLevelUp();
     notifyListeners();
     _saveToPrefs();
@@ -4964,6 +6526,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     int fontStyle = 0,
     bool brandUniquePerUser = false,
     int? brandAutoExpireHours,
+    LetterCategory category = LetterCategory.general,
+    bool acceptsReplies = true,
+    String? redemptionInfo,
+    DateTime? redemptionExpiresAt,
   }) async {
     if (!_currentUser.isBrand) return 0;
     int sent = 0;
@@ -4987,6 +6553,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           fontStyle: fontStyle,
           brandUniquePerUser: brandUniquePerUser,
           brandAutoExpireHours: brandAutoExpireHours,
+          category: category,
+          acceptsReplies: acceptsReplies,
+          redemptionInfo: redemptionInfo,
+          redemptionExpiresAt: redemptionExpiresAt,
         );
         if (ok) sent++;
       }
@@ -5008,6 +6578,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             fontStyle: fontStyle,
             brandUniquePerUser: brandUniquePerUser,
             brandAutoExpireHours: brandAutoExpireHours,
+            category: category,
+            acceptsReplies: acceptsReplies,
+            redemptionInfo: redemptionInfo,
+            redemptionExpiresAt: redemptionExpiresAt,
           );
           if (ok) sent++;
         }
@@ -5031,43 +6605,70 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     String? imageUrl,
     bool brandUniquePerUser = false,
     int? brandAutoExpireHours,
+    LetterCategory category = LetterCategory.general,
+    bool acceptsReplies = true,
+    String? redemptionInfo,
+    DateTime? redemptionExpiresAt,
+    double? preciseLat,
+    double? preciseLng,
   }) async {
     if (!_currentUser.isBrand) return 0;
 
     const expressTotalMin = 5; // 특송: 5분 즉시 배송
     final now = DateTime.now();
     final fromCity = LatLng(_currentUser.latitude, _currentUser.longitude);
+    // 실제 위치 기반 발신국 (호주 여행 중인 한국 회원도 호주 발송으로 표시)
+    final geoSvc = GeocodingService.instance;
+    final detected = geoSvc.isInitialized
+        ? geoSvc.findCountryByCoord(
+            _currentUser.latitude,
+            _currentUser.longitude,
+          )
+        : null;
+    final actualSenderCountry = detected?['name'] ?? _currentUser.country;
+    final actualSenderFlag = detected?['flag'] ?? _currentUser.countryFlag;
     final usedCityKeys = <String>{};
     int sent = 0;
 
+    final usePrecise = preciseLat != null && preciseLng != null;
     for (int i = 0; i < count; i++) {
       if (!_canSendLetterByDailyLimit()) break;
 
-      var cityData = CountryCities.randomCityWithOffset(
-        destinationCountry,
-        usedCityKeys: usedCityKeys,
-        languageCode: _currentUser.languageCode,
-      );
-      if (cityData == null) {
-        if (usedCityKeys.isEmpty) break; // 해당 국가 도시 데이터 없음
-        usedCityKeys.clear(); // 모든 도시 소진 → 중복 허용으로 재시도
-        cityData = CountryCities.randomCityWithOffset(
+      String cityName;
+      double cityLat;
+      double cityLng;
+      if (usePrecise) {
+        // 정확한 위치 모드: 모든 letter 가 동일 좌표 단일점 발송 (산포 X)
+        cityName = '';
+        cityLat = preciseLat;
+        cityLng = preciseLng;
+      } else {
+        var cityData = CountryCities.randomCityWithOffset(
           destinationCountry,
           usedCityKeys: usedCityKeys,
           languageCode: _currentUser.languageCode,
         );
-        if (cityData == null) break;
+        if (cityData == null) {
+          if (usedCityKeys.isEmpty) break; // 해당 국가 도시 데이터 없음
+          usedCityKeys.clear(); // 모든 도시 소진 → 중복 허용으로 재시도
+          cityData = CountryCities.randomCityWithOffset(
+            destinationCountry,
+            usedCityKeys: usedCityKeys,
+            languageCode: _currentUser.languageCode,
+          );
+          if (cityData == null) break;
+        }
+
+        cityName = cityData['name'] as String? ?? '';
+        usedCityKeys.add(CountryCities.cityKey(destinationCountry, cityName));
+
+        cityLat = (cityData['lat'] as num).toDouble();
+        cityLng = (cityData['lng'] as num).toDouble();
       }
-
-      final cityName = cityData['name'] as String? ?? '';
-      usedCityKeys.add(CountryCities.cityKey(destinationCountry, cityName));
-
-      final cityLat = (cityData['lat'] as num).toDouble();
-      final cityLng = (cityData['lng'] as num).toDouble();
       final toCity = LatLng(cityLat, cityLng);
 
       final segments = LogisticsHubs.buildRoute(
-        fromCountry: _currentUser.country,
+        fromCountry: actualSenderCountry,
         fromCity: fromCity,
         toCountry: destinationCountry,
         toCity: toCity,
@@ -5082,8 +6683,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         id: id,
         senderId: _currentUser.id,
         senderName: _currentUser.username,
-        senderCountry: _currentUser.country,
-        senderCountryFlag: _currentUser.countryFlag,
+        senderCountry: actualSenderCountry,
+        senderCountryFlag: actualSenderFlag,
         content: content,
         originLocation: fromCity,
         destinationLocation: toCity,
@@ -5109,6 +6710,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         brandUniquePerUser: brandUniquePerUser,
         expiresAt: brandAutoExpireHours != null
             ? now.add(Duration(minutes: expressTotalMin) + Duration(hours: brandAutoExpireHours))
+            : null,
+        category: category,
+        acceptsReplies: acceptsReplies,
+        redemptionInfo: redemptionInfo,
+        redemptionExpiresAt: category != LetterCategory.general
+            ? redemptionExpiresAt
             : null,
       );
 
@@ -5143,9 +6750,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   // ── 편지 습득 ─────────────────────────────────────────────────────────────
-  /// 반환값: null = 성공, 非null = 실패 사유 메시지
+  /// 반환값: null = 성공, 非non-null = 실패 사유 메시지
   /// [distanceCheck] false로 설정하면 거리 검증 없이 습득 (테스트/관리자용)
   String? pickUpLetter(String letterId, {bool distanceCheck = true}) {
+    // 브랜드 픽업 차단은 포지셔닝 변경으로 해제 — 모든 등급이 줍기 가능.
+    // (Free 200m / Premium 1km / Brand 1km — 브랜드는 발송 중심이지만
+    //  본인도 다른 발신자의 쿠폰/이벤트 편지를 주울 수 있음.)
+    //
     // ① 쿨다운 체크 (무료: 1시간, 프리미엄/브랜드: 10분)
     final remaining = nearbyPickupRemainingCooldown;
     if (remaining != null) {
@@ -5154,7 +6765,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       final timeStr = mins > 0
           ? _l10n.stateMinSec(mins, secs)
           : _l10n.stateSec(secs);
-      final tier = (_currentUser.isPremium || _currentUser.isBrand)
+      final tier = _currentUser.isPremium
           ? _l10n.stateTierPremium10min
           : _l10n.stateTierFree1hour;
       return _l10n.statePickupCooldown(timeStr, tier);
@@ -5181,7 +6792,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       final dist = letter.destinationLocation.distanceTo(
         LatLng(_currentUser.latitude, _currentUser.longitude),
       );
-      if (dist > 2000) return _l10n.stateDistanceTooFar;
+      if (dist > pickupRadiusMeters) return _l10n.stateDistanceTooFar;
     }
 
     // ⑥ 수령 처리: readCount 증가 후 inbox에 복사본 추가
@@ -5202,6 +6813,38 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
     _currentUser.activityScore.receivedCount++;
     _lastNearbyPickupAt = DateTime.now(); // 쿨다운 시작
+
+    // 픽업 모먼트 햅틱 — 포켓몬 고식 "편지 주움" 감각. Brand 발신 편지는
+    // 한 단계 더 무거운 시퀀스로 "공식 발송인" 체감 차별화.
+    FeedbackService.onLetterPickUp(isBrand: letter.senderIsBrand);
+
+    // 픽업 거리 누적 — XP 공식의 "편지 간 거리" 원천. Brand 계정은 레벨
+    // 시스템 밖이지만 필드 자체는 동일하게 축적해서 후일 Brand 전용 통계에
+    // 재활용할 수 있도록 한다.
+    final pickupKm = letter.originLocation.distanceTo(
+      LatLng(_currentUser.latitude, _currentUser.longitude),
+    ) /
+        1000.0;
+    _sumPickupKm += pickupKm;
+    _detectLevelUp();
+
+    // Build 134: 쿠폰/교환권 편지를 주웠다면 만료 24h 전 알림 예약.
+    // general 카테고리·만료일 없음·이미 지남 = 스킵 (service 내부 guard).
+    if (letter.category != LetterCategory.general &&
+        letter.redemptionExpiresAt != null) {
+      unawaited(
+        NotificationService.scheduleCouponExpiryReminder(
+          letterId: letter.id,
+          expiresAt: letter.redemptionExpiresAt!,
+          senderName: letter.senderName.isNotEmpty
+              ? letter.senderName
+              : letter.senderCountry,
+          isVoucher: letter.category == LetterCategory.voucher,
+          langCode: _currentUser.languageCode,
+        ),
+      );
+    }
+
     NotificationService.showLetterArrivedNotification(
       senderCountry: letter.senderCountry,
       senderFlag: letter.senderCountryFlag,
@@ -5213,6 +6856,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // ⑦ Firestore 클레임 등록 (Firebase 활성화 시, 선착순 기록)
     if (FirebaseConfig.kFirebaseEnabled) {
       _claimLetterOnFirestore(letter.id);
+      // Build 138: 브랜드 편지 픽업 집계 — 브랜드 대시보드에서 impression
+      // 숫자로 노출. 원자적 증감 (`:commit` fieldTransforms.increment).
+      if (letter.senderIsBrand) {
+        unawaited(
+          FirestoreService.incrementField(
+            path: 'letters/${letter.id}',
+            field: 'pickupCount',
+          ),
+        );
+      }
     }
 
     return null; // 성공
@@ -5283,6 +6936,98 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       }
       notifyListeners();
       _saveToPrefs();
+    }
+  }
+
+  /// Build 182: 픽업한 편지의 `content` 가 어떤 이유로든 비어 있을 때
+  /// Firestore 에서 원본 문서를 재조회해 본문/이미지/쿠폰코드를 채운다.
+  /// - 이전 버전에서 쓰인 후 Firestore 에 도착한 편지 (sync 누락)
+  /// - 로컬 prefs 만 남은 잔존 문서
+  /// - 네트워크 타이밍 문제로 `content` 가 sync 전에 저장된 경우
+  ///
+  /// Letter 필드는 final 이라 inbox 항목을 새 인스턴스로 **교체** 해야 한다.
+  /// status·readAt 등 이미 mutate 된 상태는 유지.
+  /// 반환값 true = 업데이트 발생 (UI 는 notifyListeners 로 리빌드됨).
+  Future<bool> refetchLetterContentIfEmpty(String letterId) async {
+    if (!FirebaseConfig.kFirebaseEnabled) return false;
+    final idx = _inbox.indexWhere((l) => l.id == letterId);
+    if (idx == -1) return false;
+    final letter = _inbox[idx];
+    final needsContent = letter.content.trim().isEmpty;
+    final needsRedemption = (letter.category != LetterCategory.general) &&
+        (letter.redemptionInfo == null || letter.redemptionInfo!.isEmpty);
+    final needsImage = (letter.category == LetterCategory.voucher) &&
+        (letter.imageUrl == null || letter.imageUrl!.isEmpty);
+    if (!needsContent && !needsRedemption && !needsImage) return false;
+
+    try {
+      final doc = await FirestoreService.getDocument('letters/$letterId');
+      if (doc == null) return false;
+      final map = FirestoreService.fromFirestoreDoc(doc);
+      final serverContent = (map['content'] as String?)?.trim() ?? '';
+      final serverRed = (map['redemptionInfo'] as String?)?.trim() ?? '';
+      final serverImg = (map['imageUrl'] as String?)?.trim() ?? '';
+
+      final fillContent = needsContent && serverContent.isNotEmpty;
+      final fillRed = needsRedemption && serverRed.isNotEmpty;
+      final fillImg = needsImage && serverImg.isNotEmpty;
+      if (!fillContent && !fillRed && !fillImg) return false;
+
+      // Letter 필드 대부분 final — clone 후 신규 인스턴스로 교체. mutate 된
+      // inbox 전용 status/readAt 은 유지.
+      final updated = Letter(
+        id: letter.id,
+        senderId: letter.senderId,
+        senderName: letter.senderName,
+        senderCountry: letter.senderCountry,
+        senderCountryFlag: letter.senderCountryFlag,
+        content: fillContent ? serverContent : letter.content,
+        originLocation: letter.originLocation,
+        destinationLocation: letter.destinationLocation,
+        destinationCountry: letter.destinationCountry,
+        destinationCountryFlag: letter.destinationCountryFlag,
+        destinationCity: letter.destinationCity,
+        destinationDisplayAddress: letter.destinationDisplayAddress,
+        segments: letter.segments,
+        currentSegmentIndex: letter.currentSegmentIndex,
+        status: letter.status,
+        sentAt: letter.sentAt,
+        arrivedAt: letter.arrivedAt,
+        readAt: letter.readAt,
+        arrivalTime: letter.arrivalTime,
+        isAnonymous: letter.isAnonymous,
+        socialLink: letter.socialLink,
+        estimatedTotalMinutes: letter.estimatedTotalMinutes,
+        isReadByRecipient: letter.isReadByRecipient,
+        letterType: letter.letterType,
+        reportCount: letter.reportCount,
+        reportedBy: Set<String>.from(letter.reportedBy),
+        readCount: letter.readCount,
+        maxReaders: letter.maxReaders,
+        likeCount: letter.likeCount,
+        ratingTotal: letter.ratingTotal,
+        ratingCount: letter.ratingCount,
+        paperStyle: letter.paperStyle,
+        fontStyle: letter.fontStyle,
+        deliveryEmoji: letter.deliveryEmoji,
+        hasReplied: letter.hasReplied,
+        imageUrl: fillImg ? serverImg : letter.imageUrl,
+        senderIsBrand: letter.senderIsBrand,
+        senderTier: letter.senderTier,
+        brandUniquePerUser: letter.brandUniquePerUser,
+        expiresAt: letter.expiresAt,
+        category: letter.category,
+        acceptsReplies: letter.acceptsReplies,
+        redemptionInfo: fillRed ? serverRed : letter.redemptionInfo,
+        redemptionExpiresAt: letter.redemptionExpiresAt,
+      );
+      _inbox[idx] = updated;
+      notifyListeners();
+      _saveToPrefs();
+      return true;
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Refetch] letter content 실패: $e');
+      return false;
     }
   }
 
@@ -5509,6 +7254,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final fromCity = LatLng(_currentUser.latitude, _currentUser.longitude);
     final toCity = LatLng(destLat, destLng);
 
+    // 실제 위치 기반 발신국 (프로필 country 와 다를 수 있음)
+    final geoSvc = GeocodingService.instance;
+    final detected = geoSvc.isInitialized
+        ? geoSvc.findCountryByCoord(
+            _currentUser.latitude,
+            _currentUser.longitude,
+          )
+        : null;
+    final actualSenderCountry = detected?['name'] ?? _currentUser.country;
+    final actualSenderFlag = detected?['flag'] ?? _currentUser.countryFlag;
+
     // 현지 언어 3단계 표시 주소 (표시 전용)
     final displayAddr = await GeocodingService.getDisplayAddress(
       destLat,
@@ -5517,7 +7273,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     );
 
     final segments = LogisticsHubs.buildRoute(
-      fromCountry: _currentUser.country,
+      fromCountry: actualSenderCountry,
       fromCity: fromCity,
       toCountry: destinationCountry,
       toCity: toCity,
@@ -5532,8 +7288,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       id: id,
       senderId: _currentUser.id,
       senderName: _currentUser.username,
-      senderCountry: _currentUser.country,
-      senderCountryFlag: _currentUser.countryFlag,
+      senderCountry: actualSenderCountry,
+      senderCountryFlag: actualSenderFlag,
       content: content,
       originLocation: fromCity,
       destinationLocation: toCity,
@@ -5879,4 +7635,34 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _mapSyncTimer?.cancel();
     super.dispose();
   }
+}
+
+/// Build 138: 브랜드 분석 결과 데이터 클래스.
+/// `fetchBrandAnalytics()` 가 Firestore 에서 집계해 반환.
+class BrandAnalytics {
+  final int totalSent;      // 총 발송 편지 수
+  final int totalPicked;    // 총 픽업 수 (impression)
+  final int totalRedeemed;  // 총 사용 완료 수 (conversion)
+  final int couponSent;     // 할인권 발송 건수
+  final int voucherSent;    // 교환권 발송 건수
+  final Map<String, int> countryPicks; // 국가별 픽업 수
+  // Build 157: 최근 7일 일별 발송 횟수 (index 0 = 6일 전, index 6 = 오늘).
+  final List<int> dailySent;
+
+  const BrandAnalytics({
+    required this.totalSent,
+    required this.totalPicked,
+    required this.totalRedeemed,
+    required this.couponSent,
+    required this.voucherSent,
+    required this.countryPicks,
+    this.dailySent = const [0, 0, 0, 0, 0, 0, 0],
+  });
+
+  /// 픽업 대비 사용 전환율 (0.0 ~ 1.0). picks 가 0 이면 0.
+  double get redeemConversion =>
+      totalPicked == 0 ? 0 : totalRedeemed / totalPicked;
+
+  /// 발송 대비 픽업률 (reach — 얼마나 주워졌는지).
+  double get pickupReach => totalSent == 0 ? 0 : totalPicked / totalSent;
 }

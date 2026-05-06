@@ -6,15 +6,32 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/config/app_keys.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/services/feedback_service.dart';
 import '../../core/services/purchase_service.dart';
 import '../../core/localization/app_localizations.dart';
+import 'premium_collections.dart';
 import '../../state/app_state.dart';
 
-class PremiumScreen extends StatelessWidget {
+class PremiumScreen extends StatefulWidget {
   /// [isWelcomeMode] : 최초 가입 후 플랜 선택 화면으로 열릴 때 true.
   /// 뒤로가기 대신 "나중에" 버튼이 표시되며 누르면 /home 으로 이동합니다.
   final bool isWelcomeMode;
   const PremiumScreen({super.key, this.isWelcomeMode = false});
+
+  @override
+  State<PremiumScreen> createState() => _PremiumScreenState();
+}
+
+class _PremiumScreenState extends State<PremiumScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Build 215: 이전 buy 시도가 남긴 stale 에러 클리어 — 화면 다시 들어오면 깨끗.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<PurchaseService>().clearError();
+    });
+  }
 
   String _formatDate(DateTime date, String langCode) {
     return DateFormat.yMd(langCode).format(date);
@@ -60,26 +77,24 @@ class PremiumScreen extends StatelessWidget {
         final autoRenewDateText = purchase.nextBillingDate != null
             ? _formatDate(purchase.nextBillingDate!, langCode)
             : null;
-        final premiumFeatures = state.useValueBasedPremiumCopy
-            ? [
-                '🚀  ${l.premiumValueFeature1}',
-                '📬  ${l.premiumValueFeature2}',
-                '📸  ${l.premiumValueFeature3}',
-                '⚡  ${l.premiumValueFeature4}',
-              ]
-            : [
-                '✉️  ${l.premiumFeature1}',
-                '📸  ${l.premiumFeature2}',
-                '🗼  ${l.premiumFeature3}',
-                '⚡  ${l.premiumFeature4}',
-              ];
+        // Build 137: Premium 의 핵심 가치는 "본인 홍보 편지 발송" 이라는
+        // 유저 결정에 맞춰 순서 재조정. 📸 사진 + 🔗 링크 편지를 최상단으로
+        // 올려 "Premium = 나를 알리는 도구" 포지셔닝을 1스캔에 전달.
+        // Free 는 줍기만 — 보내기 탭 자체가 Premium Gate.
+        final premiumFeatures = [
+          '📸  ${l.premiumFeature3}', // 하루 30통 + 사진·링크 (promotion primary)
+          '📍  ${l.premiumFeature1}', // 줍기 반경 1km
+          '⏱  ${l.premiumFeature2}', // 쿨다운 10분
+          // Build 185: 🎨 이모지는 l10n 본문에 포함됨. prefix 제거.
+          l.premiumFeature4,
+        ];
 
         return Scaffold(
           backgroundColor: AppColors.bgDeep,
           appBar: AppBar(
             backgroundColor: AppColors.bgDeep,
             elevation: 0,
-            leading: isWelcomeMode
+            leading: widget.isWelcomeMode
                 ? TextButton(
                     onPressed: () =>
                         Navigator.of(context).pushReplacementNamed('/home'),
@@ -99,30 +114,17 @@ class PremiumScreen extends StatelessWidget {
                     ),
                     onPressed: () => Navigator.pop(context),
                   ),
-            title: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  isWelcomeMode
-                      ? '🎉 ${l.premiumPlanTitle}'
-                      : 'Letter Go Premium',
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '✈️  ${l.airMailPassLabel}',
-                  style: TextStyle(
-                    color: AppColors.gold.withValues(alpha: 0.9),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.8,
-                  ),
-                ),
-              ],
+            // Build 247: Air Mail Pass 서브브랜드 라벨 제거 — 사용자 요청.
+            // 'Thiscount Premium' 단일 라벨로 정리.
+            title: Text(
+              widget.isWelcomeMode
+                  ? '🎉 ${l.premiumPlanTitle}'
+                  : 'Thiscount Premium',
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+              ),
             ),
             centerTitle: true,
           ),
@@ -145,7 +147,50 @@ class PremiumScreen extends StatelessWidget {
                     ),
                 ] else
                   _PremiumHeroBanner(),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
+
+                // Build 215: 베타 시뮬레이터 안내 — 결제 없이 업그레이드 체험
+                // 가능한 환경임을 명시. 실 결제 시도 시 발생할 수 있는 "상품
+                // 정보 없음" 에러를 사전에 컨텍스트로 잡아줌.
+                if (purchase.isBetaUpgradeSimulator && !isPremium && !isBrand)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.gold.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.gold.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Text('🧪', style: TextStyle(fontSize: 18)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            '베타 기간: 결제 없이 업그레이드를 체험할 수 있어요. '
+                            '버튼 한 번이면 바로 활성화됩니다.',
+                            style: TextStyle(
+                              color: AppColors.gold,
+                              fontSize: 12.5,
+                              height: 1.4,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // 비구독자에게만 컬렉션 스토리를 먼저 노출 — 기능 나열 대신
+                // "라이프스타일 패키지"로 감성 프레이밍
+                if (!isPremium && !isBrand) ...[
+                  const PremiumCollectionsPreview(),
+                  const SizedBox(height: 20),
+                ],
 
                 // 디버그 전용: 프리미엄 상태 토글
                 if (kDebugMode) ...[
@@ -162,10 +207,15 @@ class PremiumScreen extends StatelessWidget {
                   badge: isFree ? l.premiumCurrentPlan : '',
                   badgeColor: AppColors.teal,
                   features: [
-                    '✉️  ${l.premiumFreeFeature1}',
-                    '🗺️  ${l.premiumFreeFeature2}',
+                    // Build 118: Free 플랜도 픽업 제약 (반경·쿨다운) 부터
+                    // 노출해 Premium 업그레이드 동기를 시각적으로 만든다.
+                    '📍  ${l.premiumFreeFeature1}',
+                    '✉️  ${l.premiumFreeFeature2}',
                   ],
-                  isActive: false,
+                  // Build 215: 현재 Free 사용자면 active 로 표시 → "현재 사용 중"
+                  // 라벨이 뜨고 "해지 예약" 버튼이 안 뜸. 이전엔 항상 false 라
+                  // Free 인 사용자에게 의미 없는 다운그레이드 버튼이 노출됨.
+                  isActive: isFree,
                   onTap: (isFree || purchase.loading)
                       ? null
                       : () async {
@@ -279,6 +329,9 @@ class PremiumScreen extends StatelessWidget {
                             if (!ok || !context.mounted) return;
                           }
                           final bought = await purchase.buyPremium();
+                          if (bought) {
+                            FeedbackService.onPurchaseSuccess();
+                          }
                           if (!context.mounted) return;
                           _showPurchaseResultToast(
                             context,
@@ -311,7 +364,7 @@ class PremiumScreen extends StatelessWidget {
                                 : l.koEn('관리자 전용', 'Admin Only')
                             : '',
                     badgeColor: isBrand
-                        ? const Color(0xFFFF8A5C)
+                        ? AppColors.coupon
                         : AppColors.textMuted,
                     features: [
                       '✉️  ${l.premiumBrandFeature1}',
@@ -345,6 +398,9 @@ class PremiumScreen extends StatelessWidget {
                               if (!ok || !context.mounted) return;
                             }
                             final bought = await purchase.buyBrand();
+                            if (bought) {
+                              FeedbackService.onPurchaseSuccess();
+                            }
                             if (!context.mounted) return;
                             _showPurchaseResultToast(
                               context,
@@ -355,7 +411,7 @@ class PremiumScreen extends StatelessWidget {
                     loading: isBuyingBrand,
                     color: brandDisabled
                         ? AppColors.textMuted
-                        : const Color(0xFFFF8A5C),
+                        : AppColors.coupon,
                     actionLabel: isBrand
                         ? l.premiumNoDowngrade
                         : brandDisabled
@@ -538,47 +594,66 @@ class _ActivePlanBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppL10n.of(context.read<AppState>().currentUser.languageCode);
-    final color = isBrand ? const Color(0xFFFF8A5C) : AppColors.gold;
-    final icon = isBrand ? '🏷️' : '👑';
-    final label = isBrand ? 'Brand / Creator ${l.premiumActiveLabel}' : 'Premium ${l.premiumActiveLabel}';
+    final color = isBrand ? AppColors.coupon : AppColors.gold;
+    final ink = isBrand
+        ? const Color(0xFF1A0008)
+        : const Color(0xFF1A1300);
+    final label = isBrand
+        ? 'Brand / Creator ${l.premiumActiveLabel}'
+        : 'Premium ${l.premiumActiveLabel}';
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(22, 18, 22, 18),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            color.withValues(alpha: 0.15),
-            color.withValues(alpha: 0.04),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.4)),
+        color: color,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.4),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          Text(icon, style: const TextStyle(fontSize: 36)),
-          const SizedBox(width: 16),
+          Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: ink,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.check_rounded,
+              color: color,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  label,
+                  label.toUpperCase(),
                   style: TextStyle(
-                    color: color,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
+                    color: ink.withValues(alpha: 0.7),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.66,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   l.premiumActivePlan,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
+                  style: TextStyle(
+                    color: ink,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
                   ),
                 ),
               ],
@@ -597,40 +672,50 @@ class _PremiumHeroBanner extends StatelessWidget {
     final l = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
+      padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.gold.withValues(alpha: 0.12),
-            AppColors.gold.withValues(alpha: 0.03),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
+        color: AppColors.gold,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.4),
+            blurRadius: 32,
+            offset: const Offset(0, 12),
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('👑', style: TextStyle(fontSize: 52)),
-          const SizedBox(height: 12),
           const Text(
-            'Letter Go Premium',
+            'AIR MAIL · PREMIUM',
             style: TextStyle(
-              color: AppColors.gold,
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.5,
+              color: Color(0xB31A1300),
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.66,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
+          const Text(
+            'Thiscount\nPremium.',
+            style: TextStyle(
+              color: Color(0xFF1A1300),
+              fontSize: 32,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -1.2,
+              height: 1.05,
+            ),
+          ),
+          const SizedBox(height: 10),
           Text(
             l.premiumHeroTitle,
-            textAlign: TextAlign.center,
             style: const TextStyle(
-              color: AppColors.textSecondary,
+              color: Color(0xA61A1300),
               fontSize: 14,
-              height: 1.6,
+              fontWeight: FontWeight.w600,
+              height: 1.5,
+              letterSpacing: -0.1,
             ),
           ),
         ],
@@ -671,92 +756,96 @@ class _PlanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isHighlight = color == AppColors.gold || color == AppColors.coupon;
+    final cardBg = isHighlight ? color : AppColors.bgCard;
+    final ink = isHighlight
+        ? (color == AppColors.gold
+              ? const Color(0xFF1A1300)
+              : const Color(0xFF1A0008))
+        : AppColors.textPrimary;
+    final muted = isHighlight
+        ? ink.withValues(alpha: 0.65)
+        : AppColors.textSecondary;
+    final divider = isHighlight
+        ? ink.withValues(alpha: 0.16)
+        : AppColors.bgSurface;
+
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.4), width: 1.5),
+        color: cardBg,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.4),
+            blurRadius: 32,
+            offset: const Offset(0, 12),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 헤더
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  color.withValues(alpha: 0.12),
-                  color.withValues(alpha: 0.03),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(20),
-              ),
-            ),
-            child: Row(
+          // 헤더 — eyebrow + 큰 가격
+          Padding(
+            padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(emoji, style: const TextStyle(fontSize: 28)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            name,
-                            style: TextStyle(
-                              color: color,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          if (badge.isNotEmpty) ...[
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: badgeColor,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                badge,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
+                Row(
+                  children: [
+                    Text(
+                      name.toUpperCase(),
+                      style: TextStyle(
+                        color: muted,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.66,
                       ),
-                      const SizedBox(height: 4),
-                      RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: price,
-                              style: TextStyle(
-                                color: color,
-                                fontSize: 22,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            TextSpan(
-                              text: period,
-                              style: const TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
+                    ),
+                    if (badge.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isHighlight ? ink : badgeColor,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          badge.toUpperCase(),
+                          style: TextStyle(
+                            color: isHighlight ? cardBg : Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.4,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 12),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: price,
+                        style: TextStyle(
+                          color: ink,
+                          fontSize: 36,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -1.4,
+                          height: 1,
+                        ),
+                      ),
+                      TextSpan(
+                        text: period,
+                        style: TextStyle(
+                          color: muted,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -765,93 +854,105 @@ class _PlanCard extends StatelessWidget {
               ],
             ),
           ),
-
-          // 기능 목록 + 버튼
+          Container(height: 1, color: divider),
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(22, 16, 22, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ...features.map(
-                  (f) => Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: Text(
-                      f,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 13,
-                        height: 1.4,
+              children: features
+                  .map(
+                    (f) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 5),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 6),
+                            child: Container(
+                              width: 5,
+                              height: 5,
+                              decoration: BoxDecoration(
+                                color: ink,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              f,
+                              style: TextStyle(
+                                color: ink,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                height: 1.45,
+                                letterSpacing: -0.1,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: isActive
-                      ? Container(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: color.withValues(alpha: 0.4),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.check_circle_rounded,
-                                color: color,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                AppL10n.of(
-                                  context
-                                      .read<AppState>()
-                                      .currentUser
-                                      .languageCode,
-                                ).premiumActivePlanLabel,
-                                style: TextStyle(
-                                  color: color,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : ElevatedButton(
-                          onPressed: onTap,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: color,
-                            foregroundColor: AppColors.bgDeep,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: loading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: AppColors.bgDeep,
-                                  ),
-                                )
-                              : Text(
-                                  actionLabel,
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
+                  )
+                  .toList(),
+            ),
+          ),
+          Container(height: 1, color: divider),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: SizedBox(
+              width: double.infinity,
+              child: isActive
+                  ? Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: isHighlight
+                            ? ink.withValues(alpha: 0.12)
+                            : AppColors.bgSurface,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Text(
+                        AppL10n.of(
+                          context.read<AppState>().currentUser.languageCode,
+                        ).premiumActivePlanLabel,
+                        style: TextStyle(
+                          color: ink,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.1,
                         ),
-                ),
-              ],
+                      ),
+                    )
+                  : GestureDetector(
+                      onTap: loading ? null : onTap,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: isHighlight ? ink : AppColors.textPrimary,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: loading
+                            ? SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: cardBg,
+                                ),
+                              )
+                            : Text(
+                                actionLabel,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                  color: isHighlight ? cardBg : AppColors.bgDeep,
+                                  letterSpacing: -0.2,
+                                ),
+                              ),
+                      ),
+                    ),
             ),
           ),
         ],
@@ -1080,14 +1181,14 @@ class _GiftCardSuccessDialog extends StatelessWidget {
               onPressed: () async {
                 if (!context.mounted) return;
                 final shareText =
-                    '🎁 Letter Go ${l.premiumGiftShareTitle}\n'
+                    '🎁 Thiscount ${l.premiumGiftShareTitle}\n'
                     '${l.premiumGiftShareCode}: $code\n\n'
                     '${l.premiumGiftShareBody}\n'
-                    '📲 https://lettergo.app/gift/$code';
+                    '📲 https://thiscount.io/gift/$code';
                 await _showShareOptions(
                   context,
                   shareText,
-                  '🎁 Letter Go ${l.premiumGiftShareTitle} (${l.premiumGiftShareCode}: $code)',
+                  '🎁 Thiscount ${l.premiumGiftShareTitle} (${l.premiumGiftShareCode}: $code)',
                 );
               },
               icon: const Icon(Icons.share_rounded, size: 16),
@@ -1335,14 +1436,14 @@ class _InviteRewardTileState extends State<_InviteRewardTile> {
                       onPressed: () async {
                         if (!context.mounted) return;
                         final shareText =
-                            '✉️ Letter Go — ${l10n.premiumInviteShareTagline}\n\n'
+                            '✉️ Thiscount — ${l10n.premiumInviteShareTagline}\n\n'
                             '${l10n.premiumMyInviteCode} 👉 $inviteCode\n\n'
                             '${l10n.premiumInviteShareBody}\n\n'
-                            '📲 https://lettergo.app/invite/$inviteCode';
+                            '📲 https://thiscount.io/invite/$inviteCode';
                         await _showShareOptions(
                           context,
                           shareText,
-                          '✉️ Letter Go ${l10n.premiumInviteShareSubject} — ${l10n.premiumGiftShareCode}: $inviteCode',
+                          '✉️ Thiscount ${l10n.premiumInviteShareSubject} — ${l10n.premiumGiftShareCode}: $inviteCode',
                         );
                       },
                       style: OutlinedButton.styleFrom(
@@ -1829,15 +1930,15 @@ class _BrandExtraTileState extends State<_BrandExtraTile> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                const Color(0xFFFF8A5C).withValues(alpha: 0.08),
-                const Color(0xFFFF6B35).withValues(alpha: 0.04),
+                AppColors.coupon.withValues(alpha: 0.08),
+                AppColors.coupon.withValues(alpha: 0.04),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: const Color(0xFFFF8A5C).withValues(alpha: 0.3),
+              color: AppColors.coupon.withValues(alpha: 0.3),
             ),
           ),
           child: Column(
@@ -1849,12 +1950,12 @@ class _BrandExtraTileState extends State<_BrandExtraTile> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFF8A5C).withValues(alpha: 0.15),
+                      color: AppColors.coupon.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
                       Icons.add_circle_outline_rounded,
-                      color: Color(0xFFFF8A5C),
+                      color: AppColors.coupon,
                       size: 20,
                     ),
                   ),
@@ -1893,7 +1994,7 @@ class _BrandExtraTileState extends State<_BrandExtraTile> {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFF8A5C),
+                      color: AppColors.coupon,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Text(
@@ -1987,7 +2088,7 @@ class _BrandExtraTileState extends State<_BrandExtraTile> {
                         ? null
                         : () => _onBuy(appState),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF8A5C),
+                      backgroundColor: AppColors.coupon,
                       foregroundColor: Colors.white,
                       disabledBackgroundColor: AppColors.bgCard,
                       padding: const EdgeInsets.symmetric(vertical: 13),
@@ -2163,7 +2264,7 @@ class _DebugPremiumToggle extends StatelessWidget {
                           brand: true,
                         ),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFFFF8A5C),
+                          foregroundColor: AppColors.coupon,
                           side: BorderSide(
                             color: const Color(
                               0xFFFF8A5C,
@@ -2517,7 +2618,7 @@ void _showBrandUpgradeDialog({
           child: Text(
             l10n.premiumBrandSchedule,
             style: TextStyle(
-              color: Color(0xFFFF8A5C),
+              color: AppColors.coupon,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -2547,7 +2648,7 @@ void _showBrandUpgradeDialog({
                 : '⏰ $formatted ${l10n.premiumPendingBrandAfter}',
             style: const TextStyle(color: Colors.white),
           ),
-          backgroundColor: const Color(0xFFFF8A5C),
+          backgroundColor: AppColors.coupon,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

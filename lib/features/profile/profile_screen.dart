@@ -3,21 +3,29 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import '../city_of_month/city_of_month_card.dart';
+// Build 175: ShareCardService 를 쓰면서 share_plus 직접 호출은 필요 없어짐.
+import '../share/share_card_service.dart';
+
+import '../progression/user_progress.dart';
+import '../brand/brand_analytics_card.dart';
+import '../brand/brand_checklist_card.dart';
+import '../hunt_wallet/hunt_wallet_card.dart';
 import '../journey/journey_card.dart';
-import '../progression/user_level.dart';
+import '../reflection/weekly_reflection_card.dart';
 import '../streak/streak_badge.dart';
-import '../streak/weekly_challenge_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/localization/country_names.dart';
 import '../../../core/localization/language_config.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../core/services/purchase_service.dart';
 import '../../../state/app_state.dart';
+import '../../../models/letter.dart';
 import '../../../models/user_profile.dart';
 import '../../../widgets/shared_profile_dialogs.dart';
+import '../premium/premium_gate_sheet.dart';
 import '../premium/premium_screen.dart';
 import 'stamp_album_screen.dart';
 
@@ -37,6 +45,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _notifyNearby = true;
+  bool _notifyDaily = false;
   bool _loading = true;
   final ImagePicker _picker = ImagePicker();
 
@@ -53,6 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _notifyNearby = prefs.getBool('notify_nearby') ?? true;
+      _notifyDaily = prefs.getBool('notify_daily_letter') ?? false;
       _loading = false;
     });
   }
@@ -63,9 +73,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => _notifyNearby = value);
   }
 
+  Future<void> _setNotifyDaily(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notify_daily_letter', value);
+    setState(() => _notifyDaily = value);
+    if (!mounted) return;
+    final lang = context.read<AppState>().currentUser.languageCode;
+    if (value) {
+      await NotificationService.requestPermissions();
+      await NotificationService.scheduleDailyLetterReminder(langCode: lang);
+    } else {
+      await NotificationService.cancelDailyLetterReminder();
+    }
+  }
+
   // ── 닉네임 수정 (shared_profile_dialogs.dart로 위임) ──────────────────────
   void _editUsername(BuildContext ctx, AppState state) {
     showEditUsernameDialog(ctx, state);
+  }
+
+  /// Build 155: 내 레벨·캐릭터 SNS 공유.
+  /// Build 175: 텍스트-only → **1080×1920 이미지 카드** 로 업그레이드.
+  /// ShareCardService.shareCharacterCard 로 위임. 실패 시 기존 텍스트 fallback.
+  Future<void> _shareMyLevel(BuildContext ctx, AppState state) async {
+    final l = AppL10n.of(state.currentUser.languageCode);
+    final user = state.currentUser;
+    final letterName =
+        (user.customTowerName?.isNotEmpty == true)
+            ? user.customTowerName!
+            : user.username;
+    final ok = await ShareCardService.shareCharacterCard(
+      characterEmoji: state.currentCharacterEmoji,
+      companionEmoji: state.activeCompanionEmoji,
+      accessoryEmoji: state.activeAccessoryEmoji,
+      level: state.currentLevel,
+      levelLabel: state.levelLabel,
+      letterName: letterName,
+      daysSinceJoined: state.daysSinceJoined,
+      collectedLetters: state.inbox.length,
+      langCode: user.languageCode,
+    );
+    if (!ok && ctx.mounted) {
+      ScaffoldMessenger.of(ctx).showSnackBar(
+        SnackBar(
+          content: Text(l.shareFailed),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 
   // ── SNS 링크 수정 ──────────────────────────────────────────────────────────
@@ -510,6 +565,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           TextButton(
             onPressed: () async {
+              // Firebase 세션 살아있을 때 마지막 위치 Firestore 반영 →
+              // 다른 회원 지도에서 타워가 "마지막 접속 위치"로 유지됨
+              await ctx.read<AppState>().snapshotUserForLogout();
               await AuthService.logout();
               if (ctx.mounted) {
                 Navigator.of(
@@ -578,15 +636,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        padding: const EdgeInsets.fromLTRB(22, 18, 22, 18),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF1A3A2A), Color(0xFF0D2219)],
-          ),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.gold.withValues(alpha: 0.35)),
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.circular(22),
         ),
         child: Row(
           children: [
@@ -657,25 +710,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
       'office': Color(0xFF7E57C2),
       'skyscraper': Color(0xFFEC407A),
       'supertall': Color(0xFFFF7043),
-      'megatower': Color(0xFFFFCA28),
+      'megatower': AppColors.gold,
       'landmark': Color(0xFFD4AF37),
     };
     final tierColor = tierColors[tier.name] ?? AppColors.gold;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      padding: const EdgeInsets.fromLTRB(22, 18, 22, 18),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            tierColor.withValues(alpha: 0.12),
-            tierColor.withValues(alpha: 0.05),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: tierColor.withValues(alpha: 0.35)),
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(22),
       ),
       child: Row(
         children: [
@@ -752,7 +797,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         decoration: BoxDecoration(
           color: AppColors.bgCard,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFF1F2D44)),
+          border: Border.all(color: AppColors.bgSurface),
         ),
         child: Column(
           children: [
@@ -807,9 +852,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return Scaffold(
           backgroundColor: AppTimeColors.of(ctx).bgDeep,
           body: _loading
-              ? const Center(
-                  child: CircularProgressIndicator(color: AppColors.teal),
-                )
+              // Build 160: AppLoading.large — teal → gold 로 통일 (로더 색
+              // 분산 해소). Center 로 감싸 full-screen 중앙 배치.
+              ? AppLoading.large
               : CustomScrollView(
                   slivers: [
                     _buildSliverAppBar(ctx, user, state, purchase),
@@ -818,41 +863,83 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           // ① 4열 스탯 (A+C)
                           _buildFourStatRow(ctx, state, user),
-                          const SizedBox(height: 10),
-                          // ①-1 주간 챌린지 카드 (casual 레벨 이상에서만 노출)
-                          if (state.isFeatureUnlocked(
-                            UnlockableFeature.weeklyChallenge,
-                          )) ...[
-                            const WeeklyChallengeCard(
+                          const SizedBox(height: 12),
+                          // ①-1 나의 헌트 기록 — Build 115 신규. "이번 달
+                          // 얼마나 벌었나?" 감각을 만드는 메인 지표 카드.
+                          // Brand 계정은 발송이 본업이라 픽업 지표가 비어있어
+                          // 오해를 주므로 숨김 (Build 117). 브랜드 전용 집계는
+                          // myRedeemedSentCount 등을 통한 별도 대시보드로
+                          // 후속에서 분리.
+                          if (!user.isBrand) ...[
+                            const HuntWalletCard(
                               margin: EdgeInsets.symmetric(horizontal: 16),
                             ),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 12),
                           ],
-                          // ①-2 이번 달의 도시 카드 — 모든 사용자에게 노출 (콘텐츠)
-                          CityOfMonthCard(
-                            margin: const EdgeInsets.symmetric(horizontal: 16),
-                            onWriteTap: () {
-                              Navigator.of(ctx).pushNamed('/compose');
-                            },
-                          ),
-                          const SizedBox(height: 10),
-                          // ①-3 나의 여정 카드 — 누적 지표가 있을 때만 표시
+                          // Build 138: Brand 전용 ROI 대시보드. 발송·픽업·사용
+                          // 집계 + 전환율 + 국가별 상위 리스트. Firestore 에서
+                          // 실시간 조회하므로 광고주가 캠페인 효과를 볼 수 있음.
+                          if (user.isBrand) ...[
+                            // Build 156: 신규 Brand 온보딩 체크리스트
+                            // (3/3 완료 시 자동 숨김).
+                            const BrandChecklistCard(),
+                            const SizedBox(height: 12),
+                            const BrandAnalyticsCard(),
+                            const SizedBox(height: 12),
+                            // Build 186: ExactDrop 크레딧 카드 — Brand 본인이
+                            // 남은 크레딧을 확인하고 구매 요청을 직접 띄울 수
+                            // 있는 진입. 현재 결제는 admin 승인 플로우라 버튼은
+                            // "문의" 시트를 띄움 (실결제 wiring 은 후속).
+                            _BrandExactDropCreditsCard(
+                              credits: state.brandExactDropCredits,
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                          // ①-2 나의 여정 카드 — 누적 지표가 있을 때만 표시
                           const JourneyCard(
                             margin: EdgeInsets.symmetric(horizontal: 16),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 12),
+                          // ①-4 이번 주 회고 — 일요일 + 발송 이력 있을 때만
+                          const WeeklyReflectionCard(),
                           // ② 구독 + 잔여발송 빠른카드 (B+C)
                           _buildQuickCardsRow(ctx, state, user, purchase),
-                          const SizedBox(height: 10),
-                          // ③ 타워 등급 + 프로그레스바 (A+B)
-                          _buildTowerProgressCard(ctx, user),
-                          const SizedBox(height: 10),
-                          // ④ 우표 앨범 배너 (A)
-                          _buildStampAlbumBanner(ctx, state),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 12),
+                          // Build 178: XP 레벨 바 + 타워 진척 카드는 Free/Premium
+                          // 유저의 경우 레터 탭 hero 에 이미 표시됨 → 여기선 숨겨
+                          // 프로필 수직 밀도 감소. Brand 만 남겨 타워 정체성 유지.
+                          if (user.isBrand) ...[
+                            _buildXpLevelCard(ctx, state),
+                            const SizedBox(height: 12),
+                            _buildTowerProgressCard(ctx, user),
+                            const SizedBox(height: 12),
+                          ],
+                          // ④ 우표 앨범 배너 — Build 185: Brand 숨김.
+                          // Brand 는 ROI 대시보드가 프로필 주력이고 우표 수집은
+                          // Free/Premium 게임플레이 요소.
+                          if (!user.isBrand) ...[
+                            _buildStampAlbumBanner(ctx, state),
+                            const SizedBox(height: 12),
+                          ],
+                          // Build 218: Premium Lv11+ 카테고리 선호 카드.
+                          // Brand 가 카테고리별로 보낸 편지 중, 내가 받고 싶은
+                          // 카테고리 매칭 확률을 높여준다 (50% 부스트).
+                          // Lv11 미만 / Free 는 잠금 상태로 노출 (업그레이드 유도).
+                          if (!user.isBrand) ...[
+                            _PreferredCategoryCard(state: state),
+                            const SizedBox(height: 12),
+                          ],
                           // ⑤ 팔로잉/팔로워 탭
                           _buildFollowSection(ctx, state, user),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 16),
+                          // Build 183: "계정 설정" 섹션을 하나의 ExpansionTile
+                          // 뒤로 숨겨 프로필 스캔을 가볍게. 탭하면 아래 계정/
+                          // 공개/알림/화면/앱정보/계정관리 전체가 펼쳐진다.
+                          // 기존 섹션 구조는 유지 → 필요할 때만 꺼냄.
+                          _SettingsCollapseButton(
+                            label: _l.profileSettingsCollapseLabel,
+                            sublabel: _l.profileSettingsCollapseSublabel,
+                            children: [
                           // ── 계정 ──
                           _settingsGroup(_l.profileAccountSection, [
                             _groupTile(
@@ -949,6 +1036,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               subtitle: _l.profileNearbyNotificationDesc,
                               value: _notifyNearby,
                               onChanged: _setNotifyNearby,
+                            ),
+                            _groupSwitchTile(
+                              icon: Icons.wb_sunny_rounded,
+                              label: _l.settingsNotifyDaily,
+                              subtitle: _l.settingsNotifyDailyDesc,
+                              value: _notifyDaily,
+                              onChanged: _setNotifyDaily,
                               isLast: true,
                             ),
                           ]),
@@ -1024,6 +1118,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               isLast: true,
                             ),
                           ]),
+                            ],
+                          ),
                           const SizedBox(height: 60),
                         ],
                       ),
@@ -1055,7 +1151,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       case TowerTier.supertall:
         return const Color(0xFFFF7043);
       case TowerTier.megatower:
-        return const Color(0xFFFFCA28);
+        return AppColors.gold;
       case TowerTier.landmark:
         return const Color(0xFFD4AF37);
     }
@@ -1078,7 +1174,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         : isPrem
         ? '👑 Premium'
         : null;
-    final planColor = isBrand ? const Color(0xFFFF8A5C) : AppColors.gold;
+    final planColor = isBrand ? AppColors.coupon : AppColors.gold;
 
     return SliverAppBar(
       expandedHeight: 270,
@@ -1088,25 +1184,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       automaticallyImplyLeading: false,
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                tierClr.withValues(alpha: 0.22),
-                tierClr.withValues(alpha: 0.06),
-                AppTimeColors.of(ctx).bgDeep,
-              ],
-              stops: const [0.0, 0.5, 1.0],
-            ),
-          ),
+          color: AppTimeColors.of(ctx).bgDeep,
           child: SafeArea(
             bottom: false,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 const SizedBox(height: 12),
-                // 아바타 (88px, 등급 색상 테두리 글로우)
+                // v5: 클린 솔리드 아바타
                 GestureDetector(
                   onTap: () => _changeProfileImage(ctx, state),
                   child: Stack(
@@ -1117,57 +1202,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         height: 88,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [tierClr.withValues(alpha: 0.9), tierClr],
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: tierClr.withValues(alpha: 0.45),
-                              blurRadius: 20,
-                              spreadRadius: 3,
-                            ),
-                          ],
+                          color: tierClr,
                         ),
                         child: _buildAvatarContent(user),
                       ),
-                      // 등급 뱃지 (우상단 — A방향)
-                      Positioned(
-                        right: -4,
-                        top: -4,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: AppColors.bgDeep,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: tierClr, width: 1.5),
-                          ),
-                          child: Text(
-                            tier.emoji,
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        ),
-                      ),
-                      // 편집 버튼 (우하단)
+                      // 편집 버튼 (우하단) — 흰색 pill
                       Positioned(
                         right: -2,
                         bottom: -2,
                         child: Container(
-                          width: 24,
-                          height: 24,
+                          width: 26,
+                          height: 26,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: AppColors.teal,
+                            color: AppColors.textPrimary,
                             border: Border.all(
                               color: AppTimeColors.of(ctx).bgDeep,
-                              width: 2,
+                              width: 2.5,
                             ),
                           ),
                           child: const Icon(
                             Icons.edit_rounded,
                             size: 13,
-                            color: Colors.white,
+                            color: AppColors.bgDeep,
                           ),
                         ),
                       ),
@@ -1183,9 +1240,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       user.username,
                       style: const TextStyle(
                         color: AppColors.textPrimary,
-                        fontSize: 20,
+                        fontSize: 22,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 0.3,
+                        letterSpacing: -0.5,
                       ),
                     ),
                     if (planLabel != null) ...[
@@ -1196,55 +1253,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           vertical: 3,
                         ),
                         decoration: BoxDecoration(
-                          color: planColor.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: planColor.withValues(alpha: 0.5),
-                          ),
+                          color: planColor,
+                          borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
-                          planLabel,
+                          planLabel.replaceAll(RegExp(r'[🏷️👑\s]+'), '').toUpperCase(),
                           style: TextStyle(
-                            color: planColor,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
+                            color: planColor == AppColors.gold
+                                ? const Color(0xFF1A1300)
+                                : const Color(0xFF1A0008),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ),
                     ],
-                    // 일일 스트릭 뱃지 (연속 접속 일수 > 0 일 때만 표시)
                     const SizedBox(width: 8),
                     const StreakBadge(compact: true),
                   ],
                 ),
-                const SizedBox(height: 6),
-                // 국가 + 명성 칭호 (A방향)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '${user.countryFlag} ${CountryL10n.localizedName(user.country, user.languageCode)}',
-                      style: const TextStyle(
-                        color: AppColors.textMuted,
-                        fontSize: 13,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Container(
-                      width: 1,
-                      height: 11,
-                      color: AppColors.textMuted.withValues(alpha: 0.3),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      user.activityScore.reputationTitleL(user.languageCode),
-                      style: TextStyle(
-                        color: tierClr,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: 4),
+                Text(
+                  '@${user.username.toLowerCase()} · ${user.activityScore.reputationTitleL(user.languageCode)}',
+                  style: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
@@ -1268,55 +1304,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final score = user.activityScore;
     // 나라 수: 받은 편지 발송 국가
     final countrySet = state.inbox.map((l) => l.senderCountry).toSet();
+    // Build 181: 4-stat 카드 → 한 줄 compact inline. padding 14 제거,
+    // container border 얇게, 이모지·수치 nowrap. 수직 공간 ~50px 회수.
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-      padding: const EdgeInsets.symmetric(vertical: 14),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
       decoration: BoxDecoration(
         color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.textMuted.withValues(alpha: 0.12)),
+        borderRadius: BorderRadius.circular(22),
       ),
       child: Row(
         children: [
-          _stat4Cell('📬', '${score.sentCount}', _fsl.profileSentLetters),
+          _stat4V5('${score.sentCount}', _fsl.profileSentLetters),
           _stat4Divider(),
-          _stat4Cell('📥', '${score.receivedCount}', _fsl.profileReceivedLetters),
+          _stat4V5('${score.receivedCount}', _fsl.profileReceivedLetters),
           _stat4Divider(),
-          _stat4Cell('🌍', '${countrySet.length}', _fsl.profileVisitedCountries),
+          _stat4V5('${countrySet.length}', _fsl.profileVisitedCountries,
+              color: AppColors.gold),
           _stat4Divider(),
-          _stat4Cell('👥', '${user.followerIds.length}', _fsl.profileFollowers),
+          _stat4V5('${user.followerIds.length}', _fsl.profileFollowers),
         ],
       ),
     );
   }
 
-  Widget _stat4Cell(String emoji, String value, String label) {
+  /// v5: 큰 숫자 / 작은 UPPERCASE 라벨, 좌측정렬
+  Widget _stat4V5(String value, String label, {Color? color}) {
     return Expanded(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 18)),
-          const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 17,
+            style: TextStyle(
+              color: color ?? AppColors.textPrimary,
+              fontSize: 22,
               fontWeight: FontWeight.w800,
+              letterSpacing: -0.6,
+              height: 1,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 6),
           Text(
-            label,
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 10),
+            label.toUpperCase(),
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.4,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
     );
   }
 
-  Widget _stat4Divider() {
-    return Container(width: 1, height: 44, color: AppColors.bgSurface);
-  }
+  Widget _stat4Divider() => Container(
+        width: 0.5,
+        height: 32,
+        color: AppColors.bgSurface,
+      );
 
   // ── ② 구독 카드 + 오늘 발송 잔여 카드 (B+C) ─────────────────────────────────
   Widget _buildQuickCardsRow(
@@ -1339,7 +1388,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ? '₩4,900/mo'
         : _ql.profileFree;
     final planColor = isBrand
-        ? const Color(0xFFFF8A5C)
+        ? AppColors.coupon
         : isPremium
         ? AppColors.gold
         : AppColors.textMuted;
@@ -1350,14 +1399,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final quotaColor = quotaPct > 0.4
         ? AppColors.teal
         : quotaPct > 0.15
-        ? const Color(0xFFFFCA28)
+        ? AppColors.gold
         : AppColors.error;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          // 구독 카드
+          // 구독 카드 — premium 시 노란 카드
           Expanded(
             child: GestureDetector(
               onTap: () => Navigator.push(
@@ -1365,70 +1414,67 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 MaterialPageRoute(builder: (_) => const _PremiumScreenProxy()),
               ),
               child: Container(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.bgCard,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: planColor.withValues(alpha: 0.35)),
+                  color: isPremium ? planColor : AppColors.bgCard,
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          _ql.profileSubscriptionPlan,
-                          style: TextStyle(
-                            color: AppColors.textMuted,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.8,
-                          ),
-                        ),
-                        const Spacer(),
-                        Icon(
-                          Icons.chevron_right_rounded,
-                          color: AppColors.textMuted,
-                          size: 14,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
                     Text(
-                      planName,
+                      _ql.profileSubscriptionPlan.toUpperCase(),
                       style: TextStyle(
-                        color: planColor,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
+                        color: isPremium
+                            ? const Color(0xFF1A1300).withValues(alpha: 0.7)
+                            : AppColors.textMuted,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.6,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 12),
+                    Text(
+                      planName.replaceAll(RegExp(r'[🏷️👑⭐\s]+'), ''),
+                      style: TextStyle(
+                        color: isPremium
+                            ? const Color(0xFF1A1300)
+                            : AppColors.textPrimary,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                        height: 1,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
                     Text(
                       planPrice,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
+                      style: TextStyle(
+                        color: isPremium
+                            ? const Color(0xFF1A1300).withValues(alpha: 0.65)
+                            : AppColors.textSecondary,
                         fontSize: 12,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     if (!isPremium) ...[
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
-                          vertical: 5,
+                          vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [AppColors.goldLight, AppColors.gold],
-                          ),
-                          borderRadius: BorderRadius.circular(8),
+                          color: AppColors.gold,
+                          borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
                           _ql.profileUpgrade,
                           style: const TextStyle(
-                            color: AppColors.bgDeep,
+                            color: Color(0xFF1A1300),
                             fontSize: 11,
                             fontWeight: FontWeight.w800,
+                            letterSpacing: -0.1,
                           ),
                         ),
                       ),
@@ -1439,28 +1485,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           const SizedBox(width: 10),
-          // 오늘 발송 잔여 카드
+          // 오늘 발송 잔여 — 큰 숫자 v5
           Expanded(
             child: Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppColors.bgCard,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: quotaColor.withValues(alpha: 0.3)),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _ql.profileTodaySent,
+                    _ql.profileTodaySent.toUpperCase(),
                     style: const TextStyle(
                       color: AppColors.textMuted,
                       fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.8,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.6,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 12),
                   RichText(
                     text: TextSpan(
                       children: [
@@ -1468,34 +1513,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           text: '$remaining',
                           style: TextStyle(
                             color: quotaColor,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
+                            fontSize: 28,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.7,
+                            height: 1,
                           ),
                         ),
                         TextSpan(
-                          text: '/$limit',
+                          text: ' / $limit',
                           style: const TextStyle(
                             color: AppColors.textMuted,
                             fontSize: 14,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 12),
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(999),
                     child: LinearProgressIndicator(
                       value: quotaPct,
-                      minHeight: 5,
+                      minHeight: 4,
                       backgroundColor: AppColors.bgSurface,
                       valueColor: AlwaysStoppedAnimation<Color>(quotaColor),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _ql.profileResetMidnight,
-                    style: const TextStyle(color: AppColors.textMuted, fontSize: 10),
                   ),
                 ],
               ),
@@ -1503,6 +1546,434 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  // ── ②-2 게임 레벨 바 — Free · Premium 전용 ───────────────────────────────
+  //
+  // Brand 계정은 `levelLabel` 이 "👑 공식 발송인" 으로 고정되고 currentLevel 이
+  // 0 이라 진행 바 대신 단순 배지로 렌더한다. 내부 XP 필드는 누적되고 있으니
+  // 계정 등급이 다시 Free 로 바뀌면 바로 정상 표시.
+  Widget _buildXpLevelCard(BuildContext ctx, AppState state) {
+    final user = state.currentUser;
+    final l = AppL10n.of(user.languageCode);
+    if (user.isBrand) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: AppColors.gold.withValues(alpha: 0.35),
+          ),
+        ),
+        child: Row(
+          children: [
+            const Text('👑', style: TextStyle(fontSize: 22)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                state.levelLabel,
+                style: TextStyle(
+                  color: AppColors.gold,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final level = state.currentLevel;
+    final xp = state.currentXp;
+    final progress = state.levelProgress;
+    final remaining = state.xpToNextLevel;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: AppColors.teal.withValues(alpha: 0.25),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  state.levelLabel,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ),
+              // Build 155: 내 레벨/컴패니언 공유 버튼 — 파워 유저가 SNS 에
+              // 자신의 진척을 공유해 신규 유저 유입 (바이럴 루프).
+              InkWell(
+                onTap: () => _shareMyLevel(ctx, state),
+                borderRadius: BorderRadius.circular(6),
+                child: Container(
+                  padding: const EdgeInsets.all(5),
+                  child: const Icon(
+                    Icons.ios_share_rounded,
+                    size: 16,
+                    color: AppColors.teal,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 3,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.teal.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  l.xpLevelBadge(level),
+                  style: const TextStyle(
+                    color: AppColors.teal,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 6,
+              backgroundColor: AppColors.bgSurface,
+              valueColor: const AlwaysStoppedAnimation(AppColors.teal),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            remaining == null
+                ? l.xpLevelMaxed(xp)
+                : l.xpLevelNextIn(xp, remaining),
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 11,
+            ),
+          ),
+          const SizedBox(height: 8),
+          // 🎯 현재 레벨의 줍기 반경 보너스 표시 (Level 2 부터 +10m 단위)
+          Row(
+            children: [
+              const Icon(
+                Icons.near_me_rounded,
+                size: 13,
+                color: AppColors.teal,
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  l.xpPickupBonusDesc(
+                    state.pickupRadiusMeters.toInt(),
+                    (state.currentLevel - 1).clamp(0, 49) * 10,
+                  ),
+                  style: const TextStyle(
+                    color: AppColors.teal,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          // 🪙 Level 50 도달 시 포인트 적립 (추후 구독 결제 크레딧용)
+          if (state.hasMaxLevel) ...[
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.gold.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: AppColors.gold.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Text('🪙', style: TextStyle(fontSize: 14)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l.xpPointsLabel(state.userPoints),
+                      style: const TextStyle(
+                        color: AppColors.gold,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    l.xpPointsHint,
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 10,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 10),
+          // 🏆 전체 10 tier 마일스톤 보기 — 바텀시트로 레벨 1–50 구간 시각화
+          InkWell(
+            onTap: () => _showLevelMilestones(ctx, level, xp),
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+              decoration: BoxDecoration(
+                color: AppColors.teal.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: AppColors.teal.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('🏆', style: TextStyle(fontSize: 13)),
+                  const SizedBox(width: 6),
+                  Text(
+                    l.xpMilestonesSheetOpen,
+                    style: const TextStyle(
+                      color: AppColors.teal,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColors.teal,
+                    size: 16,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 레벨 1–50 구간 전체 마일스톤 바텀시트. 10 tier (5 레벨 단위) 를
+  /// 세로 리스트로 나열하고 현재 레벨이 속한 tier 는 골드 강조.
+  void _showLevelMilestones(BuildContext ctx, int currentLevel, int currentXp) {
+    final l = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
+    // 10 tiers — 5 레벨 간격. (level floor, emoji + label key)
+    const tiers = [
+      (1, '🏠'),
+      (5, '🏡'),
+      (10, '📬'),
+      (15, '📮'),
+      (20, '🏢'),
+      (25, '🏬'),
+      (30, '🏙'),
+      (35, '🛰'),
+      (40, '🌍'),
+      (45, '👑'),
+    ];
+
+    showModalBottomSheet(
+      context: ctx,
+      backgroundColor: AppColors.bgCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetCtx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Text('🏆', style: TextStyle(fontSize: 18)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        l.xpMilestonesTitle,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(sheetCtx),
+                      icon: const Icon(Icons.close_rounded),
+                      color: AppColors.textMuted,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  l.xpMilestonesSubtitle,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 420),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: tiers.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (_, i) {
+                      final (floor, emoji) = tiers[i];
+                      final nextFloor = i + 1 < tiers.length ? tiers[i + 1].$1 : 51;
+                      final isCurrent =
+                          currentLevel >= floor && currentLevel < nextFloor;
+                      final isPassed = currentLevel >= nextFloor;
+                      final xpReq = UserProgress.xpThresholdForLevel(floor == 0 ? 1 : floor);
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isCurrent
+                              ? AppColors.gold.withValues(alpha: 0.12)
+                              : AppColors.bgSurface,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: isCurrent
+                                ? AppColors.gold.withValues(alpha: 0.6)
+                                : AppColors.bgSurface,
+                            width: isCurrent ? 1.3 : 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Opacity(
+                              opacity: isPassed ? 0.55 : 1.0,
+                              child: Text(
+                                emoji,
+                                style: const TextStyle(fontSize: 22),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l.xpMilestoneTierLabel(floor == 0 ? 1 : floor, nextFloor - 1),
+                                    style: TextStyle(
+                                      color: isCurrent
+                                          ? AppColors.gold
+                                          : isPassed
+                                              ? AppColors.textMuted
+                                              : AppColors.textPrimary,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    xpLevelLabel(floor == 0 ? 1 : floor),
+                                    style: TextStyle(
+                                      color: isCurrent
+                                          ? AppColors.gold.withValues(alpha: 0.85)
+                                          : isPassed
+                                              ? AppColors.textMuted
+                                              : AppColors.textSecondary,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    l.xpMilestoneXpReq(xpReq),
+                                    style: const TextStyle(
+                                      color: AppColors.textMuted,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (isCurrent)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 7,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.gold.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  l.xpMilestoneCurrent,
+                                  style: const TextStyle(
+                                    color: AppColors.gold,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              )
+                            else if (isPassed)
+                              const Icon(
+                                Icons.check_circle,
+                                color: AppColors.teal,
+                                size: 18,
+                              )
+                            else
+                              Icon(
+                                Icons.lock_outline_rounded,
+                                color: AppColors.textMuted.withValues(alpha: 0.5),
+                                size: 16,
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  l.xpMilestonesFootnote(currentXp),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 11,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -1933,6 +2404,269 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
+/// Build 186: Brand 프로필에 노출되는 ExactDrop 크레딧 현황 + 구매 요청 카드.
+/// 크레딧은 ExactDrop (정확한 좌표 드롭, 100통 단위) 을 사용하기 위한 필수
+/// 선결제 자원. 기존엔 admin 화면 안쪽에서만 확인 가능해 Brand 가 "내가 몇 통
+/// 쏠 수 있는지" 를 알기 어려웠다. 버튼 탭 시 구매 문의 시트 (현재는 안내만).
+class _BrandExactDropCreditsCard extends StatelessWidget {
+  final int credits;
+  const _BrandExactDropCreditsCard({required this.credits});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    final orange = AppColors.coupon;
+    final low = credits < 10;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          border: Border.all(
+            color: (low ? AppColors.error : orange)
+                .withValues(alpha: 0.35),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Text('🎯', style: TextStyle(fontSize: 18)),
+                const SizedBox(width: 8),
+                Text(
+                  l10n.brandExactDropCreditsTitle,
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  l10n.brandExactDropCreditsCount(credits),
+                  style: TextStyle(
+                    color: low ? AppColors.error : orange,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.brandExactDropCreditsHint,
+              style: const TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 12,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => _showPurchaseInfo(context, l10n),
+                icon: const Icon(Icons.shopping_bag_rounded, size: 16),
+                label: Text(l10n.brandExactDropCreditsBuyBtn),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: orange,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPurchaseInfo(BuildContext ctx, AppL10n l10n) {
+    showModalBottomSheet(
+      context: ctx,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => Container(
+        decoration: const BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+        ),
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: AppColors.textMuted.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const Text('🎯', style: TextStyle(fontSize: 40)),
+            const SizedBox(height: 12),
+            Text(
+              l10n.brandExactDropCreditsSheetTitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.gold,
+                fontSize: 17,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              l10n.brandExactDropCreditsSheetBody,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 13.5,
+                height: 1.6,
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(ctx),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.gold,
+                  foregroundColor: AppColors.bgDeep,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  l10n.brandOnlyAcknowledge,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Build 183: 프로필 하단 "설정" 전체 섹션을 접었다 펼 수 있는 버튼 + 컨테이너.
+/// 기본은 접힘 — 프로필 스캔을 가볍게. 탭하면 자식들이 펼쳐진다.
+class _SettingsCollapseButton extends StatefulWidget {
+  final String label;
+  final String sublabel;
+  final List<Widget> children;
+
+  const _SettingsCollapseButton({
+    required this.label,
+    required this.sublabel,
+    required this.children,
+  });
+
+  @override
+  State<_SettingsCollapseButton> createState() =>
+      _SettingsCollapseButtonState();
+}
+
+class _SettingsCollapseButtonState extends State<_SettingsCollapseButton> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: InkWell(
+            onTap: () => setState(() => _expanded = !_expanded),
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 14, vertical: 14,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.bgCard,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _expanded
+                      ? AppColors.gold.withValues(alpha: 0.5)
+                      : AppColors.textMuted.withValues(alpha: 0.18),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.settings_rounded,
+                    size: 20,
+                    color: _expanded
+                        ? AppColors.gold
+                        : AppColors.textSecondary,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.label,
+                          style: TextStyle(
+                            color: _expanded
+                                ? AppColors.gold
+                                : AppColors.textPrimary,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          widget.sublabel,
+                          style: const TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 11.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  AnimatedRotation(
+                    turns: _expanded ? 0.5 : 0.0,
+                    duration: const Duration(milliseconds: 220),
+                    child: Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: _expanded
+                          ? AppColors.gold
+                          : AppColors.textMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        AnimatedCrossFade(
+          firstChild: const SizedBox.shrink(),
+          secondChild: Column(children: widget.children),
+          crossFadeState: _expanded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
+          duration: const Duration(milliseconds: 240),
+        ),
+      ],
+    );
+  }
+}
+
 class _FollowListContent extends StatelessWidget {
   final String title;
   final String emptyMsg;
@@ -2041,6 +2775,245 @@ class _FollowStatChip extends StatelessWidget {
           style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
         ),
       ],
+    );
+  }
+}
+
+/// Build 218: 카테고리 선호 카드 (Premium Lv11+ 전용)
+///
+/// Brand 가 발송하는 편지가 일반/할인권/교환권 3종으로 분기되는데,
+/// 이 카드는 유저가 "받고 싶은 카테고리"를 골라 매칭 확률을 부스트한다.
+///
+/// 잠금 조건:
+///   - Premium 미가입 → "Premium 가입" CTA
+///   - Premium Lv11 미만 → "Lv11 도달 후 잠금 해제" 안내 (xpToNextLevel 표시)
+///   - Lv11+ → 3개 칩 활성, 탭 시 즉시 적용
+///
+/// 부스트 동작:
+///   - `AppState.nearbyLetters` 가 매칭 카테고리를 리스트 앞쪽으로 정렬
+///   - 데모 시드 (베타) 가 50% 매칭 카테고리로 생성
+///   - Brand 광고/캠페인 노출 시 매칭 우선
+class _PreferredCategoryCard extends StatelessWidget {
+  final AppState state;
+  const _PreferredCategoryCard({required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    final user = state.currentUser;
+    final unlocked = state.isCategoryPreferenceUnlocked;
+    final selected = state.preferredCategory;
+    final level = state.currentLevel;
+
+    final lockReason = !user.isPremium
+        ? '🔒 Premium 가입 후 Lv 11 부터'
+        : (level < 11 ? '🔒 Lv $level → Lv 11 도달 시 잠금 해제' : null);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: unlocked
+              ? AppColors.teal.withValues(alpha: 0.45)
+              : AppColors.textMuted.withValues(alpha: 0.18),
+          width: unlocked ? 1.3 : 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('🎯', style: TextStyle(fontSize: 18)),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  '받고 싶은 혜택 카테고리',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              if (unlocked && selected != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.teal.withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: const Text(
+                    'ON',
+                    style: TextStyle(
+                      color: AppColors.teal,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            unlocked
+                ? '브랜드가 보낸 편지 중 선택 카테고리의 픽업 확률이 올라가요.'
+                : (lockReason ?? '잠금 해제'),
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 12,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              for (final c in const [
+                LetterCategory.general,
+                LetterCategory.coupon,
+                LetterCategory.voucher,
+              ]) ...[
+                Expanded(
+                  child: _PreferredCategoryChip(
+                    category: c,
+                    isSelected: unlocked &&
+                        ((c == LetterCategory.general && selected == null) ||
+                            selected == c),
+                    isLocked: !unlocked,
+                    onTap: () {
+                      if (!unlocked) {
+                        if (!user.isPremium) {
+                          PremiumGateSheet.show(
+                            context,
+                            featureName: '카테고리 선호 부스트',
+                            featureEmoji: '🎯',
+                            description:
+                                'Premium 가입 후 Lv 11 도달 시, 받고 싶은 혜택 카테고리를 지정하면 매칭 확률이 올라갑니다.',
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Lv 11 도달 후 잠금 해제 (현재 Lv $level)',
+                              ),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                        return;
+                      }
+                      // general 선택 = 선호 해제 (랜덤)
+                      state.setPreferredCategory(
+                        c == LetterCategory.general ? null : c,
+                      );
+                    },
+                  ),
+                ),
+                if (c != LetterCategory.voucher) const SizedBox(width: 8),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PreferredCategoryChip extends StatelessWidget {
+  final LetterCategory category;
+  final bool isSelected;
+  final bool isLocked;
+  final VoidCallback onTap;
+
+  const _PreferredCategoryChip({
+    required this.category,
+    required this.isSelected,
+    required this.isLocked,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final emoji = category == LetterCategory.coupon
+        ? '🎟'
+        : category == LetterCategory.voucher
+            ? '🎁'
+            : '✉️';
+    final label = category == LetterCategory.coupon
+        ? '할인권'
+        : category == LetterCategory.voucher
+            ? '교환권'
+            : '랜덤';
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Opacity(
+        opacity: isLocked ? 0.55 : 1.0,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.teal.withValues(alpha: 0.16)
+                : AppColors.bgSurface,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isSelected
+                  ? AppColors.teal
+                  : AppColors.textMuted.withValues(alpha: 0.3),
+              width: isSelected ? 1.4 : 1,
+            ),
+          ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Column(
+                children: [
+                  Text(emoji, style: const TextStyle(fontSize: 22)),
+                  const SizedBox(height: 4),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: isSelected
+                          ? AppColors.teal
+                          : AppColors.textSecondary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+              if (isLocked)
+                Positioned(
+                  top: -4,
+                  right: -4,
+                  child: Container(
+                    padding: const EdgeInsets.all(2.5),
+                    decoration: BoxDecoration(
+                      color: AppColors.coupon,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.bgCard,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.lock_rounded,
+                      size: 10,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

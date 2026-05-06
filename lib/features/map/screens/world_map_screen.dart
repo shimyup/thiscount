@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart' as ll;
@@ -12,10 +13,11 @@ import '../../progression/user_level.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/localization/country_names.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/theme/time_theme.dart';
+import '../../../core/utils/person_emoji.dart';
 import '../../../models/letter.dart';
 import '../../../models/user_profile.dart';
 import '../../../state/app_state.dart';
+import '../../brand/brand_promo_banner.dart';
 
 // 목업 타워 데이터 제거 → AppState.mapUsers (Firestore 실시간) 사용
 
@@ -31,26 +33,39 @@ class WorldMapScreen extends StatefulWidget {
 }
 
 class _WorldMapScreenState extends State<WorldMapScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   static const String _permissionDialogDateKey =
       'world_map_permission_denied_forever_prompt_date';
-  static const double _towerLabelZoomThreshold = 4.8;
+  // Build 239: 카운터 라벨은 줌 거의 모든 단계에서 노출 (사용자 ID 항상 보이게).
+  static const double _towerLabelZoomThreshold = 3.0;
+  // Build 151: 지도 줌/센터 세션 persistence 키.
+  static const String _prefLastZoom = 'map_last_zoom';
+  static const String _prefLastLat = 'map_last_lat';
+  static const String _prefLastLng = 'map_last_lng';
 
   // 타일 설정은 MapConfig에서 중앙 관리 (lib/core/config/map_config.dart)
   final MapController _mapController = MapController();
   late AnimationController _pulseController;
   Timer? _positionTimer; // 실시간 편지 위치 갱신용 1초 타이머
   Timer? _mapRefreshTimer; // 5분마다 타워 목록 갱신
+  Timer? _positionSaveDebounce; // Build 151: 지도 이동 시 debounce 저장
   final _tickNotifier = ValueNotifier<int>(0);
   double _lastKnownZoom = 2.0;
   bool _showTowerLabels = false;
   final bool _showRouteLines = true;
   bool _showNearbyOnly = false;
   final bool _showTowers = true;
+  // Build 250: 국가 점프 바 리셋 트리거 — "내 위치" 버튼 탭 시 증가시켜
+  // _CountryJumpBar 가 본인 국가 (인덱스 0) 으로 자동 복귀하게 함.
+  int _countryBarResetSignal = 0;
 
   @override
   void initState() {
     super.initState();
+    // Build 219: lifecycle 옵저버 등록 — 백그라운드 → 포그라운드 복귀 시
+    // pulse 애니메이션 재시작 + 마커 위치 즉시 재계산. 기존엔 OS 가 timer/
+    // animation 을 정지해 "편지가 가다가 멈춰 보이는" 잔상이 남았음.
+    WidgetsBinding.instance.addObserver(this);
     _pulseController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
@@ -64,16 +79,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       if (!mounted) return;
       final state = context.read<AppState>();
       state.fetchMapUsers(force: true);
-      // 유저 위치가 기본값(서울)이 아니면 유저 위치로 자동 이동
-      final lat = state.currentUser.latitude;
-      final lng = state.currentUser.longitude;
-      final isDefault = (lat - 37.5665).abs() < 0.001 && (lng - 126.978).abs() < 0.001;
-      if (lat != 0 && lng != 0) {
-        _mapController.move(
-          ll.LatLng(lat, lng),
-          isDefault ? 5.0 : 11.0, // 기본 위치면 넓게, 실제 위치면 가깝게
-        );
-      }
+      // Build 151: 이전 세션의 지도 위치·줌이 저장돼 있으면 우선 복원.
+      // 없으면 기존 로직 (유저 현재 위치로 이동).
+      _restoreLastMapPosition(state);
     });
     // 15분마다 타워 목록 자동 갱신 (과도한 네트워크 호출 방지)
     _mapRefreshTimer = Timer.periodic(const Duration(minutes: 15), (_) {
@@ -99,13 +107,109 @@ class _WorldMapScreenState extends State<WorldMapScreen>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     WorldMapScreen.focusSentLetterNotifier.removeListener(_onFocusSentLetter);
     _positionTimer?.cancel();
     _mapRefreshTimer?.cancel();
+    _positionSaveDebounce?.cancel();
     _tickNotifier.dispose();
     _pulseController.dispose();
     _mapController.dispose();
     super.dispose();
+  }
+
+  /// Build 219: 백그라운드에서 복귀할 때 편지가 멈춰 보이지 않도록.
+  /// AppState 의 reconcile 은 wall-clock 기반으로 letter status 를 즉시
+  /// 캐치업하지만, 지도 위 마커는 별도 vsync 애니메이션이라 OS 가 정지
+  /// 시킨 상태로 머무를 수 있다. 이 콜백에서 명시적으로 깨운다.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (!mounted) return;
+      // pulse 재시작 (이미 동작 중이면 idempotent)
+      if (!_pulseController.isAnimating) {
+        _pulseController.repeat();
+      }
+      // position timer 가 OS 에 의해 멈춰 있으면 다시 등록
+      if (_positionTimer == null || !_positionTimer!.isActive) {
+        _positionTimer?.cancel();
+        _positionTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+          if (mounted) _tickNotifier.value++;
+        });
+      }
+      // 즉시 1회 강제 rebuild → 마커가 새 wall-clock 으로 위치 재계산
+      _tickNotifier.value++;
+    }
+  }
+
+  /// Build 151: 이전 세션 지도 위치·줌 복원. 저장된 값 없으면 유저 좌표로
+  /// 초기 이동 (기존 로직).
+  /// Build 247: 첫 시작 시 전체 지도(zoom 2) → 내 위치(zoom 14) 부드럽게
+  /// 줌인 애니메이션 추가. 사용자에게 "어디서 → 어디로" 시각 컨텍스트 제공.
+  Future<void> _restoreLastMapPosition(AppState state) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedZoom = prefs.getDouble(_prefLastZoom);
+      final savedLat = prefs.getDouble(_prefLastLat);
+      final savedLng = prefs.getDouble(_prefLastLng);
+      if (!mounted) return;
+      if (savedZoom != null && savedLat != null && savedLng != null) {
+        // 복귀 사용자 (저장값 있음): 즉시 마지막 지점으로 이동
+        _mapController.move(ll.LatLng(savedLat, savedLng), savedZoom);
+        _lastKnownZoom = savedZoom;
+        return;
+      }
+    } catch (_) {}
+    // 저장값 없거나 실패 → 첫 시작: 전체 지도에서 줌인.
+    if (!mounted) return;
+    final lat = state.currentUser.latitude;
+    final lng = state.currentUser.longitude;
+    if (lat == 0 && lng == 0) return;
+    final isDefault =
+        (lat - 37.5665).abs() < 0.001 && (lng - 126.978).abs() < 0.001;
+    final endZoom = isDefault ? 12.0 : 14.0;
+    // 첫 프레임 잠시 보여주고 (전체 지도 인상), 줌인 시작
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (!mounted) return;
+    await _animateZoomTo(ll.LatLng(lat, lng), endZoom);
+  }
+
+  /// Build 247: 부드러운 zoom-in 애니메이션. flutter_map 8.x 가 native
+  /// 애니메이션 메서드 미제공이라 수동 보간 (30 프레임 / 1.4초).
+  Future<void> _animateZoomTo(ll.LatLng target, double endZoom) async {
+    const totalDuration = Duration(milliseconds: 1400);
+    const frames = 30;
+    final stepMs = totalDuration.inMilliseconds ~/ frames;
+    final start = _mapController.camera;
+    final startLat = start.center.latitude;
+    final startLng = start.center.longitude;
+    final startZoom = start.zoom;
+    for (int i = 1; i <= frames; i++) {
+      if (!mounted) return;
+      final t = i / frames;
+      final eased = Curves.easeInOutCubic.transform(t);
+      final lat = startLat + (target.latitude - startLat) * eased;
+      final lng = startLng + (target.longitude - startLng) * eased;
+      final zoom = startZoom + (endZoom - startZoom) * eased;
+      _mapController.move(ll.LatLng(lat, lng), zoom);
+      _lastKnownZoom = zoom;
+      await Future.delayed(Duration(milliseconds: stepMs));
+    }
+  }
+
+  /// Build 151: 지도 이동 시 debounce 저장 (2초 후). `onPositionChanged`
+  /// 가 드래그 중 초당 수 회 호출될 수 있어 매번 I/O 하면 낭비.
+  void _scheduleMapPositionSave() {
+    _positionSaveDebounce?.cancel();
+    _positionSaveDebounce = Timer(const Duration(seconds: 2), () async {
+      try {
+        final camera = _mapController.camera;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setDouble(_prefLastZoom, camera.zoom);
+        await prefs.setDouble(_prefLastLat, camera.center.latitude);
+        await prefs.setDouble(_prefLastLng, camera.center.longitude);
+      } catch (_) {}
+    });
   }
 
   // 타일 URL / 서브도메인 → MapConfig 위임 (중앙 관리)
@@ -138,7 +242,6 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 ...inboxDelivered,
               ];
         final timeColors = AppTimeColors.of(context);
-        final period = state.activeTimePeriod;
         final mapLangCode = MapConfig.resolveMapLanguage(
           country: state.currentUser.country,
           appLanguageCode: state.currentUser.languageCode,
@@ -174,6 +277,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   if (shouldShowLabels != _showTowerLabels && mounted) {
                     setState(() => _showTowerLabels = shouldShowLabels);
                   }
+                  // Build 151: 이동 멈춘 2초 뒤 현재 좌표·줌 저장
+                  // (SharedPreferences). 다음 앱 실행 시 이 지점으로 복원.
+                  _scheduleMapPositionSave();
                 },
               ),
               children: [
@@ -188,7 +294,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                     darkMode: darkMode,
                   ),
                   subdomains: MapConfig.subdomains,
-                  userAgentPackageName: 'com.globaldrift.lettergo',
+                  userAgentPackageName: 'io.thiscount',
                   maxZoom: 19,
                   maxNativeZoom: 19,
                   keepBuffer: 2,
@@ -200,7 +306,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                     key: ValueKey('label_${mapLangCode}_$darkMode'),
                     urlTemplate: MapConfig.labelOverlayUrl(darkMode: darkMode)!,
                     subdomains: MapConfig.subdomains,
-                    userAgentPackageName: 'com.globaldrift.lettergo',
+                    userAgentPackageName: 'io.thiscount',
                     maxZoom: 19,
                     maxNativeZoom: 19,
                     keepBuffer: 2,
@@ -224,6 +330,36 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                       color: timeColors.accent.withValues(alpha: 0.08),
                       borderColor: timeColors.accent.withValues(alpha: 0.35),
                       borderStrokeWidth: 1.5,
+                    ),
+                  ],
+                ),
+                // ── 픽업 반경 링 (Build 120) ────────────────────────────
+                // 실제 줍기 가능한 반경을 티어별 색으로 상시 표시. Premium
+                // (골드) 과 Free (티일) 의 시각적 차이가 유저에게 "5× 넓은
+                // 원" 을 매일 느끼게 하는 핵심 앵커.
+                // - Free: teal (200m + 레벨 보너스)
+                // - Premium: gold (1km + 레벨 보너스)
+                // - Brand: orange (1km)
+                CircleLayer(
+                  circles: [
+                    CircleMarker(
+                      point: ll.LatLng(
+                        state.currentUser.latitude,
+                        state.currentUser.longitude,
+                      ),
+                      radius: state.pickupRadiusMeters,
+                      useRadiusInMeter: true,
+                      color: state.currentUser.isBrand
+                          ? AppColors.coupon.withValues(alpha: 0.18)
+                          : state.currentUser.isPremium
+                              ? AppColors.gold.withValues(alpha: 0.20)
+                              : AppColors.teal.withValues(alpha: 0.22),
+                      borderColor: state.currentUser.isBrand
+                          ? AppColors.coupon.withValues(alpha: 0.95)
+                          : state.currentUser.isPremium
+                              ? AppColors.gold.withValues(alpha: 0.98)
+                              : AppColors.teal.withValues(alpha: 0.98),
+                      borderStrokeWidth: 3.0,
                     ),
                   ],
                 ),
@@ -276,28 +412,53 @@ class _WorldMapScreenState extends State<WorldMapScreen>
               top: 0,
               left: 0,
               right: 0,
-              child: _MapHeader(
-                l10n: l10n,
-                showNearbyOnly: _showNearbyOnly,
-                letterCount: state.worldLetters.length,
-                nearbyCount: state.nearbyLetters.length,
-                inTransitCount: state.totalInTransitCount,
-                mapUsersCount: state.mapUsers.length,
-                period: period,
-                mapLanguageLabel: MapConfig.mapLanguageLabel(mapLangCode),
-                isUnifiedLanguageMode: MapConfig.isUnifiedLanguageMode,
-                mapProviderLabel: MapConfig.tileProviderLabel,
-                showTowerLabels: _showTowerLabels,
-                currentZoom: _lastKnownZoom,
-                onToggleNearby: () =>
-                    setState(() => _showNearbyOnly = !_showNearbyOnly),
+              child: const _MapHeader(),
+            ),
+            // Build 165: 국가 점프 스크롤 바 — 수평 스크롤 칩으로 다른 나라
+            // 지도로 원탭 이동. 기존 "수동 줌아웃 후 드래그" 산만함 해소.
+            Positioned(
+              top: 56,
+              left: 0,
+              right: 0,
+              child: SafeArea(
+                bottom: false,
+                child: _CountryJumpBar(
+                  myCountry: state.currentUser.country,
+                  resetSignal: _countryBarResetSignal,
+                  onJump: (lat, lng) {
+                    HapticFeedback.lightImpact();
+                    _mapController.move(ll.LatLng(lat, lng), 5.5);
+                  },
+                ),
+              ),
+            ),
+            // Build 142: 헤더·국가 바 아래로 슬라이드-다운 브랜드 홍보 배너.
+            // Build 176: 국가 바 높이 42→32 로 축소, 배너 top 104→94.
+            Positioned(
+              top: 94,
+              left: 0,
+              right: 0,
+              child: SafeArea(
+                bottom: false,
+                child: BrandPromoBanner(
+                  onRevealOnMap: (letter) {
+                    _mapController.move(
+                      ll.LatLng(
+                        letter.destinationLocation.latitude,
+                        letter.destinationLocation.longitude,
+                      ),
+                      14.0,
+                    );
+                  },
+                ),
               ),
             ),
             // ── 근처 도착 배너 (experienced 레벨 이상에서만) ─────────────
+            // 브랜드도 줍기 가능해져서 `!isBrand` 조건 제거.
             if (state.hasNearbyAlert &&
                 state.isFeatureUnlocked(UnlockableFeature.nearbyPickup))
               Positioned(
-                top: 220,
+                top: 130,
                 left: 16,
                 right: 16,
                 child: _NearbyAlertBanner(
@@ -316,6 +477,221 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   },
                 ),
               ),
+            // Brand-only send banner removed — 포지셔닝 변경으로 브랜드도
+            // 편지를 주울 수 있게 됨. 배너를 띄울 이유가 사라짐.
+            // Build 186: 픽업 쿨다운 pill — `nearbyPickupRemainingCooldown` 가
+            // null 이 아닐 때만 상시 표시. `_tickNotifier` 가 1초마다 갱신되어
+            // MM:SS 카운트다운이 실시간으로 줄어듦. Free 60분 / Premium·Brand
+            // 10분. "지금 왜 못 줍지?" 하는 혼선 제거.
+            ValueListenableBuilder<int>(
+              valueListenable: _tickNotifier,
+              builder: (_, __, ___) {
+                final remaining = state.nearbyPickupRemainingCooldown;
+                if (remaining == null) return const SizedBox.shrink();
+                final mins = remaining.inMinutes;
+                final secs = remaining.inSeconds % 60;
+                final mmss = mins > 0
+                    ? '${mins}m ${secs.toString().padLeft(2, '0')}s'
+                    : '${secs}s';
+                return Positioned(
+                  top: 180,
+                  left: 16,
+                  right: 16,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 9,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.bgCard.withValues(alpha: 0.92),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.textMuted.withValues(alpha: 0.35),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.25),
+                          blurRadius: 8,
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('⏱', style: TextStyle(fontSize: 14)),
+                        const SizedBox(width: 6),
+                        Text(
+                          l10n.mapCooldownPill(mmss),
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+            // Build 120: 나침반 힌트 배너 — 반경 안에 편지가 없을 때 가장 가까운
+            // 바깥쪽 편지의 방향·거리를 한 줄로 알려준다. "앱을 열었는데 반경 0통"
+            // 인 죽은 상태를 "저쪽으로 150m 가면 있어요" 로 전환.
+            // Build 152: 반경 안에 편지 있을 때 시간대별 인사 + 카운트 pill.
+            // 기존 나침반 슬롯과 상호 배타 — 둘 다 top 220 에 배치하되
+            // nearbyLetters.isNotEmpty 이면 인사 pill, 비어있으면 방향 안내.
+            //
+            // Build 216: Brand 사용자는 "주울 편지" 가 아니라 "내 캠페인 픽업 결과"
+            // 가 더 의미 있음. nearby info 대신 가장 최근 픽업된 캠페인 위치를
+            // 표시하고 탭 시 그 좌표로 카메라 이동.
+            if (state.currentUser.isBrand) ...[
+              Builder(builder: (ctx) {
+                final picked = state.brandMostRecentlyPickedUpLetter;
+                if (picked == null) return const SizedBox.shrink();
+                // Build 217: 위치를 하단으로 이동 — 상단의 country bar / brand
+                // promo banner 와 겹침 해소. 탭 시 _showNearbyOnly 해제 + 카메라
+                // 이동이 확실히 보이도록 zoom 14 단일 move 로 단순화.
+                return Positioned(
+                  bottom: 96,
+                  left: 16,
+                  right: 16,
+                  child: _BrandRecentPickupBanner(
+                    letter: picked,
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      final target = ll.LatLng(
+                        picked.destinationLocation.latitude,
+                        picked.destinationLocation.longitude,
+                      );
+                      _positionSaveDebounce?.cancel();
+                      // 필터 해제 — 마커가 'nearby only' 로 가려지면 안 보임.
+                      if (_showNearbyOnly) {
+                        setState(() => _showNearbyOnly = false);
+                      }
+                      // 두 단계로 zoom 적용 — flutter_map 의 같은-프레임 두 번
+                      // move() 무시 회피. 첫 번째 줌아웃, 두 번째 줌인 으로
+                      // "이동했다" 시각 피드백 명확.
+                      _mapController.move(target, 12.0);
+                      Future.delayed(const Duration(milliseconds: 180), () {
+                        if (!mounted) return;
+                        _mapController.move(target, 14.5);
+                      });
+                    },
+                  ),
+                );
+              }),
+            ] else if (state.nearbyLetters.isNotEmpty &&
+                !state.hasNearbyAlert)
+              Positioned(
+                top: 130,
+                left: 16,
+                right: 16,
+                child: _DailyGreetingPill(
+                  count: state.nearbyLetters.length,
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    setState(() => _showNearbyOnly = true);
+                    _mapController.move(
+                      ll.LatLng(
+                        state.currentUser.latitude,
+                        state.currentUser.longitude,
+                      ),
+                      14.0,
+                    );
+                  },
+                ),
+              ),
+            if (!state.currentUser.isBrand &&
+                state.nearbyLetters.isEmpty &&
+                state.worldLetters.isNotEmpty)
+              Builder(builder: (ctx) {
+                final hint = _nearestLetterCompass(state);
+                if (hint == null) return const SizedBox.shrink();
+                return Positioned(
+                  top: 220,
+                  left: 16,
+                  right: 16,
+                  // Build 141: 배너 탭 → 해당 편지 위치로 지도 이동.
+                  // 반경 밖이라 줍을 순 없지만 "어디 있는지" 눈으로 확인
+                  // 가능. 줌 레벨 14 로 시내 블록 수준까지 접근.
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      final target = ll.LatLng(
+                        hint.letter.destinationLocation.latitude,
+                        hint.letter.destinationLocation.longitude,
+                      );
+                      // Build 183: 근본 원인 수정.
+                      // (1) 세션 persist debounce (Build 151, 2초 지연) 을
+                      //     먼저 취소 — 이전 수동 이동의 결과가 SharedPreferences
+                      //     에 덮어써지는 경쟁 방지 + 다음 복원 실패 차단.
+                      // (2) 필터를 "전체보기" 로 돌려 대상 편지 마커가 실제로
+                      //     렌더되도록.
+                      // (3) zoom nudge 를 **Future.delayed** 로 분리. 같은
+                      //     프레임에서 두 번의 move() 를 연속 호출하면 flutter_map
+                      //     8.x 는 두 번째만 반영하고 시각적 변화가 없다. 160ms
+                      //     사이로 띄워 두 번의 카메라 이벤트가 독립적으로
+                      //     처리되게 한다.
+                      _positionSaveDebounce?.cancel();
+                      setState(() {
+                        _showNearbyOnly = false;
+                      });
+                      // 조건 없이 무조건 zoom out → zoom in — 이미 같은 위치여도
+                      // 사용자에게 "이동했다" 는 피드백을 주기 위함.
+                      _mapController.move(target, 12.8);
+                      Future.delayed(const Duration(milliseconds: 160), () {
+                        if (!mounted) return;
+                        _mapController.move(target, 14.0);
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.bgCard.withValues(alpha: 0.92),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.gold.withValues(alpha: 0.4),
+                          width: 1.2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              l10n.mapCompassHint(
+                                hint.distance, hint.arrow, hint.emoji,
+                              ),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: AppColors.gold,
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            color: AppColors.gold,
+                            size: 11,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
             // ── 지도 퀵 액션 (전체보기/내 위치) ─────────────────────────────
             Positioned(
               bottom: 120,
@@ -352,46 +728,21 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   const SizedBox(height: 10),
                   _MyLocationButton(
                     mapController: _mapController,
-                    onLocationUpdated: (lat, lng) =>
-                        state.updateUserLocation(lat, lng),
+                    onLocationUpdated: (lat, lng) {
+                      state.updateUserLocation(lat, lng);
+                      // Build 250: 국가 점프 바도 본인 국가로 강제 복귀.
+                      // 이전엔 다른 나라 보다가 "내 위치" 누르면 지도만 이동하고
+                      // 국가 라벨은 그대로 남아있어 사용자 혼동.
+                      if (mounted) {
+                        setState(() => _countryBarResetSignal++);
+                      }
+                    },
                   ),
                 ],
               ),
             ),
-            // ── 하단 통계 바 ───────────────────────────────────────────────
-            Positioned(
-              bottom: 20,
-              left: 16,
-              right: 16,
-              child: _StatsBar(
-                l10n: l10n,
-                state: state,
-                mapController: _mapController,
-                userLat: state.currentUser.latitude,
-                userLng: state.currentUser.longitude,
-                onShowAll: () {
-                  setState(() => _showNearbyOnly = false);
-                  _mapController.move(
-                    ll.LatLng(
-                      state.currentUser.latitude,
-                      state.currentUser.longitude,
-                    ),
-                    3.0,
-                  );
-                },
-                onShowNearby: () {
-                  setState(() => _showNearbyOnly = true);
-                  _mapController.move(
-                    ll.LatLng(
-                      state.currentUser.latitude,
-                      state.currentUser.longitude,
-                    ),
-                    12.0,
-                  );
-                },
-                onGoToInbox: widget.onGoToInbox,
-              ),
-            ),
+            // 하단 통계 바 폐기 (Build 201) — 사용자 요청. 핵심 액션은 우측 quick
+            // action 버튼 (전체보기·줌·내 위치) 으로 이미 커버됨.
           ],
         );
       },
@@ -536,13 +887,63 @@ class _WorldMapScreenState extends State<WorldMapScreen>
               _showMyTowerInfo(context, context.read<AppState>(), l10n);
             }
           },
-          child: _MyTowerMarker(
-            tier: state.currentUser.activityScore.tier,
-            flag: state.currentUser.countryFlag,
-            floors: state.currentUser.activityScore.towerFloors,
-            pulseController: _pulseController,
-            pendingLetterCount: overlappingLetters.length,
-          ),
+          // Build 120: 내 타워 길게 누르면 "내 줍기 반경" 즉시 확인 — 반경 링
+          // 이 항상 그려져 있지만, 확인 동작을 명시적으로 지원해 "여기가 내
+          // 사냥터" 감각 + 숫자 확인 (haptic + 스낵바) 를 제공한다.
+          onLongPress: () {
+            HapticFeedback.mediumImpact();
+            final radius = state.pickupRadiusMeters.round();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  '${l10n.towerPulseHint} · ${radius}m',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                backgroundColor: state.currentUser.isPremium
+                    ? AppColors.goldDark
+                    : AppColors.tealDark,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          },
+          // Build 128: Brand 공식 발송인은 원래 타워 비주얼로 복귀
+          // (레벨 시스템 밖 — 캐릭터 진화 아바타는 Free/Premium 전용).
+          child: state.currentUser.isBrand
+              ? _BrandTowerMarker(
+                  tier: state.currentUser.activityScore.tier,
+                  flag: state.currentUser.countryFlag,
+                  floors: state.currentUser.activityScore.towerFloors,
+                  pulseController: _pulseController,
+                  pendingLetterCount: overlappingLetters.length,
+                  isBrandVerified: state.isBrandVerified,
+                )
+              : _MyTowerMarker(
+                  tier: state.currentUser.activityScore.tier,
+                  flag: state.currentUser.countryFlag,
+                  floors: state.currentUser.activityScore.towerFloors,
+                  pulseController: _pulseController,
+                  pendingLetterCount: overlappingLetters.length,
+                  // Build 121: 아바타 색상을 픽업 반경 링과 일치시킨다.
+                  isPremium: state.currentUser.isPremium,
+                  isBrand: state.currentUser.isBrand,
+                  hunterLevel: state.currentLevel,
+                  // 최상위 획득 마일스톤의 대표 아이템을 아바타 좌상단에 작게.
+                  milestoneItemEmoji: state.latestHunterItemEmoji,
+                  // Build 122: 레벨에 따라 진화하는 캐릭터 이모지 (중앙).
+                  characterEmoji: state.currentCharacterEmoji,
+                  // Build 125: 동행 동물 + 머리 위 악세사리 — 꾸미기 요소.
+                  companionEmoji: state.activeCompanionEmoji,
+                  accessoryEmoji: state.activeAccessoryEmoji,
+                  // Build 127: Brand 사업자 인증 완료 시 ✅ 뱃지.
+                  isBrandVerified: state.isBrandVerified,
+                ),
         ),
       ),
     );
@@ -551,23 +952,47 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     final viewerIsPremiumOrBrand =
         state.currentUser.isPremium || state.currentUser.isBrand;
 
+    // Build 164: 유저 GPS 위치 기준 "가장 가까운 편지" 식별.
+    // delivered/nearYou 상태의 편지 중 거리 최소 1개만 highlight.
+    // 픽업 가능 반경 안·밖 무관 — 지도에서 "어디가 가장 가까운지" 명시.
+    final myPos = LatLng(
+      state.currentUser.latitude,
+      state.currentUser.longitude,
+    );
+    String? nearestLetterId;
+    double nearestDist = double.infinity;
+    for (final l in letters) {
+      if (l.status != DeliveryStatus.delivered &&
+          l.status != DeliveryStatus.nearYou) continue;
+      if (l.isReadByRecipient) continue;
+      final d = l.destinationLocation.distanceTo(myPos);
+      if (d < nearestDist) {
+        nearestDist = d;
+        nearestLetterId = l.id;
+      }
+    }
+
     for (final letter in letters) {
       // 도착 후 미열람 편지: 도착지에 '📮 대기중' 마커로 표시
       if (letter.status == DeliveryStatus.delivered &&
           !letter.isReadByRecipient) {
         final destLoc = letter.destinationLocation;
         final isBrandLetter = letter.senderTier == LetterSenderTier.brand;
+        final isNearest = letter.id == nearestLetterId;
         markers.add(
           Marker(
             point: ll.LatLng(destLoc.latitude, destLoc.longitude),
-            width: 40,
-            height: isBrandLetter && viewerIsPremiumOrBrand ? 62 : 48,
+            width: isNearest ? 80 : 40,
+            height: (isBrandLetter && viewerIsPremiumOrBrand ? 62 : 48) +
+                (isNearest ? 22 : 0),
             child: GestureDetector(
               onTap: () => _onLetterTap(context, letter, state, l10n, langCode),
               child: _UnreadDeliveredMarker(
                 letter: letter,
                 pulseController: _pulseController,
                 viewerIsPremiumOrBrand: viewerIsPremiumOrBrand,
+                isNearest: isNearest,
+                nearestLabel: l10n.mapNearestLetterLabel,
               ),
             ),
           ),
@@ -579,17 +1004,21 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       if (letter.status == DeliveryStatus.nearYou) {
         final destLoc = letter.destinationLocation;
         final isBrandLetter = letter.senderTier == LetterSenderTier.brand;
+        final isNearest = letter.id == nearestLetterId;
         markers.add(
           Marker(
             point: ll.LatLng(destLoc.latitude, destLoc.longitude),
-            width: 40,
-            height: isBrandLetter && viewerIsPremiumOrBrand ? 62 : 48,
+            width: isNearest ? 80 : 40,
+            height: (isBrandLetter && viewerIsPremiumOrBrand ? 62 : 48) +
+                (isNearest ? 22 : 0),
             child: GestureDetector(
               onTap: () => _onLetterTap(context, letter, state, l10n, langCode),
               child: _UnreadDeliveredMarker(
                 letter: letter,
                 pulseController: _pulseController,
                 viewerIsPremiumOrBrand: viewerIsPremiumOrBrand,
+                isNearest: isNearest,
+                nearestLabel: l10n.mapNearestLetterLabel,
               ),
             ),
           ),
@@ -713,26 +1142,31 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       final rankLabel = rep.rank <= 3
           ? (rep.rank == 1 ? '🥇' : rep.rank == 2 ? '🥈' : '🥉')
           : '#${rep.rank}';
+      // Build 239: 라벨 우선순위 = 사용자 ID (@username) → 타워명 (있으면 fallback).
+      // 회원 식별이 최우선이라는 사용자 요청 반영.
       final hasUsername = rep.username != null && rep.username!.isNotEmpty;
-      final displayLabel = rep.towerName?.isNotEmpty == true
-          ? rep.towerName!
-          : (hasUsername ? '@${rep.username}' : null);
+      final displayLabel = hasUsername
+          ? '@${rep.username}'
+          : (rep.towerName?.isNotEmpty == true ? rep.towerName! : null);
       final labelText = displayLabel ?? '';
       final hasLabel = showLabels && labelText.isNotEmpty;
 
-      // 층수 제한 (마커 크기 제한)
-      final displayFloors = rep.floors.clamp(1, 15);
-      final floorH = (7.0 * scale).roundToDouble();
-      final towerW = (34 * scale).roundToDouble();
-      final roofH = (10 * scale).roundToDouble();
-      final towerBodyH = roofH + (displayFloors * floorH);
-      // 오라 여백
+      // Build 239: 타워 형식 → 카운터 원형 아바타로 교체.
+      // 회원 = 카운터 캐릭터, 타워 잔상 제거.
       final tierIdx = rep.tier.index;
       final hasAura = tierIdx >= 4; // Building 이상
       final hasParticles = tierIdx >= 6; // Skyscraper 이상
+      final avatarSize = (44 * scale).roundToDouble();
       final auraExtra = hasAura ? 14.0 * scale : 0.0;
-      final totalW = max(56.0, towerW + 24 + auraExtra * 2);
-      final totalH = towerBodyH + 36 * scale + (hasLabel ? 14.0 : 0.0) + auraExtra;
+      final totalW = max(64.0, avatarSize + 24 + auraExtra * 2);
+      final totalH =
+          avatarSize + 36 * scale + (hasLabel ? 14.0 : 0.0) + auraExtra;
+      // Build 252: 인물 이모지 매핑을 공통 helper (`personEmojiForId`) 로 통합.
+      // 마커 / 인박스 카드 / 인포 시트 모두 동일 매핑 → 사용자 식별 시각 일관성.
+      final centerEmoji = personEmojiForId(
+        rep.id,
+        isLandmark: rep.tier == TowerTier.landmark,
+      );
 
       markers.add(
         Marker(
@@ -752,101 +1186,82 @@ class _WorldMapScreenState extends State<WorldMapScreen>
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                // ── 오라 + 타워 본체 ──
+                // ── 카운터 원형 아바타 (Build 239) ──
                 Stack(
                   clipBehavior: Clip.none,
                   alignment: Alignment.center,
                   children: [
                     // 오라 글로우 (Building+)
                     if (hasAura)
-                      Positioned.fill(
-                        child: Center(
-                          child: Container(
-                            width: towerW + 20 * scale,
-                            height: towerBodyH + 10 * scale,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(towerW * 0.5),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: tierColor.withValues(alpha: hasParticles ? 0.35 : 0.2),
-                                  blurRadius: hasParticles ? 20 * scale : 12 * scale,
-                                  spreadRadius: hasParticles ? 4 * scale : 2 * scale,
-                                ),
-                                if (hasParticles)
-                                  BoxShadow(
-                                    color: tierColor.withValues(alpha: 0.12),
-                                    blurRadius: 36 * scale,
-                                    spreadRadius: 8 * scale,
-                                  ),
-                              ],
+                      Container(
+                        width: avatarSize + 16 * scale,
+                        height: avatarSize + 16 * scale,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: tierColor.withValues(
+                                alpha: hasParticles ? 0.35 : 0.2,
+                              ),
+                              blurRadius: hasParticles ? 20 * scale : 12 * scale,
+                              spreadRadius:
+                                  hasParticles ? 4 * scale : 2 * scale,
                             ),
-                          ),
+                            if (hasParticles)
+                              BoxShadow(
+                                color: tierColor.withValues(alpha: 0.12),
+                                blurRadius: 36 * scale,
+                                spreadRadius: 8 * scale,
+                              ),
+                          ],
                         ),
                       ),
-                    // 파티클 (Skyscraper+)
-                    if (hasParticles) ...[
-                      for (int pi = 0; pi < (tierIdx >= 8 ? 5 : 3); pi++)
-                        Positioned(
-                          top: (towerBodyH * 0.15 * pi) - 2 * scale,
-                          left: pi.isEven ? -3 * scale : null,
-                          right: pi.isOdd ? -3 * scale : null,
-                          child: Container(
-                            width: 3 * scale,
-                            height: 3 * scale,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: tierColor.withValues(alpha: 0.6),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: tierColor.withValues(alpha: 0.4),
-                                  blurRadius: 4 * scale,
-                                ),
-                              ],
-                            ),
-                          ),
+                    // 외곽 링 (티어 색)
+                    Container(
+                      width: avatarSize + 6 * scale,
+                      height: avatarSize + 6 * scale,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: tierColor.withValues(alpha: 0.55),
+                          width: 1.5,
                         ),
-                    ],
-                    // ── 타워 본체 ──
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // 장식 이모지 (지붕 위)
-                        if (rep.towerAccentEmoji != null)
-                          Padding(
-                            padding: EdgeInsets.only(bottom: 1 * scale),
-                            child: Text(
-                              rep.towerAccentEmoji!,
-                              style: TextStyle(fontSize: 10 * scale),
-                            ),
-                          ),
-                        // 국기 (지붕 위)
-                        Text(rep.flag, style: TextStyle(fontSize: 10 * scale)),
-                        // 지붕
-                        _buildTowerRoof(
-                          width: towerW + 6 * scale,
-                          height: roofH,
-                          color: tierColor,
-                          roofStyle: rep.towerRoofStyle,
-                          scale: scale,
-                        ),
-                        // 층 쌓기
-                        ...List.generate(displayFloors, (i) {
-                          final isBottom = i == displayFloors - 1;
-                          final fadeAlpha = 0.25 - (i / displayFloors) * 0.15;
-                          return _buildTowerFloor(
-                            width: towerW,
-                            height: floorH,
-                            color: tierColor,
-                            alpha: fadeAlpha.clamp(0.05, 0.25),
-                            isBottom: isBottom,
-                            borderWidth: 1.5 * scale,
-                            floorIndex: i,
-                            windowStyle: rep.towerWindowStyle,
-                            scale: scale,
-                          );
-                        }),
-                      ],
+                      ),
                     ),
+                    // 본체 원형 — 중앙 카운터/플래그
+                    Container(
+                      width: avatarSize,
+                      height: avatarSize,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.bgSurface,
+                        border: Border.all(color: tierColor, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: tierColor.withValues(alpha: 0.25),
+                            blurRadius: 6,
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              centerEmoji,
+                              style: TextStyle(fontSize: 14 * scale),
+                            ),
+                            Text(
+                              rep.flag,
+                              style: TextStyle(fontSize: 12 * scale),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // Build 246: Lv N 뱃지 제거 — 사용자 요청 (아이디만 노출).
+                    // 레벨 정보는 마커 탭 시 인포 시트에서 확인 가능.
                     // ── 클러스터 뱃지 ──
                     if (isCluster)
                       Positioned(
@@ -858,7 +1273,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                             vertical: 1 * scale,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEF4444),
+                            color: AppColors.error,
                             borderRadius: BorderRadius.circular(8 * scale),
                             border: Border.all(color: AppColors.bgCard, width: 1.2),
                           ),
@@ -933,6 +1348,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   }
 
   // ── 지붕 빌더 ──────────────────────────────────────────────────────────────
+  // ignore: unused_element
   Widget _buildTowerRoof({
     required double width,
     required double height,
@@ -1015,6 +1431,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   }
 
   // ── 층 빌더 ────────────────────────────────────────────────────────────────
+  // ignore: unused_element
   Widget _buildTowerFloor({
     required double width,
     required double height,
@@ -1035,7 +1452,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
           end: Alignment.bottomRight,
           colors: [
             color.withValues(alpha: alpha),
-            const Color(0xFF1E293B).withValues(alpha: 0.85),
+            AppColors.bgCard.withValues(alpha: 0.85),
           ],
         ),
         border: Border(
@@ -1167,7 +1584,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       case TowerTier.megatower:
         return const Color(0xFFFF9F43);
       case TowerTier.landmark:
-        return const Color(0xFFFF6B9D);
+        return AppColors.coupon;
     }
   }
 
@@ -1202,7 +1619,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       isScrollControlled: true,
       builder: (_) => Container(
         decoration: const BoxDecoration(
-          color: Color(0xFF1A2535),
+          color: AppColors.bgCard,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
@@ -1245,7 +1662,8 @@ class _WorldMapScreenState extends State<WorldMapScreen>
               (l) => Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: _DisambiguationTile(
-                  icon: '📮',
+                  // 브랜드 편지는 카테고리 맞춤 이모지 (할인권 🎟 / 교환권 🎁 / 일반 📪)
+                  icon: l.senderIsBrand ? l.category.brandEmoji : '📮',
                   title: '${l.senderCountryFlag} ${l10n.mapLetterFrom(CountryL10n.localizedName(l.senderCountry, langCode))}',
                   subtitle: l10n.mapReadCountTapToPickUp(l.readCount, l.maxReaders),
                   onTap: () {
@@ -1322,9 +1740,13 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                     ),
                     child: Row(
                       children: [
+                        // Build 252: 공통 helper 로 통합 (마커와 동일 매핑)
                         Text(
-                          u.tier.emoji,
-                          style: const TextStyle(fontSize: 24),
+                          personEmojiForId(
+                            u.id,
+                            isLandmark: u.tier == TowerTier.landmark,
+                          ),
+                          style: const TextStyle(fontSize: 22),
                         ),
                         const SizedBox(width: 10),
                         Text(
@@ -1340,17 +1762,18 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                                 name,
                                 style: const TextStyle(
                                   color: AppColors.textPrimary,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
+                              // Build 246: 'SHACK · 1F' 옛 티어/층수 라벨 → 활동 레벨 (Lv N)
                               Text(
-                                '${u.tier.name.toUpperCase()} · ${u.floors}F',
+                                'Lv ${u.level}',
                                 style: TextStyle(
                                   color: tierColor,
                                   fontSize: 11,
-                                  fontWeight: FontWeight.w500,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],
@@ -1437,9 +1860,10 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                       ],
                     ),
                     child: Center(
+                      // Build 252: 공통 helper 로 통합 — 인포 시트 이모지가 마커와 정확히 일치.
                       child: Text(
-                        '${tier.emoji} $flag',
-                        style: const TextStyle(fontSize: 14),
+                        '${personEmojiForId(other?.id ?? "self", isLandmark: tier == TowerTier.landmark)} $flag',
+                        style: const TextStyle(fontSize: 16),
                         maxLines: 1,
                         overflow: TextOverflow.fade,
                       ),
@@ -1450,35 +1874,15 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: tierColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: tierColor.withValues(alpha: 0.4),
-                            ),
-                          ),
-                          child: Text(
-                            '${tier.emoji}  ${tier.labelL(l10n.languageCode)}',
-                            style: TextStyle(
-                              color: tierColor,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
+                        // Build 246: 티어 라벨 ('오두막'/'SHACK' 등) 제거 — 옛 타워 잔재
+                        // 사용자 식별 우선 = @username 만 prominent 노출
                         if (username != null && username.isNotEmpty)
                           Text(
                             '@$username',
                             style: const TextStyle(
                               color: AppColors.textPrimary,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
                             ),
                           ),
                         if (towerName != null && towerName.isNotEmpty) ...[
@@ -1572,7 +1976,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                     ),
                   ),
                   const SizedBox(width: 10),
-                  // 건물 층수
+                  // 활동 레벨 (Build 238: tower "F" 접미사 제거 — 카운터 정체성)
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.all(14),
@@ -1586,7 +1990,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                       child: Column(
                         children: [
                           Text(
-                            '${floors}F',
+                            'Lv $floors',
                             style: TextStyle(
                               color: tierColor,
                               fontSize: 24,
@@ -1614,7 +2018,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 decoration: BoxDecoration(
                   color: AppColors.bgSurface,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF1F2D44)),
+                  border: Border.all(color: AppColors.bgSurface),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1630,7 +2034,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                           ),
                         ),
                         Text(
-                          '${towerH.toInt()} / 240px',
+                          '${(towerH / 240.0 * 100).toInt()}%',
                           style: TextStyle(
                             color: tierColor,
                             fontSize: 11,
@@ -1677,7 +2081,15 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   }
 
   void _onLetterTap(BuildContext ctx, Letter letter, AppState state, AppL10n l10n, String langCode) {
-    if (letter.status == DeliveryStatus.nearYou) {
+    // Build 239: `delivered` (도착 후 미열람) 도 픽업 다이얼로그로 라우팅.
+    // 이전엔 `delivered` 가 `_showTransitInfo` 로 빠져 빈 시트처럼 보였음
+    // (특히 데모 시드 쿠폰 — status=delivered 로 시작하므로 첫 tick 전엔
+    // nearYou 로 승격되지 않아 사용자에게 "아무 반응 없음" 으로 인식됨).
+    // 픽업 다이얼로그는 거리 검증 (`pickUpLetter`) 이 내장되어 너무 멀면
+    // 에러 스낵바를 띄움.
+    if (letter.status == DeliveryStatus.nearYou ||
+        (letter.status == DeliveryStatus.delivered &&
+            !letter.isReadByRecipient)) {
       _showPickupDialog(ctx, letter, state, l10n, langCode);
     } else if (letter.status == DeliveryStatus.deliveredFar) {
       _showDeliveredFarDialog(ctx, letter, l10n);
@@ -1687,13 +2099,20 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   }
 
   void _showDeliveredFarDialog(BuildContext ctx, Letter letter, AppL10n l10n) {
+    // 브랜드 편지는 카테고리 맞춤 이모지로 도착 상태를 알림.
+    // Build 223: Premium 발신 편지는 📣 (홍보) 로 직관 구분
+    final arrivalEmoji = letter.senderIsBrand
+        ? letter.category.brandEmoji
+        : letter.senderTier == LetterSenderTier.premium
+            ? '📣'
+            : '📬';
     showDialog(
       context: ctx,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.bgCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         content: Text(
-          '📬 ${l10n.mapLetterArrivedVisitToOpen}',
+          '$arrivalEmoji ${l10n.mapLetterArrivedVisitToOpen}',
           style: const TextStyle(
             color: AppColors.textPrimary,
             fontSize: 15,
@@ -1738,6 +2157,26 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 ),
               ),
             );
+            // Build 115: 생애 첫 픽업이면 축하 모달을 띄운다. 포스트프레임으로
+            // 밀어 snackbar 애니메이션과 겹치지 않게 한다. 한번 소진하면
+            // SharedPreferences 에 저장되어 다시 뜨지 않음.
+            if (state.shouldCelebrateFirstPickup) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!ctx.mounted) return;
+                _showFirstPickupCelebration(ctx, l10n);
+                state.acknowledgeFirstPickup();
+              });
+            }
+            // Build 120: 마일스톤 레벨(2/5/10/25/50) 에 도달했다면 별도 축하
+            // 모달. 픽업으로 XP 쌓다가 터졌을 가능성이 크므로 여기서 폴링.
+            final milestone = state.pendingMilestoneLevel;
+            if (milestone != null) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!ctx.mounted) return;
+                _showMilestoneCelebration(ctx, l10n, milestone, state);
+                state.acknowledgeMilestone();
+              });
+            }
           } else {
             ScaffoldMessenger.of(ctx).showSnackBar(
               SnackBar(
@@ -1751,6 +2190,146 @@ class _WorldMapScreenState extends State<WorldMapScreen>
             );
           }
         },
+      ),
+    );
+  }
+
+  /// Build 115: 첫 픽업 축하 다이얼로그 — 3단 개봉 애니·햅틱에 이어
+  /// 사용자에게 "이게 루프다" 를 알려주는 한 번뿐의 모먼트. 소진되면
+  /// `acknowledgeFirstPickup` 으로 영구 비활성.
+  void _showFirstPickupCelebration(BuildContext ctx, AppL10n l10n) {
+    showDialog(
+      context: ctx,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.bgCard,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Text('🗺', style: TextStyle(fontSize: 52)),
+            const SizedBox(height: 14),
+            Text(
+              l10n.firstPickupCelebrationTitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              l10n.firstPickupCelebrationBody,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 13,
+                height: 1.55,
+              ),
+            ),
+          ],
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.gold,
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 26,
+                vertical: 10,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            child: Text(
+              l10n.firstPickupCelebrationCta,
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build 120: 레벨 마일스톤(2/5/10/25/50) 축하 모달. 반경이 얼마나
+  /// 넓어졌는지 본문에서 강조해 "레벨업의 의미 = 픽업 범위 확대" 연결고리
+  /// 를 계속 상기시킨다. `acknowledgeMilestone()` 으로 소진.
+  void _showMilestoneCelebration(
+    BuildContext ctx,
+    AppL10n l10n,
+    int level,
+    AppState state,
+  ) {
+    final radius = state.pickupRadiusMeters.round();
+    showDialog(
+      context: ctx,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.bgCard,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Text('🏆', style: TextStyle(fontSize: 56)),
+            const SizedBox(height: 12),
+            Text(
+              l10n.milestoneLevelTitle(level),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.gold,
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              l10n.milestoneLevelBody(radius),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 13,
+                height: 1.55,
+              ),
+            ),
+          ],
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.gold,
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 26,
+                vertical: 10,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            child: Text(
+              l10n.milestoneLevelCta,
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1773,6 +2352,64 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   String _todayKey(DateTime now) =>
       '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
 
+  /// Build 120: 나침반 힌트 — 내 위치에서 가장 가까운 "줍을 수 있는" 편지
+  /// (nearYou / deliveredFar / 이동 중 또는 도착 후 미오픈) 의 거리와 방향을
+  /// 찾아 `(미터, 방향 화살표 이모지, 카테고리 이모지)` 로 반환.
+  /// 반경 내에 이미 있는 경우는 호출측에서 제외 — 반경 밖 가장 가까운 것을
+  /// 찾는 것이 목적.
+  /// Build 141: 반환형을 `(letter, distance, arrow, emoji)` 로 확장 —
+  /// 배너 onTap 에서 해당 편지 위치로 지도 이동 가능하도록.
+  ({Letter letter, int distance, String arrow, String emoji})?
+      _nearestLetterCompass(AppState state) {
+    final myLat = state.currentUser.latitude;
+    final myLng = state.currentUser.longitude;
+    final me = LatLng(myLat, myLng);
+    final radius = state.pickupRadiusMeters;
+
+    Letter? nearest;
+    double nearestDist = double.infinity;
+    for (final l in state.worldLetters) {
+      final status = l.status;
+      if (status != DeliveryStatus.nearYou &&
+          status != DeliveryStatus.deliveredFar &&
+          status != DeliveryStatus.inTransit &&
+          !(status == DeliveryStatus.delivered && !l.isReadByRecipient)) {
+        continue;
+      }
+      final d = l.destinationLocation.distanceTo(me);
+      if (d < radius) continue; // 반경 안에 있으면 이미 줍기 가능 — 스킵
+      if (d < nearestDist) {
+        nearestDist = d;
+        nearest = l;
+      }
+    }
+    if (nearest == null || nearestDist == double.infinity) return null;
+
+    // Bearing 계산 (Haversine)
+    final lat1 = myLat * pi / 180;
+    final lat2 = nearest.destinationLocation.latitude * pi / 180;
+    final dLng = (nearest.destinationLocation.longitude - myLng) * pi / 180;
+    final y = sin(dLng) * cos(lat2);
+    final x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLng);
+    final bearing = (atan2(y, x) * 180 / pi + 360) % 360;
+
+    // 8 방향 화살표 매핑 (0 = 북 = ↑, 45 = 북동 = ↗, ...)
+    const arrows = ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'];
+    final idx = ((bearing + 22.5) / 45).floor() % 8;
+
+    // 카테고리 이모지 (브랜드 편지만 맞춤, 아니면 📬)
+    final catEmoji = nearest.senderIsBrand
+        ? nearest.category.brandEmoji
+        : '📬';
+
+    return (
+      letter: nearest,
+      distance: nearestDist.round(),
+      arrow: arrows[idx],
+      emoji: catEmoji,
+    );
+  }
+
   Future<void> _checkLocationPermission() async {
     final permission = await Geolocator.checkPermission();
     if (permission != LocationPermission.deniedForever) return;
@@ -1790,7 +2427,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          backgroundColor: const Color(0xFF0D1421),
+          backgroundColor: AppColors.bgDeep,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -1849,39 +2486,45 @@ class _MapQuickActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final timeColors = AppTimeColors.of(context);
-    return Tooltip(
-      message: tooltip,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(14),
-          child: Ink(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.bgCard.withValues(alpha: 0.96),
-                  timeColors.bgSurface.withValues(alpha: 0.9),
+    // Build 161: Tooltip 은 이미 mouse-hover 라벨 제공, Semantics 는 터치
+    // 접근성 (스크린리더) 전용. 동일 텍스트 재사용.
+    return Semantics(
+      label: tooltip,
+      button: true,
+      child: Tooltip(
+        message: tooltip,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(14),
+            child: Ink(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.bgCard.withValues(alpha: 0.96),
+                    timeColors.bgSurface.withValues(alpha: 0.9),
+                  ],
+                ),
+                border: Border.all(
+                  color: timeColors.accent.withValues(alpha: 0.42),
+                  width: 1.2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.35),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
                 ],
               ),
-              border: Border.all(
-                color: timeColors.accent.withValues(alpha: 0.42),
-                width: 1.2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.35),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
-                ),
-              ],
+              child: Icon(icon, color: timeColors.accent, size: 22),
             ),
-            child: Icon(icon, color: timeColors.accent, size: 22),
           ),
         ),
       ),
@@ -1915,10 +2558,22 @@ class _MyLocationButtonState extends State<_MyLocationButton> {
       if (permission == LocationPermission.deniedForever ||
           permission == LocationPermission.denied) {
         if (context.mounted) {
+          // Build 253: deniedForever 시 설정으로 이동 안내 액션 추가.
+          // 시스템이 더 이상 권한 프롬프트 안 띄우므로 사용자가 직접 설정에서
+          // 변경해야 함 → SnackBar action 으로 openAppSettings 트리거.
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(l10n.mapLocationPermissionRequired),
-              backgroundColor: const Color(0xFF1F2D44),
+              backgroundColor: AppColors.bgSurface,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 6),
+              action: permission == LocationPermission.deniedForever
+                  ? SnackBarAction(
+                      label: l10n.openSettings,
+                      textColor: AppColors.gold,
+                      onPressed: () => Geolocator.openAppSettings(),
+                    )
+                  : null,
             ),
           );
         }
@@ -1931,12 +2586,29 @@ class _MyLocationButtonState extends State<_MyLocationButton> {
       ).timeout(const Duration(seconds: 8));
       widget.onLocationUpdated(pos.latitude, pos.longitude);
       widget.mapController.move(ll.LatLng(pos.latitude, pos.longitude), 14.0);
+      // Build 253: iOS Approximate Location 감지 — accuracy 가 500m 초과면
+      // 픽업 정밀도 충분치 않음. 사용자에게 정확한 위치 활성화 안내.
+      if (context.mounted && pos.accuracy > 500) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.gpsAccuracyLow),
+            backgroundColor: AppColors.warning.withValues(alpha: 0.92),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: l10n.openSettings,
+              textColor: Colors.white,
+              onPressed: () => Geolocator.openAppSettings(),
+            ),
+          ),
+        );
+      }
     } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(l10n.mapCannotGetLocation),
-            backgroundColor: const Color(0xFF1F2D44),
+            backgroundColor: AppColors.bgSurface,
           ),
         );
       }
@@ -2092,8 +2764,12 @@ class _TransportMarker extends StatelessWidget {
           return raw.isNotEmpty ? raw : letter.currentTransport.emoji;
         }
 
-        // nearYou: 📩, deliveredFar: 📬 (도착 대기), inTransit: 운송수단 이모티콘
-        final emoji = isNearby
+        // nearYou: 📩 (브랜드는 카테고리 맞춤), deliveredFar: 📬 (브랜드는 카테고리
+        // 맞춤), inTransit: 운송수단 이모티콘
+        final isBrandArrival = letter.senderIsBrand && (isNearby || isDeliveredFar);
+        final emoji = isBrandArrival
+            ? letter.category.brandEmoji
+            : isNearby
             ? '📩'
             : isDeliveredFar
             ? '📬'
@@ -2117,9 +2793,9 @@ class _TransportMarker extends StatelessWidget {
 
         // 등급별 색상 오버라이드 (특송은 금색 강조)
         final tierGlowColor = isBrandExpress
-            ? const Color(0xFFFFD700)
+            ? AppColors.gold
             : letter.senderTier == LetterSenderTier.brand
-            ? const Color(0xFFFF8A5C)
+            ? AppColors.coupon
             : letter.senderTier == LetterSenderTier.premium
             ? AppColors.gold
             : color;
@@ -2197,12 +2873,12 @@ class _TransportMarker extends StatelessWidget {
                   width: 14,
                   height: 14,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFD700),
+                    color: AppColors.gold,
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.black38, width: 0.5),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFFFD700).withValues(alpha: 0.6),
+                        color: AppColors.gold.withValues(alpha: 0.6),
                         blurRadius: 4,
                       ),
                     ],
@@ -2223,7 +2899,7 @@ class _TransportMarker extends StatelessWidget {
                   width: 10,
                   height: 10,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFF8A5C),
+                    color: AppColors.coupon,
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.black26, width: 0.5),
                   ),
@@ -2289,10 +2965,17 @@ class _UnreadDeliveredMarker extends StatelessWidget {
   /// false → 브랜드 편지: 💌 (프리미엄과 동일하게 표시)
   final bool viewerIsPremiumOrBrand;
 
+  /// Build 164: 유저 GPS 기준 가장 가까운 편지 여부.
+  /// true 면 상단에 "가장 가까운" 라벨 + gold halo 추가.
+  final bool isNearest;
+  final String nearestLabel;
+
   const _UnreadDeliveredMarker({
     required this.letter,
     required this.pulseController,
     this.viewerIsPremiumOrBrand = false,
+    this.isNearest = false,
+    this.nearestLabel = '',
   });
 
   @override
@@ -2312,12 +2995,26 @@ class _UnreadDeliveredMarker extends StatelessWidget {
         final showAsPremium =
             isPremiumSender || (isBrandSender && !viewerIsPremiumOrBrand);
 
-        // 등급별 글로우 색상
+        // 등급별 글로우 색상 (외곽 pulse 링)
         final glowColor = showAsBrand
-            ? const Color(0xFFFF8A5C)
+            ? AppColors.coupon
             : showAsPremium
             ? AppColors.gold
             : Colors.white;
+
+        // Build 147: 카테고리별 내부 테두리 색 — 외곽 tier glow 유지하면서
+        // 내부 링이 카테고리를 시각화. 🎟 할인권=teal, 🎁 교환권=coral.
+        //   브랜드 general / 비브랜드: tier glow 색 그대로.
+        // 이중 링 구조로 "이 편지가 누구 거 (tier)" + "무엇 (category)" 동시 식별.
+        final isCoupon =
+            showAsBrand && letter.category == LetterCategory.coupon;
+        final isVoucher =
+            showAsBrand && letter.category == LetterCategory.voucher;
+        final innerBorderColor = isCoupon
+            ? AppColors.teal
+            : isVoucher
+                ? AppColors.coupon
+                : glowColor;
 
         // 편지함 컨테이너 배경색
         final boxBg = showAsBrand
@@ -2326,9 +3023,10 @@ class _UnreadDeliveredMarker extends StatelessWidget {
             ? const Color(0xFF2A2108).withValues(alpha: 0.95)
             : AppColors.bgCard.withValues(alpha: 0.92);
 
-        // 이모지: 브랜드(프리미엄 뷰어)=📪, 프리미엄/브랜드(무료뷰어)=💌, 일반=📮
+        // 이모지: 브랜드(프리미엄 뷰어)=카테고리 맞춤(🎟/🎁/📪),
+        //         프리미엄/브랜드(무료뷰어)=💌, 일반=📮
         final mailEmoji = showAsBrand
-            ? '📪'
+            ? letter.category.brandEmoji
             : showAsPremium
             ? '💌'
             : '📮';
@@ -2336,9 +3034,53 @@ class _UnreadDeliveredMarker extends StatelessWidget {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Build 164: "가장 가까운" 라벨 — 최단 편지에만 마커 상단 표시.
+            if (isNearest) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 6,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.gold,
+                  borderRadius: BorderRadius.circular(AppRadius.chip),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.gold.withValues(alpha: 0.5),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
+                child: Text(
+                  '📍 $nearestLabel',
+                  style: AppText.caption.copyWith(
+                    color: AppColors.bgDeep,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 9.5,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 2),
+            ],
             Stack(
               alignment: Alignment.center,
               children: [
+                // Build 164: 최단 편지 전용 추가 halo (width 44+pulse, gold)
+                if (isNearest)
+                  Container(
+                    width: 44 + pulse * 8,
+                    height: 44 + pulse * 8,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.gold.withValues(
+                          alpha: 0.3 + pulse * 0.35,
+                        ),
+                        width: 2,
+                      ),
+                    ),
+                  ),
                 // 맥동 링
                 Container(
                   width: 32 + pulse * 6,
@@ -2351,7 +3093,7 @@ class _UnreadDeliveredMarker extends StatelessWidget {
                     ),
                   ),
                 ),
-                // 편지함 아이콘 컨테이너
+                // 편지함 아이콘 컨테이너 (Build 147: 내부 테두리 = 카테고리 색)
                 Container(
                   width: 30,
                   height: 30,
@@ -2359,7 +3101,9 @@ class _UnreadDeliveredMarker extends StatelessWidget {
                     color: boxBg,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: glowColor.withValues(alpha: 0.55 + pulse * 0.3),
+                      color: innerBorderColor.withValues(
+                        alpha: 0.55 + pulse * 0.3,
+                      ),
                       width: showAsBrand ? 2.0 : 1.5,
                     ),
                     boxShadow: [
@@ -2399,14 +3143,14 @@ class _UnreadDeliveredMarker extends StatelessWidget {
                   color: const Color(0xFF3A1F10).withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(4),
                   border: Border.all(
-                    color: const Color(0xFFFF8A5C).withValues(alpha: 0.5),
+                    color: AppColors.coupon.withValues(alpha: 0.5),
                     width: 0.5,
                   ),
                 ),
                 child: Text(
                   letter.senderName,
                   style: const TextStyle(
-                    color: Color(0xFFFF8A5C),
+                    color: AppColors.coupon,
                     fontSize: 8,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.2,
@@ -2423,378 +3167,616 @@ class _UnreadDeliveredMarker extends StatelessWidget {
   }
 }
 
-// ── 상단 헤더 ──────────────────────────────────────────────────────────────────
-class _MapHeader extends StatelessWidget {
-  final AppL10n l10n;
-  final bool showNearbyOnly;
-  final int letterCount;
-  final int nearbyCount;
-  final int inTransitCount;
-  final int mapUsersCount;
-  final TimeOfDayPeriod period;
-  final String mapLanguageLabel;
-  final bool isUnifiedLanguageMode;
-  final String mapProviderLabel;
-  final bool showTowerLabels;
-  final double currentZoom;
-  final VoidCallback onToggleNearby;
-
-  const _MapHeader({
-    required this.l10n,
-    required this.showNearbyOnly,
-    required this.letterCount,
-    required this.nearbyCount,
-    required this.inTransitCount,
-    required this.mapUsersCount,
-    required this.period,
-    required this.mapLanguageLabel,
-    required this.isUnifiedLanguageMode,
-    required this.mapProviderLabel,
-    required this.showTowerLabels,
-    required this.currentZoom,
-    required this.onToggleNearby,
-  });
-
-  String get _periodLabel {
-    switch (period) {
-      case TimeOfDayPeriod.morning:
-        return '🌅 ${l10n.mapDawn}';
-      case TimeOfDayPeriod.day:
-        return '☀️ ${l10n.mapDay}';
-      case TimeOfDayPeriod.evening:
-        return '🌆 ${l10n.mapEvening}';
-      case TimeOfDayPeriod.night:
-        return '🌙 ${l10n.mapNight}';
-    }
-  }
+/// Build 152: 지도 상단 시간대별 인사 + 근처 편지 카운트 pill.
+/// `nearbyLetters.isNotEmpty` 일 때만 표시 — 반경 안에 진짜 줍을 게 있어야
+/// 동기화된 호출. 탭하면 근처 필터 on + 줌 14 로 이동.
+class _DailyGreetingPill extends StatelessWidget {
+  final int count;
+  final VoidCallback onTap;
+  const _DailyGreetingPill({required this.count, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final timeColors = AppTimeColors.of(context);
-    final socialProofLabel = mapUsersCount > 0
-        ? 'LIVE ${l10n.mapLiveExploring(mapUsersCount, inTransitCount)}'
-        : 'LIVE ${l10n.mapSyncingData}';
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            timeColors.bgDeep.withValues(alpha: 0.97),
-            timeColors.bgDeep.withValues(alpha: 0.0),
-          ],
-          stops: const [0.55, 1.0],
-        ),
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
-            decoration: BoxDecoration(
-              color: timeColors.bgCard.withValues(alpha: 0.82),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: timeColors.accent.withValues(alpha: 0.22),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.28),
-                  blurRadius: 14,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    // 시간대 + 앱 이름
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _periodLabel,
-                          style: TextStyle(
-                            color: timeColors.accent,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        const Text(
-                          'Letter Go',
-                          style: TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Spacer(),
-                    // GLOBAL FLOW 카드 (Stitch AI 추천)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0D1421).withValues(alpha: 0.78),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppColors.teal.withValues(alpha: 0.35),
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            l10n.labelGlobalFlow,
-                            style: TextStyle(
-                              color: AppColors.teal,
-                              fontSize: 8,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1.5,
-                            ),
-                          ),
-                          const SizedBox(height: 1),
-                          Text(
-                            '$inTransitCount',
-                            style: const TextStyle(
-                              color: AppColors.textPrimary,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w900,
-                              height: 1.0,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 7,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.teal.withValues(alpha: 0.13),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: AppColors.teal.withValues(alpha: 0.35),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: AppColors.teal,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          socialProofLabel,
-                          style: const TextStyle(
-                            color: AppColors.teal,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: [
-                    if (isUnifiedLanguageMode)
-                      _MapMetaChip(
-                        icon: Icons.translate_rounded,
-                        text: '${l10n.mapMapLanguage}: $mapLanguageLabel',
-                      ),
-                    _MapMetaChip(
-                      icon: Icons.layers_rounded,
-                      text:
-                          '$mapProviderLabel · ${l10n.mapZoom} ${currentZoom.toStringAsFixed(1)}',
-                    ),
-                    _MapMetaChip(
-                      icon: Icons.location_city_rounded,
-                      text: showTowerLabels ? '${l10n.mapTowerLabel} ON' : '${l10n.mapTowerLabel} OFF',
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                // 통계 칩
-                Row(
-                  children: [
-                    _StatChip(
-                      label: '✈️ $inTransitCount',
-                      color: AppColors.teal,
-                      active: !showNearbyOnly,
-                      onTap: onToggleNearby,
-                      tooltip: l10n.mapInTransitLetters,
-                    ),
-                    const SizedBox(width: 6),
-                    _StatChip(
-                      label: '📍 $nearbyCount',
-                      color: AppColors.gold,
-                      active: showNearbyOnly,
-                      onTap: onToggleNearby,
-                      tooltip: l10n.mapNearby2km,
-                    ),
-                    const SizedBox(width: 6),
-                    _StatChip(
-                      label: '🌍 $letterCount',
-                      color: AppColors.textMuted,
-                      active: false,
-                      onTap: null,
-                      tooltip: l10n.mapAllLetters,
-                    ),
-                  ],
-                ),
-              ],
-            ),
+    final langCode = context.read<AppState>().currentUser.languageCode;
+    final l10n = AppL10n.of(langCode);
+    final hour = DateTime.now().hour;
+    String emoji;
+    String greeting;
+    if (hour >= 5 && hour < 12) {
+      emoji = '🌅';
+      greeting = l10n.dailyGreetingMorning;
+    } else if (hour >= 12 && hour < 18) {
+      emoji = '☀️';
+      greeting = l10n.dailyGreetingAfternoon;
+    } else if (hour >= 18 && hour < 22) {
+      emoji = '🌇';
+      greeting = l10n.dailyGreetingEvening;
+    } else {
+      emoji = '🌙';
+      greeting = l10n.dailyGreetingNight;
+    }
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppColors.teal.withValues(alpha: 0.22),
+              AppColors.teal.withValues(alpha: 0.10),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: AppColors.teal.withValues(alpha: 0.5),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.28),
+              blurRadius: 10,
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 16)),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                l10n.dailyGreetingCount(greeting, count),
+                style: const TextStyle(
+                  color: AppColors.teal,
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: AppColors.teal,
+              size: 11,
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _MapMetaChip extends StatelessWidget {
-  final IconData icon;
-  final String text;
+/// Build 165: 지도 상단 수평 국가 점프 바.
+/// `LogisticsHubs.hubs` 의 30+ 국가 중심 좌표를 칩으로 스크롤. 탭 시 지도 이동.
+/// 내 국가를 맨 앞으로 정렬하고 gold 테두리 강조. 각 칩: 플래그 + 현지어 이름.
+/// v5 (Build 201) 좌우 화살표 버튼 navigation country bar.
+///
+/// 변경:
+/// - 스크롤 폐기 → ◀ ▶ 좌우 버튼으로 한 칸씩 이동
+/// - 가운데 큰 카드: 현재 국가 (flag + name) 가 항상 중앙에 표시
+/// - 버튼 탭 시 햅틱 + 다음 국가 위치로 지도 자동 이동
+/// - 끝에 도달하면 wrap-around (처음으로 / 끝으로)
+class _CountryJumpBar extends StatefulWidget {
+  final String myCountry;
+  final void Function(double lat, double lng) onJump;
+  /// Build 250: 외부에서 "내 위치" 버튼 탭 시 카운터를 0번 (= 본인 국가) 으로
+  /// 강제 리셋시키는 트리거. int 값이 변경될 때마다 didUpdateWidget 가
+  /// _idx=0 으로 reset. 호출 측에서 setState 로 정수 증가시키면 됨.
+  final int resetSignal;
+  const _CountryJumpBar({
+    required this.myCountry,
+    required this.onJump,
+    this.resetSignal = 0,
+  });
 
-  const _MapMetaChip({required this.icon, required this.text});
+  static const List<({String name, String flag, double lat, double lng})>
+      _countries = [
+    (name: '대한민국', flag: '🇰🇷', lat: 37.5665, lng: 126.978),
+    (name: '일본', flag: '🇯🇵', lat: 35.6762, lng: 139.6503),
+    (name: '미국', flag: '🇺🇸', lat: 40.7128, lng: -74.006),
+    (name: '중국', flag: '🇨🇳', lat: 39.9042, lng: 116.4074),
+    (name: '영국', flag: '🇬🇧', lat: 51.5074, lng: -0.1278),
+    (name: '프랑스', flag: '🇫🇷', lat: 48.8566, lng: 2.3522),
+    (name: '독일', flag: '🇩🇪', lat: 52.52, lng: 13.405),
+    (name: '이탈리아', flag: '🇮🇹', lat: 41.9028, lng: 12.4964),
+    (name: '스페인', flag: '🇪🇸', lat: 40.4168, lng: -3.7038),
+    (name: '브라질', flag: '🇧🇷', lat: -15.7942, lng: -47.8822),
+    (name: '인도', flag: '🇮🇳', lat: 28.6139, lng: 77.209),
+    (name: '호주', flag: '🇦🇺', lat: -33.8688, lng: 151.2093),
+    (name: '캐나다', flag: '🇨🇦', lat: 43.6532, lng: -79.3832),
+    (name: '멕시코', flag: '🇲🇽', lat: 19.4326, lng: -99.1332),
+    (name: '러시아', flag: '🇷🇺', lat: 55.7558, lng: 37.6173),
+    (name: '터키', flag: '🇹🇷', lat: 41.0082, lng: 28.9784),
+    (name: '태국', flag: '🇹🇭', lat: 13.7563, lng: 100.5018),
+    (name: '싱가포르', flag: '🇸🇬', lat: 1.3521, lng: 103.8198),
+    (name: '베트남', flag: '🇻🇳', lat: 21.0285, lng: 105.8542),
+    (name: '이집트', flag: '🇪🇬', lat: 30.0444, lng: 31.2357),
+  ];
+
+  @override
+  State<_CountryJumpBar> createState() => _CountryJumpBarState();
+}
+
+class _CountryJumpBarState extends State<_CountryJumpBar> {
+  int _idx = 0;
+  late List<({String name, String flag, double lat, double lng})> _sorted;
+
+  @override
+  void initState() {
+    super.initState();
+    _sortCountries();
+  }
+
+  @override
+  void didUpdateWidget(_CountryJumpBar old) {
+    super.didUpdateWidget(old);
+    // Build 250: resetSignal 증가 시 본인 국가 (인덱스 0) 으로 리셋. "내 위치"
+    // 탭 시 호출. 이전엔 다른 나라 보고 있으면 그대로 남아있어 사용자 혼동.
+    if (old.resetSignal != widget.resetSignal) {
+      setState(() {
+        _idx = 0;
+      });
+      return;
+    }
+    if (old.myCountry != widget.myCountry) {
+      _sortCountries();
+      setState(() {});
+    }
+  }
+
+  void _sortCountries() {
+    // Build 219: 현재 사용자의 국가를 항상 0번으로. 기존엔 myIdx==0(한국)
+    // 인 경우만 정렬을 건너뛰어 모두 한국부터 시작했음. 이제 myIdx>=0 이면
+    // 무조건 그 국가를 앞으로 끌어올린다.
+    final myIdx = _CountryJumpBar._countries
+        .indexWhere((c) => c.name == widget.myCountry);
+    if (myIdx >= 0) {
+      _sorted = [
+        _CountryJumpBar._countries[myIdx],
+        ..._CountryJumpBar._countries
+            .where((c) => c.name != widget.myCountry),
+      ];
+    } else {
+      // myCountry 가 정의 목록에 없는 경우 (희소 국가)
+      _sorted = List.of(_CountryJumpBar._countries);
+    }
+    // 0번이 항상 자기 국가가 되도록 인덱스도 리셋
+    _idx = 0;
+  }
+
+  void _step(int delta) {
+    final n = _sorted.length;
+    final next = (_idx + delta + n) % n;
+    setState(() => _idx = next);
+    Feedback.forTap(context);
+    final c = _sorted[next];
+    widget.onJump(c.lat, c.lng);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final c = _sorted[_idx];
+    final lang = context.read<AppState>().currentUser.languageCode;
+    final name = CountryL10n.localizedName(c.name, lang);
+    // Build 250: 사용자 요청 — 국가 선택 바 크기 축소. height 56→44,
+    // fontSize 16→13.5, flag 22→18, 화살표 44→34, margin 12→16 으로 컴팩트.
     return Container(
-      constraints: const BoxConstraints(minHeight: 28),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard.withValues(alpha: 0.75),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.textMuted.withValues(alpha: 0.3)),
-      ),
+      height: 44,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: AppColors.textMuted),
-          const SizedBox(width: 4),
-          Text(
-            text,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
+          _ArrowBtn(icon: Icons.chevron_left_rounded, onTap: () => _step(-1)),
+          const SizedBox(width: 6),
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 220),
+              transitionBuilder: (child, anim) =>
+                  FadeTransition(opacity: anim, child: child),
+              child: Container(
+                key: ValueKey(c.name),
+                height: double.infinity,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.gold,
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.gold.withValues(alpha: 0.30),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(c.flag, style: const TextStyle(fontSize: 18)),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        name,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFF1A1300),
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
+          const SizedBox(width: 6),
+          _ArrowBtn(icon: Icons.chevron_right_rounded, onTap: () => _step(1)),
         ],
       ),
     );
   }
 }
 
-class _StatChip extends StatelessWidget {
-  final String label;
-  final Color color;
-  final bool active;
-  final VoidCallback? onTap;
-  final String tooltip;
+class _ArrowBtn extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _ArrowBtn({required this.icon, required this.onTap});
 
-  const _StatChip({
-    required this.label,
-    required this.color,
-    required this.active,
-    required this.onTap,
-    this.tooltip = '',
-  });
+  @override
+  Widget build(BuildContext context) {
+    // Build 253: RTL 언어 (아랍어 등) 에서 좌/우 화살표 의미 반전 — `Icon` 의
+    // `textDirection` 를 명시적으로 LTR 로 고정해 chevron 자체는 그대로 유지하되,
+    // Material `chevron_left/right` 자체는 directionality-aware 가 아니라
+    // 시각적 좌우만 의미. 사용자 mental model: "왼쪽" 버튼 누르면 이전 국가, RTL 에서도 동일.
+    return Material(
+      color: AppColors.bgCard,
+      shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: SizedBox(
+          width: 34,
+          height: 34,
+          child: Icon(
+            icon,
+            color: AppColors.textPrimary,
+            size: 20,
+            textDirection: TextDirection.ltr,
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-  void _showTooltip(BuildContext ctx) {
-    if (tooltip.isEmpty) return;
-    final overlay = Overlay.of(ctx).context.findRenderObject() as RenderBox;
-    final box = ctx.findRenderObject() as RenderBox?;
-    final pos =
-        box?.localToGlobal(Offset.zero, ancestor: overlay) ?? Offset.zero;
-    final entry = OverlayEntry(
-      builder: (_) => Positioned(
-        left: pos.dx,
-        top: pos.dy + 36,
-        child: Material(
-          color: Colors.transparent,
+// ── 상단 헤더 ──────────────────────────────────────────────────────────────────
+class _MapHeader extends StatelessWidget {
+  // 지도 상단 헤더. Build 141 — 우측에 ⓘ 도움말 버튼 추가. 이모지 의미와
+  // 티어별 역할을 한 번에 설명하는 바텀 시트를 연다.
+  const _MapHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    final timeColors = AppTimeColors.of(context);
+    // Build 148: 티어별 헤더 tint — Brand 는 미세한 오렌지 오버레이로
+    // "대시보드 모드" 감각, Premium 은 gold 미세 오버레이. 티어 정체성이
+    // 앱 상단에서 은은하게 드러나되 가독성은 해치지 않음 (alpha 0.08 이하).
+    final isBrand = context.select<AppState, bool>(
+      (s) => s.currentUser.isBrand,
+    );
+    final isPremium = context.select<AppState, bool>(
+      (s) => s.currentUser.isPremium,
+    );
+    final tierTint = isBrand
+        ? AppColors.coupon.withValues(alpha: 0.10)
+        : isPremium
+            ? AppColors.gold.withValues(alpha: 0.08)
+            : Colors.transparent;
+    return Container(
+      decoration: BoxDecoration(
+        // Build 146: 그라데이션 더 부드럽게 — bgDeep → transparent 부드러운
+        // 페이드로 지도 첫 인상 시 "헤더가 덮고 있는 느낌" 감쇄.
+        // Build 148: 티어 tint 를 bgDeep 위에 추가 — 색감만 은은히 변화.
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color.alphaBlend(
+              tierTint,
+              timeColors.bgDeep.withValues(alpha: 0.45),
+            ),
+            timeColors.bgDeep.withValues(alpha: 0.0),
+          ],
+          stops: const [0.3, 1.0],
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          // Build 146: padding 20/10/12/8 → 16/6/8/4 로 컴팩트.
+          padding: const EdgeInsets.fromLTRB(16, 6, 8, 4),
+          child: Row(
+            children: [
+              // Build 146: 로고를 ✉️ 이모지 + 텍스트 조합으로 바꿔 브랜딩
+              // 표현 강화. fontSize 18→16, weight w800→w900.
+              const Text('🎟', style: TextStyle(fontSize: 16)),
+              const SizedBox(width: 6),
+              const Text(
+                'Thiscount',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const Spacer(),
+              // Build 154: 주말(토·일) 감지 시 🌈 부스트 칩 노출. 유저에게
+              // 매주 돌아오는 이벤트 감각 — 실제 XP 배수는 브랜드 활동량이
+              // 주말 증가한다는 가정. 도움말 버튼 좌측.
+              const _WeekendBoostChip(),
+              _MapHelpButton(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Build 154: 주말 부스트 칩 — 토·일 하루 종일 표시. 탭하면 snackbar 로
+/// 주말 이벤트 설명. 실제 XP 배수 로직은 미구현 (placeholder UI).
+class _WeekendBoostChip extends StatelessWidget {
+  const _WeekendBoostChip();
+
+  @override
+  Widget build(BuildContext context) {
+    final weekday = DateTime.now().weekday; // 월=1, 일=7
+    final isWeekend = weekday == DateTime.saturday || weekday == DateTime.sunday;
+    if (!isWeekend) return const SizedBox.shrink();
+    final langCode = context.read<AppState>().currentUser.languageCode;
+    final l10n = AppL10n.of(langCode);
+    return Padding(
+      padding: const EdgeInsets.only(right: 4),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(22),
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  l10n.weekendBoostDesc,
+                  style: const TextStyle(color: Colors.white),
+                ),
+                backgroundColor: const Color(0xFFB87333),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.bgCard,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: color.withValues(alpha: 0.4)),
+              gradient: const LinearGradient(
+                colors: [
+                  AppColors.coupon,
+                  AppColors.coupon,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(22),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.4),
+                  color: AppColors.coupon.withValues(alpha: 0.35),
                   blurRadius: 8,
                 ),
               ],
             ),
-            child: Text(
-              tooltip,
-              style: TextStyle(
-                color: color,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('🌈', style: TextStyle(fontSize: 13)),
+                const SizedBox(width: 4),
+                Text(
+                  l10n.weekendBoostLabel,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Build 141: 지도 상단 우측 ⓘ 도움말 버튼. 이모지·마커 범례와 티어별 사용법.
+/// Build 146: 터치 타겟 44pt 이상 확보 + Semantics 라벨 접근성.
+class _MapHelpButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    return Semantics(
+      label: l10n.mapHelpTitle,
+      button: true,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(24),
+          onTap: () => _showMapHelpSheet(context),
+          child: Container(
+            // Build 146: 44×44pt 최소 터치 타겟 보장 (이전 34×34).
+            width: 44,
+            height: 44,
+            alignment: Alignment.center,
+            child: Container(
+              padding: const EdgeInsets.all(9),
+              decoration: BoxDecoration(
+                color: AppColors.bgCard.withValues(alpha: 0.85),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.textMuted.withValues(alpha: 0.25),
+                  width: 1,
+                ),
+              ),
+              child: const Icon(
+                Icons.help_outline_rounded,
+                size: 18,
+                color: AppColors.textSecondary,
               ),
             ),
           ),
         ),
       ),
     );
-    Overlay.of(ctx).insert(entry);
-    Future.delayed(const Duration(seconds: 2), entry.remove);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        if (tooltip.isNotEmpty) _showTooltip(context);
-        onTap?.call();
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: active
-              ? color.withValues(alpha: 0.15)
-              : AppColors.bgCard.withValues(alpha: 0.80),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: active
-                ? color.withValues(alpha: 0.5)
-                : AppColors.textMuted.withValues(alpha: 0.15),
-            width: 1,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: active ? color : AppColors.textMuted,
-            fontSize: 12,
-            fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+  void _showMapHelpSheet(BuildContext context) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.bgCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      isScrollControlled: true,
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.72,
+        minChildSize: 0.5,
+        maxChildSize: 0.92,
+        expand: false,
+        builder: (_, scroll) => SingleChildScrollView(
+          controller: scroll,
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Text('📖', style: TextStyle(fontSize: 22)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      l10n.mapHelpTitle,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: AppColors.textMuted,
+                    ),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                l10n.mapHelpTierSection,
+                style: const TextStyle(
+                  color: AppColors.gold,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _helpRow(emoji: '🎟', title: l10n.mapHelpTierFreeTitle, body: l10n.mapHelpTierFreeBody),
+              const SizedBox(height: 10),
+              _helpRow(emoji: '📸', title: l10n.mapHelpTierPremiumTitle, body: l10n.mapHelpTierPremiumBody),
+              const SizedBox(height: 10),
+              _helpRow(emoji: '📣', title: l10n.mapHelpTierBrandTitle, body: l10n.mapHelpTierBrandBody),
+              const SizedBox(height: 16),
+              Text(
+                l10n.mapHelpMarkerSection,
+                style: const TextStyle(
+                  color: AppColors.teal,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _helpRow(emoji: '📮', title: l10n.mapHelpMarkerArrivedTitle, body: l10n.mapHelpMarkerArrivedBody),
+              const SizedBox(height: 10),
+              _helpRow(emoji: '🎟', title: l10n.mapHelpMarkerCouponTitle, body: l10n.mapHelpMarkerCouponBody),
+              const SizedBox(height: 10),
+              _helpRow(emoji: '🎁', title: l10n.mapHelpMarkerVoucherTitle, body: l10n.mapHelpMarkerVoucherBody),
+              const SizedBox(height: 10),
+              _helpRow(emoji: '🏢', title: l10n.mapHelpMarkerBrandTitle, body: l10n.mapHelpMarkerBrandBody),
+              const SizedBox(height: 16),
+              Text(
+                l10n.mapHelpHowToSection,
+                style: const TextStyle(
+                  color: AppColors.coupon,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _helpRow(emoji: '1️⃣', title: l10n.mapHelpStep1Title, body: l10n.mapHelpStep1Body),
+              const SizedBox(height: 10),
+              _helpRow(emoji: '2️⃣', title: l10n.mapHelpStep2Title, body: l10n.mapHelpStep2Body),
+              const SizedBox(height: 10),
+              _helpRow(emoji: '3️⃣', title: l10n.mapHelpStep3Title, body: l10n.mapHelpStep3Body),
+            ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _helpRow({required String emoji, required String title, required String body}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(width: 28, child: Text(emoji, style: const TextStyle(fontSize: 18))),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                body,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 11.5,
+                  height: 1.45,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -2895,49 +3877,90 @@ class _PickupSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isBrand = letter.senderIsBrand ||
+        letter.letterType == LetterType.brandExpress;
+    final cardColor = isBrand ? AppColors.coupon : AppColors.letter;
+    final ink = isBrand
+        ? const Color(0xFF1A0008)
+        : const Color(0xFF0A1A00);
+
     return Container(
-      margin: const EdgeInsets.all(12),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+      padding: const EdgeInsets.fromLTRB(22, 20, 22, 20),
       decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
+        color: cardColor,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.4),
+            blurRadius: 32,
+            offset: const Offset(0, 12),
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('📩', style: TextStyle(fontSize: 40)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                isBrand ? 'BRAND' : 'LETTER',
+                style: TextStyle(
+                  color: ink.withValues(alpha: 0.7),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.66,
+                ),
+              ),
+              Text(
+                letter.senderCountryFlag,
+                style: const TextStyle(fontSize: 18),
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
           Text(
-            '${letter.senderCountryFlag} ${l10n.mapLetterFrom(CountryL10n.localizedName(letter.senderCountry, langCode))}',
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
+            l10n.mapLetterFrom(
+              CountryL10n.localizedName(letter.senderCountry, langCode),
+            ),
+            style: TextStyle(
+              color: ink,
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.6,
+              height: 1.15,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Text(
             letter.senderName,
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
+            style: TextStyle(
+              color: ink.withValues(alpha: 0.65),
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: onPickup,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.gold,
-                foregroundColor: AppColors.bgDeep,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                elevation: 0,
+          GestureDetector(
+            onTap: onPickup,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: AppColors.bgDeep,
+                borderRadius: BorderRadius.circular(14),
               ),
               child: Text(
                 l10n.mapPickUpLetter,
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.2,
+                ),
               ),
             ),
           ),
@@ -3214,191 +4237,6 @@ class _TransitInfoSheet extends StatelessWidget {
   }
 }
 
-// ── 하단 통계 바 (인터랙티브 네비게이션) ────────────────────────────────────────
-class _StatsBar extends StatelessWidget {
-  final AppL10n l10n;
-  final AppState state;
-  final MapController mapController;
-  final double userLat;
-  final double userLng;
-  final VoidCallback onShowAll;
-  final VoidCallback onShowNearby;
-  final VoidCallback? onGoToInbox;
-
-  const _StatsBar({
-    required this.l10n,
-    required this.state,
-    required this.mapController,
-    required this.userLat,
-    required this.userLng,
-    required this.onShowAll,
-    required this.onShowNearby,
-    this.onGoToInbox,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final timeColors = AppTimeColors.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: timeColors.bgCard.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: timeColors.accent.withValues(alpha: 0.15)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.35),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          // 전체 편지 → 지도 전체 보기
-          _StatBtn(
-            icon: '✈️',
-            value: '${state.totalInTransitCount}',
-            label: l10n.mapAllLetters,
-            onTap: onShowAll,
-          ),
-          _Divider(),
-          // 근처 → 내 위치로 이동 + 근처 편지 필터
-          _StatBtn(
-            icon: '📍',
-            value: '${state.nearbyLetters.length}',
-            label: l10n.mapNearby,
-            onTap: onShowNearby,
-          ),
-          _Divider(),
-          // 받은 편지 → 편지함 탭으로 이동
-          _StatBtn(
-            icon: '📬',
-            value: '${state.inbox.length}',
-            label: l10n.mapReceivedLetters,
-            onTap: onGoToInbox,
-            highlight: state.unreadCount > 0,
-            badge: state.unreadCount > 0 ? '${state.unreadCount}' : null,
-          ),
-          _Divider(),
-          // 보낸 편지 → 편지함 탭으로 이동
-          _StatBtn(
-            icon: '✍️',
-            value: '${state.sent.length}',
-            label: l10n.mapSentLetters,
-            onTap: onGoToInbox,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatBtn extends StatelessWidget {
-  final String icon;
-  final String value;
-  final String label;
-  final VoidCallback? onTap;
-  final bool highlight;
-  final String? badge;
-
-  const _StatBtn({
-    required this.icon,
-    required this.value,
-    required this.label,
-    this.onTap,
-    this.highlight = false,
-    this.badge,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final timeColors = AppTimeColors.of(context);
-    final active = onTap != null;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: highlight
-              ? AppColors.gold.withValues(alpha: 0.10)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(icon, style: const TextStyle(fontSize: 16)),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: TextStyle(
-                    color: highlight
-                        ? AppColors.gold
-                        : active
-                        ? timeColors.accent
-                        : AppColors.textMuted,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: active
-                        ? AppColors.textMuted
-                        : AppColors.textMuted.withValues(alpha: 0.5),
-                    fontSize: 9,
-                  ),
-                ),
-              ],
-            ),
-            if (badge != null)
-              Positioned(
-                right: -4,
-                top: -2,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 1,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.gold,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    badge!,
-                    style: const TextStyle(
-                      color: AppColors.bgDeep,
-                      fontSize: 8,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Divider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 1,
-      height: 28,
-      color: AppColors.textMuted.withValues(alpha: 0.15),
-    );
-  }
-}
 
 // ── 겹침 선택 타일 ───────────────────────────────────────────────────────────
 class _DisambiguationTile extends StatelessWidget {
@@ -3464,19 +4302,44 @@ class _DisambiguationTile extends StatelessWidget {
   }
 }
 
-class _MyTowerMarker extends StatelessWidget {
+/// Build 128 — Brand 공식 발송인 전용: 타워 비주얼.
+/// Build 220: 타워 이모지 → "돈 쌓이는" 이미지로 교체. 브랜드 = 광고비 →
+/// 캠페인 효과(픽업·전환) 누적 → 돈이 쌓이는 비주얼 메타포. tier 별로
+/// 돈 단계가 진화 (🪙 → 💵 → 💰 → 💴 → 💶 → 💷 → 💎 → 🏦 → 🏆 → 👑).
+/// Build 127 ✅ 인증 뱃지는 플래그 앞에 유지.
+class _BrandTowerMarker extends StatelessWidget {
   final TowerTier tier;
   final String flag;
   final int floors;
   final AnimationController pulseController;
-  final int pendingLetterCount; // 타워 위치에 겹친 수령 가능 편지 수
-  const _MyTowerMarker({
+  final int pendingLetterCount;
+  final bool isBrandVerified;
+
+  const _BrandTowerMarker({
     required this.tier,
     required this.flag,
     required this.floors,
     required this.pulseController,
     this.pendingLetterCount = 0,
+    this.isBrandVerified = false,
   });
+
+  /// Build 220: 브랜드 티어별 "돈 쌓이는" 이모지.
+  /// 광고 캠페인 누적량 → 화폐 가치 진화로 시각화.
+  static String _moneyEmoji(TowerTier t) {
+    switch (t) {
+      case TowerTier.shack:      return '🪙'; // 동전
+      case TowerTier.cottage:    return '💵'; // 달러 지폐
+      case TowerTier.house:      return '💰'; // 돈 주머니
+      case TowerTier.townhouse:  return '💴'; // 엔
+      case TowerTier.building:   return '💶'; // 유로
+      case TowerTier.office:     return '💷'; // 파운드
+      case TowerTier.skyscraper: return '💸'; // 돈 날아가는
+      case TowerTier.supertall:  return '💎'; // 보석
+      case TowerTier.megatower:  return '🏦'; // 은행
+      case TowerTier.landmark:   return '👑'; // 왕관 (최고 단계)
+    }
+  }
 
   Color _tierColor() {
     switch (tier) {
@@ -3499,7 +4362,7 @@ class _MyTowerMarker extends StatelessWidget {
       case TowerTier.megatower:
         return const Color(0xFFFF9F43);
       case TowerTier.landmark:
-        return const Color(0xFFFF6B9D);
+        return AppColors.coupon;
     }
   }
 
@@ -3514,7 +4377,6 @@ class _MyTowerMarker extends StatelessWidget {
           alignment: Alignment.center,
           clipBehavior: Clip.none,
           children: [
-            // 펄스 링
             Container(
               width: 52 + pulse * 6,
               height: 52 + pulse * 6,
@@ -3526,7 +4388,6 @@ class _MyTowerMarker extends StatelessWidget {
                 ),
               ),
             ),
-            // 타워 마커 본체
             Container(
               width: 44,
               height: 54,
@@ -3548,12 +4409,23 @@ class _MyTowerMarker extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(tier.emoji, style: const TextStyle(fontSize: 18)),
-                    Text(
-                      pendingLetterCount > 0 ? '📮' : flag,
-                      style: TextStyle(
-                        fontSize: pendingLetterCount > 0 ? 12 : 10,
-                      ),
+                    // Build 220: 타워 이모지 → 돈 누적 이모지로 교체
+                    Text(_moneyEmoji(tier),
+                        style: const TextStyle(fontSize: 18)),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (isBrandVerified) ...[
+                          const Text('✅', style: TextStyle(fontSize: 9)),
+                          const SizedBox(width: 2),
+                        ],
+                        Text(
+                          pendingLetterCount > 0 ? '📮' : flag,
+                          style: TextStyle(
+                            fontSize: pendingLetterCount > 0 ? 12 : 10,
+                          ),
+                        ),
+                      ],
                     ),
                     Text(
                       '${floors}F',
@@ -3567,7 +4439,6 @@ class _MyTowerMarker extends StatelessWidget {
                 ),
               ),
             ),
-            // 📮 뱃지: 타워 위치에 겹친 편지가 있을 때 우상단에 표시
             if (pendingLetterCount > 0)
               Positioned(
                 top: -10,
@@ -3578,7 +4449,259 @@ class _MyTowerMarker extends StatelessWidget {
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFF6B35),
+                    color: AppColors.coupon,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.bgCard, width: 1.8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.22),
+                        blurRadius: 5,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    '$pendingLetterCount',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// Build 121 → 122 — 타워를 레벨 기반 진화 캐릭터 이모지 아바타로 대체.
+/// 내 위치 전용 마커 (`_MyTowerMarker` 지점만 이 위젯으로 교체). 다른 유저
+/// 위치는 기존 `_TowerClusterMarker` 계열 유지 — 사회적 표식.
+/// Build 128: Brand 는 `_BrandTowerMarker` 로 분기 — 아래 위젯은 Free/Premium 전용.
+///
+/// 시각 구성 (Build 122 업데이트):
+///   • 외곽 맥동 링 (시선 유도)
+///   • 원형 아바타 ← **중앙에 레벨별 진화 캐릭터 이모지** (Build 122)
+///   • 티어(브랜드·프리미엄·프리)별 테두리 색 = 픽업 반경 링 색과 일치
+///   • 하단: **🇰🇷 + Lv N 결합 pill** (Build 122 — 플래그를 여기에 표시)
+///   • 좌상단: 최근 획득 마일스톤 아이템 이모지 (🎯🧭🗺🎒👑)
+///   • 우상단: 수령 대기 편지 수 뱃지 (기존)
+class _MyTowerMarker extends StatelessWidget {
+  // 기존 호출 지점과의 호환을 위해 이름·시그니처 보존. `tier`·`floors` 는
+  // 유저 위치 마커 렌더링에서는 더 이상 쓰이지 않지만 타 컴포넌트에서
+  // 활용 가능해 남겨둠.
+  final TowerTier tier;
+  final String flag;
+  final int floors;
+  final AnimationController pulseController;
+  final int pendingLetterCount;
+  final bool isPremium;
+  final bool isBrand;
+  final int hunterLevel;
+  final String? milestoneItemEmoji;
+  final String characterEmoji;
+  final String? companionEmoji;
+  final String? accessoryEmoji;
+  final bool isBrandVerified;
+
+  const _MyTowerMarker({
+    required this.tier,
+    required this.flag,
+    required this.floors,
+    required this.pulseController,
+    required this.isPremium,
+    required this.isBrand,
+    required this.hunterLevel,
+    required this.characterEmoji,
+    this.milestoneItemEmoji,
+    this.companionEmoji,
+    this.accessoryEmoji,
+    this.isBrandVerified = false,
+    this.pendingLetterCount = 0,
+  });
+
+  Color _accent() {
+    if (isBrand) return AppColors.coupon;
+    if (isPremium) return AppColors.gold;
+    return AppColors.teal;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: pulseController,
+      builder: (_, __) {
+        final pulse = (sin(pulseController.value * 3.14159 * 2) * 0.5 + 0.5);
+        final color = _accent();
+        // 수령 대기 편지가 있으면 중앙 이모지를 📮 로 잠깐 전환 (arrival alert).
+        // 그 외엔 레벨 진화 캐릭터.
+        final centerEmoji =
+            pendingLetterCount > 0 ? '📮' : characterEmoji;
+        return Stack(
+          alignment: Alignment.center,
+          clipBehavior: Clip.none,
+          children: [
+            // Build 148: Premium 유저 전용 추가 gold aura — 기존 맥동 링보다
+            // 살짝 크게 + gold 색으로 오버레이 해서 "Premium 티어" 시각적으로
+            // 강조. Free 는 teal 링 1개, Premium 은 teal + gold 2중 링.
+            if (isPremium && !isBrand)
+              Container(
+                width: 64 + pulse * 8,
+                height: 64 + pulse * 8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.gold.withValues(
+                      alpha: 0.12 + pulse * 0.18,
+                    ),
+                    width: 2.0,
+                  ),
+                ),
+              ),
+            // 외곽 맥동 링
+            Container(
+              width: 54 + pulse * 6,
+              height: 54 + pulse * 6,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: color.withValues(alpha: 0.2 + pulse * 0.22),
+                  width: 1.5,
+                ),
+              ),
+            ),
+            // 아바타 본체 (원형) — 중앙에 진화 캐릭터 이모지
+            Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.bgCard.withValues(alpha: 0.97),
+                border: Border.all(color: color, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.45 + pulse * 0.2),
+                    blurRadius: 12,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Text(
+                  centerEmoji,
+                  style: const TextStyle(fontSize: 26),
+                ),
+              ),
+            ),
+            // 하단 중앙 pill: 🇰🇷 플래그 + Lv N (Build 122 — 플래그를
+            // 중앙에서 하단 pill 로 이동해 캐릭터가 주인공이 되게).
+            // Brand 는 Lv 대신 👑 표시 (레벨 시스템 밖).
+            Positioned(
+              bottom: -6,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 7,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.bgDeep,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: color, width: 1.4),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Build 127: Brand 사업자 인증 완료 시 플래그 앞에 ✅ 마크.
+                    if (isBrandVerified) ...[
+                      const Text('✅', style: TextStyle(fontSize: 9)),
+                      const SizedBox(width: 2),
+                    ],
+                    Text(flag, style: const TextStyle(fontSize: 10)),
+                    const SizedBox(width: 3),
+                    Text(
+                      isBrand
+                          ? '👑'
+                          : (hunterLevel > 0 ? 'Lv $hunterLevel' : 'Lv 1'),
+                      style: TextStyle(
+                        color: color,
+                        fontSize: isBrand ? 10 : 9,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // 좌상단: 최근 획득한 마일스톤 아이템 이모지 (있을 때만)
+            if (milestoneItemEmoji != null)
+              Positioned(
+                top: -6,
+                left: -6,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: AppColors.bgCard,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: color, width: 1.2),
+                  ),
+                  child: Text(
+                    milestoneItemEmoji!,
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ),
+              ),
+            // Build 125: 머리 위 악세사리 (해금 시). 캐릭터 중앙 위에 작게
+            // 올려 "모자 쓴 레터" 느낌. 아바타 내부라 Positioned 대신
+            // Align 으로 수직 정렬.
+            if (accessoryEmoji != null)
+              Positioned(
+                top: -4,
+                child: Text(
+                  accessoryEmoji!,
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+            // Build 125: 우하단 외부 동행 동물 — "함께 걷는 펫" 감각. 서클
+            // 바깥 아래쪽에 offset 해서 산책 동반자처럼 보이게.
+            if (companionEmoji != null)
+              Positioned(
+                bottom: -4,
+                right: -14,
+                child: Container(
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    color: AppColors.bgCard,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: color.withValues(alpha: 0.5),
+                      width: 1,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      companionEmoji!,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ),
+                ),
+              ),
+            // 우상단: 수령 대기 편지 수 뱃지
+            if (pendingLetterCount > 0)
+              Positioned(
+                top: -8,
+                right: -10,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.coupon,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: AppColors.bgCard, width: 1.8),
                     boxShadow: [
@@ -3634,4 +4757,103 @@ class _PointedRoofPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _PointedRoofPainter old) => old.color != color;
+}
+
+/// Build 216: Brand 사용자가 지도에 들어왔을 때 상단에 노출되는
+/// "최근 픽업 장소" 배너. 본인이 발송한 캠페인 중 누군가 최근에 픽업한
+/// 도착 좌표를 표시. 탭 시 그 좌표로 카메라 이동.
+class _BrandRecentPickupBanner extends StatelessWidget {
+  final Letter letter;
+  final VoidCallback onTap;
+  const _BrandRecentPickupBanner({
+    required this.letter,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final at = letter.arrivedAt ?? letter.readAt ?? letter.sentAt;
+    final ago = _relativeTime(DateTime.now().difference(at));
+    final city = letter.destinationCity ?? letter.destinationCountry;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.coupon.withValues(alpha: 0.22),
+                AppColors.coupon.withValues(alpha: 0.10),
+              ],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: AppColors.coupon.withValues(alpha: 0.55),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.22),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              const Text('🎯', style: TextStyle(fontSize: 22)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '캠페인이 픽업됐어요',
+                      style: TextStyle(
+                        color: AppColors.coupon,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${letter.destinationCountryFlag}  $city · $ago',
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.2,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: AppColors.coupon.withValues(alpha: 0.85),
+                size: 14,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _relativeTime(Duration d) {
+    if (d.inMinutes < 1) return '방금 전';
+    if (d.inMinutes < 60) return '${d.inMinutes}분 전';
+    if (d.inHours < 24) return '${d.inHours}시간 전';
+    if (d.inDays < 7) return '${d.inDays}일 전';
+    return '${d.inDays ~/ 7}주 전';
+  }
 }

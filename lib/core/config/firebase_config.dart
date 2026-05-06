@@ -17,19 +17,30 @@ class FirebaseConfig {
   /// Firebase 프로젝트 ID
   static const String projectId = String.fromEnvironment(
     'FIREBASE_PROJECT_ID',
-    defaultValue: 'lettergo-147eb',
+    defaultValue: '',
   );
 
   /// Firebase Web API Key (프로젝트 설정 → 일반 탭에서 확인)
   static const String apiKey = String.fromEnvironment(
     'FIREBASE_API_KEY',
-    defaultValue: 'AIzaSyDGFvwa11HSDN45lMi2D_RwvD3SAfGf9qI',
+    defaultValue: '',
   );
 
   /// Firebase Storage Bucket
   static const String storageBucket = String.fromEnvironment(
     'FIREBASE_STORAGE_BUCKET',
-    defaultValue: 'lettergo-147eb.firebasestorage.app',
+    defaultValue: '',
+  );
+
+  /// Firebase Storage 활성화 여부.
+  /// Firebase 가 2024 부터 Storage 를 Blaze 플랜 전용으로 변경. Spark 무료
+  /// 플랜에서는 이 값을 `false` 로 두고 클라이언트에서 업로드 경로 자체를
+  /// skip → 로컬 경로만 사용 (graceful degradation).
+  /// Blaze 업그레이드 후 빌드에 `--dart-define=FIREBASE_STORAGE_ENABLED=true`
+  /// 주입하면 즉시 활성화.
+  static const bool storageEnabled = bool.fromEnvironment(
+    'FIREBASE_STORAGE_ENABLED',
+    defaultValue: false,
   );
 
   // Firestore REST API 기본 URL

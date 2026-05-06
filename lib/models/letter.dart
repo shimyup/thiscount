@@ -9,6 +9,64 @@ enum LetterType { normal, express, brandExpress }
 // ── 발신자 등급 (시각적 구분용) ────────────────────────────────────────────────
 enum LetterSenderTier { free, premium, brand }
 
+// ── 편지 카테고리 (브랜드 전용 — 수집첩 필터링 + 쿠폰함 표시) ──────────────────
+//
+// - general : 일반 편지 (기본값). 브랜드가 아닌 유저의 모든 편지도 이 값.
+// - coupon  : 할인권 편지. 수집첩에서 쿠폰함 섹션에 분류.
+// - voucher : 교환권 편지. 동일.
+//
+// 브랜드 유저만 컴포즈 화면에서 coupon/voucher 를 선택할 수 있다. Firestore
+// 에도 그대로 문자열로 저장되어 다른 유저가 수신할 때 필터링 기준으로 쓴다.
+enum LetterCategory { general, coupon, voucher }
+
+extension LetterCategoryExt on LetterCategory {
+  String get key {
+    switch (this) {
+      case LetterCategory.general:
+        return 'general';
+      case LetterCategory.coupon:
+        return 'coupon';
+      case LetterCategory.voucher:
+        return 'voucher';
+    }
+  }
+
+  /// 브랜드 발송 편지의 카테고리별 시각 구분 이모지.
+  /// 지도 마커·도착 다이얼로그·인박스 오버레이에서 "이게 어떤 편지인지"를
+  /// 한 눈에 알려준다. 비브랜드 편지는 호출 측에서 기존 기본값(📬/📮/📩)
+  /// 을 그대로 쓰고, `senderIsBrand` 일 때만 이 getter 를 사용한다.
+  ///
+  /// 값은 브랜드 compose 화면의 카테고리 칩
+  /// (`compose_screen.dart:2625-2629`) 과 반드시 동일해야 한다 — 보낸 쪽이
+  /// 고른 이모지와 받는 쪽이 보는 이모지가 매칭되어야 "같은 편지"라는 감각이
+  /// 끊기지 않음.
+  ///   coupon  → 🎟 (할인권)
+  ///   voucher → 🎁 (교환권)
+  ///   general → ✉️ (일반 브랜드 발송)
+  String get brandEmoji {
+    switch (this) {
+      case LetterCategory.coupon:
+        return '🎟';
+      case LetterCategory.voucher:
+        return '🎁';
+      case LetterCategory.general:
+        return '✉️';
+    }
+  }
+
+  static LetterCategory fromKey(String? s) {
+    switch (s) {
+      case 'coupon':
+        return LetterCategory.coupon;
+      case 'voucher':
+        return LetterCategory.voucher;
+      case 'general':
+      default:
+        return LetterCategory.general;
+    }
+  }
+}
+
 // ── 배송 상태 ──────────────────────────────────────────────────────────────────
 enum DeliveryStatus {
   composing,
@@ -214,6 +272,29 @@ class Letter {
   final LetterSenderTier senderTier; // 발신자 등급 (시각 구분)
   final bool brandUniquePerUser; // 브랜드: 수신자당 1회만 수신 가능
   final DateTime? expiresAt; // 자동 삭제 시각 (null이면 만료 없음)
+  // 카테고리 — 브랜드가 컴포즈 화면에서 선택. 기본은 general (일반 편지).
+  // 수집첩(InboxScreen) 에서 필터링 기준으로 사용되며 coupon/voucher 편지는
+  // "쿠폰함" 섹션에 시각적으로 분리 표시된다.
+  final LetterCategory category;
+
+  /// 발신자가 답장 수락 여부를 켠 편지인지. Brand 발송 시 한정 선택 가능.
+  /// Free/Premium 은 항상 true. (false 면 수신자의 letter_read_screen 에서
+  /// 답장 버튼이 숨겨지고, 발신자 브랜드가 "이 캠페인은 답장 미수락" 이라는
+  /// 안내만 받도록 처리.)
+  final bool acceptsReplies;
+
+  /// 쿠폰/교환권 사용 안내 (브랜드 발송 시만 채움).
+  /// 예: "LETTERGO20 결제 시 입력", "매장 방문 시 이 화면 제시", "https://..."
+  /// 수신자가 편지를 열면 본문 아래에 🎁 박스로 강조 렌더. URL·코드·설명 무엇이든
+  /// 자유 텍스트로 허용. 최대 200자.
+  final String? redemptionInfo;
+
+  /// Build 132: 쿠폰/교환권 **유효기간** (사용 가능 마지막 시각).
+  /// `expiresAt` 는 "편지가 지도/수령함에서 사라지는 시각" (보통 12–72h) 이고,
+  /// 이것은 "쿠폰 자체의 사용 기한" (보통 7/30/90일). 두 의미가 달라 분리 유지.
+  /// 기프트 앱들 (Kakao Gift / Starbucks) 의 유효기간 패턴과 동일.
+  /// null = 무제한.
+  final DateTime? redemptionExpiresAt;
 
   Letter({
     required this.id,
@@ -256,6 +337,10 @@ class Letter {
     this.senderTier = LetterSenderTier.free,
     this.brandUniquePerUser = false,
     this.expiresAt,
+    this.category = LetterCategory.general,
+    this.acceptsReplies = true,
+    this.redemptionInfo,
+    this.redemptionExpiresAt,
   }) : reportedBy = reportedBy ?? {};
 
   /// 인박스용 독립 복사본 (worldLetters에서 제거 전 inbox에 추가할 때 사용)
@@ -298,6 +383,10 @@ class Letter {
     senderTier: senderTier,
     brandUniquePerUser: brandUniquePerUser,
     expiresAt: expiresAt,
+    category: category,
+    acceptsReplies: acceptsReplies,
+    redemptionInfo: redemptionInfo,
+    redemptionExpiresAt: redemptionExpiresAt,
     readCount: readCount,
     maxReaders: maxReaders,
   );
@@ -305,6 +394,12 @@ class Letter {
   double get avgRating => ratingCount > 0 ? ratingTotal / ratingCount : 0.0;
   bool get isBlocked => reportCount >= 3;
   bool get isExpired => expiresAt != null && DateTime.now().isAfter(expiresAt!);
+
+  /// Build 132: 쿠폰/교환권 사용 기한이 지났는지.
+  /// `redemptionExpiresAt` 이 null 이면 무제한 → false.
+  bool get isRedemptionExpired =>
+      redemptionExpiresAt != null &&
+      DateTime.now().isAfter(redemptionExpiresAt!);
 
   // ── 현재 구간 ───────────────────────────────────────────────────────────────
   RouteSegment get currentSegment =>
@@ -502,6 +597,11 @@ class Letter {
     'senderTier': senderTier.index,
     'brandUniquePerUser': brandUniquePerUser,
     if (expiresAt != null) 'expiresAt': expiresAt!.millisecondsSinceEpoch,
+    'category': category.key,
+    'acceptsReplies': acceptsReplies,
+    if (redemptionInfo != null) 'redemptionInfo': redemptionInfo,
+    if (redemptionExpiresAt != null)
+      'redemptionExpiresAt': redemptionExpiresAt!.millisecondsSinceEpoch,
     'readCount': readCount,
     'maxReaders': maxReaders,
   };
@@ -556,6 +656,14 @@ class Letter {
     senderIsBrand: j['senderIsBrand'] as bool? ?? false,
     senderTier: LetterSenderTier.values[j['senderTier'] as int? ?? 0],
     brandUniquePerUser: j['brandUniquePerUser'] as bool? ?? false,
+    category: LetterCategoryExt.fromKey(j['category'] as String?),
+    acceptsReplies: j['acceptsReplies'] as bool? ?? true,
+    redemptionInfo: j['redemptionInfo'] as String?,
+    redemptionExpiresAt: j['redemptionExpiresAt'] != null
+        ? DateTime.fromMillisecondsSinceEpoch(
+            j['redemptionExpiresAt'] as int,
+          )
+        : null,
     expiresAt: j['expiresAt'] != null
         ? DateTime.fromMillisecondsSinceEpoch(j['expiresAt'] as int)
         : null,

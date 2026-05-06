@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -97,35 +96,46 @@ class _AuthScreenState extends State<AuthScreen>
 
   Widget _buildLogo() {
     final l = AppL10n.of(_selectedLang);
-    return Column(
-      children: [
-        const Text('🍾', style: TextStyle(fontSize: 64)),
-        const SizedBox(height: 12),
-        ShaderMask(
-          shaderCallback: (b) => const LinearGradient(
-            colors: [AppColors.goldLight, AppColors.gold, AppColors.goldDark],
-          ).createShader(b),
-          child: const Text(
-            'Letter Go',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1.0,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          RichText(
+            text: const TextSpan(
+              style: TextStyle(
+                fontSize: 56,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+                height: 0.92,
+                letterSpacing: -3,
+              ),
+              children: [
+                TextSpan(text: 'letter'),
+                WidgetSpan(
+                  alignment: PlaceholderAlignment.top,
+                  baseline: TextBaseline.alphabetic,
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 3, top: 12),
+                    child: _AuthDot(),
+                  ),
+                ),
+                TextSpan(text: 'go.'),
+              ],
             ),
           ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          l.tagline,
-          style: TextStyle(
-            color: AppColors.textMuted.withValues(alpha: 0.8),
-            fontSize: 13,
-            letterSpacing: 2.0,
-            fontStyle: FontStyle.italic,
+          const SizedBox(height: 8),
+          Text(
+            l.tagline,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              letterSpacing: -0.1,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -239,7 +249,7 @@ class _AuthScreenState extends State<AuthScreen>
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF1F2D44)),
+        border: Border.all(color: AppColors.bgSurface),
       ),
       child: TabBar(
         controller: _tabController,
@@ -482,7 +492,7 @@ class _LoginTabState extends State<_LoginTab> {
                       ? const Icon(
                           Icons.check_rounded,
                           size: 14,
-                          color: Color(0xFF0D1421),
+                          color: AppColors.bgDeep,
                         )
                       : null,
                 ),
@@ -590,7 +600,7 @@ class _LoginTabState extends State<_LoginTab> {
                           await AuthService.signUp(
                             username: testUser,
                             password: testPw,
-                            email: 'test@lettergo.app',
+                            email: 'test@thiscount.io',
                             country: '대한민국',
                             countryFlag: '🇰🇷',
                             langCode: _deviceLangCode(),
@@ -679,11 +689,11 @@ class _LoginTabState extends State<_LoginTab> {
                   fillColor: AppColors.bgSurface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFF1F2D44)),
+                    borderSide: const BorderSide(color: AppColors.bgSurface),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFF1F2D44)),
+                    borderSide: const BorderSide(color: AppColors.bgSurface),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -704,7 +714,7 @@ class _LoginTabState extends State<_LoginTab> {
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.gold,
-                foregroundColor: const Color(0xFF0D1421),
+                foregroundColor: AppColors.bgDeep,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -910,7 +920,7 @@ class _LoginTabState extends State<_LoginTab> {
                       height: 16,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Color(0xFF0D1421),
+                        color: AppColors.bgDeep,
                       ),
                     )
                   : Text(
@@ -955,11 +965,11 @@ class _LoginTabState extends State<_LoginTab> {
                 fillColor: AppColors.bgSurface,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Color(0xFF1F2D44)),
+                  borderSide: const BorderSide(color: AppColors.bgSurface),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Color(0xFF1F2D44)),
+                  borderSide: const BorderSide(color: AppColors.bgSurface),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -979,11 +989,11 @@ class _LoginTabState extends State<_LoginTab> {
                 fillColor: AppColors.bgSurface,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Color(0xFF1F2D44)),
+                  borderSide: const BorderSide(color: AppColors.bgSurface),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Color(0xFF1F2D44)),
+                  borderSide: const BorderSide(color: AppColors.bgSurface),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -1438,7 +1448,7 @@ class _SignupTabState extends State<_SignupTab> {
                   itemCount: _countries.length,
                   separatorBuilder: (_, __) => const Divider(
                     height: 1,
-                    color: Color(0xFF1F2D44),
+                    color: AppColors.bgSurface,
                   ),
                   itemBuilder: (_, i) {
                     final country = _countries[i];
@@ -1594,7 +1604,7 @@ class _SignupTabState extends State<_SignupTab> {
               decoration: BoxDecoration(
                 color: AppColors.bgCard,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF1F2D44)),
+                border: Border.all(color: AppColors.bgSurface),
               ),
               child: Row(
                 children: [
@@ -1682,7 +1692,7 @@ class _SignupTabState extends State<_SignupTab> {
                       decoration: BoxDecoration(
                         color: AppColors.bgCard,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF1F2D44)),
+                        border: Border.all(color: AppColors.bgSurface),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -1742,11 +1752,11 @@ class _SignupTabState extends State<_SignupTab> {
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFF1F2D44)),
+                          borderSide: const BorderSide(color: AppColors.bgSurface),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFF1F2D44)),
+                          borderSide: const BorderSide(color: AppColors.bgSurface),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -1966,10 +1976,10 @@ class _SignupTabState extends State<_SignupTab> {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFFF8A5C).withValues(alpha: 0.1),
+                color: AppColors.coupon.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: const Color(0xFFFF8A5C).withValues(alpha: 0.4),
+                  color: AppColors.coupon.withValues(alpha: 0.4),
                 ),
               ),
               child: Column(
@@ -1977,7 +1987,7 @@ class _SignupTabState extends State<_SignupTab> {
                   Text(
                     '📬 베타 인증 코드 (이메일 미발송 중)',
                     style: TextStyle(
-                      color: const Color(0xFFFF8A5C).withValues(alpha: 0.8),
+                      color: AppColors.coupon.withValues(alpha: 0.8),
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                     ),
@@ -1987,7 +1997,7 @@ class _SignupTabState extends State<_SignupTab> {
                     _devOtpCode!,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      color: Color(0xFFFF8A5C),
+                      color: AppColors.coupon,
                       fontSize: 26,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 6,
@@ -1997,7 +2007,7 @@ class _SignupTabState extends State<_SignupTab> {
                   Text(
                     '위 코드를 아래 입력란에 넣어주세요',
                     style: TextStyle(
-                      color: const Color(0xFFFF8A5C).withValues(alpha: 0.7),
+                      color: AppColors.coupon.withValues(alpha: 0.7),
                       fontSize: 10,
                     ),
                   ),
@@ -2516,11 +2526,11 @@ class _InputField extends StatelessWidget {
         fillColor: AppColors.bgCard,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF1F2D44)),
+          borderSide: const BorderSide(color: AppColors.bgSurface),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF1F2D44)),
+          borderSide: const BorderSide(color: AppColors.bgSurface),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -2660,7 +2670,7 @@ class _ConsentCard extends StatelessWidget {
         border: Border.all(
           color: checked
               ? AppColors.teal.withValues(alpha: 0.4)
-              : const Color(0xFF1F2D44),
+              : AppColors.bgSurface,
         ),
       ),
       child: Column(
@@ -2773,17 +2783,25 @@ class _ErrorBanner extends StatelessWidget {
 class _AuthBgPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.white.withValues(alpha: 0.04);
-    final rng = Random(99);
-    for (int i = 0; i < 60; i++) {
-      canvas.drawCircle(
-        Offset(rng.nextDouble() * size.width, rng.nextDouble() * size.height),
-        rng.nextDouble() * 1.5 + 0.5,
-        paint,
-      );
-    }
+    // v5: 별빛 배경 폐기, 클린 검정 유지 (CustomPaint 호환용 빈 페인터)
   }
 
   @override
   bool shouldRepaint(_) => false;
+}
+
+class _AuthDot extends StatelessWidget {
+  const _AuthDot();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 12,
+      height: 12,
+      decoration: const BoxDecoration(
+        color: AppColors.gold,
+        shape: BoxShape.circle,
+      ),
+    );
+  }
 }

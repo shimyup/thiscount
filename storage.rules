@@ -1,0 +1,65 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ── 배경 ─────────────────────────────────────────────────────────────
+    // Letter Go 는 사용자가 업로드한 이미지(편지 사진, 교환권 이미지, 프로필
+    // 사진)를 Firebase Storage 에 보관한다. 이전엔 Storage rules 파일 자체가
+    // 없어 Firebase 기본값에 의존했는데, 이는 보안 취약점 — 외부에서 download
+    // token URL 만 알면 누구나 fetch 가능했다. Build 207 부터 명시적 rule 적용.
+    //
+    // 익명 Firebase Auth 모델이라 owner check 가 어렵지만, 적어도 인증된
+    // 사용자만 read/write 가능하게 가둬둔다. 또한:
+    //   - content-type 검증 (image/* 만 허용 → arbitrary binary 차단)
+    //   - 파일 크기 제한 (10 MB → 디스크 abuse 차단)
+    //   - 일반 path 는 모두 deny
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function maxImageSize() {
+      // 10 MB — 일반 jpeg/png 사진은 충분, 비정상 파일 업로드 차단.
+      return request.resource.size < 10 * 1024 * 1024;
+    }
+
+    // ── 교환권 이미지 ──────────────────────────────────────────────────
+    // Brand 가 발송하는 voucher 카테고리 편지의 첨부 이미지.
+    // 수신자 누구나 read (편지 픽업 후 사용해야 하므로).
+    match /vouchers/{file=**} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isImage() && maxImageSize();
+      allow delete: if isSignedIn();
+    }
+
+    // ── 일반 편지 첨부 이미지 ──────────────────────────────────────────
+    match /letters/{file=**} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isImage() && maxImageSize();
+      allow delete: if isSignedIn();
+    }
+
+    // ── 프로필 사진 ────────────────────────────────────────────────────
+    match /profile/{userId}/{file=**} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isImage() && maxImageSize();
+      allow delete: if isSignedIn();
+    }
+
+    // ── 브랜드 광고 이미지 ─────────────────────────────────────────────
+    match /brand_ads/{file=**} {
+      allow read: if isSignedIn();
+      // 광고 업로드는 admin REST 로만 (rule 우회).
+      allow write, delete: if false;
+    }
+
+    // ── 그 외 경로 차단 ────────────────────────────────────────────────
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -9,6 +9,7 @@ import 'core/theme/time_theme.dart';
 import 'core/data/country_cities.dart';
 import 'core/localization/language_config.dart';
 import 'core/services/auth_service.dart';
+import 'core/services/feedback_service.dart';
 import 'core/services/geocoding_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/purchase_service.dart';
@@ -19,6 +20,7 @@ import 'features/compose/screens/compose_screen.dart';
 import 'features/intro/delivery_intro_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'features/premium/premium_screen.dart';
+import 'features/v5_preview/v5_preview_root.dart';
 import 'widgets/main_scaffold.dart';
 
 /// 앱 시작 시 위치를 조용히 조회합니다.
@@ -51,7 +53,7 @@ void main() async {
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: Color(0xFF0D1421),
+      systemNavigationBarColor: AppColors.bgDeep,
       systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
@@ -59,8 +61,11 @@ void main() async {
   // void 초기화 + bool/Position 동시 병렬 실행 → 시작 시간 단축
   await Future.wait([
     NotificationService.initialize(),
+    NotificationService.loadPushMode(),
     CountryCities.init(),
     GeocodingService.instance.initialize(),
+    // Build 182: 사운드 효과 프리로드. asset 경로 에러는 silent fail.
+    FeedbackService.init(),
   ]);
   final results = await Future.wait<dynamic>([
     AuthService.isLoggedIn(),
@@ -105,6 +110,8 @@ class _GlobalDriftAppState extends State<GlobalDriftApp> {
   final PurchaseService _purchaseService = PurchaseService();
   Timer? _themeTimer;
   TimeOfDayPeriod? _lastPeriod;
+  // Build 254: 푸시 알림 탭 시 네비게이션 라우팅용 키.
+  final GlobalKey<NavigatorState> _navKey = GlobalKey<NavigatorState>();
 
   void _onPurchaseChanged() {
     _purchaseService.setPreferredLanguageCode(
@@ -127,6 +134,18 @@ class _GlobalDriftAppState extends State<GlobalDriftApp> {
     super.initState();
     _appState = AppState();
     _appState.addListener(_onAppStateChanged);
+    // Build 254: 푸시 알림 탭 → 인박스 화면 이동. 향후 payload 별 deep link
+    // (예: 'inbox?letter=xxx') 분기 추가 가능. 현재는 모든 알림 → /home_inbox.
+    NotificationService.onNotificationTap = (payload) {
+      try {
+        _navKey.currentState?.pushNamedAndRemoveUntil(
+          '/home_inbox',
+          (route) => false,
+        );
+      } catch (_) {
+        // 네비게이터 미준비 또는 라우트 미존재 시 silent fail
+      }
+    };
     _purchaseService.setPreferredLanguageCode(
       _appState.currentUser.languageCode,
     );
@@ -260,8 +279,10 @@ class _GlobalDriftAppState extends State<GlobalDriftApp> {
           final appLocale = Locale(langCode);
           final isRtl = LanguageConfig.isRtl(langCode);
           return MaterialApp(
-            title: 'Letter Go',
+            title: 'Thiscount',
             debugShowCheckedModeBanner: false,
+            // Build 254: 푸시 알림 탭 시 라우팅용 키 (state 의 _navKey 와 연결)
+            navigatorKey: _navKey,
             theme: _buildTheme(state),
             locale: appLocale,
             localizationsDelegates: const [
@@ -297,6 +318,7 @@ class _GlobalDriftAppState extends State<GlobalDriftApp> {
               '/compose': (_) => const ComposeScreen(),
               '/premium_welcome': (_) =>
                   const PremiumScreen(isWelcomeMode: true),
+              '/v5_preview': (_) => const V5PreviewRoot(),
             },
           );
         },

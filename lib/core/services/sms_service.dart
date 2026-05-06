@@ -97,33 +97,33 @@ class SmsService {
   static String _otpMessage(String code, String langCode) {
     switch (langCode) {
       case 'ko':
-        return '[Letter Go] 인증번호: $code (10분 유효)';
+        return '[Thiscount] 인증번호: $code (10분 유효)';
       case 'ja':
-        return '[Letter Go] 認証コード: $code（10分間有効）';
+        return '[Thiscount] 認証コード: $code（10分間有効）';
       case 'zh':
-        return '[Letter Go] 验证码: $code（10分钟有效）';
+        return '[Thiscount] 验证码: $code（10分钟有效）';
       case 'fr':
-        return '[Letter Go] Code de vérification: $code (valide 10 min)';
+        return '[Thiscount] Code de vérification: $code (valide 10 min)';
       case 'de':
-        return '[Letter Go] Bestätigungscode: $code (10 Min. gültig)';
+        return '[Thiscount] Bestätigungscode: $code (10 Min. gültig)';
       case 'es':
-        return '[Letter Go] Código de verificación: $code (válido 10 min)';
+        return '[Thiscount] Código de verificación: $code (válido 10 min)';
       case 'pt':
-        return '[Letter Go] Código de verificação: $code (válido por 10 min)';
+        return '[Thiscount] Código de verificação: $code (válido por 10 min)';
       case 'ru':
-        return '[Letter Go] Код подтверждения: $code (действителен 10 мин)';
+        return '[Thiscount] Код подтверждения: $code (действителен 10 мин)';
       case 'tr':
-        return '[Letter Go] Doğrulama kodu: $code (10 dk geçerli)';
+        return '[Thiscount] Doğrulama kodu: $code (10 dk geçerli)';
       case 'ar':
-        return '[Letter Go] رمز التحقق: $code (صالح لمدة 10 دقائق)';
+        return '[Thiscount] رمز التحقق: $code (صالح لمدة 10 دقائق)';
       case 'it':
-        return '[Letter Go] Codice di verifica: $code (valido 10 min)';
+        return '[Thiscount] Codice di verifica: $code (valido 10 min)';
       case 'hi':
-        return '[Letter Go] सत्यापन कोड: $code (10 मिनट के लिए वैध)';
+        return '[Thiscount] सत्यापन कोड: $code (10 मिनट के लिए वैध)';
       case 'th':
-        return '[Letter Go] รหัสยืนยัน: $code (ใช้ได้ 10 นาที)';
+        return '[Thiscount] รหัสยืนยัน: $code (ใช้ได้ 10 นาที)';
       default:
-        return '[Letter Go] Verification code: $code (valid for 10 min)';
+        return '[Thiscount] Verification code: $code (valid for 10 min)';
     }
   }
 
