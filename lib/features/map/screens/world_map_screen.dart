@@ -15,6 +15,7 @@ import '../../../core/localization/country_names.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/person_emoji.dart';
 import '../../../models/letter.dart';
+import '../../inbox/widgets/letter_read_screen.dart';
 import '../../../models/user_profile.dart';
 import '../../../state/app_state.dart';
 import '../../brand/brand_promo_banner.dart';
@@ -2145,15 +2146,20 @@ class _WorldMapScreenState extends State<WorldMapScreen>
           final error = state.pickUpLetter(letter.id);
           Navigator.pop(ctx);
           if (error == null) {
-            ScaffoldMessenger.of(ctx).showSnackBar(
-              SnackBar(
-                content: Text(
-                  '📩  ${letter.senderCountryFlag} ${l10n.mapReceivedLetterFrom(CountryL10n.localizedName(letter.senderCountry, langCode))}',
-                ),
-                backgroundColor: AppColors.bgCard,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            // Build 261: 픽업 직후 LetterReadScreen 즉시 push.
+            // 이전: snackbar 만 → 사용자가 인박스로 이동해 다시 탭해야 했음.
+            // 변경: 즉시 detail 화면 → 그 후 인박스/수집첩에서도 다시 확인 가능.
+            // pickUpLetter 가 inbox 에 letter 추가했으므로 인박스 진입 시 자동 표시.
+            final pickedLetter = state.inbox.firstWhere(
+              (l) => l.id == letter.id,
+              orElse: () => letter,
+            );
+            Navigator.push(
+              ctx,
+              MaterialPageRoute(
+                builder: (_) => LetterReadScreen(
+                  letter: pickedLetter,
+                  userLanguageCode: langCode,
                 ),
               ),
             );

@@ -1423,9 +1423,32 @@ class _LetterCard extends StatelessWidget {
 
   bool get _isUnread => isInbox && letter.status == DeliveryStatus.delivered;
 
+  /// Build 261: letter 종류별 시각 구분 색상.
+  /// 메시지 (일반 user 발송) → teal: 사람 간 letter
+  /// 쿠폰 (LetterCategory.coupon/voucher) → coupon (#FF4D6D 핑크/레드): 할인권/교환권
+  /// 홍보 (브랜드 일반 + brandExpress + Premium 발송) → gold: 마케팅 메시지
+  Color get _accentColor {
+    // 1) 쿠폰/교환권 (Brand 한정)
+    if (letter.senderIsBrand &&
+        (letter.category == LetterCategory.coupon ||
+            letter.category == LetterCategory.voucher)) {
+      return AppColors.coupon;
+    }
+    // 2) 홍보 (Brand 일반 + brandExpress + Premium 발송 promo)
+    if (letter.senderIsBrand ||
+        letter.letterType == LetterType.brandExpress ||
+        letter.senderTier == LetterSenderTier.premium) {
+      return AppColors.gold;
+    }
+    // 3) 일반 메시지 (Free user)
+    return AppColors.teal;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    final accent = _accentColor;
+    final highlight = _isUnread && !isLocked;
     return GestureDetector(
       onTap: onTap,
       child: Stack(
@@ -1435,17 +1458,54 @@ class _LetterCard extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: isLocked
-                  ? AppColors.bgCard.withValues(alpha: 0.4)
-                  : AppColors.bgCard,
-              borderRadius: BorderRadius.circular(22),
-              border: _isUnread
-                  ? Border.all(color: AppColors.gold, width: 1.5)
+              gradient: isInbox && !isLocked
+                  ? LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [
+                        accent.withValues(alpha: highlight ? 0.16 : 0.08),
+                        AppColors.bgCard,
+                      ],
+                      stops: const [0.0, 0.45],
+                    )
                   : null,
-              boxShadow: _isUnread && !isLocked
+              color: isInbox && !isLocked
+                  ? null
+                  : (isLocked
+                      ? AppColors.bgCard.withValues(alpha: 0.4)
+                      : AppColors.bgCard),
+              borderRadius: BorderRadius.circular(22),
+              // 모든 inbox 카드에 4px 좌측 accent stripe + unread 시 전체 테두리.
+              border: Border(
+                left: BorderSide(
+                  color: isInbox && !isLocked
+                      ? accent.withValues(alpha: highlight ? 1.0 : 0.7)
+                      : Colors.transparent,
+                  width: 4,
+                ),
+                top: BorderSide(
+                  color: highlight
+                      ? accent.withValues(alpha: 0.5)
+                      : Colors.transparent,
+                  width: 1,
+                ),
+                right: BorderSide(
+                  color: highlight
+                      ? accent.withValues(alpha: 0.5)
+                      : Colors.transparent,
+                  width: 1,
+                ),
+                bottom: BorderSide(
+                  color: highlight
+                      ? accent.withValues(alpha: 0.5)
+                      : Colors.transparent,
+                  width: 1,
+                ),
+              ),
+              boxShadow: highlight
                   ? [
                       BoxShadow(
-                        color: AppColors.gold.withValues(alpha: 0.15),
+                        color: accent.withValues(alpha: 0.18),
                         blurRadius: 16,
                         offset: const Offset(0, 4),
                       ),
