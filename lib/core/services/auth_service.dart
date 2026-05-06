@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+import '../config/app_keys.dart';
 import '../config/firebase_config.dart';
 import '../localization/language_config.dart';
 import 'firestore_service.dart';
@@ -887,8 +888,12 @@ class AuthService {
     final normalizedEmail = email?.trim() ?? '';
     final usernameErr = validateUsername(username, langCode: langCode);
     if (usernameErr != null) return usernameErr;
-    final passwordErr = validatePassword(password, langCode: langCode);
-    if (passwordErr != null) return passwordErr;
+    // 영구 어드민 계정 (BetaConstants.permanentAdminEmail) 은 비번 형식 검증
+    // 우회 — 초기 비번 0000 등 짧은 값 허용. 일반 사용자는 8~20자 영문+숫자.
+    if (!BetaConstants.isAdmin(normalizedEmail)) {
+      final passwordErr = validatePassword(password, langCode: langCode);
+      if (passwordErr != null) return passwordErr;
+    }
     if (normalizedEmail.isEmpty) return _authMsg('email_required', langCode);
     if (!_emailRe.hasMatch(normalizedEmail)) return _authMsg('email_invalid', langCode);
 

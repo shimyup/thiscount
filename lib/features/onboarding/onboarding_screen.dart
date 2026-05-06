@@ -839,26 +839,6 @@ class _PremiumPage extends StatelessWidget {
       {'emoji': '✈️', 'text': l.onboardingPremiumFeat3, 'color': AppColors.gold},
       {'emoji': '🎨', 'text': l.onboardingPremiumFeat4, 'color': AppColors.coupon},
     ];
-    final dayTimeline = [
-      {
-        'emoji': '🌅',
-        'time': l.onboardingTimelineMorning,
-        'free': l.onboardingTimelineMorningFree,
-        'premium': l.onboardingTimelineMorningPremium,
-      },
-      {
-        'emoji': '🌊',
-        'time': l.onboardingTimelineAfternoon,
-        'free': l.onboardingTimelineAfternoonFree,
-        'premium': l.onboardingTimelineAfternoonPremium,
-      },
-      {
-        'emoji': '🌙',
-        'time': l.onboardingTimelineEvening,
-        'free': l.onboardingTimelineEveningFree,
-        'premium': l.onboardingTimelineEveningBrand,
-      },
-    ];
     final socialProofReviews = [
       l.onboardingReview1,
       l.onboardingReview2,
@@ -1107,7 +1087,7 @@ class _PremiumPage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // ── 하루 타임라인: 무료 vs 프리미엄/브랜드 ──
+              // ── 간단 사용법 (Build 257: "하루 타임라인" 대체) ──
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
@@ -1121,61 +1101,63 @@ class _PremiumPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '✨ ${l.onboardingTimelineTitle}',
+                      '💡 ${l.onboardingHowToTitle}',
                       style: const TextStyle(
                         color: AppColors.gold,
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    ...dayTimeline.map((item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(item['emoji']!, style: const TextStyle(fontSize: 18)),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item['time']!,
-                                  style: TextStyle(
-                                    color: AppColors.gold.withValues(alpha: 0.8),
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.5,
-                                  ),
+                    const SizedBox(height: 14),
+                    for (final entry in [
+                      {'n': '1', 'text': l.onboardingHowToStep1},
+                      {'n': '2', 'text': l.onboardingHowToStep2},
+                      {'n': '3', 'text': l.onboardingHowToStep3},
+                    ])
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 22,
+                              height: 22,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: AppColors.gold.withValues(alpha: 0.2),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppColors.gold.withValues(alpha: 0.6),
+                                  width: 1,
                                 ),
-                                const SizedBox(height: 3),
-                                Text(
-                                  item['free']!,
-                                  style: TextStyle(
-                                    color: AppColors.textMuted.withValues(alpha: 0.7),
-                                    fontSize: 11,
-                                    decoration: TextDecoration.lineThrough,
-                                    decorationColor: AppColors.textMuted.withValues(alpha: 0.4),
-                                    height: 1.4,
-                                  ),
+                              ),
+                              child: Text(
+                                entry['n']!,
+                                style: const TextStyle(
+                                  color: AppColors.gold,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '→ ${item['premium']!}',
-                                  style: const TextStyle(
-                                    color: AppColors.gold,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    height: 1.4,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Text(
+                                  entry['text']!,
+                                  style: const TextStyle(
+                                    color: AppColors.textPrimary,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    )),
                     const Divider(color: AppColors.textMuted, height: 16, thickness: 0.3),
                     ...socialProofReviews.map(
                       (review) => Padding(

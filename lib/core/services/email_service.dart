@@ -257,34 +257,37 @@ class EmailService {
   }
 
   // ── 이메일 HTML 본문 ─────────────────────────────────────────────────────────
+  // 이메일 클라이언트 호환성을 위한 인라인 스타일 + 테이블 레이아웃.
+  // Gmail/Outlook 등은 <style> 블록을 strip 하므로 모든 시각 강조를 inline 으로
+  // 배치. 코드 자체를 본문 최상단에 plain-text 로 한 번 더 노출해 다크모드/
+  // 이미지차단 환경에서도 즉시 보이도록 함.
   static String _otpHtmlBody(String code, String langCode) {
     final subject = _otpSubject(langCode);
-    final textContent = _otpTextBody(code, langCode)
-        .replaceAll('\n', '<br>');
+    final textBody = _otpTextBody(code, langCode);
+    final note = textBody.replaceAll('\n', '<br>');
     return '''
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <style>
-    body { font-family: sans-serif; background: #070B14; color: #E8E8E0; margin: 0; padding: 20px; }
-    .card { background: #111827; border-radius: 16px; padding: 32px; max-width: 480px; margin: 0 auto; }
-    .logo { text-align: center; font-size: 48px; margin-bottom: 8px; }
-    .title { text-align: center; font-size: 22px; font-weight: bold; color: #F0C35A; margin-bottom: 24px; }
-    .code-box { background: #1E293B; border: 2px solid #F0C35A; border-radius: 12px; padding: 20px;
-                text-align: center; font-size: 36px; font-weight: bold; letter-spacing: 8px;
-                color: #F0C35A; margin: 24px 0; }
-    .note { font-size: 13px; color: #9CA3AF; text-align: center; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <div class="logo">🍾</div>
-    <div class="title">Thiscount</div>
-    <p style="text-align:center; margin-bottom: 8px;">$subject</p>
-    <div class="code-box">$code</div>
-    <p class="note">$textContent</p>
-  </div>
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:24px;background:#F5F6FA;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#111827;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;margin:0 auto;background:#FFFFFF;border-radius:16px;border:1px solid #E5E7EB;">
+    <tr><td style="padding:32px 32px 0 32px;text-align:center;">
+      <div style="font-size:24px;font-weight:800;color:#111827;letter-spacing:0.5px;">Thiscount</div>
+      <div style="font-size:13px;color:#6B7280;margin-top:6px;">$subject</div>
+    </td></tr>
+    <tr><td style="padding:24px 32px 8px 32px;text-align:center;">
+      <div style="font-size:13px;color:#6B7280;margin-bottom:8px;">verification code</div>
+      <div style="font-size:36px;line-height:1.2;font-weight:800;letter-spacing:10px;color:#111827;background:#F3F4F6;border:2px solid #111827;border-radius:12px;padding:18px 12px;display:inline-block;min-width:220px;">$code</div>
+    </td></tr>
+    <tr><td style="padding:8px 32px 16px 32px;text-align:center;">
+      <div style="font-size:14px;color:#374151;line-height:1.5;">$note</div>
+    </td></tr>
+    <tr><td style="padding:0 32px 24px 32px;text-align:center;">
+      <div style="font-size:11px;color:#9CA3AF;line-height:1.5;border-top:1px solid #E5E7EB;padding-top:16px;">
+        If you cannot see the code above, your code is: <strong style="color:#111827;font-size:14px;letter-spacing:2px;">$code</strong>
+      </div>
+    </td></tr>
+  </table>
 </body>
 </html>
 ''';

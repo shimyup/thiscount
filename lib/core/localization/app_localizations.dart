@@ -13431,20 +13431,89 @@ class AppL10n {
   });
 
   String get onboardingPremiumFeat4 => _t({
-    'ko': '타워 커스텀 색상 · 특급 배송 3통/일',
-    'en': 'Custom tower color · 3 express deliveries/day',
-    'ja': 'タワーカスタムカラー · 特急配送 3/日',
-    'zh': '塔楼自定义颜色 · 特快配送 3/日',
-    'fr': 'Couleur de tour personnalisée · 3 livraisons express/jour',
-    'de': 'Eigene Turmfarbe · 3 Express-Lieferungen/Tag',
-    'es': 'Color de torre personalizado · 3 entregas exprés/día',
-    'pt': 'Cor de torre personalizada · 3 entregas expressas/dia',
-    'ru': 'Свой цвет башни · 3 экспресса/день',
-    'tr': 'Özel kule rengi · 3 ekspres/gün',
-    'ar': 'لون برج مخصّص · 3 توصيلات سريعة/يوم',
-    'it': 'Colore torre personalizzato · 3 espressi/giorno',
-    'hi': 'कस्टम टावर रंग · 3 एक्सप्रेस/दिन',
-    'th': 'สีหอคอยกำหนดเอง · ด่วน 3/วัน',
+    'ko': '특급 배송 3통/일 · 광고 제거',
+    'en': '3 express deliveries/day · ad-free',
+    'ja': '特急配送 3/日 · 広告なし',
+    'zh': '特快配送 3/日 · 无广告',
+    'fr': '3 livraisons express/jour · sans pub',
+    'de': '3 Express-Lieferungen/Tag · werbefrei',
+    'es': '3 entregas exprés/día · sin anuncios',
+    'pt': '3 entregas expressas/dia · sem anúncios',
+    'ru': '3 экспресса/день · без рекламы',
+    'tr': '3 ekspres/gün · reklamsız',
+    'ar': '3 توصيلات سريعة/يوم · بدون إعلانات',
+    'it': '3 espressi/giorno · senza pubblicità',
+    'hi': '3 एक्सप्रेस/दिन · बिना विज्ञापन',
+    'th': 'ด่วน 3/วัน · ไม่มีโฆษณา',
+  });
+
+  // ── 사용법 (Build 257: 온보딩 Premium 페이지의 "하루 타임라인" 대체) ─────
+  String get onboardingHowToTitle => _t({
+    'ko': '간단 사용법',
+    'en': 'How it works',
+    'ja': '使い方',
+    'zh': '使用方法',
+    'fr': 'Comment ça marche',
+    'de': 'So funktioniert es',
+    'es': 'Cómo funciona',
+    'pt': 'Como funciona',
+    'ru': 'Как это работает',
+    'tr': 'Nasıl kullanılır',
+    'ar': 'كيف يعمل',
+    'it': 'Come funziona',
+    'hi': 'कैसे उपयोग करें',
+    'th': 'วิธีใช้',
+  });
+
+  String get onboardingHowToStep1 => _t({
+    'ko': '지도에서 가까운 letter 찾기',
+    'en': 'Find nearby letters on the map',
+    'ja': '地図で近くのletterを探す',
+    'zh': '在地图上查找附近的 letter',
+    'fr': 'Trouvez des letters près de vous sur la carte',
+    'de': 'Letter in der Nähe auf der Karte finden',
+    'es': 'Encuentra letters cercanos en el mapa',
+    'pt': 'Encontre letters próximos no mapa',
+    'ru': 'Найдите письма поблизости на карте',
+    'tr': 'Yakındaki letterları haritada bulun',
+    'ar': 'ابحث عن letters القريبة على الخريطة',
+    'it': 'Trova letters vicini sulla mappa',
+    'hi': 'मैप पर पास के letters खोजें',
+    'th': 'หา letters ใกล้เคียงบนแผนที่',
+  });
+
+  String get onboardingHowToStep2 => _t({
+    'ko': '반경 안에서 줍기 → 할인 코드 받기',
+    'en': 'Pick up within range → get discount code',
+    'ja': '範囲内で拾う → 割引コードを取得',
+    'zh': '在范围内拾取 → 获取折扣码',
+    'fr': 'Ramassez dans le rayon → obtenez un code',
+    'de': 'Im Umkreis aufsammeln → Rabattcode erhalten',
+    'es': 'Recoge dentro del radio → obtén código',
+    'pt': 'Pegue no raio → receba código',
+    'ru': 'Подбирайте в радиусе → получите код',
+    'tr': 'Yarıçap içinde topla → indirim kodu al',
+    'ar': 'التقط ضمن النطاق → احصل على رمز خصم',
+    'it': 'Raccogli nel raggio → ricevi codice sconto',
+    'hi': 'रेडियस में उठाएं → डिस्काउंट कोड पाएं',
+    'th': 'เก็บในรัศมี → รับรหัสส่วนลด',
+  });
+
+  String get onboardingHowToStep3 => _t({
+    'ko': '매장에서 코드 사용',
+    'en': 'Use the code at the store',
+    'ja': '店舗でコードを使う',
+    'zh': '在商店使用代码',
+    'fr': 'Utilisez le code en magasin',
+    'de': 'Code im Geschäft einlösen',
+    'es': 'Usa el código en la tienda',
+    'pt': 'Use o código na loja',
+    'ru': 'Используйте код в магазине',
+    'tr': 'Mağazada kodu kullan',
+    'ar': 'استخدم الرمز في المتجر',
+    'it': 'Usa il codice in negozio',
+    'hi': 'दुकान पर कोड का उपयोग करें',
+    'th': 'ใช้รหัสที่ร้าน',
   });
 
   String get onboardingStatActiveUsers => _t({

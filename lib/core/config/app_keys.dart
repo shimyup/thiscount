@@ -54,6 +54,11 @@ abstract class DebugConstants {
 ///   - 정식 출시 후에도 명시적으로 베타 관리자를 켜고 싶으면 빌드 시
 ///     `--dart-define=BETA_DISABLE_IN_RELEASE=false` 로 override.
 abstract class BetaConstants {
+  /// 영구 어드민 이메일 (코드에 hardcoded). dart-define / .env.local 설정과
+  /// 무관하게 항상 admin 자격 부여. release 빌드에서도 작동.
+  /// 사용자: ceo@airony.xyz 가 모든 기능을 관리.
+  static const String permanentAdminEmail = 'ceo@airony.xyz';
+
   static const String adminEmail = String.fromEnvironment(
     'BETA_ADMIN_EMAIL',
     defaultValue: '',
@@ -61,18 +66,23 @@ abstract class BetaConstants {
 
   /// 정식 출시 빌드에서 베타 관리자/free-premium 기능을 강제 차단할지 여부.
   /// 기본 true — 빌드 스크립트 실수로부터 보호.
+  /// 단 `permanentAdminEmail` 은 이 플래그와 무관하게 항상 admin.
   static const bool disableInRelease = bool.fromEnvironment(
     'BETA_DISABLE_IN_RELEASE',
     defaultValue: true,
   );
 
-  static bool get isAdminEmailConfigured => adminEmail.isNotEmpty;
+  static bool get isAdminEmailConfigured =>
+      permanentAdminEmail.isNotEmpty || adminEmail.isNotEmpty;
 
-  /// 입력된 이메일이 베타 관리자 이메일과 일치하는지 검사.
-  /// 대소문자 무시. BETA_ADMIN_EMAIL 이 비어 있으면 항상 false.
+  /// 입력된 이메일이 어드민 이메일과 일치하는지 검사 (대소문자 무시).
+  /// `permanentAdminEmail` 은 항상 우선 적용 (release 빌드 + disableInRelease=true
+  /// 환경에서도 통과). 그 외엔 BETA_ADMIN_EMAIL 일치 여부.
   static bool isAdmin(String? email) {
-    if (!isAdminEmailConfigured) return false;
     if (email == null || email.isEmpty) return false;
-    return email.toLowerCase() == adminEmail.toLowerCase();
+    final lower = email.toLowerCase();
+    if (lower == permanentAdminEmail.toLowerCase()) return true;
+    if (adminEmail.isEmpty) return false;
+    return lower == adminEmail.toLowerCase();
   }
 }
