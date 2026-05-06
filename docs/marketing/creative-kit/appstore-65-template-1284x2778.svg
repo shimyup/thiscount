@@ -14,7 +14,7 @@
   <circle cx="180" cy="320" r="210" fill="#436A98" opacity="0.28"/>
   <circle cx="1100" cy="410" r="220" fill="#658DC0" opacity="0.23"/>
 
-  <text x="92" y="216" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-size="58" font-weight="700" fill="#F8FBFF">Letter Go Premium</text>
+  <text x="92" y="216" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-size="58" font-weight="700" fill="#F8FBFF">Thiscount Premium</text>
   <text x="92" y="298" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-size="38" font-weight="500" fill="#D3E4FF">답장 기회와 발송량을 확장하세요</text>
 
   <rect x="126" y="520" rx="82" ry="82" width="1032" height="1880" fill="#081121" stroke="#5A7FAB" stroke-width="8"/>

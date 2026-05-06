@@ -7,7 +7,7 @@ Use this in **App Store Connect** in the order below.
 ## 1) App Information
 
 ### Name
-`Letter Go`
+`Thiscount`
 
 ### Subtitle (30 chars max)
 `세계로 보내는 랜덤 편지`
@@ -38,7 +38,7 @@ Use this in **App Store Connect** in the order below.
 `https://shimyup.github.io/lettergo/support.html`
 
 ### Marketing URL (optional)
-`https://lettergo.app`
+`https://thiscount.io`
 
 ## 4) App Store Listing Text
 
@@ -50,7 +50,7 @@ Use this in **App Store Connect** in the order below.
 펜팔,편지,랜덤편지,글로벌친구,익명소셜,지도,감성소통,해외친구,답장,편지앱
 
 ### Description (Korean)
-Letter Go는 전 세계 사용자와 편지를 주고받는 지도 기반 소셜 앱입니다.
+Thiscount는 전 세계 사용자와 편지를 주고받는 지도 기반 소셜 앱입니다.
 
 편지를 보내면 지도 위에서 이동 경로가 표시되고, 도착까지의 기다림이 새로운 설렘이 됩니다.
 가벼운 한 줄 인사부터 진심을 담은 긴 편지까지, 익명 기반으로 부담 없이 시작할 수 있습니다.
@@ -68,7 +68,7 @@ Letter Go는 전 세계 사용자와 편지를 주고받는 지도 기반 소셜
 - 감성 기반 커뮤니케이션과 글로벌 탐험을 함께 즐기고 싶은 사용자
 
 ### What’s New (Release Notes)
-Letter Go 출시 버전입니다.
+Thiscount 출시 버전입니다.
 
 - 전 세계 랜덤 편지 발송
 - 지도 기반 배송 여정
@@ -93,7 +93,7 @@ Letter Go 출시 버전입니다.
 `No` (reviewer can create account in app)
 
 ### Notes for Review (paste)
-Thank you for reviewing Letter Go.
+Thank you for reviewing Thiscount.
 
 Test path:
 1. Launch app and create account (email + username + password).

@@ -101,7 +101,7 @@ class _ExactDropPickerState extends State<ExactDropPicker> {
               TileLayer(
                 urlTemplate:
                     'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.globaldrift.lettergo',
+                userAgentPackageName: 'io.thiscount',
               ),
               // Build 158: 추천 좌표 핀 (과거 Brand 발송 지점) — 오렌지 tint
               // 로 중앙 빨간 고정핀과 시각적 구분. 탭 시 지도 센터 이동.

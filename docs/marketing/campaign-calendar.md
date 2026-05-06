@@ -1,4 +1,4 @@
-# LetterGo Campaign Calendar (Template)
+# Thiscount Campaign Calendar (Template)
 
 ## Operating Principles
 - 한 달에 1개 핵심 캠페인, 주 단위로 메시지 반복

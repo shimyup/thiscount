@@ -1,10 +1,10 @@
-# LetterGo ASO Copy (KO/EN)
+# Thiscount ASO Copy (KO/EN)
 
 ## Final Store Metadata (Ready to Submit)
 
 ### Korean
 - App Name (iOS 30자/Android 50자 이내)
-  - Letter Go
+  - Thiscount
 - Subtitle (iOS, 30자 이내)
   - 세계로 보내는 랜덤 편지
 - Short Description (Android, 80자 이내)
@@ -14,7 +14,7 @@
 
 ### English
 - App Name
-  - Letter Go
+  - Thiscount
 - Subtitle
   - Random letters sent worldwide
 - Short Description
@@ -23,7 +23,7 @@
   - pen pal, letter app, map social, global friends, anonymous social, slow communication, inbox, replies
 
 ## Long Description (Korean Draft)
-Letter Go는 전 세계 사용자와 편지를 주고받는 지도 기반 소셜 앱입니다.
+Thiscount는 전 세계 사용자와 편지를 주고받는 지도 기반 소셜 앱입니다.
 
 편지를 보내면 지도 위에서 이동 경로가 표시되고, 도착까지의 기다림이 새로운 설렘이 됩니다.
 가벼운 한 줄 인사부터 진심을 담은 긴 편지까지, 익명 기반으로 부담 없이 시작할 수 있습니다.
@@ -41,7 +41,7 @@ Letter Go는 전 세계 사용자와 편지를 주고받는 지도 기반 소셜
 - 감성 기반 커뮤니케이션과 글로벌 탐험을 함께 즐기고 싶은 사용자
 
 ## Long Description (English Draft)
-Letter Go is a map-based social app where you exchange letters with people around the world.
+Thiscount is a map-based social app where you exchange letters with people around the world.
 
 When you send a letter, you can watch it travel on the world map. The delivery time itself becomes part of the experience.
 Start with anonymous-first interactions and build connections through replies over time.

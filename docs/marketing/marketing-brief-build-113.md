@@ -1,4 +1,4 @@
-# Letter Go — Marketing Brief (Build 113 기준)
+# Thiscount — Marketing Brief (Build 113 기준)
 
 Date: 2026-04-21 · Version: 1.0.0+113 · Branch: `claude/serene-borg-70b27b`
 
@@ -58,9 +58,9 @@ Date: 2026-04-21 · Version: 1.0.0+113 · Branch: `claude/serene-borg-70b27b`
 ## 🧭 Positioning Statement
 
 > **위치 기반 쿠폰을 찾는 도심 모바일 유저**를 위한 **편지 헌트 앱**으로서,
-> Letter Go 는 **지도 위를 걸어 다가가면 브랜드가 뿌려둔 할인·홍보 편지를
+> Thiscount 는 **지도 위를 걸어 다가가면 브랜드가 뿌려둔 할인·홍보 편지를
 > 주워 즉시 쓸 수 있는 경험**을 제공한다. 기존 광고·쿠폰 앱이 "쏟아지는 리스트
-> 속에서 골라보는" 피로감을 준다면, Letter Go 는 **"내가 찾아내고 주운 것"**
+> 속에서 골라보는" 피로감을 준다면, Thiscount 는 **"내가 찾아내고 주운 것"**
 > 이라는 능동적 발견의 감각과 3단 개봉 애니메이션·햅틱으로 **순간을 이벤트로
 > 만든다**.
 

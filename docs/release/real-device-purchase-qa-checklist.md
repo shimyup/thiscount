@@ -1,4 +1,4 @@
-# LetterGo 실기기 결제 QA 체크리스트 (배포 직전)
+# Thiscount 실기기 결제 QA 체크리스트 (배포 직전)
 
 Last updated: 2026-04-02
 

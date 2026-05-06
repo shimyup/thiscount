@@ -3,7 +3,7 @@
 Use the text below in **App Review Information > Notes**.
 
 ## 1) App Overview
-Letter Go is a social letter app where users send letters globally and view delivery journeys on the map.
+Thiscount is a social letter app where users send letters globally and view delivery journeys on the map.
 
 ## 2) Login / Account for Review
 - No pre-created account is required.

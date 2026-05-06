@@ -1,4 +1,4 @@
-# LetterGo Store Launch Checklist
+# Thiscount Store Launch Checklist
 
 ## 0) Current Automated Status (Completed)
 - `./scripts/release_preflight.sh` PASS
@@ -16,7 +16,7 @@
 ## 1) App Store Connect (iOS)
 
 ### Ready now
-- App name: `Letter Go`
+- App name: `Thiscount`
 - Subtitle (updated for current app): `세계로 보내는 랜덤 편지`
 - Description draft: `docs/marketing/aso-copy-ko-en.md`
 - Keywords draft: `docs/marketing/aso-copy-ko-en.md`

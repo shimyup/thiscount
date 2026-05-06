@@ -1,4 +1,4 @@
-# Letter Go Creative Kit
+# Thiscount Creative Kit
 
 스토어 제출/홍보에 바로 쓰는 템플릿입니다.
 

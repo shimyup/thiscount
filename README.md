@@ -1,4 +1,4 @@
-# LetterGo
+# Thiscount
 
 Flutter mobile app for global letter exchange, map-based delivery tracking, and profile/tower progression.
 

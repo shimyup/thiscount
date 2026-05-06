@@ -1,4 +1,4 @@
-# LetterGo Value Propositions
+# Thiscount Value Propositions
 
 ## Segment-based Value
 

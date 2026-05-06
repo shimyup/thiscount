@@ -13,7 +13,7 @@
   <circle cx="135" cy="210" r="132" fill="#4E74A4" opacity="0.3"/>
   <circle cx="970" cy="200" r="144" fill="#6D94C6" opacity="0.24"/>
 
-  <text x="84" y="170" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-size="64" font-weight="700" fill="#F9FCFF">Letter Go</text>
+  <text x="84" y="170" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-size="64" font-weight="700" fill="#F9FCFF">Thiscount</text>
   <text x="84" y="232" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-size="36" font-weight="500" fill="#D4E5FF">세계로 보내는 랜덤 편지</text>
 
   <rect x="84" y="284" width="912" height="86" rx="18" ry="18" fill="#0B1625" opacity="0.62"/>

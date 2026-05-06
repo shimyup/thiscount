@@ -9,7 +9,7 @@
 > "헌터" 명칭 대안도 5개 추천 (명칭 선택은 사용자 결정 대기).
 
 현재 "타워" (`activityScore.tier` + `towerFloors` + 타워 스킨) 는 Build 101
-이전 "슬로우 소셜 펜팔" 시절의 진급 메타포. Letter Go 가 **픽업 중심
+이전 "슬로우 소셜 펜팔" 시절의 진급 메타포. Thiscount 가 **픽업 중심
 보물찾기** 로 전환된 지금, 타워의 "층이 쌓인다" 은유가 더 이상 게임 루프
 와 직결되지 않는다.
 
@@ -333,11 +333,11 @@ Lv 20 🎒 item + 🎀 accessory  (double!)
 
 Build 123 에서 "레고 (Lego)" 로 설정했으나 The LEGO Group 상표와 중국
 (乐高) · 일본 (レゴ) · 글로벌 (LEGO) 에서 직접 충돌 리스크가 커 **"레터
-(Letter)"** 로 전환. "Letter" 는 **Letter Go 브랜드명의 핵심 요소** 이자
+(Letter)"** 로 전환. "Letter" 는 **Thiscount 브랜드명의 핵심 요소** 이자
 일반 명사라 상표 분쟁 위험이 사실상 없음.
 
 ### 전환 이유
-- Letter Go → **Letter** 로 줄이면 브랜드 연속성 유지
+- Thiscount → **Letter** 로 줄이면 브랜드 연속성 유지
 - 영문 Letter = 보통 명사, 상표권 주장 불가
 - 14개 언어 모두 "Letter" 그대로 통용 가능
 - 앱 정체성 ("편지를 주우러 다니는 사람") 과 직접 정합
@@ -438,7 +438,7 @@ Build 124 에서 "레터 (Letter)" 로 교체. 과거 결정 맥락은 커밋 [1
 
 **3순위: 편지꾼 / Letter Collector**
 - 기존 XP 티어 라벨과 일관성 ("전설의 편지꾼")
-- 브랜드 이름 Letter Go 와 톤 매칭
+- 브랜드 이름 Thiscount 와 톤 매칭
 - 글로벌: "Letter Collector" 로 번역 가능
 
 ### 선택에 따른 영향 범위
