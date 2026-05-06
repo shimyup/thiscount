@@ -17,15 +17,58 @@ import '../../merchant/merchant_interest_sheet.dart';
 // 배송 상태(read/inTransit/waitingPickup) 는 각 편지 카드의 뱃지에서 확인.
 // 필터는 "편지의 종류"만 다룸. 기존 enum 값은 유지 (코드베이스 호환성),
 // 필터 바의 표시 목록에서만 빠진다.
-enum LetterFilterType { all, read, inTransit, waitingPickup, brand, coupon, voucher, general }
+enum LetterFilterType {
+  all, read, inTransit, waitingPickup, brand, coupon, voucher, general,
+  // Build 264: 산업군 필터 (heuristic content keyword matching).
+  // 사용자가 "오늘 음식점 쿠폰만 보고 싶다" 같은 빠른 탐색용. compose 단계에서
+  // 명시적 메타데이터가 아니라 letter 본문 + 발송인명 키워드 매칭으로 분류.
+  food, cafe, beauty, fashion,
+}
 
-/// 필터 바에 노출되는 4개 타입. Build 183: brand 제거, general 추가.
+/// 필터 바에 노출되는 타입.
+/// Build 264: 식음/카페/뷰티/패션 4개 산업 필터 추가 (PPT quick win FILTER).
 const List<LetterFilterType> _visibleFilters = [
   LetterFilterType.all,
   LetterFilterType.general,
   LetterFilterType.coupon,
   LetterFilterType.voucher,
+  LetterFilterType.food,
+  LetterFilterType.cafe,
+  LetterFilterType.beauty,
+  LetterFilterType.fashion,
 ];
+
+/// Build 264: 산업군 키워드 사전. letter.content + senderName + redemptionInfo
+/// 안에 키워드 하나라도 있으면 그 산업군에 해당.
+const Map<LetterFilterType, List<String>> _industryKeywords = {
+  LetterFilterType.food: [
+    '음식','맛집','식당','레스토랑','한식','중식','일식','양식','치킨','피자','버거','파스타','마라','고기','회','초밥','라면','분식','국밥','찌개','국수','면','도시락','런치','디너','야식','스테이크','정식','백반','음식점','분식점','뷔페','뷔페식',
+    'food','restaurant','dish','meal','lunch','dinner','snack','burger','pizza','pasta','ramen','sushi','bbq','steak','dining','cuisine','eatery'
+  ],
+  LetterFilterType.cafe: [
+    '카페','커피','라떼','에스프레소','아메리카노','디저트','케이크','와플','베이커리','빵','도넛','마카롱','스무디','주스','에이드','녹차','홍차','허브티','브런치',
+    'cafe','coffee','latte','cappuccino','espresso','americano','dessert','bakery','donut','macaron','smoothie','juice','tea','brunch'
+  ],
+  LetterFilterType.beauty: [
+    '뷰티','화장품','미용','헤어','네일','마사지','에스테틱','왁싱','피부','스킨','메이크업','립스틱','마스크팩','선크림','토너','에센스','샴푸','린스','트리트먼트','향수','퍼퓸','퍼머','염색','스파',
+    'beauty','cosmetic','salon','hair','nail','spa','massage','skin','makeup','lipstick','cushion','mask','serum','shampoo','perfume'
+  ],
+  LetterFilterType.fashion: [
+    '패션','옷','의류','신발','가방','액세서리','쥬얼리','주얼리','모자','양말','티셔츠','셔츠','원피스','스커트','바지','청바지','코트','재킷','후드','맨투맨','운동화','구두','샌들','부츠','벨트','스카프','선글라스','시계',
+    'fashion','clothing','clothes','shoes','bag','accessory','jewelry','hat','tshirt','shirt','dress','skirt','pants','jeans','coat','jacket','hoodie','sneakers','heels','boots','watch'
+  ],
+};
+
+bool _matchesIndustry(LetterFilterType industry, dynamic letter) {
+  final kws = _industryKeywords[industry];
+  if (kws == null || kws.isEmpty) return false;
+  final hay = ('${letter.content ?? ''} ${letter.senderName ?? ''} ${letter.redemptionInfo ?? ''}')
+      .toLowerCase();
+  for (final k in kws) {
+    if (hay.contains(k.toLowerCase())) return true;
+  }
+  return false;
+}
 
 // 필터별 empty state 이모지. 수집첩이 비었을 때 어떤 종류의 편지를 찾고
 // 있었는지 시각적으로 힌트를 준다. (예: 할인권 필터에서 비면 🎟)
@@ -47,6 +90,14 @@ String _emptyEmojiForFilter(LetterFilterType f) {
       return '📬';
     case LetterFilterType.all:
       return '📭';
+    case LetterFilterType.food:
+      return '🍽️';
+    case LetterFilterType.cafe:
+      return '☕';
+    case LetterFilterType.beauty:
+      return '💄';
+    case LetterFilterType.fashion:
+      return '👗';
   }
 }
 
@@ -79,6 +130,14 @@ String _filterName(LetterFilterType f, AppL10n l10n) {
       return l10n.inboxFilterWaiting;
     case LetterFilterType.all:
       return l10n.inboxFilterAll;
+    case LetterFilterType.food:
+      return l10n.inboxFilterFood;
+    case LetterFilterType.cafe:
+      return l10n.inboxFilterCafe;
+    case LetterFilterType.beauty:
+      return l10n.inboxFilterBeauty;
+    case LetterFilterType.fashion:
+      return l10n.inboxFilterFashion;
   }
 }
 
@@ -217,6 +276,12 @@ class _InboxScreenState extends State<InboxScreen>
         case LetterFilterType.general:
           // Build 183: 일반 = 브랜드 발신 여부와 무관하게 category 가 general.
           return letter.category == LetterCategory.general;
+        case LetterFilterType.food:
+        case LetterFilterType.cafe:
+        case LetterFilterType.beauty:
+        case LetterFilterType.fashion:
+          // Build 264: 산업군 휴리스틱 필터 — 본문/발송인/redemption 키워드 매칭.
+          return _matchesIndustry(filter, letter);
         case LetterFilterType.all:
           return true;
       }
@@ -2493,6 +2558,14 @@ class _LetterFilterBar extends StatelessWidget {
         return l10n.inboxFilterVoucher;
       case LetterFilterType.general:
         return l10n.inboxFilterGeneral;
+      case LetterFilterType.food:
+        return l10n.inboxFilterFood;
+      case LetterFilterType.cafe:
+        return l10n.inboxFilterCafe;
+      case LetterFilterType.beauty:
+        return l10n.inboxFilterBeauty;
+      case LetterFilterType.fashion:
+        return l10n.inboxFilterFashion;
     }
   }
 

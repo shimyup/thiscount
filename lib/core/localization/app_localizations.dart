@@ -7822,6 +7822,32 @@ class AppL10n {
 
   // Build 251: '일반' → '메시지·홍보' (Free + Premium 발신자 모두 카테고리=general).
   // Brand 의 쿠폰·교환권은 별도 필터, 그 외는 메시지/홍보로 통합.
+  // Build 264: 산업군 필터 (식음/카페/뷰티/패션) — heuristic content matching.
+  String get inboxFilterFood => _t({
+    'ko': '식음', 'en': 'Food', 'ja': '飲食', 'zh': '餐饮',
+    'fr': 'Restauration', 'de': 'Essen', 'es': 'Comida', 'pt': 'Comida',
+    'ru': 'Еда', 'tr': 'Yemek', 'ar': 'طعام', 'it': 'Cibo',
+    'hi': 'खाना', 'th': 'อาหาร',
+  });
+  String get inboxFilterCafe => _t({
+    'ko': '카페', 'en': 'Cafe', 'ja': 'カフェ', 'zh': '咖啡',
+    'fr': 'Café', 'de': 'Café', 'es': 'Café', 'pt': 'Café',
+    'ru': 'Кафе', 'tr': 'Kafe', 'ar': 'مقهى', 'it': 'Caffè',
+    'hi': 'कैफे', 'th': 'คาเฟ่',
+  });
+  String get inboxFilterBeauty => _t({
+    'ko': '뷰티', 'en': 'Beauty', 'ja': '美容', 'zh': '美容',
+    'fr': 'Beauté', 'de': 'Beauty', 'es': 'Belleza', 'pt': 'Beleza',
+    'ru': 'Красота', 'tr': 'Güzellik', 'ar': 'تجميل', 'it': 'Bellezza',
+    'hi': 'सौंदर्य', 'th': 'ความงาม',
+  });
+  String get inboxFilterFashion => _t({
+    'ko': '패션', 'en': 'Fashion', 'ja': 'ファッション', 'zh': '时尚',
+    'fr': 'Mode', 'de': 'Mode', 'es': 'Moda', 'pt': 'Moda',
+    'ru': 'Мода', 'tr': 'Moda', 'ar': 'موضة', 'it': 'Moda',
+    'hi': 'फैशन', 'th': 'แฟชั่น',
+  });
+
   String get inboxFilterGeneral => _t({
     'ko': '메시지·홍보',
     'en': 'Messages',
