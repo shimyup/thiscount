@@ -16580,6 +16580,51 @@ class AppL10n {
     'th': 'เขียนตอบ',
   });
 
+  // ── Build 259: 쿠폰/홍보 letter 액션 3종 (답장 / 보관 / 삭제) ──────────────
+  String get letterReadKeep => _t({
+    'ko': '보관하기', 'en': 'Keep', 'ja': '保管する', 'zh': '保存',
+    'fr': 'Conserver', 'de': 'Behalten', 'es': 'Guardar', 'pt': 'Guardar',
+    'ru': 'Сохранить', 'tr': 'Sakla', 'ar': 'احتفظ', 'it': 'Conserva',
+    'hi': 'रखें', 'th': 'เก็บ',
+  });
+  String get letterReadKeepToast => _t({
+    'ko': '보관함에 보관됐어요', 'en': 'Kept in your inbox',
+    'ja': '受信箱に保管しました', 'zh': '已保存到收件箱',
+    'fr': 'Conservé dans la boîte', 'de': 'Im Posteingang behalten',
+    'es': 'Guardado en bandeja', 'pt': 'Guardado na caixa',
+    'ru': 'Сохранено во входящих', 'tr': 'Gelen kutusunda saklandı',
+    'ar': 'تم حفظه في الوارد', 'it': 'Conservato in entrata',
+    'hi': 'इनबॉक्स में रखा', 'th': 'เก็บในกล่องขาเข้า',
+  });
+  String get letterReadDelete => _t({
+    'ko': '삭제하기', 'en': 'Delete', 'ja': '削除', 'zh': '删除',
+    'fr': 'Supprimer', 'de': 'Löschen', 'es': 'Eliminar', 'pt': 'Excluir',
+    'ru': 'Удалить', 'tr': 'Sil', 'ar': 'حذف', 'it': 'Elimina',
+    'hi': 'हटाएं', 'th': 'ลบ',
+  });
+  String get letterReadDeleteConfirm => _t({
+    'ko': '이 letter를 삭제할까요? 되돌릴 수 없어요.',
+    'en': 'Delete this letter? Cannot be undone.',
+    'ja': 'このletterを削除しますか? 元に戻せません。',
+    'zh': '删除此 letter? 无法撤销。',
+    'fr': 'Supprimer ce letter? Action irréversible.',
+    'de': 'Diese letter löschen? Nicht rückgängig.',
+    'es': '¿Eliminar este letter? Acción irreversible.',
+    'pt': 'Excluir este letter? Não pode ser desfeito.',
+    'ru': 'Удалить это letter? Нельзя отменить.',
+    'tr': 'Bu letter silinsin mi? Geri alınamaz.',
+    'ar': 'حذف هذه letter؟ لا يمكن التراجع.',
+    'it': 'Eliminare questo letter? Irreversibile.',
+    'hi': 'यह letter हटाएं? वापस नहीं ला सकते।',
+    'th': 'ลบ letter นี้? ย้อนกลับไม่ได้',
+  });
+  String get letterReadDeletedToast => _t({
+    'ko': '삭제됐어요', 'en': 'Deleted', 'ja': '削除しました', 'zh': '已删除',
+    'fr': 'Supprimé', 'de': 'Gelöscht', 'es': 'Eliminado', 'pt': 'Excluído',
+    'ru': 'Удалено', 'tr': 'Silindi', 'ar': 'تم الحذف', 'it': 'Eliminato',
+    'hi': 'हटाया गया', 'th': 'ลบแล้ว',
+  });
+
   // 답장 1회 제한 제거 후 "다시 답장 쓰기" / "이미 답장했어요" 상태 표시용
   String get letterReadReplyAgain => _t({
     'ko': '다시 답장 쓰기',

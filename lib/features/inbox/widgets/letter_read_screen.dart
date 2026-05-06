@@ -309,30 +309,28 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                               _buildRedemptionBox(context, letter),
                             // 답장 버튼 (AI 편지는 "닿지 않음" 카드로 대체)
                             if (_isOpened) _buildAiLetterNotice(context, letter),
-                            // 브랜드 발송인이 답장 미수락으로 설정한 편지는
-                            // 답장 버튼 대신 안내만 노출.
-                            if (_isOpened &&
-                                !letter.senderId.startsWith('ai_') &&
-                                !(letter.senderIsBrand && !letter.acceptsReplies))
+                            // 브랜드 발송인이 답장 미수락으로 설정한 편지는 답장
+                            // 버튼 대신 안내만. 일반 letter 는 _buildReplyButton.
+                            // Build 259: 브랜드 쿠폰/홍보 letter 는 단일 답장 버튼이
+                            // 아니라 답장/보관/삭제 3-action chooser 로 표시.
+                            if (_isOpened && letter.senderIsBrand && !letter.senderId.startsWith('ai_'))
+                              _buildBrandActionChooser(context, letter)
+                            else if (_isOpened &&
+                                !letter.senderId.startsWith('ai_'))
                               _buildReplyButton(context, letter),
                             if (_isOpened &&
                                 letter.senderIsBrand &&
                                 !letter.acceptsReplies)
                               _buildBrandNoReplyNotice(context),
-                            // ❤️/🔕 브랜드 팔로우·뮤트 쌍 — 브랜드 발송일 때만 노출.
-                            // 본인 발송 편지(sent 탭)에는 보이지 않도록 `senderId != myId` 체크.
-                            // Build 115: follow 토글 추가 (뮤트 반대 개념).
+                            // 💎 팔로우 + 🚫 혜택 받지 않기 (Build 259 가시성 강화):
+                            // 기존 textbutton 형태 → 색상 강조 chip (배경+테두리).
+                            // 본인 발송 편지에는 노출 X.
                             if (_isOpened &&
                                 letter.senderIsBrand &&
-                                letter.senderId != context.read<AppState>().currentUser.id)
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  _buildFollowBrandButton(context, letter),
-                                  const SizedBox(width: 8),
-                                  _buildMuteBrandButton(context, letter),
-                                ],
-                              ),
+                                letter.senderId != context.read<AppState>().currentUser.id) ...[
+                              const SizedBox(height: 16),
+                              _buildBrandFollowMuteChips(context, letter),
+                            ],
                             const SizedBox(height: 40),
                           ],
                         ),
@@ -1726,90 +1724,52 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   }
 
   Widget _buildJourneyCard(Letter letter) {
+    // Build 259: 한 줄 컴팩트 — 발신국 → 거리 → 도착국 (예: 🇰🇷 → 12 km → 🇯🇵).
+    // 이전: 카드 + 2줄 (140px). 이후: 칩 + 1줄 (~36px). 약 75% 공간 회수.
     final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
+          Text(letter.senderCountryFlag, style: const TextStyle(fontSize: 18)),
+          const SizedBox(width: 6),
           Text(
-            l10n.letterReadDeliveryJourney.toUpperCase(),
+            CountryL10n.localizedName(letter.senderCountry, l10n.languageCode),
             style: const TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.66,
+              color: AppColors.textSecondary,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Text(
-                letter.senderCountryFlag,
-                style: const TextStyle(fontSize: 28),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Container(height: 0.5, color: AppColors.bgSurface),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      color: AppColors.bgCard,
-                      child: const Text(
-                        '→',
-                        style: TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                letter.destinationCountryFlag,
-                style: const TextStyle(fontSize: 28),
-              ),
-            ],
+          const SizedBox(width: 8),
+          const Text('→', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+          const SizedBox(width: 8),
+          Text(
+            '${_calcDistance(letter)}km',
+            style: const TextStyle(
+              color: AppColors.gold,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+            ),
           ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                CountryL10n.localizedName(letter.senderCountry, l10n.languageCode),
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Text(
-                '${_calcDistance(letter)} km',
-                style: const TextStyle(
-                  color: AppColors.gold,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              Text(
-                CountryL10n.localizedName(letter.destinationCountry, l10n.languageCode),
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+          const SizedBox(width: 8),
+          const Text('→', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+          const SizedBox(width: 8),
+          Text(
+            CountryL10n.localizedName(letter.destinationCountry, l10n.languageCode),
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
           ),
+          const SizedBox(width: 6),
+          Text(letter.destinationCountryFlag, style: const TextStyle(fontSize: 18)),
         ],
       ),
     );
@@ -1859,6 +1819,298 @@ class _LetterReadScreenState extends State<LetterReadScreen>
         ],
       ),
     );
+  }
+
+  /// Build 259: 쿠폰/홍보 (브랜드) letter 의 답장 / 보관 / 삭제 3-action 행.
+  /// - 답장: 기존 _buildReplyButton 진입점과 같지만 sub-action 으로 축소. 발송
+  ///   브랜드가 acceptsReplies=false 면 disabled.
+  /// - 보관: letter 를 inbox 에 그대로 두고 화면만 닫음 + 토스트.
+  /// - 삭제: 확인 다이얼로그 → state.deleteFromInbox(id) + 화면 닫음 + 토스트.
+  Widget _buildBrandActionChooser(BuildContext ctx, Letter letter) {
+    final l10n = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
+    final canReply = letter.acceptsReplies;
+
+    Widget btn({
+      required IconData icon,
+      required Color color,
+      required String label,
+      required VoidCallback? onTap,
+      bool primary = false,
+    }) {
+      final disabled = onTap == null;
+      return Expanded(
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            height: 64,
+            decoration: BoxDecoration(
+              color: primary
+                  ? color
+                  : color.withValues(alpha: disabled ? 0.04 : 0.10),
+              borderRadius: BorderRadius.circular(14),
+              border: primary
+                  ? null
+                  : Border.all(
+                      color: color.withValues(alpha: disabled ? 0.15 : 0.4),
+                      width: 1,
+                    ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: 18,
+                  color: primary
+                      ? AppColors.bgDeep
+                      : (disabled
+                          ? color.withValues(alpha: 0.3)
+                          : color),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: primary
+                        ? AppColors.bgDeep
+                        : (disabled
+                            ? color.withValues(alpha: 0.4)
+                            : color),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        btn(
+          icon: Icons.reply_rounded,
+          color: AppColors.textPrimary,
+          label: l10n.letterReadReply,
+          primary: true,
+          onTap: canReply
+              ? () => Navigator.push(
+                    ctx,
+                    MaterialPageRoute(
+                      builder: (_) => ComposeScreen(
+                        replyToId: letter.id,
+                        replyToName: letter.isAnonymous
+                            ? l10n.letterReadAnonymous
+                            : letter.senderName,
+                      ),
+                    ),
+                  )
+              : null,
+        ),
+        const SizedBox(width: 8),
+        btn(
+          icon: Icons.bookmark_outline_rounded,
+          color: AppColors.teal,
+          label: l10n.letterReadKeep,
+          onTap: () {
+            Navigator.pop(ctx);
+            ScaffoldMessenger.of(ctx).showSnackBar(
+              SnackBar(
+                content: Text(l10n.letterReadKeepToast,
+                    style: const TextStyle(color: Colors.white)),
+                backgroundColor: AppColors.bgCard,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          },
+        ),
+        const SizedBox(width: 8),
+        btn(
+          icon: Icons.delete_outline_rounded,
+          color: AppColors.error,
+          label: l10n.letterReadDelete,
+          onTap: () {
+            showDialog(
+              context: ctx,
+              builder: (dlg) => AlertDialog(
+                backgroundColor: AppColors.bgCard,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                content: Text(
+                  l10n.letterReadDeleteConfirm,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                    height: 1.5,
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dlg),
+                    child: Text(
+                      l10n.letterReadCancel,
+                      style: const TextStyle(color: AppColors.textMuted),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(dlg);
+                      ctx.read<AppState>().deleteFromInbox(letter.id);
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(ctx).showSnackBar(
+                        SnackBar(
+                          content: Text(l10n.letterReadDeletedToast,
+                              style:
+                                  const TextStyle(color: Colors.white)),
+                          backgroundColor: AppColors.bgCard,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      l10n.letterReadDelete,
+                      style: const TextStyle(
+                        color: AppColors.error,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  /// Build 259: 팔로우 + 혜택 받지 않기 가시성 강화 chip 행.
+  /// 기존 작은 회색 TextButton.icon → 배경+테두리 강조 + 글자 크기 +1.
+  Widget _buildBrandFollowMuteChips(BuildContext ctx, Letter letter) {
+    final l10n = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
+    return Builder(builder: (inner) {
+      final state = inner.watch<AppState>();
+      final followed = state.isBrandFollowed(letter.senderId);
+      final muted = state.isBrandMuted(letter.senderId);
+
+      Widget chip({
+        required IconData icon,
+        required String label,
+        required bool active,
+        required Color activeColor,
+        required VoidCallback onTap,
+      }) {
+        return Expanded(
+          child: GestureDetector(
+            onTap: onTap,
+            child: Container(
+              height: 44,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: active
+                    ? activeColor.withValues(alpha: 0.18)
+                    : Colors.white.withValues(alpha: 0.04),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: active
+                      ? activeColor.withValues(alpha: 0.6)
+                      : AppColors.textMuted.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon,
+                    size: 16,
+                    color: active ? activeColor : AppColors.textSecondary,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: active
+                          ? activeColor
+                          : AppColors.textSecondary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+
+      return Row(
+        children: [
+          chip(
+            icon: followed ? Icons.favorite : Icons.favorite_border,
+            label: followed
+                ? l10n.letterReadUnfollowBrand
+                : l10n.letterReadFollowBrand,
+            active: followed,
+            activeColor: AppColors.gold,
+            onTap: () async {
+              await ctx.read<AppState>().toggleBrandFollow(letter.senderId);
+              if (!inner.mounted) return;
+              if (!followed) {
+                ScaffoldMessenger.of(inner).showSnackBar(
+                  SnackBar(
+                    content: Text(l10n.letterReadFollowedToast,
+                        style: const TextStyle(color: Colors.white)),
+                    backgroundColor: AppColors.bgCard,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                );
+              }
+            },
+          ),
+          const SizedBox(width: 8),
+          chip(
+            icon: muted
+                ? Icons.notifications_active_outlined
+                : Icons.notifications_off_outlined,
+            label:
+                muted ? l10n.letterReadUnmuteBrand : l10n.letterReadMuteBrand,
+            active: muted,
+            activeColor: AppColors.teal,
+            onTap: () async {
+              await ctx.read<AppState>().toggleBrandMute(letter.senderId);
+              if (!inner.mounted) return;
+              if (!muted) {
+                ScaffoldMessenger.of(inner).showSnackBar(
+                  SnackBar(
+                    content: Text(l10n.letterReadMutedToast,
+                        style: const TextStyle(color: Colors.white)),
+                    backgroundColor: AppColors.bgCard,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                );
+              }
+            },
+          ),
+        ],
+      );
+    });
   }
 
   /// ❤️ "브랜드 팔로우" 토글 — 뮤트의 반대 (Build 115).
