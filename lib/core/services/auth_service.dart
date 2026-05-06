@@ -998,6 +998,35 @@ class AuthService {
     return null; // null = 성공
   }
 
+  /// 영구 어드민 계정 자동 부트스트랩.
+  ///
+  /// 앱 첫 실행 (또는 데이터 초기화 후) 시 호출. 이미 어떤 계정이라도 있으면
+  /// no-op. 없으면 `BetaConstants.permanentAdminEmail` 로 자동 가입:
+  ///   - username: `ceo`
+  ///   - email   : `ceo@airony.xyz`
+  ///   - password: `0000`
+  ///   - country : 대한민국 / 🇰🇷
+  /// signUp 의 password 형식 검증은 어드민 이메일에 한해 우회되므로 0000 가능.
+  static Future<void> bootstrapAdminIfNeeded({String langCode = 'ko'}) async {
+    final adminEmail = BetaConstants.permanentAdminEmail;
+    if (adminEmail.isEmpty) return;
+
+    final existing = await _readSecure(_keyUsername);
+    if (existing != null && existing.isNotEmpty) return; // 이미 계정 있음
+
+    // 영구 어드민 자동 가입
+    await signUp(
+      username: 'ceo',
+      password: '0000',
+      country: '대한민국',
+      countryFlag: '🇰🇷',
+      languageCode: langCode,
+      email: adminEmail,
+      verifyMethod: 'email',
+      langCode: langCode,
+    );
+  }
+
   /// 로그아웃
   static Future<void> logout() async {
     await _writeSecure(_keyIsLoggedIn, 'false');
