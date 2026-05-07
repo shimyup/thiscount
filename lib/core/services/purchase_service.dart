@@ -668,10 +668,16 @@ class PurchaseService extends ChangeNotifier {
       _trialRemainingDaysCache = null;
       return null;
     }
-    final remaining = DateTime.fromMillisecondsSinceEpoch(giftExpiry)
+    // Build 265: ceil 로 계산 — 가입 직후 6.99 일 남았을 때 inDays 가
+    // truncate 해서 "6 days left" 가 보이던 회귀. ceil 이면 "7 days left".
+    final remainingHours = DateTime.fromMillisecondsSinceEpoch(giftExpiry)
         .difference(DateTime.now())
-        .inDays;
-    _trialRemainingDaysCache = remaining < 0 ? null : remaining;
+        .inHours;
+    if (remainingHours <= 0) {
+      _trialRemainingDaysCache = null;
+      return null;
+    }
+    _trialRemainingDaysCache = (remainingHours / 24).ceil();
     return _trialRemainingDaysCache;
   }
 

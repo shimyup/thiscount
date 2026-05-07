@@ -363,7 +363,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // Firebase 세션이 살아있는 동안 마지막 위치·프로필을 Firestore로
               // 한 번 더 스냅샷한다. 이래야 다른 회원의 지도에서 이 테스터의
               // 타워가 "마지막 위치"로 정확히 유지된다.
-              await ctx.read<AppState>().snapshotUserForLogout();
+              final appState = ctx.read<AppState>();
+              await appState.snapshotUserForLogout();
+              // Build 265: 메모리 + prefs 클리어 → 같은 디바이스에서 다른
+              // 사용자가 로그인했을 때 PII 누수 방지.
+              await appState.clearForLogout();
               await AuthService.logout();
               if (ctx.mounted) {
                 Navigator.of(

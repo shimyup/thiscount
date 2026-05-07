@@ -75,8 +75,9 @@ class LanguageConfig {
   static String getLanguageName(String code) => languageNames[code] ?? code;
 
   /// RTL (right-to-left) 언어 여부
-  /// Arabic, Hebrew, Persian (Farsi), Urdu 등 우→좌 언어 대응
-  static const Set<String> rtlLanguages = {'ar', 'he', 'fa', 'ur'};
+  /// Build 265: he/fa/ur 은 l10n 번역이 없는데 rtl 만 켜면 영어 텍스트가
+  /// 우→좌 정렬되어 깨져 보임. 번역이 추가될 때까지 ar 만 유지.
+  static const Set<String> rtlLanguages = {'ar'};
 
   static bool isRtl(String code) => rtlLanguages.contains(code);
 

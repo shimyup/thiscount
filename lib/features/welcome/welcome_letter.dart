@@ -182,10 +182,11 @@ String _buildBody(String langCode, {required bool withTrial}) {
   final base = _pick(_body, langCode);
   if (!withTrial) return base;
   final mention = _trialMention[langCode] ?? _trialMention['en']!;
-  // 첫 단락(첫 빈 줄까지) 다음에 트라이얼 문장을 삽입.
-  final paragraphs = base.split('\n\n');
-  if (paragraphs.length < 2) return '$base\n\n$mention';
-  return '${paragraphs.first}\n\n$mention\n\n${paragraphs.skip(1).join('\n\n')}';
+  // 첫 단락(빈 줄까지) 다음에 트라이얼 문장을 삽입. \r\n / 비공백 화이트
+  // 스페이스 / NBSP 가 섞여도 견디도록 RegExp 사용.
+  final parts = base.split(RegExp(r'\n[\s ]*\n'));
+  if (parts.length < 2) return '$base\n\n$mention';
+  return '${parts.first}\n\n$mention\n\n${parts.skip(1).join('\n\n')}';
 }
 
 String _pick(Map<String, String> m, String lang) => m[lang] ?? m['en']!;

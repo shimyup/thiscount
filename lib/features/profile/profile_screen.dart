@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:characters/characters.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -461,7 +462,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
     return Center(
       child: Text(
-        user.username.isNotEmpty ? user.username[0].toUpperCase() : '?',
+        // Build 265: 코드유닛 [0] 은 이모지 / 결합형 한글 / 데바나가리 등에서
+        // surrogate pair 를 잘라 broken glyph 가 보임. characters.first 로
+        // 그래핌 단위 추출.
+        user.username.characters.isNotEmpty
+            ? user.username.characters.first.toUpperCase()
+            : '?',
         style: const TextStyle(
           fontSize: 26,
           fontWeight: FontWeight.w800,
@@ -567,7 +573,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onPressed: () async {
               // Firebase 세션 살아있을 때 마지막 위치 Firestore 반영 →
               // 다른 회원 지도에서 타워가 "마지막 접속 위치"로 유지됨
-              await ctx.read<AppState>().snapshotUserForLogout();
+              final appState = ctx.read<AppState>();
+              await appState.snapshotUserForLogout();
+              // Build 265: 메모리 + prefs 클리어 — PII 누수 방지.
+              await appState.clearForLogout();
               await AuthService.logout();
               if (ctx.mounted) {
                 Navigator.of(

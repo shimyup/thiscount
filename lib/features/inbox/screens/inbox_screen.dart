@@ -157,14 +157,16 @@ bool _matchesIndustry(LetterFilterType industry, dynamic letter) {
   Set<String>? tokens;
   for (final k in kws) {
     final kl = k.toLowerCase();
-    if (_isWordBoundedScript(kl)) {
+    // 다단어 키워드 (예: 'scarpe da ginnastica', 'spor ayakkabı', 'مستحضرات تجميل')
+    // 는 토큰화하면 단일 토큰으로 안 잡혀 영영 매칭 실패. 다단어는 substring.
+    if (kl.contains(' ') || !_isWordBoundedScript(kl)) {
+      if (hay.contains(kl)) return true;
+    } else {
       tokens ??= hay
           .split(RegExp(r'''[\s.,!?\-_/()\[\]{}'":;#*~`]+'''))
           .where((t) => t.isNotEmpty)
           .toSet();
       if (tokens.contains(kl)) return true;
-    } else {
-      if (hay.contains(kl)) return true;
     }
   }
   return false;

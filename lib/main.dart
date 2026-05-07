@@ -147,8 +147,13 @@ class _GlobalDriftAppState extends State<GlobalDriftApp> {
     // (예: 'inbox?letter=xxx') 분기 추가 가능. 현재는 모든 알림 → /home_inbox.
     NotificationService.onNotificationTap = (payload) {
       try {
+        // Build 265: 로그아웃 상태에서 푸시(예: 만료 직전 쿠폰 알림) 가
+        // 도착해 사용자가 탭하면 _currentUser 가 guest 인 채 home_inbox
+        // 으로 이동해 빈 화면 / 크래시. /auth 로 라우팅.
+        final loggedIn = _appState.currentUser.id.isNotEmpty &&
+            _appState.currentUser.id != 'guest';
         _navKey.currentState?.pushNamedAndRemoveUntil(
-          '/home_inbox',
+          loggedIn ? '/home_inbox' : '/auth',
           (route) => false,
         );
       } catch (_) {

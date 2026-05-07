@@ -421,11 +421,16 @@ class NotificationService {
     try {
       tz_data.initializeTimeZones();
       final offset = DateTime.now().timeZoneOffset;
-      final hours = offset.inMinutes ~/ 60;
+      // Build 265: 이전엔 `inMinutes ~/ 60` 으로 0 쪽 truncate — UTC+5:30
+      // (인도) → UTC+5 매핑되어 reminder 가 30 분 늦게 발사. round() 로
+      // 가까운 정시에 매핑해 ±30분 균형. (정확한 IANA 매핑은 후속 — 현재는
+      // Etc/GMT 정수 시간 단위만 지원.)
+      final hours = (offset.inMinutes / 60).round();
       if (hours == 0) {
         tz.setLocalLocation(tz.UTC);
         return;
       }
+      // Etc/GMT 부호는 POSIX 식 — 동쪽이 음수.
       final sign = hours >= 0 ? '-' : '+';
       final abs = hours.abs();
       tz.setLocalLocation(tz.getLocation('Etc/GMT$sign$abs'));
@@ -811,14 +816,10 @@ class NotificationService {
         iOS: iosDetails,
       );
 
-      final tzFire = tz.TZDateTime(
-        tz.local,
-        fire.year,
-        fire.month,
-        fire.day,
-        fire.hour,
-        fire.minute,
-      );
+      // Build 265: tz.TZDateTime.from 은 절대 시점을 그대로 보존 — 컴포넌트
+      // 분해는 DST spring-forward 시 02:00→03:00 같은 skipped wall-clock
+      // 시각이 ambiguous 해질 수 있어 회피.
+      final tzFire = tz.TZDateTime.from(fire, tz.local);
 
       await _plugin.zonedSchedule(
         _arrivalCountdownId,
@@ -887,14 +888,8 @@ class NotificationService {
         iOS: iosDetails,
       );
 
-      final tzFire = tz.TZDateTime(
-        tz.local,
-        fire.year,
-        fire.month,
-        fire.day,
-        fire.hour,
-        fire.minute,
-      );
+      // Build 265: 절대 시점 보존 — DST spring-forward 안전.
+      final tzFire = tz.TZDateTime.from(fire, tz.local);
 
       await _plugin.zonedSchedule(
         id,

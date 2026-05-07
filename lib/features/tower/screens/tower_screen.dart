@@ -3702,7 +3702,10 @@ class _TowerScreenState extends State<TowerScreen>
             onPressed: () async {
               // Firebase 세션 살아있을 때 마지막 위치 Firestore 반영 →
               // 다른 회원 지도에서 타워가 "마지막 접속 위치"로 유지됨
-              await ctx.read<AppState>().snapshotUserForLogout();
+              final appState = ctx.read<AppState>();
+              await appState.snapshotUserForLogout();
+              // Build 265: 메모리 + prefs 클리어 — PII 누수 방지.
+              await appState.clearForLogout();
               await AuthService.logout();
               if (ctx.mounted) {
                 Navigator.of(

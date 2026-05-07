@@ -275,20 +275,27 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   final Set<String> _myPickedUpLetterIds = {};
 
   /// 다음 줍기 가능까지 남은 시간 (null = 바로 가능)
+  /// Build 265: 부수효과 제거 — 이전엔 시계 역행 감지 시 getter 안에서
+  /// 상태 mutate + _saveToPrefs 호출 → ValueListenableBuilder 빌드 도중
+  /// 비동기 prefs write 발생. de-poison 은 lifecycle resume / 1초 tick 의
+  /// `_recheckCooldownClockSkew()` 에서 처리.
   Duration? get nearbyPickupRemainingCooldown {
     if (_lastNearbyPickupAt == null) return null;
     final elapsed = DateTime.now().difference(_lastNearbyPickupAt!);
-    // 디바이스 시간이 거꾸로 갔거나 미래 timestamp 가 저장된 경우.
-    // 단순히 null 만 반환하면 시계가 다시 앞으로 갈 때 쿨다운이 부활해
-    // 사용자가 "아까 풀렸는데?" 하고 혼란 — timestamp 자체를 비워서
-    // 영구 해제하고 prefs 에도 반영.
-    if (elapsed.isNegative) {
-      _lastNearbyPickupAt = null;
-      _saveToPrefs();
-      return null;
-    }
+    if (elapsed.isNegative) return null;
     if (elapsed >= _nearbyPickupCooldown) return null;
     return _nearbyPickupCooldown - elapsed;
+  }
+
+  /// 디바이스 시간 역행 감지 → poisoned timestamp 영구 해제. lifecycle
+  /// resume + 정기 tick 에서 호출 (getter 안에서 호출 금지).
+  void _recheckCooldownClockSkew() {
+    if (_lastNearbyPickupAt == null) return;
+    if (DateTime.now().difference(_lastNearbyPickupAt!).isNegative) {
+      _lastNearbyPickupAt = null;
+      _saveToPrefs();
+      notifyListeners();
+    }
   }
 
   /// 현재 유저의 쿨다운 시간 (UI 표시용)
@@ -1866,6 +1873,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       }
       // 서버 사용자/편지 동기화 재개 (비용 최적화)
       resumeServerSyncFromBackground();
+      // Build 265: 시계 역행 감지 → poisoned cooldown timestamp 해제.
+      _recheckCooldownClockSkew();
       // Build 265: long-session 케이스 — foreground 복귀 시마다 trial 만료
       // 재점검. cold-start 가 안 일어나면 7일+ 사용자가 영원히 Premium 유지하던
       // 회귀 보강. PurchaseService 가 직접 주입되지 않으므로 callback 구조.
@@ -2268,6 +2277,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       }
     });
   }
+
+  // Build 265: loadFromPrefs 완료 신호 — _seedWelcomeLetterIfNeeded 등이
+  // load 가 끝난 뒤에만 _inbox 에 insert 하도록 동기화. 이전엔 setUser →
+  // 비동기 seed insert 와 main.dart 의 비동기 loadFromPrefs 가 경합해서
+  // load 가 _inbox.clear() 로 seed 를 wipe 하는 race 가 있었음.
+  final Completer<void> _loadFromPrefsCompleter = Completer<void>();
+  Future<void> get loadFromPrefsFuture => _loadFromPrefsCompleter.future;
 
   // ── SharedPreferences 복원 (main.dart에서 앱 시작 시 호출) ─────────────────
   Future<void> loadFromPrefs() async {
@@ -2729,6 +2745,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // ── 도착 1시간 전 카운트다운 재예약 ─────────────────────────────────────
     _rescheduleArrivalCountdown();
 
+    // Build 265: load 완료 신호 — _seedWelcomeLetterIfNeeded 가 inbox 에
+    // insert 하기 전에 이 future 를 await 하도록 동기화.
+    if (!_loadFromPrefsCompleter.isCompleted) {
+      _loadFromPrefsCompleter.complete();
+    }
     notifyListeners();
   }
 
@@ -3822,10 +3843,23 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// 미지정 시 `purchaseGiftExpiry` 키 존재 여부로 추정.
   Future<void> _seedWelcomeLetterIfNeeded({bool? gotTrial}) async {
     try {
+      // Build 265: race fix — loadFromPrefs 가 _inbox.clear() 후 prefs JSON
+      // 으로 repopulate 하는 도중 우리가 insert 하면 wipe 됨. load 끝날 때까지
+      // 대기. main.dart 에서 loadFromPrefs 가 fire 됐는지와 무관하게 안전.
+      // (Completer 가 절대 complete 안 되면 await 가 무한히 멈출 수 있어
+      // 5초 timeout — 그래도 흐름은 막지 않고 진행.)
+      await loadFromPrefsFuture.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {},
+      );
       final prefs = await SharedPreferences.getInstance();
       final seedKey = 'welcome_letter_seeded_${_currentUser.id}';
       if (prefs.getBool(seedKey) ?? false) return;
-      if (_inbox.any((l) => l.senderId == 'letter_go_welcome')) {
+      // Build 265: id 기반 dedup — 이전엔 senderId 만 비교해 다른 사용자의
+      // welcome letter 가 inbox 에 남아 있으면 신규 사용자 seed 가 skip 되던
+      // 회귀. id = welcome_${userId} 라 사용자별 고유.
+      final myWelcomeId = 'welcome_${_currentUser.id}';
+      if (_inbox.any((l) => l.id == myWelcomeId)) {
         await prefs.setBool(seedKey, true);
         return;
       }
@@ -4136,6 +4170,73 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (_currentUser.id.isEmpty || _currentUser.id == 'guest') return;
     if (!FirebaseConfig.kFirebaseEnabled) return;
     await _saveUserToFirestore(markLoggedOut: true);
+  }
+
+  /// Build 265: 로그아웃 시 메모리 + prefs 의 user-scoped 데이터 모두 클리어.
+  /// 이전엔 logout 이 keyIsLoggedIn 만 false 로 바꿔서, 같은 디바이스에서
+  /// 다른 계정으로 로그인하면 이전 사용자의 inbox / sent / 줍기 / 차단 목록 /
+  /// 프라이버시 토글 / trial 상태가 그대로 보이던 PII 누수.
+  Future<void> clearForLogout() async {
+    _inbox.clear();
+    _sent.clear();
+    _worldLetters.clear();
+    _myPickedUpLetterIds.clear();
+    _blockedSenderIds.clear();
+    _tempBlockedSenderIds.clear();
+    _redeemedLetterIds.clear();
+    _seenLetterIds.clear();
+    _lastNearbyPickupAt = null;
+    _hasNearbyAlert = false;
+    _pendingDMCount = 0;
+    _dailySentCount = 0;
+    _monthlySentCount = 0;
+    _currentStreak = 0;
+    _longestStreak = 0;
+    _lastStreakCheckinDate = '';
+    _streakFreezeTokens = 0;
+    _streakFreezeLastRefill = '';
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      // 사용자별 키들 — Firestore 와 secure storage 는 PurchaseService /
+      // AuthService 측에서 별도 정리.
+      const userScopedKeys = [
+        'inbox', 'sent', 'worldLettersIncoming',
+        'blocked', 'temp_blocked',
+        'myPickedUpLetterIds',
+        'redeemedLetterIds',
+        'seenLetterIds',
+        'lastNearbyPickupAtMs',
+        'lastAiLetterDateKey',
+        'sentSinceLastUnlock',
+        'dailySentCount', 'dailySentDateKey',
+        'monthlySentCount', 'monthlyDateKey',
+        'pendingDMCount',
+        'streak_current', 'streak_longest', 'streak_last_checkin',
+        'streak_freeze_tokens', 'streak_freeze_last_refill',
+        'sum_pickup_km', 'sum_sent_km',
+        'challenge_week_countries', 'challenge_week_key',
+        'challenge_week_claimed', 'challenge_reward_balance',
+        'dailyImageSentCount', 'dailyImageDateKey',
+        'preferredCategoryKey',
+        'customTowerName',
+        'privacy_isUsernamePublic',
+        'privacy_isSnsPublic',
+        'privacy_isMapPublic',
+      ];
+      for (final k in userScopedKeys) {
+        await prefs.remove(k);
+      }
+      // 웰컴 편지 seed 키도 (현재 사용자 한정으로) 제거 — 같은 사용자가
+      // 재로그인 시 다시 안 받음, 다른 사용자는 자기 seedKey 가 따로 있음.
+      if (_currentUser.id.isNotEmpty && _currentUser.id != 'guest') {
+        await prefs.remove('welcome_letter_seeded_${_currentUser.id}');
+      }
+    } catch (_) {
+      // prefs 실패해도 메모리 클리어는 이미 됐으므로 흐름 진행.
+    }
+
+    notifyListeners();
   }
 
   Future<void> _saveUserToFirestore({bool markLoggedOut = false}) async {
