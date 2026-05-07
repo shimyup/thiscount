@@ -9817,21 +9817,23 @@ class AppL10n {
     'th': 'เปลี่ยนเป็นแพ็กเกจ Brand',
   });
 
-  String get premiumBrandUpgradeDesc1 => _t({
-    'ko': '다음 결제부터 Brand / Creator 플랜(₩99,000/월)으로 변경됩니다.',
-    'en': 'Starting from the next billing, you will be switched to the Brand / Creator plan (₩99,000/mo).',
-    'ja': '次の決済からBrand / Creatorプラン（₩99,000/月）に変更されます。',
-    'zh': '从下次付款起将切换到Brand / Creator方案（₩99,000/月）。',
-    'fr': 'À partir de la prochaine facturation, vous passerez au forfait Brand / Creator (₩99 000/mois).',
-    'de': 'Ab der nächsten Abrechnung wechseln Sie zum Brand / Creator-Plan (₩99.000/Monat).',
-    'es': 'A partir de la próxima facturación, cambiará al plan Brand / Creator (₩99.000/mes).',
-    'pt': 'A partir da próxima cobrança, mudará para o plano Brand / Creator (₩99.000/mês).',
-    'ru': 'Со следующей оплаты вы перейдёте на план Brand / Creator (₩99 000/мес).',
-    'tr': 'Bir sonraki faturadan itibaren Brand / Creator planına (₩99.000/ay) geçilecek.',
-    'ar': 'بدءاً من الفوترة التالية، ستنتقل إلى خطة Brand / Creator (₩99,000/شهر).',
-    'it': 'Dalla prossima fatturazione, passerai al piano Brand / Creator (₩99.000/mese).',
-    'hi': 'अगली बिलिंग से Brand / Creator योजना (₩99,000/माह) पर स्विच होगा।',
-    'th': 'ตั้งแต่บิลถัดไปจะเปลี่ยนเป็นแพ็กเกจ Brand / Creator (₩99,000/เดือน)',
+  /// Build 265: 가격은 RevenueCat 의 locale-aware priceString 으로 주입
+  /// — 사용자에게 자기 통화로 노출. fallback 으로 ₩99,000 한국 원화 사용.
+  String premiumBrandUpgradeDesc1(String price) => _t({
+    'ko': '다음 결제부터 Brand / Creator 플랜($price/월)으로 변경됩니다.',
+    'en': 'Starting from the next billing, you will be switched to the Brand / Creator plan ($price/mo).',
+    'ja': '次の決済からBrand / Creatorプラン（$price/月）に変更されます。',
+    'zh': '从下次付款起将切换到Brand / Creator方案（$price/月）。',
+    'fr': 'À partir de la prochaine facturation, vous passerez au forfait Brand / Creator ($price/mois).',
+    'de': 'Ab der nächsten Abrechnung wechseln Sie zum Brand / Creator-Plan ($price/Monat).',
+    'es': 'A partir de la próxima facturación, cambiará al plan Brand / Creator ($price/mes).',
+    'pt': 'A partir da próxima cobrança, mudará para o plano Brand / Creator ($price/mês).',
+    'ru': 'Со следующей оплаты вы перейдёте на план Brand / Creator ($price/мес).',
+    'tr': 'Bir sonraki faturadan itibaren Brand / Creator planına ($price/ay) geçilecek.',
+    'ar': 'بدءاً من الفوترة التالية، ستنتقل إلى خطة Brand / Creator ($price/شهر).',
+    'it': 'Dalla prossima fatturazione, passerai al piano Brand / Creator ($price/mese).',
+    'hi': 'अगली बिलिंग से Brand / Creator योजना ($price/माह) पर स्विच होगा।',
+    'th': 'ตั้งแต่บิลถัดไปจะเปลี่ยนเป็นแพ็กเกจ Brand / Creator ($price/เดือน)',
   });
 
   String get premiumBrandUpgradeDesc2 => _t({
@@ -16954,6 +16956,52 @@ class AppL10n {
     'fr': 'Afficher le lien SNS sur le profil', 'de': 'SNS-Link im Profil anzeigen', 'es': 'Mostrar enlace SNS en el perfil',
     'pt': 'Mostrar link SNS no perfil', 'ru': 'Показывать ссылку на соцсеть в профиле', 'tr': 'Profilde SNS bağlantısını göster',
     'ar': 'إظهار رابط SNS في الملف الشخصي', 'it': 'Mostra il link SNS sul profilo', 'hi': 'प्रोफ़ाइल पर SNS लिंक दिखाएँ', 'th': 'แสดงลิงก์ SNS บนโปรไฟล์',
+  });
+
+  /// Build 265: 닉네임 공개와 분리된 지도 노출 토글.
+  String get profileMapPublic => _t({
+    'ko': '지도에 위치 공개', 'en': 'Show on Map', 'ja': '地図に位置を公開', 'zh': '在地图上公开位置',
+    'fr': 'Afficher sur la carte', 'de': 'Auf Karte zeigen', 'es': 'Mostrar en el mapa',
+    'pt': 'Mostrar no mapa', 'ru': 'Показывать на карте', 'tr': 'Haritada Göster',
+    'ar': 'إظهار على الخريطة', 'it': 'Mostra sulla mappa', 'hi': 'मानचित्र पर दिखाएँ', 'th': 'แสดงบนแผนที่',
+  });
+
+  /// Build 265: 7일 무료 트라이얼 잔여일 배너. 마지막 2~3일에 노출 권장.
+  String trialDaysRemaining(int days) {
+    if (days <= 0) return '';
+    return _t({
+      'ko': '👑 Premium 트라이얼 D-$days · 종료 후 Free',
+      'en': '👑 Premium trial — $days day${days == 1 ? '' : 's'} left',
+      'ja': '👑 Premium トライアル 残り$days日',
+      'zh': '👑 Premium 试用还剩 $days 天',
+      'fr': '👑 Essai Premium — $days jour${days == 1 ? '' : 's'} restant${days == 1 ? '' : 's'}',
+      'de': '👑 Premium-Test — noch $days Tag${days == 1 ? '' : 'e'}',
+      'es': '👑 Prueba Premium — $days día${days == 1 ? '' : 's'} restante${days == 1 ? '' : 's'}',
+      'pt': '👑 Avaliação Premium — $days dia${days == 1 ? '' : 's'} restante${days == 1 ? '' : 's'}',
+      'ru': '👑 Premium-пробный — осталось $days дн.',
+      'tr': '👑 Premium denemesi — $days gün kaldı',
+      'ar': '👑 تجربة Premium — متبقٍ $days يوم',
+      'it': '👑 Prova Premium — $days giorno${days == 1 ? '' : 'i'} rimasto${days == 1 ? '' : 'i'}',
+      'hi': '👑 Premium ट्रायल — $days दिन शेष',
+      'th': '👑 ทดลอง Premium — เหลือ $days วัน',
+    });
+  }
+
+  String get profileMapPublicDesc => _t({
+    'ko': '다른 사용자의 지도에 내 대략 위치 표시',
+    'en': "Show your approximate location on others' maps",
+    'ja': '他のユーザーの地図におおよその位置を表示',
+    'zh': '在他人的地图上显示你的大致位置',
+    'fr': 'Affiche votre position approximative sur la carte des autres',
+    'de': 'Zeigt deinen ungefähren Standort auf anderer Leute Karten',
+    'es': 'Mostrar tu ubicación aproximada en mapas de otros',
+    'pt': 'Mostrar a sua localização aproximada nos mapas dos outros',
+    'ru': 'Показывать ваше приблизительное местоположение другим',
+    'tr': 'Yaklaşık konumunu başkalarının haritasında göster',
+    'ar': 'إظهار موقعك التقريبي على خرائط الآخرين',
+    'it': 'Mostra la tua posizione approssimativa sulle mappe altrui',
+    'hi': 'अन्य लोगों के मानचित्र पर अपना अनुमानित स्थान दिखाएँ',
+    'th': 'แสดงตำแหน่งโดยประมาณบนแผนที่ของผู้อื่น',
   });
 
   String get profilePhoto => _t({

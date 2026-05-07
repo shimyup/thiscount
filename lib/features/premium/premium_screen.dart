@@ -2605,7 +2605,9 @@ void _showBrandUpgradeDialog({
         ),
       ),
       content: Text(
-        '${l10n.premiumBrandUpgradeDesc1} $formatted ${l10n.premiumBrandUpgradeDesc2}',
+        // Build 265: RevenueCat 의 locale-aware 가격 주입 — 비-한국 사용자가
+        // 자기 통화로 보도록.
+        '${l10n.premiumBrandUpgradeDesc1(purchase.brandMonthlyPriceLocalized)} $formatted ${l10n.premiumBrandUpgradeDesc2}',
         style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
       ),
       actions: [

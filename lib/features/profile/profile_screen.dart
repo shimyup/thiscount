@@ -1034,6 +1034,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               value: user.isSnsPublic,
                               onChanged: (v) =>
                                   state.updatePrivacySettings(isSnsPublic: v),
+                            ),
+                            // Build 265: 지도 노출은 별도 토글 — 이전엔
+                            // 닉네임 공개 토글이 위치 공개도 동시에 통제했음.
+                            _groupSwitchTile(
+                              icon: Icons.map_outlined,
+                              label: _l.profileMapPublic,
+                              subtitle: _l.profileMapPublicDesc,
+                              value: user.isMapPublic ?? user.isUsernamePublic,
+                              onChanged: (v) =>
+                                  state.updatePrivacySettings(isMapPublic: v),
                               isLast: true,
                             ),
                           ]),

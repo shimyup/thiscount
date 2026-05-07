@@ -269,6 +269,18 @@ class PurchaseService extends ChangeNotifier {
   DateTime? _nextBillingDate;
   DateTime? get nextBillingDate => _nextBillingDate;
 
+  /// Build 265: RevenueCat 의 locale-aware priceString 우선 반환, 미로드
+  /// 시 한국 원화 폴백. 14언어 사용자가 자기 통화로 보도록.
+  String get premiumMonthlyPriceLocalized {
+    final p = _storeProductsById[PurchaseProductIds.premiumMonthly];
+    return p?.priceString ?? '₩4,900';
+  }
+
+  String get brandMonthlyPriceLocalized {
+    final p = _storeProductsById[PurchaseProductIds.brandMonthly];
+    return p?.priceString ?? '₩99,000';
+  }
+
   // UI 표시용 기본 상품 목록 (Offering 로드 전 fallback)
   List<ProductInfo> get products => [
     ProductInfo(
@@ -448,10 +460,26 @@ class PurchaseService extends ChangeNotifier {
 
     try {
       _offerings = await Purchases.getOfferings();
+      // Build 265: offerings 로드 시 _storeProductsById 도 prewarm —
+      // brandMonthlyPriceLocalized / premiumMonthlyPriceLocalized getter 가
+      // 첫 dialog 부터 locale-aware 가격을 반환할 수 있도록.
+      _cacheStoreProductsFromOfferings();
     } on PlatformException catch (e) {
       if (kDebugMode) debugPrint('[PurchaseService] Offering 로드 실패: $e');
     }
     _isRevenueCatConfigured = true;
+  }
+
+  /// `_offerings` 안의 모든 패키지를 순회해 productIdentifier → StoreProduct
+  /// 맵에 캐싱. 호출 시점에 offerings 가 비어 있으면 noop.
+  void _cacheStoreProductsFromOfferings() {
+    final offerings = _offerings;
+    if (offerings == null) return;
+    for (final off in offerings.all.values) {
+      for (final pkg in off.availablePackages) {
+        _storeProductsById[pkg.storeProduct.identifier] = pkg.storeProduct;
+      }
+    }
   }
 
   void _onCustomerInfoUpdated(CustomerInfo info) {
@@ -1193,6 +1221,7 @@ class PurchaseService extends ChangeNotifier {
     if (_isTestMode) return null;
     try {
       _offerings = await Purchases.getOfferings();
+      _cacheStoreProductsFromOfferings();
       pkg = _findPackage(productId);
       return pkg;
     } on PlatformException catch (e) {

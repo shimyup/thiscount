@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/localization/country_names.dart';
+import '../../../core/services/purchase_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/person_emoji.dart';
 import '../../../models/letter.dart';
@@ -460,6 +461,38 @@ class _InboxScreenState extends State<InboxScreen>
                       ],
                     ),
                   ),
+                // Build 265: Premium 트라이얼 잔여일 배너. 마지막 3일 동안만
+                // 노출 — Day-7 부터 매일 깔리면 피로하니 D-3 부터.
+                Builder(builder: (ctx) {
+                  final purchase = ctx.watch<PurchaseService>();
+                  final days = purchase.trialRemainingDays;
+                  if (days == null || days <= 0 || days > 3) {
+                    return const SizedBox.shrink();
+                  }
+                  final l10n = AppL10n.of(state.currentUser.languageCode);
+                  return Container(
+                    margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.gold.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: AppColors.gold.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    child: Text(
+                      l10n.trialDaysRemaining(days),
+                      style: const TextStyle(
+                        color: AppColors.gold,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  );
+                }),
                 // 만료 사이렌 (Build 115, Build 116 에서 탭 가능) — 24h 이내
                 // 만료되는 쿠폰/교환권이 있을 때만 붉은 배너 노출. 탭 시
                 // 쿠폰 필터로 즉시 전환 + 받은 편지 탭으로 이동해 사용 유도.

@@ -2287,6 +2287,18 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   // ── SharedPreferences 복원 (main.dart에서 앱 시작 시 호출) ─────────────────
   Future<void> loadFromPrefs() async {
+    try {
+      await _loadFromPrefsImpl();
+    } finally {
+      // Build 265: 도중에 throw 가 나도 completer 는 반드시 fire — seed
+      // 가 영원히 await 에 갇히지 않도록.
+      if (!_loadFromPrefsCompleter.isCompleted) {
+        _loadFromPrefsCompleter.complete();
+      }
+    }
+  }
+
+  Future<void> _loadFromPrefsImpl() async {
     final prefs = await SharedPreferences.getInstance();
     final encKey = await _getOrCreateEncKey(); // 복호화 키 로드
 
@@ -2745,11 +2757,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // ── 도착 1시간 전 카운트다운 재예약 ─────────────────────────────────────
     _rescheduleArrivalCountdown();
 
-    // Build 265: load 완료 신호 — _seedWelcomeLetterIfNeeded 가 inbox 에
-    // insert 하기 전에 이 future 를 await 하도록 동기화.
-    if (!_loadFromPrefsCompleter.isCompleted) {
-      _loadFromPrefsCompleter.complete();
-    }
+    // Completer 는 loadFromPrefs() 의 finally 에서 fire — 도중 throw 시에도
+    // 누락 없게.
     notifyListeners();
   }
 
@@ -4177,6 +4186,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// 다른 계정으로 로그인하면 이전 사용자의 inbox / sent / 줍기 / 차단 목록 /
   /// 프라이버시 토글 / trial 상태가 그대로 보이던 PII 누수.
   Future<void> clearForLogout() async {
+    // 1. 컬렉션 클리어
     _inbox.clear();
     _sent.clear();
     _worldLetters.clear();
@@ -4185,27 +4195,53 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _tempBlockedSenderIds.clear();
     _redeemedLetterIds.clear();
     _seenLetterIds.clear();
+    // 2. DM / 채팅 — PII (DM 본문은 가장 민감한 항목 중 하나).
+    _chatSessions.clear();
+    _dmMessages.clear();
+    // 3. 위치 · 알림 게이트
     _lastNearbyPickupAt = null;
     _hasNearbyAlert = false;
     _pendingDMCount = 0;
+    // 4. 카운터 / 발송 한도
     _dailySentCount = 0;
     _monthlySentCount = 0;
+    _dailyImageSentCount = 0;
+    _dailyPremiumExpressSentCount = 0;
+    _sentSinceLastUnlock = 0;
+    // 5. 스트릭 / 챌린지
     _currentStreak = 0;
     _longestStreak = 0;
     _lastStreakCheckinDate = '';
     _streakFreezeTokens = 0;
     _streakFreezeLastRefill = '';
+    _challengeRewardBalance = 0;
+    _weeklyChallengeCountries.clear();
+    _weeklyChallengeWeekKey = '';
+    _weeklyChallengeClaimed = false;
+    // 6. 초대 / 보상 / Brand 크레딧
+    _inviteRewardCredits = 0;
+    _inviteCode = '';
+    _appliedInviteCode = null;
+    _lastInviteRewardAt = null;
+    _brandExtraMonthlyQuota = 0;
+    _brandExactDropCredits = 0;
+    // 7. 첫 줍기 축하 / XP 누적 거리
+    _hasCelebratedFirstPickup = false;
+    _sumPickupKm = 0.0;
+    _sumSentKm = 0.0;
+    // 8. 구버전 호환 — _previousUserLevel 등 in-memory 만 reset 필요 없음.
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      // 사용자별 키들 — Firestore 와 secure storage 는 PurchaseService /
-      // AuthService 측에서 별도 정리.
+      // prefs 도 동일하게 wipe — 다음 cold-start 또는 다른 사용자 로그인 시
+      // 잔존 키가 새 _currentUser 로 잘못 적용되는 것 방지.
       const userScopedKeys = [
         'inbox', 'sent', 'worldLettersIncoming',
         'blocked', 'temp_blocked',
         'myPickedUpLetterIds',
         'redeemedLetterIds',
         'seenLetterIds',
+        'chatSessions', 'dmMessages',
         'lastNearbyPickupAtMs',
         'lastAiLetterDateKey',
         'sentSinceLastUnlock',
@@ -4223,6 +4259,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'privacy_isUsernamePublic',
         'privacy_isSnsPublic',
         'privacy_isMapPublic',
+        'hasCelebratedFirstPickup',
+        // 초대 / Brand 크레딧
+        PrefKeys.inviteRewardCredits,
+        PrefKeys.inviteCode,
+        PrefKeys.inviteAppliedCode,
+        PrefKeys.inviteRewardAtEpochMs,
+        PrefKeys.brandExtraMonthlyQuota,
+        PrefKeys.dailyPremiumExpressSentCount,
+        PrefKeys.dailyPremiumExpressDateKey,
       ];
       for (final k in userScopedKeys) {
         await prefs.remove(k);
