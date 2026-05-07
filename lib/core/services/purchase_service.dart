@@ -525,7 +525,12 @@ class PurchaseService extends ChangeNotifier {
     if (giftExpiry > 0) {
       final expiry = DateTime.fromMillisecondsSinceEpoch(giftExpiry);
       if (DateTime.now().isAfter(expiry)) {
-        if (!_isBrand) _isPremium = false;
+        if (!_isBrand) {
+          _isPremium = false;
+          // CRITICAL: 트라이얼 만료 시 secure storage 도 동시에 갱신해야
+          // 다음 cold-start 에서 isPremium=true 가 되살아나지 않음.
+          await _saveSecurePremiumState(isPremium: false, isBrand: _isBrand);
+        }
         await prefs.remove(PrefKeys.purchaseGiftExpiry);
       }
     }
@@ -613,6 +618,48 @@ class PurchaseService extends ChangeNotifier {
       expiry.millisecondsSinceEpoch,
     );
     notifyListeners();
+  }
+
+  // ── Trial 만료 점검 (Build 265: foreground resume 시 호출) ────────────────
+  /// `_initFromPrefs` 의 만료 점검 로직을 외부에서 다시 돌릴 수 있게 분리.
+  /// 앱이 7일 이상 foreground 에 떠 있는 long-session 시 cold-start 가
+  /// 안 일어나 만료가 안 되던 케이스 보강.
+  Future<void> recheckTrialExpiry() async {
+    final prefs = await _getPrefs();
+    final giftExpiry = prefs.getInt(PrefKeys.purchaseGiftExpiry) ?? 0;
+    if (giftExpiry <= 0) return;
+    final expiry = DateTime.fromMillisecondsSinceEpoch(giftExpiry);
+    if (!DateTime.now().isAfter(expiry)) return;
+    if (!_isBrand) {
+      _isPremium = false;
+      await _saveSecurePremiumState(isPremium: false, isBrand: _isBrand);
+    }
+    await prefs.remove(PrefKeys.purchaseGiftExpiry);
+    notifyListeners();
+  }
+
+  /// 트라이얼 종료까지 남은 일수. trial 미가입 또는 만료 시 null.
+  /// 0 = 오늘 만료 (D-Day). UI 에서 마지막 2~3일 배너 노출용.
+  int? get trialRemainingDays {
+    // SharedPreferences 값을 매번 읽기보다 cached pref read 가 이상적이지만
+    // PurchaseService 가 prefs 를 직접 expose 하지 않아 lazy getter.
+    // 호출처는 settings/profile 에서 한 번씩만 부르는 패턴이라 무겁지 않음.
+    return _trialRemainingDaysCache;
+  }
+
+  int? _trialRemainingDaysCache;
+  Future<int?> refreshTrialRemainingDays() async {
+    final prefs = await _getPrefs();
+    final giftExpiry = prefs.getInt(PrefKeys.purchaseGiftExpiry) ?? 0;
+    if (giftExpiry <= 0) {
+      _trialRemainingDaysCache = null;
+      return null;
+    }
+    final remaining = DateTime.fromMillisecondsSinceEpoch(giftExpiry)
+        .difference(DateTime.now())
+        .inDays;
+    _trialRemainingDaysCache = remaining < 0 ? null : remaining;
+    return _trialRemainingDaysCache;
   }
 
   // ── Premium 구매 ────────────────────────────────────────────────────────

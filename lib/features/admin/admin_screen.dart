@@ -231,8 +231,8 @@ class _AdminScreenState extends State<AdminScreen> {
             iconColor: AppColors.success,
             label: l.koEn('테스터 대시보드', 'Tester Dashboard'),
             subtitle: l.koEn(
-              '실시간 테스터 현황 · 편지 · 지도 동기화 상태',
-              'Real-time testers, letters, and map sync status',
+              '실시간 테스터 현황 · 메시지 · 지도 동기화 상태',
+              'Real-time testers, messages, and map sync status',
             ),
             onTap: () => Navigator.push(
               context,
@@ -328,7 +328,7 @@ class _AdminScreenState extends State<AdminScreen> {
                             Text(
                               l.koEn(
                                 '혜택 이동 시뮬레이션 속도를 높임',
-                                'Increase letter travel simulation speed',
+                                'Increase coupon travel simulation speed',
                               ),
                               style: TextStyle(
                                 color: AppColors.textMuted,
@@ -368,14 +368,14 @@ class _AdminScreenState extends State<AdminScreen> {
           ),
           const SizedBox(height: 8),
 
-          // 시스템 편지 발송
+          // 시스템 메시지 발송
           _actionTile(
             icon: Icons.mark_email_unread_rounded,
             iconColor: AppColors.streak,
-            label: l.koEn('시스템 편지 발송', 'Send System Letter'),
+            label: l.koEn('시스템 메시지 발송', 'Send System Message'),
             subtitle: l.koEn(
-              '현재 위치에서 내 받은 편지함으로 테스트 편지 생성',
-              'Create a test letter to your inbox from current location',
+              '현재 위치에서 내 받은함으로 테스트 메시지 생성',
+              'Create a test message to your inbox from current location',
             ),
             onTap: () => _sendSystemLetter(state),
           ),
@@ -443,10 +443,10 @@ class _AdminScreenState extends State<AdminScreen> {
           _actionTile(
             icon: Icons.flag_rounded,
             iconColor: AppColors.warning,
-            label: l.koEn('신고된 편지 목록', 'Reported Letters'),
+            label: l.koEn('신고된 메시지 목록', 'Reported Messages'),
             subtitle: l.koEn(
-              '${state.adminReportedCount}건의 신고된 편지',
-              '${state.adminReportedCount} reported letters',
+              '${state.adminReportedCount}건의 신고된 메시지',
+              '${state.adminReportedCount} reported messages',
             ),
             trailing: state.adminReportedCount > 0
                 ? _badge('${state.adminReportedCount}', AppColors.warning)
@@ -499,25 +499,25 @@ class _AdminScreenState extends State<AdminScreen> {
           _actionTile(
             icon: Icons.local_shipping_rounded,
             iconColor: AppColors.success,
-            label: l.koEn('모든 편지 즉시 도착', 'Deliver All Letters Now'),
+            label: l.koEn('모든 쿠폰 즉시 도착', 'Deliver All Coupons Now'),
             subtitle: l.koEn(
-              '이동 중인 ${state.adminInTransitCount}개 편지 강제 배송',
-              'Force-deliver ${state.adminInTransitCount} in-transit letters',
+              '이동 중인 ${state.adminInTransitCount}개 쿠폰 강제 배송',
+              'Force-deliver ${state.adminInTransitCount} in-transit coupons',
             ),
             onTap: state.adminInTransitCount == 0
                 ? null
                 : () => _confirmAction(
-                    title: l.koEn('모든 편지 즉시 도착', 'Deliver All Letters Now'),
+                    title: l.koEn('모든 쿠폰 즉시 도착', 'Deliver All Coupons Now'),
                     content: l.koEn(
-                      '이동 중인 ${state.adminInTransitCount}개 편지를 즉시 도착 처리합니다.',
-                      'Deliver ${state.adminInTransitCount} in-transit letters immediately.',
+                      '이동 중인 ${state.adminInTransitCount}개 쿠폰을 즉시 도착 처리합니다.',
+                      'Deliver ${state.adminInTransitCount} in-transit coupons immediately.',
                     ),
                     onConfirm: () {
                       state.adminForceDeliverAll();
                       _showSnack(
                         l.koEn(
-                          '✅ ${state.adminInTransitCount}개 편지 배송 완료',
-                          '✅ Delivered ${state.adminInTransitCount} letters',
+                          '✅ ${state.adminInTransitCount}개 쿠폰 배송 완료',
+                          '✅ Delivered ${state.adminInTransitCount} coupons',
                         ),
                       );
                     },
@@ -566,20 +566,20 @@ class _AdminScreenState extends State<AdminScreen> {
           _actionTile(
             icon: Icons.inbox_rounded,
             iconColor: AppColors.error,
-            label: l.koEn('받은 편지함 비우기', 'Clear Inbox'),
-            subtitle: l.koEn('받은 편지함의 모든 편지 삭제', 'Delete all inbox letters'),
+            label: l.koEn('받은함 비우기', 'Clear Inbox'),
+            subtitle: l.koEn('받은함의 모든 메시지 삭제', 'Delete all inbox messages'),
             onTap: state.adminInboxCount == 0
                 ? null
                 : () => _confirmAction(
-                    title: l.koEn('받은 편지함 비우기', 'Clear Inbox'),
+                    title: l.koEn('받은함 비우기', 'Clear Inbox'),
                     content: l.koEn(
-                      '받은 편지함의 ${state.adminInboxCount}개 편지가 모두 삭제됩니다.',
-                      'Delete all ${state.adminInboxCount} letters from inbox.',
+                      '받은함의 ${state.adminInboxCount}개 메시지가 모두 삭제됩니다.',
+                      'Delete all ${state.adminInboxCount} messages from inbox.',
                     ),
                     isDanger: true,
                     onConfirm: () {
                       state.adminClearInbox();
-                      _showSnack(l.koEn('🗑️ 받은 편지함 비움', '🗑️ Inbox cleared'));
+                      _showSnack(l.koEn('🗑️ 받은함 비움', '🗑️ Inbox cleared'));
                     },
                   ),
           ),
@@ -587,25 +587,25 @@ class _AdminScreenState extends State<AdminScreen> {
           _actionTile(
             icon: Icons.delete_sweep_rounded,
             iconColor: AppColors.error,
-            label: l.koEn('모든 편지 전체 삭제', 'Clear All Letters'),
+            label: l.koEn('모든 메시지 전체 삭제', 'Clear All Messages'),
             subtitle: l.koEn(
-              '받은 편지 + 보낸 편지 + 지도 위 편지 전부 삭제',
-              'Delete inbox + sent + map letters',
+              '받은 메시지 + 보낸 메시지 + 지도 위 메시지 전부 삭제',
+              'Delete inbox + sent + map messages',
             ),
             onTap: (state.adminInboxCount == 0 &&
                     state.adminTotalSent == 0 &&
                     state.worldLetters.isEmpty)
                 ? null
                 : () => _confirmAction(
-                    title: l.koEn('모든 편지 삭제', 'Clear All Letters'),
+                    title: l.koEn('모든 메시지 삭제', 'Clear All Messages'),
                     content: l.koEn(
-                      '받은 편지 ${state.adminInboxCount}개, 보낸 편지 ${state.adminTotalSent}개, 지도 편지 ${state.worldLetters.length}개가 모두 삭제됩니다.',
-                      'Delete ${state.adminInboxCount} inbox, ${state.adminTotalSent} sent, ${state.worldLetters.length} map letters.',
+                      '받은 메시지 ${state.adminInboxCount}개, 보낸 메시지 ${state.adminTotalSent}개, 지도 메시지 ${state.worldLetters.length}개가 모두 삭제됩니다.',
+                      'Delete ${state.adminInboxCount} inbox, ${state.adminTotalSent} sent, ${state.worldLetters.length} map messages.',
                     ),
                     isDanger: true,
                     onConfirm: () {
                       state.adminClearAllLetters();
-                      _showSnack(l.koEn('🗑️ 모든 편지 삭제 완료', '🗑️ All letters cleared'));
+                      _showSnack(l.koEn('🗑️ 모든 메시지 삭제 완료', '🗑️ All messages cleared'));
                     },
                   ),
           ),
@@ -621,7 +621,7 @@ class _AdminScreenState extends State<AdminScreen> {
             onTap: () => _confirmAction(
               title: l.koEn('활동 점수 초기화', 'Reset Activity Score'),
               content: l.koEn(
-                '모든 활동 점수(받은 편지, 답장, 좋아요 등)가 초기화됩니다.',
+                '모든 활동 점수(받은 메시지, 답장, 좋아요 등)가 초기화됩니다.',
                 'All activity scores (received, replies, likes, etc.) will reset.',
               ),
               isDanger: true,
@@ -795,7 +795,7 @@ class _AdminScreenState extends State<AdminScreen> {
                     l.koEn('초대 보상 크레딧', 'Invite Reward Credits'),
                     l.koEn(
                       '${state.inviteRewardCredits}통',
-                      '${state.inviteRewardCredits} letters',
+                      '${state.inviteRewardCredits} credits',
                     ),
                   ),
                 ],
@@ -1154,8 +1154,8 @@ class _AdminScreenState extends State<AdminScreen> {
     final l = _l10n(context);
     final ctrl = TextEditingController(
       text: l.koEn(
-        '📮 Message in a Bottle 팀에서 드리는 특별 메시지입니다.\n\n세계 어딘가의 누군가가 당신에게 편지를 보냈어요. 오늘도 좋은 하루 되세요! 🌊',
-        '📮 A special message from the Message in a Bottle team.\n\nSomeone, somewhere in the world sent you a letter. Have a wonderful day! 🌊',
+        '📮 Thiscount 팀에서 드리는 특별 메시지입니다.\n\n세계 어딘가의 누군가가 당신에게 메시지를 보냈어요. 오늘도 좋은 하루 되세요! 🌊',
+        '📮 A special message from the Thiscount team.\n\nSomeone, somewhere in the world sent you a message. Have a wonderful day! 🌊',
       ),
     );
     showDialog(
@@ -1172,7 +1172,7 @@ class _AdminScreenState extends State<AdminScreen> {
             ),
             const SizedBox(width: 8),
             Text(
-              l.koEn('시스템 편지 발송', 'Send System Letter'),
+              l.koEn('시스템 메시지 발송', 'Send System Message'),
               style: const TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 16,
@@ -1213,8 +1213,8 @@ class _AdminScreenState extends State<AdminScreen> {
               Navigator.pop(context);
               _showSnack(
                 l.koEn(
-                  '📮 시스템 편지가 받은 편지함에 추가됐어요',
-                  '📮 System letter added to inbox',
+                  '📮 시스템 메시지가 받은함에 추가됐어요',
+                  '📮 System message added to inbox',
                 ),
               );
             },
@@ -1236,7 +1236,7 @@ class _AdminScreenState extends State<AdminScreen> {
     final l = _l10n(context);
     final letters = state.adminReportedLetters;
     if (letters.isEmpty) {
-      _showSnack(l.koEn('신고된 편지가 없어요', 'No reported letters'));
+      _showSnack(l.koEn('신고된 메시지가 없어요', 'No reported messages'));
       return;
     }
     showModalBottomSheet(
@@ -1264,7 +1264,7 @@ class _AdminScreenState extends State<AdminScreen> {
             Padding(
               padding: EdgeInsets.all(16),
               child: Text(
-                l.koEn('🚩 신고된 편지', '🚩 Reported Letters'),
+                l.koEn('🚩 신고된 메시지', '🚩 Reported Messages'),
                 style: TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 16,
@@ -1369,8 +1369,8 @@ class _AdminScreenState extends State<AdminScreen> {
                   onPressed: () => _confirmAction(
                     title: t.koEn('발신자 차단', 'Block Sender'),
                     content: t.koEn(
-                      '${l.isAnonymous ? '익명' : l.senderName}의 모든 편지를 차단합니다.',
-                      'Block all letters from ${l.isAnonymous ? 'Anonymous' : l.senderName}.',
+                      '${l.isAnonymous ? '익명' : l.senderName}의 모든 메시지를 차단합니다.',
+                      'Block all messages from ${l.isAnonymous ? 'Anonymous' : l.senderName}.',
                     ),
                     isDanger: true,
                     onConfirm: () {
@@ -1661,14 +1661,14 @@ class _AdminScreenState extends State<AdminScreen> {
       children: [
         _statCard(
           l.koEn('📤 총 발송', '📤 Total Sent'),
-          l.koEn('${state.adminTotalSent}통', '${state.adminTotalSent} letters'),
+          l.koEn('${state.adminTotalSent}통', '${state.adminTotalSent} sent'),
           AppColors.gold,
         ),
         _statCard(
-          l.koEn('📥 받은 편지함', '📥 Inbox'),
+          l.koEn('📥 받은함', '📥 Inbox'),
           l.koEn(
             '${state.adminInboxCount}통',
-            '${state.adminInboxCount} letters',
+            '${state.adminInboxCount} items',
           ),
           AppColors.teal,
         ),
@@ -1676,7 +1676,7 @@ class _AdminScreenState extends State<AdminScreen> {
           l.koEn('✈️ 이동 중', '✈️ In Transit'),
           l.koEn(
             '${state.adminInTransitCount}통',
-            '${state.adminInTransitCount} letters',
+            '${state.adminInTransitCount} items',
           ),
           AppColors.streak,
         ),
@@ -1698,7 +1698,7 @@ class _AdminScreenState extends State<AdminScreen> {
         ),
         _statCard(
           l.koEn('📊 발송 (오늘)', '📊 Sent (Today)'),
-          l.koEn('${state.todaySentCount}통', '${state.todaySentCount} letters'),
+          l.koEn('${state.todaySentCount}통', '${state.todaySentCount} sent'),
           AppColors.textSecondary,
         ),
       ],
@@ -2017,7 +2017,7 @@ class _TesterDashboardScreenState extends State<_TesterDashboardScreen>
           unselectedLabelColor: AppColors.textMuted,
           tabs: [
             Tab(text: 'Testers (${_testers.length})'),
-            Tab(text: 'Letters (${_letters.length})'),
+            Tab(text: 'Messages (${_letters.length})'),
           ],
         ),
       ),
@@ -2089,7 +2089,7 @@ class _TesterDashboardScreenState extends State<_TesterDashboardScreen>
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _summaryItem('Testers', '${_testers.length}', Icons.people),
-          _summaryItem('Letters', '${_letters.length}', Icons.mail),
+          _summaryItem('Messages', '${_letters.length}', Icons.mail),
           _summaryItem('Sent', '$totalSent', Icons.send),
           _summaryItem('Received', '$totalReceived', Icons.inbox),
         ],

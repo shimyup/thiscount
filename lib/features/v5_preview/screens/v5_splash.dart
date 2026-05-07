@@ -66,7 +66,7 @@ class _V5SplashScreenState extends State<V5SplashScreen>
                     ),
                     const SizedBox(height: 18),
                     Text(
-                      '근처에 떠있는 쿠폰과 편지를\n주워 쓰는 지갑.',
+                      '근처에 떠있는 쿠폰과 혜택을\n주워 쓰는 지갑.',
                       style: V5Text.body.copyWith(
                         color: V5Colors.tx2,
                         fontSize: 17,

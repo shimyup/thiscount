@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:characters/characters.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -47,48 +48,48 @@ String _notiMsg(String key, [String langCode = 'en']) {
 
 const Map<String, Map<String, String>> _notiMessages = {
   'nearby_channel': {
-    'ko': '근처 편지 알림',
-    'en': 'Nearby Letter',
-    'ja': '近くの手紙',
-    'zh': '附近信件',
-    'es': 'Carta cercana',
-    'fr': 'Lettre à proximité',
-    'de': 'Brief in der Nähe',
-    'pt': 'Carta próxima',
-    'ru': 'Письмо поблизости',
+    'ko': '근처 쿠폰 알림',
+    'en': 'Nearby Coupon',
+    'ja': '近くのクーポン',
+    'zh': '附近优惠券',
+    'es': 'Cupón cercano',
+    'fr': 'Coupon à proximité',
+    'de': 'Coupon in der Nähe',
+    'pt': 'Cupom próximo',
+    'ru': 'Купон поблизости',
   },
   'nearby_desc': {
-    'ko': '500m 이내에 편지가 도착했을 때 알림',
-    'en': 'Notification when a letter arrives within 500m',
-    'ja': '500m以内に手紙が届いた時の通知',
-    'zh': '500米内有信件到达时通知',
-    'es': 'Notificación cuando llega una carta a 500m',
-    'fr': 'Notification quand une lettre arrive à 500m',
-    'de': 'Benachrichtigung bei Brief innerhalb von 500m',
-    'pt': 'Notificação quando uma carta chega a 500m',
-    'ru': 'Уведомление о письме в радиусе 500м',
+    'ko': '500m 이내에 쿠폰이 도착했을 때 알림',
+    'en': 'Notification when a coupon arrives within 500m',
+    'ja': '500m以内にクーポンが届いた時の通知',
+    'zh': '500米内有优惠券到达时通知',
+    'es': 'Notificación cuando llega un cupón a 500m',
+    'fr': 'Notification quand un coupon arrive à 500m',
+    'de': 'Benachrichtigung bei Coupon innerhalb von 500m',
+    'pt': 'Notificação quando um cupom chega a 500m',
+    'ru': 'Уведомление о купоне в радиусе 500м',
   },
   'arrived_channel': {
     'ko': '혜택 도착 알림',
-    'en': 'Letter Arrived',
-    'ja': '手紙到着',
-    'zh': '信件到达',
-    'es': 'Carta recibida',
-    'fr': 'Lettre reçue',
-    'de': 'Brief angekommen',
-    'pt': 'Carta recebida',
-    'ru': 'Письмо доставлено',
+    'en': 'Coupon Arrived',
+    'ja': 'クーポン到着',
+    'zh': '优惠券到达',
+    'es': 'Cupón recibido',
+    'fr': 'Coupon reçu',
+    'de': 'Coupon angekommen',
+    'pt': 'Cupom recebido',
+    'ru': 'Купон доставлен',
   },
   'arrived_desc': {
-    'ko': '새 편지가 도착했을 때 알림',
-    'en': 'Notification when a new letter arrives',
-    'ja': '新しい手紙が届いた時の通知',
-    'zh': '新信件到达时通知',
-    'es': 'Notificación cuando llega una carta nueva',
-    'fr': 'Notification à la réception d\'une nouvelle lettre',
-    'de': 'Benachrichtigung bei neuem Brief',
-    'pt': 'Notificação quando uma nova carta chega',
-    'ru': 'Уведомление о новом письме',
+    'ko': '새 혜택이 도착했을 때 알림',
+    'en': 'Notification when a new coupon arrives',
+    'ja': '新しいクーポンが届いた時の通知',
+    'zh': '新优惠券到达时通知',
+    'es': 'Notificación cuando llega un cupón nuevo',
+    'fr': 'Notification à la réception d\'un nouveau coupon',
+    'de': 'Benachrichtigung bei neuem Coupon',
+    'pt': 'Notificação quando um novo cupom chega',
+    'ru': 'Уведомление о новом купоне',
   },
   'dm_channel': {
     'ko': 'DM 도착 알림',
@@ -135,15 +136,15 @@ const Map<String, Map<String, String>> _notiMessages = {
     'ru': 'Перезарядка подбора',
   },
   'cooldown_desc': {
-    'ko': '근처 편지가 있지만 쿨다운으로 픽업할 수 없을 때 알림',
-    'en': 'Notification when nearby letter cannot be picked up due to cooldown',
-    'ja': '近くに手紙があるがクールダウン中でピックアップできない時の通知',
-    'zh': '附近有信件但因冷却无法拾取时通知',
+    'ko': '근처 쿠폰이 있지만 쿨다운으로 픽업할 수 없을 때 알림',
+    'en': 'Notification when nearby coupon cannot be picked up due to cooldown',
+    'ja': '近くにクーポンがあるがクールダウン中でピックアップできない時の通知',
+    'zh': '附近有优惠券但因冷却无法拾取时通知',
     'es': 'Notificación cuando no se puede recoger por enfriamiento',
-    'fr': 'Notification quand une lettre ne peut être récupérée (délai)',
-    'de': 'Benachrichtigung wenn Brief wegen Wartezeit nicht abholbar',
-    'pt': 'Notificação quando carta não pode ser coletada (tempo de espera)',
-    'ru': 'Уведомление когда письмо нельзя подобрать из-за перезарядки',
+    'fr': 'Notification quand un coupon ne peut être récupéré (délai)',
+    'de': 'Benachrichtigung wenn Coupon wegen Wartezeit nicht abholbar',
+    'pt': 'Notificação quando cupom não pode ser coletado (tempo de espera)',
+    'ru': 'Уведомление когда купон нельзя подобрать из-за перезарядки',
   },
   'report_channel': {
     'ko': '신고 알림',
@@ -158,14 +159,14 @@ const Map<String, Map<String, String>> _notiMessages = {
   },
   'report_desc': {
     'ko': '혜택이 신고되어 임시 차단되었을 때 알림',
-    'en': 'Notification when a letter is reported and temporarily blocked',
-    'ja': '手紙が報告されて一時的にブロックされた時の通知',
-    'zh': '信件被举报并临时屏蔽时通知',
-    'es': 'Notificación cuando una carta es reportada y bloqueada',
-    'fr': 'Notification quand une lettre est signalée et bloquée',
-    'de': 'Benachrichtigung wenn Brief gemeldet und vorübergehend gesperrt',
-    'pt': 'Notificação quando carta é denunciada e bloqueada temporariamente',
-    'ru': 'Уведомление когда письмо заблокировано по жалобе',
+    'en': 'Notification when a coupon is reported and temporarily blocked',
+    'ja': 'クーポンが報告されて一時的にブロックされた時の通知',
+    'zh': '优惠券被举报并临时屏蔽时通知',
+    'es': 'Notificación cuando un cupón es reportado y bloqueado',
+    'fr': 'Notification quand un coupon est signalé et bloqué',
+    'de': 'Benachrichtigung wenn Coupon gemeldet und vorübergehend gesperrt',
+    'pt': 'Notificação quando cupom é denunciado e bloqueado temporariamente',
+    'ru': 'Уведомление когда купон заблокирован по жалобе',
   },
 };
 
@@ -174,79 +175,79 @@ const Map<String, Map<String, String>> _notiMessages = {
 // 의미상 유지. 각 언어 복사는 그대로, 이모지만 위치별 교체.
 const Map<String, List<String>> _arrivedTitlesByLang = {
   'ko': [
-    '🎟 새 편지가 도착했어요!',
-    '🌏 먼 곳에서 편지가 왔어요!',
-    '🗺 편지함에 새 편지!',
-    '🎁 편지가 여행을 마쳤어요!',
-    '📩 편지가 무사히 도착했어요!',
-    '✨ 바다를 건너 편지가 왔어요!',
-    '🎯 새로운 편지 소식!',
-    '📮 세계 어딘가에서 편지 도착!',
+    '🎟 새 쿠폰이 도착했어요!',
+    '🌏 먼 곳에서 혜택이 왔어요!',
+    '🗺 받은함에 새 쿠폰!',
+    '🎁 쿠폰이 여행을 마쳤어요!',
+    '📩 혜택이 무사히 도착했어요!',
+    '✨ 바다를 건너 쿠폰이 왔어요!',
+    '🎯 새로운 혜택 소식!',
+    '📮 세계 어딘가에서 쿠폰 도착!',
   ],
   'en': [
-    '🎟 A new letter has arrived!',
-    '🌏 A letter from afar!',
-    '🗺 New letter in your mailbox!',
-    '🎁 A letter finished its journey!',
-    '📩 A letter arrived safely!',
-    '✨ A letter crossed the ocean!',
-    '🎯 New letter alert!',
-    '📮 Letter arrived from somewhere!',
+    '🎟 A new coupon has arrived!',
+    '🌏 A deal from afar!',
+    '🗺 New coupon in your wallet!',
+    '🎁 A coupon finished its journey!',
+    '📩 A deal arrived safely!',
+    '✨ A coupon crossed the ocean!',
+    '🎯 New deal alert!',
+    '📮 Coupon arrived from somewhere!',
   ],
   'ja': [
-    '🎟 新しい手紙が届きました！',
-    '🌏 遠くから手紙が来ました！',
-    '🗺 新しい手紙です！',
-    '🎁 手紙が旅を終えました！',
-    '📩 手紙が無事届きました！',
-    '✨ 海を越えて手紙が来ました！',
-    '🎯 新しい手紙のお知らせ！',
-    '📮 世界のどこかから手紙到着！',
+    '🎟 新しいクーポンが届きました！',
+    '🌏 遠くから特典が来ました！',
+    '🗺 新しいクーポンです！',
+    '🎁 クーポンが旅を終えました！',
+    '📩 特典が無事届きました！',
+    '✨ 海を越えてクーポンが来ました！',
+    '🎯 新しい特典のお知らせ！',
+    '📮 世界のどこかからクーポン到着！',
   ],
   'zh': [
-    '🎟 新信件到了！',
-    '🌏 远方来信！',
-    '🗺 信箱里有新信！',
-    '🎁 信件完成了旅程！',
-    '📩 信件安全到达！',
-    '✨ 跨洋来信！',
-    '🎯 新信件提醒！',
-    '📮 来自某处的信件！',
+    '🎟 新优惠券到了！',
+    '🌏 远方来券！',
+    '🗺 钱包里有新优惠券！',
+    '🎁 优惠券完成了旅程！',
+    '📩 优惠安全到达！',
+    '✨ 跨洋来券！',
+    '🎯 新优惠提醒！',
+    '📮 来自某处的优惠券！',
   ],
 };
 
 Map<String, List<String> Function(String, String)> _arrivedBodiesByLang = {
   'ko': (String flag, String country) => [
-    '$flag $country에서 보낸 편지가 도착했습니다',
-    '$flag $country 누군가의 이야기가 당신을 향해 왔어요',
-    '$flag $country에서 출발한 편지가 목적지에 도착!',
-    '$flag $country의 마음이 담긴 편지가 왔어요',
-    '먼 $flag $country에서 편지병이 떠내려왔어요',
-    '$flag $country 편지가 긴 여행을 마치고 도착했어요',
+    '$flag $country에서 보낸 쿠폰이 도착했습니다',
+    '$flag $country 누군가의 혜택이 당신을 향해 왔어요',
+    '$flag $country에서 출발한 쿠폰이 목적지에 도착!',
+    '$flag $country의 마음이 담긴 혜택이 왔어요',
+    '먼 $flag $country에서 쿠폰이 떠내려왔어요',
+    '$flag $country 쿠폰이 긴 여행을 마치고 도착했어요',
   ],
   'en': (String flag, String country) => [
-    'A letter from $flag $country has arrived',
-    'Someone in $flag $country sent you a story',
-    'A letter from $flag $country reached its destination!',
-    'A heartfelt letter from $flag $country arrived',
-    'A letter drifted over from $flag $country',
-    'A letter from $flag $country finished its long journey',
+    'A coupon from $flag $country has arrived',
+    'Someone in $flag $country sent you a deal',
+    'A coupon from $flag $country reached its destination!',
+    'A heartfelt offer from $flag $country arrived',
+    'A coupon drifted over from $flag $country',
+    'A coupon from $flag $country finished its long journey',
   ],
   'ja': (String flag, String country) => [
-    '$flag $countryからの手紙が届きました',
-    '$flag $countryの誰かの物語があなたに届きました',
-    '$flag $countryから出発した手紙が到着！',
-    '$flag $countryからの心のこもった手紙が届きました',
-    '遠い$flag $countryから手紙が流れ着きました',
-    '$flag $countryの手紙が長い旅を終えて届きました',
+    '$flag $countryからのクーポンが届きました',
+    '$flag $countryの誰かの特典があなたに届きました',
+    '$flag $countryから出発したクーポンが到着！',
+    '$flag $countryからの心のこもった特典が届きました',
+    '遠い$flag $countryからクーポンが流れ着きました',
+    '$flag $countryのクーポンが長い旅を終えて届きました',
   ],
   'zh': (String flag, String country) => [
-    '来自$flag $country的信件已到达',
-    '$flag $country的某人向你讲述了一个故事',
-    '从$flag $country出发的信件到达了目的地！',
-    '来自$flag $country的真挚信件到了',
-    '一封信从$flag $country漂流而来',
-    '$flag $country的信件完成了漫长旅程',
+    '来自$flag $country的优惠券已到达',
+    '$flag $country的某人为你送来一份优惠',
+    '从$flag $country出发的优惠券到达了目的地！',
+    '来自$flag $country的真挚优惠到了',
+    '一张优惠券从$flag $country漂流而来',
+    '$flag $country的优惠券完成了漫长旅程',
   ],
 };
 
@@ -272,62 +273,62 @@ const Map<String, String> _dailyReminderTitles = {
   'th': '🗺 ดูคูปองวันนี้',
 };
 
-// Anticipation ping ~1h before the next incoming letter arrives.
+// Anticipation ping ~1h before the next incoming coupon arrives.
 // 📮 (postbox) → 📩 (incoming envelope) — 임박 도착 정서를 더 잘 전달.
 const Map<String, String> _arrivalCountdownTitles = {
-  'ko': '📩 편지가 1시간 후 도착해요',
-  'en': '📩 A letter arrives in about an hour',
-  'ja': '📩 手紙はあと1時間で到着します',
-  'zh': '📩 信件将在约 1 小时后到达',
-  'fr': '📩 Une lettre arrive dans environ une heure',
-  'de': '📩 Ein Brief kommt in etwa einer Stunde an',
-  'es': '📩 Una carta llega en aproximadamente una hora',
-  'pt': '📩 Uma carta chega em cerca de uma hora',
-  'ru': '📩 Письмо придёт примерно через час',
-  'tr': '📩 Bir mektup yaklaşık bir saat içinde varıyor',
-  'ar': '📩 ستصل رسالة بعد نحو ساعة',
-  'it': '📩 Una lettera arriva tra circa un\'ora',
-  'hi': '📩 लगभग एक घंटे में एक पत्र पहुँचेगा',
-  'th': '📩 จดหมายจะถึงในอีกประมาณหนึ่งชั่วโมง',
+  'ko': '📩 쿠폰이 1시간 후 도착해요',
+  'en': '📩 A coupon arrives in about an hour',
+  'ja': '📩 クーポンはあと1時間で到着します',
+  'zh': '📩 优惠券将在约 1 小时后到达',
+  'fr': '📩 Un coupon arrive dans environ une heure',
+  'de': '📩 Ein Coupon kommt in etwa einer Stunde an',
+  'es': '📩 Un cupón llega en aproximadamente una hora',
+  'pt': '📩 Um cupom chega em cerca de uma hora',
+  'ru': '📩 Купон придёт примерно через час',
+  'tr': '📩 Bir kupon yaklaşık bir saat içinde varıyor',
+  'ar': '📩 سيصل كوبون بعد نحو ساعة',
+  'it': '📩 Un coupon arriva tra circa un\'ora',
+  'hi': '📩 लगभग एक घंटे में एक कूपन पहुँचेगा',
+  'th': '📩 คูปองจะถึงในอีกประมาณหนึ่งชั่วโมง',
 };
 
 String _arrivalCountdownBody(String langCode, String flag, String country) {
   switch (langCode) {
-    case 'ko': return '$flag $country에서 출발한 편지가 곧 우편함에 도착해요';
-    case 'ja': return '$flag $countryから出発した手紙がもうすぐ届きます';
-    case 'zh': return '来自 $flag $country 的信件即将到达你的信箱';
-    case 'fr': return 'Une lettre partie de $flag $country arrive bientôt';
-    case 'de': return 'Ein Brief aus $flag $country erreicht bald deinen Kasten';
-    case 'es': return 'Una carta desde $flag $country está por llegar';
-    case 'pt': return 'Uma carta de $flag $country está quase chegando';
-    case 'ru': return 'Письмо из $flag $country скоро будет в ящике';
-    case 'tr': return '$flag $country\'dan yola çıkan mektup kutuna yaklaşıyor';
-    case 'ar': return 'رسالة من $flag $country ستصل إلى صندوقك قريباً';
-    case 'it': return 'Una lettera da $flag $country sta per arrivare';
-    case 'hi': return '$flag $country से एक पत्र जल्द ही आपके मेलबॉक्स में';
-    case 'th': return 'จดหมายจาก $flag $country กำลังจะถึงกล่องของคุณ';
+    case 'ko': return '$flag $country에서 출발한 쿠폰이 곧 받은함에 도착해요';
+    case 'ja': return '$flag $countryから出発したクーポンがもうすぐ届きます';
+    case 'zh': return '来自 $flag $country 的优惠券即将到达你的钱包';
+    case 'fr': return 'Un coupon parti de $flag $country arrive bientôt';
+    case 'de': return 'Ein Coupon aus $flag $country erreicht bald deine Wallet';
+    case 'es': return 'Un cupón desde $flag $country está por llegar';
+    case 'pt': return 'Um cupom de $flag $country está quase chegando';
+    case 'ru': return 'Купон из $flag $country скоро будет у вас';
+    case 'tr': return '$flag $country\'dan yola çıkan kupon cüzdanına yaklaşıyor';
+    case 'ar': return 'كوبون من $flag $country سيصل إلى محفظتك قريباً';
+    case 'it': return 'Un coupon da $flag $country sta per arrivare';
+    case 'hi': return '$flag $country से एक कूपन जल्द ही आपकी वॉलेट में';
+    case 'th': return 'คูปองจาก $flag $country กำลังจะถึงกระเป๋าของคุณ';
     case 'en':
-    default: return 'A letter from $flag $country is about to reach your mailbox';
+    default: return 'A coupon from $flag $country is about to reach your wallet';
   }
 }
 
 // Build 117: 본문도 헌트 포지셔닝 — "누군가 편지를 보냈을지도" 에서 "근처
 // 지도를 열어보면 새 쿠폰이 있을지도" 로. 구체적인 액션 유도.
 const Map<String, String> _dailyReminderBodies = {
-  'ko': '근처 지도에 새로 떨어진 할인·홍보 편지를 주워보세요',
-  'en': 'Open the map — discount letters may have dropped nearby',
-  'ja': '近くの地図を開いて、新しい割引・プロモ手紙を拾いましょう',
-  'zh': '打开附近地图，看看新落下的优惠信件',
-  'fr': "Ouvre la carte — des coupons sont peut-être tombés près de toi",
-  'de': 'Öffne die Karte — vielleicht warten neue Rabatt-Briefe in der Nähe',
+  'ko': '근처 지도에 새로 떨어진 할인·홍보 쿠폰을 주워보세요',
+  'en': 'Open the map — fresh discount coupons may have dropped nearby',
+  'ja': '近くの地図を開いて、新しい割引・プロモのクーポンを拾いましょう',
+  'zh': '打开附近地图，看看新落下的优惠券',
+  'fr': "Ouvre la carte — de nouveaux coupons de réduction sont peut-être tombés près de toi",
+  'de': 'Öffne die Karte — vielleicht warten neue Rabatt-Coupons in der Nähe',
   'es': 'Abre el mapa — puede que haya cupones nuevos cerca de ti',
   'pt': 'Abre o mapa — podem ter caído novos cupões perto de ti',
-  'ru': 'Откройте карту — рядом могли выпасть новые купонные письма',
-  'tr': 'Haritayı aç — yakınlarına yeni indirim mektupları düşmüş olabilir',
-  'ar': 'افتح الخريطة — ربما سقطت رسائل خصم قربك',
-  'it': 'Apri la mappa — potrebbero esserci nuovi coupon vicino a te',
-  'hi': 'नक्शा खोलो — पास में नए कूपन पत्र गिरे हो सकते हैं',
-  'th': 'เปิดแผนที่ — อาจมีจดหมายส่วนลดใหม่ตกอยู่ใกล้คุณ',
+  'ru': 'Откройте карту — рядом могли выпасть новые купоны со скидками',
+  'tr': 'Haritayı aç — yakınlarına yeni indirim kuponları düşmüş olabilir',
+  'ar': 'افتح الخريطة — ربما سقطت كوبونات خصم جديدة قربك',
+  'it': 'Apri la mappa — potrebbero esserci nuovi coupon sconto vicino a te',
+  'hi': 'नक्शा खोलो — पास में नए डिस्काउंट कूपन गिरे हो सकते हैं',
+  'th': 'เปิดแผนที่ — อาจมีคูปองส่วนลดใหม่ตกอยู่ใกล้คุณ',
 };
 
 class NotificationService {
@@ -466,28 +467,28 @@ class NotificationService {
   // ── Localized channel metadata ─────────────────────────────────────────────
   static const _channelNames = <String, Map<String, String>>{
     'nearby_letter': {
-      'ko': '근처 편지 알림',
-      'en': 'Nearby Letter Alerts',
-      'ja': '近くの手紙通知',
-      'zh': '附近信件通知',
+      'ko': '근처 쿠폰 알림',
+      'en': 'Nearby Coupon Alerts',
+      'ja': '近くのクーポン通知',
+      'zh': '附近优惠券通知',
     },
     'nearby_letter_desc': {
-      'ko': '500m 이내에 편지가 도착했을 때 알림',
-      'en': 'Alerts when a letter arrives within 500m',
-      'ja': '500m以内に手紙が届いた時の通知',
-      'zh': '当信件到达500米以内时通知',
+      'ko': '500m 이내에 쿠폰이 도착했을 때 알림',
+      'en': 'Alerts when a coupon arrives within 500m',
+      'ja': '500m以内にクーポンが届いた時の通知',
+      'zh': '当优惠券到达500米以内时通知',
     },
     'letter_arrived': {
       'ko': '혜택 도착 알림',
-      'en': 'Letter Arrival Alerts',
-      'ja': '手紙到着通知',
-      'zh': '信件到达通知',
+      'en': 'Coupon Arrival Alerts',
+      'ja': 'クーポン到着通知',
+      'zh': '优惠券到达通知',
     },
     'letter_arrived_desc': {
-      'ko': '새 편지가 도착했을 때 알림',
-      'en': 'Alerts when a new letter arrives',
-      'ja': '新しい手紙が届いた時の通知',
-      'zh': '新信件到达时通知',
+      'ko': '새 혜택이 도착했을 때 알림',
+      'en': 'Alerts when a new coupon arrives',
+      'ja': '新しいクーポンが届いた時の通知',
+      'zh': '新优惠券到达时通知',
     },
     'dm_arrived': {
       'ko': 'DM 도착 알림',
@@ -572,7 +573,11 @@ class NotificationService {
       final bodies = bodyFn(senderFlag, senderCountry);
       final body = bodies[_rng.nextInt(bodies.length)];
 
-      await _plugin.show(1, title, body, details);
+      // Build 265: 고정 ID `1` 이라 빠르게 도착한 새 알림이 이전 알림을
+      // 덮어써 사용자가 마지막 한 건만 보던 회귀 수정. 100~999 범위
+      // 회전 ID 로 다중 도착 알림 모두 표시.
+      final id = 100 + _rng.nextInt(900);
+      await _plugin.show(id, title, body, details);
     } catch (e) {
       debugPrint('Letter notification error: $e');
     }
@@ -603,10 +608,18 @@ class NotificationService {
         iOS: iosDetails,
       );
 
+      // Build 265: DM 메시지 자르기를 substring → characters.take 로 변경.
+      // 이모지/한글 결합 그래핌이 40 코드유닛 경계에서 잘려 깨진 글리프가
+      // 푸시 본문에 노출되던 케이스 수정.
+      final preview = message.characters.length > 40
+          ? '${message.characters.take(40)}...'
+          : message;
+      // Build 265: 고정 ID `2` 회귀 수정 — 다중 DM 도착 시 모두 표시.
+      final id = 1100 + _rng.nextInt(900);
       await _plugin.show(
-        2,
+        id,
         '💬 $senderName${_notiMsg('dm_title', langCode)}',
-        message.length > 40 ? '${message.substring(0, 40)}...' : message,
+        preview,
         details,
       );
     } catch (e) {
@@ -711,9 +724,9 @@ class NotificationService {
 
       const androidDetails = AndroidNotificationDetails(
         'daily_letter_reminder',
-        'Daily Letter Reminder',
+        'Daily Coupon Reminder',
         channelDescription:
-            'Daily nudge to open the mailbox and read today\'s letters',
+            'Daily nudge to open the wallet and check today\'s coupons',
         importance: Importance.defaultImportance,
         priority: Priority.defaultPriority,
         icon: '@mipmap/ic_launcher',
@@ -779,9 +792,9 @@ class NotificationService {
 
       const androidDetails = AndroidNotificationDetails(
         'letter_arrival_countdown',
-        'Letter Arrival Countdown',
+        'Coupon Arrival Countdown',
         channelDescription:
-            'Anticipation ping about an hour before a letter arrives',
+            'Anticipation ping about an hour before a coupon arrives',
         importance: Importance.defaultImportance,
         priority: Priority.defaultPriority,
         icon: '@mipmap/ic_launcher',

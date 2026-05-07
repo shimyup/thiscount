@@ -40,22 +40,95 @@ const List<LetterFilterType> _visibleFilters = [
 
 /// Build 264: 산업군 키워드 사전. letter.content + senderName + redemptionInfo
 /// 안에 키워드 하나라도 있으면 그 산업군에 해당.
+/// Build 265: 14개 언어 — JP/ZH/EU 사용자도 매칭이 동작하도록 확장.
 const Map<LetterFilterType, List<String>> _industryKeywords = {
   LetterFilterType.food: [
+    // ko
     '음식','맛집','식당','레스토랑','한식','중식','일식','양식','치킨','피자','버거','파스타','마라','고기','회','초밥','라면','분식','국밥','찌개','국수','면','도시락','런치','디너','야식','스테이크','정식','백반','음식점','분식점','뷔페','뷔페식',
-    'food','restaurant','dish','meal','lunch','dinner','snack','burger','pizza','pasta','ramen','sushi','bbq','steak','dining','cuisine','eatery'
+    // en
+    'food','restaurant','dish','meal','lunch','dinner','snack','burger','pizza','pasta','ramen','sushi','bbq','steak','dining','cuisine','eatery',
+    // ja
+    '料理','食事','レストラン','食堂','和食','中華','洋食','寿司','ラーメン','うどん','そば','焼肉','弁当','ランチ','ディナー','居酒屋','定食','焼鳥',
+    // zh
+    '美食','餐厅','饭店','餐馆','料理','中餐','西餐','日料','寿司','拉面','烤肉','火锅','便当','午餐','晚餐','小吃',
+    // fr/de/es/pt/it
+    'cuisine','plat','restaurant','déjeuner','dîner','pizza','pasta',
+    'gericht','speise','restaurant','mittagessen','abendessen','imbiss',
+    'comida','restaurante','almuerzo','cena','plato',
+    'comida','restaurante','almoço','jantar','prato',
+    'cibo','ristorante','pranzo','cena','piatto',
+    // ru/tr/ar/hi/th
+    'еда','ресторан','блюдо','обед','ужин',
+    'yemek','restoran','öğle','akşam yemeği',
+    'طعام','مطعم','وجبة',
+    'भोजन','रेस्तरां','खाना',
+    'อาหาร','ร้านอาหาร','มื้อกลางวัน','มื้อค่ำ',
   ],
   LetterFilterType.cafe: [
+    // ko
     '카페','커피','라떼','에스프레소','아메리카노','디저트','케이크','와플','베이커리','빵','도넛','마카롱','스무디','주스','에이드','녹차','홍차','허브티','브런치',
-    'cafe','coffee','latte','cappuccino','espresso','americano','dessert','bakery','donut','macaron','smoothie','juice','tea','brunch'
+    // en
+    'cafe','café','coffee','latte','cappuccino','espresso','americano','dessert','bakery','donut','macaron','smoothie','juice','tea','brunch',
+    // ja
+    'カフェ','コーヒー','珈琲','喫茶店','ラテ','エスプレッソ','カプチーノ','ケーキ','パン','スイーツ','紅茶','緑茶',
+    // zh
+    '咖啡馆','咖啡','拿铁','卡布奇诺','浓缩咖啡','美式咖啡','甜点','蛋糕','面包','奶茶','茶',
+    // fr/de/es/pt/it
+    'café','dessert','pâtisserie','thé',
+    'kaffee','konditorei','bäckerei','tee',
+    'café','postre','panadería','té',
+    'café','sobremesa','padaria','chá',
+    'caffè','dolce','pasticceria','tè',
+    // ru/tr/ar/hi/th
+    'кофейня','кофе','чай','десерт',
+    'kahve','tatlı','pasta','çay',
+    'مقهى','قهوة','شاي','حلويات',
+    'कैफ़े','कॉफ़ी','चाय','मिठाई',
+    'คาเฟ่','กาแฟ','ชา','ขนม',
   ],
   LetterFilterType.beauty: [
+    // ko
     '뷰티','화장품','미용','헤어','네일','마사지','에스테틱','왁싱','피부','스킨','메이크업','립스틱','마스크팩','선크림','토너','에센스','샴푸','린스','트리트먼트','향수','퍼퓸','퍼머','염색','스파',
-    'beauty','cosmetic','salon','hair','nail','spa','massage','skin','makeup','lipstick','cushion','mask','serum','shampoo','perfume'
+    // en
+    'beauty','cosmetic','salon','hair','nail','spa','massage','skin','makeup','lipstick','cushion','mask','serum','shampoo','perfume',
+    // ja
+    '美容','コスメ','化粧品','サロン','ヘア','ネイル','マッサージ','エステ','スキンケア','メイク','口紅','香水','シャンプー',
+    // zh
+    '美容','化妆品','美甲','美发','按摩','护肤','彩妆','口红','面膜','香水','洗发水',
+    // fr/de/es/pt/it
+    'beauté','cosmétique','salon','coiffure','manucure','massage','parfum',
+    'schönheit','kosmetik','salon','haar','nagel','massage','parfüm',
+    'belleza','cosmético','salón','cabello','uñas','masaje','perfume',
+    'beleza','cosmético','salão','cabelo','unhas','massagem','perfume',
+    'bellezza','cosmetico','salone','capelli','unghie','massaggio','profumo',
+    // ru/tr/ar/hi/th
+    'красота','косметика','салон','волосы','маникюр','массаж','духи',
+    'güzellik','kozmetik','salon','saç','tırnak','masaj','parfüm',
+    'جمال','مستحضرات تجميل','صالون','شعر','أظافر','تدليك','عطر',
+    'सौंदर्य','सौंदर्य प्रसाधन','सैलून','बाल','नाखून','मालिश','इत्र',
+    'ความงาม','เครื่องสำอาง','ซาลอน','ผม','เล็บ','นวด','น้ำหอม',
   ],
   LetterFilterType.fashion: [
+    // ko
     '패션','옷','의류','신발','가방','액세서리','쥬얼리','주얼리','모자','양말','티셔츠','셔츠','원피스','스커트','바지','청바지','코트','재킷','후드','맨투맨','운동화','구두','샌들','부츠','벨트','스카프','선글라스','시계',
-    'fashion','clothing','clothes','shoes','bag','accessory','jewelry','hat','tshirt','shirt','dress','skirt','pants','jeans','coat','jacket','hoodie','sneakers','heels','boots','watch'
+    // en
+    'fashion','clothing','clothes','shoes','bag','accessory','jewelry','hat','tshirt','shirt','dress','skirt','pants','jeans','coat','jacket','hoodie','sneakers','heels','boots','watch',
+    // ja
+    'ファッション','服','衣類','靴','バッグ','アクセサリー','ジュエリー','帽子','シャツ','ワンピース','スカート','パンツ','ジーンズ','コート','ジャケット','スニーカー','ブーツ','時計',
+    // zh
+    '时尚','服装','衣服','鞋子','包包','配饰','珠宝','帽子','衬衫','连衣裙','裙子','裤子','牛仔裤','外套','夹克','运动鞋','靴子','手表',
+    // fr/de/es/pt/it
+    'mode','vêtement','chaussure','sac','accessoire','bijou','chemise','robe','jupe','pantalon','jean','manteau','veste','baskets','montre',
+    'mode','kleidung','schuhe','tasche','schmuck','hemd','kleid','rock','hose','jeans','mantel','jacke','turnschuhe','uhr',
+    'moda','ropa','zapatos','bolso','accesorio','joya','camisa','vestido','falda','pantalón','vaqueros','abrigo','chaqueta','zapatillas','reloj',
+    'moda','roupa','sapato','bolsa','acessório','joia','camisa','vestido','saia','calça','jeans','casaco','jaqueta','tênis','relógio',
+    'moda','vestiti','scarpe','borsa','accessorio','gioielli','camicia','vestito','gonna','pantaloni','jeans','cappotto','giacca','scarpe da ginnastica','orologio',
+    // ru/tr/ar/hi/th
+    'мода','одежда','обувь','сумка','аксессуар','украшение','рубашка','платье','юбка','брюки','джинсы','куртка','часы',
+    'moda','giysi','ayakkabı','çanta','aksesuar','mücevher','gömlek','elbise','etek','pantolon','kot','ceket','spor ayakkabı','saat',
+    'موضة','ملابس','حذاء','حقيبة','إكسسوار','مجوهرات','قميص','فستان','تنورة','بنطال','جينز','معطف','سترة','ساعة',
+    'फ़ैशन','कपड़े','जूते','बैग','सहायक','गहने','शर्ट','पोशाक','स्कर्ट','पैंट','जींस','कोट','जैकेट','घड़ी',
+    'แฟชั่น','เสื้อผ้า','รองเท้า','กระเป๋า','เครื่องประดับ','เสื้อเชิ้ต','ชุด','กระโปรง','กางเกง','ยีนส์','โค้ท','แจ็คเก็ต','นาฬิกา',
   ],
 };
 

@@ -3,7 +3,7 @@ description: "Thiscount - Pick up coupons and discounts around you"
 publish_to: 'none'
 homepage: 'https://globaldrift.com'
 issue_tracker: 'https://globaldrift.com/support'
-version: 1.0.0+264
+version: 1.0.0+265
 
 environment:
   sdk: ^3.11.0
@@ -15,6 +15,7 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
+  characters: ^1.4.0
   flutter_map: ^8.2.2
   latlong2: ^0.9.1
   provider: ^6.1.5

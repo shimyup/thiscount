@@ -18487,10 +18487,19 @@ class AppL10n {
   });
 
   String get labelBrandLetter => _t({
-    'ko': '브랜드 레터', 'en': 'BRAND LETTER', 'ja': 'ブランドレター', 'zh': '品牌信件',
-    'fr': 'LETTRE DE MARQUE', 'de': 'MARKENBRIEF', 'es': 'CARTA DE MARCA',
-    'pt': 'CARTA DA MARCA', 'ru': 'ПИСЬМО БРЕНДА', 'tr': 'MARKA MEKTUP',
-    'ar': 'رسالة العلامة التجارية', 'it': 'LETTERA BRAND', 'hi': 'ब्रांड पत्र', 'th': 'จดหมายแบรนด์',
+    'ko': '브랜드 쿠폰', 'en': 'BRAND COUPON', 'ja': 'ブランドクーポン', 'zh': '品牌优惠券',
+    'fr': 'COUPON DE MARQUE', 'de': 'MARKEN-COUPON', 'es': 'CUPÓN DE MARCA',
+    'pt': 'CUPOM DE MARCA', 'ru': 'КУПОН БРЕНДА', 'tr': 'MARKA KUPONU',
+    'ar': 'كوبون العلامة التجارية', 'it': 'COUPON BRAND', 'hi': 'ब्रांड कूपन', 'th': 'คูปองแบรนด์',
+  });
+
+  /// Build 265: Brand Express delivery 배지. 기존엔 영어 하드코딩이라
+  /// 비영어 사용자도 'EXPRESS DELIVERY' 만 보였음.
+  String get letterReadExpressDeliveryBadge => _t({
+    'ko': '⚡ 특송', 'en': '⚡ EXPRESS DELIVERY', 'ja': '⚡ 特急配送', 'zh': '⚡ 特快配送',
+    'fr': '⚡ LIVRAISON EXPRESS', 'de': '⚡ EXPRESS-LIEFERUNG', 'es': '⚡ ENTREGA EXPRÉS',
+    'pt': '⚡ ENTREGA EXPRESSA', 'ru': '⚡ ЭКСПРЕСС-ДОСТАВКА', 'tr': '⚡ HIZLI TESLİMAT',
+    'ar': '⚡ توصيل سريع', 'it': '⚡ CONSEGNA ESPRESSO', 'hi': '⚡ एक्सप्रेस डिलीवरी', 'th': '⚡ จัดส่งด่วน',
   });
 
   String get labelAdmin => _t({

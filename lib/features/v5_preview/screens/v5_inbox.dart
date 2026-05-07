@@ -96,7 +96,7 @@ class _V5InboxScreenState extends State<V5InboxScreen> {
               category: V5Category.letter,
               brand: 'Tokyo · @harumi',
               title: '"오늘 시부야 비 와요"',
-              sub: '개인 편지 · 1.2 km',
+              sub: '개인 메시지 · 1.2 km',
               deadline: '2H',
               onTap: widget.onCardTap,
             ),

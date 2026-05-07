@@ -1004,6 +1004,10 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                     Flexible(
                       child: Text(
                         letter.isAnonymous ? l10n.letterReadAnonymousSender : letter.senderName,
+                        // Build 265: 매우 긴 sender 이름이 2~3 줄로 줄바꿈되어
+                        // VERIFIED 배지가 줄바꿈된 꼬리 옆에 깔리던 회귀 수정.
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 17,
@@ -1460,9 +1464,9 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                                 ),
                               ),
                               if (letter.letterType == LetterType.brandExpress)
-                                const Text(
-                                  '⚡ EXPRESS DELIVERY',
-                                  style: TextStyle(
+                                Text(
+                                  l10n.letterReadExpressDeliveryBadge,
+                                  style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 8,
                                     fontWeight: FontWeight.w600,

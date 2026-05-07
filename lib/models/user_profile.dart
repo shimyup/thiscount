@@ -395,12 +395,12 @@ extension TowerTierExt on TowerTier {
 
   // ── Poetic tower names (14 languages) ──────────────────────────────────
   static const _towerNames = <TowerTier, Map<String, String>>{
-    TowerTier.shack: {'ko': '작은 편지 오두막', 'en': 'Little Letter Cottage', 'ja': '小さな手紙小屋', 'zh': '小小信屋', 'fr': 'Petite Cabane à Lettres', 'de': 'Kleine Briefhütte', 'es': 'Pequeña Cabaña de Cartas', 'pt': 'Pequena Cabana de Cartas', 'ru': 'Маленькая Почтовая Хижина', 'tr': 'Küçük Mektup Kulübesi', 'ar': 'كوخ الرسائل الصغير', 'it': 'Piccola Capanna di Lettere', 'hi': 'छोटी पत्र कुटीर', 'th': 'กระท่อมจดหมายเล็กๆ'},
+    TowerTier.shack: {'ko': '작은 메시지 오두막', 'en': 'Little Message Cottage', 'ja': '小さなメッセージ小屋', 'zh': '小小消息屋', 'fr': 'Petite Cabane à Messages', 'de': 'Kleine Nachrichtenhütte', 'es': 'Pequeña Cabaña de Mensajes', 'pt': 'Pequena Cabana de Mensagens', 'ru': 'Маленькая Хижина Сообщений', 'tr': 'Küçük Mesaj Kulübesi', 'ar': 'كوخ الرسائل الصغير', 'it': 'Piccola Capanna di Messaggi', 'hi': 'छोटी संदेश कुटीर', 'th': 'กระท่อมข้อความเล็กๆ'},
     TowerTier.cottage: {'ko': '들판의 이야기집', 'en': 'Field Story House', 'ja': '野の物語の家', 'zh': '田野故事屋', 'fr': 'Maison des Histoires des Champs', 'de': 'Feld-Geschichtenhaus', 'es': 'Casa de Historias del Campo', 'pt': 'Casa de Histórias do Campo', 'ru': 'Полевой Дом Историй', 'tr': 'Tarla Hikâye Evi', 'ar': 'بيت قصص الحقول', 'it': 'Casa delle Storie di Campo', 'hi': 'खेत की कहानी घर', 'th': 'บ้านเรื่องเล่าทุ่งนา'},
-    TowerTier.house: {'ko': '마을 편지터', 'en': 'Village Letter Post', 'ja': '村の手紙場', 'zh': '村庄信站', 'fr': 'Poste aux Lettres du Village', 'de': 'Dorf-Briefstelle', 'es': 'Correo del Pueblo', 'pt': 'Posto de Cartas da Vila', 'ru': 'Деревенская Почта', 'tr': 'Köy Mektup Durağı', 'ar': 'مكتب بريد القرية', 'it': 'Posta del Villaggio', 'hi': 'गाँव डाक चौकी', 'th': 'ไปรษณีย์หมู่บ้าน'},
+    TowerTier.house: {'ko': '마을 메시지 발신소', 'en': 'Village Message Post', 'ja': '村のメッセージ場', 'zh': '村庄消息站', 'fr': 'Poste aux Messages du Village', 'de': 'Dorf-Nachrichtenstelle', 'es': 'Correo del Pueblo', 'pt': 'Posto de Mensagens da Vila', 'ru': 'Деревенская Почта', 'tr': 'Köy Mesaj Durağı', 'ar': 'مكتب بريد القرية', 'it': 'Posta del Villaggio', 'hi': 'गाँव डाक चौकी', 'th': 'ไปรษณีย์หมู่บ้าน'},
     TowerTier.townhouse: {'ko': '골목 서재', 'en': 'Alley Library', 'ja': '路地裏の書斎', 'zh': '小巷书房', 'fr': 'Bibliothèque de Ruelle', 'de': 'Gassen-Bibliothek', 'es': 'Biblioteca del Callejón', 'pt': 'Biblioteca do Beco', 'ru': 'Переулочная Библиотека', 'tr': 'Sokak Kütüphanesi', 'ar': 'مكتبة الزقاق', 'it': 'Biblioteca del Vicolo', 'hi': 'गली का पुस्तकालय', 'th': 'ห้องสมุดตรอก'},
     TowerTier.building: {'ko': '도시 메신저탑', 'en': 'City Messenger Tower', 'ja': '都市のメッセンジャー塔', 'zh': '城市信使塔', 'fr': 'Tour du Messager Urbain', 'de': 'Stadt-Botenturm', 'es': 'Torre del Mensajero Urbano', 'pt': 'Torre do Mensageiro Urbano', 'ru': 'Городская Башня Вестников', 'tr': 'Şehir Haberci Kulesi', 'ar': 'برج رسل المدينة', 'it': 'Torre del Messaggero Urbano', 'hi': 'शहर संदेशवाहक मीनार', 'th': 'หอผู้ส่งสารเมือง'},
-    TowerTier.office: {'ko': '구름 편지국', 'en': 'Cloud Post Office', 'ja': '雲の郵便局', 'zh': '云端邮局', 'fr': 'Bureau de Poste des Nuages', 'de': 'Wolken-Postamt', 'es': 'Oficina Postal de las Nubes', 'pt': 'Correio das Nuvens', 'ru': 'Облачная Почта', 'tr': 'Bulut Postanesi', 'ar': 'مكتب بريد السحاب', 'it': 'Ufficio Postale delle Nuvole', 'hi': 'बादल डाक घर', 'th': 'ไปรษณีย์เมฆ'},
+    TowerTier.office: {'ko': '구름 메시지국', 'en': 'Cloud Post Office', 'ja': '雲の郵便局', 'zh': '云端邮局', 'fr': 'Bureau de Poste des Nuages', 'de': 'Wolken-Postamt', 'es': 'Oficina Postal de las Nubes', 'pt': 'Correio das Nuvens', 'ru': 'Облачная Почта', 'tr': 'Bulut Postanesi', 'ar': 'مكتب بريد السحاب', 'it': 'Ufficio Postale delle Nuvole', 'hi': 'बादल डाक घर', 'th': 'ไปรษณีย์เมฆ'},
     TowerTier.skyscraper: {'ko': '하늘 기록탑', 'en': 'Sky Chronicle Tower', 'ja': '天空記録塔', 'zh': '天空记录塔', 'fr': 'Tour des Chroniques du Ciel', 'de': 'Himmels-Chronikturm', 'es': 'Torre Crónica del Cielo', 'pt': 'Torre Crônica do Céu', 'ru': 'Башня Небесных Хроник', 'tr': 'Gökyüzü Kronik Kulesi', 'ar': 'برج سجلات السماء', 'it': 'Torre Cronache del Cielo', 'hi': 'आकाश इतिवृत्त मीनार', 'th': 'หอบันทึกท้องฟ้า'},
     TowerTier.supertall: {'ko': '천공의 탑', 'en': 'Celestial Spire', 'ja': '天空の塔', 'zh': '天穹之塔', 'fr': 'Flèche Céleste', 'de': 'Himmelsspitze', 'es': 'Aguja Celestial', 'pt': 'Pináculo Celestial', 'ru': 'Небесный Шпиль', 'tr': 'Gök Sivri Kulesi', 'ar': 'برج السماء', 'it': 'Guglia Celeste', 'hi': 'खगोलीय शिखर', 'th': 'ยอดสวรรค์'},
     TowerTier.megatower: {'ko': '세계의 정점', 'en': 'Apex of the World', 'ja': '世界の頂点', 'zh': '世界之巅', 'fr': 'Sommet du Monde', 'de': 'Gipfel der Welt', 'es': 'Cima del Mundo', 'pt': 'Ápice do Mundo', 'ru': 'Вершина Мира', 'tr': 'Dünyanın Zirvesi', 'ar': 'قمة العالم', 'it': 'Apice del Mondo', 'hi': 'विश्व का शिखर', 'th': 'จุดสูงสุดของโลก'},
@@ -431,6 +431,11 @@ class UserProfile {
   List<String> followerIds; // IDs of users who follow me
   bool isUsernamePublic; // 닉네임 공개 여부
   bool isSnsPublic; // SNS 링크 공개 여부
+  // Build 265: 지도 노출은 닉네임 공개와 별도 필드.
+  // 이전엔 isUsernamePublic 한 토글이 두 가지를 동시에 통제 → "닉네임은
+  // 공개하되 위치는 비공개" 가 불가능했음. null 이면 username 토글을 따름
+  // (legacy migration). 사용자가 별도 토글하면 명시값.
+  bool? isMapPublic;
   // ── 프리미엄/유료 전용 필드 ──────────────────────────────────────────────
   bool isBrand; // 브랜드/크리에이터 인증 계정
   String? brandName; // 브랜드 표시명
@@ -480,6 +485,7 @@ class UserProfile {
     List<String>? followerIds,
     this.isUsernamePublic = true,
     this.isSnsPublic = true,
+    this.isMapPublic,
     this.isBrand = false,
     this.brandName,
     this.towerColor = '#FFD700',

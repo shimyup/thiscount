@@ -357,7 +357,9 @@ class Letter {
     destinationCountryFlag: destinationCountryFlag,
     destinationCity: destinationCity,
     destinationDisplayAddress: destinationDisplayAddress,
-    segments: segments,
+    // 동일 reference 공유 시 worldLetters 와 inbox 가 segment progress 를
+    // 서로 조작 — 받은함 사본은 새 list 로 격리.
+    segments: List<RouteSegment>.from(segments),
     currentSegmentIndex: currentSegmentIndex,
     status: status,
     sentAt: sentAt,
@@ -402,8 +404,25 @@ class Letter {
       DateTime.now().isAfter(redemptionExpiresAt!);
 
   // ── 현재 구간 ───────────────────────────────────────────────────────────────
-  RouteSegment get currentSegment =>
-      segments[currentSegmentIndex.clamp(0, segments.length - 1)];
+  /// segments 가 비어 있으면 RangeError 가 나기 때문에 destination 좌표로
+  /// fallback 한 sentinel segment 를 반환. welcome/brand_ad seed letters 는
+  /// segments 를 의도적으로 비울 때가 있어 방어가 필요.
+  RouteSegment get currentSegment {
+    if (segments.isEmpty) {
+      return RouteSegment(
+        from: destinationLocation,
+        to: destinationLocation,
+        mode: TransportMode.truck,
+        fromName: destinationCountry,
+        toName: destinationCountry,
+        fromType: HubType.destination,
+        toType: HubType.destination,
+        estimatedMinutes: 0,
+        progress: 1.0,
+      );
+    }
+    return segments[currentSegmentIndex.clamp(0, segments.length - 1)];
+  }
 
   // ── 현재 위치 ───────────────────────────────────────────────────────────────
   LatLng get currentLocation => currentSegment.currentPosition;

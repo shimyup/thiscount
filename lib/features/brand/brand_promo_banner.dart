@@ -1,3 +1,4 @@
+import 'package:characters/characters.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/localization/app_localizations.dart';
@@ -329,7 +330,9 @@ class _BrandPromoBannerState extends State<BrandPromoBanner>
         );
     final trimmed = firstLine.trim();
     if (trimmed.isEmpty) return l.brandTicketFallbackTitle;
-    if (trimmed.length <= 28) return trimmed;
-    return '${trimmed.substring(0, 26)}…';
+    // 그래핌(이모지/한글 결합) 단위로 자르기 — 코드유닛 기반 substring 은
+    // 가족·피부톤 이모지나 결합형 한글에서 잘림 → mojibake 발생.
+    if (trimmed.characters.length <= 28) return trimmed;
+    return '${trimmed.characters.take(26)}…';
   }
 }

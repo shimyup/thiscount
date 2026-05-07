@@ -138,6 +138,11 @@ class _GlobalDriftAppState extends State<GlobalDriftApp> {
     super.initState();
     _appState = AppState();
     _appState.addListener(_onAppStateChanged);
+    // Build 265: foreground 복귀마다 trial 만료 점검 — 7일 이상 long-session
+    // 사용자가 cold-start 가 안 일어나 영원히 Premium 유지하던 회귀 보강.
+    _appState.registerForegroundResumeListener(() {
+      _purchaseService.recheckTrialExpiry();
+    });
     // Build 254: 푸시 알림 탭 → 인박스 화면 이동. 향후 payload 별 deep link
     // (예: 'inbox?letter=xxx') 분기 추가 가능. 현재는 모든 알림 → /home_inbox.
     NotificationService.onNotificationTap = (payload) {

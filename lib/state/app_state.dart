@@ -278,6 +278,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   Duration? get nearbyPickupRemainingCooldown {
     if (_lastNearbyPickupAt == null) return null;
     final elapsed = DateTime.now().difference(_lastNearbyPickupAt!);
+    // 디바이스 시간이 거꾸로 가면 elapsed 가 음수 — 쿨다운이 늘어나는 버그 방지.
+    if (elapsed.isNegative) return null;
     if (elapsed >= _nearbyPickupCooldown) return null;
     return _nearbyPickupCooldown - elapsed;
   }
@@ -1821,6 +1823,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _startDeliverySimulation();
   }
 
+  // Build 265: foreground resume callback — main.dart 에서 PurchaseService
+  // .recheckTrialExpiry 등을 wire up.
+  VoidCallback? _onForegroundResume;
+  void registerForegroundResumeListener(VoidCallback cb) {
+    _onForegroundResume = cb;
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -1845,6 +1854,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       }
       // 서버 사용자/편지 동기화 재개 (비용 최적화)
       resumeServerSyncFromBackground();
+      // Build 265: long-session 케이스 — foreground 복귀 시마다 trial 만료
+      // 재점검. cold-start 가 안 일어나면 7일+ 사용자가 영원히 Premium 유지하던
+      // 회귀 보강. PurchaseService 가 직접 주입되지 않으므로 callback 구조.
+      _onForegroundResume?.call();
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
       // 백그라운드 진입 → 타이머 정지 + 주소 캐시 저장
@@ -3928,13 +3941,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       }
 
       const sampleBodies = <String>[
-        '안녕하세요! 오늘 우연히 이 앱을 알게 되어 첫 편지를 보내요. 당신의 하루는 어떤가요?',
-        'こんにちは！世界の反対側から手紙を送ります。良い一日を！',
+        '안녕하세요! 오늘 우연히 이 앱을 알게 되어 첫 메시지를 보내요. 당신의 하루는 어떤가요?',
+        'こんにちは！世界の反対側からメッセージを送ります。良い一日を！',
         'Hello from across the world! Hope this little note brightens your day.',
         '낯선 사람의 안부, 그 자체가 작은 선물이라고 믿어요. 항상 건강하세요.',
-        'Bonjour ! J\'envoie cette lettre depuis très loin. Quel temps fait-il chez toi ?',
-        '걷다가 우연히 발견한 편지가 누군가의 하루를 바꿀 수 있다면, 그게 마법이겠죠.',
-        '¡Hola! Envío esta carta con mucho cariño. Espero que te haga sonreír.',
+        'Bonjour ! J\'envoie ce message depuis très loin. Quel temps fait-il chez toi ?',
+        '걷다가 우연히 발견한 메시지가 누군가의 하루를 바꿀 수 있다면, 그게 마법이겠죠.',
+        '¡Hola! Envío este mensaje con mucho cariño. Espero que te haga sonreír.',
         'Wherever you are, may today be gentler than yesterday.',
       ];
 
@@ -4048,10 +4061,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
-  void updatePrivacySettings({bool? isUsernamePublic, bool? isSnsPublic}) {
+  void updatePrivacySettings({
+    bool? isUsernamePublic,
+    bool? isSnsPublic,
+    bool? isMapPublic,
+  }) {
     _currentUser.isUsernamePublic =
         isUsernamePublic ?? _currentUser.isUsernamePublic;
     _currentUser.isSnsPublic = isSnsPublic ?? _currentUser.isSnsPublic;
+    if (isMapPublic != null) _currentUser.isMapPublic = isMapPublic;
     _saveToPrefs();
     _saveUserToFirestore();
     notifyListeners();
@@ -4090,8 +4108,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'latitude': {'doubleValue': coarseLat},
         'longitude': {'doubleValue': coarseLng},
         'isUsernamePublic': {'booleanValue': _currentUser.isUsernamePublic},
-        // 지도 노출은 명시적 opt-in 필드로 관리
-        'isMapPublic': {'booleanValue': _currentUser.isUsernamePublic},
+        // Build 265: 지도 노출은 별도 토글. 명시값이 있으면 그것, 없으면
+        // legacy 호환을 위해 username 토글을 따라간다.
+        'isMapPublic': {
+          'booleanValue':
+              _currentUser.isMapPublic ?? _currentUser.isUsernamePublic,
+        },
         // 로그아웃 스냅샷 + 최근 활동 타임스탬프
         'lastSeenAt': {
           'timestampValue': DateTime.now().toUtc().toIso8601String(),
@@ -5438,7 +5460,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         senderCountry: '영국',
         senderFlag: '🇬🇧',
         content:
-            '비가 내리는 런던의 카페에서 이 편지를 씁니다. 오늘따라 낯선 곳의 낯선 누군가와 연결되고 싶었어요. 당신은 지금 어디에 있나요?',
+            '비가 내리는 런던의 카페에서 이 메시지를 씁니다. 오늘따라 낯선 곳의 낯선 누군가와 연결되고 싶었어요. 당신은 지금 어디에 있나요?',
         fromCountry: '영국',
         fromLat: 51.5074,
         fromLng: -0.1278,
@@ -5474,7 +5496,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         senderCountry: '이탈리아',
         senderFlag: '🇮🇹',
         content:
-            'Ciao! 로마의 트레비 분수 앞에서 동전을 던지며 이 편지를 씁니다. 소원은 비밀이에요. 당신의 소원은 무엇인가요?',
+            'Ciao! 로마의 트레비 분수 앞에서 동전을 던지며 이 메시지를 씁니다. 소원은 비밀이에요. 당신의 소원은 무엇인가요?',
         fromCountry: '이탈리아',
         fromLat: 41.9028,
         fromLng: 12.4964,
@@ -5531,7 +5553,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       senderName: 'Mia Chen',
       senderCountry: '대만',
       senderFlag: '🇹🇼',
-      content: '타이베이에서 보내는 편지입니다. 잘 도착했으면 좋겠어요!',
+      content: '타이베이에서 보내는 메시지입니다. 잘 도착했으면 좋겠어요!',
       fromCountry: '대만',
       fromLat: 25.0330,
       fromLng: 121.5654,
@@ -6902,6 +6924,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final before = _inbox.length;
     _inbox.removeWhere((l) => l.id == letterId);
     if (_inbox.length < before) {
+      // pickUpLetter 에서 예약된 쿠폰 만료 알림 정리 — 삭제된 쿠폰의
+      // "내일 만료" 푸시가 도착해 잘못된 deeplink 로 가는 것을 방지.
+      NotificationService.cancelCouponExpiryReminder(letterId);
       notifyListeners();
       _saveToPrefs();
     }

@@ -29,16 +29,16 @@ enum UserLevel {
   String get welcomeMessage {
     switch (this) {
       case UserLevel.newbie:
-        return '첫 편지를 보내볼까요?';
+        return '첫 메시지를 보내볼까요?';
       case UserLevel.beginner:
         // Build 188: "탑 레벨" → 레터 레벨. 일반 회원에게 타워 잔상 완전 제거.
         return '🎟 카운터 레벨이 공개되었어요';
       case UserLevel.casual:
-        return '✉️ 오늘의 편지가 해금되었어요';
+        return '✉️ 오늘의 쿠폰이 해금되었어요';
       case UserLevel.regular:
-        return '🎨 편지지·폰트를 마음껏 꾸밀 수 있어요';
+        return '🎨 카드·폰트를 마음껏 꾸밀 수 있어요';
       case UserLevel.experienced:
-        return '🌍 주변 편지 줍기와 DM 이 열렸어요';
+        return '🌍 주변 쿠폰 줍기와 DM 이 열렸어요';
     }
   }
 }

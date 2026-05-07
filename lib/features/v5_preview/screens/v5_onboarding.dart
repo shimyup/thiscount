@@ -238,7 +238,7 @@ class _Page2 extends StatelessWidget {
           style: V5Text.display.copyWith(fontSize: 32, letterSpacing: -1.4),
         ),
         const SizedBox(height: 10),
-        Text('쿠폰, 편지, 멤버십. 위로 넘기며 본다.', style: V5Text.body),
+        Text('쿠폰, 메시지, 멤버십. 위로 넘기며 본다.', style: V5Text.body),
       ],
     );
   }

@@ -1362,6 +1362,9 @@ class _SignupTabState extends State<_SignupTab> {
     // Build 262: 신규 가입 7일 무료 Premium 부여 (cold-start 해소).
     // 영구 어드민(ceo@airony.xyz) 은 isAdmin 처리에서 Premium 자격이 있어 별도
     // trial 부여 불필요 — grantWelcomeTrial 내부에서 이미 Premium/Brand 면 no-op.
+    // mounted 재확인 — prefs await 사이 위젯이 dispose 될 수 있어 context.read 가
+    // 던지는 것을 방지.
+    if (!mounted) return;
     try {
       await context.read<PurchaseService>().grantWelcomeTrial(days: 7);
     } catch (_) {}

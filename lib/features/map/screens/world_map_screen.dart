@@ -2154,6 +2154,11 @@ class _WorldMapScreenState extends State<WorldMapScreen>
               (l) => l.id == letter.id,
               orElse: () => letter,
             );
+            // Build 265: LetterReadScreen 을 push 한 뒤 곧바로 showDialog 를
+            // 부르면 dialog 가 read screen 뒤에 깔려 보이지 않는 회귀가 있었음.
+            // 축하 모달은 detail screen 을 닫고 돌아온 직후에 뿜어준다.
+            final shouldCelebrateFirst = state.shouldCelebrateFirstPickup;
+            final pendingMilestone = state.pendingMilestoneLevel;
             Navigator.push(
               ctx,
               MaterialPageRoute(
@@ -2162,27 +2167,17 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   userLanguageCode: langCode,
                 ),
               ),
-            );
-            // Build 115: 생애 첫 픽업이면 축하 모달을 띄운다. 포스트프레임으로
-            // 밀어 snackbar 애니메이션과 겹치지 않게 한다. 한번 소진하면
-            // SharedPreferences 에 저장되어 다시 뜨지 않음.
-            if (state.shouldCelebrateFirstPickup) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (!ctx.mounted) return;
+            ).then((_) {
+              if (!ctx.mounted) return;
+              if (shouldCelebrateFirst) {
                 _showFirstPickupCelebration(ctx, l10n);
                 state.acknowledgeFirstPickup();
-              });
-            }
-            // Build 120: 마일스톤 레벨(2/5/10/25/50) 에 도달했다면 별도 축하
-            // 모달. 픽업으로 XP 쌓다가 터졌을 가능성이 크므로 여기서 폴링.
-            final milestone = state.pendingMilestoneLevel;
-            if (milestone != null) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (!ctx.mounted) return;
-                _showMilestoneCelebration(ctx, l10n, milestone, state);
+              }
+              if (pendingMilestone != null) {
+                _showMilestoneCelebration(ctx, l10n, pendingMilestone, state);
                 state.acknowledgeMilestone();
-              });
-            }
+              }
+            });
           } else {
             ScaffoldMessenger.of(ctx).showSnackBar(
               SnackBar(

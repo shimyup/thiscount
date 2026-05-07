@@ -2863,7 +2863,7 @@ class _PreferredCategoryCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             unlocked
-                ? '브랜드가 보낸 편지 중 선택 카테고리의 픽업 확률이 올라가요.'
+                ? '브랜드가 보낸 쿠폰 중 선택 카테고리의 픽업 확률이 올라가요.'
                 : (lockReason ?? '잠금 해제'),
             style: const TextStyle(
               color: AppColors.textMuted,

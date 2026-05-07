@@ -27,8 +27,8 @@ class FcmPushService {
   }) async {
     await sendToDevice(
       deviceToken: recipientToken,
-      title: '📩 새 편지가 도착했어요!',
-      body: '$senderFlag $senderCountry에서 보낸 편지가 도착했습니다',
+      title: '📩 새 쿠폰이 도착했어요!',
+      body: '$senderFlag $senderCountry에서 보낸 쿠폰이 도착했습니다',
       data: {'type': 'letter_arrived'},
       serverKey: serverKey,
     );

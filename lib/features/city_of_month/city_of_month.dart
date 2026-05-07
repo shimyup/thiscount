@@ -18,7 +18,7 @@ class CityOfMonth {
       country: '일본',
       countryFlag: '🇯🇵',
       themeEmoji: '❄️',
-      headline: '겨울의 설원에서 온 편지',
+      headline: '겨울의 설원에서 온 메시지',
       description: '눈이 소리 없이 내리는 도시로, 따뜻한 한 줄을 보내세요',
       accentColor: 0xFF9FC5E8, // 연한 하늘색
     ),
@@ -29,7 +29,7 @@ class CityOfMonth {
       countryFlag: '🇫🇷',
       themeEmoji: '🌹',
       headline: '발렌타인의 도시',
-      description: '사랑과 편지의 도시, 파리로 2월의 마음을 전하세요',
+      description: '사랑과 사연의 도시, 파리로 2월의 마음을 전하세요',
       accentColor: 0xFFE06C75,
     ),
     3: CityMonthData(
@@ -49,7 +49,7 @@ class CityOfMonth {
       countryFlag: '🇯🇵',
       themeEmoji: '🌸',
       headline: '벚꽃의 전성기',
-      description: '하늘을 뒤덮은 꽃잎 아래, 계절의 편지를 보내세요',
+      description: '하늘을 뒤덮은 꽃잎 아래, 계절의 메시지를 보내세요',
       accentColor: 0xFFFFB6C1,
     ),
     5: CityMonthData(
@@ -59,7 +59,7 @@ class CityOfMonth {
       countryFlag: '🇲🇦',
       themeEmoji: '🌶️',
       headline: '향신료 시장의 붉은 도시',
-      description: '사하라의 입구에서 여행자의 편지를 띄워보세요',
+      description: '사하라의 입구에서 여행자의 메시지를 띄워보세요',
       accentColor: 0xFFD57247,
     ),
     6: CityMonthData(
@@ -69,7 +69,7 @@ class CityOfMonth {
       countryFlag: '🇹🇷',
       themeEmoji: '🕌',
       headline: '두 대륙이 만나는 곳',
-      description: '유럽과 아시아의 경계에서 인연의 편지를 보내세요',
+      description: '유럽과 아시아의 경계에서 인연의 메시지를 보내세요',
       accentColor: 0xFFD4A44B,
     ),
     7: CityMonthData(
@@ -79,7 +79,7 @@ class CityOfMonth {
       countryFlag: '🇬🇷',
       themeEmoji: '🌊',
       headline: '에게해의 하얀 집',
-      description: '푸른 바다와 하얀 벽 사이로 여름의 편지를',
+      description: '푸른 바다와 하얀 벽 사이로 여름의 메시지를',
       accentColor: 0xFF6BB6FF,
     ),
     8: CityMonthData(
@@ -99,7 +99,7 @@ class CityOfMonth {
       countryFlag: '🇺🇸',
       themeEmoji: '🍂',
       headline: '가을이 가장 먼저 오는 도시',
-      description: '센트럴파크의 낙엽 위로 편지를 흩뿌려보세요',
+      description: '센트럴파크의 낙엽 위로 메시지를 흩뿌려보세요',
       accentColor: 0xFFCC8855,
     ),
     10: CityMonthData(
@@ -109,7 +109,7 @@ class CityOfMonth {
       countryFlag: '🇭🇺',
       themeEmoji: '🍷',
       headline: '도나우강의 노을',
-      description: '야경이 가장 아름다운 달, 가을 편지를 보내세요',
+      description: '야경이 가장 아름다운 달, 가을 메시지를 보내세요',
       accentColor: 0xFFC9805A,
     ),
     11: CityMonthData(
@@ -119,7 +119,7 @@ class CityOfMonth {
       countryFlag: '🇪🇬',
       themeEmoji: '🏜️',
       headline: '사막 너머의 고대',
-      description: '피라미드 너머로 4000년의 편지를 보내세요',
+      description: '피라미드 너머로 4000년의 메시지를 보내세요',
       accentColor: 0xFFD4A44B,
     ),
     12: CityMonthData(
@@ -129,7 +129,7 @@ class CityOfMonth {
       countryFlag: '🇮🇸',
       themeEmoji: '✨',
       headline: '오로라가 흐르는 밤',
-      description: '북극의 빛 아래, 한 해의 마지막 편지를 보내세요',
+      description: '북극의 빛 아래, 한 해의 마지막 메시지를 보내세요',
       accentColor: 0xFF9B7FBF,
     ),
   };
