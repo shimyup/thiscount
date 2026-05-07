@@ -574,9 +574,10 @@ class NotificationService {
       final body = bodies[_rng.nextInt(bodies.length)];
 
       // Build 265: 고정 ID `1` 이라 빠르게 도착한 새 알림이 이전 알림을
-      // 덮어써 사용자가 마지막 한 건만 보던 회귀 수정. 100~999 범위
-      // 회전 ID 로 다중 도착 알림 모두 표시.
-      final id = 100 + _rng.nextInt(900);
+      // 덮어써 사용자가 마지막 한 건만 보던 회귀 수정. 회전 ID 로 다중
+      // 도착 알림 모두 표시. coupon expiry(1000~1_000_999) 와 겹치지 않게
+      // 2_000_000 대로 이동.
+      final id = 2000000 + _rng.nextInt(900);
       await _plugin.show(id, title, body, details);
     } catch (e) {
       debugPrint('Letter notification error: $e');
@@ -615,7 +616,8 @@ class NotificationService {
           ? '${message.characters.take(40)}...'
           : message;
       // Build 265: 고정 ID `2` 회귀 수정 — 다중 DM 도착 시 모두 표시.
-      final id = 1100 + _rng.nextInt(900);
+      // coupon expiry(1000~1_000_999) 영역과 겹치지 않게 3_000_000 대로 이동.
+      final id = 3000000 + _rng.nextInt(900);
       await _plugin.show(
         id,
         '💬 $senderName${_notiMsg('dm_title', langCode)}',

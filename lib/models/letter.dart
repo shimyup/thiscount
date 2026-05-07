@@ -174,6 +174,20 @@ class RouteSegment {
 
   bool get isComplete => progress >= 1.0;
 
+  /// 독립 사본 — Letter.clone 에서 inbox 사본이 worldLetters 의 segment
+  /// progress 를 mutate 해도 원본 worldLetters 가 영향받지 않도록 사용.
+  RouteSegment copy() => RouteSegment(
+    from: from,
+    to: to,
+    mode: mode,
+    fromName: fromName,
+    toName: toName,
+    fromType: fromType,
+    toType: toType,
+    estimatedMinutes: estimatedMinutes,
+    progress: progress,
+  );
+
   Map<String, dynamic> toJson() => {
     'from': from.toJson(),
     'to': to.toJson(),
@@ -358,8 +372,10 @@ class Letter {
     destinationCity: destinationCity,
     destinationDisplayAddress: destinationDisplayAddress,
     // 동일 reference 공유 시 worldLetters 와 inbox 가 segment progress 를
-    // 서로 조작 — 받은함 사본은 새 list 로 격리.
-    segments: List<RouteSegment>.from(segments),
+    // 서로 조작 — 받은함 사본은 새 list + 각 RouteSegment 도 deep copy.
+    // List.from 만 하면 segment 객체 자체는 shared 라 progress 가 mutable
+    // 인 경우 양쪽 동시 변경되는 foot-gun 이 남음 (Build 265 추가 보강).
+    segments: segments.map((s) => s.copy()).toList(),
     currentSegmentIndex: currentSegmentIndex,
     status: status,
     sentAt: sentAt,

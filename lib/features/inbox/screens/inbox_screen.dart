@@ -132,13 +132,40 @@ const Map<LetterFilterType, List<String>> _industryKeywords = {
   ],
 };
 
+/// Latin/Cyrillic/Greek 등 word-bounded 언어는 substring 매칭이 false
+/// positive 를 양산 (예: 'tea' → 'team', 'create'). CJK·태국어 등 띄어쓰기
+/// 없는 스크립트는 substring 이 적절. 키워드 첫 글자 기준으로 분기.
+bool _isWordBoundedScript(String s) {
+  if (s.isEmpty) return false;
+  final c = s.codeUnitAt(0);
+  // Basic Latin + Latin-1 Supplement + Latin Extended + Cyrillic + Greek +
+  // Hebrew + Arabic — 단어 경계 매칭 대상.
+  // CJK (한중일) + 태국 + 데바나가리 (힌디) 는 substring 유지.
+  if (c >= 0x3040 && c <= 0x9FFF) return false; // Hiragana/Katakana/CJK
+  if (c >= 0xAC00 && c <= 0xD7AF) return false; // Hangul
+  if (c >= 0x0E00 && c <= 0x0E7F) return false; // Thai
+  if (c >= 0x0900 && c <= 0x097F) return false; // Devanagari
+  return true;
+}
+
 bool _matchesIndustry(LetterFilterType industry, dynamic letter) {
   final kws = _industryKeywords[industry];
   if (kws == null || kws.isEmpty) return false;
   final hay = ('${letter.content ?? ''} ${letter.senderName ?? ''} ${letter.redemptionInfo ?? ''}')
       .toLowerCase();
+  // Latin 키워드 word-boundary 매칭용 토큰 set — 한 번만 계산.
+  Set<String>? tokens;
   for (final k in kws) {
-    if (hay.contains(k.toLowerCase())) return true;
+    final kl = k.toLowerCase();
+    if (_isWordBoundedScript(kl)) {
+      tokens ??= hay
+          .split(RegExp(r'''[\s.,!?\-_/()\[\]{}'":;#*~`]+'''))
+          .where((t) => t.isNotEmpty)
+          .toSet();
+      if (tokens.contains(kl)) return true;
+    } else {
+      if (hay.contains(kl)) return true;
+    }
   }
   return false;
 }

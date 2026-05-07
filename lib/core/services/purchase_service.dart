@@ -540,6 +540,9 @@ class PurchaseService extends ChangeNotifier {
       PrefKeys.purchaseNextBillingDate,
     );
     await _loadAndApplyScheduledPlanChange(prefs);
+    // Build 265: trial 잔여 일수 캐시 — UI 가 즉시 읽을 수 있게 init 단계에서
+    // 한 번 채워둔다.
+    await refreshTrialRemainingDays();
     notifyListeners();
   }
 
@@ -607,8 +610,11 @@ class PurchaseService extends ChangeNotifier {
   /// 이미 Premium·Brand 인 사용자는 no-op (덮어쓰지 않음).
   /// 7일 후 `purchaseGiftExpiry` 체크에서 자동 만료 → Free 복귀.
   /// 영구 어드민(ceo@airony.xyz) 은 평생 Premium 이라 별도 처리 불필요.
-  Future<void> grantWelcomeTrial({int days = 7}) async {
-    if (_isPremium || _isBrand) return; // 이미 보유 → no-op
+  /// 반환 true = 실제로 trial 부여됨, false = 이미 Premium/Brand 라 no-op.
+  /// welcome_letter 카피가 "trial just started" 라고 하기 전에 호출처가
+  /// 이 결과로 분기해야 false claim 회귀 방지.
+  Future<bool> grantWelcomeTrial({int days = 7}) async {
+    if (_isPremium || _isBrand) return false; // 이미 보유 → no-op
     final prefs = await _getPrefs();
     final expiry = DateTime.now().add(Duration(days: days));
     _isPremium = true;
@@ -617,7 +623,9 @@ class PurchaseService extends ChangeNotifier {
       PrefKeys.purchaseGiftExpiry,
       expiry.millisecondsSinceEpoch,
     );
+    _trialRemainingDaysCache = days;
     notifyListeners();
+    return true;
   }
 
   // ── Trial 만료 점검 (Build 265: foreground resume 시 호출) ────────────────
@@ -629,12 +637,17 @@ class PurchaseService extends ChangeNotifier {
     final giftExpiry = prefs.getInt(PrefKeys.purchaseGiftExpiry) ?? 0;
     if (giftExpiry <= 0) return;
     final expiry = DateTime.fromMillisecondsSinceEpoch(giftExpiry);
-    if (!DateTime.now().isAfter(expiry)) return;
+    if (!DateTime.now().isAfter(expiry)) {
+      // 아직 만료 전 — 잔여일수 캐시는 갱신해 UI 배너가 매일 카운트다운.
+      await refreshTrialRemainingDays();
+      return;
+    }
     if (!_isBrand) {
       _isPremium = false;
       await _saveSecurePremiumState(isPremium: false, isBrand: _isBrand);
     }
     await prefs.remove(PrefKeys.purchaseGiftExpiry);
+    _trialRemainingDaysCache = null;
     notifyListeners();
   }
 

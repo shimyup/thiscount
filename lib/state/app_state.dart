@@ -278,8 +278,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   Duration? get nearbyPickupRemainingCooldown {
     if (_lastNearbyPickupAt == null) return null;
     final elapsed = DateTime.now().difference(_lastNearbyPickupAt!);
-    // 디바이스 시간이 거꾸로 가면 elapsed 가 음수 — 쿨다운이 늘어나는 버그 방지.
-    if (elapsed.isNegative) return null;
+    // 디바이스 시간이 거꾸로 갔거나 미래 timestamp 가 저장된 경우.
+    // 단순히 null 만 반환하면 시계가 다시 앞으로 갈 때 쿨다운이 부활해
+    // 사용자가 "아까 풀렸는데?" 하고 혼란 — timestamp 자체를 비워서
+    // 영구 해제하고 prefs 에도 반영.
+    if (elapsed.isNegative) {
+      _lastNearbyPickupAt = null;
+      _saveToPrefs();
+      return null;
+    }
     if (elapsed >= _nearbyPickupCooldown) return null;
     return _nearbyPickupCooldown - elapsed;
   }
@@ -1823,11 +1830,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _startDeliverySimulation();
   }
 
-  // Build 265: foreground resume callback — main.dart 에서 PurchaseService
-  // .recheckTrialExpiry 등을 wire up.
-  VoidCallback? _onForegroundResume;
+  // Build 265: foreground resume callbacks — main.dart 에서 PurchaseService
+  // .recheckTrialExpiry 등을 wire up. 단일 슬롯이 아닌 list 라 hot-reload /
+  // 추가 listener 등록에도 첫 listener 가 사라지지 않음.
+  final List<VoidCallback> _onForegroundResumeListeners = [];
   void registerForegroundResumeListener(VoidCallback cb) {
-    _onForegroundResume = cb;
+    if (_onForegroundResumeListeners.contains(cb)) return;
+    _onForegroundResumeListeners.add(cb);
+  }
+  void removeForegroundResumeListener(VoidCallback cb) {
+    _onForegroundResumeListeners.remove(cb);
   }
 
   @override
@@ -1857,7 +1869,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       // Build 265: long-session 케이스 — foreground 복귀 시마다 trial 만료
       // 재점검. cold-start 가 안 일어나면 7일+ 사용자가 영원히 Premium 유지하던
       // 회귀 보강. PurchaseService 가 직접 주입되지 않으므로 callback 구조.
-      _onForegroundResume?.call();
+      for (final cb in _onForegroundResumeListeners) {
+        try {
+          cb();
+        } catch (_) {}
+      }
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
       // 백그라운드 진입 → 타이머 정지 + 주소 캐시 저장
@@ -2239,6 +2255,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       );
       // 줍기 완료 편지 ID 목록 저장
       prefs.setStringList('myPickedUpLetterIds', _myPickedUpLetterIds.toList());
+      // Build 265: 프라이버시 토글 영속화 — 이전엔 Firestore 만 쓰여서
+      // cold-start 시 default(true) 로 재설정되던 회귀.
+      prefs.setBool('privacy_isUsernamePublic', _currentUser.isUsernamePublic);
+      prefs.setBool('privacy_isSnsPublic', _currentUser.isSnsPublic);
+      // isMapPublic 은 nullable — null 인 경우 (legacy) 별도 키로 기록 안 함.
+      final mp = _currentUser.isMapPublic;
+      if (mp == null) {
+        prefs.remove('privacy_isMapPublic');
+      } else {
+        prefs.setBool('privacy_isMapPublic', mp);
+      }
     });
   }
 
@@ -2570,6 +2597,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // 이미 줍기한 편지 ID 목록 복원
     final pickedIds = prefs.getStringList('myPickedUpLetterIds') ?? [];
     _myPickedUpLetterIds.addAll(pickedIds);
+
+    // Build 265: 프라이버시 토글 복원 — pre-existing 누락 + 신규 isMapPublic.
+    // null 인 경우 기존 default(true) 유지 — 기존 사용자 동작 변화 없음.
+    final pUser = prefs.getBool('privacy_isUsernamePublic');
+    if (pUser != null) _currentUser.isUsernamePublic = pUser;
+    final pSns = prefs.getBool('privacy_isSnsPublic');
+    if (pSns != null) _currentUser.isSnsPublic = pSns;
+    // isMapPublic 은 nullable — 키 없으면 null 유지(legacy: username 토글 따름).
+    if (prefs.containsKey('privacy_isMapPublic')) {
+      _currentUser.isMapPublic = prefs.getBool('privacy_isMapPublic');
+    }
 
     // 서버 동기화 중복 방지용 ID 캐시 초기화 (로컬 편지 모두 등록)
     _seenLetterIds
@@ -3779,7 +3817,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   // 웰컴 편지: 유저별 1회만 시딩. 이미 존재하면 no-op.
-  Future<void> _seedWelcomeLetterIfNeeded() async {
+  /// Build 265: trial 안내 카피는 actually-granted 인 경우에만 노출.
+  /// `gotTrial` 은 grantWelcomeTrial 의 반환값을 받아 호출처에서 전달하거나,
+  /// 미지정 시 `purchaseGiftExpiry` 키 존재 여부로 추정.
+  Future<void> _seedWelcomeLetterIfNeeded({bool? gotTrial}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final seedKey = 'welcome_letter_seeded_${_currentUser.id}';
@@ -3787,6 +3828,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       if (_inbox.any((l) => l.senderId == 'letter_go_welcome')) {
         await prefs.setBool(seedKey, true);
         return;
+      }
+      // 호출처가 명시 안 했으면 prefs 의 trial 만료 시각으로 추정 — 키가
+      // 있고 미래면 trial 진행 중.
+      bool trialActive = gotTrial ?? false;
+      if (gotTrial == null) {
+        final exp = prefs.getInt(PrefKeys.purchaseGiftExpiry) ?? 0;
+        trialActive = exp > 0 && exp > DateTime.now().millisecondsSinceEpoch;
       }
       final letter = buildWelcomeLetter(
         userId: _currentUser.id,
@@ -3797,6 +3845,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         langCode: _currentUser.languageCode.isNotEmpty
             ? _currentUser.languageCode
             : 'en',
+        withTrial: trialActive,
       );
       _inbox.insert(0, letter);
       await prefs.setBool(seedKey, true);
