@@ -2704,7 +2704,23 @@ class _LetterFilterBar extends StatelessWidget {
     }
   }
 
+  /// Build 266: 필터 시트를 섹션 그룹 + chip grid 로 재설계.
+  /// 이전엔 12개 평면 리스트라 "어디에 뭐가 있는지" 한눈에 안 잡혔음.
+  /// 이제 카테고리(혜택 종류) / 산업(매장 분야) 두 그룹 + 전체 토글로 분리.
   void _openSheet(BuildContext ctx, AppL10n l10n) {
+    // 섹션 정의 — emoji + 그룹 라벨
+    final categorySection = <LetterFilterType>[
+      LetterFilterType.general,
+      LetterFilterType.coupon,
+      LetterFilterType.voucher,
+    ];
+    final industrySection = <LetterFilterType>[
+      LetterFilterType.food,
+      LetterFilterType.cafe,
+      LetterFilterType.beauty,
+      LetterFilterType.fashion,
+    ];
+
     showModalBottomSheet(
       context: ctx,
       backgroundColor: AppColors.bgCard,
@@ -2729,59 +2745,58 @@ class _LetterFilterBar extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 18),
-              Text(
-                l10n.inboxFilterAll.toUpperCase(),
-                style: const TextStyle(
-                  color: AppColors.textMuted,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.66,
-                ),
+
+              // 전체 토글 — 한 줄 wide chip
+              _FilterChip(
+                emoji: _emptyEmojiForFilter(LetterFilterType.all),
+                label: _textLabel(LetterFilterType.all, l10n),
+                selected: activeFilter == LetterFilterType.all,
+                fullWidth: true,
+                onTap: () {
+                  Navigator.of(sheetCtx).pop();
+                  onChanged(LetterFilterType.all);
+                },
               ),
-              const SizedBox(height: 12),
-              ..._visibleFilters.map((type) {
-                final selected = type == activeFilter;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Material(
-                    color: selected ? AppColors.gold : AppColors.bgSurface,
-                    borderRadius: BorderRadius.circular(14),
-                    clipBehavior: Clip.antiAlias,
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.of(sheetCtx).pop();
-                        onChanged(type);
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                _textLabel(type, l10n),
-                                style: TextStyle(
-                                  color: selected
-                                      ? const Color(0xFF1A1300)
-                                      : AppColors.textPrimary,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -0.2,
-                                ),
-                              ),
-                            ),
-                            if (selected)
-                              const Icon(
-                                Icons.check_rounded,
-                                color: Color(0xFF1A1300),
-                                size: 20,
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }),
+              const SizedBox(height: 18),
+
+              // ── 카테고리 섹션 ───────────────────────────────────────
+              _filterSectionHeader(l10n.inboxFilterSectionCategory),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: categorySection
+                    .map((t) => _FilterChip(
+                          emoji: _emptyEmojiForFilter(t),
+                          label: _textLabel(t, l10n),
+                          selected: t == activeFilter,
+                          onTap: () {
+                            Navigator.of(sheetCtx).pop();
+                            onChanged(t);
+                          },
+                        ))
+                    .toList(),
+              ),
+              const SizedBox(height: 18),
+
+              // ── 산업 섹션 ──────────────────────────────────────────
+              _filterSectionHeader(l10n.inboxFilterSectionIndustry),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: industrySection
+                    .map((t) => _FilterChip(
+                          emoji: _emptyEmojiForFilter(t),
+                          label: _textLabel(t, l10n),
+                          selected: t == activeFilter,
+                          onTap: () {
+                            Navigator.of(sheetCtx).pop();
+                            onChanged(t);
+                          },
+                        ))
+                    .toList(),
+              ),
             ],
           ),
         ),
@@ -2789,44 +2804,65 @@ class _LetterFilterBar extends StatelessWidget {
     );
   }
 
+  Widget _filterSectionHeader(String text) => Text(
+        text,
+        style: const TextStyle(
+          color: AppColors.textMuted,
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.5,
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     final activeLabel = _textLabel(activeFilter, l10n);
+    final isDefault = activeFilter == LetterFilterType.all;
+    final activeEmoji = _emptyEmojiForFilter(activeFilter);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
       child: GestureDetector(
         onTap: () => _openSheet(context, l10n),
+        // Build 266: 활성 필터 시 gold accent + emoji prefix 로 가시성 강화.
+        // 이전엔 'filter_list' 아이콘만 있어 사용자가 어떤 필터를 켜뒀는지
+        // 직관적으로 안 잡혔음.
         child: Container(
           height: 42,
           padding: const EdgeInsets.symmetric(horizontal: 14),
           decoration: BoxDecoration(
-            color: AppColors.bgCard,
+            color: isDefault
+                ? AppColors.bgCard
+                : AppColors.gold.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(AppRadius.pill),
+            border: isDefault
+                ? null
+                : Border.all(
+                    color: AppColors.gold.withValues(alpha: 0.5),
+                    width: 1,
+                  ),
           ),
           child: Row(
             children: [
-              const Icon(
-                Icons.filter_list_rounded,
-                size: 18,
-                color: AppColors.textPrimary,
-              ),
+              Text(activeEmoji, style: const TextStyle(fontSize: 16)),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   activeLabel,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: isDefault
+                        ? AppColors.textPrimary
+                        : AppColors.gold,
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.2,
                   ),
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.expand_more_rounded,
                 size: 20,
-                color: AppColors.textMuted,
+                color: isDefault ? AppColors.textMuted : AppColors.gold,
               ),
             ],
           ),
@@ -3731,5 +3767,71 @@ class _MonthlyProgressBar extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+/// Build 266: 필터 시트의 chip 버튼.
+/// - 비활성: bgSurface + textPrimary
+/// - 활성: gold + dark text
+/// - emoji prefix 로 한눈에 카테고리 구분
+class _FilterChip extends StatelessWidget {
+  final String emoji;
+  final String label;
+  final bool selected;
+  final bool fullWidth;
+  final VoidCallback onTap;
+
+  const _FilterChip({
+    required this.emoji,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.fullWidth = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final child = Material(
+      color: selected ? AppColors.gold : AppColors.bgSurface,
+      borderRadius: BorderRadius.circular(999),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Row(
+            mainAxisSize: fullWidth ? MainAxisSize.max : MainAxisSize.min,
+            mainAxisAlignment: fullWidth
+                ? MainAxisAlignment.center
+                : MainAxisAlignment.start,
+            children: [
+              Text(emoji, style: const TextStyle(fontSize: 15)),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  color: selected
+                      ? const Color(0xFF1A1300)
+                      : AppColors.textPrimary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.2,
+                ),
+              ),
+              if (selected) ...[
+                const SizedBox(width: 4),
+                const Icon(
+                  Icons.check_rounded,
+                  size: 16,
+                  color: Color(0xFF1A1300),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+    if (fullWidth) return SizedBox(width: double.infinity, child: child);
+    return child;
   }
 }

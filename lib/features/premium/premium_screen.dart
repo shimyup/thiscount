@@ -9,7 +9,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/services/feedback_service.dart';
 import '../../core/services/purchase_service.dart';
 import '../../core/localization/app_localizations.dart';
-import 'premium_collections.dart';
+// Build 266: import 'premium_collections.dart' 제거 — Air Mail Pass 컬렉션 폐기.
 import '../../state/app_state.dart';
 
 class PremiumScreen extends StatefulWidget {
@@ -185,12 +185,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
                     ),
                   ),
 
-                // 비구독자에게만 컬렉션 스토리를 먼저 노출 — 기능 나열 대신
-                // "라이프스타일 패키지"로 감성 프레이밍
-                if (!isPremium && !isBrand) ...[
-                  const PremiumCollectionsPreview(),
-                  const SizedBox(height: 20),
-                ],
+                // Build 266: Air Mail Pass 컬렉션 (Aurora/Harvest/Postmaster)
+                // 섹션 제거 — 사용자 요청. 펜팔 시절 잔재로, Thiscount 포지셔닝
+                // (위치 기반 할인·쿠폰) 과 어긋남.
 
                 // 디버그 전용: 프리미엄 상태 토글
                 if (kDebugMode) ...[

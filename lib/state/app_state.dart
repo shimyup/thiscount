@@ -180,9 +180,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // Build 218: Premium Lv11+ 가 카테고리 선호를 설정하면 매칭 카테고리 편지가
   // 리스트 앞쪽으로 오도록 정렬 부스트 (UI · 알림 · 가장 가까운 편지 추천에서
   // 선호 카테고리 우선 노출).
+  /// Build 266: 본인이 이미 주운 letter 는 제외. 동일 letter 가 maxReaders
+  /// 미달이면 worldLetters 에 남아 다른 사용자가 추가 픽업할 수 있지만,
+  /// **본인의 nearby UI 에선 보이지 않아야** 함 (이미 받은함에 들어있어
+  /// 중복 노출 + "이미 주웠는데 또 떠 있는데?" 혼란 방지).
   List<Letter> get nearbyLetters {
     final list = _worldLetters
-        .where((l) => l.status == DeliveryStatus.nearYou)
+        .where((l) =>
+            l.status == DeliveryStatus.nearYou &&
+            !_myPickedUpLetterIds.contains(l.id))
         .toList();
     final pref = preferredCategory;
     if (pref != null && _currentUser.isPremium && currentLevel >= 11) {
@@ -273,6 +279,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   /// 현재 유저가 이미 줍기한 편지 ID 집합 (동일 편지 중복 줍기 방지)
   final Set<String> _myPickedUpLetterIds = {};
+
+  /// Build 266: 외부 (지도 마커 필터) 에서 읽기 전용으로 접근.
+  Set<String> get myPickedUpLetterIds =>
+      Set<String>.unmodifiable(_myPickedUpLetterIds);
 
   /// 다음 줍기 가능까지 남은 시간 (null = 바로 가능)
   /// Build 265: 부수효과 제거 — 이전엔 시계 역행 감지 시 getter 안에서

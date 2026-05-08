@@ -226,18 +226,24 @@ class _WorldMapScreenState extends State<WorldMapScreen>
         final inboxDelivered = state.inbox
             .where((l) => l.status == DeliveryStatus.delivered)
             .toList();
+        // Build 266: 본인이 이미 주운 letter id 목록 — 마커에서 제외.
+        // worldLetters 에 maxReaders 미달로 남아있어도, 본인 입장에선 이미
+        // inbox 에 있어 중복 노출이 됨. nearby pill 도 빠지고 마커도 빠져야
+        // "이미 주웠는데 왜 또 떠?" 혼란 방지.
+        final myPickedIds = state.myPickedUpLetterIds;
         final letters = _showNearbyOnly
             ? state.nearbyLetters
             : [
                 ...state.worldLetters.where(
                   (l) =>
-                      l.status == DeliveryStatus.inTransit ||
-                      l.status == DeliveryStatus.nearYou ||
-                      // 수령 대기 (목적지 도착, 500m 밖): 지도에서 계속 표시
-                      l.status == DeliveryStatus.deliveredFar ||
-                      // 일반 편지: 도착 후 누군가 열기 전까지 지도에 유지
-                      (l.status == DeliveryStatus.delivered &&
-                          !l.isReadByRecipient),
+                      !myPickedIds.contains(l.id) &&
+                      (l.status == DeliveryStatus.inTransit ||
+                          l.status == DeliveryStatus.nearYou ||
+                          // 수령 대기 (목적지 도착, 500m 밖): 지도에서 계속 표시
+                          l.status == DeliveryStatus.deliveredFar ||
+                          // 일반 편지: 도착 후 누군가 열기 전까지 지도에 유지
+                          (l.status == DeliveryStatus.delivered &&
+                              !l.isReadByRecipient)),
                 ),
                 // 내가 수령했지만 아직 읽지 않은 inbox 편지도 지도에 📮로 표시
                 ...inboxDelivered,

@@ -123,9 +123,9 @@ class _V5InboxScreenState extends State<V5InboxScreen> {
             const SizedBox(height: 10),
             V5WalletCard(
               category: V5Category.premium,
-              brand: 'Air Mail Pass',
-              title: 'Premium',
-              sub: '@shimyup · seq 0421',
+              brand: 'Thiscount',
+              title: 'Premium 멤버십',
+              sub: '@shimyup · 활성',
               deadline: '∞',
               onTap: widget.onCardTap,
             ),
