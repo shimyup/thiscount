@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../features/progression/user_level.dart';
@@ -1845,6 +1846,42 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // 목업 데이터는 디버그 빌드에서만 초기화 (릴리즈 빌드에서는 실 데이터만 사용)
     if (kDebugMode) _initMockData();
     _startDeliverySimulation();
+    // Build 267: 권한 확인 후 위치 스트림 시작 (geofence v1).
+    _startLocationStreamForGeofence();
+  }
+
+  // Build 267: 위치 스트림 (geofence v1) — 50m 이상 이동 시 nearby 체크 + 알림.
+  // foreground / 최근-background 동안 동작. iOS suspended 상태에서 깨우려면
+  // BackgroundModes:location + significantLocationChanges API 필요 (후속).
+  StreamSubscription<Position>? _positionStreamSub;
+
+  void _startLocationStreamForGeofence() {
+    if (_positionStreamSub != null) return;
+    try {
+      const settings = LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 50, // 50m 이동 시마다 trigger
+      );
+      _positionStreamSub = Geolocator.getPositionStream(
+        locationSettings: settings,
+      ).listen(
+        (pos) {
+          // 사용자 위치 갱신 + nearby 재계산 → 트리거.
+          updateUserLocation(pos.latitude, pos.longitude);
+          _runDeliveryTick();
+        },
+        onError: (e) {
+          if (kDebugMode) debugPrint('[geofence] stream error: $e');
+        },
+      );
+    } catch (e) {
+      if (kDebugMode) debugPrint('[geofence] start error: $e');
+    }
+  }
+
+  void _stopLocationStreamForGeofence() {
+    _positionStreamSub?.cancel();
+    _positionStreamSub = null;
   }
 
   // Build 265: foreground resume callbacks — main.dart 에서 PurchaseService
@@ -1873,6 +1910,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       if (_deliveryTimer == null || !_deliveryTimer!.isActive) {
         _startDeliverySimulation();
       }
+      // Build 267: 위치 변화 스트림 재시작 — 이전엔 앱 열 때 1회만 GPS 읽고
+      // 그대로 사용 → 사용자가 카페 앞으로 걸어가도 nearby 트리거 안 됨.
+      _startLocationStreamForGeofence();
       // 서버 편지 동기화 재개
       if (_worldLetterSyncTimer == null || !_worldLetterSyncTimer!.isActive) {
         syncWorldLettersFromServer();
@@ -1896,6 +1936,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
       // 백그라운드 진입 → 타이머 정지 + 주소 캐시 저장
+      // Build 267: position stream 도 정지 (배터리 절약). iOS 진짜 background
+      // geofence 는 platform-side BackgroundModes:location + significant
+      // location changes API 필요 — 후속 작업.
+      _stopLocationStreamForGeofence();
       _deliveryTimer?.cancel();
       _deliveryTimer = null;
       _worldLetterSyncTimer?.cancel();

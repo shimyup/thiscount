@@ -16,6 +16,9 @@ import '../../../widgets/shared_profile_dialogs.dart';
 import '../../../core/localization/country_names.dart';
 import '../../../core/localization/language_config.dart';
 import '../premium/premium_screen.dart';
+import '../brand/brand_verification_sheet.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import '../admin/admin_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -86,6 +89,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // ── 닉네임 수정 (shared_profile_dialogs.dart로 위임) ──────────────────────
   void _editUsername(BuildContext ctx, AppState state) {
     showEditUsernameDialog(ctx, state);
+  }
+
+  /// Build 267: 친구 초대 — 본인 invite code + 메시지 외부 공유.
+  /// 클립보드 복사 + share_plus 동시 trigger.
+  Future<void> _shareInvite(BuildContext ctx, AppState state, AppL10n l) async {
+    final code = state.myInviteCode;
+    final shareText = l.inviteShareText(code);
+    await Clipboard.setData(ClipboardData(text: code));
+    if (!ctx.mounted) return;
+    await Share.share(shareText);
+    if (!ctx.mounted) return;
+    ScaffoldMessenger.of(ctx).showSnackBar(
+      SnackBar(
+        content: Text(l.inviteCodeCopied),
+        backgroundColor: AppColors.teal,
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   // ── SNS 링크 수정 ──────────────────────────────────────────────────────────
@@ -614,35 +635,70 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       builder: (context, purchase, _) {
                         final isPremium = purchase.isPremium || user.isPremium;
                         final isBrand = purchase.isBrand || user.isBrand;
-                        return _tile(
-                          iconWidget: Container(
-                            width: 24,
-                            height: 24,
-                            alignment: Alignment.center,
-                            child: Text(
-                              isBrand ? '🏷️' : (isPremium ? '👑' : '⭐'),
-                              style: const TextStyle(fontSize: 16),
+                        return Column(
+                          children: [
+                            _tile(
+                              iconWidget: Container(
+                                width: 24,
+                                height: 24,
+                                alignment: Alignment.center,
+                                child: Text(
+                                  isBrand ? '🏷️' : (isPremium ? '👑' : '⭐'),
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ),
+                              label: isBrand
+                                  ? l.settingsBrandActive
+                                  : isPremium
+                                  ? l.settingsPremiumActive
+                                  : l.settingsPremiumUpgrade,
+                              subtitle: isBrand
+                                  ? l.settingsBrandDesc
+                                  : isPremium
+                                  ? l.settingsPremiumDesc
+                                  : l.settingsFreeDesc,
+                              trailing: const Icon(
+                                Icons.chevron_right,
+                                color: AppColors.textMuted,
+                                size: 20,
+                              ),
+                              onTap: () => Navigator.push(
+                                ctx,
+                                MaterialPageRoute(
+                                    builder: (_) => PremiumScreen()),
+                              ),
                             ),
-                          ),
-                          label: isBrand
-                              ? l.settingsBrandActive
-                              : isPremium
-                              ? l.settingsPremiumActive
-                              : l.settingsPremiumUpgrade,
-                          subtitle: isBrand
-                              ? l.settingsBrandDesc
-                              : isPremium
-                              ? l.settingsPremiumDesc
-                              : l.settingsFreeDesc,
-                          trailing: const Icon(
-                            Icons.chevron_right,
-                            color: AppColors.textMuted,
-                            size: 20,
-                          ),
-                          onTap: () => Navigator.push(
-                            ctx,
-                            MaterialPageRoute(builder: (_) => PremiumScreen()),
-                          ),
+                            // Build 267: Brand 셀프서브 가입 진입점 — 일반
+                            // 사용자도 사업자등록증으로 Brand 등급 신청 가능.
+                            // Brand 등급은 행 자체 숨김 (이미 신청 끝).
+                            if (!isBrand)
+                              _tile(
+                                icon: Icons.storefront_rounded,
+                                label: l.settingsBrandJoin,
+                                subtitle: l.settingsBrandJoinDesc,
+                                trailing: const Icon(
+                                  Icons.chevron_right,
+                                  color: AppColors.textMuted,
+                                  size: 20,
+                                ),
+                                onTap: () =>
+                                    BrandVerificationSheet.show(ctx),
+                              ),
+                            // Build 267: 친구 초대 진입점 — 이전엔 premium_screen
+                            // 깊숙이 묻혀 있어 viral loop 활성화 안 됨. share_plus
+                            // 로 외부 메신저 / SMS 공유 + 클립보드 복사.
+                            _tile(
+                              icon: Icons.card_giftcard_rounded,
+                              label: l.settingsInviteFriends,
+                              subtitle: l.settingsInviteFriendsDesc,
+                              trailing: const Icon(
+                                Icons.chevron_right,
+                                color: AppColors.textMuted,
+                                size: 20,
+                              ),
+                              onTap: () => _shareInvite(ctx, state, l),
+                            ),
+                          ],
                         );
                       },
                     ),

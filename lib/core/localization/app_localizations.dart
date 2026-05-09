@@ -11903,6 +11903,107 @@ class AppL10n {
     'th': 'อัปเกรดเป็น Premium',
   });
 
+  /// Build 267: 친구 초대 settings 진입점 + 공유 텍스트.
+  String get settingsInviteFriends => _t({
+    'ko': '🎁 친구 초대하기',
+    'en': '🎁 Invite Friends',
+    'ja': '🎁 友達を招待',
+    'zh': '🎁 邀请好友',
+    'fr': '🎁 Inviter des amis',
+    'de': '🎁 Freunde einladen',
+    'es': '🎁 Invitar amigos',
+    'pt': '🎁 Convidar amigos',
+    'ru': '🎁 Пригласить друзей',
+    'tr': '🎁 Arkadaşları davet et',
+    'ar': '🎁 ادعُ الأصدقاء',
+    'it': '🎁 Invita amici',
+    'hi': '🎁 दोस्तों को आमंत्रित करें',
+    'th': '🎁 เชิญเพื่อน',
+  });
+  String get settingsInviteFriendsDesc => _t({
+    'ko': '둘 다 5 크레딧 보상 — 친구가 가입할 때 코드 입력',
+    'en': 'Both get 5 credits — enter code on signup',
+    'ja': '両方に5クレジット — 登録時にコード入力',
+    'zh': '双方各得 5 积分 — 注册时输入代码',
+    'fr': 'Les deux obtenez 5 crédits — code à l\'inscription',
+    'de': 'Beide erhalten 5 Credits — Code bei Anmeldung eingeben',
+    'es': 'Ambos obtienen 5 créditos — código al registrarse',
+    'pt': 'Ambos ganham 5 créditos — código no cadastro',
+    'ru': 'Оба получают 5 кредитов — введите код при регистрации',
+    'tr': 'İkiniz de 5 kredi kazanır — kayıtta kod girin',
+    'ar': 'كلاكما يحصل على 5 نقاط — أدخل الرمز عند التسجيل',
+    'it': 'Entrambi ricevete 5 crediti — codice alla registrazione',
+    'hi': 'दोनों को 5 क्रेडिट — साइनअप पर कोड डालें',
+    'th': 'ทั้งคู่ได้ 5 เครดิต — ใส่โค้ดตอนสมัคร',
+  });
+  String inviteShareText(String code) => _t({
+    'ko': 'Thiscount 에서 근처 쿠폰 줍기. 가입 시 내 코드 $code 입력하면 둘 다 5 크레딧 받아요.\nhttps://thiscount.io',
+    'en': 'Pick up nearby coupons on Thiscount. Use my code $code at signup — we both get 5 credits.\nhttps://thiscount.io',
+    'ja': 'Thiscountで近くのクーポンを拾おう。登録時に私のコード $code を入力すると、二人とも5クレジット獲得。\nhttps://thiscount.io',
+    'zh': '在 Thiscount 上拾取附近优惠券。注册时使用我的代码 $code，双方各得 5 积分。\nhttps://thiscount.io',
+    'fr': 'Ramasse des coupons près de toi sur Thiscount. Utilise mon code $code à l\'inscription — on gagne tous les deux 5 crédits.\nhttps://thiscount.io',
+    'de': 'Sammle Coupons in deiner Nähe auf Thiscount. Code $code bei Anmeldung — wir bekommen beide 5 Credits.\nhttps://thiscount.io',
+    'es': 'Recoge cupones cercanos en Thiscount. Usa mi código $code al registrarte — ambos ganamos 5 créditos.\nhttps://thiscount.io',
+    'pt': 'Pegue cupons próximos no Thiscount. Use meu código $code no cadastro — ambos ganhamos 5 créditos.\nhttps://thiscount.io',
+    'ru': 'Подбирай ближайшие купоны на Thiscount. Введи мой код $code при регистрации — оба получим 5 кредитов.\nhttps://thiscount.io',
+    'tr': 'Thiscount\'ta yakındaki kuponları topla. Kayıtta kodum $code yaz, ikimize 5\'er kredi.\nhttps://thiscount.io',
+    'ar': 'التقط الكوبونات القريبة على Thiscount. استخدم رمزي $code عند التسجيل — كلانا يحصل على 5 نقاط.\nhttps://thiscount.io',
+    'it': 'Raccogli coupon vicini su Thiscount. Usa il mio codice $code alla registrazione — entrambi 5 crediti.\nhttps://thiscount.io',
+    'hi': 'Thiscount पर पास के कूपन उठाएँ। साइनअप पर कोड $code डालें — दोनों को 5 क्रेडिट।\nhttps://thiscount.io',
+    'th': 'เก็บคูปองใกล้ตัวบน Thiscount ใส่โค้ด $code ตอนสมัคร — ได้เครดิตคนละ 5\nhttps://thiscount.io',
+  });
+  String get inviteCodeCopied => _t({
+    'ko': '✓ 초대 코드 복사 완료',
+    'en': '✓ Invite code copied',
+    'ja': '✓ 招待コードをコピー',
+    'zh': '✓ 邀请代码已复制',
+    'fr': '✓ Code d\'invitation copié',
+    'de': '✓ Einladungscode kopiert',
+    'es': '✓ Código de invitación copiado',
+    'pt': '✓ Código de convite copiado',
+    'ru': '✓ Код приглашения скопирован',
+    'tr': '✓ Davet kodu kopyalandı',
+    'ar': '✓ تم نسخ رمز الدعوة',
+    'it': '✓ Codice invito copiato',
+    'hi': '✓ आमंत्रण कोड कॉपी',
+    'th': '✓ คัดลอกโค้ดเชิญแล้ว',
+  });
+
+  /// Build 267: 일반 사용자 → Brand 등급 신청 셀프서브 진입점.
+  String get settingsBrandJoin => _t({
+    'ko': '🏷️ Brand 등급 신청',
+    'en': '🏷️ Apply for Brand Tier',
+    'ja': '🏷️ Brand ランク申請',
+    'zh': '🏷️ 申请 Brand 等级',
+    'fr': '🏷️ Demander le rang Brand',
+    'de': '🏷️ Brand-Stufe beantragen',
+    'es': '🏷️ Solicitar nivel Brand',
+    'pt': '🏷️ Solicitar nível Brand',
+    'ru': '🏷️ Подать заявку на Brand',
+    'tr': '🏷️ Brand seviyesi başvurusu',
+    'ar': '🏷️ التقديم لمستوى Brand',
+    'it': '🏷️ Richiedi livello Brand',
+    'hi': '🏷️ Brand स्तर के लिए आवेदन',
+    'th': '🏷️ สมัครระดับ Brand',
+  });
+
+  String get settingsBrandJoinDesc => _t({
+    'ko': '사업자등록증으로 인증 받고 매장 쿠폰 발송',
+    'en': 'Verify with business registration to send store coupons',
+    'ja': '事業者登録証で認証 → 店舗クーポン発送',
+    'zh': '凭营业执照认证 → 发送店铺优惠券',
+    'fr': 'Vérifiez avec votre registre d\'entreprise pour envoyer des coupons',
+    'de': 'Mit Gewerbeanmeldung verifizieren — Coupons versenden',
+    'es': 'Verifica con registro mercantil para enviar cupones',
+    'pt': 'Verifique com registro comercial para enviar cupons',
+    'ru': 'Подтвердите по выписке — рассылайте купоны',
+    'tr': 'İşletme tescili ile doğrula, kupon gönder',
+    'ar': 'تحقّق بالسجل التجاري لإرسال الكوبونات',
+    'it': 'Verifica con la visura camerale per inviare coupon',
+    'hi': 'व्यवसाय पंजीकरण से सत्यापित — कूपन भेजें',
+    'th': 'ยืนยันด้วยทะเบียนธุรกิจเพื่อส่งคูปอง',
+  });
+
   String get settingsBrandDesc => _t({
     'ko': '인증 브랜드 계정 · 구독 관리',
     'en': 'Verified brand account · Manage subscription',
