@@ -9,6 +9,7 @@ import '../../../models/letter.dart';
 import '../../../models/direct_message.dart';
 import '../../../state/app_state.dart';
 import '../widgets/letter_read_screen.dart';
+import '../../premium/premium_screen.dart';
 import '../../map/screens/letter_detail_map_screen.dart';
 import '../../dm/dm_conversation_screen.dart';
 import '../../merchant/merchant_interest_sheet.dart';
@@ -207,10 +208,17 @@ String _emptyEmojiForFilter(LetterFilterType f) {
 // 필터가 "헌트 모드"인지 판정. 할인권 · 교환권 · 브랜드 편지는 유저가
 // 지도에서 주워야 얻는 것이므로 빈 상태 CTA를 "편지 쓰기"가 아닌
 // "지도에서 찾기"로 바꾼다.
+// Build 267: 산업 필터 (food/cafe/beauty/fashion) 도 hunt — 매장 쿠폰은
+// 사용자가 작성하는 게 아니라 줍는 것. 이전엔 빈 상태에서 '/compose' 로
+// 보내는 UX 오류 회귀.
 bool _isHuntFilter(LetterFilterType f) {
   return f == LetterFilterType.coupon ||
       f == LetterFilterType.voucher ||
-      f == LetterFilterType.brand;
+      f == LetterFilterType.brand ||
+      f == LetterFilterType.food ||
+      f == LetterFilterType.cafe ||
+      f == LetterFilterType.beauty ||
+      f == LetterFilterType.fashion;
 }
 
 // 필터별 이름. inboxEmptyForFilter() 에 전달해 "아직 받은 할인권이 없어요"
@@ -461,15 +469,70 @@ class _InboxScreenState extends State<InboxScreen>
                       ],
                     ),
                   ),
-                // Build 265: Premium 트라이얼 잔여일 배너. 마지막 3일 동안만
-                // 노출 — Day-7 부터 매일 깔리면 피로하니 D-3 부터.
+                // Build 265: Premium 트라이얼 잔여일 배너 (D-3 부터).
+                // Build 267: 트라이얼 종료 직후 인앱 만료 배너 추가 — 알림
+                // 거부한 사용자도 conversion CTA 보도록.
                 Builder(builder: (ctx) {
                   final purchase = ctx.watch<PurchaseService>();
+                  final l10n = AppL10n.of(state.currentUser.languageCode);
+                  // 1) 만료 직후 (Premium → Free 전환 후 dismiss 전) — 우선 노출
+                  if (purchase.trialExpiredBannerPending) {
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(10),
+                          onTap: () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => const PremiumScreen(),
+                            ));
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+                            decoration: BoxDecoration(
+                              color: AppColors.gold.withValues(alpha: 0.18),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: AppColors.gold.withValues(alpha: 0.6),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    l10n.trialExpiredBanner,
+                                    style: const TextStyle(
+                                      color: AppColors.gold,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  visualDensity: VisualDensity.compact,
+                                  iconSize: 18,
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  onPressed: () =>
+                                      purchase.dismissTrialExpiredBanner(),
+                                  icon: const Icon(
+                                    Icons.close_rounded,
+                                    color: AppColors.gold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+                  // 2) D-3 까지 잔여일수
                   final days = purchase.trialRemainingDays;
                   if (days == null || days <= 0 || days > 3) {
                     return const SizedBox.shrink();
                   }
-                  final l10n = AppL10n.of(state.currentUser.languageCode);
                   return Container(
                     margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                     padding: const EdgeInsets.symmetric(

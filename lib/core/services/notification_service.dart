@@ -18,6 +18,7 @@ enum PushCategory {
   cooldown,         // "nearby but on cooldown"
   reportBlock,      // your letter got reported
   couponExpiry,     // Build 134: 보유 쿠폰/교환권 만료 1일 전 알림
+  trialEnding,      // Build 267: Premium 트라이얼 D-2 / D-day 알림 (conversion)
 }
 
 enum PushMode { quiet, standard, full }
@@ -376,9 +377,12 @@ class NotificationService {
             cat == PushCategory.arrivedInbox ||
             cat == PushCategory.arrivalCountdown ||
             cat == PushCategory.dm ||
-            cat == PushCategory.couponExpiry;
+            cat == PushCategory.couponExpiry ||
+            cat == PushCategory.trialEnding;
       case PushMode.quiet:
-        return cat == PushCategory.daily;
+        // Build 267: trial 만료 안내는 quiet 에서도 허용 — 한 번뿐인
+        // conversion 이벤트라 사용자가 quiet 로 잘못 설정해서 놓치면 손실 큼.
+        return cat == PushCategory.daily || cat == PushCategory.trialEnding;
     }
   }
 
@@ -389,7 +393,7 @@ class NotificationService {
   static Future<void> initialize() async {
     if (_initialized) return;
     _initLocalTimezone();
-    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidInit = AndroidInitializationSettings('@drawable/ic_notification');
     const iosInit = DarwinInitializationSettings(
       // Avoid showing the permission alert immediately at app launch.
       // We request notification permission explicitly via requestPermissions().
@@ -530,7 +534,7 @@ class NotificationService {
         channelDescription: _notiMsg('nearby_desc', langCode),
         importance: Importance.high,
         priority: Priority.high,
-        icon: '@mipmap/ic_launcher',
+        icon: '@drawable/ic_notification',
       );
       const iosDetails = DarwinNotificationDetails(
         presentAlert: true,
@@ -560,7 +564,7 @@ class NotificationService {
         channelDescription: _notiMsg('arrived_desc', langCode),
         importance: Importance.high,
         priority: Priority.high,
-        icon: '@mipmap/ic_launcher',
+        icon: '@drawable/ic_notification',
       );
       const iosDetails = DarwinNotificationDetails(
         presentAlert: true,
@@ -602,7 +606,7 @@ class NotificationService {
         channelDescription: _notiMsg('dm_desc', langCode),
         importance: Importance.high,
         priority: Priority.high,
-        icon: '@mipmap/ic_launcher',
+        icon: '@drawable/ic_notification',
       );
       const iosDetails = DarwinNotificationDetails(
         presentAlert: true,
@@ -648,7 +652,7 @@ class NotificationService {
         channelDescription: _notiMsg('cooldown_desc', langCode),
         importance: Importance.defaultImportance,
         priority: Priority.defaultPriority,
-        icon: '@mipmap/ic_launcher',
+        icon: '@drawable/ic_notification',
       );
       const iosDetails = DarwinNotificationDetails(
         presentAlert: true,
@@ -679,7 +683,7 @@ class NotificationService {
         channelDescription: _notiMsg('report_desc', langCode),
         importance: Importance.high,
         priority: Priority.high,
-        icon: '@mipmap/ic_launcher',
+        icon: '@drawable/ic_notification',
       );
       const iosDetails = DarwinNotificationDetails(
         presentAlert: true,
@@ -736,7 +740,7 @@ class NotificationService {
             'Daily nudge to open the wallet and check today\'s coupons',
         importance: Importance.defaultImportance,
         priority: Priority.defaultPriority,
-        icon: '@mipmap/ic_launcher',
+        icon: '@drawable/ic_notification',
       );
       const iosDetails = DarwinNotificationDetails(
         presentAlert: true,
@@ -804,7 +808,7 @@ class NotificationService {
             'Anticipation ping about an hour before a coupon arrives',
         importance: Importance.defaultImportance,
         priority: Priority.defaultPriority,
-        icon: '@mipmap/ic_launcher',
+        icon: '@drawable/ic_notification',
       );
       const iosDetails = DarwinNotificationDetails(
         presentAlert: true,
@@ -876,7 +880,7 @@ class NotificationService {
         channelDescription: 'Alert 1 day before a coupon or voucher expires',
         importance: Importance.high,
         priority: Priority.high,
-        icon: '@mipmap/ic_launcher',
+        icon: '@drawable/ic_notification',
       );
       const iosDetails = DarwinNotificationDetails(
         presentAlert: true,
@@ -924,6 +928,164 @@ class NotificationService {
 
   static Future<void> cancelAll() async {
     await _plugin.cancelAll();
+  }
+
+  // ── Build 267: Premium 트라이얼 만료 알림 (D-2 + D-day) ────────────────
+  /// 트라이얼 종료 임박 / 당일 푸시. `expiresAt` 기준으로 D-2 (48h 전) +
+  /// D-day (정확한 만료 시점) 두 개를 한 번에 예약. 사용자가 결제 안내
+  /// 받지 못한 채 silently downgrade 되는 funnel 누수 방지.
+  static const int _trialEndingDMinus2Id = 12;
+  static const int _trialEndingDDayId = 13;
+
+  static Future<void> scheduleTrialEndingReminders({
+    required DateTime expiresAt,
+    String langCode = 'en',
+  }) async {
+    if (!_isAllowed(PushCategory.trialEnding)) {
+      await _plugin.cancel(_trialEndingDMinus2Id);
+      await _plugin.cancel(_trialEndingDDayId);
+      return;
+    }
+    try {
+      await _plugin.cancel(_trialEndingDMinus2Id);
+      await _plugin.cancel(_trialEndingDDayId);
+
+      const androidDetails = AndroidNotificationDetails(
+        'trial_ending',
+        'Trial ending reminder',
+        channelDescription:
+            'Heads-up before your free Premium trial ends',
+        importance: Importance.high,
+        priority: Priority.high,
+        icon: '@drawable/ic_notification',
+      );
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
+      const details = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      final now = DateTime.now();
+      // D-2 (48시간 전) — 너무 가까우면 skip.
+      final dMinus2 = expiresAt.subtract(const Duration(hours: 48));
+      if (dMinus2.isAfter(now.add(const Duration(minutes: 5)))) {
+        await _plugin.zonedSchedule(
+          _trialEndingDMinus2Id,
+          _trialEndingDMinus2Title(langCode),
+          _trialEndingDMinus2Body(langCode),
+          tz.TZDateTime.from(dMinus2, tz.local),
+          details,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+        );
+      }
+
+      // D-day (정확한 만료 시점)
+      if (expiresAt.isAfter(now.add(const Duration(minutes: 5)))) {
+        await _plugin.zonedSchedule(
+          _trialEndingDDayId,
+          _trialEndingDDayTitle(langCode),
+          _trialEndingDDayBody(langCode),
+          tz.TZDateTime.from(expiresAt, tz.local),
+          details,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+        );
+      }
+    } catch (e) {
+      debugPrint('Trial ending schedule error: $e');
+    }
+  }
+
+  static Future<void> cancelTrialEndingReminders() async {
+    try {
+      await _plugin.cancel(_trialEndingDMinus2Id);
+      await _plugin.cancel(_trialEndingDDayId);
+    } catch (e) {
+      debugPrint('Trial ending cancel error: $e');
+    }
+  }
+}
+
+String _trialEndingDMinus2Title(String lang) {
+  switch (lang) {
+    case 'ko': return '⏳ Premium 트라이얼이 2일 후 종료돼요';
+    case 'ja': return '⏳ Premium トライアルがあと2日で終了';
+    case 'zh': return '⏳ Premium 试用 2 天后到期';
+    case 'fr': return '⏳ Votre essai Premium se termine dans 2 jours';
+    case 'de': return '⏳ Dein Premium-Test endet in 2 Tagen';
+    case 'es': return '⏳ Tu prueba Premium termina en 2 días';
+    case 'pt': return '⏳ Sua avaliação Premium termina em 2 dias';
+    case 'ru': return '⏳ Premium-пробный заканчивается через 2 дня';
+    case 'tr': return '⏳ Premium denemen 2 gün içinde bitiyor';
+    case 'ar': return '⏳ ستنتهي تجربة Premium بعد يومين';
+    case 'it': return '⏳ La tua prova Premium termina tra 2 giorni';
+    case 'hi': return '⏳ आपका Premium ट्रायल 2 दिन में समाप्त होगा';
+    case 'th': return '⏳ ทดลอง Premium จะสิ้นสุดในอีก 2 วัน';
+    default: return '⏳ Your Premium trial ends in 2 days';
+  }
+}
+
+String _trialEndingDMinus2Body(String lang) {
+  switch (lang) {
+    case 'ko': return '쿠폰 픽업 한도·반경·DM 등 Premium 혜택을 계속 쓰려면 이번 주 안에 결정해주세요.';
+    case 'ja': return 'クーポンピックアップ上限・範囲・DMなどPremium特典を続けるには、今週中に決めてください。';
+    case 'zh': return '若想继续享受拾取上限、范围与 DM 等 Premium 福利，请本周内决定。';
+    case 'fr': return 'Pour continuer avec les avantages Premium (limites, rayon, DM), décidez cette semaine.';
+    case 'de': return 'Entscheide diese Woche, ob du Premium-Vorteile (Limits, Radius, DM) behältst.';
+    case 'es': return 'Decide esta semana si quieres conservar los beneficios Premium.';
+    case 'pt': return 'Decida esta semana se quer manter os benefícios Premium.';
+    case 'ru': return 'Решите на этой неделе — оставить ли Premium.';
+    case 'tr': return 'Premium avantajlarını korumak için bu hafta karar verin.';
+    case 'ar': return 'قرّر هذا الأسبوع إن كنت تريد الاحتفاظ بمزايا Premium.';
+    case 'it': return 'Decidi questa settimana se mantenere i vantaggi Premium.';
+    case 'hi': return 'इस सप्ताह तय करें कि Premium फ़ायदे रखेंगे या नहीं।';
+    case 'th': return 'ตัดสินใจในสัปดาห์นี้ว่าจะคง Premium ไว้หรือไม่';
+    default: return 'Decide this week if you want to keep Premium perks (limits, radius, DM).';
+  }
+}
+
+String _trialEndingDDayTitle(String lang) {
+  switch (lang) {
+    case 'ko': return '⏰ 오늘 Premium 트라이얼 종료';
+    case 'ja': return '⏰ 本日 Premium トライアル終了';
+    case 'zh': return '⏰ Premium 试用今日结束';
+    case 'fr': return '⏰ Votre essai Premium se termine aujourd\'hui';
+    case 'de': return '⏰ Premium-Test endet heute';
+    case 'es': return '⏰ Tu prueba Premium termina hoy';
+    case 'pt': return '⏰ Sua avaliação Premium termina hoje';
+    case 'ru': return '⏰ Premium-пробный заканчивается сегодня';
+    case 'tr': return '⏰ Premium denemen bugün bitiyor';
+    case 'ar': return '⏰ تنتهي تجربة Premium اليوم';
+    case 'it': return '⏰ La tua prova Premium finisce oggi';
+    case 'hi': return '⏰ आज Premium ट्रायल समाप्त';
+    case 'th': return '⏰ Premium ทดลองสิ้นสุดวันนี้';
+    default: return '⏰ Your Premium trial ends today';
+  }
+}
+
+String _trialEndingDDayBody(String lang) {
+  switch (lang) {
+    case 'ko': return '하루 30통·1km 반경·우선 배송 — 한 달 ₩4,900 으로 계속 이어가세요.';
+    case 'ja': return '1日30通・1km範囲・優先配送 — 月額¥490で継続できます。';
+    case 'zh': return '每天 30 张、1 km 范围、优先配送 — 月费 ₩4,900 继续使用。';
+    case 'fr': return 'Continue avec Premium pour 4 900 ₩/mois.';
+    case 'de': return 'Premium für 4 900 ₩/Monat behalten.';
+    case 'es': return 'Mantén Premium por 4 900 ₩/mes.';
+    case 'pt': return 'Mantenha o Premium por 4 900 ₩/mês.';
+    case 'ru': return 'Оставьте Premium за 4 900 ₩/мес.';
+    case 'tr': return 'Premium\'u 4.900 ₩/ay ile devam ettirin.';
+    case 'ar': return 'احتفظ بـ Premium مقابل 4900 ₩ شهرياً.';
+    case 'it': return 'Mantieni Premium a 4 900 ₩/mese.';
+    case 'hi': return 'Premium को ₩4,900/माह पर जारी रखें।';
+    case 'th': return 'ใช้ Premium ต่อในราคา ₩4,900/เดือน';
+    default: return 'Keep Premium for ₩4,900/month.';
   }
 }
 

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../core/services/feedback_service.dart';
@@ -2714,28 +2715,24 @@ class _LetterReadScreenState extends State<LetterReadScreen>
     final isNetwork =
         imageUrl.startsWith('http://') || imageUrl.startsWith('https://');
     if (isNetwork) {
-      return Image.network(
-        imageUrl,
+      // Build 267: Image.network → CachedNetworkImage. 매 rebuild 마다 재요청
+      // → 깜박임·데이터 낭비 회귀 fix.
+      return CachedNetworkImage(
+        imageUrl: imageUrl,
         width: double.infinity,
         fit: BoxFit.cover,
-        loadingBuilder: (_, child, progress) {
-          if (progress == null) return child;
-          return Container(
-            height: 180,
-            color: AppColors.bgCard,
-            child: Center(
-              child: CircularProgressIndicator(
-                value: progress.expectedTotalBytes != null
-                    ? progress.cumulativeBytesLoaded /
-                          progress.expectedTotalBytes!
-                    : null,
-                color: AppColors.teal,
-                strokeWidth: 2,
-              ),
+        progressIndicatorBuilder: (_, __, progress) => Container(
+          height: 180,
+          color: AppColors.bgCard,
+          child: Center(
+            child: CircularProgressIndicator(
+              value: progress.progress,
+              color: AppColors.teal,
+              strokeWidth: 2,
             ),
-          );
-        },
-        errorBuilder: (_, __, ___) => _imagePlaceholder(),
+          ),
+        ),
+        errorWidget: (_, __, ___) => _imagePlaceholder(),
       );
     } else {
       final file = File(imageUrl);
@@ -2935,10 +2932,10 @@ class _FullscreenImageViewerState extends State<_FullscreenImageViewer> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: isNetwork
-                      ? Image.network(
-                          widget.imageUrl,
+                      ? CachedNetworkImage(
+                          imageUrl: widget.imageUrl,
                           fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) => const Icon(
+                          errorWidget: (_, __, ___) => const Icon(
                             Icons.broken_image_rounded,
                             color: Colors.white54,
                             size: 64,

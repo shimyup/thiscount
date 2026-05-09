@@ -18317,6 +18317,140 @@ class AppL10n {
     'ar': 'كوبون العلامة التجارية', 'it': 'COUPON BRAND', 'hi': 'ब्रांड कूपन', 'th': 'คูปองแบรนด์',
   });
 
+  /// Build 267: v5 onboarding 한국어 하드코딩 → 14언어 i18n.
+  String get v5OnboardingSkip => _t({
+    'ko': '건너뛰기', 'en': 'Skip', 'ja': 'スキップ', 'zh': '跳过',
+    'fr': 'Passer', 'de': 'Überspringen', 'es': 'Saltar',
+    'pt': 'Pular', 'ru': 'Пропустить', 'tr': 'Atla',
+    'ar': 'تخطّي', 'it': 'Salta', 'hi': 'छोड़ें', 'th': 'ข้าม',
+  });
+  String get v5OnboardingNext => _t({
+    'ko': '계속', 'en': 'Continue', 'ja': '続ける', 'zh': '继续',
+    'fr': 'Continuer', 'de': 'Weiter', 'es': 'Continuar',
+    'pt': 'Continuar', 'ru': 'Далее', 'tr': 'Devam',
+    'ar': 'متابعة', 'it': 'Continua', 'hi': 'जारी रखें', 'th': 'ต่อไป',
+  });
+  String get v5OnboardingStart => _t({
+    'ko': '시작하기', 'en': 'Get Started', 'ja': 'はじめる', 'zh': '开始',
+    'fr': 'Démarrer', 'de': 'Loslegen', 'es': 'Comenzar',
+    'pt': 'Começar', 'ru': 'Начать', 'tr': 'Başla',
+    'ar': 'ابدأ', 'it': 'Inizia', 'hi': 'शुरू करें', 'th': 'เริ่ม',
+  });
+  String get v5OnboardingPage1Title => _t({
+    'ko': '지나는 길에\n쿠폰을 줍는다.',
+    'en': 'Pick up coupons\nas you walk by.',
+    'ja': '通り道で\nクーポンを拾う。',
+    'zh': '路过时\n顺手捡张优惠券。',
+    'fr': 'Ramasse les coupons\nsur ton chemin.',
+    'de': 'Coupons sammeln\nim Vorbeigehen.',
+    'es': 'Recoge cupones\nal pasar.',
+    'pt': 'Pegue cupons\nao passar.',
+    'ru': 'Подбирай купоны\nпо пути.',
+    'tr': 'Geçerken\nkuponları topla.',
+    'ar': 'التقط الكوبونات\nأثناء مرورك.',
+    'it': 'Raccogli coupon\nlungo il cammino.',
+    'hi': 'चलते-फिरते\nकूपन उठाओ।',
+    'th': 'เก็บคูปอง\nระหว่างทางผ่าน',
+  });
+  String get v5OnboardingPage1Sub => _t({
+    'ko': '실제 카페·영화관·빵집 쿠폰. 주변에 떠있을 때만 보여요.',
+    'en': 'Real cafe, cinema, bakery coupons. Shown only when nearby.',
+    'ja': '実在のカフェ・映画館・パン屋クーポン。近くにある時だけ表示。',
+    'zh': '真实咖啡馆·影院·面包店优惠券。仅在附近时显示。',
+    'fr': 'Vrais coupons de cafés, cinémas, boulangeries. Visibles seulement à proximité.',
+    'de': 'Echte Coupons für Cafés, Kinos, Bäckereien. Nur sichtbar, wenn in der Nähe.',
+    'es': 'Cupones reales de cafés, cines, panaderías. Visibles solo cerca.',
+    'pt': 'Cupons reais de cafés, cinemas, padarias. Só aparecem quando perto.',
+    'ru': 'Настоящие купоны кафе, кино, пекарен. Видны только поблизости.',
+    'tr': 'Gerçek kafe, sinema, fırın kuponları. Sadece yakındayken görünür.',
+    'ar': 'كوبونات حقيقية من المقاهي والسينما والمخابز. تظهر فقط عند القرب.',
+    'it': 'Coupon reali di caffè, cinema, panetterie. Visibili solo nelle vicinanze.',
+    'hi': 'असली कैफ़े/सिनेमा/बेकरी कूपन। पास होने पर ही दिखें।',
+    'th': 'คูปองจริงของคาเฟ่ โรงหนัง เบเกอรี่ — แสดงเฉพาะเมื่ออยู่ใกล้',
+  });
+  String get v5OnboardingPage2Title => _t({
+    'ko': '지갑에 차곡차곡\n쌓인다.',
+    'en': 'They stack up\nin your wallet.',
+    'ja': 'ウォレットに\nたまっていく。',
+    'zh': '存进钱包，\n慢慢积累。',
+    'fr': 'Ils s\'empilent\ndans ton wallet.',
+    'de': 'Sie sammeln sich\nin deiner Wallet.',
+    'es': 'Se acumulan\nen tu wallet.',
+    'pt': 'Acumulam-se\nna sua wallet.',
+    'ru': 'Копятся\nв твоём кошельке.',
+    'tr': 'Cüzdanına\nbirikip durur.',
+    'ar': 'تتراكم\nفي محفظتك.',
+    'it': 'Si accumulano\nnel tuo wallet.',
+    'hi': 'आपकी वॉलेट में\nजमा होते जाते हैं।',
+    'th': 'สะสมไว้ใน\nกระเป๋าของคุณ',
+  });
+  String get v5OnboardingPage2Sub => _t({
+    'ko': '쿠폰, 멤버십. 위로 넘기며 본다.',
+    'en': 'Coupons, membership. Swipe up to browse.',
+    'ja': 'クーポン、メンバーシップ。上にスワイプ。',
+    'zh': '优惠券、会员。向上滑动浏览。',
+    'fr': 'Coupons, adhésion. Glissez vers le haut.',
+    'de': 'Coupons, Mitgliedschaft. Nach oben wischen.',
+    'es': 'Cupones, membresía. Desliza hacia arriba.',
+    'pt': 'Cupons, assinatura. Deslize para cima.',
+    'ru': 'Купоны, подписка. Свайп вверх.',
+    'tr': 'Kuponlar, üyelik. Yukarı kaydır.',
+    'ar': 'كوبونات، عضوية. اسحب للأعلى.',
+    'it': 'Coupon, membership. Scorri verso l\'alto.',
+    'hi': 'कूपन, मेम्बरशिप। ऊपर स्वाइप करें।',
+    'th': 'คูปอง สมาชิก ปัดขึ้นเพื่อดู',
+  });
+  String get v5OnboardingPage3Title => _t({
+    'ko': '10개 모이면\n다음이 풀린다.',
+    'en': 'Collect 10\nto unlock more.',
+    'ja': '10個集めると\n次が解放。',
+    'zh': '集满 10 张\n解锁更多。',
+    'fr': 'Collectionne 10\npour débloquer la suite.',
+    'de': 'Sammle 10\nund schalte mehr frei.',
+    'es': 'Reúne 10\npara desbloquear más.',
+    'pt': 'Junte 10\npara desbloquear mais.',
+    'ru': 'Собери 10 —\nоткроется ещё.',
+    'tr': '10 topla,\ndahasını aç.',
+    'ar': 'اجمع 10\nلفتح المزيد.',
+    'it': 'Raccogli 10\nper sbloccare altro.',
+    'hi': '10 इकट्ठा करें\nऔर खोलें।',
+    'th': 'สะสม 10\nเพื่อปลดล็อก',
+  });
+  String get v5OnboardingPage3Sub => _t({
+    'ko': '쌓을수록 더 좋은 게 도착해요.',
+    'en': 'The more you collect, the better drops arrive.',
+    'ja': '集めるほど、もっと良い特典が届きます。',
+    'zh': '收集越多，到来的越好。',
+    'fr': 'Plus tu collectes, mieux les drops arrivent.',
+    'de': 'Je mehr du sammelst, desto bessere Drops.',
+    'es': 'Cuanto más juntes, mejores ofertas llegan.',
+    'pt': 'Quanto mais colecionar, melhores ofertas chegam.',
+    'ru': 'Чем больше копишь — тем круче дропы.',
+    'tr': 'Ne kadar toplarsan o kadar iyi fırsatlar gelir.',
+    'ar': 'كلّما جمعت أكثر، وصلت عروض أفضل.',
+    'it': 'Più raccogli, migliori sono le offerte.',
+    'hi': 'जितना ज़्यादा इकट्ठा, उतने बेहतर ऑफ़र।',
+    'th': 'ยิ่งสะสมมาก ยิ่งได้ของดี',
+  });
+
+  /// Build 267: 트라이얼 만료 직후 인앱 배너 — 푸시 거부 사용자도 conversion CTA 노출.
+  String get trialExpiredBanner => _t({
+    'ko': '🔒 Premium 트라이얼이 종료됐어요 — 탭해서 이어가기',
+    'en': '🔒 Your Premium trial ended — tap to keep going',
+    'ja': '🔒 Premium トライアル終了 — タップして継続',
+    'zh': '🔒 Premium 试用结束 — 点击继续',
+    'fr': '🔒 Votre essai Premium est terminé — touchez pour continuer',
+    'de': '🔒 Premium-Test beendet — tippen, um fortzusetzen',
+    'es': '🔒 Tu prueba Premium terminó — toca para continuar',
+    'pt': '🔒 Sua avaliação Premium acabou — toque para continuar',
+    'ru': '🔒 Premium-пробный завершён — нажмите, чтобы продолжить',
+    'tr': '🔒 Premium denemen bitti — devam etmek için dokun',
+    'ar': '🔒 انتهت تجربة Premium — اضغط للمتابعة',
+    'it': '🔒 La prova Premium è finita — tocca per continuare',
+    'hi': '🔒 Premium ट्रायल समाप्त — जारी रखने के लिए टैप करें',
+    'th': '🔒 Premium ทดลองสิ้นสุด — แตะเพื่อดำเนินการต่อ',
+  });
+
   /// Build 266: 필터 시트 섹션 헤더 — 카테고리 / 산업.
   String get inboxFilterSectionCategory => _t({
     'ko': '🎁 카테고리', 'en': '🎁 Category', 'ja': '🎁 カテゴリ', 'zh': '🎁 分类',

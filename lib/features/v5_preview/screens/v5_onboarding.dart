@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../core/localization/app_localizations.dart';
+import '../../../state/app_state.dart';
 import '../theme/v5_tokens.dart';
 import '../widgets/v5_dev_bar.dart';
 
@@ -66,7 +69,13 @@ class _V5OnboardingScreenState extends State<V5OnboardingScreen> {
                         GestureDetector(
                           onTap: widget.onFinish,
                           child: Text(
-                            _page < _total - 1 ? '건너뛰기' : '',
+                            _page < _total - 1
+                                ? AppL10n.of(context
+                                        .read<AppState>()
+                                        .currentUser
+                                        .languageCode)
+                                    .v5OnboardingSkip
+                                : '',
                             style: V5Text.meta.copyWith(
                               color: V5Colors.tx2,
                               fontSize: 14,
@@ -117,7 +126,17 @@ class _V5OnboardingScreenState extends State<V5OnboardingScreen> {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
-                          _page < _total - 1 ? '계속' : '시작하기',
+                          _page < _total - 1
+                              ? AppL10n.of(context
+                                      .read<AppState>()
+                                      .currentUser
+                                      .languageCode)
+                                  .v5OnboardingNext
+                              : AppL10n.of(context
+                                      .read<AppState>()
+                                      .currentUser
+                                      .languageCode)
+                                  .v5OnboardingStart,
                           style: V5Text.button.copyWith(color: V5Colors.bg),
                         ),
                       ),
@@ -138,6 +157,7 @@ class _Page1 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -155,14 +175,11 @@ class _Page1 extends StatelessWidget {
           ),
         ),
         Text(
-          '지나는 길에\n쿠폰을 줍는다.',
+          l.v5OnboardingPage1Title,
           style: V5Text.display.copyWith(fontSize: 32, letterSpacing: -1.4),
         ),
         const SizedBox(height: 10),
-        Text(
-          '실제 카페·영화관·빵집 쿠폰. 주변에 떠있을 때만 보여요.',
-          style: V5Text.body,
-        ),
+        Text(l.v5OnboardingPage1Sub, style: V5Text.body),
       ],
     );
   }
@@ -173,6 +190,7 @@ class _Page2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -183,6 +201,8 @@ class _Page2 extends StatelessWidget {
               height: 270,
               child: Stack(
                 children: [
+                  // Build 267: V5Category.letter 일본 펜팔 카드 → 빵집 쿠폰 카드.
+                  // 이전엔 신규 사용자가 첫 인상에 "메시지/펜팔 앱" 으로 오해했음.
                   Positioned(
                     top: 0,
                     left: 0,
@@ -190,11 +210,13 @@ class _Page2 extends StatelessWidget {
                     child: Transform.rotate(
                       angle: -0.087,
                       child: const _CardSample(
-                        category: V5Category.letter,
-                        brand: 'Tokyo · @harumi',
-                        bigText: '"오늘 시부야\n비 와요…"',
-                        codeLeft: '2시간 전',
-                        codeRight: '∞',
+                        category: V5Category.coupon,
+                        brand: 'Paris Baguette',
+                        big: '20%',
+                        bigSmall: ' 빵',
+                        desc: '서울 강남구 · 410m',
+                        codeLeft: 'D-3',
+                        codeRight: '5일 유효',
                       ),
                     ),
                   ),
@@ -234,11 +256,11 @@ class _Page2 extends StatelessWidget {
           ),
         ),
         Text(
-          '지갑에 차곡차곡\n쌓인다.',
+          l.v5OnboardingPage2Title,
           style: V5Text.display.copyWith(fontSize: 32, letterSpacing: -1.4),
         ),
         const SizedBox(height: 10),
-        Text('쿠폰, 메시지, 멤버십. 위로 넘기며 본다.', style: V5Text.body),
+        Text(l.v5OnboardingPage2Sub, style: V5Text.body),
       ],
     );
   }
@@ -286,11 +308,16 @@ class _Page3 extends StatelessWidget {
           ),
         ),
         Text(
-          '10개 모이면\n다음이 풀린다.',
+          AppL10n.of(context.read<AppState>().currentUser.languageCode)
+              .v5OnboardingPage3Title,
           style: V5Text.display.copyWith(fontSize: 32, letterSpacing: -1.4),
         ),
         const SizedBox(height: 10),
-        Text('쌓을수록 더 좋은 게 도착해요.', style: V5Text.body),
+        Text(
+          AppL10n.of(context.read<AppState>().currentUser.languageCode)
+              .v5OnboardingPage3Sub,
+          style: V5Text.body,
+        ),
       ],
     );
   }
@@ -335,7 +362,8 @@ class _CardSample extends StatelessWidget {
   final String brand;
   final String? big;
   final String? bigSmall;
-  final String? bigText;
+  // Build 267: bigText 폐기 — letter 카드 자리에 들어가던 인용 메시지 형식.
+  // 이제 모든 카드가 coupon/premium 형식이라 RichText 분기만 사용.
   final String? desc;
   final String codeLeft;
   final String codeRight;
@@ -345,7 +373,6 @@ class _CardSample extends StatelessWidget {
     required this.brand,
     this.big,
     this.bigSmall,
-    this.bigText,
     this.desc,
     required this.codeLeft,
     required this.codeRight,
@@ -372,19 +399,7 @@ class _CardSample extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          if (bigText != null)
-            Text(
-              bigText!,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: ink,
-                letterSpacing: -0.4,
-                height: 1.3,
-              ),
-            )
-          else
-            RichText(
+          RichText(
               text: TextSpan(
                 style: TextStyle(
                   fontSize: 32,

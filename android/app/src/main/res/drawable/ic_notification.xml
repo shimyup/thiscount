@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Build 267: Android Oreo+ (API 26+) 알림 아이콘 — 흰 실루엣 (alpha-only).
+  mipmap/ic_launcher (컬러) 사용 시 OEM 다수에서 흰 사각형으로 표시되던 회귀.
+  Material 가이드: 24dp, 알파 마스크, 흰색.
+
+  심볼: 쿠폰 티켓 (notch 두 개 + 가운데 점선) — Thiscount 의 핵심 동사 "줍기".
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#FFFFFF">
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M20,12c0,-1.1 0.9,-2 2,-2L22,6c0,-1.1 -0.9,-2 -2,-2L4,4c-1.1,0 -1.99,0.9 -1.99,2v4c1.1,0 1.99,0.9 1.99,2s-0.89,2 -1.99,2v4c0,1.1 0.9,2 1.99,2L20,20c1.1,0 2,-0.9 2,-2v-4c-1.1,0 -2,-0.9 -2,-2zM18,12c0,1.85 1.28,3.41 3,3.86L21,18L3,18v-2.14c1.72,-0.45 3,-2.01 3,-3.86s-1.28,-3.41 -3,-3.86L3,6h18v2.14c-1.72,0.45 -3,2.01 -3,3.86z"/>
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M11,8.5h2v3h-2zM11,12.5h2v3h-2z"/>
+</vector>

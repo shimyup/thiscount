@@ -8,6 +8,7 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../state/app_state.dart';
 import '../config/app_keys.dart';
+import 'notification_service.dart';
 
 enum ScheduledPlanTarget { free, brand }
 
@@ -571,6 +572,8 @@ class PurchaseService extends ChangeNotifier {
     // Build 265: trial 잔여 일수 캐시 — UI 가 즉시 읽을 수 있게 init 단계에서
     // 한 번 채워둔다.
     await refreshTrialRemainingDays();
+    // Build 267: 만료 배너 플래그 캐시.
+    await _refreshTrialExpiredBannerCache();
     notifyListeners();
   }
 
@@ -652,6 +655,12 @@ class PurchaseService extends ChangeNotifier {
       expiry.millisecondsSinceEpoch,
     );
     _trialRemainingDaysCache = days;
+    // Build 267: D-2 + D-day 푸시 예약 — silently downgrade 회귀 fix.
+    unawaited(NotificationService.scheduleTrialEndingReminders(
+      expiresAt: expiry,
+      langCode:
+          _preferredLanguageCode.isNotEmpty ? _preferredLanguageCode : 'en',
+    ));
     notifyListeners();
     return true;
   }
@@ -676,7 +685,39 @@ class PurchaseService extends ChangeNotifier {
     }
     await prefs.remove(PrefKeys.purchaseGiftExpiry);
     _trialRemainingDaysCache = null;
+    // Build 267: 만료 시점에 인앱 배너 노출 플래그 — 사용자가 "Premium
+    // 사라졌어요" 인지하고 결제하거나 dismiss 할 때까지 inbox 상단 노출.
+    await prefs.setBool(_kTrialExpiredBannerKey, true);
+    _trialExpiredBannerPendingCache = true;
+    // 푸시도 만료됐으니 추가 alarm cancel.
+    unawaited(NotificationService.cancelTrialEndingReminders());
     notifyListeners();
+  }
+
+  static const String _kTrialExpiredBannerKey =
+      'trial_expired_banner_pending';
+
+  /// 인앱 만료 배너 노출 여부 (Build 267).
+  /// `dismissTrialExpiredBanner()` 호출 시 false 로.
+  Future<bool> get isTrialExpiredBannerPending async {
+    final prefs = await _getPrefs();
+    return prefs.getBool(_kTrialExpiredBannerKey) ?? false;
+  }
+
+  Future<void> dismissTrialExpiredBanner() async {
+    final prefs = await _getPrefs();
+    await prefs.remove(_kTrialExpiredBannerKey);
+    _trialExpiredBannerPendingCache = false;
+    notifyListeners();
+  }
+
+  /// init / 외부에서 동기 read 가 필요할 때 cache.
+  bool _trialExpiredBannerPendingCache = false;
+  bool get trialExpiredBannerPending => _trialExpiredBannerPendingCache;
+  Future<void> _refreshTrialExpiredBannerCache() async {
+    final prefs = await _getPrefs();
+    _trialExpiredBannerPendingCache =
+        prefs.getBool(_kTrialExpiredBannerKey) ?? false;
   }
 
   /// 트라이얼 종료까지 남은 일수. trial 미가입 또는 만료 시 null.

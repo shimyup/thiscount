@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -254,12 +255,13 @@ class _BrandAdDialog extends StatelessWidget {
   Widget _buildImage(String url) {
     final isNet = url.startsWith('http://') || url.startsWith('https://');
     if (isNet) {
-      return Image.network(
-        url,
+      // Build 267: 광고 모달 매번 재요청 → 캐싱.
+      return CachedNetworkImage(
+        imageUrl: url,
         width: double.infinity,
         height: double.infinity,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _buildPlaceholder(),
+        errorWidget: (_, __, ___) => _buildPlaceholder(),
       );
     }
     final f = File(url);
