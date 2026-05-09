@@ -2226,38 +2226,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // ── 카드형 설정 그룹 ─────────────────────────────────────────────────────
+  // ── 카드형 설정 그룹 (Build 271: 그룹별 collapsible) ──────────────────
+  // 이전엔 모든 그룹 (6개) 이 한꺼번에 펼쳐져 항목이 즉시 노출됐다.
+  // 사용자가 원하는 그룹만 펼쳐서 보도록 변경 — 1차 스캔 시 그룹 헤더만.
   Widget _settingsGroup(String title, List<Widget> children) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 4, bottom: 8),
-            child: Text(
-              title,
-              style: const TextStyle(
-                color: AppColors.teal,
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.2,
-              ),
-            ),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.bgCard,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.textMuted.withValues(alpha: 0.1),
-              ),
-            ),
-            child: Column(children: children),
-          ),
-        ],
-      ),
-    );
+    return _ExpandableSettingsGroup(title: title, children: children);
   }
 
   // ── 그룹 내 일반 타일 ────────────────────────────────────────────────────
@@ -2562,6 +2535,92 @@ class _BrandExactDropCreditsCard extends StatelessWidget {
 
 /// Build 183: 프로필 하단 "설정" 전체 섹션을 접었다 펼 수 있는 버튼 + 컨테이너.
 /// 기본은 접힘 — 프로필 스캔을 가볍게. 탭하면 자식들이 펼쳐진다.
+/// Build 271: 설정 그룹별 펼침/접힘 widget. 헤더만 노출 → 사용자가 펼치면
+/// 항목 카드가 나타남. _SettingsCollapseButton 안에서 그룹별로 다시 펼침.
+class _ExpandableSettingsGroup extends StatefulWidget {
+  final String title;
+  final List<Widget> children;
+
+  const _ExpandableSettingsGroup({
+    required this.title,
+    required this.children,
+  });
+
+  @override
+  State<_ExpandableSettingsGroup> createState() =>
+      _ExpandableSettingsGroupState();
+}
+
+class _ExpandableSettingsGroupState extends State<_ExpandableSettingsGroup> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => setState(() => _expanded = !_expanded),
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 4,
+                  vertical: 10,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        widget.title,
+                        style: const TextStyle(
+                          color: AppColors.teal,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ),
+                    AnimatedRotation(
+                      turns: _expanded ? 0.5 : 0.0,
+                      duration: const Duration(milliseconds: 220),
+                      child: const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        size: 20,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: Container(
+              decoration: BoxDecoration(
+                color: AppColors.bgCard,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.textMuted.withValues(alpha: 0.1),
+                ),
+              ),
+              child: Column(children: widget.children),
+            ),
+            crossFadeState: _expanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 240),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _SettingsCollapseButton extends StatefulWidget {
   final String label;
   final String sublabel;
@@ -2615,28 +2674,15 @@ class _SettingsCollapseButtonState extends State<_SettingsCollapseButton> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.label,
-                          style: TextStyle(
-                            color: _expanded
-                                ? AppColors.gold
-                                : AppColors.textPrimary,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          widget.sublabel,
-                          style: const TextStyle(
-                            color: AppColors.textMuted,
-                            fontSize: 11.5,
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      widget.label,
+                      style: TextStyle(
+                        color: _expanded
+                            ? AppColors.gold
+                            : AppColors.textPrimary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                   AnimatedRotation(

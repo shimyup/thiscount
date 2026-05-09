@@ -56,6 +56,8 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   final bool _showRouteLines = true;
   bool _showNearbyOnly = false;
   final bool _showTowers = true;
+  // Build 271: 위치 권한 거부 상태 — 상단 영구 배너 표시용.
+  bool _locationPermissionDenied = false;
   // Build 250: 국가 점프 바 리셋 트리거 — "내 위치" 버튼 탭 시 증가시켜
   // _CountryJumpBar 가 본인 국가 (인덱스 0) 으로 자동 복귀하게 함.
   int _countryBarResetSignal = 0;
@@ -415,6 +417,20 @@ class _WorldMapScreenState extends State<WorldMapScreen>
               right: 0,
               child: const _MapHeader(),
             ),
+            // Build 271: 위치 권한 거부 시 영구 배너 — 사용자가 "왜 핀이 안 보이지?"
+            // 같은 혼란 차단. 탭 시 앱 설정 진입.
+            if (_locationPermissionDenied)
+              Positioned(
+                top: 48,
+                left: 12,
+                right: 12,
+                child: SafeArea(
+                  bottom: false,
+                  child: _LocationPermissionBanner(
+                    onTap: () => Geolocator.openAppSettings(),
+                  ),
+                ),
+              ),
             // Build 165: 국가 점프 스크롤 바 — 수평 스크롤 칩으로 다른 나라
             // 지도로 원탭 이동. 기존 "수동 줌아웃 후 드래그" 산만함 해소.
             Positioned(
@@ -694,6 +710,8 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 );
               }),
             // ── 지도 퀵 액션 (전체보기/내 위치) ─────────────────────────────
+            // Build 271: 줌 ± 버튼 제거. 핀치 제스처로 충분하고, 우측 4버튼이
+            // 동시 노출돼 1순위 액션(내 위치)을 시각적으로 묻히게 했다.
             Positioned(
               bottom: 120,
               right: 16,
@@ -715,25 +733,10 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                     },
                   ),
                   const SizedBox(height: 10),
-                  _MapQuickActionButton(
-                    icon: Icons.add_rounded,
-                    tooltip: l10n.mapZoomIn,
-                    onTap: () => _zoomBy(1.0),
-                  ),
-                  const SizedBox(height: 10),
-                  _MapQuickActionButton(
-                    icon: Icons.remove_rounded,
-                    tooltip: l10n.mapZoomOut,
-                    onTap: () => _zoomBy(-1.0),
-                  ),
-                  const SizedBox(height: 10),
                   _MyLocationButton(
                     mapController: _mapController,
                     onLocationUpdated: (lat, lng) {
                       state.updateUserLocation(lat, lng);
-                      // Build 250: 국가 점프 바도 본인 국가로 강제 복귀.
-                      // 이전엔 다른 나라 보다가 "내 위치" 누르면 지도만 이동하고
-                      // 국가 라벨은 그대로 남아있어 사용자 혼동.
                       if (mounted) {
                         setState(() => _countryBarResetSignal++);
                       }
@@ -1456,15 +1459,13 @@ class _WorldMapScreenState extends State<WorldMapScreen>
             AppColors.bgCard.withValues(alpha: 0.85),
           ],
         ),
+        // Build 271: top BorderSide 추가 — 비대칭 border + borderRadius 경고
+        // ("borderRadius can only be given on borders with uniform colors") 해소.
         border: Border(
+          top: BorderSide(color: color.withValues(alpha: 0.45), width: borderWidth),
           left: BorderSide(color: color.withValues(alpha: 0.45), width: borderWidth),
           right: BorderSide(color: color.withValues(alpha: 0.45), width: borderWidth),
-          bottom: isBottom
-              ? BorderSide(color: color.withValues(alpha: 0.45), width: borderWidth)
-              : BorderSide(
-                  color: Colors.white.withValues(alpha: 0.06),
-                  width: 0.5,
-                ),
+          bottom: BorderSide(color: color.withValues(alpha: 0.45), width: borderWidth),
         ),
         borderRadius: isBottom
             ? BorderRadius.vertical(bottom: Radius.circular(3 * scale))
@@ -2349,12 +2350,6 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     );
   }
 
-  void _zoomBy(double delta) {
-    final camera = _mapController.camera;
-    final nextZoom = (camera.zoom + delta).clamp(2.0, 18.0);
-    _mapController.move(camera.center, nextZoom);
-  }
-
   String _todayKey(DateTime now) =>
       '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
 
@@ -2418,6 +2413,11 @@ class _WorldMapScreenState extends State<WorldMapScreen>
 
   Future<void> _checkLocationPermission() async {
     final permission = await Geolocator.checkPermission();
+    final denied = permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever;
+    if (mounted && denied != _locationPermissionDenied) {
+      setState(() => _locationPermissionDenied = denied);
+    }
     if (permission != LocationPermission.deniedForever) return;
     if (!mounted) return;
 
@@ -3453,6 +3453,63 @@ class _ArrowBtn extends StatelessWidget {
             color: AppColors.textPrimary,
             size: 20,
             textDirection: TextDirection.ltr,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Build 271: 위치 권한 거부 시 지도 상단에 표시되는 영구 배너.
+/// 탭하면 앱 설정 진입.
+/// Build 273: 14개 언어 풀 번역 (AppL10n.locationDeniedBanner).
+class _LocationPermissionBanner extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _LocationPermissionBanner({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    final label = l.locationDeniedBanner;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: AppColors.error.withValues(alpha: 0.92),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 10,
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              const Text('📍', style: TextStyle(fontSize: 16)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              const Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: Colors.white,
+                size: 12,
+              ),
+            ],
           ),
         ),
       ),

@@ -54,10 +54,14 @@ abstract class DebugConstants {
 ///   - 정식 출시 후에도 명시적으로 베타 관리자를 켜고 싶으면 빌드 시
 ///     `--dart-define=BETA_DISABLE_IN_RELEASE=false` 로 override.
 abstract class BetaConstants {
-  /// 영구 어드민 이메일 (코드에 hardcoded). dart-define / .env.local 설정과
-  /// 무관하게 항상 admin 자격 부여. release 빌드에서도 작동.
-  /// 사용자: ceo@airony.xyz 가 모든 기능을 관리.
-  static const String permanentAdminEmail = 'ceo@airony.xyz';
+  /// Build 272 (P0): 영구 어드민 이메일을 hardcoded → dart-define 으로 변경.
+  /// 정식 배포 빌드에서 무단 admin 자동 가입을 차단하기 위함.
+  /// 빌드 시 `--dart-define=PERMANENT_ADMIN_EMAIL=ceo@airony.xyz` 로 명시 주입.
+  /// 값이 비어 있으면 admin auto-bootstrap 동작 안 함.
+  static const String permanentAdminEmail = String.fromEnvironment(
+    'PERMANENT_ADMIN_EMAIL',
+    defaultValue: '',
+  );
 
   static const String adminEmail = String.fromEnvironment(
     'BETA_ADMIN_EMAIL',

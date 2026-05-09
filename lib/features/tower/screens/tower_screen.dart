@@ -3359,13 +3359,8 @@ class _TowerScreenState extends State<TowerScreen>
             AppColors.bgCard.withValues(alpha: 0.85),
           ],
         ),
-        border: Border(
-          left: BorderSide(color: color.withValues(alpha: 0.45), width: 2),
-          right: BorderSide(color: color.withValues(alpha: 0.45), width: 2),
-          bottom: isBottom
-              ? BorderSide(color: color.withValues(alpha: 0.45), width: 2)
-              : BorderSide(color: Colors.white.withValues(alpha: 0.06), width: 0.5),
-        ),
+        // Build 271: 4면 uniform color 로 통일 — borderRadius 경고 해소.
+        border: Border.all(color: color.withValues(alpha: 0.45), width: 2),
         borderRadius: isBottom
             ? const BorderRadius.vertical(bottom: Radius.circular(3))
             : null,

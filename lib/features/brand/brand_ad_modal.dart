@@ -28,6 +28,10 @@ import '../inbox/widgets/letter_read_screen.dart';
 /// 같은 광고는 두 번 안 뜨고, 새 광고는 즉시 뜬다.
 class BrandAdModal {
   static const String _prefKey = 'brand_ad_last_shown_letter_id';
+  // Build 271: 같은 사용자가 모달을 본 후 24h 동안 어떤 광고든 재표시 안 함.
+  // 새 광고가 들어와도 cooldown 안에서는 노출 X — 빈도 컨트롤.
+  static const String _prefLastShownAt = 'brand_ad_last_shown_at_ms';
+  static const Duration _cooldown = Duration(hours: 24);
 
   /// 가장 최근 광고 letter 를 아직 본 적 없으면 표시.
   static Future<void> showIfDue(BuildContext context) async {
@@ -39,10 +43,20 @@ class BrandAdModal {
     final prefs = await SharedPreferences.getInstance();
     final lastShownId = prefs.getString(_prefKey);
     if (lastShownId == promo.id) return;
+    // Build 271: 24h cooldown 체크 — 새 광고라도 너무 자주 안 띄움.
+    final lastShownAt = prefs.getInt(_prefLastShownAt) ?? 0;
+    if (lastShownAt > 0) {
+      final diff = DateTime.now().millisecondsSinceEpoch - lastShownAt;
+      if (diff < _cooldown.inMilliseconds) return;
+    }
 
     if (!context.mounted) return;
     HapticFeedback.lightImpact();
     await prefs.setString(_prefKey, promo.id);
+    await prefs.setInt(
+      _prefLastShownAt,
+      DateTime.now().millisecondsSinceEpoch,
+    );
 
     showDialog<void>(
       context: context,

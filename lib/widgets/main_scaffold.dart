@@ -227,7 +227,10 @@ class _MainScaffoldState extends State<MainScaffold> {
           ),
           SafeArea(
             child: SizedBox(
-              height: 64,
+              // Build 271: 64 → 70 — _NavItem 의 icon(22) + SizedBox(3) +
+              // Text(10pt) + SizedBox(3) + dot(3) 합산 시 vertical padding(16)
+              // 포함하면 ~62 가 빠듯 → 일부 환경에서 2px overflow. 6px 여유.
+              height: 70,
               child: Row(
                 children: [
                   Expanded(

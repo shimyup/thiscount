@@ -46,6 +46,14 @@ if [[ -n "${RC_REAL_PURCHASES_IN_DEBUG:-}" ]]; then
   DART_DEFINES+=("--dart-define=RC_REAL_PURCHASES_IN_DEBUG=${RC_REAL_PURCHASES_IN_DEBUG}")
 fi
 
+if [[ -n "${PERMANENT_ADMIN_EMAIL:-}" ]]; then
+  DART_DEFINES+=("--dart-define=PERMANENT_ADMIN_EMAIL=${PERMANENT_ADMIN_EMAIL}")
+fi
+
+if [[ -n "${BETA_ADMIN_EMAIL:-}" ]]; then
+  DART_DEFINES+=("--dart-define=BETA_ADMIN_EMAIL=${BETA_ADMIN_EMAIL}")
+fi
+
 cd "$ROOT_DIR"
 
 DEVICE_ID="${1:-}"

@@ -87,7 +87,7 @@ class V5PremiumScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
-                          '7일 무료 시작',
+                          '3일 무료 시작',
                           style: V5Text.button.copyWith(color: V5Colors.bg),
                         ),
                       ),

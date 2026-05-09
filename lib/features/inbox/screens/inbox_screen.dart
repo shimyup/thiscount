@@ -27,15 +27,25 @@ enum LetterFilterType {
 
 /// 필터 바에 노출되는 타입.
 /// Build 264: 식음/카페/뷰티/패션 4개 산업 필터 추가 (PPT quick win FILTER).
-const List<LetterFilterType> _visibleFilters = [
+/// Build 271: 메인 필터(편지 종류) 와 산업군 필터(키워드 매칭) 를 분리.
+/// BottomSheet 에서 섹션 헤더로 구분해 인지 부하 감소.
+const List<LetterFilterType> _mainFilters = [
   LetterFilterType.all,
   LetterFilterType.general,
   LetterFilterType.coupon,
   LetterFilterType.voucher,
+];
+
+const List<LetterFilterType> _industryFilters = [
   LetterFilterType.food,
   LetterFilterType.cafe,
   LetterFilterType.beauty,
   LetterFilterType.fashion,
+];
+
+const List<LetterFilterType> _visibleFilters = [
+  ..._mainFilters,
+  ..._industryFilters,
 ];
 
 /// Build 264: 산업군 키워드 사전. letter.content + senderName + redemptionInfo
@@ -59,13 +69,24 @@ const Map<LetterFilterType, List<String>> _industryKeywords = {
   ],
 };
 
+/// 영문 키워드는 단어 경계(`\b`) 로 매칭해 거짓양성 (예: "art" → "start") 방지.
+/// 한글 키워드는 부분 문자열 매칭 그대로 유지 (한글에는 단어 경계 의미 없음).
 bool _matchesIndustry(LetterFilterType industry, dynamic letter) {
   final kws = _industryKeywords[industry];
   if (kws == null || kws.isEmpty) return false;
   final hay = ('${letter.content ?? ''} ${letter.senderName ?? ''} ${letter.redemptionInfo ?? ''}')
       .toLowerCase();
   for (final k in kws) {
-    if (hay.contains(k.toLowerCase())) return true;
+    final lower = k.toLowerCase();
+    final isAscii = lower.runes.every((r) => r < 0x80);
+    if (isAscii) {
+      // 영문: 단어 경계 매칭
+      final pattern = RegExp(r'\b' + RegExp.escape(lower) + r'\b');
+      if (pattern.hasMatch(hay)) return true;
+    } else {
+      // 한글/유니코드: 부분 문자열 그대로
+      if (hay.contains(lower)) return true;
+    }
   }
   return false;
 }
@@ -180,6 +201,38 @@ class _InboxScreenState extends State<InboxScreen>
     // Build 217: Brand 는 [보낸/받은] 순서로 탭 자체가 재배치되어 0번이 이미
     // sent. 별도 자동 전환 불필요.
     _tabController = TabController(length: 2, vsync: this);
+    // Build 271: 푸시 알림 deep link 로 진입 시 해당 편지 자동 오픈.
+    // main.dart 의 onNotificationTap 에서 AppState.pendingDeepLinkLetterId 를
+    // 채우고 인박스로 이동 → 첫 프레임 후 1회 소비.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _consumePendingDeepLink();
+    });
+  }
+
+  void _consumePendingDeepLink() {
+    final state = context.read<AppState>();
+    final id = state.pendingDeepLinkLetterId;
+    if (id == null || id.isEmpty) return;
+    state.pendingDeepLinkLetterId = null; // 1회 소비
+    // 인박스 + worldLetters 통합 검색
+    Letter? letter;
+    for (final l in state.inbox) {
+      if (l.id == id) {
+        letter = l;
+        break;
+      }
+    }
+    if (letter == null) {
+      for (final l in state.worldLetters) {
+        if (l.id == id) {
+          letter = l;
+          break;
+        }
+      }
+    }
+    if (letter == null) return;
+    _openLetter(context, letter, state);
   }
 
   @override
@@ -2594,8 +2647,10 @@ class _LetterFilterBar extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 18),
+              // Build 271: 메인 필터는 화면 인라인 칩으로 이동. BottomSheet 에는
+              // 산업군 키워드 매칭 필터만 남김.
               Text(
-                l10n.inboxFilterAll.toUpperCase(),
+                l10n.koEn('산업군', 'INDUSTRY'),
                 style: const TextStyle(
                   color: AppColors.textMuted,
                   fontSize: 11,
@@ -2603,14 +2658,15 @@ class _LetterFilterBar extends StatelessWidget {
                   letterSpacing: 0.66,
                 ),
               ),
-              const SizedBox(height: 12),
-              ..._visibleFilters.map((type) {
-                final selected = type == activeFilter;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Material(
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _industryFilters.map((type) {
+                  final selected = type == activeFilter;
+                  return Material(
                     color: selected ? AppColors.gold : AppColors.bgSurface,
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(999),
                     clipBehavior: Clip.antiAlias,
                     child: InkWell(
                       onTap: () {
@@ -2618,35 +2674,25 @@ class _LetterFilterBar extends StatelessWidget {
                         onChanged(type);
                       },
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                _textLabel(type, l10n),
-                                style: TextStyle(
-                                  color: selected
-                                      ? const Color(0xFF1A1300)
-                                      : AppColors.textPrimary,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -0.2,
-                                ),
-                              ),
-                            ),
-                            if (selected)
-                              const Icon(
-                                Icons.check_rounded,
-                                color: Color(0xFF1A1300),
-                                size: 20,
-                              ),
-                          ],
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 9,
+                        ),
+                        child: Text(
+                          _textLabel(type, l10n),
+                          style: TextStyle(
+                            color: selected
+                                ? const Color(0xFF1A1300)
+                                : AppColors.textSecondary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              }),
+                  );
+                }).toList(),
+              ),
             ],
           ),
         ),
@@ -2657,43 +2703,106 @@ class _LetterFilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
-    final activeLabel = _textLabel(activeFilter, l10n);
+    // Build 271: 인라인 칩 row — 메인 4개 직접 노출 + 산업군은 "더보기" 칩 1개.
+    // 이전 단일 BottomSheet 진입 (탭 2회) 을 칩 직접 탭 (1회) 로 단축.
+    // Build 271.1: 컴팩트 + 우측 fade — 좁은 화면에서 칩 5개 모두 안 보일 때
+    // 가로 스크롤 가능함을 시각적으로 cue.
+    final isIndustryActive = _industryFilters.contains(activeFilter);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
-      child: GestureDetector(
-        onTap: () => _openSheet(context, l10n),
-        child: Container(
-          height: 42,
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          decoration: BoxDecoration(
-            color: AppColors.bgCard,
-            borderRadius: BorderRadius.circular(AppRadius.pill),
-          ),
-          child: Row(
+      padding: const EdgeInsets.fromLTRB(8, 6, 8, 4),
+      child: SizedBox(
+        height: 34,
+        child: ShaderMask(
+          shaderCallback: (bounds) {
+            return const LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [Colors.black, Colors.black, Colors.transparent],
+              stops: [0.0, 0.92, 1.0],
+            ).createShader(bounds);
+          },
+          blendMode: BlendMode.dstIn,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
             children: [
-              const Icon(
-                Icons.filter_list_rounded,
-                size: 18,
-                color: AppColors.textPrimary,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  activeLabel,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.2,
-                  ),
+              ..._mainFilters.map((type) {
+                final selected = type == activeFilter;
+                return _FilterChipInline(
+                  label: _textLabel(type, l10n),
+                  selected: selected,
+                  onTap: () => onChanged(type),
+                );
+              }),
+              // 산업군 더보기 칩 — 활성 산업군이 있으면 그 라벨, 없으면 "..."
+              _FilterChipInline(
+                label: isIndustryActive
+                    ? _textLabel(activeFilter, l10n)
+                    : '⋯',
+                selected: isIndustryActive,
+                onTap: () => _openSheet(context, l10n),
+                trailing: const Icon(
+                  Icons.expand_more_rounded,
+                  size: 14,
+                  color: AppColors.textMuted,
                 ),
               ),
-              const Icon(
-                Icons.expand_more_rounded,
-                size: 20,
-                color: AppColors.textMuted,
-              ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FilterChipInline extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final Widget? trailing;
+
+  const _FilterChipInline({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: Material(
+        color: selected ? AppColors.gold : AppColors.bgCard,
+        borderRadius: BorderRadius.circular(999),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 7,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: selected
+                        ? const Color(0xFF1A1300)
+                        : AppColors.textPrimary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.1,
+                  ),
+                ),
+                if (trailing != null) ...[
+                  const SizedBox(width: 2),
+                  trailing!,
+                ],
+              ],
+            ),
           ),
         ),
       ),

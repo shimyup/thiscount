@@ -138,10 +138,18 @@ class _GlobalDriftAppState extends State<GlobalDriftApp> {
     super.initState();
     _appState = AppState();
     _appState.addListener(_onAppStateChanged);
-    // Build 254: 푸시 알림 탭 → 인박스 화면 이동. 향후 payload 별 deep link
-    // (예: 'inbox?letter=xxx') 분기 추가 가능. 현재는 모든 알림 → /home_inbox.
+    // Build 254: 푸시 알림 탭 → 인박스 화면 이동.
+    // Build 271: payload 에 'letter=<id>' 또는 'letterId=<id>' 가 있으면
+    // AppState 에 보관 → 인박스 진입 후 해당 편지 자동 오픈.
     NotificationService.onNotificationTap = (payload) {
       try {
+        if (payload != null && payload.isNotEmpty) {
+          // 가장 단순한 파싱 — 'letter=xxx' 또는 'letterId=xxx' 추출.
+          final m = RegExp(r'letter(?:Id)?[=:]([^&\s]+)').firstMatch(payload);
+          if (m != null) {
+            _appState.pendingDeepLinkLetterId = m.group(1);
+          }
+        }
         _navKey.currentState?.pushNamedAndRemoveUntil(
           '/home_inbox',
           (route) => false,
@@ -169,11 +177,14 @@ class _GlobalDriftAppState extends State<GlobalDriftApp> {
           });
     });
     if (widget.initialLoggedIn && widget.initialUserData != null) {
+      // Build 272 (P1 글로벌화): country/countryFlag fallback 의 한국 기본값 제거.
+      // initialUserData 에 값이 없을 케이스는 거의 없지만, 예외 시 system locale 미반영
+      // → onboarding 에서 사용자가 명시적으로 선택하도록 빈 값으로 둔다.
       _appState.setUser(
         id: widget.initialUserData!['id'] ?? '',
         username: widget.initialUserData!['username'] ?? 'Traveler',
-        country: widget.initialUserData!['country'] ?? '대한민국',
-        countryFlag: widget.initialUserData!['countryFlag'] ?? '🇰🇷',
+        country: widget.initialUserData!['country'] ?? '',
+        countryFlag: widget.initialUserData!['countryFlag'] ?? '',
         languageCode: widget.initialUserData!['languageCode'],
         socialLink: widget.initialUserData!['socialLink']?.isNotEmpty == true
             ? widget.initialUserData!['socialLink']
