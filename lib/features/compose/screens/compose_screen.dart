@@ -1835,9 +1835,8 @@ class _ComposeScreenState extends State<ComposeScreen>
       title = '💌  ${l10n.composeWriteReply}';
       titleColor = AppColors.textPrimary;
     } else if (isBrand) {
-      // Build 272: P0 글로벌화 — 한·영 분기.
-      final isKo = state.currentUser.languageCode == 'ko';
-      title = isKo ? '📣  캠페인 발송' : '📣  Send Campaign';
+      // Build 273: 14개 언어 풀 번역 (AppL10n.brandCampaignSend).
+      title = '📣  ${l10n.brandCampaignSend}';
       titleColor = AppColors.coupon;
     } else {
       title = '✍️  ${l10n.writeLetter}';

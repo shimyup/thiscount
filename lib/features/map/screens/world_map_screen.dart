@@ -3462,7 +3462,7 @@ class _ArrowBtn extends StatelessWidget {
 
 /// Build 271: 위치 권한 거부 시 지도 상단에 표시되는 영구 배너.
 /// 탭하면 앱 설정 진입.
-/// Build 272: P0 글로벌화 — 한·영 분기.
+/// Build 273: 14개 언어 풀 번역 (AppL10n.locationDeniedBanner).
 class _LocationPermissionBanner extends StatelessWidget {
   final VoidCallback onTap;
 
@@ -3470,11 +3470,8 @@ class _LocationPermissionBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final langCode = context.read<AppState>().currentUser.languageCode;
-    final isKo = langCode == 'ko';
-    final label = isKo
-        ? '위치 권한 거부 — 근처 핀을 찾을 수 없어요'
-        : 'Location denied — can\'t find nearby pins';
+    final l = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    final label = l.locationDeniedBanner;
     return Material(
       color: Colors.transparent,
       child: InkWell(

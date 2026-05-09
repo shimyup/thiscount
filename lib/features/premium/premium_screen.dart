@@ -38,12 +38,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
   }
 
   /// Build 271: Premium 결제 직후 1회 혜택 안내 다이얼로그.
-  /// Build 272: 한·영 분기 (P0 글로벌화).
+  /// Build 273: 한·영 분기 → 14개 언어 풀 번역 (AppL10n 사용).
   Future<void> _showPremiumBenefitsDialog(BuildContext ctx) async {
-    final langCode = ctx.read<AppState>().currentUser.languageCode;
-    final isKo = langCode == 'ko';
-    final title = isKo ? 'Premium 활성화' : 'Premium Activated';
-    final cta = isKo ? '시작하기' : 'Get Started';
+    final l = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
     await showDialog<void>(
       context: ctx,
       barrierDismissible: false,
@@ -56,7 +53,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                title,
+                l.premiumActivatedTitle,
                 style: const TextStyle(
                   color: AppColors.gold,
                   fontSize: 18,
@@ -70,13 +67,13 @@ class _PremiumScreenState extends State<PremiumScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _BenefitRow(emoji: '📍', label: _benefitText(langCode, 'pickup')),
+            _BenefitRow(emoji: '📍', label: l.benefitPickup),
             const SizedBox(height: 10),
-            _BenefitRow(emoji: '⏱', label: _benefitText(langCode, 'cooldown')),
+            _BenefitRow(emoji: '⏱', label: l.benefitCooldown),
             const SizedBox(height: 10),
-            _BenefitRow(emoji: '📸', label: _benefitText(langCode, 'photo')),
+            _BenefitRow(emoji: '📸', label: l.benefitPhoto),
             const SizedBox(height: 10),
-            _BenefitRow(emoji: '🎨', label: _benefitText(langCode, 'custom')),
+            _BenefitRow(emoji: '🎨', label: l.benefitCustom),
           ],
         ),
         actions: [
@@ -88,7 +85,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
             ),
             child: Text(
-              cta,
+              l.premiumActivatedCta,
               style: const TextStyle(fontWeight: FontWeight.w800),
             ),
           ),
@@ -691,25 +688,8 @@ class _BenefitRow extends StatelessWidget {
   }
 }
 
-/// Build 272: P0 글로벌화 — _BenefitRow 텍스트 한·영 분기.
-/// koEn fallback 으로 14개 언어 사용자가 한국어 노출 안 되도록.
-String _benefitText(String langCode, String key) {
-  final isKo = langCode == 'ko';
-  switch (key) {
-    case 'pickup':
-      return isKo ? '줍기 반경 1km (기존 5배)' : 'Pickup radius 1km (5× wider)';
-    case 'cooldown':
-      return isKo ? '쿨다운 10분 (기존 6배 빠름)' : 'Cooldown 10min (6× faster)';
-    case 'photo':
-      return isKo ? '사진 + 링크 홍보 메시지 발송' : 'Send promo with photo + link';
-    case 'custom':
-      return isKo ? '캐릭터 커스터마이즈' : 'Character customization';
-  }
-  return '';
-}
-
 // ── Build 271: 무료 체험 종료 배너 ────────────────────────────────────
-// Build 272: P0 글로벌화 — 한·영 분기. 한국어 외 사용자는 영어 fallback.
+// Build 273: 한·영 분기 → 14개 언어 풀 번역 (AppL10n).
 class _TrialExpiryBanner extends StatelessWidget {
   final DateTime expiry;
   final int hoursRemaining;
@@ -719,27 +699,20 @@ class _TrialExpiryBanner extends StatelessWidget {
     required this.hoursRemaining,
   });
 
-  String _formatRemaining(bool isKo) {
-    if (hoursRemaining <= 0) return isKo ? '곧 종료' : 'Expiring soon';
-    if (hoursRemaining < 24) {
-      return isKo ? '$hoursRemaining시간 남음' : '${hoursRemaining}h left';
-    }
+  String _formatRemaining(AppL10n l) {
+    if (hoursRemaining <= 0) return l.trialExpiringSoon;
+    if (hoursRemaining < 24) return l.trialHoursLeft(hoursRemaining);
     final days = (hoursRemaining / 24).ceil();
-    return isKo ? '$days일 남음' : '${days}d left';
+    return l.trialDaysLeft(days);
   }
 
   @override
   Widget build(BuildContext context) {
-    final langCode = context.read<AppState>().currentUser.languageCode;
-    final isKo = langCode == 'ko';
+    final l = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     final urgent = hoursRemaining < 24;
     final color = urgent ? AppColors.coupon : AppColors.gold;
-    final title = isKo
-        ? '무료 체험 ${_formatRemaining(true)}'
-        : 'Free trial · ${_formatRemaining(false)}';
-    final subtitle = isKo
-        ? '종료 후 자동결제 없음 · 계속 쓰려면 결제하세요'
-        : 'No auto-charge after trial · subscribe to keep Premium';
+    final title = l.trialBannerTitle(_formatRemaining(l));
+    final subtitle = l.trialBannerSubtitle;
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
