@@ -38,14 +38,22 @@ Use this in **App Store Connect** in the order below. 한국어/English 모두 �
 
 ## 3) App Privacy (URL fields)
 
+> ⚠️ thiscount.io 도메인 DNS 미설정 시 fallback URL 사용 (이미 라이브):
+> - `https://shimyup.github.io/thiscount/privacy.html` ✅ 200 OK 확인됨
+> - `https://shimyup.github.io/thiscount/terms.html`
+> - `https://shimyup.github.io/thiscount/support.html`
+>
+> launch 후 thiscount.io 도메인 + DNS 설정 완료되면 App Store Connect 에서
+> URL 만 update (재심사 불필요).
+
 ### Privacy Policy URL
-`https://thiscount.io/privacy.html`
+`https://thiscount.io/privacy.html` (fallback: `https://shimyup.github.io/thiscount/privacy.html`)
 
 ### Support URL
-`https://thiscount.io/support.html`
+`https://thiscount.io/support.html` (fallback: `https://shimyup.github.io/thiscount/support.html`)
 
 ### Marketing URL (optional)
-`https://thiscount.io`
+`https://thiscount.io` (fallback: `https://shimyup.github.io/thiscount/`)
 
 ---
 
