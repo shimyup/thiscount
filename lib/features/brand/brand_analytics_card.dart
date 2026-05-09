@@ -249,15 +249,18 @@ class _BrandAnalyticsCardState extends State<BrandAnalyticsCard> {
       child: Column(
         children: [
           Text(emoji, style: const TextStyle(fontSize: 16)),
-          const SizedBox(height: 2),
+          const SizedBox(height: 4),
+          // Build 271: Brand 핵심 지표 가시성 — 18 → 24px.
           Text(
             value,
             style: const TextStyle(
               color: AppColors.textPrimary,
-              fontSize: 18,
+              fontSize: 24,
               fontWeight: FontWeight.w900,
+              letterSpacing: -0.5,
             ),
           ),
+          const SizedBox(height: 2),
           Text(
             label,
             maxLines: 1,

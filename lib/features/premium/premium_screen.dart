@@ -37,6 +37,61 @@ class _PremiumScreenState extends State<PremiumScreen> {
     return DateFormat.yMd(langCode).format(date);
   }
 
+  /// Build 271: Premium 결제 직후 1회 혜택 안내 다이얼로그.
+  Future<void> _showPremiumBenefitsDialog(BuildContext ctx) async {
+    await showDialog<void>(
+      context: ctx,
+      barrierDismissible: false,
+      builder: (dCtx) => AlertDialog(
+        backgroundColor: AppColors.bgCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Text('⭐', style: TextStyle(fontSize: 28)),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Premium 활성화',
+                style: TextStyle(
+                  color: AppColors.gold,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _BenefitRow(emoji: '📍', label: '줍기 반경 1km (기존 5배)'),
+            SizedBox(height: 10),
+            _BenefitRow(emoji: '⏱', label: '쿨다운 10분 (기존 6배 빠름)'),
+            SizedBox(height: 10),
+            _BenefitRow(emoji: '📸', label: '사진 + 링크 홍보 메시지 발송'),
+            SizedBox(height: 10),
+            _BenefitRow(emoji: '🎨', label: '캐릭터 커스터마이즈'),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dCtx),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.gold,
+              foregroundColor: const Color(0xFF1A1300),
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+            ),
+            child: const Text(
+              '시작하기',
+              style: TextStyle(fontWeight: FontWeight.w800),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showPurchaseResultToast(
     BuildContext context, {
     required bool success,
@@ -137,6 +192,13 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 if (isPremium || isBrand) ...[
                   _ActivePlanBanner(isBrand: isBrand),
                   const SizedBox(height: 12),
+                  // Build 271: trial 활성 시 종료일 + 자동결제 경고 배너.
+                  // 사용자가 "언제 끝나는지" / "자동결제 되는지" 명확히 인지.
+                  if (purchase.isTrialActive)
+                    _TrialExpiryBanner(
+                      expiry: purchase.trialExpiry!,
+                      hoursRemaining: purchase.trialHoursRemaining,
+                    ),
                   if (purchase.isPendingPlanChange &&
                       purchase.scheduledPlanChangeDate != null &&
                       purchase.scheduledPlanTarget != null)
@@ -149,14 +211,12 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   _PremiumHeroBanner(),
                 const SizedBox(height: 20),
 
-                // Build 215: 베타 시뮬레이터 안내 — 결제 없이 업그레이드 체험
-                // 가능한 환경임을 명시. 실 결제 시도 시 발생할 수 있는 "상품
-                // 정보 없음" 에러를 사전에 컨텍스트로 잡아줌.
+                // Build 215: 베타 시뮬레이터 안내. Build 271: 두 줄 → 한 줄로.
                 if (purchase.isBetaUpgradeSimulator && !isPremium && !isBrand)
                   Container(
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 12,
+                      horizontal: 14, vertical: 10,
                     ),
                     decoration: BoxDecoration(
                       color: AppColors.gold.withValues(alpha: 0.12),
@@ -167,17 +227,15 @@ class _PremiumScreenState extends State<PremiumScreen> {
                     ),
                     child: Row(
                       children: [
-                        const Text('🧪', style: TextStyle(fontSize: 18)),
-                        const SizedBox(width: 10),
+                        const Text('🧪', style: TextStyle(fontSize: 16)),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            '베타 기간: 결제 없이 업그레이드를 체험할 수 있어요. '
-                            '버튼 한 번이면 바로 활성화됩니다.',
+                            '베타 · 결제 없이 즉시 활성화',
                             style: TextStyle(
                               color: AppColors.gold,
                               fontSize: 12.5,
-                              height: 1.4,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
@@ -204,7 +262,11 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   name: 'Free',
                   price: '₩0',
                   period: '',
-                  badge: isFree ? l.premiumCurrentPlan : '',
+                  badge: isFree
+                      ? l.premiumCurrentPlan
+                      : purchase.isTrialActive
+                          ? '체험 종료 시 자동'
+                          : '',
                   badgeColor: AppColors.teal,
                   features: [
                     // Build 118: Free 플랜도 픽업 제약 (반경·쿨다운) 부터
@@ -215,8 +277,10 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   // Build 215: 현재 Free 사용자면 active 로 표시 → "현재 사용 중"
                   // 라벨이 뜨고 "해지 예약" 버튼이 안 뜸. 이전엔 항상 false 라
                   // Free 인 사용자에게 의미 없는 다운그레이드 버튼이 노출됨.
-                  isActive: isFree,
-                  onTap: (isFree || purchase.loading)
+                  // Build 271: trial 중에는 onTap 비활성화 — trial 종료 시 자동
+                  // Free 복귀하므로 다운그레이드 예약이 redundant. 라벨도 명확화.
+                  isActive: isFree || purchase.isTrialActive,
+                  onTap: (isFree || purchase.isTrialActive || purchase.loading)
                       ? null
                       : () async {
                           final confirmed = await showDialog<bool>(
@@ -333,11 +397,17 @@ class _PremiumScreenState extends State<PremiumScreen> {
                             FeedbackService.onPurchaseSuccess();
                           }
                           if (!context.mounted) return;
-                          _showPurchaseResultToast(
-                            context,
-                            success: bought,
-                            message: bought ? null : purchase.errorMessage,
-                          );
+                          // Build 271: 결제 성공 시 혜택 안내 다이얼로그 1회.
+                          // 사용자가 "뭐가 달라졌나" 즉시 인지하도록.
+                          if (bought) {
+                            await _showPremiumBenefitsDialog(context);
+                          } else {
+                            _showPurchaseResultToast(
+                              context,
+                              success: false,
+                              message: purchase.errorMessage,
+                            );
+                          }
                         },
                   loading: isBuyingPremium,
                   color: AppColors.gold,
@@ -582,6 +652,99 @@ class _PremiumScreenState extends State<PremiumScreen> {
           ),
         );
       },
+    );
+  }
+}
+
+// ── Build 271: Premium 결제 후 혜택 row ────────────────────────────────
+class _BenefitRow extends StatelessWidget {
+  final String emoji;
+  final String label;
+  const _BenefitRow({required this.emoji, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(emoji, style: const TextStyle(fontSize: 18)),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              height: 1.4,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Build 271: 무료 체험 종료 배너 ────────────────────────────────────
+class _TrialExpiryBanner extends StatelessWidget {
+  final DateTime expiry;
+  final int hoursRemaining;
+
+  const _TrialExpiryBanner({
+    required this.expiry,
+    required this.hoursRemaining,
+  });
+
+  String _formatRemaining() {
+    if (hoursRemaining <= 0) return '곧 종료';
+    if (hoursRemaining < 24) return '$hoursRemaining시간 남음';
+    final days = (hoursRemaining / 24).ceil();
+    return '$days일 남음';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final urgent = hoursRemaining < 24;
+    final color = urgent ? AppColors.coupon : AppColors.gold;
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.55), width: 1.2),
+      ),
+      child: Row(
+        children: [
+          Text(urgent ? '⚠️' : '🎁', style: const TextStyle(fontSize: 18)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '무료 체험 ${_formatRemaining()}',
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                const Text(
+                  '종료 후 자동결제 없음 · 계속 쓰려면 결제하세요',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 11.5,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

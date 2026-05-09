@@ -1679,25 +1679,25 @@ class _ComposeScreenState extends State<ComposeScreen>
                             if (!_isReply) _buildExpressToggle(state, hasPremium),
                             if (!_isReply) const SizedBox(height: 8),
 
-                            // ── 오늘의 영감 (강조 노출) ──
-                            if (!_isReply) ...[
-                              _buildLuckyLetterButton(),
-                              const SizedBox(height: 10),
-                              _buildRecallLastLetterButton(),
-                              const SizedBox(height: 10),
-                            ],
-
-                            // ── 편지 꾸미기 (StyleBar) — 편지지 위쪽 ──
-                            _buildStyleBar(),
-                            const SizedBox(height: 10),
-
                             // ── 더 많은 옵션 (접히는 섹션) — 편지지 위쪽 ──
                             // Build 238: Premium(비-Brand)는 홍보 배지 카드 CTA 의
                             // 첨부 바텀시트가 사진/링크를 처리 — 옵션창에서 중복 제거.
                             // Brand/Free 는 기존대로 노출 (Free=잠금 안내, Brand=사용).
+                            // Build 271: 오늘의 영감(Lucky Letter / Recall Last) +
+                            // StyleBar(편지 꾸미기) 도 collapsible 섹션 안으로 이동.
+                            // 작성 화면 1차 노출 항목을 줄여 "본문 작성" 1순위 액션을
+                            // 묻히지 않게.
                             _ComposeOptionsSection(
                               title: l10n.composeOptionsSectionTitle,
                               children: [
+                                _buildStyleBar(),
+                                const SizedBox(height: 10),
+                                if (!_isReply) ...[
+                                  _buildLuckyLetterButton(),
+                                  const SizedBox(height: 10),
+                                  _buildRecallLastLetterButton(),
+                                  const SizedBox(height: 10),
+                                ],
                                 if (!_isReply && !(hasPremium && !isBrand))
                                   _buildSocialToggle(hasPremium: hasPremium),
                                 if (!_isReply &&
@@ -1825,6 +1825,22 @@ class _ComposeScreenState extends State<ComposeScreen>
 
   Widget _buildHeader(BuildContext ctx, AppState state) {
     final l10n = AppL10n.of(state.currentUser.languageCode);
+    final isBrand = state.currentUser.isBrand;
+    // Build 271: Brand 사용자는 "캠페인" 제목 + coupon (orange) 색상.
+    // 일반 편지 vs 광고주 트랙을 시각적으로 구분 — 사용자가 "내가 뭐 보내는지"
+    // 한눈에 알도록.
+    final String title;
+    final Color titleColor;
+    if (_isReply) {
+      title = '💌  ${l10n.composeWriteReply}';
+      titleColor = AppColors.textPrimary;
+    } else if (isBrand) {
+      title = '📣  캠페인 발송';
+      titleColor = AppColors.coupon;
+    } else {
+      title = '✍️  ${l10n.writeLetter}';
+      titleColor = AppColors.textPrimary;
+    }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Row(
@@ -1838,11 +1854,12 @@ class _ComposeScreenState extends State<ComposeScreen>
           ),
           Expanded(
             child: Text(
-              _isReply ? '💌  ${l10n.composeWriteReply}' : '✍️  ${l10n.writeLetter}',
+              title,
               textAlign: TextAlign.center,
-              style: Theme.of(
-                ctx,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+              style: Theme.of(ctx).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: titleColor,
+              ),
             ),
           ),
           const SizedBox(width: 48), // 좌우 균형

@@ -138,10 +138,18 @@ class _GlobalDriftAppState extends State<GlobalDriftApp> {
     super.initState();
     _appState = AppState();
     _appState.addListener(_onAppStateChanged);
-    // Build 254: 푸시 알림 탭 → 인박스 화면 이동. 향후 payload 별 deep link
-    // (예: 'inbox?letter=xxx') 분기 추가 가능. 현재는 모든 알림 → /home_inbox.
+    // Build 254: 푸시 알림 탭 → 인박스 화면 이동.
+    // Build 271: payload 에 'letter=<id>' 또는 'letterId=<id>' 가 있으면
+    // AppState 에 보관 → 인박스 진입 후 해당 편지 자동 오픈.
     NotificationService.onNotificationTap = (payload) {
       try {
+        if (payload != null && payload.isNotEmpty) {
+          // 가장 단순한 파싱 — 'letter=xxx' 또는 'letterId=xxx' 추출.
+          final m = RegExp(r'letter(?:Id)?[=:]([^&\s]+)').firstMatch(payload);
+          if (m != null) {
+            _appState.pendingDeepLinkLetterId = m.group(1);
+          }
+        }
         _navKey.currentState?.pushNamedAndRemoveUntil(
           '/home_inbox',
           (route) => false,

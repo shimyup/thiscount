@@ -114,6 +114,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   UserProfile get currentUser => _currentUser;
 
+  /// Build 271: 푸시 알림 deep link payload 에서 추출한 편지 ID.
+  /// 인박스 진입 후 1회 소비되어 해당 편지를 자동 오픈하는 데 사용.
+  /// null/빈문자열이면 동작 없음.
+  String? pendingDeepLinkLetterId;
+
   /// Localization helper — uses the current user's language code.
   AppL10n get _l10n => AppL10n.of(_currentUser.languageCode);
 
