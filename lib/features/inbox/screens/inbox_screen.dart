@@ -563,6 +563,9 @@ class _InboxScreenState extends State<InboxScreen>
                   final expiring = state.expiringSoonLetters;
                   if (expiring.isEmpty) return const SizedBox.shrink();
                   final l10n = AppL10n.of(state.currentUser.languageCode);
+                  // Build 268: urgency 강화 — 3개 이상 만료 임박 시 saturation
+                  // bump + sticky 시각효과. 사용자가 더 못 놓치게.
+                  final urgent = expiring.length >= 3;
                   return GestureDetector(
                     onTap: () {
                       setState(() {
@@ -572,24 +575,36 @@ class _InboxScreenState extends State<InboxScreen>
                     },
                     child: Container(
                     margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                    padding: const EdgeInsets.symmetric(
+                    padding: EdgeInsets.symmetric(
                       horizontal: 14,
-                      vertical: 10,
+                      vertical: urgent ? 12 : 10,
                     ),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                         colors: [
-                          AppColors.coupon.withValues(alpha: 0.18),
-                          AppColors.coupon.withValues(alpha: 0.10),
+                          AppColors.coupon
+                              .withValues(alpha: urgent ? 0.35 : 0.18),
+                          AppColors.coupon
+                              .withValues(alpha: urgent ? 0.20 : 0.10),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: AppColors.coupon.withValues(alpha: 0.55),
-                        width: 1.2,
+                        color: AppColors.coupon
+                            .withValues(alpha: urgent ? 0.85 : 0.55),
+                        width: urgent ? 1.6 : 1.2,
                       ),
+                      boxShadow: urgent
+                          ? [
+                              BoxShadow(
+                                color: AppColors.coupon.withValues(alpha: 0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 2),
+                              ),
+                            ]
+                          : null,
                     ),
                     child: Row(
                       children: [

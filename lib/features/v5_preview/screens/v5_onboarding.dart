@@ -86,22 +86,29 @@ class _V5OnboardingScreenState extends State<V5OnboardingScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    Row(
-                      children: List.generate(_total, (i) {
-                        final on = i <= _page;
-                        return Expanded(
-                          child: Container(
-                            margin: EdgeInsets.only(
-                              right: i < _total - 1 ? 4 : 0,
+                    // Build 267: RTL 안전 — Directionality.ltr 로 명시 wrapping
+                    // 해서 "1페이지 = 왼쪽 첫 칸" 가정 유지. Arabic 사용자가
+                    // 좌→우 진행 dot 을 거꾸로 보던 회귀 방지. EdgeInsetsDirectional
+                    // 로도 가능하지만 단순화.
+                    Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: Row(
+                        children: List.generate(_total, (i) {
+                          final on = i <= _page;
+                          return Expanded(
+                            child: Container(
+                              margin: EdgeInsets.only(
+                                right: i < _total - 1 ? 4 : 0,
+                              ),
+                              height: 3,
+                              decoration: BoxDecoration(
+                                color: on ? V5Colors.tx : V5Colors.bg3,
+                                borderRadius: BorderRadius.circular(999),
+                              ),
                             ),
-                            height: 3,
-                            decoration: BoxDecoration(
-                              color: on ? V5Colors.tx : V5Colors.bg3,
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                          ),
-                        );
-                      }),
+                          );
+                        }),
+                      ),
                     ),
                     const SizedBox(height: 24),
                     Expanded(

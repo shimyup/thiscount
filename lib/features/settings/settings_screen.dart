@@ -17,6 +17,7 @@ import '../../../core/localization/country_names.dart';
 import '../../../core/localization/language_config.dart';
 import '../premium/premium_screen.dart';
 import '../brand/brand_verification_sheet.dart';
+import '../brand/brand_redemption_export.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import '../admin/admin_screen.dart';
@@ -698,6 +699,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                               onTap: () => _shareInvite(ctx, state, l),
                             ),
+                            // Build 268: Brand 전용 — 발송 redemption 로그 CSV
+                            // 회계 / 정산 용도 export.
+                            if (isBrand)
+                              _tile(
+                                icon: Icons.download_rounded,
+                                label: l.brandCsvExport,
+                                subtitle: l.brandCsvExportDesc,
+                                trailing: const Icon(
+                                  Icons.chevron_right,
+                                  color: AppColors.textMuted,
+                                  size: 20,
+                                ),
+                                onTap: () =>
+                                    BrandRedemptionExport.exportAndShare(ctx),
+                              ),
                           ],
                         );
                       },

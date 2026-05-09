@@ -10077,6 +10077,30 @@ class AppL10n {
     'th': 'ซูมออก',
   });
 
+  /// Build 268: 지도 새로고침 액션 (FlutterMap 위 quick action).
+  String get mapRefresh => _t({
+    'ko': '새로고침', 'en': 'Refresh', 'ja': '更新', 'zh': '刷新',
+    'fr': 'Actualiser', 'de': 'Aktualisieren', 'es': 'Actualizar',
+    'pt': 'Atualizar', 'ru': 'Обновить', 'tr': 'Yenile',
+    'ar': 'تحديث', 'it': 'Aggiorna', 'hi': 'रीफ़्रेश', 'th': 'รีเฟรช',
+  });
+  String get mapRefreshing => _t({
+    'ko': '🔄 새로고침 중…',
+    'en': '🔄 Refreshing…',
+    'ja': '🔄 更新中…',
+    'zh': '🔄 正在刷新…',
+    'fr': '🔄 Actualisation…',
+    'de': '🔄 Aktualisiere…',
+    'es': '🔄 Actualizando…',
+    'pt': '🔄 Atualizando…',
+    'ru': '🔄 Обновление…',
+    'tr': '🔄 Yenileniyor…',
+    'ar': '🔄 جارٍ التحديث…',
+    'it': '🔄 Aggiornamento…',
+    'hi': '🔄 रीफ़्रेश हो रहा…',
+    'th': '🔄 กำลังรีเฟรช…',
+  });
+
   String mapRankN(int rank) => _t({
     'ko': '${rank}위',
     'en': '#$rank',
@@ -11901,6 +11925,104 @@ class AppL10n {
     'it': 'Passa a Premium',
     'hi': 'Premium में अपग्रेड करें',
     'th': 'อัปเกรดเป็น Premium',
+  });
+
+  /// Build 268: Brand 전용 — 보낸 쿠폰 redemption 로그 CSV export.
+  String get brandCsvExport => _t({
+    'ko': '📊 발송 내역 CSV 내보내기',
+    'en': '📊 Export Sent Log (CSV)',
+    'ja': '📊 送信ログをCSVで書き出し',
+    'zh': '📊 导出发送记录 (CSV)',
+    'fr': '📊 Exporter le journal d\'envoi (CSV)',
+    'de': '📊 Versand-Log als CSV',
+    'es': '📊 Exportar registro de envíos (CSV)',
+    'pt': '📊 Exportar registro de envios (CSV)',
+    'ru': '📊 Экспорт журнала отправки (CSV)',
+    'tr': '📊 Gönderim kaydını CSV olarak ver',
+    'ar': '📊 تصدير سجل الإرسال (CSV)',
+    'it': '📊 Esporta registro invii (CSV)',
+    'hi': '📊 भेजे गए लॉग CSV निर्यात',
+    'th': '📊 ส่งออกบันทึก CSV',
+  });
+  String get brandCsvExportDesc => _t({
+    'ko': '회계 · 정산 용도 — 발송 + 만료 + 클릭 수',
+    'en': 'For accounting · sent / expiry / click counts',
+    'ja': '会計・精算用途 — 送信・期限・クリック数',
+    'zh': '会计 · 结算用 — 发送 / 到期 / 点击次数',
+    'fr': 'Comptabilité · envois / expiration / clics',
+    'de': 'Buchhaltung · Versand / Ablauf / Klicks',
+    'es': 'Contabilidad · envíos / caducidad / clics',
+    'pt': 'Contabilidade · envios / validade / cliques',
+    'ru': 'Бухгалтерия · отправки / срок / клики',
+    'tr': 'Muhasebe · gönderim / süre / tıklama',
+    'ar': 'المحاسبة · الإرسال / الانتهاء / النقرات',
+    'it': 'Contabilità · invii / scadenza / clic',
+    'hi': 'लेखांकन · भेजा / समाप्ति / क्लिक',
+    'th': 'บัญชี · ส่ง / หมดอายุ / คลิก',
+  });
+  String get brandCsvEmpty => _t({
+    'ko': '아직 발송한 내역이 없어요',
+    'en': 'No sent items yet',
+    'ja': 'まだ送信履歴がありません',
+    'zh': '尚无发送记录',
+    'fr': 'Aucun envoi pour le moment',
+    'de': 'Noch keine Versendungen',
+    'es': 'Aún no hay envíos',
+    'pt': 'Ainda sem envios',
+    'ru': 'Отправок пока нет',
+    'tr': 'Henüz gönderim yok',
+    'ar': 'لا توجد إرسالات بعد',
+    'it': 'Nessun invio ancora',
+    'hi': 'अभी कोई भेजा गया नहीं',
+    'th': 'ยังไม่มีการส่ง',
+  });
+  String get brandCsvShareSubject => _t({
+    'ko': 'Thiscount 발송 내역',
+    'en': 'Thiscount Sent Log',
+    'ja': 'Thiscount 送信ログ',
+    'zh': 'Thiscount 发送记录',
+    'fr': 'Journal d\'envoi Thiscount',
+    'de': 'Thiscount Versand-Log',
+    'es': 'Registro Thiscount',
+    'pt': 'Registro Thiscount',
+    'ru': 'Журнал отправок Thiscount',
+    'tr': 'Thiscount Gönderim Kaydı',
+    'ar': 'سجل إرسال Thiscount',
+    'it': 'Registro invii Thiscount',
+    'hi': 'Thiscount भेजे गए लॉग',
+    'th': 'บันทึกการส่ง Thiscount',
+  });
+  String brandCsvShareText(int count) => _t({
+    'ko': '$count건의 발송 기록',
+    'en': '$count sent records',
+    'ja': '$count件の送信記録',
+    'zh': '$count 条发送记录',
+    'fr': '$count enregistrements',
+    'de': '$count Versandeinträge',
+    'es': '$count registros',
+    'pt': '$count registros',
+    'ru': '$count записей',
+    'tr': '$count kayıt',
+    'ar': '$count سجل',
+    'it': '$count record',
+    'hi': '$count रिकॉर्ड',
+    'th': '$count รายการ',
+  });
+  String get brandCsvCopiedToast => _t({
+    'ko': '✓ CSV 클립보드 복사됨',
+    'en': '✓ CSV copied to clipboard',
+    'ja': '✓ CSVをクリップボードにコピー',
+    'zh': '✓ 已复制 CSV',
+    'fr': '✓ CSV copié',
+    'de': '✓ CSV kopiert',
+    'es': '✓ CSV copiado',
+    'pt': '✓ CSV copiado',
+    'ru': '✓ CSV скопирован',
+    'tr': '✓ CSV kopyalandı',
+    'ar': '✓ تم نسخ CSV',
+    'it': '✓ CSV copiato',
+    'hi': '✓ CSV कॉपी',
+    'th': '✓ คัดลอก CSV',
   });
 
   /// Build 267: 친구 초대 settings 진입점 + 공유 텍스트.

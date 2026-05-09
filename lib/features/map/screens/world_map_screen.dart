@@ -745,6 +745,24 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                       }
                     },
                   ),
+                  const SizedBox(height: 10),
+                  // Build 268: 새로고침 버튼 — 지도는 FlutterMap 이라 RefreshIndicator
+                  // 가 자연스럽지 않아 명시 버튼. syncWorldLettersFromServer +
+                  // 위치 재취득 한 번에.
+                  _MapQuickActionButton(
+                    icon: Icons.refresh_rounded,
+                    tooltip: l10n.mapRefresh,
+                    onTap: () {
+                      state.syncWorldLettersFromServer();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(l10n.mapRefreshing),
+                          duration: const Duration(seconds: 1),
+                          backgroundColor: AppColors.teal,
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -3950,23 +3968,29 @@ class _PickupSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          GestureDetector(
-            onTap: onPickup,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: AppColors.bgDeep,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Text(
-                l10n.mapPickUpLetter,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.2,
+          // Build 267: Semantics — 픽업 CTA 가 이 앱의 핵심 동사. 스크린리더
+          // 사용자도 즉시 인지 가능하게 button role + 라벨 명시.
+          Semantics(
+            button: true,
+            label: l10n.mapPickUpLetter,
+            child: GestureDetector(
+              onTap: onPickup,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.bgDeep,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Text(
+                  l10n.mapPickUpLetter,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.2,
+                  ),
                 ),
               ),
             ),
