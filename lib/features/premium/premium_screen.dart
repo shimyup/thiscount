@@ -38,21 +38,26 @@ class _PremiumScreenState extends State<PremiumScreen> {
   }
 
   /// Build 271: Premium 결제 직후 1회 혜택 안내 다이얼로그.
+  /// Build 272: 한·영 분기 (P0 글로벌화).
   Future<void> _showPremiumBenefitsDialog(BuildContext ctx) async {
+    final langCode = ctx.read<AppState>().currentUser.languageCode;
+    final isKo = langCode == 'ko';
+    final title = isKo ? 'Premium 활성화' : 'Premium Activated';
+    final cta = isKo ? '시작하기' : 'Get Started';
     await showDialog<void>(
       context: ctx,
       barrierDismissible: false,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.bgCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
+        title: Row(
           children: [
-            Text('⭐', style: TextStyle(fontSize: 28)),
-            SizedBox(width: 10),
+            const Text('⭐', style: TextStyle(fontSize: 28)),
+            const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'Premium 활성화',
-                style: TextStyle(
+                title,
+                style: const TextStyle(
                   color: AppColors.gold,
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
@@ -61,17 +66,17 @@ class _PremiumScreenState extends State<PremiumScreen> {
             ),
           ],
         ),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _BenefitRow(emoji: '📍', label: '줍기 반경 1km (기존 5배)'),
-            SizedBox(height: 10),
-            _BenefitRow(emoji: '⏱', label: '쿨다운 10분 (기존 6배 빠름)'),
-            SizedBox(height: 10),
-            _BenefitRow(emoji: '📸', label: '사진 + 링크 홍보 메시지 발송'),
-            SizedBox(height: 10),
-            _BenefitRow(emoji: '🎨', label: '캐릭터 커스터마이즈'),
+            _BenefitRow(emoji: '📍', label: _benefitText(langCode, 'pickup')),
+            const SizedBox(height: 10),
+            _BenefitRow(emoji: '⏱', label: _benefitText(langCode, 'cooldown')),
+            const SizedBox(height: 10),
+            _BenefitRow(emoji: '📸', label: _benefitText(langCode, 'photo')),
+            const SizedBox(height: 10),
+            _BenefitRow(emoji: '🎨', label: _benefitText(langCode, 'custom')),
           ],
         ),
         actions: [
@@ -82,9 +87,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
               foregroundColor: const Color(0xFF1A1300),
               padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
             ),
-            child: const Text(
-              '시작하기',
-              style: TextStyle(fontWeight: FontWeight.w800),
+            child: Text(
+              cta,
+              style: const TextStyle(fontWeight: FontWeight.w800),
             ),
           ),
         ],
@@ -194,7 +199,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   const SizedBox(height: 12),
                   // Build 271: trial 활성 시 종료일 + 자동결제 경고 배너.
                   // 사용자가 "언제 끝나는지" / "자동결제 되는지" 명확히 인지.
-                  if (purchase.isTrialActive)
+                  // Build 272: trialExpiry null safety — isTrialActive 가 true 라도
+                  // RevenueCat 동기화 지연으로 trialExpiry == null 일 가능성 차단.
+                  if (purchase.isTrialActive && purchase.trialExpiry != null)
                     _TrialExpiryBanner(
                       expiry: purchase.trialExpiry!,
                       hoursRemaining: purchase.trialHoursRemaining,
@@ -684,7 +691,25 @@ class _BenefitRow extends StatelessWidget {
   }
 }
 
+/// Build 272: P0 글로벌화 — _BenefitRow 텍스트 한·영 분기.
+/// koEn fallback 으로 14개 언어 사용자가 한국어 노출 안 되도록.
+String _benefitText(String langCode, String key) {
+  final isKo = langCode == 'ko';
+  switch (key) {
+    case 'pickup':
+      return isKo ? '줍기 반경 1km (기존 5배)' : 'Pickup radius 1km (5× wider)';
+    case 'cooldown':
+      return isKo ? '쿨다운 10분 (기존 6배 빠름)' : 'Cooldown 10min (6× faster)';
+    case 'photo':
+      return isKo ? '사진 + 링크 홍보 메시지 발송' : 'Send promo with photo + link';
+    case 'custom':
+      return isKo ? '캐릭터 커스터마이즈' : 'Character customization';
+  }
+  return '';
+}
+
 // ── Build 271: 무료 체험 종료 배너 ────────────────────────────────────
+// Build 272: P0 글로벌화 — 한·영 분기. 한국어 외 사용자는 영어 fallback.
 class _TrialExpiryBanner extends StatelessWidget {
   final DateTime expiry;
   final int hoursRemaining;
@@ -694,17 +719,27 @@ class _TrialExpiryBanner extends StatelessWidget {
     required this.hoursRemaining,
   });
 
-  String _formatRemaining() {
-    if (hoursRemaining <= 0) return '곧 종료';
-    if (hoursRemaining < 24) return '$hoursRemaining시간 남음';
+  String _formatRemaining(bool isKo) {
+    if (hoursRemaining <= 0) return isKo ? '곧 종료' : 'Expiring soon';
+    if (hoursRemaining < 24) {
+      return isKo ? '$hoursRemaining시간 남음' : '${hoursRemaining}h left';
+    }
     final days = (hoursRemaining / 24).ceil();
-    return '$days일 남음';
+    return isKo ? '$days일 남음' : '${days}d left';
   }
 
   @override
   Widget build(BuildContext context) {
+    final langCode = context.read<AppState>().currentUser.languageCode;
+    final isKo = langCode == 'ko';
     final urgent = hoursRemaining < 24;
     final color = urgent ? AppColors.coupon : AppColors.gold;
+    final title = isKo
+        ? '무료 체험 ${_formatRemaining(true)}'
+        : 'Free trial · ${_formatRemaining(false)}';
+    final subtitle = isKo
+        ? '종료 후 자동결제 없음 · 계속 쓰려면 결제하세요'
+        : 'No auto-charge after trial · subscribe to keep Premium';
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
@@ -724,7 +759,7 @@ class _TrialExpiryBanner extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '무료 체험 ${_formatRemaining()}',
+                  title,
                   style: TextStyle(
                     color: color,
                     fontSize: 13.5,
@@ -732,9 +767,9 @@ class _TrialExpiryBanner extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-                const Text(
-                  '종료 후 자동결제 없음 · 계속 쓰려면 결제하세요',
-                  style: TextStyle(
+                Text(
+                  subtitle,
+                  style: const TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 11.5,
                     height: 1.4,

@@ -177,11 +177,14 @@ class _GlobalDriftAppState extends State<GlobalDriftApp> {
           });
     });
     if (widget.initialLoggedIn && widget.initialUserData != null) {
+      // Build 272 (P1 글로벌화): country/countryFlag fallback 의 한국 기본값 제거.
+      // initialUserData 에 값이 없을 케이스는 거의 없지만, 예외 시 system locale 미반영
+      // → onboarding 에서 사용자가 명시적으로 선택하도록 빈 값으로 둔다.
       _appState.setUser(
         id: widget.initialUserData!['id'] ?? '',
         username: widget.initialUserData!['username'] ?? 'Traveler',
-        country: widget.initialUserData!['country'] ?? '대한민국',
-        countryFlag: widget.initialUserData!['countryFlag'] ?? '🇰🇷',
+        country: widget.initialUserData!['country'] ?? '',
+        countryFlag: widget.initialUserData!['countryFlag'] ?? '',
         languageCode: widget.initialUserData!['languageCode'],
         socialLink: widget.initialUserData!['socialLink']?.isNotEmpty == true
             ? widget.initialUserData!['socialLink']

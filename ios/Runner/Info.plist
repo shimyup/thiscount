@@ -12,8 +12,6 @@
 	<string>Photo library access is needed to change your profile picture.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Permission is needed to save your selected profile photo.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Camera access is needed to take photos for your promos.</string>
 	<key>NSUserNotificationUsageDescription</key>
 	<string>Notifications let you know when new rewards arrive nearby.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>

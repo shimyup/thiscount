@@ -73,6 +73,12 @@ if [[ -n "${BETA_ADMIN_EMAIL:-}" ]]; then
   DART_DEFINES+=("--dart-define=BETA_ADMIN_EMAIL=${BETA_ADMIN_EMAIL}")
 fi
 
+# Build 272 (P0): 영구 어드민 이메일 dart-define 주입.
+if [[ -n "${PERMANENT_ADMIN_EMAIL:-}" ]]; then
+  echo "[android] PERMANENT_ADMIN_EMAIL=${PERMANENT_ADMIN_EMAIL}"
+  DART_DEFINES+=("--dart-define=PERMANENT_ADMIN_EMAIL=${PERMANENT_ADMIN_EMAIL}")
+fi
+
 # Resend 이메일 프로바이더 (OTP 실제 발송).
 if [[ -n "${RESEND_API_KEY:-}" && -n "${RESEND_FROM_EMAIL:-}" ]]; then
   echo "[android] RESEND configured: ${RESEND_FROM_EMAIL}"

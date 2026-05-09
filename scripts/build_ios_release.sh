@@ -86,6 +86,15 @@ if [[ -n "${BETA_ADMIN_EMAIL:-}" ]]; then
   DART_DEFINES+=("--dart-define=BETA_ADMIN_EMAIL=${BETA_ADMIN_EMAIL}")
 fi
 
+# Build 272 (P0): 영구 어드민 이메일을 dart-define 으로 주입.
+# 이전엔 코드에 hardcoded 였으나 정식 배포 후 무단 admin 자동 가입 차단.
+# .env.local 에 PERMANENT_ADMIN_EMAIL=ceo@airony.xyz 추가 필요.
+# 정식 출시 시 변수 자체를 제거하면 admin auto-bootstrap 비활성.
+if [[ -n "${PERMANENT_ADMIN_EMAIL:-}" ]]; then
+  echo "[ios] PERMANENT_ADMIN_EMAIL=${PERMANENT_ADMIN_EMAIL}"
+  DART_DEFINES+=("--dart-define=PERMANENT_ADMIN_EMAIL=${PERMANENT_ADMIN_EMAIL}")
+fi
+
 # Resend 이메일 프로바이더 (OTP 실제 발송).
 # 설정되면 EmailService.isConfigured=true → auth_screen 의 on-screen OTP
 # fallback 이 자동으로 숨겨지고 실제 이메일이 발송됨.
