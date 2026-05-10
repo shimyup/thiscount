@@ -142,11 +142,23 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   }
 
   // SNS 링크 열기
+  // Build 276 (P1 보안): javascript:/data:/file: 같은 위험 scheme 차단 (XSS).
+  // http(s) 만 허용. 사용자 작성 URL 이 다른 사용자에게 보여지므로 stored XSS 방어.
   Future<void> _launchSnsLink(String rawUrl) async {
-    // http(s):// 없으면 자동 추가
     final urlStr = rawUrl.startsWith('http') ? rawUrl : 'https://$rawUrl';
     final uri = Uri.tryParse(urlStr);
     if (uri == null) return;
+    if (uri.scheme != 'http' && uri.scheme != 'https') {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invalid link scheme'),
+            backgroundColor: AppColors.bgSurface,
+          ),
+        );
+      }
+      return;
+    }
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else if (mounted) {
