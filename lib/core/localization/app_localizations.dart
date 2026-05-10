@@ -9142,6 +9142,41 @@ class AppL10n {
     'th': 'ส่งแคมเปญ',
   });
 
+  // Build 277: 14세 미만 가입 차단 동의 (KISA 정보통신망법 + GDPR Art.8).
+  String get authAgeAbove14Title => _t({
+    'ko': '만 14세 이상입니다 (필수)',
+    'en': 'I am 14 years or older (Required)',
+    'ja': '14歳以上です(必須)',
+    'zh': '我已满 14 岁(必填)',
+    'fr': "J'ai 14 ans ou plus (Obligatoire)",
+    'de': 'Ich bin 14 Jahre oder älter (Erforderlich)',
+    'es': 'Tengo 14 años o más (Obligatorio)',
+    'pt': 'Tenho 14 anos ou mais (Obrigatório)',
+    'ru': 'Мне 14 лет или больше (Обязательно)',
+    'tr': '14 yaşında veya daha büyüğüm (Zorunlu)',
+    'ar': 'عمري 14 سنة أو أكثر (إلزامي)',
+    'it': 'Ho 14 anni o più (Obbligatorio)',
+    'hi': 'मेरी आयु 14 वर्ष या अधिक है (आवश्यक)',
+    'th': 'ฉันอายุ 14 ปีขึ้นไป (จำเป็น)',
+  });
+
+  String get authAgeAbove14Desc => _t({
+    'ko': '한국 정보통신망법 및 EU GDPR 에 따라 만 14세 미만은 가입할 수 없습니다.',
+    'en': 'Per Korean ICT Network Act & EU GDPR, users under 14 cannot sign up.',
+    'ja': '韓国情報通信網法および EU GDPR により、14歳未満は登録できません。',
+    'zh': '根据韩国信息通信网络法和欧盟 GDPR，未满 14 岁不可注册。',
+    'fr': 'Selon la loi coréenne sur les TIC et le RGPD, les moins de 14 ans ne peuvent pas s\'inscrire.',
+    'de': 'Laut koreanischem IKT-Gesetz & EU-DSGVO können Nutzer unter 14 sich nicht registrieren.',
+    'es': 'Según la Ley TIC coreana y el RGPD, menores de 14 no pueden registrarse.',
+    'pt': 'Pela Lei TIC coreana e GDPR, menores de 14 não podem se cadastrar.',
+    'ru': 'По закону Кореи об ИКТ и GDPR, лицам до 14 лет регистрация запрещена.',
+    'tr': 'Kore BT Kanunu ve AB GDPR uyarınca 14 yaşın altındakiler kayıt olamaz.',
+    'ar': 'وفقًا لقانون كوريا للشبكات وGDPR، لا يمكن للأشخاص دون 14 عامًا التسجيل.',
+    'it': 'Per la Legge ICT coreana e il GDPR, sotto i 14 anni non è possibile registrarsi.',
+    'hi': 'कोरियाई ICT कानून और GDPR के तहत, 14 वर्ष से कम आयु वाले पंजीकरण नहीं कर सकते।',
+    'th': 'ตามกฎหมาย ICT เกาหลีและ GDPR ผู้ที่อายุต่ำกว่า 14 ปีไม่สามารถสมัครได้',
+  });
+
   String get locationDeniedBanner => _t({
     'ko': '위치 권한 거부 — 근처 핀을 찾을 수 없어요',
     'en': "Location denied — can't find nearby pins",

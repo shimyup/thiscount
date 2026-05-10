@@ -1843,16 +1843,13 @@ class _SignupTabState extends State<_SignupTab> {
 
           // ── 6-2. Build 276 (P0): 만 14세 이상 동의 (KISA 정보통신망법 제31조 +
           // GDPR Art.8). 현재 self-attestation. 향후 launch 직전 생년월일 강화.
+          // Build 277: 한·영 분기 → 14언어 풀 번역.
           _ConsentCard(
             checked: _agreeAgeAbove14,
             icon: Icons.cake_rounded,
             iconColor: AppColors.coupon,
-            title: widget.langCode == 'ko'
-                ? '만 14세 이상입니다 (필수)'
-                : 'I am 14 years or older (Required)',
-            description: widget.langCode == 'ko'
-                ? '한국 정보통신망법 및 EU GDPR 에 따라 만 14세 미만은 가입할 수 없습니다.'
-                : 'Per Korean ICT Network Act & EU GDPR, users under 14 cannot sign up.',
+            title: l10n.authAgeAbove14Title,
+            description: l10n.authAgeAbove14Desc,
             langCode: widget.langCode,
             onCheckChanged: (v) => setState(() => _agreeAgeAbove14 = v ?? false),
           ),
