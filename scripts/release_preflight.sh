@@ -102,6 +102,27 @@ if [[ -z "${STADIA_MAPS_API_KEY:-}" ]]; then
   warn "STADIA_MAPS_API_KEY is empty: map labels may be mixed local languages."
 fi
 
+# Build 275 (P0): BETA flag 검증 강화 — 정식 launch 빌드 매출 손실 방지.
+# IS_PRODUCTION_BUILD=true 인 경우만 strict 검증. 베타 빌드는 그대로 진행.
+if [[ "${IS_PRODUCTION_BUILD:-false}" == "true" ]]; then
+  echo "[preflight] PRODUCTION build — strict beta-flag validation"
+  if [[ "${BETA_FREE_PREMIUM:-false}" == "true" ]]; then
+    fail "BETA_FREE_PREMIUM=true detected in PRODUCTION build. Remove or set false in .env.local."
+  fi
+  if [[ "${BETA_UPGRADE_SIMULATOR:-false}" == "true" ]]; then
+    fail "BETA_UPGRADE_SIMULATOR=true detected in PRODUCTION build. Set false to enable real StoreKit purchases."
+  fi
+  if [[ -n "${BETA_ADMIN_EMAIL:-}" ]]; then
+    fail "BETA_ADMIN_EMAIL is set in PRODUCTION build. Remove from .env.local."
+  fi
+  if [[ "${BETA_DISABLE_IN_RELEASE:-true}" != "true" ]]; then
+    fail "BETA_DISABLE_IN_RELEASE must be true (default) in PRODUCTION build."
+  fi
+  echo "[preflight] beta-flag validation OK for production"
+else
+  echo "[preflight] BETA build (set IS_PRODUCTION_BUILD=true for strict validation)"
+fi
+
 if ! command -v flutter >/dev/null 2>&1; then
   fail "flutter command not found in PATH"
 fi

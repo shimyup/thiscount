@@ -61,7 +61,8 @@ fi
 
 # 베타 업그레이드 시뮬레이터 (Build 213) — RC/Play 미연동 시에도 업그레이드
 # 흐름이 동작하도록 즉시 활성화. 정식 출시 시 명시적으로 `false` 지정.
-if [[ "${BETA_UPGRADE_SIMULATOR:-true}" == "true" ]]; then
+# Build 275 (P0): default true → false. 정식 출시 빌드 매출 손실 방지.
+if [[ "${BETA_UPGRADE_SIMULATOR:-false}" == "true" ]]; then
   echo "[android] BETA_UPGRADE_SIMULATOR=true — upgrade will be granted without purchase."
   DART_DEFINES+=("--dart-define=BETA_UPGRADE_SIMULATOR=true")
 fi
