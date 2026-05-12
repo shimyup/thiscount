@@ -70,3 +70,11 @@ docs/marketing/screenshots/raw/
 dist/
 docs/marketing/videos/
 screenshots/
+
+# Build 282: 빌드/배포 artifact 보강 (release IPA / archive / Python 캐시 /
+# release_preflight 가 만드는 sanitized env 임시 파일)
+*.ipa
+*.xcarchive
+__pycache__/
+.pytest_cache/
+build_*.env
