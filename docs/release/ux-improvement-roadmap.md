@@ -115,7 +115,7 @@ Last updated: 2026-04-19
 
 ## 💎 Phase 4 — 브랜드 라이프스타일화 (MAU 40K 돌파 전)
 
-### 9. Premium 리브랜딩: "에어메일 패스 (Air Mail Pass)"
+### 9. Premium 리브랜딩: "Thiscount Premium"
 - 공식 브랜드명을 감정 중심으로 전환
 - 기능 나열 → 라이프스타일 패키지 ("야간 편지", "Aurora 컬렉션")
 

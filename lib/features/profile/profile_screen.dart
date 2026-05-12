@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -75,14 +76,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _setNotifyDaily(bool value) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('notify_daily_letter', value);
-    setState(() => _notifyDaily = value);
-    if (!mounted) return;
-    final lang = context.read<AppState>().currentUser.languageCode;
     if (value) {
-      await NotificationService.requestPermissions();
+      final granted = await NotificationService.requestPermissions();
+      await prefs.setBool('notify_daily_letter', granted);
+      if (!mounted) return;
+      setState(() => _notifyDaily = granted);
+      if (!granted) return;
+      final lang = context.read<AppState>().currentUser.languageCode;
       await NotificationService.scheduleDailyLetterReminder(langCode: lang);
     } else {
+      await prefs.setBool('notify_daily_letter', false);
+      if (mounted) {
+        setState(() => _notifyDaily = false);
+      }
       await NotificationService.cancelDailyLetterReminder();
     }
   }
@@ -98,10 +104,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _shareMyLevel(BuildContext ctx, AppState state) async {
     final l = AppL10n.of(state.currentUser.languageCode);
     final user = state.currentUser;
-    final letterName =
-        (user.customTowerName?.isNotEmpty == true)
-            ? user.customTowerName!
-            : user.username;
+    final letterName = (user.customTowerName?.isNotEmpty == true)
+        ? user.customTowerName!
+        : user.username;
     final ok = await ShareCardService.shareCharacterCard(
       characterEmoji: state.currentCharacterEmoji,
       companionEmoji: state.activeCompanionEmoji,
@@ -172,7 +177,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               state.updateSocialLink(link.isEmpty ? null : link);
               if (ctx.mounted) Navigator.pop(ctx);
             },
-            child: Text(_pl.save, style: const TextStyle(color: AppColors.teal)),
+            child: Text(
+              _pl.save,
+              style: const TextStyle(color: AppColors.teal),
+            ),
           ),
         ],
       ),
@@ -214,12 +222,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     if (picked == null || !mounted) return;
 
                     final appDir = await getApplicationDocumentsDirectory();
-                    final ext = picked.path.contains('.')
-                        ? picked.path.split('.').last
-                        : 'jpg';
+                    // Build 281 (P0 privacy): EXIF (GPS 좌표/촬영 시각) 제거.
+                    // flutter_image_compress 가 keepExif:false 로 메타데이터를
+                    // 통째로 떨군 jpeg 를 다시 인코딩한다. 실패 시 fallback 으로
+                    // 원본 copy 유지 (앱은 동작해야 하므로).
                     final newPath =
-                        '${appDir.path}/profile_${DateTime.now().millisecondsSinceEpoch}.$ext';
-                    await File(picked.path).copy(newPath);
+                        '${appDir.path}/profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
+                    try {
+                      final result =
+                          await FlutterImageCompress.compressAndGetFile(
+                            picked.path,
+                            newPath,
+                            quality: 90,
+                            minWidth: 200,
+                            minHeight: 200,
+                            keepExif: false,
+                          );
+                      if (result == null) {
+                        await File(picked.path).copy(newPath);
+                      }
+                    } catch (_) {
+                      await File(picked.path).copy(newPath);
+                    }
 
                     final oldPath = state.currentUser.profileImagePath;
                     state.updateProfileImage(newPath);
@@ -254,7 +278,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         if (await oldFile.exists()) await oldFile.delete();
                       } catch (_) {}
                     }
-                    if (mounted) _showSnack(ctx, _pl.profileDefaultAvatarChanged);
+                    if (mounted)
+                      _showSnack(ctx, _pl.profileDefaultAvatarChanged);
                   },
                 ),
               ],
@@ -305,7 +330,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   subtitle: Text(
                     _pl.profileAutoTimezoneDesc,
-                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 12,
+                    ),
                   ),
                   activeColor: AppColors.gold,
                 ),
@@ -323,7 +351,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   subtitle: Text(
                     _pl.profileLightModeDesc,
-                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 12,
+                    ),
                   ),
                   activeColor: AppColors.gold,
                 ),
@@ -341,7 +372,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   subtitle: Text(
                     _pl.profileDarkModeDesc,
-                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 12,
+                    ),
                   ),
                   activeColor: AppColors.gold,
                 ),
@@ -404,7 +438,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 langCode: ctx.read<AppState>().currentUser.languageCode,
               );
               if (err != null) {
-                if (ctx.mounted) _showSnack(ctx, _pl.profileCurrentPasswordWrong);
+                if (ctx.mounted)
+                  _showSnack(ctx, _pl.profileCurrentPasswordWrong);
                 return;
               }
               await AuthService.updatePassword(newCtrl.text);
@@ -413,7 +448,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _showSnack(ctx, _pl.profilePasswordChanged);
               }
             },
-            child: Text(_pl.change, style: const TextStyle(color: AppColors.teal)),
+            child: Text(
+              _pl.change,
+              style: const TextStyle(color: AppColors.teal),
+            ),
           ),
         ],
       ),
@@ -503,7 +541,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
               ),
-              Divider(height: 1, color: AppColors.textMuted.withValues(alpha: 0.2)),
+              Divider(
+                height: 1,
+                color: AppColors.textMuted.withValues(alpha: 0.2),
+              ),
               SizedBox(
                 height: MediaQuery.of(ctx).size.height * 0.45,
                 child: ListView.builder(
@@ -515,13 +556,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     return ListTile(
                       dense: true,
                       leading: isSelected
-                          ? const Icon(Icons.check_circle, color: AppColors.teal, size: 20)
-                          : const Icon(Icons.circle_outlined, color: AppColors.textMuted, size: 20),
+                          ? const Icon(
+                              Icons.check_circle,
+                              color: AppColors.teal,
+                              size: 20,
+                            )
+                          : const Icon(
+                              Icons.circle_outlined,
+                              color: AppColors.textMuted,
+                              size: 20,
+                            ),
                       title: Text(
                         name,
                         style: TextStyle(
-                          color: isSelected ? AppColors.teal : AppColors.textPrimary,
-                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                          color: isSelected
+                              ? AppColors.teal
+                              : AppColors.textPrimary,
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w400,
                         ),
                       ),
                       onTap: () {
@@ -575,7 +628,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ).pushNamedAndRemoveUntil('/auth', (_) => false);
               }
             },
-            child: Text(_pl.logout, style: const TextStyle(color: AppColors.error)),
+            child: Text(
+              _pl.logout,
+              style: const TextStyle(color: AppColors.error),
+            ),
           ),
         ],
       ),
@@ -590,7 +646,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.bgCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(_dl.deleteAccount, style: const TextStyle(color: AppColors.error)),
+        title: Text(
+          _dl.deleteAccount,
+          style: const TextStyle(color: AppColors.error),
+        ),
         content: Text(
           _dl.profileDeleteAccountMsg,
           style: const TextStyle(color: AppColors.textSecondary),
@@ -612,7 +671,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ).pushNamedAndRemoveUntil('/auth', (_) => false);
               }
             },
-            child: Text(_dl.withdraw, style: const TextStyle(color: AppColors.error)),
+            child: Text(
+              _dl.withdraw,
+              style: const TextStyle(color: AppColors.error),
+            ),
           ),
         ],
       ),
@@ -775,7 +837,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               Text(
                 _rl.unitPts,
-                style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+                style: const TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 11,
+                ),
               ),
             ],
           ),
@@ -810,8 +875,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 fontSize: 13,
               ),
               tabs: [
-                Tab(text: '👥 ${_fl.profileFollowing} ${user.followingIds.length}'),
-                Tab(text: '🌟 ${_fl.profileFollowers} ${user.followerIds.length}'),
+                Tab(
+                  text:
+                      '👥 ${_fl.profileFollowing} ${user.followingIds.length}',
+                ),
+                Tab(
+                  text: '🌟 ${_fl.profileFollowers} ${user.followerIds.length}',
+                ),
               ],
             ),
             SizedBox(
@@ -940,184 +1010,189 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             label: _l.profileSettingsCollapseLabel,
                             sublabel: _l.profileSettingsCollapseSublabel,
                             children: [
-                          // ── 계정 ──
-                          _settingsGroup(_l.profileAccountSection, [
-                            _groupTile(
-                              icon: Icons.person_rounded,
-                              label: _l.profileNickname,
-                              trailing: Text(
-                                user.username,
-                                style: const TextStyle(
-                                  color: AppColors.textMuted,
-                                  fontSize: 14,
+                              // ── 계정 ──
+                              _settingsGroup(_l.profileAccountSection, [
+                                _groupTile(
+                                  icon: Icons.person_rounded,
+                                  label: _l.profileNickname,
+                                  trailing: Text(
+                                    user.username,
+                                    style: const TextStyle(
+                                      color: AppColors.textMuted,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  onTap: () => _editUsername(ctx, state),
                                 ),
-                              ),
-                              onTap: () => _editUsername(ctx, state),
-                            ),
-                            _groupTile(
-                              icon: Icons.location_city_rounded,
-                              label: _l.profileTowerName,
-                              trailing: Text(
-                                user.customTowerName?.isNotEmpty == true
-                                    ? user.customTowerName!
-                                    : _l.profileNotSet,
-                                style: const TextStyle(
-                                  color: AppColors.textMuted,
-                                  fontSize: 14,
+                                _groupTile(
+                                  icon: Icons.location_city_rounded,
+                                  label: user.isBrand
+                                      ? _l.profileTowerName
+                                      : _l.profileCharacterName,
+                                  trailing: Text(
+                                    user.customTowerName?.isNotEmpty == true
+                                        ? user.customTowerName!
+                                        : _l.profileNotSet,
+                                    style: const TextStyle(
+                                      color: AppColors.textMuted,
+                                      fontSize: 14,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                  onTap: () =>
+                                      showEditTowerNameDialog(ctx, state),
                                 ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                              onTap: () => showEditTowerNameDialog(ctx, state),
-                            ),
-                            _groupTile(
-                              icon: Icons.account_circle_rounded,
-                              label: _l.profilePhoto,
-                              trailing: Text(
-                                user.profileImagePath?.isNotEmpty == true
-                                    ? _l.profilePhotoSet
-                                    : _l.profilePhotoDefault,
-                                style: const TextStyle(
-                                  color: AppColors.textMuted,
-                                  fontSize: 14,
+                                _groupTile(
+                                  icon: Icons.account_circle_rounded,
+                                  label: _l.profilePhoto,
+                                  trailing: Text(
+                                    user.profileImagePath?.isNotEmpty == true
+                                        ? _l.profilePhotoSet
+                                        : _l.profilePhotoDefault,
+                                    style: const TextStyle(
+                                      color: AppColors.textMuted,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  onTap: () => _changeProfileImage(ctx, state),
                                 ),
-                              ),
-                              onTap: () => _changeProfileImage(ctx, state),
-                            ),
-                            _groupTile(
-                              icon: Icons.link_rounded,
-                              label: _l.profileSnsLink,
-                              trailing: Text(
-                                user.socialLink?.isNotEmpty == true
-                                    ? user.socialLink!
-                                    : _l.profileNotSet,
-                                style: const TextStyle(
-                                  color: AppColors.textMuted,
-                                  fontSize: 13,
+                                _groupTile(
+                                  icon: Icons.link_rounded,
+                                  label: _l.profileSnsLink,
+                                  trailing: Text(
+                                    user.socialLink?.isNotEmpty == true
+                                        ? user.socialLink!
+                                        : _l.profileNotSet,
+                                    style: const TextStyle(
+                                      color: AppColors.textMuted,
+                                      fontSize: 13,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                  onTap: () => _editSnsLink(ctx, state),
                                 ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                              onTap: () => _editSnsLink(ctx, state),
-                            ),
-                            _groupTile(
-                              icon: Icons.lock_outline_rounded,
-                              label: _l.profileChangePassword,
-                              onTap: () => _changePassword(ctx),
-                              isLast: true,
-                            ),
-                          ]),
-                          // ── 공개 설정 ──
-                          _settingsGroup(_l.profilePrivacySection, [
-                            _groupSwitchTile(
-                              icon: Icons.badge_rounded,
-                              label: _l.profileNicknamePublic,
-                              subtitle: _l.profileNicknamePublicDesc,
-                              value: user.isUsernamePublic,
-                              onChanged: (v) => state.updatePrivacySettings(
-                                isUsernamePublic: v,
-                              ),
-                            ),
-                            _groupSwitchTile(
-                              icon: Icons.link_rounded,
-                              label: _l.profileSnsLinkPublic,
-                              subtitle: _l.profileSnsPublicDesc,
-                              value: user.isSnsPublic,
-                              onChanged: (v) =>
-                                  state.updatePrivacySettings(isSnsPublic: v),
-                              isLast: true,
-                            ),
-                          ]),
-                          // ── 알림 ──
-                          _settingsGroup(_l.profileNotificationSection, [
-                            _groupSwitchTile(
-                              icon: Icons.notifications_active_rounded,
-                              label: _l.profileNearbyNotification,
-                              subtitle: _l.profileNearbyNotificationDesc,
-                              value: _notifyNearby,
-                              onChanged: _setNotifyNearby,
-                            ),
-                            _groupSwitchTile(
-                              icon: Icons.wb_sunny_rounded,
-                              label: _l.settingsNotifyDaily,
-                              subtitle: _l.settingsNotifyDailyDesc,
-                              value: _notifyDaily,
-                              onChanged: _setNotifyDaily,
-                              isLast: true,
-                            ),
-                          ]),
-                          // ── 화면 ──
-                          _settingsGroup(_l.profileDisplaySection, [
-                            _groupTile(
-                              icon: Icons.brightness_6_rounded,
-                              label: _l.profileDisplayMode,
-                              trailing: Text(
-                                state.displayThemeModeLabel,
-                                style: const TextStyle(
-                                  color: AppColors.textMuted,
-                                  fontSize: 14,
+                                _groupTile(
+                                  icon: Icons.lock_outline_rounded,
+                                  label: _l.profileChangePassword,
+                                  onTap: () => _changePassword(ctx),
+                                  isLast: true,
                                 ),
-                              ),
-                              onTap: () => _showThemeModeSelector(ctx, state),
-                              isLast: true,
-                            ),
-                          ]),
-                          // ── 앱 정보 ──
-                          _settingsGroup(_l.profileAppInfoSection, [
-                            _groupTile(
-                              icon: Icons.info_outline_rounded,
-                              label: _l.profileVersion,
-                              trailing: const Text(
-                                '1.0.0',
-                                style: TextStyle(
-                                  color: AppColors.textMuted,
-                                  fontSize: 14,
+                              ]),
+                              // ── 공개 설정 ──
+                              _settingsGroup(_l.profilePrivacySection, [
+                                _groupSwitchTile(
+                                  icon: Icons.badge_rounded,
+                                  label: _l.profileNicknamePublic,
+                                  subtitle: _l.profileNicknamePublicDesc,
+                                  value: user.isUsernamePublic,
+                                  onChanged: (v) => state.updatePrivacySettings(
+                                    isUsernamePublic: v,
+                                  ),
                                 ),
-                              ),
-                            ),
-                            _groupTile(
-                              icon: Icons.public_rounded,
-                              label: _l.profileCountry,
-                              trailing: Text(
-                                '${user.countryFlag} ${CountryL10n.localizedName(user.country, _lc)}',
-                                style: const TextStyle(
-                                  color: AppColors.textMuted,
-                                  fontSize: 14,
+                                _groupSwitchTile(
+                                  icon: Icons.link_rounded,
+                                  label: _l.profileSnsLinkPublic,
+                                  subtitle: _l.profileSnsPublicDesc,
+                                  value: user.isSnsPublic,
+                                  onChanged: (v) => state.updatePrivacySettings(
+                                    isSnsPublic: v,
+                                  ),
+                                  isLast: true,
                                 ),
-                              ),
-                            ),
-                            _groupTile(
-                              icon: Icons.language_rounded,
-                              label: _l.settingsLanguage,
-                              trailing: Text(
-                                LanguageConfig.getLanguageName(_lc),
-                                style: const TextStyle(
-                                  color: AppColors.textMuted,
-                                  fontSize: 14,
+                              ]),
+                              // ── 알림 ──
+                              _settingsGroup(_l.profileNotificationSection, [
+                                _groupSwitchTile(
+                                  icon: Icons.notifications_active_rounded,
+                                  label: _l.profileNearbyNotification,
+                                  subtitle: _l.profileNearbyNotificationDesc,
+                                  value: _notifyNearby,
+                                  onChanged: _setNotifyNearby,
                                 ),
-                              ),
-                              onTap: () => _showLanguagePicker(ctx, state),
-                              isLast: true,
-                            ),
-                          ]),
-                          // ── 계정 관리 ──
-                          _settingsGroup(_l.profileAccountManageSection, [
-                            _groupTile(
-                              icon: Icons.logout_rounded,
-                              label: _l.logout,
-                              iconColor: AppColors.textSecondary,
-                              labelColor: AppColors.textSecondary,
-                              onTap: () => _confirmLogout(ctx),
-                            ),
-                            _groupTile(
-                              icon: Icons.delete_forever_rounded,
-                              label: _l.deleteAccount,
-                              iconColor: AppColors.error,
-                              labelColor: AppColors.error,
-                              onTap: () => _confirmDeleteAccount(ctx),
-                              isLast: true,
-                            ),
-                          ]),
+                                _groupSwitchTile(
+                                  icon: Icons.wb_sunny_rounded,
+                                  label: _l.settingsNotifyDaily,
+                                  subtitle: _l.settingsNotifyDailyDesc,
+                                  value: _notifyDaily,
+                                  onChanged: _setNotifyDaily,
+                                  isLast: true,
+                                ),
+                              ]),
+                              // ── 화면 ──
+                              _settingsGroup(_l.profileDisplaySection, [
+                                _groupTile(
+                                  icon: Icons.brightness_6_rounded,
+                                  label: _l.profileDisplayMode,
+                                  trailing: Text(
+                                    state.displayThemeModeLabel,
+                                    style: const TextStyle(
+                                      color: AppColors.textMuted,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  onTap: () =>
+                                      _showThemeModeSelector(ctx, state),
+                                  isLast: true,
+                                ),
+                              ]),
+                              // ── 앱 정보 ──
+                              _settingsGroup(_l.profileAppInfoSection, [
+                                _groupTile(
+                                  icon: Icons.info_outline_rounded,
+                                  label: _l.profileVersion,
+                                  trailing: const Text(
+                                    '1.0.0',
+                                    style: TextStyle(
+                                      color: AppColors.textMuted,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                                _groupTile(
+                                  icon: Icons.public_rounded,
+                                  label: _l.profileCountry,
+                                  trailing: Text(
+                                    '${user.countryFlag} ${CountryL10n.localizedName(user.country, _lc)}',
+                                    style: const TextStyle(
+                                      color: AppColors.textMuted,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                                _groupTile(
+                                  icon: Icons.language_rounded,
+                                  label: _l.settingsLanguage,
+                                  trailing: Text(
+                                    LanguageConfig.getLanguageName(_lc),
+                                    style: const TextStyle(
+                                      color: AppColors.textMuted,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  onTap: () => _showLanguagePicker(ctx, state),
+                                  isLast: true,
+                                ),
+                              ]),
+                              // ── 계정 관리 ──
+                              _settingsGroup(_l.profileAccountManageSection, [
+                                _groupTile(
+                                  icon: Icons.logout_rounded,
+                                  label: _l.logout,
+                                  iconColor: AppColors.textSecondary,
+                                  labelColor: AppColors.textSecondary,
+                                  onTap: () => _confirmLogout(ctx),
+                                ),
+                                _groupTile(
+                                  icon: Icons.delete_forever_rounded,
+                                  label: _l.deleteAccount,
+                                  iconColor: AppColors.error,
+                                  labelColor: AppColors.error,
+                                  onTap: () => _confirmDeleteAccount(ctx),
+                                  isLast: true,
+                                ),
+                              ]),
                             ],
                           ),
                           const SizedBox(height: 60),
@@ -1257,7 +1332,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
-                          planLabel.replaceAll(RegExp(r'[🏷️👑\s]+'), '').toUpperCase(),
+                          planLabel
+                              .replaceAll(RegExp(r'[🏷️👑\s]+'), '')
+                              .toUpperCase(),
                           style: TextStyle(
                             color: planColor == AppColors.gold
                                 ? const Color(0xFF1A1300)
@@ -1319,8 +1396,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _stat4Divider(),
           _stat4V5('${score.receivedCount}', _fsl.profileReceivedLetters),
           _stat4Divider(),
-          _stat4V5('${countrySet.length}', _fsl.profileVisitedCountries,
-              color: AppColors.gold),
+          _stat4V5(
+            '${countrySet.length}',
+            _fsl.profileVisitedCountries,
+            color: AppColors.gold,
+          ),
           _stat4Divider(),
           _stat4V5('${user.followerIds.length}', _fsl.profileFollowers),
         ],
@@ -1361,11 +1441,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _stat4Divider() => Container(
-        width: 0.5,
-        height: 32,
-        color: AppColors.bgSurface,
-      );
+  Widget _stat4Divider() =>
+      Container(width: 0.5, height: 32, color: AppColors.bgSurface);
 
   // ── ② 구독 카드 + 오늘 발송 잔여 카드 (B+C) ─────────────────────────────────
   Widget _buildQuickCardsRow(
@@ -1564,9 +1641,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         decoration: BoxDecoration(
           color: AppColors.bgCard,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: AppColors.gold.withValues(alpha: 0.35),
-          ),
+          border: Border.all(color: AppColors.gold.withValues(alpha: 0.35)),
         ),
         child: Row(
           children: [
@@ -1599,9 +1674,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: AppColors.teal.withValues(alpha: 0.25),
-        ),
+        border: Border.all(color: AppColors.teal.withValues(alpha: 0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1635,10 +1708,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(width: 4),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 3,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: AppColors.teal.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(6),
@@ -1669,10 +1739,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             remaining == null
                 ? l.xpLevelMaxed(xp)
                 : l.xpLevelNextIn(xp, remaining),
-            style: const TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 11,
-            ),
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
           ),
           const SizedBox(height: 8),
           // 🎯 현재 레벨의 줍기 반경 보너스 표시 (Level 2 부터 +10m 단위)
@@ -1851,11 +1918,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
                     itemBuilder: (_, i) {
                       final (floor, emoji) = tiers[i];
-                      final nextFloor = i + 1 < tiers.length ? tiers[i + 1].$1 : 51;
+                      final nextFloor = i + 1 < tiers.length
+                          ? tiers[i + 1].$1
+                          : 51;
                       final isCurrent =
                           currentLevel >= floor && currentLevel < nextFloor;
                       final isPassed = currentLevel >= nextFloor;
-                      final xpReq = UserProgress.xpThresholdForLevel(floor == 0 ? 1 : floor);
+                      final xpReq = UserProgress.xpThresholdForLevel(
+                        floor == 0 ? 1 : floor,
+                      );
                       return Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
@@ -1888,13 +1959,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    l.xpMilestoneTierLabel(floor == 0 ? 1 : floor, nextFloor - 1),
+                                    l.xpMilestoneTierLabel(
+                                      floor == 0 ? 1 : floor,
+                                      nextFloor - 1,
+                                    ),
                                     style: TextStyle(
                                       color: isCurrent
                                           ? AppColors.gold
                                           : isPassed
-                                              ? AppColors.textMuted
-                                              : AppColors.textPrimary,
+                                          ? AppColors.textMuted
+                                          : AppColors.textPrimary,
                                       fontSize: 13,
                                       fontWeight: FontWeight.w800,
                                     ),
@@ -1904,10 +1978,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     xpLevelLabel(floor == 0 ? 1 : floor),
                                     style: TextStyle(
                                       color: isCurrent
-                                          ? AppColors.gold.withValues(alpha: 0.85)
+                                          ? AppColors.gold.withValues(
+                                              alpha: 0.85,
+                                            )
                                           : isPassed
-                                              ? AppColors.textMuted
-                                              : AppColors.textSecondary,
+                                          ? AppColors.textMuted
+                                          : AppColors.textSecondary,
                                       fontSize: 12,
                                     ),
                                   ),
@@ -1950,7 +2026,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             else
                               Icon(
                                 Icons.lock_outline_rounded,
-                                color: AppColors.textMuted.withValues(alpha: 0.5),
+                                color: AppColors.textMuted.withValues(
+                                  alpha: 0.5,
+                                ),
                                 size: 16,
                               ),
                           ],
@@ -2067,7 +2145,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   Text(
                     _tl.unitPts,
-                    style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 11,
+                    ),
                   ),
                 ],
               ),
@@ -2089,7 +2170,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                isMax ? '🏆 ${_tl.towerTopTierReached}' : tier.nextGoalL(user.languageCode),
+                isMax
+                    ? '🏆 ${_tl.towerTopTierReached}'
+                    : tier.nextGoalL(user.languageCode),
                 style: const TextStyle(
                   color: AppColors.textMuted,
                   fontSize: 11,
@@ -2398,8 +2481,7 @@ class _BrandExactDropCreditsCard extends StatelessWidget {
           color: AppColors.bgCard,
           borderRadius: BorderRadius.circular(AppRadius.card),
           border: Border.all(
-            color: (low ? AppColors.error : orange)
-                .withValues(alpha: 0.35),
+            color: (low ? AppColors.error : orange).withValues(alpha: 0.35),
             width: 1,
           ),
         ),
@@ -2520,9 +2602,7 @@ class _BrandExactDropCreditsCard extends StatelessWidget {
                 ),
                 child: Text(
                   l10n.brandOnlyAcknowledge,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                  ),
+                  style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
               ),
             ),
@@ -2541,10 +2621,7 @@ class _ExpandableSettingsGroup extends StatefulWidget {
   final String title;
   final List<Widget> children;
 
-  const _ExpandableSettingsGroup({
-    required this.title,
-    required this.children,
-  });
+  const _ExpandableSettingsGroup({required this.title, required this.children});
 
   @override
   State<_ExpandableSettingsGroup> createState() =>
@@ -2650,9 +2727,7 @@ class _SettingsCollapseButtonState extends State<_SettingsCollapseButton> {
             onTap: () => setState(() => _expanded = !_expanded),
             borderRadius: BorderRadius.circular(12),
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14, vertical: 14,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
               decoration: BoxDecoration(
                 color: AppColors.bgCard,
                 borderRadius: BorderRadius.circular(12),
@@ -2668,9 +2743,7 @@ class _SettingsCollapseButtonState extends State<_SettingsCollapseButton> {
                   Icon(
                     Icons.settings_rounded,
                     size: 20,
-                    color: _expanded
-                        ? AppColors.gold
-                        : AppColors.textSecondary,
+                    color: _expanded ? AppColors.gold : AppColors.textSecondary,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -2690,9 +2763,7 @@ class _SettingsCollapseButtonState extends State<_SettingsCollapseButton> {
                     duration: const Duration(milliseconds: 220),
                     child: Icon(
                       Icons.keyboard_arrow_down_rounded,
-                      color: _expanded
-                          ? AppColors.gold
-                          : AppColors.textMuted,
+                      color: _expanded ? AppColors.gold : AppColors.textMuted,
                     ),
                   ),
                 ],
@@ -2733,10 +2804,7 @@ class _FollowListContent extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              '🔭',
-              style: TextStyle(fontSize: 32),
-            ),
+            const Text('🔭', style: TextStyle(fontSize: 32)),
             const SizedBox(height: 8),
             Text(
               emptyMsg,
@@ -2928,7 +2996,8 @@ class _PreferredCategoryCard extends StatelessWidget {
                 Expanded(
                   child: _PreferredCategoryChip(
                     category: c,
-                    isSelected: unlocked &&
+                    isSelected:
+                        unlocked &&
                         ((c == LetterCategory.general && selected == null) ||
                             selected == c),
                     isLocked: !unlocked,
@@ -2945,9 +3014,7 @@ class _PreferredCategoryCard extends StatelessWidget {
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(
-                                'Lv 11 도달 후 잠금 해제 (현재 Lv $level)',
-                              ),
+                              content: Text('Lv 11 도달 후 잠금 해제 (현재 Lv $level)'),
                               behavior: SnackBarBehavior.floating,
                             ),
                           );
@@ -2989,13 +3056,13 @@ class _PreferredCategoryChip extends StatelessWidget {
     final emoji = category == LetterCategory.coupon
         ? '🎟'
         : category == LetterCategory.voucher
-            ? '🎁'
-            : '✉️';
+        ? '🎁'
+        : '✉️';
     final label = category == LetterCategory.coupon
         ? '할인권'
         : category == LetterCategory.voucher
-            ? '교환권'
-            : '랜덤';
+        ? '교환권'
+        : '랜덤';
 
     return InkWell(
       onTap: onTap,
@@ -3044,10 +3111,7 @@ class _PreferredCategoryChip extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: AppColors.coupon,
                       shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.bgCard,
-                        width: 1.5,
-                      ),
+                      border: Border.all(color: AppColors.bgCard, width: 1.5),
                     ),
                     child: const Icon(
                       Icons.lock_rounded,

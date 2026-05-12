@@ -16,7 +16,10 @@ void showNicknameCooldownSnack(BuildContext ctx, AppState state) {
   ScaffoldMessenger.of(ctx).showSnackBar(
     SnackBar(
       content: Text(
-        l.profileDialogNicknameCooldown(state.nicknameChangeRemainingDays, dateLabel),
+        l.profileDialogNicknameCooldown(
+          state.nicknameChangeRemainingDays,
+          dateLabel,
+        ),
       ),
       backgroundColor: AppColors.bgCard,
       behavior: SnackBarBehavior.floating,
@@ -25,10 +28,10 @@ void showNicknameCooldownSnack(BuildContext ctx, AppState state) {
   );
 }
 
-/// 타워 이름 / 레터 이름 수정 다이얼로그 (Build 171).
+/// 타워 이름 / 캐릭터 이름 수정 다이얼로그 (Build 171).
 /// 같은 `customTowerName` 필드를 공유하되 티어별 라벨 분기:
 ///   Brand        → "타워 이름"
-///   Free/Premium → "레터 이름"
+///   Free/Premium → "캐릭터 이름"
 void showEditTowerNameDialog(BuildContext ctx, AppState state) {
   final l = AppL10n.of(state.currentUser.languageCode);
   final isBrand = state.currentUser.isBrand;
@@ -41,7 +44,9 @@ void showEditTowerNameDialog(BuildContext ctx, AppState state) {
       backgroundColor: AppColors.bgCard,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Text(
-        isBrand ? l.profileDialogTowerNameTitle : l.profileDialogLetterNameTitle,
+        isBrand
+            ? l.profileDialogTowerNameTitle
+            : l.profileDialogLetterNameTitle,
         style: const TextStyle(color: AppColors.textPrimary),
       ),
       content: Column(
@@ -77,7 +82,10 @@ void showEditTowerNameDialog(BuildContext ctx, AppState state) {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx),
-          child: Text(l.settingsCancel, style: const TextStyle(color: AppColors.textMuted)),
+          child: Text(
+            l.settingsCancel,
+            style: const TextStyle(color: AppColors.textMuted),
+          ),
         ),
         TextButton(
           onPressed: () {
@@ -86,7 +94,10 @@ void showEditTowerNameDialog(BuildContext ctx, AppState state) {
             );
             if (ctx.mounted) Navigator.pop(ctx);
           },
-          child: Text(l.settingsSave, style: const TextStyle(color: AppColors.teal)),
+          child: Text(
+            l.settingsSave,
+            style: const TextStyle(color: AppColors.teal),
+          ),
         ),
       ],
     ),
@@ -125,7 +136,10 @@ void showEditUsernameDialog(BuildContext ctx, AppState state) {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx),
-          child: Text(l.settingsCancel, style: const TextStyle(color: AppColors.textMuted)),
+          child: Text(
+            l.settingsCancel,
+            style: const TextStyle(color: AppColors.textMuted),
+          ),
         ),
         TextButton(
           onPressed: () async {
@@ -156,7 +170,10 @@ void showEditUsernameDialog(BuildContext ctx, AppState state) {
             }
             if (ctx.mounted) Navigator.pop(ctx);
           },
-          child: Text(l.settingsSave, style: const TextStyle(color: AppColors.teal)),
+          child: Text(
+            l.settingsSave,
+            style: const TextStyle(color: AppColors.teal),
+          ),
         ),
       ],
     ),

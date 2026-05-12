@@ -63,18 +63,21 @@ void main() {
       );
     });
 
-    test('combined example: 10 picks, 3 sends, 8000km pickup, 10000km sent', () {
-      expect(
-        UserProgress.calcXp(
-          pickedCount: 10,
-          sentCount: 3,
-          sumPickupKm: 8000,
-          sumSentKm: 10000,
-        ),
-        // 100 + 15 + 800 + 500 = 1415
-        1415,
-      );
-    });
+    test(
+      'combined example: 10 picks, 3 sends, 8000km pickup, 10000km sent',
+      () {
+        expect(
+          UserProgress.calcXp(
+            pickedCount: 10,
+            sentCount: 3,
+            sumPickupKm: 8000,
+            sumSentKm: 10000,
+          ),
+          // 100 + 15 + 800 + 500 = 1415
+          1415,
+        );
+      },
+    );
   });
 
   group('UserProgress.calcLevel', () {
@@ -143,20 +146,20 @@ void main() {
   });
 
   group('xpLevelLabel', () {
-    test('level 1 → 새내기 카운터', () {
-      expect(xpLevelLabel(1), contains('새내기 카운터'));
+    test('level 1 → 새내기 탐험가', () {
+      expect(xpLevelLabel(1), contains('새내기 탐험가'));
     });
 
     test('level 10 → 숙련 헌터', () {
       expect(xpLevelLabel(10), contains('숙련 헌터'));
     });
 
-    test('level 50 → 전설의 카운터', () {
-      expect(xpLevelLabel(50), contains('전설의 카운터'));
+    test('level 50 → 전설의 혜택 헌터', () {
+      expect(xpLevelLabel(50), contains('전설의 혜택 헌터'));
     });
 
-    test('level 44 → 세계의 카운터장 (floor 40 bucket)', () {
-      expect(xpLevelLabel(44), contains('세계의 카운터장'));
+    test('level 44 → 글로벌 픽업 리더 (floor 40 bucket)', () {
+      expect(xpLevelLabel(44), contains('글로벌 픽업 리더'));
     });
   });
 }

@@ -1,6 +1,6 @@
-# Thiscount 실기기 결제 QA 체크리스트 (배포 직전)
+# Thiscount 실기기 결제 QA 체크리스트 (Build 273)
 
-Last updated: 2026-04-02
+Last updated: 2026-05-10
 
 적용 범위:
 - iOS: App Store Sandbox (실기기)
@@ -9,10 +9,16 @@ Last updated: 2026-04-02
 사전 조건:
 - 앱은 릴리즈 빌드 설치본 사용
 - RevenueCat `default` Offering에 아래 4개 상품 연결 완료
-  - `letter_go_premium_monthly`
-  - `letter_go_brand_monthly`
-  - `letter_go_gift_1month`
-  - `letter_go_brand_extra_1000`
+  - iOS
+    - `thiscount_premium_monthly_ios`
+    - `thiscount_brand_monthly_ios`
+    - `thiscount_gift_1month_ios`
+    - `thiscount_brand_extra_1000_ios`
+  - Android
+    - `letter_go_premium_monthly:monthly`
+    - `letter_go_brand_monthly:monthly`
+    - `letter_go_gift_1month`
+    - `letter_go_brand_extra_1000`
 - 테스트 계정 2개 준비
   - 일반 회원용 계정
   - Brand/Creator 계정 전환 확인용 계정
@@ -23,11 +29,12 @@ Last updated: 2026-04-02
 
 1. 앱 삭제 후 재설치
 2. 새 계정 회원가입 또는 테스트 계정 로그인
-3. `프로필 > 구독 플랜` 진입
-4. 상품 카드 3종 노출 확인
+3. `프로필 > Premium` 또는 `설정 > 구독` 진입
+4. 상품 카드 4종 노출 확인
    - Premium
-   - Brand / Creator
+   - Brand
    - 선물권
+   - Brand 추가 발송권 (Brand 계정에서만)
 5. 오류 배너 노출 여부 확인
    - `상품 정보를 불러올 수 없습니다`가 뜨면 네트워크/스토어 계정/Offering 매핑부터 재확인
 
@@ -47,7 +54,8 @@ Last updated: 2026-04-02
 
 기대 결과:
 - Premium 권한 활성화
-- 일일 발송 한도 Premium 기준 반영
+- Premium 혜택 배지/상태 반영
+- 줍기 반경 확장, 쿨다운 단축 등 Premium 혜택 반영
 - Premium 카드 상태가 활성 플랜으로 표시
 - 오류 토스트/배너 없음
 
@@ -68,12 +76,12 @@ Last updated: 2026-04-02
 기대 결과:
 - Brand 권한 활성화
 - Premium 포함 혜택 동시 활성
-- Brand 전용 UI(추가 발송권 영역 등) 노출
-- Premium -> Brand 변경은 즉시가 아닌 예약 정책 문구/상태가 맞게 표시
+- Brand 전용 UI(캠페인 발송, ExactDrop, 추가 발송권 영역 등) 노출
+- Premium -> Brand 변경 정책 문구/상태가 현재 앱 동작과 일치
 
 실패 시 체크:
 - Entitlement `brand` 연결
-- 기존 구독과의 업그레이드 정책(다음 결제일 반영) 표시 로직
+- 기존 구독과의 업그레이드 정책 표시 로직
 
 ---
 
@@ -131,25 +139,28 @@ Last updated: 2026-04-02
 
 ---
 
-## 7) 플랜 변경 정책 QA (중요)
+## 7) 무료 체험 / 플랜 변경 정책 QA (중요)
 
 검증 항목:
-1. Free -> Premium: 가능
-2. Premium -> Brand: 가능 (다음 결제일 반영 정책 표시)
-3. Brand -> Premium 다운그레이드: 불가
-4. Premium/Brand -> Free 다운그레이드: 예약 처리
+1. 신규 가입 시 3-day free Premium 배너/상태 노출
+2. trial 종료 후 자동 결제 없음
+3. Free -> Premium: 가능
+4. Premium -> Brand: 가능
+5. Brand -> Premium 다운그레이드: 정책 문구와 실제 동작 일치
+6. Premium/Brand -> Free 다운그레이드: 정책 문구와 실제 동작 일치
 
 기대 결과:
 - 정책과 UI 문구가 일치
 - 즉시 변경 불가 항목은 명확 안내
+- trial 종료 시 paywall 진입 흐름이 자연스럽고 오해를 주지 않음
 
 ---
 
 ## 8) 회귀 체크 (결제 후 앱 기능)
 
-1. 편지 발송 한도 반영
-2. Premium 특급 배송 1일 3통 제한 반영
-3. Brand 대량 발송/추가 발송권 반영
+1. 주변 혜택 줍기 흐름 정상
+2. Premium 반경/쿨다운 혜택 반영
+3. Brand 캠페인 발송/추가 발송권 반영
 4. 앱 재시작 후 권한 유지
 5. 로그아웃 후 재로그인 시 권한 일관성
 
@@ -165,7 +176,7 @@ Last updated: 2026-04-02
 | 선물권 구매 | PASS/FAIL | PASS/FAIL |  |
 | 추가 발송권 구매 | PASS/FAIL | PASS/FAIL |  |
 | 구매 복원 | PASS/FAIL | PASS/FAIL |  |
-| 플랜 변경 정책 | PASS/FAIL | PASS/FAIL |  |
+| trial / 플랜 정책 | PASS/FAIL | PASS/FAIL |  |
 | 결제 후 회귀 기능 | PASS/FAIL | PASS/FAIL |  |
 
 릴리즈 차단 기준:

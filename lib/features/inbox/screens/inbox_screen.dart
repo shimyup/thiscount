@@ -18,11 +18,21 @@ import '../../merchant/merchant_interest_sheet.dart';
 // 필터는 "편지의 종류"만 다룸. 기존 enum 값은 유지 (코드베이스 호환성),
 // 필터 바의 표시 목록에서만 빠진다.
 enum LetterFilterType {
-  all, read, inTransit, waitingPickup, brand, coupon, voucher, general,
+  all,
+  read,
+  inTransit,
+  waitingPickup,
+  brand,
+  coupon,
+  voucher,
+  general,
   // Build 264: 산업군 필터 (heuristic content keyword matching).
   // 사용자가 "오늘 음식점 쿠폰만 보고 싶다" 같은 빠른 탐색용. compose 단계에서
   // 명시적 메타데이터가 아니라 letter 본문 + 발송인명 키워드 매칭으로 분류.
-  food, cafe, beauty, fashion,
+  food,
+  cafe,
+  beauty,
+  fashion,
 }
 
 /// 필터 바에 노출되는 타입.
@@ -52,20 +62,183 @@ const List<LetterFilterType> _visibleFilters = [
 /// 안에 키워드 하나라도 있으면 그 산업군에 해당.
 const Map<LetterFilterType, List<String>> _industryKeywords = {
   LetterFilterType.food: [
-    '음식','맛집','식당','레스토랑','한식','중식','일식','양식','치킨','피자','버거','파스타','마라','고기','회','초밥','라면','분식','국밥','찌개','국수','면','도시락','런치','디너','야식','스테이크','정식','백반','음식점','분식점','뷔페','뷔페식',
-    'food','restaurant','dish','meal','lunch','dinner','snack','burger','pizza','pasta','ramen','sushi','bbq','steak','dining','cuisine','eatery'
+    '음식',
+    '맛집',
+    '식당',
+    '레스토랑',
+    '한식',
+    '중식',
+    '일식',
+    '양식',
+    '치킨',
+    '피자',
+    '버거',
+    '파스타',
+    '마라',
+    '고기',
+    '회',
+    '초밥',
+    '라면',
+    '분식',
+    '국밥',
+    '찌개',
+    '국수',
+    '면',
+    '도시락',
+    '런치',
+    '디너',
+    '야식',
+    '스테이크',
+    '정식',
+    '백반',
+    '음식점',
+    '분식점',
+    '뷔페',
+    '뷔페식',
+    'food',
+    'restaurant',
+    'dish',
+    'meal',
+    'lunch',
+    'dinner',
+    'snack',
+    'burger',
+    'pizza',
+    'pasta',
+    'ramen',
+    'sushi',
+    'bbq',
+    'steak',
+    'dining',
+    'cuisine',
+    'eatery',
   ],
   LetterFilterType.cafe: [
-    '카페','커피','라떼','에스프레소','아메리카노','디저트','케이크','와플','베이커리','빵','도넛','마카롱','스무디','주스','에이드','녹차','홍차','허브티','브런치',
-    'cafe','coffee','latte','cappuccino','espresso','americano','dessert','bakery','donut','macaron','smoothie','juice','tea','brunch'
+    '카페',
+    '커피',
+    '라떼',
+    '에스프레소',
+    '아메리카노',
+    '디저트',
+    '케이크',
+    '와플',
+    '베이커리',
+    '빵',
+    '도넛',
+    '마카롱',
+    '스무디',
+    '주스',
+    '에이드',
+    '녹차',
+    '홍차',
+    '허브티',
+    '브런치',
+    'cafe',
+    'coffee',
+    'latte',
+    'cappuccino',
+    'espresso',
+    'americano',
+    'dessert',
+    'bakery',
+    'donut',
+    'macaron',
+    'smoothie',
+    'juice',
+    'tea',
+    'brunch',
   ],
   LetterFilterType.beauty: [
-    '뷰티','화장품','미용','헤어','네일','마사지','에스테틱','왁싱','피부','스킨','메이크업','립스틱','마스크팩','선크림','토너','에센스','샴푸','린스','트리트먼트','향수','퍼퓸','퍼머','염색','스파',
-    'beauty','cosmetic','salon','hair','nail','spa','massage','skin','makeup','lipstick','cushion','mask','serum','shampoo','perfume'
+    '뷰티',
+    '화장품',
+    '미용',
+    '헤어',
+    '네일',
+    '마사지',
+    '에스테틱',
+    '왁싱',
+    '피부',
+    '스킨',
+    '메이크업',
+    '립스틱',
+    '마스크팩',
+    '선크림',
+    '토너',
+    '에센스',
+    '샴푸',
+    '린스',
+    '트리트먼트',
+    '향수',
+    '퍼퓸',
+    '퍼머',
+    '염색',
+    '스파',
+    'beauty',
+    'cosmetic',
+    'salon',
+    'hair',
+    'nail',
+    'spa',
+    'massage',
+    'skin',
+    'makeup',
+    'lipstick',
+    'cushion',
+    'mask',
+    'serum',
+    'shampoo',
+    'perfume',
   ],
   LetterFilterType.fashion: [
-    '패션','옷','의류','신발','가방','액세서리','쥬얼리','주얼리','모자','양말','티셔츠','셔츠','원피스','스커트','바지','청바지','코트','재킷','후드','맨투맨','운동화','구두','샌들','부츠','벨트','스카프','선글라스','시계',
-    'fashion','clothing','clothes','shoes','bag','accessory','jewelry','hat','tshirt','shirt','dress','skirt','pants','jeans','coat','jacket','hoodie','sneakers','heels','boots','watch'
+    '패션',
+    '옷',
+    '의류',
+    '신발',
+    '가방',
+    '액세서리',
+    '쥬얼리',
+    '주얼리',
+    '모자',
+    '양말',
+    '티셔츠',
+    '셔츠',
+    '원피스',
+    '스커트',
+    '바지',
+    '청바지',
+    '코트',
+    '재킷',
+    '후드',
+    '맨투맨',
+    '운동화',
+    '구두',
+    '샌들',
+    '부츠',
+    '벨트',
+    '스카프',
+    '선글라스',
+    '시계',
+    'fashion',
+    'clothing',
+    'clothes',
+    'shoes',
+    'bag',
+    'accessory',
+    'jewelry',
+    'hat',
+    'tshirt',
+    'shirt',
+    'dress',
+    'skirt',
+    'pants',
+    'jeans',
+    'coat',
+    'jacket',
+    'hoodie',
+    'sneakers',
+    'heels',
+    'boots',
+    'watch',
   ],
 };
 
@@ -74,8 +247,9 @@ const Map<LetterFilterType, List<String>> _industryKeywords = {
 bool _matchesIndustry(LetterFilterType industry, dynamic letter) {
   final kws = _industryKeywords[industry];
   if (kws == null || kws.isEmpty) return false;
-  final hay = ('${letter.content ?? ''} ${letter.senderName ?? ''} ${letter.redemptionInfo ?? ''}')
-      .toLowerCase();
+  final hay =
+      ('${letter.content ?? ''} ${letter.senderName ?? ''} ${letter.redemptionInfo ?? ''}')
+          .toLowerCase();
   for (final k in kws) {
     final lower = k.toLowerCase();
     final isAscii = lower.runes.every((r) => r < 0x80);
@@ -187,8 +361,10 @@ class _InboxScreenState extends State<InboxScreen>
     if (q.isEmpty) return letters;
     return letters.where((l) {
       if (l.content.toLowerCase().contains(q)) return true;
+      if (l.senderName.toLowerCase().contains(q)) return true;
       if (l.senderCountry.toLowerCase().contains(q)) return true;
       if (l.senderCountryFlag.contains(q)) return true;
+      if ((l.redemptionInfo ?? '').toLowerCase().contains(q)) return true;
       // 별칭 검색 (CountryL10n: 14개 언어 전체 매칭)
       if (CountryL10n.matchesSearch(l.senderCountry, q)) return true;
       return false;
@@ -244,8 +420,9 @@ class _InboxScreenState extends State<InboxScreen>
   }
 
   void _scrollToFirstUnread(List<Letter> letters) {
-    final unreadIdx =
-        letters.indexWhere((l) => l.status == DeliveryStatus.delivered);
+    final unreadIdx = letters.indexWhere(
+      (l) => l.status == DeliveryStatus.delivered,
+    );
     if (unreadIdx < 0) return;
     // Build 205.1: 필터=전체 일 때는 카테고리별 그룹 헤더가 사이에 끼어 들어가
     // 단순히 letterIdx × itemH 로 오프셋을 계산하면 헤더 만큼 어긋난다.
@@ -283,9 +460,11 @@ class _InboxScreenState extends State<InboxScreen>
     // 더 정확한 추정: 위에서 누적한 rowIdx 를 row 별 평균 높이로 환산.
     // 헤더 ≪ letter card 라 letter idx 기준 + headers 보정으로 충분.
     final precedingHeaders = isAll
-        ? rowIdx - unreadIdx // 누적 row - 누적 letter (= 앞쪽 헤더 수)
+        ? rowIdx -
+              unreadIdx // 누적 row - 누적 letter (= 앞쪽 헤더 수)
         : 0;
-    final double target = filterBarH +
+    final double target =
+        filterBarH +
         unreadIdx * itemH +
         precedingHeaders.clamp(0, headerCount) * headerH;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -381,144 +560,158 @@ class _InboxScreenState extends State<InboxScreen>
                 // 있어요" 메시지 한 줄. 브랜드 포지셔닝 변경으로 브랜드도
                 // 줍기 가능해졌기에 모든 등급에 표시.
                 Container(
-                    margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 9,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.teal.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: AppColors.teal.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        const Text('🎟', style: TextStyle(fontSize: 15)),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            AppL10n.of(state.currentUser.languageCode)
-                                .inboxHuntHint,
-                            style: const TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 11,
-                              height: 1.35,
-                            ),
-                          ),
-                        ),
-                      ],
+                  margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 9,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.teal.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: AppColors.teal.withValues(alpha: 0.3),
                     ),
                   ),
+                  child: Row(
+                    children: [
+                      const Text('🎟', style: TextStyle(fontSize: 15)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          AppL10n.of(
+                            state.currentUser.languageCode,
+                          ).inboxHuntHint,
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 11,
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 // 만료 사이렌 (Build 115, Build 116 에서 탭 가능) — 24h 이내
                 // 만료되는 쿠폰/교환권이 있을 때만 붉은 배너 노출. 탭 시
                 // 쿠폰 필터로 즉시 전환 + 받은 편지 탭으로 이동해 사용 유도.
-                Builder(builder: (ctx) {
-                  final expiring = state.expiringSoonLetters;
-                  if (expiring.isEmpty) return const SizedBox.shrink();
-                  final l10n = AppL10n.of(state.currentUser.languageCode);
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _inboxFilter = LetterFilterType.coupon;
-                        _tabController.animateTo(0);
-                      });
-                    },
-                    child: Container(
-                    margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [
-                          AppColors.coupon.withValues(alpha: 0.18),
-                          AppColors.coupon.withValues(alpha: 0.10),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: AppColors.coupon.withValues(alpha: 0.55),
-                        width: 1.2,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            l10n.expirySirenTitle(expiring.length),
-                            style: const TextStyle(
-                              color: AppColors.coupon,
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w800,
-                              height: 1.35,
-                            ),
+                Builder(
+                  builder: (ctx) {
+                    final expiring = state.expiringSoonLetters;
+                    if (expiring.isEmpty) return const SizedBox.shrink();
+                    final l10n = AppL10n.of(state.currentUser.languageCode);
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _inboxFilter = LetterFilterType.coupon;
+                          _tabController.animateTo(0);
+                        });
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                            colors: [
+                              AppColors.coupon.withValues(alpha: 0.18),
+                              AppColors.coupon.withValues(alpha: 0.10),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: AppColors.coupon.withValues(alpha: 0.55),
+                            width: 1.2,
                           ),
                         ),
-                        const SizedBox(width: 6),
-                        Text(
-                          l10n.expirySirenCta,
-                          style: const TextStyle(
-                            color: AppColors.coupon,
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  );
-                }),
-                // Build 179: 3-stat card (new/transit/total) 을 한 줄 compact
-                // pill 로 축소. 수직 공간 ~60px 회수.
-                Builder(builder: (ctx) {
-                  final newCount = state.inbox.where((l) => l.status == DeliveryStatus.delivered).length;
-                  final transitCount = state.inbox.where((l) => l.status == DeliveryStatus.inTransit || l.status == DeliveryStatus.nearYou).length;
-                  final l10n = AppL10n.of(state.currentUser.languageCode);
-                  if (newCount == 0 && transitCount == 0) {
-                    return const SizedBox(height: 6);
-                  }
-                  return Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (newCount > 0) ...[
-                          Text(
-                            '📩 ${l10n.inboxStatNew} $newCount',
-                            style: AppText.caption.copyWith(
-                              color: AppColors.gold,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          if (transitCount > 0) ...[
-                            const SizedBox(width: 10),
-                            Container(
-                              width: 2, height: 2,
-                              decoration: const BoxDecoration(
-                                color: AppColors.textMuted,
-                                shape: BoxShape.circle,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                l10n.expirySirenTitle(expiring.length),
+                                style: const TextStyle(
+                                  color: AppColors.coupon,
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w800,
+                                  height: 1.35,
+                                ),
                               ),
                             ),
-                            const SizedBox(width: 10),
-                          ],
-                        ],
-                        if (transitCount > 0)
-                          Text(
-                            '🚀 ${l10n.inboxStatTransit} $transitCount',
-                            style: AppText.caption.copyWith(
-                              color: AppColors.teal,
-                              fontWeight: FontWeight.w700,
+                            const SizedBox(width: 6),
+                            Text(
+                              l10n.expirySirenCta,
+                              style: const TextStyle(
+                                color: AppColors.coupon,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
-                          ),
-                      ],
-                    ),
-                  );
-                }),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                // Build 179: 3-stat card (new/transit/total) 을 한 줄 compact
+                // pill 로 축소. 수직 공간 ~60px 회수.
+                Builder(
+                  builder: (ctx) {
+                    final newCount = state.inbox
+                        .where((l) => l.status == DeliveryStatus.delivered)
+                        .length;
+                    final transitCount = state.inbox
+                        .where(
+                          (l) =>
+                              l.status == DeliveryStatus.inTransit ||
+                              l.status == DeliveryStatus.nearYou,
+                        )
+                        .length;
+                    final l10n = AppL10n.of(state.currentUser.languageCode);
+                    if (newCount == 0 && transitCount == 0) {
+                      return const SizedBox(height: 6);
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (newCount > 0) ...[
+                            Text(
+                              '📩 ${l10n.inboxStatNew} $newCount',
+                              style: AppText.caption.copyWith(
+                                color: AppColors.gold,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            if (transitCount > 0) ...[
+                              const SizedBox(width: 10),
+                              Container(
+                                width: 2,
+                                height: 2,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.textMuted,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                            ],
+                          ],
+                          if (transitCount > 0)
+                            Text(
+                              '🚀 ${l10n.inboxStatTransit} $transitCount',
+                              style: AppText.caption.copyWith(
+                                color: AppColors.teal,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
                 _buildTabBar(),
                 Expanded(
                   child: TabBarView(
@@ -542,8 +735,11 @@ class _InboxScreenState extends State<InboxScreen>
                                 _sortFollowedFirst(
                                   state,
                                   state.inbox
-                                      .where((l) => !(l.senderIsBrand &&
-                                          state.isBrandMuted(l.senderId)))
+                                      .where(
+                                        (l) =>
+                                            !(l.senderIsBrand &&
+                                                state.isBrandMuted(l.senderId)),
+                                      )
                                       .toList()
                                       .reversed
                                       .toList(),
@@ -568,8 +764,11 @@ class _InboxScreenState extends State<InboxScreen>
                                 _sortFollowedFirst(
                                   state,
                                   state.inbox
-                                      .where((l) => !(l.senderIsBrand &&
-                                          state.isBrandMuted(l.senderId)))
+                                      .where(
+                                        (l) =>
+                                            !(l.senderIsBrand &&
+                                                state.isBrandMuted(l.senderId)),
+                                      )
                                       .toList()
                                       .reversed
                                       .toList(),
@@ -613,9 +812,19 @@ class _InboxScreenState extends State<InboxScreen>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(value, style: TextStyle(color: color, fontSize: 20, fontWeight: FontWeight.w800)),
+        Text(
+          value,
+          style: TextStyle(
+            color: color,
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
         const SizedBox(height: 2),
-        Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 10)),
+        Text(
+          label,
+          style: const TextStyle(color: AppColors.textMuted, fontSize: 10),
+        ),
       ],
     );
   }
@@ -946,7 +1155,10 @@ class _InboxScreenState extends State<InboxScreen>
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.gold),
-            child: Text(l10n.inboxConfirm, style: const TextStyle(color: AppColors.bgDeep)),
+            child: Text(
+              l10n.inboxConfirm,
+              style: const TextStyle(color: AppColors.bgDeep),
+            ),
           ),
         ],
       ),
@@ -985,7 +1197,10 @@ void _confirmDelete(
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx),
-          child: Text(l10n.inboxCancel, style: const TextStyle(color: AppColors.textMuted)),
+          child: Text(
+            l10n.inboxCancel,
+            style: const TextStyle(color: AppColors.textMuted),
+          ),
         ),
         TextButton(
           onPressed: () {
@@ -1054,15 +1269,12 @@ class _InboxTab extends StatelessWidget {
     final out = <_InboxRow>[];
     void appendGroup(List<Letter> group, String label, Color color) {
       if (group.isEmpty) return;
-      out.add(_InboxHeaderRow(
-        label: label,
-        count: group.length,
-        color: color,
-      ));
+      out.add(_InboxHeaderRow(label: label, count: group.length, color: color));
       for (final l in group) {
         out.add(_InboxLetterRow(l));
       }
     }
+
     // 일반 → 할인권 → 교환권 (브랜드 카테고리 패널과 동일한 순서).
     appendGroup(general, l10n.inboxFilterGeneral, AppColors.textSecondary);
     appendGroup(coupon, l10n.inboxFilterCoupon, AppColors.coupon);
@@ -1087,51 +1299,57 @@ class _InboxTab extends StatelessWidget {
         ),
         if (letters.isEmpty)
           Expanded(
-            child: Builder(builder: (ctx) {
-              // Build 115 — "지금 근처에 N통 있어요" 실시간 카운터를 부제에
-              // 덧붙여 empty state 가 "죽은 공간" 이 되지 않게 한다.
-              final state = ctx.read<AppState>();
-              final nearby = state.nearbyLetters.length;
-              final baseSub = l10n.inboxEmptyReceivedSub;
-              final sub = nearby > 0
-                  ? '$baseSub\n${l10n.inboxEmptyNearbyCount(nearby)}'
-                  : baseSub;
-              return Stack(
-                children: [
-                  _EmptyState(
-                    emoji: _emptyEmojiForFilter(activeFilter),
-                    title: activeFilter == LetterFilterType.all
-                        ? l10n.inboxEmptyReceived
-                        : l10n.inboxEmptyForFilter(_filterName(activeFilter, l10n)),
-                    subtitle: sub,
-                    ctaLabel: _isHuntFilter(activeFilter)
-                        ? l10n.emptyStateExploreCta
-                        : l10n.emptyStateWriteCta,
-                    onCtaTap: () => _isHuntFilter(activeFilter)
-                        ? Navigator.of(context).pushNamedAndRemoveUntil(
-                            '/home', (route) => false)
-                        : Navigator.of(context).pushNamed('/compose'),
-                  ),
-                  // Build 242: 빈 상태 하단에 가맹점 영입 CTA — Cold-start
-                  // 양방향 마켓 부트스트랩의 핵심. Free/Premium 사용자에게
-                  // "사장님이세요?" 노출 → 실 가맹점 관심 캡처. Brand 등급은
-                  // 이미 가맹점이므로 노출 안 함. 이미 등록한 사용자도 숨김.
-                  if (!state.currentUser.isBrand)
-                    Positioned(
-                      left: 16,
-                      right: 16,
-                      bottom: 24,
-                      child: FutureBuilder<bool>(
-                        future: MerchantInterestSheet.isAlreadyRegistered(),
-                        builder: (ctx, snap) {
-                          if (snap.data == true) return const SizedBox.shrink();
-                          return _MerchantHookCard(l10n: l10n);
-                        },
-                      ),
+            child: Builder(
+              builder: (ctx) {
+                // Build 115 — "지금 근처에 N통 있어요" 실시간 카운터를 부제에
+                // 덧붙여 empty state 가 "죽은 공간" 이 되지 않게 한다.
+                final state = ctx.read<AppState>();
+                final nearby = state.nearbyLetters.length;
+                final baseSub = l10n.inboxEmptyReceivedSub;
+                final sub = nearby > 0
+                    ? '$baseSub\n${l10n.inboxEmptyNearbyCount(nearby)}'
+                    : baseSub;
+                return Stack(
+                  children: [
+                    _EmptyState(
+                      emoji: _emptyEmojiForFilter(activeFilter),
+                      title: activeFilter == LetterFilterType.all
+                          ? l10n.inboxEmptyReceived
+                          : l10n.inboxEmptyForFilter(
+                              _filterName(activeFilter, l10n),
+                            ),
+                      subtitle: sub,
+                      ctaLabel: _isHuntFilter(activeFilter)
+                          ? l10n.emptyStateExploreCta
+                          : l10n.emptyStateWriteCta,
+                      onCtaTap: () => _isHuntFilter(activeFilter)
+                          ? Navigator.of(
+                              context,
+                            ).pushNamedAndRemoveUntil('/home', (route) => false)
+                          : Navigator.of(context).pushNamed('/compose'),
                     ),
-                ],
-              );
-            }),
+                    // Build 242: 빈 상태 하단에 가맹점 영입 CTA — Cold-start
+                    // 양방향 마켓 부트스트랩의 핵심. Free/Premium 사용자에게
+                    // "사장님이세요?" 노출 → 실 가맹점 관심 캡처. Brand 등급은
+                    // 이미 가맹점이므로 노출 안 함. 이미 등록한 사용자도 숨김.
+                    if (!state.currentUser.isBrand)
+                      Positioned(
+                        left: 16,
+                        right: 16,
+                        bottom: 24,
+                        child: FutureBuilder<bool>(
+                          future: MerchantInterestSheet.isAlreadyRegistered(),
+                          builder: (ctx, snap) {
+                            if (snap.data == true)
+                              return const SizedBox.shrink();
+                            return _MerchantHookCard(l10n: l10n);
+                          },
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
           )
         else ...[
           // "🔒 3통 보내야 다음 읽기" 체인 배너 제거 — 답장 무제한 정책과
@@ -1147,99 +1365,175 @@ class _InboxTab extends StatelessWidget {
                 await s.fetchMapUsers(force: true);
               },
               child: ListView.builder(
-              controller: scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              physics: const AlwaysScrollableScrollPhysics(),
-              itemCount: rows.length,
-              itemBuilder: (ctx, i) {
-                final row = rows[i];
-                if (row is _InboxHeaderRow) {
-                  return _CategorySectionHeader(
-                    label: row.label,
-                    count: row.count,
-                    color: row.color,
+                controller: scrollController,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: rows.length,
+                itemBuilder: (ctx, i) {
+                  final row = rows[i];
+                  if (row is _InboxHeaderRow) {
+                    return _CategorySectionHeader(
+                      label: row.label,
+                      count: row.count,
+                      color: row.color,
+                    );
+                  }
+                  final letter = (row as _InboxLetterRow).letter;
+                  // 체인 룰 해제로 잠금 표시 항상 false.
+                  const isLocked = false;
+                  // Build 183: 받은 편지 카드 양방향 스와이프 —
+                  //   → (startToEnd): 사용 완료 (초록)
+                  //   ← (endToStart): 삭제 (빨강)
+                  // mark-used 는 dismissible 이 아니라 일반 swipe callback 으로
+                  // 처리. dismissed 되면 카드가 사라지지만 mark used 후에도
+                  // 카드는 유지해야 하므로 `confirmDismiss` false 반환 + 별도
+                  // markRedeemed 호출로 상태 갱신.
+                  final alreadyUsed = ctx.read<AppState>().isLetterRedeemed(
+                    letter.id,
                   );
-                }
-                final letter = (row as _InboxLetterRow).letter;
-                // 체인 룰 해제로 잠금 표시 항상 false.
-                const isLocked = false;
-                // Build 183: 받은 편지 카드 양방향 스와이프 —
-                //   → (startToEnd): 사용 완료 (초록)
-                //   ← (endToStart): 삭제 (빨강)
-                // mark-used 는 dismissible 이 아니라 일반 swipe callback 으로
-                // 처리. dismissed 되면 카드가 사라지지만 mark used 후에도
-                // 카드는 유지해야 하므로 `confirmDismiss` false 반환 + 별도
-                // markRedeemed 호출로 상태 갱신.
-                final alreadyUsed =
-                    ctx.read<AppState>().isLetterRedeemed(letter.id);
-                return Dismissible(
-                  key: ValueKey(letter.id),
-                  direction: DismissDirection.horizontal,
-                  background: Container(
-                    alignment: Alignment.centerLeft,
-                    padding: const EdgeInsets.only(left: 20),
-                    decoration: BoxDecoration(
-                      color: alreadyUsed
-                          ? const Color(0xFF435448)
-                          : const Color(0xFF1A6B45),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.check_circle_rounded,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          alreadyUsed
-                              ? l10n.inboxAlreadyUsed
-                              : l10n.inboxMarkUsed,
-                          style: const TextStyle(
+                  return Dismissible(
+                    key: ValueKey(letter.id),
+                    direction: DismissDirection.horizontal,
+                    background: Container(
+                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.only(left: 20),
+                      decoration: BoxDecoration(
+                        color: alreadyUsed
+                            ? const Color(0xFF435448)
+                            : const Color(0xFF1A6B45),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.check_circle_rounded,
                             color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
+                            size: 24,
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 2),
+                          Text(
+                            alreadyUsed
+                                ? l10n.inboxAlreadyUsed
+                                : l10n.inboxMarkUsed,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  secondaryBackground: Container(
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 20),
-                    decoration: BoxDecoration(
-                      color: AppColors.error,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.delete_forever_rounded,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          l10n.inboxDelete,
-                          style: const TextStyle(
+                    secondaryBackground: Container(
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.only(right: 20),
+                      decoration: BoxDecoration(
+                        color: AppColors.error,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.delete_forever_rounded,
                             color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
+                            size: 24,
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 2),
+                          Text(
+                            l10n.inboxDelete,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  confirmDismiss: (direction) async {
-                    if (direction == DismissDirection.startToEnd) {
-                      // 사용 완료 토글: 이미 사용됐으면 무시 (snackbar 로 알림).
-                      if (alreadyUsed) {
+                    confirmDismiss: (direction) async {
+                      if (direction == DismissDirection.startToEnd) {
+                        // 사용 완료 토글: 이미 사용됐으면 무시 (snackbar 로 알림).
+                        if (alreadyUsed) {
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            SnackBar(
+                              content: Text(l10n.inboxAlreadyUsedSnack),
+                              backgroundColor: AppColors.bgCard,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          );
+                          return false;
+                        }
+                        ctx.read<AppState>().markLetterRedeemed(letter.id);
                         ScaffoldMessenger.of(ctx).showSnackBar(
                           SnackBar(
-                            content: Text(l10n.inboxAlreadyUsedSnack),
+                            content: Text(l10n.inboxMarkedUsed),
+                            backgroundColor: const Color(0xFF1A6B45),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        );
+                        return false; // 카드 제거 안 함 — 상태만 바뀜.
+                      }
+                      // 삭제 확인 다이얼로그
+                      return await showDialog<bool>(
+                            context: ctx,
+                            builder: (dialogCtx) => AlertDialog(
+                              backgroundColor: AppColors.bgCard,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              title: Text(
+                                l10n.inboxDeleteTitle,
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              content: Text(
+                                l10n.inboxDeleteConfirm,
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(dialogCtx, false),
+                                  child: Text(
+                                    l10n.inboxCancel,
+                                    style: const TextStyle(
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(dialogCtx, true),
+                                  child: Text(
+                                    l10n.inboxDelete,
+                                    style: const TextStyle(
+                                      color: AppColors.coupon,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ) ??
+                          false;
+                    },
+                    onDismissed: (direction) {
+                      if (direction == DismissDirection.endToStart) {
+                        ctx.read<AppState>().deleteFromInbox(letter.id);
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                          SnackBar(
+                            content: Text(l10n.inboxDeleted),
                             backgroundColor: AppColors.bgCard,
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(
@@ -1247,89 +1541,24 @@ class _InboxTab extends StatelessWidget {
                             ),
                           ),
                         );
-                        return false;
                       }
-                      ctx.read<AppState>().markLetterRedeemed(letter.id);
-                      ScaffoldMessenger.of(ctx).showSnackBar(
-                        SnackBar(
-                          content: Text(l10n.inboxMarkedUsed),
-                          backgroundColor: const Color(0xFF1A6B45),
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      );
-                      return false; // 카드 제거 안 함 — 상태만 바뀜.
-                    }
-                    // 삭제 확인 다이얼로그
-                    return await showDialog<bool>(
-                          context: ctx,
-                          builder: (dialogCtx) => AlertDialog(
-                            backgroundColor: AppColors.bgCard,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            title: Text(
-                              l10n.inboxDeleteTitle,
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                            content: Text(
-                              l10n.inboxDeleteConfirm,
-                              style: const TextStyle(color: AppColors.textSecondary),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () =>
-                                    Navigator.pop(dialogCtx, false),
-                                child: Text(
-                                  l10n.inboxCancel,
-                                  style: const TextStyle(color: AppColors.textSecondary),
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () => Navigator.pop(dialogCtx, true),
-                                child: Text(
-                                  l10n.inboxDelete,
-                                  style: const TextStyle(color: AppColors.coupon),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ) ??
-                        false;
-                  },
-                  onDismissed: (direction) {
-                    if (direction == DismissDirection.endToStart) {
-                      ctx.read<AppState>().deleteFromInbox(letter.id);
-                      ScaffoldMessenger.of(ctx).showSnackBar(
-                        SnackBar(
-                          content: Text(l10n.inboxDeleted),
-                          backgroundColor: AppColors.bgCard,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                  child: _LetterCard(
-                    letter: letter,
-                    isInbox: true,
-                    isLocked: isLocked,
-                    onTap: () => onTap(letter),
-                    onDelete: () => _confirmDelete(
-                      ctx,
-                      ctx.read<AppState>(),
-                      letter.id,
+                    },
+                    child: _LetterCard(
+                      letter: letter,
                       isInbox: true,
+                      isLocked: isLocked,
+                      onTap: () => onTap(letter),
+                      onDelete: () => _confirmDelete(
+                        ctx,
+                        ctx.read<AppState>(),
+                        letter.id,
+                        isInbox: true,
+                      ),
                     ),
-                  ),
-                );
-              },
-            ),
-            ),  // close RefreshIndicator (Build 254 pull-to-refresh)
+                  );
+                },
+              ),
+            ), // close RefreshIndicator (Build 254 pull-to-refresh)
           ),
         ],
       ],
@@ -1446,7 +1675,9 @@ class _SentTab extends StatelessWidget {
                             ),
                             content: Text(
                               l10n.inboxDeleteConfirm,
-                              style: const TextStyle(color: AppColors.textSecondary),
+                              style: const TextStyle(
+                                color: AppColors.textSecondary,
+                              ),
                             ),
                             actions: [
                               TextButton(
@@ -1454,14 +1685,18 @@ class _SentTab extends StatelessWidget {
                                     Navigator.pop(dialogCtx, false),
                                 child: Text(
                                   l10n.inboxCancel,
-                                  style: const TextStyle(color: AppColors.textSecondary),
+                                  style: const TextStyle(
+                                    color: AppColors.textSecondary,
+                                  ),
                                 ),
                               ),
                               TextButton(
                                 onPressed: () => Navigator.pop(dialogCtx, true),
                                 child: Text(
                                   l10n.inboxDelete,
-                                  style: const TextStyle(color: AppColors.coupon),
+                                  style: const TextStyle(
+                                    color: AppColors.coupon,
+                                  ),
                                 ),
                               ),
                             ],
@@ -1590,8 +1825,8 @@ class _LetterCard extends StatelessWidget {
               color: isInbox && !isLocked
                   ? null
                   : (isLocked
-                      ? AppColors.bgCard.withValues(alpha: 0.4)
-                      : AppColors.bgCard),
+                        ? AppColors.bgCard.withValues(alpha: 0.4)
+                        : AppColors.bgCard),
               borderRadius: BorderRadius.circular(22),
               // 모든 inbox 카드에 4px 좌측 accent stripe + unread 시 전체 테두리.
               border: Border(
@@ -1710,8 +1945,8 @@ class _LetterCard extends StatelessWidget {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                gradient: letter.category ==
-                                            LetterCategory.coupon ||
+                                gradient:
+                                    letter.category == LetterCategory.coupon ||
                                         letter.category ==
                                             LetterCategory.voucher
                                     ? const LinearGradient(
@@ -1735,9 +1970,9 @@ class _LetterCard extends StatelessWidget {
                                     letter.category == LetterCategory.coupon
                                         ? '🎟'
                                         : letter.category ==
-                                                LetterCategory.voucher
-                                            ? '🎁'
-                                            : '🏢',
+                                              LetterCategory.voucher
+                                        ? '🎁'
+                                        : '🏢',
                                     style: const TextStyle(fontSize: 9),
                                   ),
                                   const SizedBox(width: 2),
@@ -1745,9 +1980,9 @@ class _LetterCard extends StatelessWidget {
                                     letter.category == LetterCategory.coupon
                                         ? l10n.inboxFilterCoupon
                                         : letter.category ==
-                                                LetterCategory.voucher
-                                            ? l10n.inboxFilterVoucher
-                                            : l10n.labelBrand,
+                                              LetterCategory.voucher
+                                        ? l10n.inboxFilterVoucher
+                                        : l10n.labelBrand,
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 8,
@@ -1780,18 +2015,17 @@ class _LetterCard extends StatelessWidget {
                               ),
                               decoration: BoxDecoration(
                                 gradient: const LinearGradient(
-                                  colors: [
-                                    AppColors.gold,
-                                    Color(0xFFFFD86B),
-                                  ],
+                                  colors: [AppColors.gold, Color(0xFFFFD86B)],
                                 ),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Text('📣',
-                                      style: TextStyle(fontSize: 9)),
+                                  const Text(
+                                    '📣',
+                                    style: TextStyle(fontSize: 9),
+                                  ),
                                   const SizedBox(width: 2),
                                   Text(
                                     l10n.inboxBadgePromo,
@@ -1814,15 +2048,18 @@ class _LetterCard extends StatelessWidget {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.textMuted
-                                    .withValues(alpha: 0.15),
+                                color: AppColors.textMuted.withValues(
+                                  alpha: 0.15,
+                                ),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Text('🤖',
-                                      style: TextStyle(fontSize: 9)),
+                                  const Text(
+                                    '🤖',
+                                    style: TextStyle(fontSize: 9),
+                                  ),
                                   const SizedBox(width: 2),
                                   Text(
                                     l10n.labelAiCurated,
@@ -2002,8 +2239,8 @@ class _LetterCard extends StatelessWidget {
                         letter.senderIsBrand
                             ? letter.category.brandEmoji
                             : letter.senderTier == LetterSenderTier.premium
-                                ? '📣'
-                                : '📬',
+                            ? '📣'
+                            : '📬',
                         style: const TextStyle(fontSize: 24),
                       ),
                       const SizedBox(height: 4),
@@ -2117,25 +2354,29 @@ class _BrandSentSummaryView extends StatelessWidget {
     // 분류별 카운트
     final total = letters.length;
     final picked = letters
-        .where((l) =>
-            l.status == DeliveryStatus.delivered ||
-            l.status == DeliveryStatus.read ||
-            l.status == DeliveryStatus.deliveredFar ||
-            l.status == DeliveryStatus.nearYou)
+        .where(
+          (l) =>
+              l.status == DeliveryStatus.delivered ||
+              l.status == DeliveryStatus.read ||
+              l.status == DeliveryStatus.deliveredFar ||
+              l.status == DeliveryStatus.nearYou,
+        )
         .length;
     final inTransit = letters
-        .where((l) =>
-            l.status == DeliveryStatus.inTransit ||
-            l.status == DeliveryStatus.nearYou)
+        .where(
+          (l) =>
+              l.status == DeliveryStatus.inTransit ||
+              l.status == DeliveryStatus.nearYou,
+        )
         .length;
     final unconfirmed = letters
-        .where((l) =>
-            l.status == DeliveryStatus.deliveredFar ||
-            l.status == DeliveryStatus.delivered)
+        .where(
+          (l) =>
+              l.status == DeliveryStatus.deliveredFar ||
+              l.status == DeliveryStatus.delivered,
+        )
         .length;
-    final used = letters
-        .where((l) => state.isLetterRedeemed(l.id))
-        .length;
+    final used = letters.where((l) => state.isLetterRedeemed(l.id)).length;
     final replied = letters.where((l) => l.hasReplied).length;
 
     if (total == 0) {
@@ -2174,7 +2415,8 @@ class _BrandSentSummaryView extends StatelessWidget {
                   backgroundColor: AppColors.coupon,
                   foregroundColor: const Color(0xFF1A0008),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 24, vertical: 12,
+                    horizontal: 24,
+                    vertical: 12,
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
@@ -2252,9 +2494,16 @@ class _BrandSentSummaryView extends StatelessWidget {
               const SizedBox(height: 10),
               Row(
                 children: [
-                  _RatePill(label: l.brandStatsPickRate, value: '${pickRate.toStringAsFixed(1)}%'),
+                  _RatePill(
+                    label: l.brandStatsPickRate,
+                    value: '${pickRate.toStringAsFixed(1)}%',
+                  ),
                   const SizedBox(width: 8),
-                  _RatePill(label: l.brandStatsUseRate, value: '${useRate.toStringAsFixed(1)}%', accent: true),
+                  _RatePill(
+                    label: l.brandStatsUseRate,
+                    value: '${useRate.toStringAsFixed(1)}%',
+                    accent: true,
+                  ),
                 ],
               ),
             ],
@@ -2271,14 +2520,19 @@ class _BrandSentSummaryView extends StatelessWidget {
                 label: l.brandStatsPickedLabel,
                 value: picked,
                 color: AppColors.success,
-                onTap: () => _showCategoryDetail(context, l.brandStatsPickedDetailTitle,
-                    letters
-                        .where((l) =>
+                onTap: () => _showCategoryDetail(
+                  context,
+                  l.brandStatsPickedDetailTitle,
+                  letters
+                      .where(
+                        (l) =>
                             l.status == DeliveryStatus.delivered ||
                             l.status == DeliveryStatus.read ||
                             l.status == DeliveryStatus.deliveredFar ||
-                            l.status == DeliveryStatus.nearYou)
-                        .toList()),
+                            l.status == DeliveryStatus.nearYou,
+                      )
+                      .toList(),
+                ),
               ),
             ),
             const SizedBox(width: 10),
@@ -2288,12 +2542,17 @@ class _BrandSentSummaryView extends StatelessWidget {
                 label: l.brandStatsInTransitLabel,
                 value: inTransit,
                 color: AppColors.teal,
-                onTap: () => _showCategoryDetail(context, l.brandStatsInTransitDetailTitle,
-                    letters
-                        .where((l) =>
+                onTap: () => _showCategoryDetail(
+                  context,
+                  l.brandStatsInTransitDetailTitle,
+                  letters
+                      .where(
+                        (l) =>
                             l.status == DeliveryStatus.inTransit ||
-                            l.status == DeliveryStatus.nearYou)
-                        .toList()),
+                            l.status == DeliveryStatus.nearYou,
+                      )
+                      .toList(),
+                ),
               ),
             ),
           ],
@@ -2309,10 +2568,13 @@ class _BrandSentSummaryView extends StatelessWidget {
                 color: AppColors.coupon,
                 onTap: () {
                   final state2 = context.read<AppState>();
-                  _showCategoryDetail(context, l.brandStatsUsedDetailTitle,
-                      letters
-                          .where((l) => state2.isLetterRedeemed(l.id))
-                          .toList());
+                  _showCategoryDetail(
+                    context,
+                    l.brandStatsUsedDetailTitle,
+                    letters
+                        .where((l) => state2.isLetterRedeemed(l.id))
+                        .toList(),
+                  );
                 },
               ),
             ),
@@ -2323,12 +2585,17 @@ class _BrandSentSummaryView extends StatelessWidget {
                 label: l.brandStatsUnconfirmedLabel,
                 value: unconfirmed,
                 color: AppColors.warning,
-                onTap: () => _showCategoryDetail(context, l.brandStatsUnconfirmedDetailTitle,
-                    letters
-                        .where((l) =>
+                onTap: () => _showCategoryDetail(
+                  context,
+                  l.brandStatsUnconfirmedDetailTitle,
+                  letters
+                      .where(
+                        (l) =>
                             l.status == DeliveryStatus.deliveredFar ||
-                            l.status == DeliveryStatus.delivered)
-                        .toList()),
+                            l.status == DeliveryStatus.delivered,
+                      )
+                      .toList(),
+                ),
               ),
             ),
           ],
@@ -2343,8 +2610,11 @@ class _BrandSentSummaryView extends StatelessWidget {
                 value: replied,
                 color: AppColors.gold,
                 highlight: true,
-                onTap: () => _showCategoryDetail(context, l.brandStatsRepliedDetailTitle,
-                    letters.where((l) => l.hasReplied).toList()),
+                onTap: () => _showCategoryDetail(
+                  context,
+                  l.brandStatsRepliedDetailTitle,
+                  letters.where((l) => l.hasReplied).toList(),
+                ),
               ),
             ),
             const SizedBox(width: 10),
@@ -2354,8 +2624,11 @@ class _BrandSentSummaryView extends StatelessWidget {
                 label: l.brandStatsViewAllLabel,
                 value: total,
                 color: AppColors.textSecondary,
-                onTap: () =>
-                    _showCategoryDetail(context, l.brandStatsAllDetailTitle, letters),
+                onTap: () => _showCategoryDetail(
+                  context,
+                  l.brandStatsAllDetailTitle,
+                  letters,
+                ),
               ),
             ),
           ],
@@ -2437,8 +2710,10 @@ class _BrandSentSummaryView extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded,
-                        color: AppColors.textMuted),
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: AppColors.textMuted,
+                    ),
                     onPressed: () => Navigator.pop(ctx),
                   ),
                 ],
@@ -2468,7 +2743,11 @@ class _RatePill extends StatelessWidget {
   final String label;
   final String value;
   final bool accent;
-  const _RatePill({required this.label, required this.value, this.accent = false});
+  const _RatePill({
+    required this.label,
+    required this.value,
+    this.accent = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -2478,9 +2757,7 @@ class _RatePill extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.bgDeep.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: color.withValues(alpha: 0.35),
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -2527,9 +2804,7 @@ class _BrandStatBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: highlight
-          ? color.withValues(alpha: 0.14)
-          : AppColors.bgCard,
+      color: highlight ? color.withValues(alpha: 0.14) : AppColors.bgCard,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
@@ -2736,9 +3011,7 @@ class _LetterFilterBar extends StatelessWidget {
               }),
               // 산업군 더보기 칩 — 활성 산업군이 있으면 그 라벨, 없으면 "..."
               _FilterChipInline(
-                label: isIndustryActive
-                    ? _textLabel(activeFilter, l10n)
-                    : '⋯',
+                label: isIndustryActive ? _textLabel(activeFilter, l10n) : '⋯',
                 selected: isIndustryActive,
                 onTap: () => _openSheet(context, l10n),
                 trailing: const Icon(
@@ -2779,10 +3052,7 @@ class _FilterChipInline extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 7,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -2797,10 +3067,7 @@ class _FilterChipInline extends StatelessWidget {
                     letterSpacing: -0.1,
                   ),
                 ),
-                if (trailing != null) ...[
-                  const SizedBox(width: 2),
-                  trailing!,
-                ],
+                if (trailing != null) ...[const SizedBox(width: 2), trailing!],
               ],
             ),
           ),
@@ -2993,7 +3260,8 @@ class _EmptyState extends StatelessWidget {
                   backgroundColor: AppColors.gold,
                   foregroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 24, vertical: 12,
+                    horizontal: 24,
+                    vertical: 12,
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
@@ -3184,7 +3452,11 @@ class _SentDetailSheet extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.map_rounded, color: AppColors.teal, size: 18),
+                    const Icon(
+                      Icons.map_rounded,
+                      color: AppColors.teal,
+                      size: 18,
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       '🗺️ ${l10n.inboxTrackOnMap}',
@@ -3311,7 +3583,10 @@ class _DMTab extends StatelessWidget {
                 const SizedBox(height: 16),
                 Text(
                   l10n.inboxNoDM,
-                  style: const TextStyle(color: AppColors.textMuted, fontSize: 16),
+                  style: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 16,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Padding(
@@ -3643,7 +3918,6 @@ class _FollowListTab extends StatelessWidget {
     );
   }
 }
-
 
 /// Build 153: 이번 달 수령 편지 진척도 막대.
 /// 50통 목표 대비 현재까지 수집 비율 + 색상 티어링:

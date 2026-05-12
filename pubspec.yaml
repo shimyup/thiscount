@@ -3,7 +3,7 @@ description: "Thiscount - Pick up coupons and discounts around you"
 publish_to: 'none'
 homepage: 'https://globaldrift.com'
 issue_tracker: 'https://globaldrift.com/support'
-version: 1.0.0+273
+version: 1.0.0+281
 
 environment:
   # Build 272 (P2): Flutter SDK 최소 버전 명시 — withValues(alpha:) API 호환성.

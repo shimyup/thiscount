@@ -123,9 +123,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   @override
   Widget build(BuildContext context) {
     // DM 기능 제거로 unreadCount 만 구독 → 수집첩 뱃지 변경 시에만 rebuild
-    final badgeCount = context.select<AppState, int>(
-      (s) => s.unreadCount,
-    );
+    final badgeCount = context.select<AppState, int>((s) => s.unreadCount);
     final langCode = context.select<AppState, String>(
       (s) => s.currentUser.languageCode,
     );
@@ -251,22 +249,21 @@ class _MainScaffoldState extends State<MainScaffold> {
                     ),
                   ),
                   Expanded(
-                    // Build 213/223: 등급별 라벨/아이콘
-                    //   Free    → 📣 홍보 (잠금 🔒) · 탭 시 PremiumGateSheet
+                    // Build 281: Free 회원에게 잠긴 "홍보" 보다 "업그레이드" 를
+                    // 먼저 보여줘 이 탭의 성격을 즉시 이해하게 한다.
+                    //   Free    → 💎 업그레이드 (잠금 🔒) · 탭 시 PremiumGateSheet
                     //   Premium → 📣 홍보 · 탭 시 compose 진입
                     //   Brand   → 📣 캠페인 · 탭 시 compose 진입
-                    // Free 도 라벨 노출해 "여긴 잠긴 영역" 인지 → 탭하면
-                    // 업그레이드 안내. 사용자 혼선 + Premium 정체성 일관성.
                     child: _ComposeNavItem(
                       label: isBrand
                           ? l.navCampaign
-                          : l.navSend,
+                          : (isPremium ? l.navSend : l.navUpgradeShort),
                       icon: isBrand
                           ? Icons.campaign_rounded
-                          : Icons.campaign_outlined,
-                      accent: isBrand
-                          ? AppColors.coupon
-                          : AppColors.gold,
+                          : (isPremium
+                                ? Icons.campaign_outlined
+                                : Icons.workspace_premium_rounded),
+                      accent: isBrand ? AppColors.coupon : AppColors.gold,
                       isLocked: !isBrand && !isPremium,
                       onTap: () => _openCompose(ctx),
                     ),
@@ -303,7 +300,7 @@ class _MainScaffoldState extends State<MainScaffold> {
 }
 
 // ── 중앙 CTA 탭 — 등급별 색상·아이콘·라벨 (Build 139, 223) ──
-// Free    → 📣 홍보 (gold + 🔒 lock) · tap → PremiumGate
+// Free    → 💎 업그레이드 (gold + 🔒 lock) · tap → PremiumGate
 // Premium → 📣 홍보 (gold) · tap → compose
 // Brand   → 📣 캠페인 (orange) · tap → compose
 class _ComposeNavItem extends StatelessWidget {
@@ -328,70 +325,64 @@ class _ComposeNavItem extends StatelessWidget {
       label: isLocked ? '$label (locked)' : label,
       button: true,
       child: GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Build 223: Free 일 때 잠금 뱃지 overlay 추가
-            Stack(
-              clipBehavior: Clip.none,
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: isLocked
-                        ? accent.withValues(alpha: 0.55)
-                        : accent,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    icon,
-                    color: accent == AppColors.gold
-                        ? const Color(0xFF1A1300)
-                        : AppColors.bgDeep,
-                    size: 18,
-                  ),
-                ),
-                if (isLocked)
-                  Positioned(
-                    bottom: -2,
-                    right: -2,
-                    child: Container(
-                      width: 14,
-                      height: 14,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: AppColors.bgDeep,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: accent, width: 1.2),
-                      ),
-                      child: Icon(
-                        Icons.lock_rounded,
-                        size: 8,
-                        color: accent,
-                      ),
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Build 223: Free 일 때 잠금 뱃지 overlay 추가
+              Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: isLocked ? accent.withValues(alpha: 0.55) : accent,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      icon,
+                      color: accent == AppColors.gold
+                          ? const Color(0xFF1A1300)
+                          : AppColors.bgDeep,
+                      size: 18,
                     ),
                   ),
-              ],
-            ),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              style: TextStyle(
-                color: isLocked ? accent.withValues(alpha: 0.75) : accent,
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
+                  if (isLocked)
+                    Positioned(
+                      bottom: -2,
+                      right: -2,
+                      child: Container(
+                        width: 14,
+                        height: 14,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: AppColors.bgDeep,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: accent, width: 1.2),
+                        ),
+                        child: Icon(Icons.lock_rounded, size: 8, color: accent),
+                      ),
+                    ),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isLocked ? accent.withValues(alpha: 0.75) : accent,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -419,54 +410,54 @@ class _NavItem extends StatelessWidget {
       button: true,
       selected: isSelected,
       child: GestureDetector(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        onTap();
-      },
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Build 145: 선택 시 살짝 커지는 피드백 (1.08x) + 색 전환.
-            AnimatedScale(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOutBack,
-              scale: isSelected ? 1.08 : 1.0,
-              child: Icon(
-                icon,
-                color: isSelected ? AppColors.gold : AppColors.textMuted,
-                size: 22,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Build 145: 선택 시 살짝 커지는 피드백 (1.08x) + 색 전환.
+              AnimatedScale(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOutBack,
+                scale: isSelected ? 1.08 : 1.0,
+                child: Icon(
+                  icon,
+                  color: isSelected ? AppColors.gold : AppColors.textMuted,
+                  size: 22,
+                ),
               ),
-            ),
-            const SizedBox(height: 3),
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 200),
-              style: TextStyle(
-                color: isSelected ? AppColors.gold : AppColors.textMuted,
-                fontSize: 10,
-                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                letterSpacing: isSelected ? 0.2 : 0,
+              const SizedBox(height: 3),
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
+                style: TextStyle(
+                  color: isSelected ? AppColors.gold : AppColors.textMuted,
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                  letterSpacing: isSelected ? 0.2 : 0,
+                ),
+                child: Text(label),
               ),
-              child: Text(label),
-            ),
-            // Build 145: 선택 탭 하단 gold dot indicator — 어느 탭인지 한 번 더 시각화.
-            const SizedBox(height: 3),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeOutCubic,
-              width: isSelected ? 14 : 0,
-              height: 3,
-              decoration: BoxDecoration(
-                color: AppColors.gold,
-                borderRadius: BorderRadius.circular(2),
+              // Build 145: 선택 탭 하단 gold dot indicator — 어느 탭인지 한 번 더 시각화.
+              const SizedBox(height: 3),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutCubic,
+                width: isSelected ? 14 : 0,
+                height: 3,
+                decoration: BoxDecoration(
+                  color: AppColors.gold,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -495,86 +486,85 @@ class _NavItemWithBadge extends StatelessWidget {
       button: true,
       selected: isSelected,
       child: GestureDetector(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        onTap();
-      },
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Build 145: `_NavItem` 과 동일한 AnimatedScale + gold dot 피드백.
-            AnimatedScale(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOutBack,
-              scale: isSelected ? 1.08 : 1.0,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Icon(
-                    icon,
-                    color: isSelected ? AppColors.gold : AppColors.textMuted,
-                    size: 22,
-                  ),
-                  if (badgeCount > 0)
-                    Positioned(
-                      right: -6,
-                      top: -4,
-                      child: Container(
-                        width: 16,
-                        height: 16,
-                        decoration: const BoxDecoration(
-                          color: AppColors.gold,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Text(
-                            '$badgeCount',
-                            style: const TextStyle(
-                              color: AppColors.bgDeep,
-                              fontSize: 9,
-                              fontWeight: FontWeight.w800,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Build 145: `_NavItem` 과 동일한 AnimatedScale + gold dot 피드백.
+              AnimatedScale(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOutBack,
+                scale: isSelected ? 1.08 : 1.0,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Icon(
+                      icon,
+                      color: isSelected ? AppColors.gold : AppColors.textMuted,
+                      size: 22,
+                    ),
+                    if (badgeCount > 0)
+                      Positioned(
+                        right: -6,
+                        top: -4,
+                        child: Container(
+                          width: 16,
+                          height: 16,
+                          decoration: const BoxDecoration(
+                            color: AppColors.gold,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: Text(
+                              '$badgeCount',
+                              style: const TextStyle(
+                                color: AppColors.bgDeep,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 3),
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 200),
-              style: TextStyle(
-                color: isSelected ? AppColors.gold : AppColors.textMuted,
-                fontSize: 10,
-                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                letterSpacing: isSelected ? 0.2 : 0,
+              const SizedBox(height: 3),
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
+                style: TextStyle(
+                  color: isSelected ? AppColors.gold : AppColors.textMuted,
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                  letterSpacing: isSelected ? 0.2 : 0,
+                ),
+                child: Text(label),
               ),
-              child: Text(label),
-            ),
-            const SizedBox(height: 3),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeOutCubic,
-              width: isSelected ? 14 : 0,
-              height: 3,
-              decoration: BoxDecoration(
-                color: AppColors.gold,
-                borderRadius: BorderRadius.circular(2),
+              const SizedBox(height: 3),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutCubic,
+                width: isSelected ? 14 : 0,
+                height: 3,
+                decoration: BoxDecoration(
+                  color: AppColors.gold,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
 }
-
 
 /// Build 120: "🎟 근처 N통" 항상 노출 칩. 네비 바 위에 얇은 띠로 렌더.
 /// 0 통이면 공간 자체 숨김. 탐험 탭에 이미 있을 때도 중복이라 숨김.
@@ -590,9 +580,7 @@ class _NearbyCountChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (hideWhenExploreSelected) return const SizedBox.shrink();
-    final count = context.select<AppState, int>(
-      (s) => s.nearbyLetters.length,
-    );
+    final count = context.select<AppState, int>((s) => s.nearbyLetters.length);
     if (count == 0) return const SizedBox.shrink();
     final langCode = context.select<AppState, String>(
       (s) => s.currentUser.languageCode,
@@ -646,7 +634,8 @@ class _DashedLine extends StatelessWidget {
       builder: (_, constraints) {
         const dashWidth = 5.0;
         const dashGap = 4.0;
-        final dashCount = (constraints.maxWidth / (dashWidth + dashGap)).floor();
+        final dashCount = (constraints.maxWidth / (dashWidth + dashGap))
+            .floor();
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: List.generate(

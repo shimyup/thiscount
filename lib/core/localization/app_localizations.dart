@@ -443,52 +443,52 @@ class AppL10n {
   String get chainRuleLocked => _t({
     'ko': '다음 혜택을 읽으려면 혜택을 3개 보내야 합니다',
     'en': 'Send 3 promos to unlock the next one',
-    'ja': '次の手紙を読むには3通送ってください',
-    'zh': '发送3封信后可阅读下一封',
-    'fr': 'Envoyez 3 lettres pour lire la suivante',
-    'de': 'Sende 3 Briefe um den nächsten zu lesen',
-    'es': 'Envía 3 cartas para leer la siguiente',
-    'pt': 'Envie 3 cartas para ler a próxima',
-    'ru': 'Отправьте 3 письма чтобы читать следующее',
-    'tr': 'Sonrakini okumak için 3 mektup gönder',
-    'ar': 'أرسل 3 رسائل لقراءة التالية',
-    'it': 'Invia 3 lettere per leggere la prossima',
-    'hi': 'अगली पढ़ने के लिए 3 पत्र भेजें',
-    'th': 'ส่ง 3 จดหมายเพื่ออ่านฉบับต่อไป',
+    'ja': '次の特典を見るにはプロモを3件送ってください',
+    'zh': '发送 3 条推广后可解锁下一条优惠',
+    'fr': 'Envoyez 3 promos pour débloquer la suivante',
+    'de': 'Sende 3 Promos, um die nächste freizuschalten',
+    'es': 'Envía 3 promos para desbloquear la siguiente',
+    'pt': 'Envie 3 promos para desbloquear a próxima',
+    'ru': 'Отправьте 3 промо, чтобы открыть следующую награду',
+    'tr': 'Sonrakini açmak için 3 promo gönder',
+    'ar': 'أرسل 3 عروض ترويجية لفتح الميزة التالية',
+    'it': 'Invia 3 promo per sbloccare la prossima',
+    'hi': 'अगला रिवॉर्ड खोलने के लिए 3 प्रोमो भेजें',
+    'th': 'ส่งโปรโมชัน 3 ครั้งเพื่อปลดล็อกรางวัลถัดไป',
   });
 
   // ── Compose ───────────────────────────────────────────────────────────────
   String get writeLetter => _t({
     'ko': '홍보 쓰기',
     'en': 'Write Promo',
-    'ja': '手紙を書く',
-    'zh': '写信',
-    'fr': 'Écrire une lettre',
-    'de': 'Brief schreiben',
-    'es': 'Escribir carta',
-    'pt': 'Escrever carta',
-    'ru': 'Написать письмо',
-    'tr': 'Mektup yaz',
-    'ar': 'كتابة رسالة',
-    'it': 'Scrivi lettera',
-    'hi': 'पत्र लिखें',
-    'th': 'เขียนจดหมาย',
+    'ja': 'プロモを書く',
+    'zh': '编写推广',
+    'fr': 'Écrire une promo',
+    'de': 'Promo schreiben',
+    'es': 'Escribir promo',
+    'pt': 'Escrever promo',
+    'ru': 'Создать промо',
+    'tr': 'Promo yaz',
+    'ar': 'كتابة عرض ترويجي',
+    'it': 'Scrivi promo',
+    'hi': 'प्रोमो लिखें',
+    'th': 'เขียนโปรโมชัน',
   });
   String get sendLetter => _t({
     'ko': '홍보 보내기',
     'en': 'Send Promo',
-    'ja': '手紙を送る',
-    'zh': '发送信件',
-    'fr': 'Envoyer la lettre',
-    'de': 'Brief senden',
-    'es': 'Enviar carta',
-    'pt': 'Enviar carta',
-    'ru': 'Отправить письмо',
-    'tr': 'Mektup gönder',
-    'ar': 'إرسال الرسالة',
-    'it': 'Invia lettera',
-    'hi': 'पत्र भेजें',
-    'th': 'ส่งจดหมาย',
+    'ja': 'プロモを送る',
+    'zh': '发送推广',
+    'fr': 'Envoyer la promo',
+    'de': 'Promo senden',
+    'es': 'Enviar promo',
+    'pt': 'Enviar promo',
+    'ru': 'Отправить промо',
+    'tr': 'Promo gönder',
+    'ar': 'إرسال عرض ترويجي',
+    'it': 'Invia promo',
+    'hi': 'प्रोमो भेजें',
+    'th': 'ส่งโปรโมชัน',
   });
   String get includeSns => _t({
     'ko': 'SNS 주소 포함하기',
@@ -629,27 +629,28 @@ class AppL10n {
     'ko': '내 주변 지도 위에 떠 있는 할인·쿠폰을 주워 바로 사용해요. 브랜드는 혜택으로 홍보하고, 회원은 보물처럼 줍습니다.',
     'en':
         'Pick up discounts and coupons floating on the map around you, redeem instantly. Brands promote via promos; members hunt for treasures.',
-    'ja': '近くの地図に浮かぶ割引・クーポンを拾って即使用。ブランドは手紙で宣伝し、会員は宝物のように拾います。',
-    'zh': '捡起你身边地图上漂浮的折扣和优惠券，立即使用。品牌用信件推广，会员像寻宝一样捡取。',
+    'ja': '近くの地図に浮かぶ割引・クーポンを拾ってすぐ使えます。ブランドはプロモで告知し、会員は宝探しのように拾います。',
+    'zh': '捡起你身边地图上漂浮的折扣和优惠券，立即使用。品牌通过推广投放优惠，会员像寻宝一样捡取。',
     'fr':
-        'Ramasse les remises et coupons qui flottent sur la carte autour de toi. Les marques font la promo par lettres; les membres chassent des trésors.',
+        'Ramasse les remises et coupons qui flottent sur la carte autour de toi. Les marques font la promo avec des offres, et les membres chassent des trésors.',
     'de':
-        'Sammle Rabatte und Coupons in deiner Nähe auf der Karte und löse sie sofort ein. Marken werben per Brief, Mitglieder gehen auf Schatzsuche.',
+        'Sammle Rabatte und Coupons in deiner Nähe auf der Karte und löse sie sofort ein. Marken werben mit Promos, Mitglieder gehen auf Schatzsuche.',
     'es':
-        'Recoge descuentos y cupones que flotan en el mapa cerca de ti y úsalos al instante. Las marcas promocionan vía cartas; los miembros cazan tesoros.',
+        'Recoge descuentos y cupones que flotan en el mapa cerca de ti y úsalos al instante. Las marcas promocionan con ofertas; los miembros cazan tesoros.',
     'pt':
-        'Apanha descontos e cupões que flutuam no mapa à tua volta e usa imediatamente. Marcas promovem por cartas; membros caçam tesouros.',
+        'Apanha descontos e cupões que flutuam no mapa à tua volta e usa imediatamente. As marcas promovem com ofertas; os membros caçam tesouros.',
     'ru':
-        'Подбирайте скидки и купоны на карте рядом с вами — используйте сразу. Бренды продвигают через письма, участники охотятся за сокровищами.',
+        'Подбирайте скидки и купоны на карте рядом с вами — используйте сразу. Бренды продвигаются через промо, участники охотятся за сокровищами.',
     'tr':
-        'Etrafındaki haritada yüzen indirim ve kuponları topla, hemen kullan. Markalar mektupla tanıtır, üyeler hazine avlar.',
+        'Etrafındaki haritada yüzen indirim ve kuponları topla, hemen kullan. Markalar promolarla tanıtır, üyeler hazine avlar.',
     'ar':
-        'التقط الخصومات والقسائم العائمة على الخريطة من حولك واستخدمها فورًا. الماركات تروّج عبر الرسائل والأعضاء يصطادون الكنوز.',
+        'التقط الخصومات والقسائم العائمة على الخريطة من حولك واستخدمها فورًا. تروّج العلامات عبر العروض الترويجية ويصطاد الأعضاء الكنوز.',
     'it':
-        'Raccogli sconti e coupon che fluttuano sulla mappa intorno a te e usali subito. I brand promuovono via lettere; i membri cercano tesori.',
+        'Raccogli sconti e coupon che fluttuano sulla mappa intorno a te e usali subito. I brand promuovono con promo; i membri cercano tesori.',
     'hi':
-        'अपने आसपास नक्शे पर तैरते छूट और कूपन उठाएँ और तुरंत इस्तेमाल करें। ब्रांड पत्रों से प्रचार करते हैं; सदस्य खजाने ढूँढते हैं।',
-    'th': 'เก็บส่วนลดและคูปองที่ลอยอยู่บนแผนที่รอบตัวและใช้ทันที แบรนด์โปรโมตผ่านจดหมาย สมาชิกล่าสมบัติ',
+        'अपने आसपास नक्शे पर तैरते छूट और कूपन उठाएँ और तुरंत इस्तेमाल करें। ब्रांड प्रोमो से प्रचार करते हैं; सदस्य खजाने ढूँढते हैं।',
+    'th':
+        'เก็บส่วนลดและคูปองที่ลอยอยู่บนแผนที่รอบตัวและใช้ได้ทันที แบรนด์โปรโมตผ่านโปรโมชัน สมาชิกออกล่ารางวัลเหมือนหาสมบัติ',
   });
 
   String get onboarding2Title => _t({
@@ -695,7 +696,8 @@ class AppL10n {
         'Ricompense raccolte e promo inviate viaggiano 🚚→✈️→🚚 sulla mappa, in tempi postali reali.',
     'hi':
         'उठाए गए लाभ और भेजे गए प्रचार दोनों नक्शे पर 🚚→✈️→🚚 यात्रा करते हैं — असली डाक समय में।',
-    'th': 'ทั้งสิทธิประโยชน์ที่คุณเก็บและโปรที่คุณส่งจะเดินทาง 🚚→✈️→🚚 บนแผนที่ ตามเวลาขนส่งจริง',
+    'th':
+        'ทั้งสิทธิประโยชน์ที่คุณเก็บและโปรที่คุณส่งจะเดินทาง 🚚→✈️→🚚 บนแผนที่ ตามเวลาขนส่งจริง',
   });
 
   // Build 107 재포지셔닝 — "느린 편지 보물찾기" 보다 "할인·홍보 편지 유통" 강조.
@@ -717,13 +719,13 @@ class AppL10n {
   });
   // Build 170: "편지 형식의 글로벌 공간 쿠폰 플랫폼" 포지셔닝 강조.
   String get onboarding3Body => _t({
-    'ko': '브랜드의 할인쿠폰·교환권·홍보 메시지가 세계 곳곳 지도에 떨어집니다. 당신 주변 200m 안의 혜택을 주워 매장에서 바로 쓰세요. 감성과 실용성이 공존하는 글로벌 공간 쿠폰 플랫폼.',
+    'ko':
+        '브랜드의 할인쿠폰·교환권·홍보 메시지가 세계 곳곳 지도에 떨어집니다. 당신 주변 200m 안의 혜택을 주워 매장에서 바로 쓰세요. 감성과 실용성이 공존하는 글로벌 공간 쿠폰 플랫폼.',
     'en':
         'Brand coupons, vouchers, and promo messages drop on the worldwide map. Pick up rewards within 200m of you and redeem them instantly. A global space-based coupon platform.',
     'ja':
         'ブランドの割引券・引換券・宣伝メッセージが世界中の地図に落ちます。あなたの周り 200m 以内の特典を拾って、お店でその場で使おう。感性と実用性が共存する、グローバル空間クーポンプラットフォーム。',
-    'zh':
-        '品牌的折扣券、兑换券和推广讯息落在全球地图上。拾取你身边 200 米内的特惠，即刻在门店使用。情感与实用兼具的全球空间优惠券平台。',
+    'zh': '品牌的折扣券、兑换券和推广讯息落在全球地图上。拾取你身边 200 米内的特惠，即刻在门店使用。情感与实用兼具的全球空间优惠券平台。',
     'fr':
         'Coupons, bons et messages promo des marques tombent sur la carte mondiale. Ramasse les récompenses dans un rayon de 200 m et utilise-les en boutique tout de suite. Plateforme mondiale de coupons spatiaux.',
     'de':
@@ -766,7 +768,8 @@ class AppL10n {
     'th': '📸 ส่งโปรของคุณ',
   });
   String get onboarding4Body => _t({
-    'ko': 'Premium은 📸 사진과 🔗 채널 링크로 나를 홍보하고, Brand는 🎟 할인권·🎁 교환권 캠페인으로 비즈니스를 알려요. Free는 줍는 데 집중!',
+    'ko':
+        'Premium은 📸 사진과 🔗 채널 링크로 나를 홍보하고, Brand는 🎟 할인권·🎁 교환권 캠페인으로 비즈니스를 알려요. Free는 줍는 데 집중!',
     'en':
         'Premium promotes you with 📸 photos and 🔗 channel links. Brand runs 🎟 coupon & 🎁 voucher campaigns. Free focuses on picking up.',
     'ja':
@@ -816,30 +819,28 @@ class AppL10n {
     'ko': '지도를 열어 근처의 할인·홍보 혜택을 주워보세요. 받은 혜택 안 코드·링크로 바로 혜택을 사용할 수 있어요.',
     'en':
         'Open the map and pick up nearby promos and coupon rewards. Use the code or link inside each reward right away.',
-    'ja':
-        '地図を開いて近くの割引・プロモ手紙を拾いましょう。中のコードやリンクですぐに特典を使えます。',
-    'zh':
-        '打开地图拾取附近的优惠促销信件。使用信件中的代码或链接立即享受优惠。',
+    'ja': '地図を開いて近くの割引やプロモ特典を拾いましょう。中のコードやリンクですぐに使えます。',
+    'zh': '打开地图拾取附近的优惠和推广福利。使用其中的代码或链接即可立即享受优惠。',
     'fr':
-        'Ouvre la carte et ramasse les lettres promo et coupons à proximité. Utilise le code ou le lien à l\'intérieur immédiatement.',
+        'Ouvre la carte et ramasse les promos et coupons à proximité. Utilise le code ou le lien à l\'intérieur immédiatement.',
     'de':
-        'Öffne die Karte und sammle Rabatt- und Aktionsbriefe in deiner Nähe. Code oder Link im Brief sofort nutzen.',
+        'Öffne die Karte und sammle Rabatte und Promos in deiner Nähe. Code oder Link sofort nutzen.',
     'es':
-        'Abre el mapa y recoge cupones y cartas promocionales cercanas. Usa el código o enlace al instante.',
+        'Abre el mapa y recoge cupones y promos cercanas. Usa el código o enlace al instante.',
     'pt':
-        'Abre o mapa e apanha cartas promocionais e cupões próximos. Usa o código ou link imediatamente.',
+        'Abre o mapa e apanha promos e cupões próximos. Usa o código ou link imediatamente.',
     'ru':
-        'Откройте карту и подбирайте промо- и купонные письма рядом. Используйте код или ссылку сразу.',
+        'Откройте карту и подбирайте рядом промо и купоны. Используйте код или ссылку сразу.',
     'tr':
-        'Haritayı aç, yakınındaki indirim ve kupon mektuplarını topla. İçindeki kod veya bağlantıyı hemen kullan.',
+        'Haritayı aç, yakınındaki indirim ve promo ödüllerini topla. İçindeki kod veya bağlantıyı hemen kullan.',
     'ar':
-        'افتح الخريطة والتقط رسائل العروض والقسائم القريبة. استخدم الرمز أو الرابط داخلها فوراً.',
+        'افتح الخريطة والتقط العروض والقسائم القريبة. استخدم الرمز أو الرابط داخلها فوراً.',
     'it':
-        'Apri la mappa e raccogli le lettere promo e coupon vicine. Usa subito il codice o il link contenuto.',
+        'Apri la mappa e raccogli promo e coupon vicini. Usa subito il codice o il link contenuto.',
     'hi':
-        'मानचित्र खोलें और पास के प्रमोशन और कूपन पत्र उठाएँ. अंदर के कोड या लिंक का तुरंत उपयोग करें.',
+        'मानचित्र खोलें और पास के प्रमोशन और कूपन रिवॉर्ड उठाएँ. अंदर के कोड या लिंक का तुरंत उपयोग करें.',
     'th':
-        'เปิดแผนที่และเก็บจดหมายส่วนลดใกล้ ๆ ใช้รหัสหรือลิงก์ข้างในได้ทันที',
+        'เปิดแผนที่แล้วเก็บส่วนลดและโปรโมชันใกล้ตัว ใช้รหัสหรือลิงก์ข้างในได้ทันที',
   });
 
   String get getStarted => _t({
@@ -1023,45 +1024,46 @@ class AppL10n {
   String get locationGrantedBody => _t({
     'ko': '주변 2km 이내에 도착한 혜택을\n수령할 수 있어요 🎉',
     'en': 'You can receive rewards that arrive\nwithin 2km of you 🎉',
-    'ja': '2km以内に届いた手紙を\n受け取ることができます 🎉',
-    'zh': '您可以接收到达\n2公里范围内的信件 🎉',
-    'fr': 'Vous pouvez recevoir les lettres\narrivant à 2km de vous 🎉',
-    'de': 'Sie können Briefe erhalten,\ndie innerhalb 2km ankommen 🎉',
-    'es': 'Puedes recibir cartas que lleguen\na 2km de ti 🎉',
-    'pt': 'Você pode receber cartas que chegam\na 2km de você 🎉',
-    'ru': 'Вы можете получать письма\nв радиусе 2км 🎉',
-    'tr': '2km içindeki mektupları\nalabilirsiniz 🎉',
-    'ar': 'يمكنك استلام الرسائل الواصلة\nضمن 2 كم منك 🎉',
-    'it': 'Puoi ricevere lettere che arrivano\nentro 2km da te 🎉',
-    'hi': '2 किमी के भीतर पहुंचने वाले पत्र\nप्राप्त कर सकते हैं 🎉',
-    'th': 'คุณสามารถรับจดหมายที่มาถึง\nภายใน 2 กม. จากคุณ 🎉',
+    'ja': '2km以内に届いた特典を\n受け取れます 🎉',
+    'zh': '您可以领取到达\n2 公里范围内的优惠 🎉',
+    'fr': 'Vous pouvez récupérer les avantages\narrivant à 2 km de vous 🎉',
+    'de':
+        'Sie können Belohnungen erhalten,\ndie innerhalb von 2 km ankommen 🎉',
+    'es': 'Puedes recibir beneficios que lleguen\na 2 km de ti 🎉',
+    'pt': 'Você pode receber recompensas que chegam\na 2 km de você 🎉',
+    'ru': 'Вы можете получать награды\nв радиусе 2 км 🎉',
+    'tr': '2 km içindeki ödülleri\nalabilirsiniz 🎉',
+    'ar': 'يمكنك استلام المكافآت الواصلة\nضمن 2 كم منك 🎉',
+    'it': 'Puoi ricevere premi che arrivano\nentro 2 km da te 🎉',
+    'hi': '2 किमी के भीतर पहुँचने वाले रिवॉर्ड\nप्राप्त कर सकते हैं 🎉',
+    'th': 'คุณสามารถรับรางวัลที่มาถึง\nภายใน 2 กม. จากคุณ 🎉',
   });
   String get locationRequiredBody => _t({
     'ko': '혜택이 내 위치 2km 이내에 도착하면\n알림을 받을 수 있어요.\n위치 정보는 앱 내에서만 사용됩니다.',
     'en':
         'Get notified when a reward arrives\nwithin 2km of you.\nLocation is only used within the app.',
-    'ja': '2km以内に手紙が届いたとき\n通知を受け取れます。\n位置情報はアプリ内のみで使用されます。',
-    'zh': '当信件到达2公里范围内时\n您将收到通知。\n位置仅在应用内使用。',
+    'ja': '2km以内に特典が届いたとき\n通知を受け取れます。\n位置情報はアプリ内のみで使用されます。',
+    'zh': '当优惠到达 2 公里范围内时\n您将收到通知。\n位置仅在应用内使用。',
     'fr':
-        'Recevez des notifications lorsqu\'une lettre\narrive à 2km de vous.\nLa position est utilisée uniquement dans l\'app.',
+        'Recevez des notifications lorsqu\'un avantage\narrive à 2 km de vous.\nLa position est utilisée uniquement dans l\'app.',
     'de':
-        'Benachrichtigungen wenn ein Brief\ninnerhalb 2km ankommt.\nStandort wird nur in der App verwendet.',
+        'Erhalte Benachrichtigungen, wenn eine Belohnung\ninnerhalb von 2 km ankommt.\nStandort wird nur in der App verwendet.',
     'es':
-        'Recibe notificaciones cuando llegue una carta\na 2km de ti.\nLa ubicación solo se usa en la app.',
+        'Recibe notificaciones cuando llegue un beneficio\na 2 km de ti.\nLa ubicación solo se usa en la app.',
     'pt':
-        'Receba notificações quando uma carta chegar\na 2km de você.\nLocalização usada apenas no app.',
+        'Receba notificações quando uma recompensa chegar\na 2 km de você.\nA localização é usada apenas no app.',
     'ru':
-        'Получайте уведомления когда письмо\nприбывает в 2км.\nГеолокация используется только в приложении.',
+        'Получайте уведомления, когда награда\nпоявляется в радиусе 2 км.\nГеолокация используется только в приложении.',
     'tr':
-        '2km içinde mektup geldiğinde\nbildirim alın.\nKonum yalnızca uygulama içinde kullanılır.',
+        '2 km içinde bir ödül geldiğinde\nbildirim alın.\nKonum yalnızca uygulama içinde kullanılır.',
     'ar':
-        'احصل على إشعار عند وصول رسالة\nضمن 2 كم.\nيُستخدم الموقع داخل التطبيق فقط.',
+        'احصل على إشعار عند وصول مكافأة\nضمن 2 كم.\nيُستخدم الموقع داخل التطبيق فقط.',
     'it':
-        'Ricevi notifiche quando una lettera\narriva a 2km da te.\nLa posizione è usata solo nell\'app.',
+        'Ricevi notifiche quando un premio\narriva entro 2 km da te.\nLa posizione è usata solo nell\'app.',
     'hi':
-        'जब 2 किमी के भीतर पत्र आए\nतो सूचना पाएं।\nस्थान केवल ऐप में उपयोग होता है।',
+        'जब 2 किमी के भीतर रिवॉर्ड आए\nतो सूचना पाएं।\nस्थान केवल ऐप में उपयोग होता है।',
     'th':
-        'รับการแจ้งเตือนเมื่อจดหมายมาถึง\nภายใน 2 กม.\nตำแหน่งใช้เฉพาะในแอปเท่านั้น',
+        'รับการแจ้งเตือนเมื่อรางวัลมาถึง\nภายใน 2 กม.\nตำแหน่งใช้เฉพาะในแอปเท่านั้น',
   });
 
   // ── Premium ───────────────────────────────────────────────────────────────
@@ -1677,161 +1679,262 @@ class AppL10n {
     // 시간대 라벨 + "에 쓴 편지" 구조
     final label = _hourToPartOfDay(hour);
     switch (languageCode) {
-      case 'ko': return '$label $hour시에 쓴 홍보';
-      case 'ja': return '$label $hour時に書かれた手紙';
-      case 'zh': return '在$label $hour点写下的信';
-      case 'fr': return "Lettre écrite $label à ${hour}h";
-      case 'de': return 'Brief geschrieben $label um $hour Uhr';
-      case 'es': return "Carta escrita $label a las $hour";
-      case 'pt': return "Carta escrita $label às $hour";
-      case 'ru': return 'Письмо написано $label в $hour:00';
-      case 'tr': return '$label saat $hour\'da yazıldı';
-      case 'ar': return 'رسالة كُتبت $label عند الساعة $hour';
-      case 'it': return "Lettera scritta $label alle $hour";
-      case 'hi': return '$label $hour बजे लिखा पत्र';
-      case 'th': return 'จดหมายที่เขียนใน$labelเวลา $hour นาฬิกา';
+      case 'ko':
+        return '$label $hour시에 쓴 홍보';
+      case 'ja':
+        return '$label $hour時に書かれた手紙';
+      case 'zh':
+        return '在$label $hour点写下的信';
+      case 'fr':
+        return "Lettre écrite $label à ${hour}h";
+      case 'de':
+        return 'Brief geschrieben $label um $hour Uhr';
+      case 'es':
+        return "Carta escrita $label a las $hour";
+      case 'pt':
+        return "Carta escrita $label às $hour";
+      case 'ru':
+        return 'Письмо написано $label в $hour:00';
+      case 'tr':
+        return '$label saat $hour\'da yazıldı';
+      case 'ar':
+        return 'رسالة كُتبت $label عند الساعة $hour';
+      case 'it':
+        return "Lettera scritta $label alle $hour";
+      case 'hi':
+        return '$label $hour बजे लिखा पत्र';
+      case 'th':
+        return 'จดหมายที่เขียนใน$labelเวลา $hour นาฬิกา';
       case 'en':
-      default: return 'Written $label at $hour:00';
+      default:
+        return 'Written $label at $hour:00';
     }
   }
 
   String _hourToPartOfDay(int hour) {
     if (hour >= 5 && hour < 11) {
       return _t({
-        'ko': '아침', 'en': 'in the morning', 'ja': '朝',
-        'zh': '早晨', 'fr': 'le matin', 'de': 'morgens',
-        'es': 'por la mañana', 'pt': 'de manhã', 'ru': 'утром',
-        'tr': 'sabah', 'ar': 'صباحاً', 'it': 'di mattina',
-        'hi': 'सुबह', 'th': 'ช่วงเช้า',
+        'ko': '아침',
+        'en': 'in the morning',
+        'ja': '朝',
+        'zh': '早晨',
+        'fr': 'le matin',
+        'de': 'morgens',
+        'es': 'por la mañana',
+        'pt': 'de manhã',
+        'ru': 'утром',
+        'tr': 'sabah',
+        'ar': 'صباحاً',
+        'it': 'di mattina',
+        'hi': 'सुबह',
+        'th': 'ช่วงเช้า',
       });
     }
     if (hour >= 11 && hour < 17) {
       return _t({
-        'ko': '낮', 'en': 'in the afternoon', 'ja': '昼',
-        'zh': '白天', 'fr': "dans l'après-midi", 'de': 'nachmittags',
-        'es': 'por la tarde', 'pt': 'à tarde', 'ru': 'днём',
-        'tr': 'öğleden sonra', 'ar': 'ظهراً', 'it': 'di pomeriggio',
-        'hi': 'दोपहर', 'th': 'ช่วงบ่าย',
+        'ko': '낮',
+        'en': 'in the afternoon',
+        'ja': '昼',
+        'zh': '白天',
+        'fr': "dans l'après-midi",
+        'de': 'nachmittags',
+        'es': 'por la tarde',
+        'pt': 'à tarde',
+        'ru': 'днём',
+        'tr': 'öğleden sonra',
+        'ar': 'ظهراً',
+        'it': 'di pomeriggio',
+        'hi': 'दोपहर',
+        'th': 'ช่วงบ่าย',
       });
     }
     if (hour >= 17 && hour < 21) {
       return _t({
-        'ko': '저녁', 'en': 'in the evening', 'ja': '夕方',
-        'zh': '傍晚', 'fr': 'le soir', 'de': 'abends',
-        'es': 'por la tarde', 'pt': 'à noite', 'ru': 'вечером',
-        'tr': 'akşam', 'ar': 'مساءً', 'it': 'di sera',
-        'hi': 'शाम', 'th': 'ช่วงเย็น',
+        'ko': '저녁',
+        'en': 'in the evening',
+        'ja': '夕方',
+        'zh': '傍晚',
+        'fr': 'le soir',
+        'de': 'abends',
+        'es': 'por la tarde',
+        'pt': 'à noite',
+        'ru': 'вечером',
+        'tr': 'akşam',
+        'ar': 'مساءً',
+        'it': 'di sera',
+        'hi': 'शाम',
+        'th': 'ช่วงเย็น',
       });
     }
     return _t({
-      'ko': '밤', 'en': 'late at night', 'ja': '夜',
-      'zh': '深夜', 'fr': 'tard le soir', 'de': 'spätnachts',
-      'es': 'de madrugada', 'pt': 'tarde da noite', 'ru': 'ночью',
-      'tr': 'gece', 'ar': 'ليلاً', 'it': 'di notte',
-      'hi': 'रात', 'th': 'ช่วงค่ำคืน',
+      'ko': '밤',
+      'en': 'late at night',
+      'ja': '夜',
+      'zh': '深夜',
+      'fr': 'tard le soir',
+      'de': 'spätnachts',
+      'es': 'de madrugada',
+      'pt': 'tarde da noite',
+      'ru': 'ночью',
+      'tr': 'gece',
+      'ar': 'ليلاً',
+      'it': 'di notte',
+      'hi': 'रात',
+      'th': 'ช่วงค่ำคืน',
     });
   }
 
   String penpalBadgeCount(int n) {
     switch (languageCode) {
-      case 'ko': return '$n번째';
-      case 'ja': return '$n通目';
-      case 'zh': return '第 $n 封';
-      case 'fr': return '${n}e échange';
-      case 'de': return '$n. Brief';
-      case 'es': return '${n}º intercambio';
-      case 'pt': return '${n}º intercâmbio';
-      case 'ru': return '$n-е письмо';
-      case 'tr': return '$n. mektup';
-      case 'ar': return 'الرسالة ${n}';
-      case 'it': return '${n}º scambio';
-      case 'hi': return '${n}वाँ आदान-प्रदान';
-      case 'th': return 'ฉบับที่ $n';
+      case 'ko':
+        return '$n번째';
+      case 'ja':
+        return '$n通目';
+      case 'zh':
+        return '第 $n 封';
+      case 'fr':
+        return '${n}e échange';
+      case 'de':
+        return '$n. Brief';
+      case 'es':
+        return '${n}º intercambio';
+      case 'pt':
+        return '${n}º intercâmbio';
+      case 'ru':
+        return '$n-е письмо';
+      case 'tr':
+        return '$n. mektup';
+      case 'ar':
+        return 'الرسالة ${n}';
+      case 'it':
+        return '${n}º scambio';
+      case 'hi':
+        return '${n}वाँ आदान-प्रदान';
+      case 'th':
+        return 'ฉบับที่ $n';
       case 'en':
-      default: return '#$n exchange';
+      default:
+        return '#$n exchange';
     }
   }
 
   String xpLevelBadge(int level) {
     switch (languageCode) {
-      case 'ko': return 'Lv. $level';
-      case 'ja': return 'Lv. $level';
-      case 'zh': return 'Lv. $level';
-      default: return 'Lv. $level';
+      case 'ko':
+        return 'Lv. $level';
+      case 'ja':
+        return 'Lv. $level';
+      case 'zh':
+        return 'Lv. $level';
+      default:
+        return 'Lv. $level';
     }
   }
 
   String xpLevelNextIn(int currentXp, int remaining) {
     switch (languageCode) {
-      case 'ko': return '현재 $currentXp XP · 다음 레벨까지 $remaining XP';
-      case 'ja': return '現在 $currentXp XP · 次のレベルまで $remaining XP';
-      case 'zh': return '当前 $currentXp XP · 距离下一级 $remaining XP';
-      case 'fr': return '$currentXp XP · $remaining XP jusqu\'au niveau suivant';
-      case 'de': return '$currentXp XP · $remaining XP bis zum nächsten Level';
-      case 'es': return '$currentXp XP · $remaining XP hasta el siguiente nivel';
-      case 'pt': return '$currentXp XP · $remaining XP até o próximo nível';
-      case 'ru': return '$currentXp XP · $remaining XP до следующего уровня';
-      case 'tr': return '$currentXp XP · sonraki seviyeye $remaining XP';
-      case 'ar': return '$currentXp XP · $remaining XP حتى المستوى التالي';
-      case 'it': return '$currentXp XP · $remaining XP al prossimo livello';
-      case 'hi': return '$currentXp XP · अगले स्तर तक $remaining XP';
-      case 'th': return '$currentXp XP · อีก $remaining XP ถึงเลเวลถัดไป';
+      case 'ko':
+        return '현재 $currentXp XP · 다음 레벨까지 $remaining XP';
+      case 'ja':
+        return '現在 $currentXp XP · 次のレベルまで $remaining XP';
+      case 'zh':
+        return '当前 $currentXp XP · 距离下一级 $remaining XP';
+      case 'fr':
+        return '$currentXp XP · $remaining XP jusqu\'au niveau suivant';
+      case 'de':
+        return '$currentXp XP · $remaining XP bis zum nächsten Level';
+      case 'es':
+        return '$currentXp XP · $remaining XP hasta el siguiente nivel';
+      case 'pt':
+        return '$currentXp XP · $remaining XP até o próximo nível';
+      case 'ru':
+        return '$currentXp XP · $remaining XP до следующего уровня';
+      case 'tr':
+        return '$currentXp XP · sonraki seviyeye $remaining XP';
+      case 'ar':
+        return '$currentXp XP · $remaining XP حتى المستوى التالي';
+      case 'it':
+        return '$currentXp XP · $remaining XP al prossimo livello';
+      case 'hi':
+        return '$currentXp XP · अगले स्तर तक $remaining XP';
+      case 'th':
+        return '$currentXp XP · อีก $remaining XP ถึงเลเวลถัดไป';
       case 'en':
-      default: return '$currentXp XP · $remaining XP to next level';
+      default:
+        return '$currentXp XP · $remaining XP to next level';
     }
   }
 
   String xpLevelMaxed(int currentXp) {
     switch (languageCode) {
-      case 'ko': return '$currentXp XP · 최고 레벨 도달 👑';
-      case 'ja': return '$currentXp XP · 最高レベル達成 👑';
-      case 'zh': return '$currentXp XP · 已达最高等级 👑';
-      case 'fr': return '$currentXp XP · niveau maximum atteint 👑';
-      case 'de': return '$currentXp XP · Höchstlevel erreicht 👑';
-      case 'es': return '$currentXp XP · nivel máximo alcanzado 👑';
-      case 'pt': return '$currentXp XP · nível máximo alcançado 👑';
-      case 'ru': return '$currentXp XP · достигнут высший уровень 👑';
-      case 'tr': return '$currentXp XP · en yüksek seviye 👑';
-      case 'ar': return '$currentXp XP · وصلت إلى أعلى مستوى 👑';
-      case 'it': return '$currentXp XP · livello massimo raggiunto 👑';
-      case 'hi': return '$currentXp XP · सर्वोच्च स्तर पर पहुँचे 👑';
-      case 'th': return '$currentXp XP · ถึงเลเวลสูงสุดแล้ว 👑';
+      case 'ko':
+        return '$currentXp XP · 최고 레벨 도달 👑';
+      case 'ja':
+        return '$currentXp XP · 最高レベル達成 👑';
+      case 'zh':
+        return '$currentXp XP · 已达最高等级 👑';
+      case 'fr':
+        return '$currentXp XP · niveau maximum atteint 👑';
+      case 'de':
+        return '$currentXp XP · Höchstlevel erreicht 👑';
+      case 'es':
+        return '$currentXp XP · nivel máximo alcanzado 👑';
+      case 'pt':
+        return '$currentXp XP · nível máximo alcançado 👑';
+      case 'ru':
+        return '$currentXp XP · достигнут высший уровень 👑';
+      case 'tr':
+        return '$currentXp XP · en yüksek seviye 👑';
+      case 'ar':
+        return '$currentXp XP · وصلت إلى أعلى مستوى 👑';
+      case 'it':
+        return '$currentXp XP · livello massimo raggiunto 👑';
+      case 'hi':
+        return '$currentXp XP · सर्वोच्च स्तर पर पहुँचे 👑';
+      case 'th':
+        return '$currentXp XP · ถึงเลเวลสูงสุดแล้ว 👑';
       case 'en':
-      default: return '$currentXp XP · max level reached 👑';
+      default:
+        return '$currentXp XP · max level reached 👑';
     }
   }
 
   String get premiumCollectionsHeader => _t({
-    'ko': 'Air Mail Pass 컬렉션',
-    'en': 'Air Mail Pass Collections',
-    'ja': 'Air Mail Pass コレクション',
-    'zh': 'Air Mail Pass 合集',
-    'fr': 'Collections Air Mail Pass',
-    'de': 'Air Mail Pass Kollektionen',
-    'es': 'Colecciones Air Mail Pass',
-    'pt': 'Coleções Air Mail Pass',
-    'ru': 'Коллекции Air Mail Pass',
-    'tr': 'Air Mail Pass Koleksiyonları',
-    'ar': 'مجموعات Air Mail Pass',
-    'it': 'Collezioni Air Mail Pass',
-    'hi': 'Air Mail Pass कलेक्शन',
-    'th': 'คอลเลกชัน Air Mail Pass',
+    'ko': 'Thiscount Premium 컬렉션',
+    'en': 'Thiscount Premium Collections',
+    'ja': 'Thiscount Premium コレクション',
+    'zh': 'Thiscount Premium 合集',
+    'fr': 'Collections Thiscount Premium',
+    'de': 'Thiscount Premium Kollektionen',
+    'es': 'Colecciones Thiscount Premium',
+    'pt': 'Coleções Thiscount Premium',
+    'ru': 'Коллекции Thiscount Premium',
+    'tr': 'Thiscount Premium Koleksiyonları',
+    'ar': 'مجموعات Thiscount Premium',
+    'it': 'Collezioni Thiscount Premium',
+    'hi': 'Thiscount Premium कलेक्शन',
+    'th': 'คอลเลกชัน Thiscount Premium',
   });
   String get premiumCollectionsSub => _t({
-    'ko': '하나의 패스 안에, 카드의 결을 바꾸는 세 가지 컬렉션.',
-    'en': 'One pass, three collections that change the grain of your promos.',
-    'ja': '一つのパスで、手紙の質感を変える3つのコレクション。',
-    'zh': '一张通行证，三种改变信件质地的合集。',
-    'fr': 'Un seul Pass, trois collections qui changent la texture de vos lettres.',
-    'de': 'Ein Pass, drei Kollektionen, die die Textur deiner Briefe verändern.',
-    'es': 'Un solo pase, tres colecciones que cambian la textura de tus cartas.',
-    'pt': 'Um passe, três coleções que mudam a textura das suas cartas.',
-    'ru': 'Один Pass, три коллекции, меняющие текстуру ваших писем.',
-    'tr': 'Tek bir pass, mektuplarınızın dokusunu değiştiren üç koleksiyon.',
-    'ar': 'باقة واحدة، ثلاث مجموعات تغيّر ملمس رسائلك.',
-    'it': 'Un solo pass, tre collezioni che cambiano la trama delle tue lettere.',
-    'hi': 'एक पास, तीन कलेक्शन — आपके पत्रों का बनावट बदलते हैं।',
-    'th': 'พาสหนึ่งใบ สามคอลเลกชันที่เปลี่ยนสัมผัสของจดหมาย',
+    'ko': '하나의 Premium 안에, 혜택 스타일을 넓혀주는 세 가지 컬렉션.',
+    'en': 'One premium, three collections that broaden how your rewards feel.',
+    'ja': 'ひとつの Premium に、特典の印象を広げる3つのコレクション。',
+    'zh': '一个 Premium，三种扩展奖励风格的合集。',
+    'fr':
+        'Un seul Premium, trois collections pour elargir le style de vos recompenses.',
+    'de':
+        'Ein Premium, drei Kollektionen, die den Stil deiner Rewards erweitern.',
+    'es':
+        'Un solo Premium, tres colecciones que amplian el estilo de tus recompensas.',
+    'pt':
+        'Um unico Premium, tres colecoes que ampliam o estilo das suas recompensas.',
+    'ru': 'Один Premium, три коллекции, которые расширяют стиль ваших наград.',
+    'tr': 'Tek bir Premium, odul tarzini genisleten uc koleksiyon.',
+    'ar': 'Premium واحد وثلاث مجموعات توسع اسلوب مكافاتك.',
+    'it':
+        'Un solo Premium, tre collezioni che ampliano lo stile delle tue ricompense.',
+    'hi': 'एक Premium, तीन कलेक्शन जो आपके रिवॉर्ड स्टाइल को और फैलाते हैं।',
+    'th': 'Premium เดียว สามคอลเลกชันที่ช่วยขยายสไตล์ของรางวัลของคุณ',
   });
   String get premiumCollectionAuroraName => _t({
     'ko': '🌌 Aurora',
@@ -2078,21 +2181,35 @@ class AppL10n {
 
   String weeklyReflectionLongest(int km) {
     switch (languageCode) {
-      case 'ko': return '가장 멀리 떠난 혜택은 ${km}km를 여행했어요 ✈️';
-      case 'ja': return '最も遠く旅した手紙は${km}kmを旅しました ✈️';
-      case 'zh': return '最远的那封信旅行了 ${km} 公里 ✈️';
-      case 'fr': return 'Votre lettre la plus lointaine a parcouru ${km} km ✈️';
-      case 'de': return 'Der weiteste Brief reiste ${km} km ✈️';
-      case 'es': return 'La carta más lejana viajó ${km} km ✈️';
-      case 'pt': return 'A carta mais distante viajou ${km} km ✈️';
-      case 'ru': return 'Самое дальнее письмо преодолело ${km} км ✈️';
-      case 'tr': return 'En uzun yolculuk ${km} km oldu ✈️';
-      case 'ar': return 'أبعد رسالة سافرت ${km} كم ✈️';
-      case 'it': return 'La lettera più lontana ha percorso ${km} km ✈️';
-      case 'hi': return 'सबसे दूर गया पत्र ${km} किमी चला ✈️';
-      case 'th': return 'จดหมายที่ไปไกลที่สุดเดินทาง ${km} กม. ✈️';
+      case 'ko':
+        return '가장 멀리 떠난 혜택은 ${km}km를 여행했어요 ✈️';
+      case 'ja':
+        return '最も遠く旅した手紙は${km}kmを旅しました ✈️';
+      case 'zh':
+        return '最远的那封信旅行了 ${km} 公里 ✈️';
+      case 'fr':
+        return 'Votre lettre la plus lointaine a parcouru ${km} km ✈️';
+      case 'de':
+        return 'Der weiteste Brief reiste ${km} km ✈️';
+      case 'es':
+        return 'La carta más lejana viajó ${km} km ✈️';
+      case 'pt':
+        return 'A carta mais distante viajou ${km} km ✈️';
+      case 'ru':
+        return 'Самое дальнее письмо преодолело ${km} км ✈️';
+      case 'tr':
+        return 'En uzun yolculuk ${km} km oldu ✈️';
+      case 'ar':
+        return 'أبعد رسالة سافرت ${km} كم ✈️';
+      case 'it':
+        return 'La lettera più lontana ha percorso ${km} km ✈️';
+      case 'hi':
+        return 'सबसे दूर गया पत्र ${km} किमी चला ✈️';
+      case 'th':
+        return 'จดหมายที่ไปไกลที่สุดเดินทาง ${km} กม. ✈️';
       case 'en':
-      default: return 'Your farthest letter traveled ${km} km ✈️';
+      default:
+        return 'Your farthest letter traveled ${km} km ✈️';
     }
   }
 
@@ -2102,7 +2219,8 @@ class AppL10n {
     'ja': 'この手紙にはすでに返信済みです — 1通につき1回のみ',
     'zh': '你已经回复过这封信 · 每封信只能回复一次',
     'fr': 'Vous avez déjà répondu à cette lettre — une réponse par lettre',
-    'de': 'Du hast auf diesen Brief bereits geantwortet — eine Antwort pro Brief',
+    'de':
+        'Du hast auf diesen Brief bereits geantwortet — eine Antwort pro Brief',
     'es': 'Ya respondiste a esta carta — una respuesta por carta',
     'pt': 'Você já respondeu a esta carta — uma resposta por carta',
     'ru': 'Вы уже ответили на это письмо — один ответ на письмо',
@@ -2162,18 +2280,28 @@ class AppL10n {
   });
   String get aiLetterNoticeBody => _t({
     'ko': '실제 사람이 아닌 문학 봇이 보낸 메시지라, 답장은 전달되지 않아요. 다른 답장해보세요.',
-    'en': 'This reward message was written by a literary bot, so replies won\'t reach anyone. Try replying to a real reward instead.',
+    'en':
+        'This reward message was written by a literary bot, so replies won\'t reach anyone. Try replying to a real reward instead.',
     'ja': '文学Botが書いた手紙なので、返信は届きません。他の手紙に返信してみてください。',
     'zh': '这封信由文学机器人撰写，回复不会被送达。可以回复其他信件。',
-    'fr': 'Cette lettre vient d\'un bot littéraire — les réponses n\'atteindront personne. Répondez plutôt à une vraie lettre.',
-    'de': 'Dieser Brief kommt von einem Literatur-Bot — Antworten erreichen niemanden. Beantworte lieber einen echten Brief.',
-    'es': 'Esta carta la escribió un bot literario, así que las respuestas no llegan a nadie. Responde a una carta real.',
-    'pt': 'Esta carta veio de um bot literário — respostas não chegam a ninguém. Responda a uma carta real.',
-    'ru': 'Это письмо написал литературный бот, поэтому ответы никуда не дойдут. Ответьте на реальное письмо.',
-    'tr': 'Bu mektup bir edebiyat botundan — cevaplar kimseye ulaşmaz. Gerçek bir mektuba cevap verin.',
-    'ar': 'كُتبت هذه الرسالة بواسطة بوت أدبي، لذا لن تصل الردود. جرب الرد على رسالة حقيقية.',
-    'it': 'Questa lettera viene da un bot letterario — le risposte non arrivano a nessuno. Rispondi a una lettera reale.',
-    'hi': 'यह पत्र एक साहित्यिक बॉट ने लिखा है, जवाब किसी तक नहीं पहुँचेंगे। असली पत्र का जवाब दें।',
+    'fr':
+        'Cette lettre vient d\'un bot littéraire — les réponses n\'atteindront personne. Répondez plutôt à une vraie lettre.',
+    'de':
+        'Dieser Brief kommt von einem Literatur-Bot — Antworten erreichen niemanden. Beantworte lieber einen echten Brief.',
+    'es':
+        'Esta carta la escribió un bot literario, así que las respuestas no llegan a nadie. Responde a una carta real.',
+    'pt':
+        'Esta carta veio de um bot literário — respostas não chegam a ninguém. Responda a uma carta real.',
+    'ru':
+        'Это письмо написал литературный бот, поэтому ответы никуда не дойдут. Ответьте на реальное письмо.',
+    'tr':
+        'Bu mektup bir edebiyat botundan — cevaplar kimseye ulaşmaz. Gerçek bir mektuba cevap verin.',
+    'ar':
+        'كُتبت هذه الرسالة بواسطة بوت أدبي، لذا لن تصل الردود. جرب الرد على رسالة حقيقية.',
+    'it':
+        'Questa lettera viene da un bot letterario — le risposte non arrivano a nessuno. Rispondi a una lettera reale.',
+    'hi':
+        'यह पत्र एक साहित्यिक बॉट ने लिखा है, जवाब किसी तक नहीं पहुँचेंगे। असली पत्र का जवाब दें।',
     'th': 'จดหมายนี้เขียนโดยบอตวรรณกรรม คำตอบจะไม่ถึงใคร ลองตอบจดหมายจริงแทน',
   });
   String get replyFomoHint => _t({
@@ -2210,19 +2338,30 @@ class AppL10n {
   });
   String get reminderPrepromptBody => _t({
     'ko': '"오늘 나에게 혜택이 왔을까?"\n매일 아침 8시에 수집첩을 열어보도록 조용히 알려드릴게요.',
-    'en': '"Did a reward arrive for me today?"\nA quiet 8 AM nudge to open your mailbox — nothing noisy.',
+    'en':
+        '"Did a reward arrive for me today?"\nA quiet 8 AM nudge to open your mailbox — nothing noisy.',
     'ja': '「今日、手紙は届いたかな？」\n毎朝8時に、そっと手紙箱を開くようお知らせします。',
     'zh': '"今天有我的信吗？"\n每天早上 8 点轻轻提醒你打开信箱——不喧哗。',
-    'fr': '"Ai-je reçu une lettre aujourd\'hui ?"\nUn rappel doux à 8h pour ouvrir votre boîte.',
-    'de': '"Ist heute ein Brief für mich da?"\nEin leiser 8-Uhr-Hinweis, den Briefkasten zu öffnen.',
-    'es': '"¿Hoy me ha llegado una carta?"\nUn aviso suave a las 8 para abrir tu buzón.',
-    'pt': '"Chegou uma carta pra mim hoje?"\nUm lembrete sutil às 8h para abrir sua caixa.',
-    'ru': '"Пришло ли мне сегодня письмо?"\nЛёгкое напоминание в 8 утра открыть почтовый ящик.',
-    'tr': '"Bugün bana mektup geldi mi?"\nSabah 8\'de posta kutunu açman için sakin bir hatırlatma.',
-    'ar': '"هل وصلتني رسالة اليوم؟"\nتذكير هادئ الساعة 8 صباحاً لتفتح صندوق رسائلك.',
-    'it': '"Mi è arrivata una lettera oggi?"\nUn promemoria gentile alle 8 per aprire la tua buca.',
-    'hi': '"क्या आज मेरे लिए पत्र आया?"\nसुबह 8 बजे मेलबॉक्स खोलने की शांत याद।',
-    'th': '"วันนี้มีจดหมายถึงฉันไหม?"\nการเตือนเบา ๆ เวลา 8 โมงให้เปิดกล่องจดหมาย',
+    'fr':
+        '"Ai-je reçu une lettre aujourd\'hui ?"\nUn rappel doux à 8h pour ouvrir votre boîte.',
+    'de':
+        '"Ist heute ein Brief für mich da?"\nEin leiser 8-Uhr-Hinweis, den Briefkasten zu öffnen.',
+    'es':
+        '"¿Hoy me ha llegado una carta?"\nUn aviso suave a las 8 para abrir tu buzón.',
+    'pt':
+        '"Chegou uma carta pra mim hoje?"\nUm lembrete sutil às 8h para abrir sua caixa.',
+    'ru':
+        '"Пришло ли мне сегодня письмо?"\nЛёгкое напоминание в 8 утра открыть почтовый ящик.',
+    'tr':
+        '"Bugün bana mektup geldi mi?"\nSabah 8\'de posta kutunu açman için sakin bir hatırlatma.',
+    'ar':
+        '"هل وصلتني رسالة اليوم؟"\nتذكير هادئ الساعة 8 صباحاً لتفتح صندوق رسائلك.',
+    'it':
+        '"Mi è arrivata una lettera oggi?"\nUn promemoria gentile alle 8 per aprire la tua buca.',
+    'hi':
+        '"क्या आज मेरे लिए पत्र आया?"\nसुबह 8 बजे मेलबॉक्स खोलने की शांत याद।',
+    'th':
+        '"วันนี้มีจดหมายถึงฉันไหม?"\nการเตือนเบา ๆ เวลา 8 โมงให้เปิดกล่องจดหมาย',
   });
   String get reminderPrepromptYes => _t({
     'ko': '좋아요',
@@ -2682,18 +2821,27 @@ class AppL10n {
 
   String get authFindIdDesc => _t({
     'ko': '가입 시 등록한 이메일을 입력하면\n아이디와 임시 비밀번호를 발급해 드립니다.',
-    'en': 'Enter the email you registered with\nto receive your ID and a temporary password.',
+    'en':
+        'Enter the email you registered with\nto receive your ID and a temporary password.',
     'ja': '登録時のメールアドレスを入力すると\nIDと仮パスワードを発行します。',
     'zh': '输入注册时的邮箱\n我们将提供您的ID和临时密码。',
-    'fr': 'Entrez l\'email utilisé lors de l\'inscription\npour recevoir votre identifiant et un mot de passe temporaire.',
-    'de': 'Geben Sie die bei der Registrierung verwendete E-Mail ein,\num Ihre ID und ein temporäres Passwort zu erhalten.',
-    'es': 'Ingresa el correo registrado\npara recibir tu ID y una contraseña temporal.',
-    'pt': 'Insira o email cadastrado\npara receber seu ID e uma senha temporária.',
-    'ru': 'Введите email, указанный при регистрации,\nчтобы получить ваш ID и временный пароль.',
-    'tr': 'Kayıt sırasında kullandığınız e-postayı girin,\nID ve geçici şifrenizi alın.',
+    'fr':
+        'Entrez l\'email utilisé lors de l\'inscription\npour recevoir votre identifiant et un mot de passe temporaire.',
+    'de':
+        'Geben Sie die bei der Registrierung verwendete E-Mail ein,\num Ihre ID und ein temporäres Passwort zu erhalten.',
+    'es':
+        'Ingresa el correo registrado\npara recibir tu ID y una contraseña temporal.',
+    'pt':
+        'Insira o email cadastrado\npara receber seu ID e uma senha temporária.',
+    'ru':
+        'Введите email, указанный при регистрации,\nчтобы получить ваш ID и временный пароль.',
+    'tr':
+        'Kayıt sırasında kullandığınız e-postayı girin,\nID ve geçici şifrenizi alın.',
     'ar': 'أدخل البريد الإلكتروني المسجل\nللحصول على معرّفك وكلمة مرور مؤقتة.',
-    'it': 'Inserisci l\'email registrata\nper ricevere il tuo ID e una password temporanea.',
-    'hi': 'पंजीकरण के समय दर्ज किया गया ईमेल डालें\nआपको ID और अस्थायी पासवर्ड मिलेगा।',
+    'it':
+        'Inserisci l\'email registrata\nper ricevere il tuo ID e una password temporanea.',
+    'hi':
+        'पंजीकरण के समय दर्ज किया गया ईमेल डालें\nआपको ID और अस्थायी पासवर्ड मिलेगा।',
     'th': 'กรอกอีเมลที่ลงทะเบียนไว้\nเพื่อรับ ID และรหัสผ่านชั่วคราว',
   });
 
@@ -2838,14 +2986,16 @@ class AppL10n {
     'en': 'For security, the temporary password is not displayed on screen.',
     'ja': 'セキュリティのため、仮パスワードは画面に表示されません。',
     'zh': '出于安全考虑，临时密码不会显示在屏幕上。',
-    'fr': 'Pour des raisons de sécurité, le mot de passe temporaire n\'est pas affiché.',
+    'fr':
+        'Pour des raisons de sécurité, le mot de passe temporaire n\'est pas affiché.',
     'de': 'Aus Sicherheitsgründen wird das temporäre Passwort nicht angezeigt.',
     'es': 'Por seguridad, la contraseña temporal no se muestra en pantalla.',
     'pt': 'Por segurança, a senha temporária não é exibida na tela.',
     'ru': 'В целях безопасности временный пароль не отображается на экране.',
     'tr': 'Güvenlik nedeniyle geçici şifre ekranda gösterilmez.',
     'ar': 'لأسباب أمنية، لا يتم عرض كلمة المرور المؤقتة على الشاشة.',
-    'it': 'Per sicurezza, la password temporanea non viene mostrata sullo schermo.',
+    'it':
+        'Per sicurezza, la password temporanea non viene mostrata sullo schermo.',
     'hi': 'सुरक्षा के लिए, अस्थायी पासवर्ड स्क्रीन पर नहीं दिखाया जाता।',
     'th': 'เพื่อความปลอดภัย รหัสผ่านชั่วคราวจะไม่แสดงบนหน้าจอ',
   });
@@ -2886,17 +3036,25 @@ class AppL10n {
 
   String get authResetPasswordDesc => _t({
     'ko': '닉네임과 가입 이메일을 입력하면 임시 비밀번호를 발급합니다.',
-    'en': 'Enter your nickname and registered email to receive a temporary password.',
+    'en':
+        'Enter your nickname and registered email to receive a temporary password.',
     'ja': 'ニックネームと登録メールを入力すると、仮パスワードを発行します。',
     'zh': '输入昵称和注册邮箱即可获取临时密码。',
-    'fr': 'Entrez votre pseudo et email d\'inscription pour recevoir un mot de passe temporaire.',
-    'de': 'Geben Sie Ihren Nickname und die registrierte E-Mail ein, um ein temporäres Passwort zu erhalten.',
-    'es': 'Ingresa tu apodo y correo registrado para recibir una contraseña temporal.',
-    'pt': 'Insira seu apelido e email cadastrado para receber uma senha temporária.',
+    'fr':
+        'Entrez votre pseudo et email d\'inscription pour recevoir un mot de passe temporaire.',
+    'de':
+        'Geben Sie Ihren Nickname und die registrierte E-Mail ein, um ein temporäres Passwort zu erhalten.',
+    'es':
+        'Ingresa tu apodo y correo registrado para recibir una contraseña temporal.',
+    'pt':
+        'Insira seu apelido e email cadastrado para receber uma senha temporária.',
     'ru': 'Введите никнейм и email для получения временного пароля.',
-    'tr': 'Takma adınızı ve kayıtlı e-postanızı girin, geçici şifre gönderilecektir.',
-    'ar': 'أدخل اسمك المستعار والبريد الإلكتروني المسجل للحصول على كلمة مرور مؤقتة.',
-    'it': 'Inserisci il tuo nickname e l\'email registrata per ricevere una password temporanea.',
+    'tr':
+        'Takma adınızı ve kayıtlı e-postanızı girin, geçici şifre gönderilecektir.',
+    'ar':
+        'أدخل اسمك المستعار والبريد الإلكتروني المسجل للحصول على كلمة مرور مؤقتة.',
+    'it':
+        'Inserisci il tuo nickname e l\'email registrata per ricevere una password temporanea.',
     'hi': 'अस्थायी पासवर्ड पाने के लिए अपना उपनाम और पंजीकृत ईमेल दर्ज करें।',
     'th': 'กรอกชื่อเล่นและอีเมลที่ลงทะเบียนเพื่อรับรหัสผ่านชั่วคราว',
   });
@@ -3025,11 +3183,15 @@ class AppL10n {
     'en': 'You must agree to the Privacy Policy to sign up.',
     'ja': 'プライバシーポリシーに同意しないと登録できません。',
     'zh': '您必须同意隐私政策才能注册。',
-    'fr': 'Vous devez accepter la politique de confidentialité pour vous inscrire.',
-    'de': 'Sie müssen der Datenschutzrichtlinie zustimmen, um sich zu registrieren.',
+    'fr':
+        'Vous devez accepter la politique de confidentialité pour vous inscrire.',
+    'de':
+        'Sie müssen der Datenschutzrichtlinie zustimmen, um sich zu registrieren.',
     'es': 'Debe aceptar la política de privacidad para registrarse.',
-    'pt': 'Você deve concordar com a Política de Privacidade para se cadastrar.',
-    'ru': 'Для регистрации необходимо согласиться с политикой конфиденциальности.',
+    'pt':
+        'Você deve concordar com a Política de Privacidade para se cadastrar.',
+    'ru':
+        'Для регистрации необходимо согласиться с политикой конфиденциальности.',
     'tr': 'Kaydolmak için Gizlilik Politikasını kabul etmelisiniz.',
     'ar': 'يجب الموافقة على سياسة الخصوصية للتسجيل.',
     'it': 'Devi accettare l\'informativa sulla privacy per registrarti.',
@@ -3081,7 +3243,8 @@ class AppL10n {
     'es': 'Inténtelo más tarde. (Reintentar en $seconds segundos)',
     'pt': 'Tente novamente mais tarde. (Tentar em $seconds segundos)',
     'ru': 'Попробуйте позже. (Повтор через $seconds сек.)',
-    'tr': 'Lütfen daha sonra tekrar deneyin. ($seconds saniye sonra tekrar denenebilir)',
+    'tr':
+        'Lütfen daha sonra tekrar deneyin. ($seconds saniye sonra tekrar denenebilir)',
     'ar': 'يرجى المحاولة لاحقاً. (إعادة المحاولة بعد $seconds ثانية)',
     'it': 'Riprova più tardi. (Riprova tra $seconds secondi)',
     'hi': 'कृपया बाद में पुनः प्रयास करें। ($seconds सेकंड बाद पुनः प्रयास)',
@@ -3141,17 +3304,25 @@ class AppL10n {
 
   String get authLocationDenied => _t({
     'ko': '위치 권한이 거부되었습니다.\n설정 → 앱 → 위치에서 허용해주세요.',
-    'en': 'Location permission denied.\nPlease allow in Settings → App → Location.',
+    'en':
+        'Location permission denied.\nPlease allow in Settings → App → Location.',
     'ja': '位置情報の許可が拒否されました。\n設定 → アプリ → 位置情報で許可してください。',
     'zh': '位置权限被拒绝。\n请在设置 → 应用 → 位置中允许。',
-    'fr': 'Permission de localisation refusée.\nVeuillez autoriser dans Réglages → App → Localisation.',
-    'de': 'Standortberechtigung verweigert.\nBitte in Einstellungen → App → Standort erlauben.',
-    'es': 'Permiso de ubicación denegado.\nPermita en Ajustes → App → Ubicación.',
-    'pt': 'Permissão de localização negada.\nPermita em Configurações → App → Localização.',
-    'ru': 'Доступ к геолокации запрещён.\nРазрешите в Настройки → Приложение → Местоположение.',
-    'tr': 'Konum izni reddedildi.\nLütfen Ayarlar → Uygulama → Konum\'dan izin verin.',
+    'fr':
+        'Permission de localisation refusée.\nVeuillez autoriser dans Réglages → App → Localisation.',
+    'de':
+        'Standortberechtigung verweigert.\nBitte in Einstellungen → App → Standort erlauben.',
+    'es':
+        'Permiso de ubicación denegado.\nPermita en Ajustes → App → Ubicación.',
+    'pt':
+        'Permissão de localização negada.\nPermita em Configurações → App → Localização.',
+    'ru':
+        'Доступ к геолокации запрещён.\nРазрешите в Настройки → Приложение → Местоположение.',
+    'tr':
+        'Konum izni reddedildi.\nLütfen Ayarlar → Uygulama → Konum\'dan izin verin.',
     'ar': 'تم رفض إذن الموقع.\nيرجى السماح في الإعدادات → التطبيق → الموقع.',
-    'it': 'Permesso di localizzazione negato.\nConsenti in Impostazioni → App → Posizione.',
+    'it':
+        'Permesso di localizzazione negato.\nConsenti in Impostazioni → App → Posizione.',
     'hi': 'स्थान अनुमति अस्वीकृत।\nकृपया सेटिंग्स → ऐप → स्थान में अनुमति दें।',
     'th': 'การอนุญาตตำแหน่งถูกปฏิเสธ\nกรุณาอนุญาตใน ตั้งค่า → แอป → ตำแหน่ง',
   });
@@ -3294,19 +3465,30 @@ class AppL10n {
 
   String get authPrivacyDesc => _t({
     'ko': '수집 항목: 이메일·닉네임·국가·위치(도시 단위)\n목적: 서비스 제공, 계정 관리',
-    'en': 'Collected: email, nickname, country, location (city level)\nPurpose: service delivery, account management',
+    'en':
+        'Collected: email, nickname, country, location (city level)\nPurpose: service delivery, account management',
     'ja': '収集項目: メール・ニックネーム・国・位置(都市単位)\n目的: サービス提供、アカウント管理',
     'zh': '收集项目: 邮箱·昵称·国家·位置(城市级别)\n目的: 服务提供、账号管理',
-    'fr': 'Données collectées : email, pseudo, pays, localisation (ville)\nObjectif : fourniture du service, gestion du compte',
-    'de': 'Erfasst: E-Mail, Nickname, Land, Standort (Stadtebene)\nZweck: Dienstleistung, Kontoverwaltung',
-    'es': 'Recopilado: correo, apodo, país, ubicación (ciudad)\nPropósito: prestación del servicio, gestión de cuenta',
-    'pt': 'Coletado: email, apelido, país, localização (cidade)\nFinalidade: prestação de serviço, gestão de conta',
-    'ru': 'Собираемые данные: email, никнейм, страна, местоположение (город)\nЦель: предоставление услуг, управление аккаунтом',
-    'tr': 'Toplanan: e-posta, takma ad, ülke, konum (şehir düzeyi)\nAmaç: hizmet sunumu, hesap yönetimi',
-    'ar': 'البيانات المجمعة: البريد الإلكتروني، الاسم المستعار، الدولة، الموقع (مستوى المدينة)\nالغرض: تقديم الخدمة، إدارة الحساب',
-    'it': 'Raccolti: email, nickname, paese, posizione (livello città)\nScopo: erogazione servizio, gestione account',
-    'hi': 'संग्रह: ईमेल, उपनाम, देश, स्थान (शहर स्तर)\nउद्देश्य: सेवा प्रदान, खाता प्रबंधन',
-    'th': '���้อมูลที่เก็บ: อีเมล, ชื่อเล่น, ประเทศ, ตำแหน่ง (ระดับเมือง)\nวัตถุประสงค์: ให้บริการ, จัดการบัญชี',
+    'fr':
+        'Données collectées : email, pseudo, pays, localisation (ville)\nObjectif : fourniture du service, gestion du compte',
+    'de':
+        'Erfasst: E-Mail, Nickname, Land, Standort (Stadtebene)\nZweck: Dienstleistung, Kontoverwaltung',
+    'es':
+        'Recopilado: correo, apodo, país, ubicación (ciudad)\nPropósito: prestación del servicio, gestión de cuenta',
+    'pt':
+        'Coletado: email, apelido, país, localização (cidade)\nFinalidade: prestação de serviço, gestão de conta',
+    'ru':
+        'Собираемые данные: email, никнейм, страна, местоположение (город)\nЦель: предоставление услуг, управление аккаунтом',
+    'tr':
+        'Toplanan: e-posta, takma ad, ülke, konum (şehir düzeyi)\nAmaç: hizmet sunumu, hesap yönetimi',
+    'ar':
+        'البيانات المجمعة: البريد الإلكتروني، الاسم المستعار، الدولة، الموقع (مستوى المدينة)\nالغرض: تقديم الخدمة، إدارة الحساب',
+    'it':
+        'Raccolti: email, nickname, paese, posizione (livello città)\nScopo: erogazione servizio, gestione account',
+    'hi':
+        'संग्रह: ईमेल, उपनाम, देश, स्थान (शहर स्तर)\nउद्देश्य: सेवा प्रदान, खाता प्रबंधन',
+    'th':
+        '���้อมูลที่เก็บ: อีเมล, ชื่อเล่น, ประเทศ, ตำแหน่ง (ระดับเมือง)\nวัตถุประสงค์: ให้บริการ, จัดการบัญชี',
   });
 
   String get authLocationOptional => _t({
@@ -3328,19 +3510,30 @@ class AppL10n {
 
   String get authLocationDesc => _t({
     'ko': '가입 후 홍보 발송 시점에도 위치 권한을 요청할 수 있어요.\n지금 동의하면 위치 기반 기능을 바로 사용할 수 있습니다.',
-    'en': 'Location permission can also be requested when sending promos.\nAgree now to use location-based features right away.',
+    'en':
+        'Location permission can also be requested when sending promos.\nAgree now to use location-based features right away.',
     'ja': '手紙送信時にも位置情報の許可を求められます。\n今同意すると、位置情報機能をすぐに使用できます。',
     'zh': '发送信件时也可以请求位置权限。\n现在同意即可立即使用基于位置的功能。',
-    'fr': 'La permission de localisation peut aussi être demandée lors de l\'envoi.\nAcceptez maintenant pour utiliser les fonctions de localisation immédiatement.',
-    'de': 'Die Standortberechtigung kann auch beim Versenden von Briefen angefragt werden.\nStimmen Sie jetzt zu, um standortbasierte Funktionen sofort zu nutzen.',
-    'es': 'El permiso de ubicación también se puede solicitar al enviar cartas.\nAcepte ahora para usar funciones basadas en ubicación de inmediato.',
-    'pt': 'A permissão de localização também pode ser solicitada ao enviar cartas.\nConcorde agora para usar recursos baseados em localização imediatamente.',
-    'ru': 'Разрешение на геолокацию может запрашиваться при отправке писем.\nСогласитесь сейчас, чтобы сразу использовать функции геолокации.',
-    'tr': 'Mektup gönderirken de konum izni istenebilir.\nŞimdi kabul ederek konum tabanlı özellikleri hemen kullanabilirsiniz.',
-    'ar': 'يمكن طلب إذن الموقع أيضاً عند إرسال الرسائل.\nوافق الآن لاستخدام ميزات الموقع فوراً.',
-    'it': 'Il permesso di localizzazione può essere richiesto anche durante l\'invio.\nAccetta ora per usare subito le funzioni basate sulla posizione.',
-    'hi': 'पत्र भेजते समय भी स्थान अनुमति मांगी जा सकती है।\nअभी सहमत होकर स्थान-आधारित सुविधाओं का उपयोग करें।',
-    'th': 'การอนุญาตตำแหน่งสามารถขอได้เมื่อส่งจดหมาย\nยินยอมตอนนี้เพื่อใช้ฟีเจอร์ตำแหน่งทันที',
+    'fr':
+        'La permission de localisation peut aussi être demandée lors de l\'envoi.\nAcceptez maintenant pour utiliser les fonctions de localisation immédiatement.',
+    'de':
+        'Die Standortberechtigung kann auch beim Versenden von Briefen angefragt werden.\nStimmen Sie jetzt zu, um standortbasierte Funktionen sofort zu nutzen.',
+    'es':
+        'El permiso de ubicación también se puede solicitar al enviar cartas.\nAcepte ahora para usar funciones basadas en ubicación de inmediato.',
+    'pt':
+        'A permissão de localização também pode ser solicitada ao enviar cartas.\nConcorde agora para usar recursos baseados em localização imediatamente.',
+    'ru':
+        'Разрешение на геолокацию может запрашиваться при отправке писем.\nСогласитесь сейчас, чтобы сразу использовать функции геолокации.',
+    'tr':
+        'Mektup gönderirken de konum izni istenebilir.\nŞimdi kabul ederek konum tabanlı özellikleri hemen kullanabilirsiniz.',
+    'ar':
+        'يمكن طلب إذن الموقع أيضاً عند إرسال الرسائل.\nوافق الآن لاستخدام ميزات الموقع فوراً.',
+    'it':
+        'Il permesso di localizzazione può essere richiesto anche durante l\'invio.\nAccetta ora per usare subito le funzioni basate sulla posizione.',
+    'hi':
+        'पत्र भेजते समय भी स्थान अनुमति मांगी जा सकती है।\nअभी सहमत होकर स्थान-आधारित सुविधाओं का उपयोग करें।',
+    'th':
+        'การอนุญาตตำแหน่งสามารถขอได้เมื่อส่งจดหมาย\nยินยอมตอนนี้เพื่อใช้ฟีเจอร์ตำแหน่งทันที',
   });
 
   String get authGranted => _t({
@@ -3502,7 +3695,8 @@ class AppL10n {
     'ja': '認証コードの有効期限が切れました。再送信を押してください。',
     'zh': '验证码已过期。请点击重新发送。',
     'fr': 'Le code de vérification a expiré. Veuillez appuyer sur Renvoyer.',
-    'de': 'Der Bestätigungscode ist abgelaufen. Bitte auf Erneut senden tippen.',
+    'de':
+        'Der Bestätigungscode ist abgelaufen. Bitte auf Erneut senden tippen.',
     'es': 'El código de verificación ha expirado. Toque Reenviar.',
     'pt': 'O código de verificação expirou. Toque em Reenviar.',
     'ru': 'Код подтверждения истёк. Нажмите Отправить повторно.',
@@ -3586,11 +3780,15 @@ class AppL10n {
     'en': 'Service delivery, sending and receiving rewards, account management',
     'ja': 'サービス提供、手紙の送受信、アカウント管理',
     'zh': '服务提供、信件发送和接收、账号管理',
-    'fr': 'Fourniture du service, envoi et réception de lettres, gestion du compte',
+    'fr':
+        'Fourniture du service, envoi et réception de lettres, gestion du compte',
     'de': 'Dienstleistung, Senden und Empfangen von Briefen, Kontoverwaltung',
-    'es': 'Prestación del servicio, envío y recepción de cartas, gestión de cuenta',
-    'pt': 'Prestação de serviço, envio e recebimento de cartas, gestão de conta',
-    'ru': 'Предоставление услуг, отправка и получение писем, управление аккаунтом',
+    'es':
+        'Prestación del servicio, envío y recepción de cartas, gestión de cuenta',
+    'pt':
+        'Prestação de serviço, envio e recebimento de cartas, gestão de conta',
+    'ru':
+        'Предоставление услуг, отправка и получение писем, управление аккаунтом',
     'tr': 'Hizmet sunumu, mektup gönderme ve alma, hesap yönetimi',
     'ar': 'تقديم الخدمة، إرسال واستقبال الرسائل، إدارة الحساب',
     'it': 'Erogazione servizio, invio e ricezione lettere, gestione account',
@@ -3617,17 +3815,21 @@ class AppL10n {
 
   String get authPrivacySec3Body => _t({
     'ko': '회원 탈퇴 시까지 (탈퇴 즉시 모든 데이터 삭제)',
-    'en': 'Until account deletion (all data deleted immediately upon withdrawal)',
+    'en':
+        'Until account deletion (all data deleted immediately upon withdrawal)',
     'ja': '退会時まで（退会と同時にすべてのデータを削除）',
     'zh': '直到账号注销（注销后立即删除所有数据）',
-    'fr': "Jusqu'à la suppression du compte (toutes les données supprimées immédiatement)",
+    'fr':
+        "Jusqu'à la suppression du compte (toutes les données supprimées immédiatement)",
     'de': 'Bis zur Kontolöschung (alle Daten werden sofort gelöscht)',
-    'es': 'Hasta la eliminación de la cuenta (todos los datos se eliminan inmediatamente)',
+    'es':
+        'Hasta la eliminación de la cuenta (todos los datos se eliminan inmediatamente)',
     'pt': 'Até a exclusão da conta (todos os dados excluídos imediatamente)',
     'ru': 'До удаления аккаунта (все данные удаляются немедленно)',
     'tr': 'Hesap silinene kadar (silme sonrası tüm veriler hemen silinir)',
     'ar': 'حتى حذف الحساب (يتم حذف جميع البيانات فوراً)',
-    'it': "Fino alla cancellazione dell'account (tutti i dati eliminati immediatamente)",
+    'it':
+        "Fino alla cancellazione dell'account (tutti i dati eliminati immediatamente)",
     'hi': 'खाता हटाने तक (हटाने पर सभी डेटा तुरंत हटा दिया जाता है)',
     'th': 'จนกว่าจะลบบัญชี (ข้อมูลทั้งหมดจะถูกลบทันที)',
   });
@@ -3654,8 +3856,10 @@ class AppL10n {
     'en': 'Collected personal data is not shared with third parties.',
     'ja': '収集された個人情報は第三者に提供されません。',
     'zh': '收集的个人信息不会提供给第三方。',
-    'fr': 'Les données personnelles collectées ne sont pas partagées avec des tiers.',
-    'de': 'Gesammelte personenbezogene Daten werden nicht an Dritte weitergegeben.',
+    'fr':
+        'Les données personnelles collectées ne sont pas partagées avec des tiers.',
+    'de':
+        'Gesammelte personenbezogene Daten werden nicht an Dritte weitergegeben.',
     'es': 'Los datos personales recopilados no se comparten con terceros.',
     'pt': 'Os dados pessoais coletados não são compartilhados com terceiros.',
     'ru': 'Собранные персональные данные не передаются третьим лицам.',
@@ -3756,18 +3960,28 @@ class AppL10n {
 
   String get composeLinkNotAllowed => _t({
     'ko': '🔗 링크는 본문에 직접 삽입할 수 없어요.\n아래 링크 첨부 기능을 사용해주세요.',
-    'en': '🔗 Links cannot be inserted directly in the text.\nPlease use the link attachment feature below.',
+    'en':
+        '🔗 Links cannot be inserted directly in the text.\nPlease use the link attachment feature below.',
     'ja': '🔗 リンクは本文に直接挿入できません。\n下のリンク添付機能をお使いください。',
     'zh': '🔗 链接不能直接插入正文。\n请使用下方的链接附件功能。',
-    'fr': '🔗 Les liens ne peuvent pas être insérés directement.\nVeuillez utiliser la fonction de lien ci-dessous.',
-    'de': '🔗 Links können nicht direkt eingefügt werden.\nBitte nutzen Sie die Link-Anhang-Funktion unten.',
-    'es': '🔗 Los enlaces no se pueden insertar directamente.\nUsa la función de adjuntar enlace abajo.',
-    'pt': '🔗 Links não podem ser inseridos diretamente.\nUse a função de anexar link abaixo.',
-    'ru': '🔗 Ссылки нельзя вставлять прямо в текст.\nИспользуйте функцию прикрепления ссылки ниже.',
-    'tr': '🔗 Bağlantılar doğrudan eklenemez.\nAşağıdaki bağlantı ekleme özelliğini kullanın.',
-    'ar': '🔗 لا يمكن إدراج الروابط مباشرة.\nيرجى استخدام ميزة إرفاق الرابط أدناه.',
-    'it': '🔗 I link non possono essere inseriti direttamente.\nUsa la funzione di allegato link qui sotto.',
-    'hi': '🔗 लिंक सीधे नहीं डाले जा सकते।\nकृपया नीचे लिंक अटैच सुविधा का उपयोग करें।',
+    'fr':
+        '🔗 Les liens ne peuvent pas être insérés directement.\nVeuillez utiliser la fonction de lien ci-dessous.',
+    'de':
+        '🔗 Links können nicht direkt eingefügt werden.\nBitte nutzen Sie die Link-Anhang-Funktion unten.',
+    'es':
+        '🔗 Los enlaces no se pueden insertar directamente.\nUsa la función de adjuntar enlace abajo.',
+    'pt':
+        '🔗 Links não podem ser inseridos diretamente.\nUse a função de anexar link abaixo.',
+    'ru':
+        '🔗 Ссылки нельзя вставлять прямо в текст.\nИспользуйте функцию прикрепления ссылки ниже.',
+    'tr':
+        '🔗 Bağlantılar doğrudan eklenemez.\nAşağıdaki bağlantı ekleme özelliğini kullanın.',
+    'ar':
+        '🔗 لا يمكن إدراج الروابط مباشرة.\nيرجى استخدام ميزة إرفاق الرابط أدناه.',
+    'it':
+        '🔗 I link non possono essere inseriti direttamente.\nUsa la funzione di allegato link qui sotto.',
+    'hi':
+        '🔗 लिंक सीधे नहीं डाले जा सकते।\nकृपया नीचे लिंक अटैच सुविधा का उपयोग करें।',
     'th': '🔗 ไม่สามารถแทรกลิงก์โดยตรงได้\nกรุณาใช้ฟีเจอร์แนบลิงก์ด้านล่าง',
   });
 
@@ -3841,34 +4055,53 @@ class AppL10n {
 
   String get composePhotoAttachDesc => _t({
     'ko': '홍보에 사진 1장을 첨부할 수 있어요.\n프리미엄 회원은 하루 20통까지 이미지 홍보 발송 가능.',
-    'en': 'Attach 1 photo to your promo.\nPremium members can send up to 20 image promos per day.',
+    'en':
+        'Attach 1 photo to your promo.\nPremium members can send up to 20 image promos per day.',
     'ja': '手紙に写真を1枚添付できます。\nプレミアム会員は1日20通まで画像付き手紙を送れます。',
     'zh': '可以给信附上1张照片。\n高级会员每天最多可发送20封带图片的信。',
-    'fr': 'Joignez 1 photo à votre lettre.\nLes membres Premium peuvent envoyer jusqu\'à 20 lettres avec image par jour.',
-    'de': 'Fügen Sie 1 Foto an Ihren Brief an.\nPremium-Mitglieder können bis zu 20 Bildbriefe pro Tag senden.',
-    'es': 'Adjunta 1 foto a tu carta.\nLos miembros Premium pueden enviar hasta 20 cartas con imagen al día.',
-    'pt': 'Anexe 1 foto à sua carta.\nMembros Premium podem enviar até 20 cartas com imagem por dia.',
-    'ru': 'Прикрепите 1 фото к письму.\nПремиум-участники могут отправлять до 20 писем с изображениями в день.',
-    'tr': 'Mektubunuza 1 fotoğraf ekleyin.\nPremium üyeler günde 20 resimli mektup gönderebilir.',
-    'ar': 'أرفق صورة واحدة برسالتك.\nيمكن للأعضاء المميزين إرسال حتى 20 رسالة مصورة يوميًا.',
-    'it': 'Allega 1 foto alla tua lettera.\nI membri Premium possono inviare fino a 20 lettere con immagine al giorno.',
-    'hi': 'अपने पत्र में 1 फोटो संलग्न करें।\nप्रीमियम सदस्य प्रतिदिन 20 छवि पत्र भेज सकते हैं।',
-    'th': 'แนบรูปภาพ 1 รูปกับจดหมาย\nสมาชิก Premium ส่งจดหมายพร้อมรูปได้วันละ 20 ฉบับ',
+    'fr':
+        'Joignez 1 photo à votre lettre.\nLes membres Premium peuvent envoyer jusqu\'à 20 lettres avec image par jour.',
+    'de':
+        'Fügen Sie 1 Foto an Ihren Brief an.\nPremium-Mitglieder können bis zu 20 Bildbriefe pro Tag senden.',
+    'es':
+        'Adjunta 1 foto a tu carta.\nLos miembros Premium pueden enviar hasta 20 cartas con imagen al día.',
+    'pt':
+        'Anexe 1 foto à sua carta.\nMembros Premium podem enviar até 20 cartas com imagem por dia.',
+    'ru':
+        'Прикрепите 1 фото к письму.\nПремиум-участники могут отправлять до 20 писем с изображениями в день.',
+    'tr':
+        'Mektubunuza 1 fotoğraf ekleyin.\nPremium üyeler günde 20 resimli mektup gönderebilir.',
+    'ar':
+        'أرفق صورة واحدة برسالتك.\nيمكن للأعضاء المميزين إرسال حتى 20 رسالة مصورة يوميًا.',
+    'it':
+        'Allega 1 foto alla tua lettera.\nI membri Premium possono inviare fino a 20 lettere con immagine al giorno.',
+    'hi':
+        'अपने पत्र में 1 फोटो संलग्न करें।\nप्रीमियम सदस्य प्रतिदिन 20 छवि पत्र भेज सकते हैं।',
+    'th':
+        'แนบรูปภาพ 1 รูปกับจดหมาย\nสมาชิก Premium ส่งจดหมายพร้อมรูปได้วันละ 20 ฉบับ',
   });
 
   String get composeImageLimitReached => _t({
     'ko': '오늘 이미지 혜택 한도(20통)에 도달했어요. 내일 다시 시도해주세요.',
-    'en': 'You\'ve reached today\'s image promo limit (20). Please try again tomorrow.',
+    'en':
+        'You\'ve reached today\'s image promo limit (20). Please try again tomorrow.',
     'ja': '本日の画像手紙の上限（20通）に達しました。明日また試してください。',
     'zh': '今天的图片信件配额（20封）已用完。请明天再试。',
-    'fr': 'Vous avez atteint la limite de lettres avec image (20). Réessayez demain.',
-    'de': 'Sie haben das Tageslimit für Bildbriefe (20) erreicht. Versuchen Sie es morgen erneut.',
-    'es': 'Has alcanzado el límite de cartas con imagen (20). Inténtalo mañana.',
-    'pt': 'Você atingiu o limite de cartas com imagem (20). Tente novamente amanhã.',
-    'ru': 'Вы достигли дневного лимита писем с изображениями (20). Попробуйте завтра.',
-    'tr': 'Bugünkü resimli mektup limitine (20) ulaştınız. Yarın tekrar deneyin.',
+    'fr':
+        'Vous avez atteint la limite de lettres avec image (20). Réessayez demain.',
+    'de':
+        'Sie haben das Tageslimit für Bildbriefe (20) erreicht. Versuchen Sie es morgen erneut.',
+    'es':
+        'Has alcanzado el límite de cartas con imagen (20). Inténtalo mañana.',
+    'pt':
+        'Você atingiu o limite de cartas com imagem (20). Tente novamente amanhã.',
+    'ru':
+        'Вы достигли дневного лимита писем с изображениями (20). Попробуйте завтра.',
+    'tr':
+        'Bugünkü resimli mektup limitine (20) ulaştınız. Yarın tekrar deneyin.',
     'ar': 'لقد وصلت إلى حد رسائل الصور اليومي (20). حاول مرة أخرى غدًا.',
-    'it': 'Hai raggiunto il limite giornaliero di lettere con immagine (20). Riprova domani.',
+    'it':
+        'Hai raggiunto il limite giornaliero di lettere con immagine (20). Riprova domani.',
     'hi': 'आज की छवि पत्र सीमा (20) पूरी हो गई। कल फिर प्रयास करें।',
     'th': 'ถึงขีดจำกัดจดหมายพร้อมรูป (20 ฉบับ) แล้ว ลองอีกครั้งพรุ่งนี้',
   });
@@ -3943,19 +4176,30 @@ class AppL10n {
 
   String composeExpressBulkSent(int countries, int addresses, int total) => _t({
     'ko': '⚡🌍 특송+대량! ${countries}개 나라 × $addresses주소 = 총 ${total}통 즉시 발송!',
-    'en': '⚡🌍 Express+Bulk! $countries countries × $addresses addresses = $total promos sent!',
+    'en':
+        '⚡🌍 Express+Bulk! $countries countries × $addresses addresses = $total promos sent!',
     'ja': '⚡🌍 特送+大量！${countries}か国 × $addressesアドレス = 合計${total}通即時発送！',
     'zh': '⚡🌍 特快+批量！$countries个国家 × $addresses个地址 = 共${total}封即时发送！',
-    'fr': '⚡🌍 Express+Masse ! $countries pays × $addresses adresses = $total lettres envoyées !',
-    'de': '⚡🌍 Express+Masse! $countries Länder × $addresses Adressen = $total Briefe gesendet!',
-    'es': '⚡🌍 ¡Exprés+Masivo! $countries países × $addresses direcciones = ¡$total cartas enviadas!',
-    'pt': '⚡🌍 Expresso+Massa! $countries países × $addresses endereços = $total cartas enviadas!',
-    'ru': '⚡🌍 Экспресс+Массовая! $countries стран × $addresses адресов = $total писем отправлено!',
-    'tr': '⚡🌍 Hızlı+Toplu! $countries ülke × $addresses adres = toplam $total mektup gönderildi!',
-    'ar': '⚡🌍 سريع+جماعي! $countries دول × $addresses عناوين = إجمالي $total رسالة!',
-    'it': '⚡🌍 Express+Massa! $countries paesi × $addresses indirizzi = $total lettere inviate!',
-    'hi': '⚡🌍 एक्सप्रेस+बल्क! $countries देश × $addresses पते = कुल $total पत्र भेजे!',
-    'th': '⚡🌍 ด่วน+จำนวนมาก! $countries ประเทศ × $addresses ที่อยู่ = รวม $total ฉบับส่งแล้ว!',
+    'fr':
+        '⚡🌍 Express+Masse ! $countries pays × $addresses adresses = $total lettres envoyées !',
+    'de':
+        '⚡🌍 Express+Masse! $countries Länder × $addresses Adressen = $total Briefe gesendet!',
+    'es':
+        '⚡🌍 ¡Exprés+Masivo! $countries países × $addresses direcciones = ¡$total cartas enviadas!',
+    'pt':
+        '⚡🌍 Expresso+Massa! $countries países × $addresses endereços = $total cartas enviadas!',
+    'ru':
+        '⚡🌍 Экспресс+Массовая! $countries стран × $addresses адресов = $total писем отправлено!',
+    'tr':
+        '⚡🌍 Hızlı+Toplu! $countries ülke × $addresses adres = toplam $total mektup gönderildi!',
+    'ar':
+        '⚡🌍 سريع+جماعي! $countries دول × $addresses عناوين = إجمالي $total رسالة!',
+    'it':
+        '⚡🌍 Express+Massa! $countries paesi × $addresses indirizzi = $total lettere inviate!',
+    'hi':
+        '⚡🌍 एक्सप्रेस+बल्क! $countries देश × $addresses पते = कुल $total पत्र भेजे!',
+    'th':
+        '⚡🌍 ด่วน+จำนวนมาก! $countries ประเทศ × $addresses ที่อยู่ = รวม $total ฉบับส่งแล้ว!',
   });
 
   String composeBulkSent(int total, int countries) => _t({
@@ -4130,17 +4374,25 @@ class AppL10n {
 
   String composeExpressLimitUsed(int limit) => _t({
     'ko': '⚡ 오늘 특급 배송 ${limit}통을 모두 사용했어요. 내일 다시 사용할 수 있어요.',
-    'en': '⚡ You\'ve used all $limit express deliveries today. Available again tomorrow.',
+    'en':
+        '⚡ You\'ve used all $limit express deliveries today. Available again tomorrow.',
     'ja': '⚡ 本日の特急配送${limit}通をすべて使いました。明日また利用できます。',
     'zh': '⚡ 今天的$limit封特快已全部使用。明天可再次使用。',
-    'fr': '⚡ Vous avez utilisé les $limit envois express aujourd\'hui. Disponible demain.',
-    'de': '⚡ Sie haben alle $limit Expresslieferungen heute genutzt. Morgen wieder verfügbar.',
+    'fr':
+        '⚡ Vous avez utilisé les $limit envois express aujourd\'hui. Disponible demain.',
+    'de':
+        '⚡ Sie haben alle $limit Expresslieferungen heute genutzt. Morgen wieder verfügbar.',
     'es': '⚡ Has usado los $limit envíos exprés de hoy. Disponible mañana.',
-    'pt': '⚡ Você usou todas as $limit entregas expressas hoje. Disponível amanhã.',
-    'ru': '⚡ Вы использовали все $limit экспресс-доставок сегодня. Доступно снова завтра.',
-    'tr': '⚡ Bugünkü $limit hızlı gönderimi kullandınız. Yarın tekrar kullanabilirsiniz.',
-    'ar': '⚡ استخدمت جميع عمليات التوصيل السريع $limit اليوم. متاح مرة أخرى غدًا.',
-    'it': '⚡ Hai usato tutte le $limit consegne express oggi. Disponibile domani.',
+    'pt':
+        '⚡ Você usou todas as $limit entregas expressas hoje. Disponível amanhã.',
+    'ru':
+        '⚡ Вы использовали все $limit экспресс-доставок сегодня. Доступно снова завтра.',
+    'tr':
+        '⚡ Bugünkü $limit hızlı gönderimi kullandınız. Yarın tekrar kullanabilirsiniz.',
+    'ar':
+        '⚡ استخدمت جميع عمليات التوصيل السريع $limit اليوم. متاح مرة أخرى غدًا.',
+    'it':
+        '⚡ Hai usato tutte le $limit consegne express oggi. Disponibile domani.',
     'hi': '⚡ आज की सभी $limit एक्सप्रेस डिलीवरी उपयोग हो गईं। कल फिर उपलब्ध।',
     'th': '⚡ ใช้จดหมายด่วนครบ $limit ฉบับแล้ววันนี้ ใช้ได้อีกครั้งพรุ่งนี้',
   });
@@ -4353,19 +4605,30 @@ class AppL10n {
 
   String get composeExpressDeliveryDesc => _t({
     'ko': '특급 배송은 Premium 전용 기능이에요.\n업그레이드하면 하루 3통까지 즉시 배송할 수 있어요.',
-    'en': 'Express delivery is a Premium-only feature.\nUpgrade to send up to 3 instant deliveries per day.',
+    'en':
+        'Express delivery is a Premium-only feature.\nUpgrade to send up to 3 instant deliveries per day.',
     'ja': '特急配送はプレミアム専用機能です。\nアップグレードすると1日3通まで即時配送できます。',
     'zh': '特快配送是高级专属功能。\n升级后每天可即时配送最多3封。',
-    'fr': 'La livraison express est réservée aux Premium.\nMettez à niveau pour 3 livraisons instantanées par jour.',
-    'de': 'Expresslieferung ist eine Premium-Funktion.\nUpgraden Sie für bis zu 3 Sofortlieferungen pro Tag.',
-    'es': 'El envío exprés es exclusivo de Premium.\nActualiza para 3 envíos instantáneos al día.',
-    'pt': 'Entrega expressa é exclusiva para Premium.\nAtualize para 3 entregas instantâneas por dia.',
-    'ru': 'Экспресс-доставка — функция Premium.\nОбновитесь для 3 мгновенных доставок в день.',
-    'tr': 'Hızlı teslimat Premium\'a özel bir özelliktir.\nGünde 3 anında teslimat için yükseltin.',
-    'ar': 'التوصيل السريع ميزة حصرية للمميزين.\nقم بالترقية لإرسال حتى 3 توصيلات فورية يوميًا.',
-    'it': 'La consegna express è solo per Premium.\nAggiorna per 3 consegne istantanee al giorno.',
-    'hi': 'एक्सप्रेस डिलीवरी प्रीमियम-ओनली सुविधा है।\nअपग्रेड करें, प्रतिदिन 3 तुरंत डिलीवरी।',
-    'th': 'จัดส่งด่วนเป็นฟีเจอร์ Premium เท่านั้น\nอัปเกรดเพื่อส่งด่วนได้วันละ 3 ฉบับ',
+    'fr':
+        'La livraison express est réservée aux Premium.\nMettez à niveau pour 3 livraisons instantanées par jour.',
+    'de':
+        'Expresslieferung ist eine Premium-Funktion.\nUpgraden Sie für bis zu 3 Sofortlieferungen pro Tag.',
+    'es':
+        'El envío exprés es exclusivo de Premium.\nActualiza para 3 envíos instantáneos al día.',
+    'pt':
+        'Entrega expressa é exclusiva para Premium.\nAtualize para 3 entregas instantâneas por dia.',
+    'ru':
+        'Экспресс-доставка — функция Premium.\nОбновитесь для 3 мгновенных доставок в день.',
+    'tr':
+        'Hızlı teslimat Premium\'a özel bir özelliktir.\nGünde 3 anında teslimat için yükseltin.',
+    'ar':
+        'التوصيل السريع ميزة حصرية للمميزين.\nقم بالترقية لإرسال حتى 3 توصيلات فورية يوميًا.',
+    'it':
+        'La consegna express è solo per Premium.\nAggiorna per 3 consegne istantanee al giorno.',
+    'hi':
+        'एक्सप्रेस डिलीवरी प्रीमियम-ओनली सुविधा है।\nअपग्रेड करें, प्रतिदिन 3 तुरंत डिलीवरी।',
+    'th':
+        'จัดส่งด่วนเป็นฟีเจอร์ Premium เท่านั้น\nอัปเกรดเพื่อส่งด่วนได้วันละ 3 ฉบับ',
   });
 
   String get composeExpressLocked => _t({
@@ -4626,19 +4889,30 @@ class AppL10n {
 
   String get composePremiumPromoDesc => _t({
     'ko': '내 SNS · 채널 · 제품을 1km 반경 사용자에게 자동 노출. 📸 사진 + 🔗 링크 첨부 가능.',
-    'en': 'Auto-promote your SNS · channel · product to users within 1 km. Attach 📸 photo + 🔗 link.',
+    'en':
+        'Auto-promote your SNS · channel · product to users within 1 km. Attach 📸 photo + 🔗 link.',
     'ja': '自分のSNS・チャンネル・商品を1km圏内のユーザーに自動配信。📸 写真 + 🔗 リンク添付可。',
     'zh': '自动向 1 公里内用户推送你的 SNS · 频道 · 产品。可附 📸 照片 + 🔗 链接。',
-    'fr': 'Promeut auto. ton SNS · chaîne · produit aux utilisateurs à 1 km. 📸 photo + 🔗 lien.',
-    'de': 'Bewerbe deine SNS · Kanal · Produkt automatisch im 1-km-Radius. 📸 Foto + 🔗 Link.',
-    'es': 'Promociona tu SNS · canal · producto a usuarios en 1 km. 📸 foto + 🔗 enlace.',
-    'pt': 'Promove SNS · canal · produto para utilizadores a 1 km. 📸 foto + 🔗 link.',
-    'ru': 'Авто-продвижение SNS · канала · продукта в радиусе 1 км. 📸 фото + 🔗 ссылка.',
-    'tr': 'SNS · kanal · ürününü 1 km içindeki kullanıcılara otomatik tanıt. 📸 foto + 🔗 link.',
-    'ar': 'روّج لـ SNS · قناتك · منتجك تلقائيًا للمستخدمين ضمن 1 كم. 📸 صورة + 🔗 رابط.',
-    'it': 'Promuovi il tuo SNS · canale · prodotto a utenti entro 1 km. 📸 foto + 🔗 link.',
-    'hi': 'अपने SNS · चैनल · उत्पाद को 1 किमी में स्वचालित प्रचार। 📸 फ़ोटो + 🔗 लिंक।',
-    'th': 'โปรโมท SNS · ช่อง · สินค้าให้ผู้ใช้ในรัศมี 1 กม. แนบ 📸 รูป + 🔗 ลิงก์ได้',
+    'fr':
+        'Promeut auto. ton SNS · chaîne · produit aux utilisateurs à 1 km. 📸 photo + 🔗 lien.',
+    'de':
+        'Bewerbe deine SNS · Kanal · Produkt automatisch im 1-km-Radius. 📸 Foto + 🔗 Link.',
+    'es':
+        'Promociona tu SNS · canal · producto a usuarios en 1 km. 📸 foto + 🔗 enlace.',
+    'pt':
+        'Promove SNS · canal · produto para utilizadores a 1 km. 📸 foto + 🔗 link.',
+    'ru':
+        'Авто-продвижение SNS · канала · продукта в радиусе 1 км. 📸 фото + 🔗 ссылка.',
+    'tr':
+        'SNS · kanal · ürününü 1 km içindeki kullanıcılara otomatik tanıt. 📸 foto + 🔗 link.',
+    'ar':
+        'روّج لـ SNS · قناتك · منتجك تلقائيًا للمستخدمين ضمن 1 كم. 📸 صورة + 🔗 رابط.',
+    'it':
+        'Promuovi il tuo SNS · canale · prodotto a utenti entro 1 km. 📸 foto + 🔗 link.',
+    'hi':
+        'अपने SNS · चैनल · उत्पाद को 1 किमी में स्वचालित प्रचार। 📸 फ़ोटो + 🔗 लिंक।',
+    'th':
+        'โปรโมท SNS · ช่อง · สินค้าให้ผู้ใช้ในรัศมี 1 กม. แนบ 📸 รูป + 🔗 ลิงก์ได้',
   });
 
   String get composePremiumPromoBadge => _t({
@@ -4957,13 +5231,19 @@ class AppL10n {
     'en': '🌈 Brands drop more rewards on weekends — pick up extra today!',
     'ja': '🌈 週末はブランドが多くの手紙を届けます — 今日はたくさん拾おう！',
     'zh': '🌈 周末品牌投放更多信件 — 今天多拾取一些吧！',
-    'fr': '🌈 Les marques larguent plus de lettres le week-end — ramasse plus aujourd\'hui !',
-    'de': '🌈 Marken lassen am Wochenende mehr Briefe fallen — heute extra sammeln!',
-    'es': '🌈 Las marcas sueltan más cartas los fines de semana — recoge más hoy!',
+    'fr':
+        '🌈 Les marques larguent plus de lettres le week-end — ramasse plus aujourd\'hui !',
+    'de':
+        '🌈 Marken lassen am Wochenende mehr Briefe fallen — heute extra sammeln!',
+    'es':
+        '🌈 Las marcas sueltan más cartas los fines de semana — recoge más hoy!',
     'pt': '🌈 Marcas largam mais cartas ao fim-de-semana — apanha mais hoje!',
-    'ru': '🌈 По выходным бренды разбрасывают больше писем — собирайте сегодня!',
-    'tr': '🌈 Markalar hafta sonu daha fazla mektup bırakıyor — bugün ekstra topla!',
-    'ar': '🌈 العلامات التجارية تسقط المزيد من الرسائل في عطلة نهاية الأسبوع — التقط المزيد اليوم!',
+    'ru':
+        '🌈 По выходным бренды разбрасывают больше писем — собирайте сегодня!',
+    'tr':
+        '🌈 Markalar hafta sonu daha fazla mektup bırakıyor — bugün ekstra topla!',
+    'ar':
+        '🌈 العلامات التجارية تسقط المزيد من الرسائل في عطلة نهاية الأسبوع — التقط المزيد اليوم!',
     'it': '🌈 I brand lasciano più lettere nei weekend — raccogli di più oggi!',
     'hi': '🌈 वीकेंड पर ब्रांड अधिक पत्र गिराते हैं — आज अधिक उठाएँ!',
     'th': '🌈 แบรนด์ทิ้งจดหมายมากขึ้นในสุดสัปดาห์ — เก็บเพิ่มวันนี้!',
@@ -5123,20 +5403,34 @@ class AppL10n {
   });
 
   String get tutorialLetterContent => _t({
-    'ko': '환영합니다! ✨\n\nThiscount 에 오신 걸 환영해요. 이 혜택을 주우면 줍기 경험을 미리 체험할 수 있어요.\n\n가까이 다가가서 혜택을 탭해보세요. 지도 아래 📍 근처 카운터가 함께 반응할 거예요.\n\n앞으로 전 세계 브랜드들이 뿌리는 할인·이벤트 혜택을 만나보세요!',
-    'en': 'Welcome to Thiscount! ✨\n\nPick up this reward to try the hunt experience. Walk close and tap it.\n\nThe 📍 Nearby counter on the map will light up as soon as you\'re in range.\n\nBrands from around the world drop coupons and event rewards — happy hunting!',
-    'ja': 'Thiscount へようこそ！✨\n\nこの手紙を拾って体験を始めましょう。近づいてタップしてください。\n\n範囲に入ると地図の 📍 近くのカウンターが反応します。\n\n世界中のブランドが落とす割引・イベント手紙をお楽しみください！',
-    'zh': '欢迎来到 Thiscount！✨\n\n拾起这封信体验"拾取"玩法。靠近并点击它即可。\n\n进入范围后地图上的 📍 附近计数器会亮起。\n\n来自世界各地的品牌在此投放优惠与活动信件——祝你好运！',
-    'fr': 'Bienvenue dans Thiscount ! ✨\n\nRamasse cette lettre pour découvrir l\'expérience. Approche-toi et appuie dessus.\n\nLe compteur 📍 À proximité s\'allumera dès que tu seras à portée.\n\nDes marques du monde entier déposent coupons et lettres promo — bonne chasse !',
-    'de': 'Willkommen bei Thiscount! ✨\n\nHeb diesen Brief auf und probiere die Hunt-Erfahrung. Geh nah ran und tippe ihn an.\n\nDer 📍 In-der-Nähe-Zähler leuchtet auf, sobald du in Reichweite bist.\n\nMarken weltweit verteilen Rabatte und Event-Briefe — viel Spaß beim Sammeln!',
-    'es': '¡Bienvenido a Thiscount! ✨\n\nRecoge esta carta para probar la experiencia. Acércate y tócala.\n\nEl contador 📍 Cerca se iluminará en cuanto estés a tiro.\n\nMarcas de todo el mundo sueltan cupones y cartas de eventos — ¡buena caza!',
-    'pt': 'Bem-vindo ao Thiscount! ✨\n\nApanha esta carta para experimentar. Aproxima-te e toca.\n\nO contador 📍 Perto vai acender assim que estiveres no alcance.\n\nMarcas do mundo inteiro largam cupões e cartas de eventos — boa caça!',
-    'ru': 'Добро пожаловать в Thiscount! ✨\n\nПодберите это письмо, чтобы попробовать охоту. Подойдите и нажмите.\n\nСчётчик 📍 Рядом подсветится, как только вы окажетесь в зоне.\n\nБренды со всего мира разбрасывают купоны — удачной охоты!',
-    'tr': 'Thiscount\'ya hoş geldin! ✨\n\nBu mektubu toplayarak deneyimi başlat. Yaklaş ve dokun.\n\nMenzile girdiğin an 📍 Yakın sayacı parlayacak.\n\nDünya çapında markalar kuponlar bırakıyor — iyi avlanmalar!',
-    'ar': 'مرحبًا بك في Thiscount! ✨\n\nالتقط هذه الرسالة لتجربة اللعبة. اقترب واضغط عليها.\n\nعدّاد 📍 قريب سيضيء فور دخولك النطاق.\n\nعلامات تجارية من حول العالم تسقط القسائم — صيدًا موفقًا!',
-    'it': 'Benvenuto in Thiscount! ✨\n\nRaccogli questa lettera per provare l\'esperienza. Avvicinati e tocca.\n\nIl contatore 📍 Vicino si illuminerà appena sarai a portata.\n\nBrand di tutto il mondo lasciano coupon — buona caccia!',
-    'hi': 'Thiscount में आपका स्वागत है! ✨\n\nइस पत्र को उठाकर अनुभव शुरू करें. पास जाएँ और टैप करें.\n\nदायरे में आते ही नक्शे का 📍 पास काउंटर जलेगा.\n\nदुनिया भर के ब्रांड कूपन गिराते हैं — शुभ शिकार!',
-    'th': 'ยินดีต้อนรับสู่ Thiscount! ✨\n\nเก็บจดหมายฉบับนี้เพื่อทดลองใช้งาน เดินเข้าใกล้แล้วแตะ\n\nตัวนับ 📍 ใกล้ ๆ บนแผนที่จะสว่างเมื่อคุณอยู่ในรัศมี\n\nแบรนด์ทั่วโลกทิ้งคูปองไว้ — สนุกกับการค้นหา!',
+    'ko':
+        '환영합니다! ✨\n\nThiscount 에 오신 걸 환영해요. 이 혜택을 주우면 줍기 경험을 미리 체험할 수 있어요.\n\n가까이 다가가서 혜택을 탭해보세요. 지도 아래 📍 근처 카운터가 함께 반응할 거예요.\n\n앞으로 전 세계 브랜드들이 뿌리는 할인·이벤트 혜택을 만나보세요!',
+    'en':
+        'Welcome to Thiscount! ✨\n\nPick up this reward to try the hunt experience. Walk close and tap it.\n\nThe 📍 Nearby counter on the map will light up as soon as you\'re in range.\n\nBrands from around the world drop coupons and event rewards — happy hunting!',
+    'ja':
+        'Thiscount へようこそ！✨\n\nこの手紙を拾って体験を始めましょう。近づいてタップしてください。\n\n範囲に入ると地図の 📍 近くのカウンターが反応します。\n\n世界中のブランドが落とす割引・イベント手紙をお楽しみください！',
+    'zh':
+        '欢迎来到 Thiscount！✨\n\n拾起这封信体验"拾取"玩法。靠近并点击它即可。\n\n进入范围后地图上的 📍 附近计数器会亮起。\n\n来自世界各地的品牌在此投放优惠与活动信件——祝你好运！',
+    'fr':
+        'Bienvenue dans Thiscount ! ✨\n\nRamasse cette lettre pour découvrir l\'expérience. Approche-toi et appuie dessus.\n\nLe compteur 📍 À proximité s\'allumera dès que tu seras à portée.\n\nDes marques du monde entier déposent coupons et lettres promo — bonne chasse !',
+    'de':
+        'Willkommen bei Thiscount! ✨\n\nHeb diesen Brief auf und probiere die Hunt-Erfahrung. Geh nah ran und tippe ihn an.\n\nDer 📍 In-der-Nähe-Zähler leuchtet auf, sobald du in Reichweite bist.\n\nMarken weltweit verteilen Rabatte und Event-Briefe — viel Spaß beim Sammeln!',
+    'es':
+        '¡Bienvenido a Thiscount! ✨\n\nRecoge esta carta para probar la experiencia. Acércate y tócala.\n\nEl contador 📍 Cerca se iluminará en cuanto estés a tiro.\n\nMarcas de todo el mundo sueltan cupones y cartas de eventos — ¡buena caza!',
+    'pt':
+        'Bem-vindo ao Thiscount! ✨\n\nApanha esta carta para experimentar. Aproxima-te e toca.\n\nO contador 📍 Perto vai acender assim que estiveres no alcance.\n\nMarcas do mundo inteiro largam cupões e cartas de eventos — boa caça!',
+    'ru':
+        'Добро пожаловать в Thiscount! ✨\n\nПодберите это письмо, чтобы попробовать охоту. Подойдите и нажмите.\n\nСчётчик 📍 Рядом подсветится, как только вы окажетесь в зоне.\n\nБренды со всего мира разбрасывают купоны — удачной охоты!',
+    'tr':
+        'Thiscount\'ya hoş geldin! ✨\n\nBu mektubu toplayarak deneyimi başlat. Yaklaş ve dokun.\n\nMenzile girdiğin an 📍 Yakın sayacı parlayacak.\n\nDünya çapında markalar kuponlar bırakıyor — iyi avlanmalar!',
+    'ar':
+        'مرحبًا بك في Thiscount! ✨\n\nالتقط هذه الرسالة لتجربة اللعبة. اقترب واضغط عليها.\n\nعدّاد 📍 قريب سيضيء فور دخولك النطاق.\n\nعلامات تجارية من حول العالم تسقط القسائم — صيدًا موفقًا!',
+    'it':
+        'Benvenuto in Thiscount! ✨\n\nRaccogli questa lettera per provare l\'esperienza. Avvicinati e tocca.\n\nIl contatore 📍 Vicino si illuminerà appena sarai a portata.\n\nBrand di tutto il mondo lasciano coupon — buona caccia!',
+    'hi':
+        'Thiscount में आपका स्वागत है! ✨\n\nइस पत्र को उठाकर अनुभव शुरू करें. पास जाएँ और टैप करें.\n\nदायरे में आते ही नक्शे का 📍 पास काउंटर जलेगा.\n\nदुनिया भर के ब्रांड कूपन गिराते हैं — शुभ शिकार!',
+    'th':
+        'ยินดีต้อนรับสู่ Thiscount! ✨\n\nเก็บจดหมายฉบับนี้เพื่อทดลองใช้งาน เดินเข้าใกล้แล้วแตะ\n\nตัวนับ 📍 ใกล้ ๆ บนแผนที่จะสว่างเมื่อคุณอยู่ในรัศมี\n\nแบรนด์ทั่วโลกทิ้งคูปองไว้ — สนุกกับการค้นหา!',
   });
 
   String get brandTicketDefaultBrand => _t({
@@ -5349,25 +5643,38 @@ class AppL10n {
   });
 
   String get brandPromoBody => _t({
-    'ko': '지도에서 가까이 걸어가 혜택을 주우면 즉시 사용 가능한 할인권·교환권이 나와요. 새로 도착한 혜택이 있으면 수집첩에서 확인해보세요!',
-    'en': 'Walk close to rewards on the map to pick up ready-to-use coupons and vouchers. Check your Collection for what\'s new.',
+    'ko':
+        '지도에서 가까이 걸어가 혜택을 주우면 즉시 사용 가능한 할인권·교환권이 나와요. 새로 도착한 혜택이 있으면 수집첩에서 확인해보세요!',
+    'en':
+        'Walk close to rewards on the map to pick up ready-to-use coupons and vouchers. Check your Collection for what\'s new.',
     'ja': '地図上で手紙に近づいて拾うと、すぐ使える割引券や引換券がもらえます。コレクションで新着をチェック！',
     'zh': '走近地图上的信件即可获得可立即使用的优惠券和兑换券。请到收藏查看。',
-    'fr': 'Rapprochez-vous des lettres sur la carte pour recevoir coupons et bons immédiatement utilisables. Consultez votre Collection !',
-    'de': 'Geh nah an Briefe auf der Karte, um sofort einlösbare Coupons und Gutscheine zu bekommen. Sieh in deiner Sammlung nach!',
-    'es': 'Acércate a las cartas en el mapa para recibir cupones y vales listos para usar. ¡Revisa tu Colección!',
-    'pt': 'Aproxima-te das cartas no mapa para receber cupões e vales prontos a usar. Vê a tua Coleção!',
-    'ru': 'Подойдите ближе к письмам на карте, чтобы получить готовые к использованию купоны и ваучеры. Проверьте Коллекцию!',
-    'tr': 'Haritadaki mektuplara yaklaşarak hazır kupon ve çek alın. Koleksiyonunuza göz atın!',
-    'ar': 'اقترب من الرسائل على الخريطة لاستلام قسائم وقسائم جاهزة للاستخدام. راجع مجموعتك!',
-    'it': 'Avvicinati alle lettere sulla mappa per ricevere coupon e buoni pronti all\'uso. Controlla la Collezione!',
-    'hi': 'मानचित्र पर पत्रों के पास जाकर तुरंत उपयोगी कूपन और वाउचर प्राप्त करें. कलेक्शन देखें!',
-    'th': 'เข้าใกล้จดหมายบนแผนที่เพื่อรับคูปองและบัตรกำนัลพร้อมใช้ ดูในคอลเลคชัน',
+    'fr':
+        'Rapprochez-vous des lettres sur la carte pour recevoir coupons et bons immédiatement utilisables. Consultez votre Collection !',
+    'de':
+        'Geh nah an Briefe auf der Karte, um sofort einlösbare Coupons und Gutscheine zu bekommen. Sieh in deiner Sammlung nach!',
+    'es':
+        'Acércate a las cartas en el mapa para recibir cupones y vales listos para usar. ¡Revisa tu Colección!',
+    'pt':
+        'Aproxima-te das cartas no mapa para receber cupões e vales prontos a usar. Vê a tua Coleção!',
+    'ru':
+        'Подойдите ближе к письмам на карте, чтобы получить готовые к использованию купоны и ваучеры. Проверьте Коллекцию!',
+    'tr':
+        'Haritadaki mektuplara yaklaşarak hazır kupon ve çek alın. Koleksiyonunuza göz atın!',
+    'ar':
+        'اقترب من الرسائل على الخريطة لاستلام قسائم وقسائم جاهزة للاستخدام. راجع مجموعتك!',
+    'it':
+        'Avvicinati alle lettere sulla mappa per ricevere coupon e buoni pronti all\'uso. Controlla la Collezione!',
+    'hi':
+        'मानचित्र पर पत्रों के पास जाकर तुरंत उपयोगी कूपन और वाउचर प्राप्त करें. कलेक्शन देखें!',
+    'th':
+        'เข้าใกล้จดหมายบนแผนที่เพื่อรับคูปองและบัตรกำนัลพร้อมใช้ ดูในคอลเลคชัน',
   });
 
   String get brandPromoContactHint => _t({
     'ko': '브랜드 계정으로 광고·캠페인을 운영하고 싶으시면 관리자에게 문의해주세요.',
-    'en': 'Want to run brand campaigns? Contact the admin to set up a brand account.',
+    'en':
+        'Want to run brand campaigns? Contact the admin to set up a brand account.',
     'ja': 'ブランドアカウントでキャンペーンを運営したい方は管理者までご連絡ください。',
     'zh': '如需通过品牌账号开展活动，请联系管理员。',
     'fr': 'Pour lancer des campagnes de marque, contactez l\'admin.',
@@ -5436,18 +5743,27 @@ class AppL10n {
 
   String get composeExactDropPaywallBody => _t({
     'ko': '원하는 매장·좌표에 혜택을 정확히 뿌릴 수 있어요. 사용을 원하시면 관리자에게 문의해주세요.',
-    'en': 'Drop promos on exact store locations or coordinates. Contact the admin to enable this feature.',
+    'en':
+        'Drop promos on exact store locations or coordinates. Contact the admin to enable this feature.',
     'ja': '特定の店舗・座標に手紙を正確に配置できます。利用希望は管理者にお問い合わせください。',
     'zh': '将信件精确投放到指定地点或坐标。如需使用请联系管理员。',
-    'fr': 'Déposez des lettres à des points de vente ou coordonnées précis. Contactez l\'admin pour activer.',
-    'de': 'Briefe an exakte Standorte oder Koordinaten ablegen. Admin für Freischaltung kontaktieren.',
-    'es': 'Deja cartas en ubicaciones o coordenadas exactas. Contacta al admin para activarlo.',
-    'pt': 'Deixe cartas em locais exatos ou coordenadas. Contacte o admin para ativar.',
-    'ru': 'Размещайте письма в точных местах или координатах. Обратитесь к админу.',
-    'tr': 'Belirli mağaza veya koordinatlara mektup bırakın. Aktifleştirmek için yöneticiye ulaşın.',
+    'fr':
+        'Déposez des lettres à des points de vente ou coordonnées précis. Contactez l\'admin pour activer.',
+    'de':
+        'Briefe an exakte Standorte oder Koordinaten ablegen. Admin für Freischaltung kontaktieren.',
+    'es':
+        'Deja cartas en ubicaciones o coordenadas exactas. Contacta al admin para activarlo.',
+    'pt':
+        'Deixe cartas em locais exatos ou coordenadas. Contacte o admin para ativar.',
+    'ru':
+        'Размещайте письма в точных местах или координатах. Обратитесь к админу.',
+    'tr':
+        'Belirli mağaza veya koordinatlara mektup bırakın. Aktifleştirmek için yöneticiye ulaşın.',
     'ar': 'وزّع الرسائل على مواقع أو إحداثيات دقيقة. تواصل مع المشرف لتفعيلها.',
-    'it': 'Rilascia lettere in luoghi o coordinate esatte. Contatta l\'admin per abilitarla.',
-    'hi': 'सटीक स्थानों या निर्देशांक पर पत्र छोड़ें. सुविधा सक्षम करने के लिए व्यवस्थापक से संपर्क करें.',
+    'it':
+        'Rilascia lettere in luoghi o coordinate esatte. Contatta l\'admin per abilitarla.',
+    'hi':
+        'सटीक स्थानों या निर्देशांक पर पत्र छोड़ें. सुविधा सक्षम करने के लिए व्यवस्थापक से संपर्क करें.',
     'th': 'วางจดหมายที่ร้านค้าหรือพิกัดที่ต้องการ ติดต่อผู้ดูแลเพื่อเปิดใช้',
   });
 
@@ -5487,17 +5803,25 @@ class AppL10n {
 
   String get composeExactDropHint => _t({
     'ko': '빨간 핀이 떨어뜨릴 위치예요. 지도를 움직여 조정한 뒤 아래 버튼으로 확정하세요',
-    'en': 'The red pin marks the drop spot. Pan the map to adjust, then tap Confirm below',
+    'en':
+        'The red pin marks the drop spot. Pan the map to adjust, then tap Confirm below',
     'ja': '赤いピンが手紙を落とす位置です。地図を動かして調整し、下のボタンで確定してください',
     'zh': '红色图钉即为投放位置。移动地图进行调整后，点击下方按钮确认',
-    'fr': "L'épingle rouge indique le point de dépôt. Déplacez la carte, puis appuyez sur Confirmer ci-dessous",
-    'de': 'Die rote Markierung zeigt den Ablageort. Karte verschieben, dann unten bestätigen',
-    'es': 'El pin rojo marca el punto de entrega. Mueve el mapa y pulsa Confirmar abajo',
-    'pt': 'O pino vermelho marca o ponto de entrega. Mova o mapa e toque em Confirmar abaixo',
-    'ru': 'Красная метка — место доставки. Сдвиньте карту и нажмите «Подтвердить» ниже',
-    'tr': 'Kırmızı iğne teslim noktasıdır. Haritayı kaydırıp aşağıda Onayla’ya dokunun',
+    'fr':
+        "L'épingle rouge indique le point de dépôt. Déplacez la carte, puis appuyez sur Confirmer ci-dessous",
+    'de':
+        'Die rote Markierung zeigt den Ablageort. Karte verschieben, dann unten bestätigen',
+    'es':
+        'El pin rojo marca el punto de entrega. Mueve el mapa y pulsa Confirmar abajo',
+    'pt':
+        'O pino vermelho marca o ponto de entrega. Mova o mapa e toque em Confirmar abaixo',
+    'ru':
+        'Красная метка — место доставки. Сдвиньте карту и нажмите «Подтвердить» ниже',
+    'tr':
+        'Kırmızı iğne teslim noktasıdır. Haritayı kaydırıp aşağıda Onayla’ya dokunun',
     'ar': 'الدبّوس الأحمر هو نقطة التسليم. حرّك الخريطة ثم اضغط تأكيد بالأسفل',
-    'it': 'Il perno rosso indica il punto di rilascio. Sposta la mappa e tocca Conferma qui sotto',
+    'it':
+        'Il perno rosso indica il punto di rilascio. Sposta la mappa e tocca Conferma qui sotto',
     'hi': 'लाल पिन गिराने की जगह है. मानचित्र घुमाएँ और नीचे पुष्टि करें',
     'th': 'หมุดสีแดงคือตำแหน่งวางจดหมาย เลื่อนแผนที่แล้วกดยืนยันด้านล่าง',
   });
@@ -5765,18 +6089,28 @@ class AppL10n {
 
   String get composeLinkAttachDesc => _t({
     'ko': 'SNS, 블로그 링크를 홍보에 첨부할 수 있어요.\n프리미엄·브랜드 회원 전용 기능이에요.',
-    'en': 'Attach SNS or blog links to your promo.\nPremium & Brand members only.',
+    'en':
+        'Attach SNS or blog links to your promo.\nPremium & Brand members only.',
     'ja': 'SNSやブログのリンクを手紙に添付できます。\nプレミアム・ブランド会員限定機能です。',
     'zh': '可以在信中附加SNS或博客链接。\n仅限高级和品牌会员。',
-    'fr': 'Joignez des liens SNS ou blog à votre lettre.\nRéservé aux membres Premium et Brand.',
-    'de': 'Fügen Sie SNS- oder Blog-Links an Ihren Brief an.\nNur für Premium- und Brand-Mitglieder.',
-    'es': 'Adjunta enlaces de SNS o blog a tu carta.\nSolo miembros Premium y Brand.',
-    'pt': 'Anexe links de SNS ou blog à sua carta.\nApenas membros Premium e Brand.',
-    'ru': 'Прикрепите ссылки SNS или блога к письму.\nТолько для Premium и Brand участников.',
-    'tr': 'SNS veya blog bağlantılarını mektubunuza ekleyin.\nSadece Premium ve Brand üyeler.',
-    'ar': 'أرفق روابط SNS أو المدونة برسالتك.\nللأعضاء المميزين والعلامات التجارية فقط.',
-    'it': 'Allega link SNS o blog alla tua lettera.\nSolo per membri Premium e Brand.',
-    'hi': 'अपने पत्र में SNS या ब्लॉग लिंक संलग्न करें।\nकेवल Premium और Brand सदस्य।',
+    'fr':
+        'Joignez des liens SNS ou blog à votre lettre.\nRéservé aux membres Premium et Brand.',
+    'de':
+        'Fügen Sie SNS- oder Blog-Links an Ihren Brief an.\nNur für Premium- und Brand-Mitglieder.',
+    'es':
+        'Adjunta enlaces de SNS o blog a tu carta.\nSolo miembros Premium y Brand.',
+    'pt':
+        'Anexe links de SNS ou blog à sua carta.\nApenas membros Premium e Brand.',
+    'ru':
+        'Прикрепите ссылки SNS или блога к письму.\nТолько для Premium и Brand участников.',
+    'tr':
+        'SNS veya blog bağlantılarını mektubunuza ekleyin.\nSadece Premium ve Brand üyeler.',
+    'ar':
+        'أرفق روابط SNS أو المدونة برسالتك.\nللأعضاء المميزين والعلامات التجارية فقط.',
+    'it':
+        'Allega link SNS o blog alla tua lettera.\nSolo per membri Premium e Brand.',
+    'hi':
+        'अपने पत्र में SNS या ब्लॉग लिंक संलग्न करें।\nकेवल Premium और Brand सदस्य।',
     'th': 'แนบลิงก์ SNS หรือบล็อกในจดหมาย\nเฉพาะสมาชิก Premium และ Brand',
   });
 
@@ -6003,73 +6337,173 @@ class AppL10n {
 
   // ── Brand options ──────────────────────────────────────────────────────
   String get composeBrandOptions => _t({
-    'ko': '브랜드 발송 옵션', 'en': 'Brand Send Options', 'ja': 'ブランド送信オプション', 'zh': '品牌发送选项',
-    'fr': 'Options d\'envoi Brand', 'de': 'Brand-Sendeoptionen', 'es': 'Opciones de envío Brand',
-    'pt': 'Opções de envio Brand', 'ru': 'Параметры отправки Brand', 'tr': 'Brand Gönderim Seçenekleri',
-    'ar': 'خيارات إرسال Brand', 'it': 'Opzioni invio Brand', 'hi': 'Brand भेजने के विकल्प', 'th': 'ตัวเลือกการส่ง Brand',
+    'ko': '브랜드 발송 옵션',
+    'en': 'Brand Send Options',
+    'ja': 'ブランド送信オプション',
+    'zh': '品牌发送选项',
+    'fr': 'Options d\'envoi Brand',
+    'de': 'Brand-Sendeoptionen',
+    'es': 'Opciones de envío Brand',
+    'pt': 'Opções de envio Brand',
+    'ru': 'Параметры отправки Brand',
+    'tr': 'Brand Gönderim Seçenekleri',
+    'ar': 'خيارات إرسال Brand',
+    'it': 'Opzioni invio Brand',
+    'hi': 'Brand भेजने के विकल्प',
+    'th': 'ตัวเลือกการส่ง Brand',
   });
 
   String get composeBrandUniquePerUser => _t({
-    'ko': '1인당 1회 수신 제한', 'en': 'Limit to 1 per recipient', 'ja': '1人1通に制限', 'zh': '每人限收1封',
-    'fr': '1 par destinataire', 'de': '1 pro Empfänger', 'es': '1 por destinatario',
-    'pt': '1 por destinatário', 'ru': '1 на получателя', 'tr': 'Alıcı başına 1',
-    'ar': 'رسالة واحدة لكل مستلم', 'it': '1 per destinatario', 'hi': 'प्रति प्राप्तकर्ता 1', 'th': '1 ต่อผู้รับ',
+    'ko': '1인당 1회 수신 제한',
+    'en': 'Limit to 1 per recipient',
+    'ja': '1人1通に制限',
+    'zh': '每人限收1封',
+    'fr': '1 par destinataire',
+    'de': '1 pro Empfänger',
+    'es': '1 por destinatario',
+    'pt': '1 por destinatário',
+    'ru': '1 на получателя',
+    'tr': 'Alıcı başına 1',
+    'ar': 'رسالة واحدة لكل مستلم',
+    'it': '1 per destinatario',
+    'hi': 'प्रति प्राप्तकर्ता 1',
+    'th': '1 ต่อผู้รับ',
   });
 
   String get composeBrandUniquePerUserDesc => _t({
-    'ko': '같은 사용자에게 중복 발송되지 않습니다', 'en': 'Same user won\'t receive duplicate rewards', 'ja': '同じユーザーに重複送信されません', 'zh': '同一用户不会收到重复信件',
-    'fr': 'L\'utilisateur ne recevra pas de doublons', 'de': 'Benutzer erhält keine Duplikate', 'es': 'El usuario no recibirá duplicados',
-    'pt': 'Usuário não receberá duplicatas', 'ru': 'Пользователь не получит дублей', 'tr': 'Kullanıcı mükerrer almaz',
-    'ar': 'لن يتلقى المستخدم نسخاً مكررة', 'it': 'L\'utente non riceverà duplicati', 'hi': 'उपयोगकर्ता को डुप्लिकेट नहीं मिलेगा', 'th': 'ผู้ใช้จะไม่ได้รับซ้ำ',
+    'ko': '같은 사용자에게 중복 발송되지 않습니다',
+    'en': 'Same user won\'t receive duplicate rewards',
+    'ja': '同じユーザーに重複送信されません',
+    'zh': '同一用户不会收到重复信件',
+    'fr': 'L\'utilisateur ne recevra pas de doublons',
+    'de': 'Benutzer erhält keine Duplikate',
+    'es': 'El usuario no recibirá duplicados',
+    'pt': 'Usuário não receberá duplicatas',
+    'ru': 'Пользователь не получит дублей',
+    'tr': 'Kullanıcı mükerrer almaz',
+    'ar': 'لن يتلقى المستخدم نسخاً مكررة',
+    'it': 'L\'utente non riceverà duplicati',
+    'hi': 'उपयोगकर्ता को डुप्लिकेट नहीं मिलेगा',
+    'th': 'ผู้ใช้จะไม่ได้รับซ้ำ',
   });
 
   String get composeBrandAutoExpire => _t({
-    'ko': '자동 삭제 기간', 'en': 'Auto-delete after', 'ja': '自動削除期間', 'zh': '自动删除时间',
-    'fr': 'Suppression auto après', 'de': 'Automatisch löschen nach', 'es': 'Eliminar auto después de',
-    'pt': 'Excluir auto após', 'ru': 'Авто-удаление через', 'tr': 'Otomatik silme süresi',
-    'ar': 'حذف تلقائي بعد', 'it': 'Elimina auto dopo', 'hi': 'स्वत: हटाने की अवधि', 'th': 'ลบอัตโนมัติหลัง',
+    'ko': '자동 삭제 기간',
+    'en': 'Auto-delete after',
+    'ja': '自動削除期間',
+    'zh': '自动删除时间',
+    'fr': 'Suppression auto après',
+    'de': 'Automatisch löschen nach',
+    'es': 'Eliminar auto después de',
+    'pt': 'Excluir auto após',
+    'ru': 'Авто-удаление через',
+    'tr': 'Otomatik silme süresi',
+    'ar': 'حذف تلقائي بعد',
+    'it': 'Elimina auto dopo',
+    'hi': 'स्वत: हटाने की अवधि',
+    'th': 'ลบอัตโนมัติหลัง',
   });
 
   String get composeBrandAutoExpireDesc => _t({
-    'ko': '설정 시간 후 혜택이 자동으로 사라집니다', 'en': 'Promo will auto-disappear after the set time', 'ja': '設定時間後にレターが自動的に消えます', 'zh': '设定时间后信件将自动消失',
-    'fr': 'La lettre disparaîtra automatiquement', 'de': 'Brief verschwindet automatisch', 'es': 'La carta desaparecerá automáticamente',
-    'pt': 'A carta desaparecerá automaticamente', 'ru': 'Письмо автоудалится', 'tr': 'Mektup otomatik silinir',
-    'ar': 'ستختفي الرسالة تلقائياً', 'it': 'La lettera scomparirà automaticamente', 'hi': 'पत्र स्वतः गायब हो जाएगा', 'th': 'จดหมายจะหายไปโดยอัตโนมัติ',
+    'ko': '설정 시간 후 혜택이 자동으로 사라집니다',
+    'en': 'Promo will auto-disappear after the set time',
+    'ja': '設定時間後にレターが自動的に消えます',
+    'zh': '设定时间后信件将自动消失',
+    'fr': 'La lettre disparaîtra automatiquement',
+    'de': 'Brief verschwindet automatisch',
+    'es': 'La carta desaparecerá automáticamente',
+    'pt': 'A carta desaparecerá automaticamente',
+    'ru': 'Письмо автоудалится',
+    'tr': 'Mektup otomatik silinir',
+    'ar': 'ستختفي الرسالة تلقائياً',
+    'it': 'La lettera scomparirà automaticamente',
+    'hi': 'पत्र स्वतः गायब हो जाएगा',
+    'th': 'จดหมายจะหายไปโดยอัตโนมัติ',
   });
 
   String get composeBrandExpireOff => _t({
-    'ko': '없음', 'en': 'None', 'ja': 'なし', 'zh': '无',
-    'fr': 'Aucun', 'de': 'Keine', 'es': 'Ninguno',
-    'pt': 'Nenhum', 'ru': 'Нет', 'tr': 'Yok',
-    'ar': 'بلا', 'it': 'Nessuno', 'hi': 'कोई नहीं', 'th': 'ไม่มี',
+    'ko': '없음',
+    'en': 'None',
+    'ja': 'なし',
+    'zh': '无',
+    'fr': 'Aucun',
+    'de': 'Keine',
+    'es': 'Ninguno',
+    'pt': 'Nenhum',
+    'ru': 'Нет',
+    'tr': 'Yok',
+    'ar': 'بلا',
+    'it': 'Nessuno',
+    'hi': 'कोई नहीं',
+    'th': 'ไม่มี',
   });
 
   String get composeBrandExpire12h => _t({
-    'ko': '12시간', 'en': '12 hours', 'ja': '12時間', 'zh': '12小时',
-    'fr': '12 heures', 'de': '12 Stunden', 'es': '12 horas',
-    'pt': '12 horas', 'ru': '12 часов', 'tr': '12 saat',
-    'ar': '12 ساعة', 'it': '12 ore', 'hi': '12 घंटे', 'th': '12 ชั่วโมง',
+    'ko': '12시간',
+    'en': '12 hours',
+    'ja': '12時間',
+    'zh': '12小时',
+    'fr': '12 heures',
+    'de': '12 Stunden',
+    'es': '12 horas',
+    'pt': '12 horas',
+    'ru': '12 часов',
+    'tr': '12 saat',
+    'ar': '12 ساعة',
+    'it': '12 ore',
+    'hi': '12 घंटे',
+    'th': '12 ชั่วโมง',
   });
 
   String get composeBrandExpire24h => _t({
-    'ko': '24시간', 'en': '24 hours', 'ja': '24時間', 'zh': '24小时',
-    'fr': '24 heures', 'de': '24 Stunden', 'es': '24 horas',
-    'pt': '24 horas', 'ru': '24 часа', 'tr': '24 saat',
-    'ar': '24 ساعة', 'it': '24 ore', 'hi': '24 घंटे', 'th': '24 ชั่วโมง',
+    'ko': '24시간',
+    'en': '24 hours',
+    'ja': '24時間',
+    'zh': '24小时',
+    'fr': '24 heures',
+    'de': '24 Stunden',
+    'es': '24 horas',
+    'pt': '24 horas',
+    'ru': '24 часа',
+    'tr': '24 saat',
+    'ar': '24 ساعة',
+    'it': '24 ore',
+    'hi': '24 घंटे',
+    'th': '24 ชั่วโมง',
   });
 
   String get composeBrandExpire2d => _t({
-    'ko': '2일', 'en': '2 days', 'ja': '2日', 'zh': '2天',
-    'fr': '2 jours', 'de': '2 Tage', 'es': '2 días',
-    'pt': '2 dias', 'ru': '2 дня', 'tr': '2 gün',
-    'ar': 'يومان', 'it': '2 giorni', 'hi': '2 दिन', 'th': '2 วัน',
+    'ko': '2일',
+    'en': '2 days',
+    'ja': '2日',
+    'zh': '2天',
+    'fr': '2 jours',
+    'de': '2 Tage',
+    'es': '2 días',
+    'pt': '2 dias',
+    'ru': '2 дня',
+    'tr': '2 gün',
+    'ar': 'يومان',
+    'it': '2 giorni',
+    'hi': '2 दिन',
+    'th': '2 วัน',
   });
 
   String get composeBrandExpire3d => _t({
-    'ko': '3일', 'en': '3 days', 'ja': '3日', 'zh': '3天',
-    'fr': '3 jours', 'de': '3 Tage', 'es': '3 días',
-    'pt': '3 dias', 'ru': '3 дня', 'tr': '3 gün',
-    'ar': '3 أيام', 'it': '3 giorni', 'hi': '3 दिन', 'th': '3 วัน',
+    'ko': '3일',
+    'en': '3 days',
+    'ja': '3日',
+    'zh': '3天',
+    'fr': '3 jours',
+    'de': '3 Tage',
+    'es': '3 días',
+    'pt': '3 dias',
+    'ru': '3 дня',
+    'tr': '3 gün',
+    'ar': '3 أيام',
+    'it': '3 giorni',
+    'hi': '3 दिन',
+    'th': '3 วัน',
   });
 
   String get composeWithin5Min => _t({
@@ -6097,11 +6531,14 @@ class AppL10n {
     'fr': 'Mode Express ON — Envoi multiple instantané aux pays sélectionnés',
     'de': 'Express-Modus AN — Sofort-Mehrfachversand an ausgewählte Länder',
     'es': 'Modo Exprés ON — Envío múltiple instantáneo a países seleccionados',
-    'pt': 'Modo Express ON — Envio múltiplo instantâneo para países selecionados',
-    'ru': 'Экспресс-режим ВКЛ — Мгновенная множественная отправка в выбранные страны',
+    'pt':
+        'Modo Express ON — Envio múltiplo instantâneo para países selecionados',
+    'ru':
+        'Экспресс-режим ВКЛ — Мгновенная множественная отправка в выбранные страны',
     'tr': 'Hızlı Mod AÇIK — Seçilen ülkelere anında çoklu gönderim',
     'ar': 'وضع سريع مفعّل — إرسال متعدد فوري إلى الدول المختارة',
-    'it': 'Modalità Express ON — Invio multiplo istantaneo ai paesi selezionati',
+    'it':
+        'Modalità Express ON — Invio multiplo istantaneo ai paesi selezionati',
     'hi': 'एक्सप्रेस मोड ON — चयनित देशों को तुरंत बहु-भेजना',
     'th': 'โหมดด่วน เปิด — ส่งหลายฉบับทันทีไปยังประเทศที่เลือก',
   });
@@ -6142,17 +6579,22 @@ class AppL10n {
 
   String get composeExpressSettingsSub => _t({
     'ko': '선택 나라의 랜덤 주소로 5분 안에 즉시 발송',
-    'en': 'Instant delivery to random addresses in selected country within 5 min',
+    'en':
+        'Instant delivery to random addresses in selected country within 5 min',
     'ja': '選択した国のランダムな住所へ5分以内に即時発送',
     'zh': '5分钟内即时发送到选定国家的随机地址',
-    'fr': 'Envoi instantané à des adresses aléatoires du pays sélectionné en 5 min',
+    'fr':
+        'Envoi instantané à des adresses aléatoires du pays sélectionné en 5 min',
     'de': 'Sofortversand an zufällige Adressen im ausgewählten Land in 5 Min.',
-    'es': 'Envío instantáneo a direcciones aleatorias del país seleccionado en 5 min',
-    'pt': 'Envio instantâneo para endereços aleatórios no país selecionado em 5 min',
+    'es':
+        'Envío instantáneo a direcciones aleatorias del país seleccionado en 5 min',
+    'pt':
+        'Envio instantâneo para endereços aleatórios no país selecionado em 5 min',
     'ru': 'Мгновенная доставка на случайные адреса выбранной страны за 5 мин',
     'tr': 'Seçilen ülkedeki rastgele adreslere 5 dk içinde anında teslimat',
     'ar': 'توصيل فوري إلى عناوين عشوائية في البلد المختار خلال 5 دقائق',
-    'it': 'Consegna istantanea a indirizzi casuali nel paese selezionato in 5 min',
+    'it':
+        'Consegna istantanea a indirizzi casuali nel paese selezionato in 5 min',
     'hi': 'चयनित देश में रैंडम पतों पर 5 मिनट में तुरंत डिलीवरी',
     'th': 'ส่งทันทีไปยังที่อยู่สุ่มในประเทศที่เลือกภายใน 5 นาที',
   });
@@ -6210,17 +6652,25 @@ class AppL10n {
 
   String composeExpressSummary(String flag, String country, int count) => _t({
     'ko': '⚡ $flag $country 내 ${count}개 랜덤 주소로 5분 내 즉시 배송',
-    'en': '⚡ Instant delivery to $count random addresses in $flag $country within 5 min',
+    'en':
+        '⚡ Instant delivery to $count random addresses in $flag $country within 5 min',
     'ja': '⚡ $flag $country内${count}か所のランダムアドレスへ5分以内に即時配送',
     'zh': '⚡ 5分钟内即时送达$flag $country的$count个随机地址',
-    'fr': '⚡ Livraison instantanée à $count adresses aléatoires en $flag $country en 5 min',
-    'de': '⚡ Sofortlieferung an $count Zufallsadressen in $flag $country in 5 Min.',
-    'es': '⚡ Entrega instantánea a $count direcciones aleatorias en $flag $country en 5 min',
-    'pt': '⚡ Entrega instantânea para $count endereços aleatórios em $flag $country em 5 min',
-    'ru': '⚡ Мгновенная доставка на $count случайных адресов в $flag $country за 5 мин',
-    'tr': '⚡ $flag $country\'da $count rastgele adrese 5 dk içinde anında teslimat',
+    'fr':
+        '⚡ Livraison instantanée à $count adresses aléatoires en $flag $country en 5 min',
+    'de':
+        '⚡ Sofortlieferung an $count Zufallsadressen in $flag $country in 5 Min.',
+    'es':
+        '⚡ Entrega instantánea a $count direcciones aleatorias en $flag $country en 5 min',
+    'pt':
+        '⚡ Entrega instantânea para $count endereços aleatórios em $flag $country em 5 min',
+    'ru':
+        '⚡ Мгновенная доставка на $count случайных адресов в $flag $country за 5 мин',
+    'tr':
+        '⚡ $flag $country\'da $count rastgele adrese 5 dk içinde anında teslimat',
     'ar': '⚡ توصيل فوري إلى $count عنوان عشوائي في $flag $country خلال 5 دقائق',
-    'it': '⚡ Consegna istantanea a $count indirizzi casuali in $flag $country in 5 min',
+    'it':
+        '⚡ Consegna istantanea a $count indirizzi casuali in $flag $country in 5 min',
     'hi': '⚡ $flag $country में $count रैंडम पतों पर 5 मिनट में तुरंत डिलीवरी',
     'th': '⚡ ส่งทันทีไปยัง $count ที่อยู่สุ่มใน $flag $country ภายใน 5 นาที',
   });
@@ -6261,17 +6711,24 @@ class AppL10n {
 
   String get composeExpressDeliveryEachCountry => _t({
     'ko': '선택한 각 나라의 랜덤 주소로 5분 안에 즉시 배송',
-    'en': 'Instant delivery to random addresses in each selected country within 5 min',
+    'en':
+        'Instant delivery to random addresses in each selected country within 5 min',
     'ja': '選択した各国のランダムアドレスへ5分以内に即時配送',
     'zh': '5分钟内即时送达每个选定国家的随机地址',
-    'fr': 'Livraison instantanée à des adresses aléatoires dans chaque pays sélectionné en 5 min',
-    'de': 'Sofortlieferung an Zufallsadressen in jedem ausgewählten Land in 5 Min.',
-    'es': 'Entrega instantánea a direcciones aleatorias en cada país seleccionado en 5 min',
-    'pt': 'Entrega instantânea para endereços aleatórios em cada país selecionado em 5 min',
-    'ru': 'Мгновенная доставка на случайные адреса каждой выбранной страны за 5 мин',
+    'fr':
+        'Livraison instantanée à des adresses aléatoires dans chaque pays sélectionné en 5 min',
+    'de':
+        'Sofortlieferung an Zufallsadressen in jedem ausgewählten Land in 5 Min.',
+    'es':
+        'Entrega instantánea a direcciones aleatorias en cada país seleccionado en 5 min',
+    'pt':
+        'Entrega instantânea para endereços aleatórios em cada país selecionado em 5 min',
+    'ru':
+        'Мгновенная доставка на случайные адреса каждой выбранной страны за 5 мин',
     'tr': 'Seçilen her ülkedeki rastgele adreslere 5 dk içinde anında teslimat',
     'ar': 'توصيل فوري إلى عناوين عشوائية في كل دولة مختارة خلال 5 دقائق',
-    'it': 'Consegna istantanea a indirizzi casuali in ogni paese selezionato in 5 min',
+    'it':
+        'Consegna istantanea a indirizzi casuali in ogni paese selezionato in 5 min',
     'hi': 'प्रत्येक चयनित देश में रैंडम पतों पर 5 मिनट में तुरंत डिलीवरी',
     'th': 'ส่งทันทีไปยังที่อยู่สุ่มในแต่ละประเทศที่เลือกภายใน 5 นาที',
   });
@@ -6365,38 +6822,58 @@ class AppL10n {
     'th': 'จดหมายต่อประเทศ',
   });
 
-  String composeBulkExpressSummary(int total, int countries, int addresses) => _t({
+  String composeBulkExpressSummary(
+    int total,
+    int countries,
+    int addresses,
+  ) => _t({
     'ko': '⚡ 총 ${total}통 즉시 발송 · ${countries}개 나라 × ${addresses}주소씩',
-    'en': '⚡ $total promos instant · $countries countries × $addresses addresses each',
+    'en':
+        '⚡ $total promos instant · $countries countries × $addresses addresses each',
     'ja': '⚡ 合計${total}通即時発送 · ${countries}か国 × ${addresses}アドレスずつ',
     'zh': '⚡ 共${total}封即时发送 · $countries个国家 × 每国${addresses}个地址',
-    'fr': '⚡ $total lettres instantanées · $countries pays × $addresses adresses chacun',
+    'fr':
+        '⚡ $total lettres instantanées · $countries pays × $addresses adresses chacun',
     'de': '⚡ $total Briefe sofort · $countries Länder × $addresses Adressen je',
-    'es': '⚡ $total cartas instantáneas · $countries países × $addresses direcciones cada uno',
-    'pt': '⚡ $total cartas instantâneas · $countries países × $addresses endereços cada',
-    'ru': '⚡ $total писем мгновенно · $countries стран × $addresses адресов каждая',
+    'es':
+        '⚡ $total cartas instantáneas · $countries países × $addresses direcciones cada uno',
+    'pt':
+        '⚡ $total cartas instantâneas · $countries países × $addresses endereços cada',
+    'ru':
+        '⚡ $total писем мгновенно · $countries стран × $addresses адресов каждая',
     'tr': '⚡ Toplam $total mektup anında · $countries ülke × $addresses adres',
     'ar': '⚡ $total رسالة فورية · $countries دول × $addresses عنوان لكل دولة',
-    'it': '⚡ $total lettere istantanee · $countries paesi × $addresses indirizzi ciascuno',
+    'it':
+        '⚡ $total lettere istantanee · $countries paesi × $addresses indirizzi ciascuno',
     'hi': '⚡ कुल $total पत्र तुरंत · $countries देश × $addresses पते प्रत्येक',
-    'th': '⚡ รวม $total ฉบับทันที · $countries ประเทศ × $addresses ที่อยู่ต่อประเทศ',
+    'th':
+        '⚡ รวม $total ฉบับทันที · $countries ประเทศ × $addresses ที่อยู่ต่อประเทศ',
   });
 
-  String composeBulkSendSummary(int total, int countries, int perCountry) => _t({
+  String composeBulkSendSummary(
+    int total,
+    int countries,
+    int perCountry,
+  ) => _t({
     'ko': '📬 총 ${total}통 발송 예정 · ${countries}개 나라 × ${perCountry}통씩',
     'en': '📬 $total promos to send · $countries countries × $perCountry each',
     'ja': '📬 合計${total}通送信予定 · ${countries}か国 × ${perCountry}通ずつ',
     'zh': '📬 共${total}封待发送 · $countries个国家 × 每国${perCountry}封',
     'fr': '📬 $total lettres à envoyer · $countries pays × $perCountry chacun',
     'de': '📬 $total Briefe zu senden · $countries Länder × $perCountry je',
-    'es': '📬 $total cartas a enviar · $countries países × $perCountry cada uno',
+    'es':
+        '📬 $total cartas a enviar · $countries países × $perCountry cada uno',
     'pt': '📬 $total cartas para enviar · $countries países × $perCountry cada',
     'ru': '📬 $total писем к отправке · $countries стран × $perCountry каждая',
-    'tr': '📬 Toplam $total mektup gönderilecek · $countries ülke × $perCountry',
+    'tr':
+        '📬 Toplam $total mektup gönderilecek · $countries ülke × $perCountry',
     'ar': '📬 $total رسالة للإرسال · $countries دول × $perCountry لكل دولة',
-    'it': '📬 $total lettere da inviare · $countries paesi × $perCountry ciascuno',
-    'hi': '📬 कुल $total पत्र भेजने हैं · $countries देश × $perCountry प्रत्येक',
-    'th': '📬 รวม $total ฉบับที่จะส่ง · $countries ประเทศ × $perCountry ต่อประเทศ',
+    'it':
+        '📬 $total lettere da inviare · $countries paesi × $perCountry ciascuno',
+    'hi':
+        '📬 कुल $total पत्र भेजने हैं · $countries देश × $perCountry प्रत्येक',
+    'th':
+        '📬 รวม $total ฉบับที่จะส่ง · $countries ประเทศ × $perCountry ต่อประเทศ',
   });
 
   String get composeDeliveryIn5Min => _t({
@@ -6864,7 +7341,8 @@ class AppL10n {
     'en': 'Premium · Today $sent/$limit · $monthlyRemaining/mo remaining',
     'ja': 'プレミアム · 本日 $sent/${limit}通 · 残り${monthlyRemaining}通/月',
     'zh': '高级 · 今日$sent/$limit封 · 月剩余${monthlyRemaining}封',
-    'fr': 'Premium · Aujourd\'hui $sent/$limit · $monthlyRemaining/mois restants',
+    'fr':
+        'Premium · Aujourd\'hui $sent/$limit · $monthlyRemaining/mois restants',
     'de': 'Premium · Heute $sent/$limit · $monthlyRemaining/Monat übrig',
     'es': 'Premium · Hoy $sent/$limit · $monthlyRemaining/mes restantes',
     'pt': 'Premium · Hoje $sent/$limit · $monthlyRemaining/mês restantes',
@@ -6946,17 +7424,21 @@ class AppL10n {
 
   String get composeSendRandomSub => _t({
     'ko': '세계 어딘가 알 수 없는 곳으로 출발 · 발송 후 배송지 공개',
-    'en': 'Departs to an unknown place in the world · Destination revealed after sending',
+    'en':
+        'Departs to an unknown place in the world · Destination revealed after sending',
     'ja': '世界のどこか未知の場所へ出発 · 送信後に配送先が公開',
     'zh': '寄往世界某个未知角落 · 发送后公开目的地',
     'fr': 'Part vers un lieu inconnu · Destination révélée après l\'envoi',
     'de': 'Reist an einen unbekannten Ort · Ziel wird nach dem Senden enthüllt',
     'es': 'Sale a un lugar desconocido · Destino revelado después del envío',
     'pt': 'Parte para um lugar desconhecido · Destino revelado após o envio',
-    'ru': 'Отправляется в неизвестное место · Место назначения раскрывается после отправки',
-    'tr': 'Dünyada bilinmeyen bir yere yola çıkar · Gönderim sonrası hedef açıklanır',
+    'ru':
+        'Отправляется в неизвестное место · Место назначения раскрывается после отправки',
+    'tr':
+        'Dünyada bilinmeyen bir yere yola çıkar · Gönderim sonrası hedef açıklanır',
     'ar': 'ينطلق إلى مكان مجهول في العالم · يُكشف الوجهة بعد الإرسال',
-    'it': 'Parte verso un luogo sconosciuto · Destinazione rivelata dopo l\'invio',
+    'it':
+        'Parte verso un luogo sconosciuto · Destinazione rivelata dopo l\'invio',
     'hi': 'दुनिया में अज्ञात स्थान पर भेजा जाता है · भेजने के बाद गंतव्य प्रकट',
     'th': 'ออกเดินทางไปที่ไหนสักแห่งที่ไม่รู้ · เปิดเผยปลายทางหลังส่ง',
   });
@@ -7119,17 +7601,23 @@ class AppL10n {
 
   String inboxSendMoreToRead(int remaining) => _t({
     'ko': '다음 혜택을 읽으려면 혜택을 $remaining개 더 보내야 합니다.',
-    'en': 'Send $remaining more promo${remaining == 1 ? "" : "s"} to read the next one.',
+    'en':
+        'Send $remaining more promo${remaining == 1 ? "" : "s"} to read the next one.',
     'ja': '次の手紙を読むにはあと${remaining}通送ってください。',
     'zh': '再发送${remaining}封信即可阅读下一封。',
-    'fr': 'Envoyez encore $remaining lettre${remaining == 1 ? "" : "s"} pour lire la suivante.',
-    'de': 'Sende noch $remaining Brief${remaining == 1 ? "" : "e"}, um den nächsten zu lesen.',
-    'es': 'Envía $remaining carta${remaining == 1 ? "" : "s"} más para leer la siguiente.',
-    'pt': 'Envie mais $remaining carta${remaining == 1 ? "" : "s"} para ler a próxima.',
+    'fr':
+        'Envoyez encore $remaining lettre${remaining == 1 ? "" : "s"} pour lire la suivante.',
+    'de':
+        'Sende noch $remaining Brief${remaining == 1 ? "" : "e"}, um den nächsten zu lesen.',
+    'es':
+        'Envía $remaining carta${remaining == 1 ? "" : "s"} más para leer la siguiente.',
+    'pt':
+        'Envie mais $remaining carta${remaining == 1 ? "" : "s"} para ler a próxima.',
     'ru': 'Отправьте ещё $remaining, чтобы прочитать следующее.',
     'tr': 'Sonrakini okumak için $remaining mektup daha gönderin.',
     'ar': 'أرسل $remaining رسالة أخرى لقراءة التالية.',
-    'it': 'Invia ancora $remaining letter${remaining == 1 ? "a" : "e"} per leggere la prossima.',
+    'it':
+        'Invia ancora $remaining letter${remaining == 1 ? "a" : "e"} per leggere la prossima.',
     'hi': 'अगला पढ़ने के लिए $remaining और पत्र भेजें।',
     'th': 'ส่งจดหมายอีก $remaining ฉบับเพื่ออ่านฉบับต่อไป',
   });
@@ -7190,14 +7678,19 @@ class AppL10n {
     'en': 'Delete this reward?\nDeleted rewards cannot be recovered.',
     'ja': 'この手紙を削除しますか？\n削除した手紙は復元できません。',
     'zh': '确定删除这封信？\n删除后无法恢复。',
-    'fr': 'Supprimer cette lettre ?\nLes lettres supprimées ne peuvent pas être récupérées.',
-    'de': 'Diesen Brief löschen?\nGelöschte Briefe können nicht wiederhergestellt werden.',
-    'es': '¿Eliminar esta carta?\nLas cartas eliminadas no se pueden recuperar.',
+    'fr':
+        'Supprimer cette lettre ?\nLes lettres supprimées ne peuvent pas être récupérées.',
+    'de':
+        'Diesen Brief löschen?\nGelöschte Briefe können nicht wiederhergestellt werden.',
+    'es':
+        '¿Eliminar esta carta?\nLas cartas eliminadas no se pueden recuperar.',
     'pt': 'Excluir esta carta?\nCartas excluídas não podem ser recuperadas.',
     'ru': 'Удалить это письмо?\nУдалённые письма нельзя восстановить.',
-    'tr': 'Bu mektubu silmek istiyor musunuz?\nSilinen mektuplar geri alınamaz.',
+    'tr':
+        'Bu mektubu silmek istiyor musunuz?\nSilinen mektuplar geri alınamaz.',
     'ar': 'هل تريد حذف هذه الرسالة؟\nلا يمكن استعادة الرسائل المحذوفة.',
-    'it': 'Eliminare questa lettera?\nLe lettere eliminate non possono essere recuperate.',
+    'it':
+        'Eliminare questa lettera?\nLe lettere eliminate non possono essere recuperate.',
     'hi': 'यह पत्र हटाएं?\nहटाए गए पत्र पुनर्प्राप्त नहीं किए जा सकते।',
     'th': 'ลบจดหมายนี้?\nจดหมายที่ลบแล้วไม่สามารถกู้คืนได้',
   });
@@ -7208,7 +7701,8 @@ class AppL10n {
     'ja': 'この手紙を削除すると復元できません。\n本当に削除しますか？',
     'zh': '此信删除后无法恢复。\n确定删除吗？',
     'fr': 'Cette lettre ne pourra pas être récupérée.\nÊtes-vous sûr ?',
-    'de': 'Dieser Brief kann nicht wiederhergestellt werden.\nWirklich löschen?',
+    'de':
+        'Dieser Brief kann nicht wiederhergestellt werden.\nWirklich löschen?',
     'es': 'Esta carta no se puede recuperar.\n¿Estás seguro?',
     'pt': 'Esta carta não pode ser recuperada.\nTem certeza?',
     'ru': 'Это письмо нельзя будет восстановить.\nВы уверены?',
@@ -7432,19 +7926,30 @@ class AppL10n {
 
   String get settingsWithdrawItemsList => _t({
     'ko': '• 모든 혜택 및 DM 기록\n• 타워 및 활동 점수\n• 스탬프 앨범\n• 계정 정보',
-    'en': '• All rewards and DM history\n• Tower and activity score\n• Stamp album\n• Account info',
+    'en':
+        '• All rewards and DM history\n• Tower and activity score\n• Stamp album\n• Account info',
     'ja': '• すべての手紙とDM履歴\n• タワーとアクティビティスコア\n• スタンプアルバム\n• アカウント情報',
     'zh': '• 所有信件和私信记录\n• 塔和活跃度分数\n• 邮票收集册\n• 账号信息',
-    'fr': '• Toutes les lettres et DM\n• Tour et score d’activité\n• Album de timbres\n• Info du compte',
-    'de': '• Alle Briefe und DMs\n• Turm und Aktivitätsscore\n• Briefmarkenalbum\n• Kontodaten',
-    'es': '• Todas las cartas y DMs\n• Torre y puntuación\n• Álbum de sellos\n• Datos de cuenta',
-    'pt': '• Todas as cartas e DMs\n• Torre e pontuação\n• Álbum de selos\n• Dados da conta',
-    'ru': '• Все письма и ЛС\n• Башня и очки активности\n• Альбом марок\n• Данные аккаунта',
-    'tr': '• Tüm mektuplar ve DM\n• Kule ve etkinlik puanı\n• Pul albümü\n• Hesap bilgileri',
-    'ar': '• كل الرسائل والمحادثات الخاصة\n• البرج ونقاط النشاط\n• ألبوم الطوابع\n• بيانات الحساب',
-    'it': '• Tutte le lettere e DM\n• Torre e punteggio\n• Album dei francobolli\n• Dati account',
-    'hi': '• सभी पत्र और DM\n• टावर और गतिविधि स्कोर\n• स्टैम्प एल्बम\n• खाता जानकारी',
-    'th': '• จดหมายและ DM ทั้งหมด\n• หอและคะแนนกิจกรรม\n• อัลบั้มแสตมป์\n• ข้อมูลบัญชี',
+    'fr':
+        '• Toutes les lettres et DM\n• Tour et score d’activité\n• Album de timbres\n• Info du compte',
+    'de':
+        '• Alle Briefe und DMs\n• Turm und Aktivitätsscore\n• Briefmarkenalbum\n• Kontodaten',
+    'es':
+        '• Todas las cartas y DMs\n• Torre y puntuación\n• Álbum de sellos\n• Datos de cuenta',
+    'pt':
+        '• Todas as cartas e DMs\n• Torre e pontuação\n• Álbum de selos\n• Dados da conta',
+    'ru':
+        '• Все письма и ЛС\n• Башня и очки активности\n• Альбом марок\n• Данные аккаунта',
+    'tr':
+        '• Tüm mektuplar ve DM\n• Kule ve etkinlik puanı\n• Pul albümü\n• Hesap bilgileri',
+    'ar':
+        '• كل الرسائل والمحادثات الخاصة\n• البرج ونقاط النشاط\n• ألبوم الطوابع\n• بيانات الحساب',
+    'it':
+        '• Tutte le lettere e DM\n• Torre e punteggio\n• Album dei francobolli\n• Dati account',
+    'hi':
+        '• सभी पत्र और DM\n• टावर और गतिविधि स्कोर\n• स्टैम्प एल्बम\n• खाता जानकारी',
+    'th':
+        '• จดหมายและ DM ทั้งหมด\n• หอและคะแนนกิจกรรม\n• อัลบั้มแสตมป์\n• ข้อมูลบัญชี',
   });
 
   String settingsWithdrawTypeUsernameToConfirm(String username) {
@@ -7824,28 +8329,68 @@ class AppL10n {
   // Brand 의 쿠폰·교환권은 별도 필터, 그 외는 메시지/홍보로 통합.
   // Build 264: 산업군 필터 (식음/카페/뷰티/패션) — heuristic content matching.
   String get inboxFilterFood => _t({
-    'ko': '식음', 'en': 'Food', 'ja': '飲食', 'zh': '餐饮',
-    'fr': 'Restauration', 'de': 'Essen', 'es': 'Comida', 'pt': 'Comida',
-    'ru': 'Еда', 'tr': 'Yemek', 'ar': 'طعام', 'it': 'Cibo',
-    'hi': 'खाना', 'th': 'อาหาร',
+    'ko': '식음',
+    'en': 'Food',
+    'ja': '飲食',
+    'zh': '餐饮',
+    'fr': 'Restauration',
+    'de': 'Essen',
+    'es': 'Comida',
+    'pt': 'Comida',
+    'ru': 'Еда',
+    'tr': 'Yemek',
+    'ar': 'طعام',
+    'it': 'Cibo',
+    'hi': 'खाना',
+    'th': 'อาหาร',
   });
   String get inboxFilterCafe => _t({
-    'ko': '카페', 'en': 'Cafe', 'ja': 'カフェ', 'zh': '咖啡',
-    'fr': 'Café', 'de': 'Café', 'es': 'Café', 'pt': 'Café',
-    'ru': 'Кафе', 'tr': 'Kafe', 'ar': 'مقهى', 'it': 'Caffè',
-    'hi': 'कैफे', 'th': 'คาเฟ่',
+    'ko': '카페',
+    'en': 'Cafe',
+    'ja': 'カフェ',
+    'zh': '咖啡',
+    'fr': 'Café',
+    'de': 'Café',
+    'es': 'Café',
+    'pt': 'Café',
+    'ru': 'Кафе',
+    'tr': 'Kafe',
+    'ar': 'مقهى',
+    'it': 'Caffè',
+    'hi': 'कैफे',
+    'th': 'คาเฟ่',
   });
   String get inboxFilterBeauty => _t({
-    'ko': '뷰티', 'en': 'Beauty', 'ja': '美容', 'zh': '美容',
-    'fr': 'Beauté', 'de': 'Beauty', 'es': 'Belleza', 'pt': 'Beleza',
-    'ru': 'Красота', 'tr': 'Güzellik', 'ar': 'تجميل', 'it': 'Bellezza',
-    'hi': 'सौंदर्य', 'th': 'ความงาม',
+    'ko': '뷰티',
+    'en': 'Beauty',
+    'ja': '美容',
+    'zh': '美容',
+    'fr': 'Beauté',
+    'de': 'Beauty',
+    'es': 'Belleza',
+    'pt': 'Beleza',
+    'ru': 'Красота',
+    'tr': 'Güzellik',
+    'ar': 'تجميل',
+    'it': 'Bellezza',
+    'hi': 'सौंदर्य',
+    'th': 'ความงาม',
   });
   String get inboxFilterFashion => _t({
-    'ko': '패션', 'en': 'Fashion', 'ja': 'ファッション', 'zh': '时尚',
-    'fr': 'Mode', 'de': 'Mode', 'es': 'Moda', 'pt': 'Moda',
-    'ru': 'Мода', 'tr': 'Moda', 'ar': 'موضة', 'it': 'Moda',
-    'hi': 'फैशन', 'th': 'แฟชั่น',
+    'ko': '패션',
+    'en': 'Fashion',
+    'ja': 'ファッション',
+    'zh': '时尚',
+    'fr': 'Mode',
+    'de': 'Mode',
+    'es': 'Moda',
+    'pt': 'Moda',
+    'ru': 'Мода',
+    'tr': 'Moda',
+    'ar': 'موضة',
+    'it': 'Moda',
+    'hi': 'फैशन',
+    'th': 'แฟชั่น',
   });
 
   String get inboxFilterGeneral => _t({
@@ -8061,14 +8606,20 @@ class AppL10n {
     'en': 'Follow a sender from your inbox\nand DM opens when they follow back',
     'ja': '受信箱から送信者をフォローすると\n相互フォローでDMが開始されます',
     'zh': '在收件箱中关注发件人\n互相关注后即可开始私信',
-    'fr': 'Suivez un expéditeur depuis votre boîte\nle DM s\'ouvre quand il vous suit aussi',
-    'de': 'Folge einem Absender aus deinem Posteingang\nDM wird bei gegenseitigem Folgen geöffnet',
-    'es': 'Sigue a un remitente de tu bandeja\nel DM se abre cuando te sigue de vuelta',
+    'fr':
+        'Suivez un expéditeur depuis votre boîte\nle DM s\'ouvre quand il vous suit aussi',
+    'de':
+        'Folge einem Absender aus deinem Posteingang\nDM wird bei gegenseitigem Folgen geöffnet',
+    'es':
+        'Sigue a un remitente de tu bandeja\nel DM se abre cuando te sigue de vuelta',
     'pt': 'Siga um remetente da sua caixa\no DM abre quando seguem de volta',
-    'ru': 'Подпишитесь на отправителя из входящих\nЛС откроется при взаимной подписке',
-    'tr': 'Gelen kutunuzdan bir göndericiyi takip edin\nkarşılıklı takipte DM açılır',
+    'ru':
+        'Подпишитесь на отправителя из входящих\nЛС откроется при взаимной подписке',
+    'tr':
+        'Gelen kutunuzdan bir göndericiyi takip edin\nkarşılıklı takipte DM açılır',
     'ar': 'تابع مرسلًا من صندوق الوارد\nتبدأ المحادثة عند المتابعة المتبادلة',
-    'it': 'Segui un mittente dalla posta in arrivo\nil DM si apre con il follow reciproco',
+    'it':
+        'Segui un mittente dalla posta in arrivo\nil DM si apre con il follow reciproco',
     'hi': 'इनबॉक्स से किसी प्रेषक को फॉलो करें\nआपसी फॉलो पर DM शुरू होता है',
     'th': 'ติดตามผู้ส่งจากกล่องจดหมาย\nDM จะเปิดเมื่อติดตามกลับ',
   });
@@ -8095,14 +8646,19 @@ class AppL10n {
     'en': 'Start a quick 1:1 conversation?\nMessages are delivered instantly.',
     'ja': 'クイック1:1会話を始めますか？\nメッセージは即時配信されます。',
     'zh': '开始快速1:1对话？\n消息即时送达。',
-    'fr': 'Commencer une conversation 1:1 rapide ?\nLes messages sont livrés instantanément.',
-    'de': 'Schnelle 1:1-Unterhaltung starten?\nNachrichten werden sofort zugestellt.',
-    'es': '¿Iniciar una conversación 1:1 rápida?\nLos mensajes se entregan al instante.',
-    'pt': 'Iniciar uma conversa 1:1 rápida?\nMensagens entregues instantaneamente.',
+    'fr':
+        'Commencer une conversation 1:1 rapide ?\nLes messages sont livrés instantanément.',
+    'de':
+        'Schnelle 1:1-Unterhaltung starten?\nNachrichten werden sofort zugestellt.',
+    'es':
+        '¿Iniciar una conversación 1:1 rápida?\nLos mensajes se entregan al instante.',
+    'pt':
+        'Iniciar uma conversa 1:1 rápida?\nMensagens entregues instantaneamente.',
     'ru': 'Начать быстрый чат 1:1?\nСообщения доставляются мгновенно.',
     'tr': 'Hızlı 1:1 sohbet başlatılsın mı?\nMesajlar anında iletilir.',
     'ar': 'بدء محادثة 1:1 سريعة؟\nالرسائل تُسلم فوريًا.',
-    'it': 'Iniziare una conversazione 1:1 rapida?\nI messaggi vengono consegnati istantaneamente.',
+    'it':
+        'Iniziare una conversazione 1:1 rapida?\nI messaggi vengono consegnati istantaneamente.',
     'hi': 'त्वरित 1:1 बातचीत शुरू करें?\nसंदेश तुरंत वितरित होते हैं।',
     'th': 'เริ่มบทสนทนา 1:1 ด่วน?\nข้อความส่งทันที',
   });
@@ -8408,7 +8964,8 @@ class AppL10n {
     'ja': '特急配送1日3通 + カスタムタワーで存在感アップ',
     'zh': '特快配送每日3封 + 自定义塔楼提升存在感',
     'fr': 'Livraison express 3/jour + tour personnalisée pour la visibilité',
-    'de': 'Express-Zustellung 3/Tag + benutzerdefinierter Turm für Sichtbarkeit',
+    'de':
+        'Express-Zustellung 3/Tag + benutzerdefinierter Turm für Sichtbarkeit',
     'es': 'Entrega exprés 3/día + torre personalizada para visibilidad',
     'pt': 'Entrega expressa 3/dia + torre personalizada para visibilidade',
     'ru': 'Экспресс-доставка 3/день + кастомная башня для заметности',
@@ -8548,34 +9105,52 @@ class AppL10n {
 
   String get premiumSwitchToFreeDesc => _t({
     'ko': '다음 결제일부터 무료 플랜으로 전환됩니다.\n현재 구독 기간은 계속 이용 가능합니다.',
-    'en': 'You will switch to the Free plan from the next billing date.\nYou can continue using the current subscription until then.',
+    'en':
+        'You will switch to the Free plan from the next billing date.\nYou can continue using the current subscription until then.',
     'ja': '次の決済日から無料プランに変更されます。\n現在のサブスクリプション期間は引き続きご利用いただけます。',
     'zh': '将从下一个付款日起切换到免费方案。\n当前订阅期间仍可继续使用。',
-    'fr': 'Vous passerez au forfait gratuit à la prochaine date de facturation.\nVous pouvez continuer à utiliser l\'abonnement actuel jusque-là.',
-    'de': 'Sie wechseln ab dem nächsten Abrechnungsdatum zum kostenlosen Plan.\nSie können das aktuelle Abonnement bis dahin weiterhin nutzen.',
-    'es': 'Cambiará al plan gratuito desde la próxima fecha de facturación.\nPuede seguir usando la suscripción actual hasta entonces.',
-    'pt': 'Você mudará para o plano gratuito a partir da próxima data de cobrança.\nVocê pode continuar usando a assinatura atual até lá.',
-    'ru': 'Вы перейдёте на бесплатный план со следующей даты оплаты.\nДо тех пор вы можете пользоваться текущей подпиской.',
-    'tr': 'Bir sonraki fatura tarihinden itibaren ücretsiz plana geçeceksiniz.\nO zamana kadar mevcut aboneliğinizi kullanmaya devam edebilirsiniz.',
-    'ar': 'ستنتقل إلى الخطة المجانية من تاريخ الفوترة التالي.\nيمكنك الاستمرار في استخدام الاشتراك الحالي حتى ذلك الحين.',
-    'it': 'Passerai al piano gratuito dalla prossima data di fatturazione.\nPuoi continuare a usare l\'abbonamento attuale fino ad allora.',
-    'hi': 'अगली बिलिंग तिथि से मुफ्त योजना पर स्विच होगा।\nतब तक आप वर्तमान सदस्यता का उपयोग जारी रख सकते हैं।',
-    'th': 'จะเปลี่ยนเป็นแพ็กเกจฟรีตั้งแต่วัน��รียกเก็บเงินถัดไป\nคุณยังใช้งานแพ็กเกจปัจจุบันได้จนกว่าจะถึงวันนั้น',
+    'fr':
+        'Vous passerez au forfait gratuit à la prochaine date de facturation.\nVous pouvez continuer à utiliser l\'abonnement actuel jusque-là.',
+    'de':
+        'Sie wechseln ab dem nächsten Abrechnungsdatum zum kostenlosen Plan.\nSie können das aktuelle Abonnement bis dahin weiterhin nutzen.',
+    'es':
+        'Cambiará al plan gratuito desde la próxima fecha de facturación.\nPuede seguir usando la suscripción actual hasta entonces.',
+    'pt':
+        'Você mudará para o plano gratuito a partir da próxima data de cobrança.\nVocê pode continuar usando a assinatura atual até lá.',
+    'ru':
+        'Вы перейдёте на бесплатный план со следующей даты оплаты.\nДо тех пор вы можете пользоваться текущей подпиской.',
+    'tr':
+        'Bir sonraki fatura tarihinden itibaren ücretsiz plana geçeceksiniz.\nO zamana kadar mevcut aboneliğinizi kullanmaya devam edebilirsiniz.',
+    'ar':
+        'ستنتقل إلى الخطة المجانية من تاريخ الفوترة التالي.\nيمكنك الاستمرار في استخدام الاشتراك الحالي حتى ذلك الحين.',
+    'it':
+        'Passerai al piano gratuito dalla prossima data di fatturazione.\nPuoi continuare a usare l\'abbonamento attuale fino ad allora.',
+    'hi':
+        'अगली बिलिंग तिथि से मुफ्त योजना पर स्विच होगा।\nतब तक आप वर्तमान सदस्यता का उपयोग जारी रख सकते हैं।',
+    'th':
+        'จะเปลี่ยนเป็นแพ็กเกจฟรีตั้งแต่วัน��รียกเก็บเงินถัดไป\nคุณยังใช้งานแพ็กเกจปัจจุบันได้จนกว่าจะถึงวันนั้น',
   });
 
   String get premiumCancelViaStore => _t({
     'ko': '실제 해지는 앱스토어 → 설정 → 구독에서 진행해야 합니다',
-    'en': 'Actual cancellation must be done in App Store → Settings → Subscriptions',
+    'en':
+        'Actual cancellation must be done in App Store → Settings → Subscriptions',
     'ja': '実際の解約はApp Store → 設定 → サブスクリプションで行う必要があります',
     'zh': '实际取消需在App Store → 设置 → 订阅中操作',
-    'fr': 'L\'annulation réelle doit être effectuée dans App Store → Paramètres → Abonnements',
-    'de': 'Die tatsächliche Kündigung muss im App Store → Einstellungen → Abonnements erfolgen',
-    'es': 'La cancelación real debe hacerse en App Store → Ajustes → Suscripciones',
-    'pt': 'O cancelamento real deve ser feito na App Store → Ajustes → Assinaturas',
-    'ru': 'Фактическая отмена должна быть выполнена в App Store → Настройки → Подписки',
+    'fr':
+        'L\'annulation réelle doit être effectuée dans App Store → Paramètres → Abonnements',
+    'de':
+        'Die tatsächliche Kündigung muss im App Store → Einstellungen → Abonnements erfolgen',
+    'es':
+        'La cancelación real debe hacerse en App Store → Ajustes → Suscripciones',
+    'pt':
+        'O cancelamento real deve ser feito na App Store → Ajustes → Assinaturas',
+    'ru':
+        'Фактическая отмена должна быть выполнена в App Store → Настройки → Подписки',
     'tr': 'Gerçek iptal App Store → Ayarlar → Abonelikler\'den yapılmalıdır',
     'ar': 'يجب إتمام الإلغاء الفعلي في متجر التطبيقات → الإعدادات → الاشتراكات',
-    'it': 'L\'annullamento effettivo deve essere fatto in App Store → Impostazioni → Abbonamenti',
+    'it':
+        'L\'annullamento effettivo deve essere fatto in App Store → Impostazioni → Abbonamenti',
     'hi': 'वास्तविक रद्दीकरण App Store → सेटिंग्स → सदस्यता में करना होगा',
     'th': 'การยกเลิกจริงต้องทำที่ App Store → ตั้งค่า → การสมัครสมาชิก',
   });
@@ -8619,14 +9194,20 @@ class AppL10n {
     'en': '30 promos/day · image+link promos\nCustom tower · express delivery',
     'ja': '1日30通 · 画像+リンク手紙\nタワーカスタム · 特急配送',
     'zh': '每日30封 · 图片+链接信件\n自定义塔楼 · 特快配送',
-    'fr': '30 lettres/jour · lettres image+lien\nTour personnalisée · livraison express',
-    'de': '30 Briefe/Tag · Bild+Link-Briefe\nBenutzerdefinierter Turm · Express-Zustellung',
-    'es': '30 cartas/día · cartas imagen+enlace\nTorre personalizada · entrega exprés',
-    'pt': '30 cartas/dia · cartas imagem+link\nTorre personalizada · entrega expressa',
-    'ru': '30 писем/день · п��сьма с фото+ссылкой\nКастомная башня · экспресс-доставка',
+    'fr':
+        '30 lettres/jour · lettres image+lien\nTour personnalisée · livraison express',
+    'de':
+        '30 Briefe/Tag · Bild+Link-Briefe\nBenutzerdefinierter Turm · Express-Zustellung',
+    'es':
+        '30 cartas/día · cartas imagen+enlace\nTorre personalizada · entrega exprés',
+    'pt':
+        '30 cartas/dia · cartas imagem+link\nTorre personalizada · entrega expressa',
+    'ru':
+        '30 писем/день · п��сьма с фото+ссылкой\nКастомная башня · экспресс-доставка',
     'tr': 'Günde 30 · resim+link mektuplar\nÖzel kule �� ekspres teslimat',
     'ar': '30 رسالة/يوم · رسائل صور+روابط\nبرج مخصص · توصيل سريع',
-    'it': '30 lettere/giorno · lettere immagine+link\nTorre personalizzata · consegna espressa',
+    'it':
+        '30 lettere/giorno · lettere immagine+link\nTorre personalizzata · consegna espressa',
     'hi': '30 पत्र/दिन · छवि+लिंक पत्र\nकस्टम टावर · एक्सप्रेस डिलीवरी',
     'th': '30 ฉบับ/วัน · จดหมายภาพ+ลิงก์\nหอคอยกำหนดเอง · จัดส่งด่วน',
   });
@@ -8755,16 +9336,24 @@ class AppL10n {
     'en': '200/day · verified badge · bulk send\nAll Premium features included',
     'ja': '1日200通 · 認証バッジ · 大量送信\nPremium全機能含む',
     'zh': '每日200封 · 认证徽章 · 批量发送\n包含所有Premium功能',
-    'fr': '200/jour · badge vérifié · envoi en masse\nToutes les fonctions Premium incluses',
-    'de': '200/Tag · Verifizierungsabzeichen · Massenversand\nAlle Premium-Funktionen enthalten',
-    'es': '200/día · insignia verificada · envío masivo\nTodas las funciones Premium incluidas',
-    'pt': '200/dia · selo verificado · envio em massa\nTodas as funções Premium incluídas',
-    'ru': '200/день · значок верификации · массовая рассылка\nВсе функции Premium включены',
-    'tr': 'Günde 200 · doğrulama rozeti · toplu gönderim\nTüm Premium özellikleri dahil',
+    'fr':
+        '200/jour · badge vérifié · envoi en masse\nToutes les fonctions Premium incluses',
+    'de':
+        '200/Tag · Verifizierungsabzeichen · Massenversand\nAlle Premium-Funktionen enthalten',
+    'es':
+        '200/día · insignia verificada · envío masivo\nTodas las funciones Premium incluidas',
+    'pt':
+        '200/dia · selo verificado · envio em massa\nTodas as funções Premium incluídas',
+    'ru':
+        '200/день · значок верификации · массовая рассылка\nВсе функции Premium включены',
+    'tr':
+        'Günde 200 · doğrulama rozeti · toplu gönderim\nTüm Premium özellikleri dahil',
     'ar': '200/يوم · شارة تحقق · إرسال جماعي\nجميع ميزات بريميوم مضمنة',
-    'it': '200/giorno · badge verificato · invio in massa\nTutte le funzioni Premium incluse',
+    'it':
+        '200/giorno · badge verificato · invio in massa\nTutte le funzioni Premium incluse',
     'hi': '200/दिन · सत्यापित बैज · बल्क भेजें\nसभी Premium सुविधाएं शामिल',
-    'th': '200/วัน · เครื่องหมายยืนยัน · ส่งจำนวนมาก\nรวมฟีเจอร์ Premium ทั้งหมด',
+    'th':
+        '200/วัน · เครื่องหมายยืนยัน · ส่งจำนวนมาก\nรวมฟีเจอร์ Premium ทั้งหมด',
   });
 
   String get premiumBrandSchedule => _t({
@@ -8819,20 +9408,33 @@ class AppL10n {
   });
 
   String get premiumRestoreDesc => _t({
-    'ko': 'iOS에서는 복원 시 Apple 계정 로그인 창이 표시될 수 있습니다.\n동일 Apple ID로 구매한 내역만 복원됩니다.',
-    'en': 'On iOS, you may be asked to sign in with your Apple account.\nOnly purchases made with the same Apple ID will be restored.',
-    'ja': 'iOSでは復元時にAppleアカウントのログイン画面が表示される場合があります。\n同じApple IDで購入した内容のみ復元されます。',
+    'ko':
+        'iOS에서는 복원 시 Apple 계정 로그인 창이 표시될 수 있습니다.\n동일 Apple ID로 구매한 내역만 복원됩니다.',
+    'en':
+        'On iOS, you may be asked to sign in with your Apple account.\nOnly purchases made with the same Apple ID will be restored.',
+    'ja':
+        'iOSでは復元時にAppleアカウントのログイン画面が表示される場合があります。\n同じApple IDで購入した内容のみ復元されます。',
     'zh': '在iOS上，恢复时可能需要登录Apple账户。\n仅恢复使用同一Apple ID购买的内容。',
-    'fr': 'Sur iOS, vous devrez peut-être vous connecter avec votre compte Apple.\nSeuls les achats effectués avec le même identifiant Apple seront restaurés.',
-    'de': 'Auf iOS müssen Sie sich möglicherweise mit Ihrem Apple-Konto anmelden.\nNur Käufe mit derselben Apple-ID werden wiederhergestellt.',
-    'es': 'En iOS, es posible que deba iniciar sesión con su cuenta Apple.\nSolo se restaurarán las compras realizadas con el mismo ID de Apple.',
-    'pt': 'No iOS, pode ser necessário fazer login com sua conta Apple.\nApenas compras feitas com o mesmo Apple ID serão restauradas.',
-    'ru': 'На iOS может потребоваться вход в учётную запись Apple.\nВосстановлены будут только покупки с тем же Apple ID.',
-    'tr': 'iOS\'ta Apple hesabınızla giriş yapmanız istenebilir.\nYalnızca aynı Apple ID ile yapılan satın almalar geri yüklenir.',
-    'ar': 'على iOS، قد يُطلب منك تسجيل الدخول بحساب Apple.\nسيتم استعادة المشتريات المرتبطة بنفس Apple ID فقط.',
-    'it': 'Su iOS, potrebbe essere richiesto l\'accesso con il tuo account Apple.\nVerranno ripristinati solo gli acquisti effettuati con lo stesso Apple ID.',
-    'hi': 'iOS पर, Apple खाते से लॉगिन करने के लिए कहा जा सकता है।\nकेवल उसी Apple ID से की गई खरीदारी पुनर्स्थापित होगी।',
-    'th': 'บน iOS อาจต้องลงชื่อเข้าใช้ด้วยบัญชี Apple\nจะกู้คืนเฉพาะรายการที่ซื้อด้วย Apple ID เดียวกันเท่านั้น',
+    'fr':
+        'Sur iOS, vous devrez peut-être vous connecter avec votre compte Apple.\nSeuls les achats effectués avec le même identifiant Apple seront restaurés.',
+    'de':
+        'Auf iOS müssen Sie sich möglicherweise mit Ihrem Apple-Konto anmelden.\nNur Käufe mit derselben Apple-ID werden wiederhergestellt.',
+    'es':
+        'En iOS, es posible que deba iniciar sesión con su cuenta Apple.\nSolo se restaurarán las compras realizadas con el mismo ID de Apple.',
+    'pt':
+        'No iOS, pode ser necessário fazer login com sua conta Apple.\nApenas compras feitas com o mesmo Apple ID serão restauradas.',
+    'ru':
+        'На iOS может потребоваться вход в учётную запись Apple.\nВосстановлены будут только покупки с тем же Apple ID.',
+    'tr':
+        'iOS\'ta Apple hesabınızla giriş yapmanız istenebilir.\nYalnızca aynı Apple ID ile yapılan satın almalar geri yüklenir.',
+    'ar':
+        'على iOS، قد يُطلب منك تسجيل الدخول بحساب Apple.\nسيتم استعادة المشتريات المرتبطة بنفس Apple ID فقط.',
+    'it':
+        'Su iOS, potrebbe essere richiesto l\'accesso con il tuo account Apple.\nVerranno ripristinati solo gli acquisti effettuati con lo stesso Apple ID.',
+    'hi':
+        'iOS पर, Apple खाते से लॉगिन करने के लिए कहा जा सकता है।\nकेवल उसी Apple ID से की गई खरीदारी पुनर्स्थापित होगी।',
+    'th':
+        'บน iOS อาจต้องลงชื่อเข้าใช้ด้วยบัญชี Apple\nจะกู้คืนเฉพาะรายการที่ซื้อด้วย Apple ID เดียวกันเท่านั้น',
   });
 
   String get premiumRestoreBtn => _t({
@@ -8874,14 +9476,20 @@ class AppL10n {
     'en': 'Auto-renewal date will be shown after subscription starts.',
     'ja': '自動更新日はサブスクリプション開始後に表示されます。',
     'zh': '自动续订日期将在订阅开始后显示。',
-    'fr': 'La date de renouvellement automatique s\'affichera après le début de l\'abonnement.',
-    'de': 'Das automatische Verlängerungsdatum wird nach Beginn des Abonnements angezeigt.',
-    'es': 'La fecha de renovación automática se mostrará después de iniciar la suscripción.',
-    'pt': 'A data de renovação automática será exibida após o início da assinatura.',
+    'fr':
+        'La date de renouvellement automatique s\'affichera après le début de l\'abonnement.',
+    'de':
+        'Das automatische Verlängerungsdatum wird nach Beginn des Abonnements angezeigt.',
+    'es':
+        'La fecha de renovación automática se mostrará después de iniciar la suscripción.',
+    'pt':
+        'A data de renovação automática será exibida após o início da assinatura.',
     'ru': 'Дата автопродления будет показана после начала подписки.',
-    'tr': 'Otomatik yenileme tarihi abonelik başladıktan sonra gösterilecektir.',
+    'tr':
+        'Otomatik yenileme tarihi abonelik başladıktan sonra gösterilecektir.',
     'ar': 'سيظهر تاريخ التجديد التلقائي بعد بدء الاشتراك.',
-    'it': 'La data di rinnovo automatico verrà mostrata dopo l\'inizio dell\'abbonamento.',
+    'it':
+        'La data di rinnovo automatico verrà mostrata dopo l\'inizio dell\'abbonamento.',
     'hi': 'स्वत: नवीनीकरण तिथि सदस्य��ा शुरू होने के बाद दिखाई जाएगी।',
     'th': 'วันต่ออายุอัตโนมัติจะแสดงหลังเริ่มสมัครสมาชิก',
   });
@@ -9011,15 +9619,18 @@ class AppL10n {
     'en': 'No auto-charge after trial · subscribe to keep Premium',
     'ja': '終了後の自動課金なし · 継続するには購読を',
     'zh': '试用结束不会自动扣款 · 继续使用请订阅',
-    'fr': 'Pas de prélèvement auto après l\'essai · abonnez-vous pour continuer',
-    'de': 'Keine Autoabbuchung nach der Testphase · abonniere für weiteren Zugang',
+    'fr':
+        'Pas de prélèvement auto après l\'essai · abonnez-vous pour continuer',
+    'de':
+        'Keine Autoabbuchung nach der Testphase · abonniere für weiteren Zugang',
     'es': 'Sin cargo automático tras la prueba · suscríbete para seguir',
     'pt': 'Sem cobrança automática após o teste · assine para continuar',
     'ru': 'Без автосписания после пробного периода · оформите подписку',
     'tr': 'Deneme sonrası otomatik ücret yok · abone olarak devam edin',
     'ar': 'لا خصم تلقائي بعد التجربة · اشترك للاستمرار',
     'it': 'Nessun addebito automatico dopo la prova · abbonati per continuare',
-    'hi': 'परीक्षण के बाद कोई स्वतः शुल्क नहीं · जारी रखने के लिए सब्सक्राइब करें',
+    'hi':
+        'परीक्षण के बाद कोई स्वतः शुल्क नहीं · जारी रखने के लिए सब्सक्राइब करें',
     'th': 'ไม่มีการเรียกเก็บอัตโนมัติหลังทดลอง · สมัครสมาชิกเพื่อใช้ต่อ',
   });
 
@@ -9142,6 +9753,61 @@ class AppL10n {
     'th': 'ส่งแคมเปญ',
   });
 
+  // Build 281 (P0): ExactDrop 반경 100m 초과 시 발송 거부 (Brand 약속 보장).
+  String get composeExactDropOutOfRange => _t({
+    'ko': 'ExactDrop 은 현재 위치에서 100m 이내만 가능합니다.',
+    'en': 'ExactDrop must be within 100m of your current location.',
+    'ja': 'ExactDrop は現在地から 100m 以内のみ可能です。',
+    'zh': 'ExactDrop 仅限于您当前位置 100 米以内。',
+    'fr': "ExactDrop n'est possible qu'à moins de 100 m de votre position.",
+    'de': 'ExactDrop ist nur innerhalb von 100 m Ihres Standorts möglich.',
+    'es': 'ExactDrop solo está disponible dentro de 100 m de tu ubicación.',
+    'pt': 'ExactDrop só funciona até 100 m da sua localização atual.',
+    'ru': 'ExactDrop работает только в пределах 100 м от вашего положения.',
+    'tr': 'ExactDrop yalnızca mevcut konumunuzun 100 m yakınında çalışır.',
+    'ar': 'يعمل ExactDrop فقط ضمن 100 متر من موقعك الحالي.',
+    'it': 'ExactDrop è disponibile solo entro 100 m dalla tua posizione.',
+    'hi': 'ExactDrop केवल आपकी वर्तमान स्थिति के 100 मी के भीतर ही काम करता है।',
+    'th': 'ExactDrop ใช้ได้เฉพาะภายใน 100 ม. จากตำแหน่งปัจจุบันของคุณ',
+  });
+
+  // Build 277: 14세 미만 가입 차단 동의 (KISA 정보통신망법 + GDPR Art.8).
+  String get authAgeAbove14Title => _t({
+    'ko': '만 14세 이상입니다 (필수)',
+    'en': 'I am 14 years or older (Required)',
+    'ja': '14歳以上です(必須)',
+    'zh': '我已满 14 岁(必填)',
+    'fr': "J'ai 14 ans ou plus (Obligatoire)",
+    'de': 'Ich bin 14 Jahre oder älter (Erforderlich)',
+    'es': 'Tengo 14 años o más (Obligatorio)',
+    'pt': 'Tenho 14 anos ou mais (Obrigatório)',
+    'ru': 'Мне 14 лет или больше (Обязательно)',
+    'tr': '14 yaşında veya daha büyüğüm (Zorunlu)',
+    'ar': 'عمري 14 سنة أو أكثر (إلزامي)',
+    'it': 'Ho 14 anni o più (Obbligatorio)',
+    'hi': 'मेरी आयु 14 वर्ष या अधिक है (आवश्यक)',
+    'th': 'ฉันอายุ 14 ปีขึ้นไป (จำเป็น)',
+  });
+
+  String get authAgeAbove14Desc => _t({
+    'ko': '한국 정보통신망법 및 EU GDPR 에 따라 만 14세 미만은 가입할 수 없습니다.',
+    'en': 'Per Korean ICT Network Act & EU GDPR, users under 14 cannot sign up.',
+    'ja': '韓国情報通信網法および EU GDPR により、14歳未満は登録できません。',
+    'zh': '根据韩国信息通信网络法和欧盟 GDPR，未满 14 岁不可注册。',
+    'fr':
+        'Selon la loi coréenne sur les TIC et le RGPD, les moins de 14 ans ne peuvent pas s\'inscrire.',
+    'de':
+        'Laut koreanischem IKT-Gesetz & EU-DSGVO können Nutzer unter 14 sich nicht registrieren.',
+    'es': 'Según la Ley TIC coreana y el RGPD, menores de 14 no pueden registrarse.',
+    'pt': 'Pela Lei TIC coreana e GDPR, menores de 14 não podem se cadastrar.',
+    'ru': 'По закону Кореи об ИКТ и GDPR, лицам до 14 лет регистрация запрещена.',
+    'tr': 'Kore BT Kanunu ve AB GDPR uyarınca 14 yaşın altındakiler kayıt olamaz.',
+    'ar': 'وفقًا لقانون كوريا للشبكات وGDPR، لا يمكن للأشخاص دون 14 عامًا التسجيل.',
+    'it': 'Per la Legge ICT coreana e il GDPR, sotto i 14 anni non è possibile registrarsi.',
+    'hi': 'कोरियाई ICT कानून और GDPR के तहत, 14 वर्ष से कम आयु वाले पंजीकरण नहीं कर सकते।',
+    'th': 'ตามกฎหมาย ICT เกาหลีและ GDPR ผู้ที่อายุต่ำกว่า 14 ปีไม่สามารถสมัครได้',
+  });
+
   String get locationDeniedBanner => _t({
     'ko': '위치 권한 거부 — 근처 핀을 찾을 수 없어요',
     'en': "Location denied — can't find nearby pins",
@@ -9181,33 +9847,51 @@ class AppL10n {
     'en': 'Gift 1 month of Premium to a friend\n(Regular ₩9,900, 10% off)',
     'ja': '友達に1ヶ月プレミアムをプレゼント\n（通常価格₩9,900、10%割引）',
     'zh': '送好友1个��高级版\n（原价₩9,900，9折优惠）',
-    'fr': 'Offrez 1 mois de Premium à un ami\n(Prix normal ₩9 900, remise de 10%)',
-    'de': 'Schenken Sie einem Freund 1 Monat Premium\n(Normalpreis ₩9.900, 10% Rabatt)',
-    'es': 'Regala 1 mes de Premium a un amigo\n(Precio normal ₩9.900, 10% descuento)',
-    'pt': 'Presente de 1 mês de Premium para um amigo\n(Preço normal ₩9.900, 10% desconto)',
+    'fr':
+        'Offrez 1 mois de Premium à un ami\n(Prix normal ₩9 900, remise de 10%)',
+    'de':
+        'Schenken Sie einem Freund 1 Monat Premium\n(Normalpreis ₩9.900, 10% Rabatt)',
+    'es':
+        'Regala 1 mes de Premium a un amigo\n(Precio normal ₩9.900, 10% descuento)',
+    'pt':
+        'Presente de 1 mês de Premium para um amigo\n(Preço normal ₩9.900, 10% desconto)',
     'ru': 'Подарите другу 1 месяц Премиума\n(Обычная цена ₩9 900, скидка 10%)',
-    'tr': 'Bir arkadaşına 1 aylık Premium hediye et\n(Normal fiyat ₩9.900, %10 indirim)',
+    'tr':
+        'Bir arkadaşına 1 aylık Premium hediye et\n(Normal fiyat ₩9.900, %10 indirim)',
     'ar': 'اهدِ صديقك شهر بريميوم\n(السعر العادي ₩9,900، خصم 10%)',
-    'it': 'Regala 1 mese di Premium a un amico\n(Prezzo normale ₩9.900, sconto 10%)',
-    'hi': 'दोस्त को 1 महीने का Premium उपहार दें\n(सामान्य मूल्य ₩9,900, 10% छूट)',
+    'it':
+        'Regala 1 mese di Premium a un amico\n(Prezzo normale ₩9.900, sconto 10%)',
+    'hi':
+        'दोस्त को 1 महीने का Premium उपहार दें\n(सामान्य मूल्य ₩9,900, 10% छूट)',
     'th': 'ให้ของขวัญ Premium 1 เดือนแก่เพื่อน\n(ราคาปกติ ₩9,900 ลด 10%)',
   });
 
   String get premiumGiftCodeDesc => _t({
     'ko': '아래 코드를 친구에게 전달하세요.\n친구가 앱에서 코드를 입력하면\n1개월 프리미엄이 활성화돼요.',
-    'en': 'Share the code below with your friend.\nWhen they enter it in the app,\n1 month of Premium will be activated.',
+    'en':
+        'Share the code below with your friend.\nWhen they enter it in the app,\n1 month of Premium will be activated.',
     'ja': '下のコードを友達に送ってください。\n友達がアプリでコードを入力すると\n1ヶ月プレミアムが有効になります。',
     'zh': '将下方代码发给朋友。\n朋友在应用中输入代码后\n1个月高级版将被激活。',
-    'fr': 'Partagez le code ci-dessous avec votre ami.\nQuand il le saisira dans l\'appli,\n1 mois de Premium sera activé.',
-    'de': 'Teilen Sie den Code unten mit Ihrem Freund.\nWenn er ihn in der App eingibt,\nwird 1 Monat Premium aktiviert.',
-    'es': 'Comparte el código de abajo con tu amigo.\nCuando lo ingrese en la app,\nse activará 1 mes de Premium.',
-    'pt': 'Compartilhe o código abaixo com seu amigo.\nQuando ele inserir no app,\n1 mês de Premium será ativado.',
-    'ru': 'Отправьте код ниже другу.\nКогда он введёт его в приложении,\n1 месяц Премиума будет активирован.',
-    'tr': 'Aşağıdaki kodu arkadaşınla paylaş.\nUygulamada kodu girdiğinde\n1 aylık Premium aktif olur.',
-    'ar': 'شارك الكود أدناه مع صديقك.\nعندما يدخله في التطبيق\nسيتم تفعيل شهر بريميوم.',
-    'it': 'Condividi il codice qui sotto con il tuo amico.\nQuando lo inserirà nell\'app,\n1 mese di Premium verrà attivato.',
-    'hi': 'नीचे दिया गया कोड अपने दोस्त को भेजें।\nजब वे ऐप में कोड दर्ज करेंगे\nतो 1 महीने का Premium सक्रिय होगा।',
-    'th': 'แชร์โค้ดด้านล่างให้เพื่อน\nเมื่อเพื่อนกรอกโค้ดในแอป\nPremium 1 เดือนจะเปิดใช้งาน',
+    'fr':
+        'Partagez le code ci-dessous avec votre ami.\nQuand il le saisira dans l\'appli,\n1 mois de Premium sera activé.',
+    'de':
+        'Teilen Sie den Code unten mit Ihrem Freund.\nWenn er ihn in der App eingibt,\nwird 1 Monat Premium aktiviert.',
+    'es':
+        'Comparte el código de abajo con tu amigo.\nCuando lo ingrese en la app,\nse activará 1 mes de Premium.',
+    'pt':
+        'Compartilhe o código abaixo com seu amigo.\nQuando ele inserir no app,\n1 mês de Premium será ativado.',
+    'ru':
+        'Отправьте код ниже другу.\nКогда он введёт его в приложении,\n1 месяц Премиума будет активирован.',
+    'tr':
+        'Aşağıdaki kodu arkadaşınla paylaş.\nUygulamada kodu girdiğinde\n1 aylık Premium aktif olur.',
+    'ar':
+        'شارك الكود أدناه مع صديقك.\nعندما يدخله في التطبيق\nسيتم تفعيل شهر بريميوم.',
+    'it':
+        'Condividi il codice qui sotto con il tuo amico.\nQuando lo inserirà nell\'app,\n1 mese di Premium verrà attivato.',
+    'hi':
+        'नीचे दिया गया कोड अपने दोस्त को भेजें।\nजब वे ऐप में कोड दर्ज करेंगे\nतो 1 महीने का Premium सक्रिय होगा।',
+    'th':
+        'แชร์โค้ดด้านล่างให้เพื่อน\nเมื่อเพื่อนกรอกโค้ดในแอป\nPremium 1 เดือนจะเปิดใช้งาน',
   });
 
   String get premiumGiftValidity => _t({
@@ -9263,19 +9947,30 @@ class AppL10n {
 
   String get premiumGiftShareBody => _t({
     'ko': '앱에서 코드를 입력하면 1개월 프리미엄이 활성화돼요!\n✉️ 전 세계 혜택으로 인연을 만들어보세요.',
-    'en': 'Enter the code in the app to activate 1 month of Premium!\n📣 Connect with people worldwide through rewards.',
+    'en':
+        'Enter the code in the app to activate 1 month of Premium!\n📣 Connect with people worldwide through rewards.',
     'ja': 'アプリでコードを入力すると1ヶ月プレミアムが有効に！\n✉️ 世界中の人と手紙でつながろう。',
     'zh': '在应用中输入代码即可激活1个月高级版！\n✉️ 通过信件与全世界建立联系。',
-    'fr': 'Entrez le code dans l\'appli pour activer 1 mois de Premium !\n✉️ Connectez-vous avec le monde entier par lettres.',
-    'de': 'Geben Sie den Code in der App ein, um 1 Monat Premium zu aktivieren!\n✉️ Verbinden Sie sich weltweit durch Briefe.',
-    'es': '¡Ingresa el código en la app para activar 1 mes de Premium!\n✉️ Conéctate con personas de todo el mundo a través de cartas.',
-    'pt': 'Insira o código no app para ativar 1 mês de Premium!\n✉️ Conecte-se com pessoas do mundo inteiro por cartas.',
-    'ru': 'Введите код в приложении, чтобы активировать 1 месяц Премиума!\n✉️ Общайтесь с людьми по всему миру ч��рез письма.',
-    'tr': 'Uygulamada kodu girerek 1 aylık Premium aktif edin!\n✉️ Mektuplarla dünya genelinde bağlantı kurun.',
-    'ar': 'أدخل الكود في التطبيق لتفعيل شهر بريميوم!\n✉️ تواصل مع أشخاص حول العالم عبر الرسائل.',
-    'it': 'Inserisci il codice nell\'app per attivare 1 mese di Premium!\n✉️ Connettiti con persone in tutto il mondo tramite lettere.',
-    'hi': 'ऐप में कोड दर्ज करके 1 महीन�� का Premium सक्रिय करें!\n✉️ पत्रों के माध्यम से दुनिया ��र के लोगों से जुड़ें।',
-    'th': 'กรอกโค้ดในแอปเพื่อเปิดใช้งาน Premium 1 เดือน!\n✉️ เชื่อมต่อกับผู้คนทั่วโลกผ่านจดหมาย',
+    'fr':
+        'Entrez le code dans l\'appli pour activer 1 mois de Premium !\n✉️ Connectez-vous avec le monde entier par lettres.',
+    'de':
+        'Geben Sie den Code in der App ein, um 1 Monat Premium zu aktivieren!\n✉️ Verbinden Sie sich weltweit durch Briefe.',
+    'es':
+        '¡Ingresa el código en la app para activar 1 mes de Premium!\n✉️ Conéctate con personas de todo el mundo a través de cartas.',
+    'pt':
+        'Insira o código no app para ativar 1 mês de Premium!\n✉️ Conecte-se com pessoas do mundo inteiro por cartas.',
+    'ru':
+        'Введите код в приложении, чтобы активировать 1 месяц Премиума!\n✉️ Общайтесь с людьми по всему миру ч��рез письма.',
+    'tr':
+        'Uygulamada kodu girerek 1 aylık Premium aktif edin!\n✉️ Mektuplarla dünya genelinde bağlantı kurun.',
+    'ar':
+        'أدخل الكود في التطبيق لتفعيل شهر بريميوم!\n✉️ تواصل مع أشخاص حول العالم عبر الرسائل.',
+    'it':
+        'Inserisci il codice nell\'app per attivare 1 mese di Premium!\n✉️ Connettiti con persone in tutto il mondo tramite lettere.',
+    'hi':
+        'ऐप में कोड दर्ज करके 1 महीन�� का Premium सक्रिय करें!\n✉️ पत्रों के माध्यम से दुनिया ��र के लोगों से जुड़ें।',
+    'th':
+        'กรอกโค้ดในแอปเพื่อเปิดใช้งาน Premium 1 เดือน!\n✉️ เชื่อมต่อกับผู้คนทั่วโลกผ่านจดหมาย',
   });
 
   String get premiumShareToFriend => _t({
@@ -9353,7 +10048,8 @@ class AppL10n {
     'zh': '邀请奖励已发放！已添加5封奖励额度 🎉',
     'fr': 'Récompense d\'invitation reçue ! 5 crédits bonus ajoutés 🎉',
     'de': 'Einladungsbelohnung erhalten! 5 Bonuskredite hinzugefügt 🎉',
-    'es': '¡Recompensa de invitación recibida! 5 créditos de bonificación agregados 🎉',
+    'es':
+        '¡Recompensa de invitación recibida! 5 créditos de bonificación agregados 🎉',
     'pt': 'Recompensa de convite recebida! 5 créditos bônus adicionados 🎉',
     'ru': 'Награда за приглашение получена! Добавлено 5 бонусных кредитов 🎉',
     'tr': 'Davet ödülü alındı! 5 bonus kredi eklendi 🎉',
@@ -9416,17 +10112,25 @@ class AppL10n {
 
   String get premiumInviteServerUnavailable => _t({
     'ko': '서버 연결이 필요해요. 로그인/Firebase 설정을 확인해주세요.',
-    'en': 'Server connection required. Please check your login/Firebase settings.',
+    'en':
+        'Server connection required. Please check your login/Firebase settings.',
     'ja': 'サーバー接続が必要です。ログイン/Firebase設定を確認してください。',
     'zh': '需要服务器连接。请检查登录/Firebase设置。',
-    'fr': 'Connexion au serveur requise. Vérifiez vos paramètres de connexion/Firebase.',
-    'de': 'Serververbindung erforderlich. Bitte überprüfen Sie Ihre Login-/Firebase-Einstellungen.',
-    'es': 'Se requiere conexión al servidor. Verifique su configuración de inicio de sesión/Firebase.',
-    'pt': 'Conexão com servidor necessária. Verifique suas configurações de login/Firebase.',
-    'ru': 'Требуется подключение к серверу. Проверьте настройки входа/Firebase.',
-    'tr': 'Sunucu bağlantısı gerekli. Giriş/Firebase ayarlarınızı kontrol edin.',
+    'fr':
+        'Connexion au serveur requise. Vérifiez vos paramètres de connexion/Firebase.',
+    'de':
+        'Serververbindung erforderlich. Bitte überprüfen Sie Ihre Login-/Firebase-Einstellungen.',
+    'es':
+        'Se requiere conexión al servidor. Verifique su configuración de inicio de sesión/Firebase.',
+    'pt':
+        'Conexão com servidor necessária. Verifique suas configurações de login/Firebase.',
+    'ru':
+        'Требуется подключение к серверу. Проверьте настройки входа/Firebase.',
+    'tr':
+        'Sunucu bağlantısı gerekli. Giriş/Firebase ayarlarınızı kontrol edin.',
     'ar': 'مطلوب اتصال بالخادم. يرجى التحقق من إعدادات تسجيل الدخول/Firebase.',
-    'it': 'Connessione al server necessaria. Controlla le impostazioni di login/Firebase.',
+    'it':
+        'Connessione al server necessaria. Controlla le impostazioni di login/Firebase.',
     'hi': 'सर्वर कनेक्शन आवश्यक। कृपया लॉगिन/Firebase सेटिंग्स जांचें।',
     'th': 'ต้องเชื่อมต่อเซิร์ฟเวอร์ กรุณาตรวจสอบการล็อกอิน/ตั้งค่า Firebase',
   });
@@ -9489,7 +10193,8 @@ class AppL10n {
     'zh': '代码验证后由服务器发放。（每账户1次）',
     'fr': 'La vérification du code se fait côté serveur. (Une fois par compte)',
     'de': 'Code-Überprüfung erfolgt serverseitig. (Einmal pro Konto)',
-    'es': 'La verificación del código se realiza en el servidor. (Una vez por cuenta)',
+    'es':
+        'La verificación del código se realiza en el servidor. (Una vez por cuenta)',
     'pt': 'A verificação do código é feita pelo servidor. (Uma vez por conta)',
     'ru': 'Проверка кода выполняется на сервере. (Один раз на аккаунт)',
     'tr': 'Kod doğrulama sunucu tarafında yapılır. (Hesap başına bir kez)',
@@ -9585,20 +10290,32 @@ class AppL10n {
   });
 
   String get premiumInviteShareBody => _t({
-    'ko': '코드 입력하면 보너스 발송권 지급!\n지도 위 혜택이 실시간으로 여행하고,\n낯선 이에게 닿는 특별한 경험을 해보세요 🌍',
-    'en': 'Enter the code to get bonus credits!\nWatch rewards travel across the map in real time\nand reach someone special 🌍',
+    'ko':
+        '코드 입력하면 보너스 발송권 지급!\n지도 위 혜택이 실시간으로 여행하고,\n낯선 이에게 닿는 특별한 경험을 해보세요 🌍',
+    'en':
+        'Enter the code to get bonus credits!\nWatch rewards travel across the map in real time\nand reach someone special 🌍',
     'ja': 'コードを入力してボーナス送信権をゲット！\n地図上を手紙がリアルタイムで旅し、\n見知らぬ人に届く特別な体験を 🌍',
     'zh': '输入代码获取奖励额度！\n观看信件在地图上实时旅行\n到达陌生人的特别体验 🌍',
-    'fr': 'Entrez le code pour obtenir des crédits bonus !\nRegardez les lettres voyager sur la carte en temps réel\net atteindre quelqu\'un de spécial 🌍',
-    'de': 'Geben Sie den Code ein, um Bonuskredite zu erhalten!\nSehen Sie Briefe in Echtzeit über die Karte reisen\nund jemand Besonderen erreichen 🌍',
-    'es': '¡Ingresa el código para obtener créditos bonus!\nMira las cartas viajar por el mapa en tiempo real\ny llegar a alguien especial 🌍',
-    'pt': 'Insira o código para ganhar créditos bônus!\nVeja cartas viajando pelo mapa em tempo real\ne alcançando alguém especial 🌍',
-    'ru': 'Введите код и получите бонусные кредиты!\nСмотрите, как письма путешествуют по карте в реальном времени\nи достигают кого-то особенного 🌍',
-    'tr': 'Kodu girerek bonus kredi kazan!\nMektupların haritada gerçek zamanlı yolculuğunu izle\nve özel birine ulaş 🌍',
-    'ar': 'أدخل الكود للحصول على رصيد إضافي!\nشاهد الرسائل تسافر عبر الخريطة في الوقت الحقيقي\nوتصل لشخص مميز 🌍',
-    'it': 'Inserisci il codice per ottenere crediti bonus!\nGuarda le lettere viaggiare sulla mappa in tempo reale\ne raggiungere qualcuno di speciale 🌍',
-    'hi': 'बोनस क्रेडिट पाने के लिए कोड दर्ज करें!\nमानचित्र पर पत्रों की वास्तविक समय यात्रा देखें\nऔर किसी विशेष व्यक्ति तक पहुंचें 🌍',
-    'th': 'กรอกโค้ดเพื่อรับเครดิตโบนัส!\nดูจดหมายเดินทางบนแ��นที่แบบเรียลไทม์\nและไปถึงคนพิเศษ 🌍',
+    'fr':
+        'Entrez le code pour obtenir des crédits bonus !\nRegardez les lettres voyager sur la carte en temps réel\net atteindre quelqu\'un de spécial 🌍',
+    'de':
+        'Geben Sie den Code ein, um Bonuskredite zu erhalten!\nSehen Sie Briefe in Echtzeit über die Karte reisen\nund jemand Besonderen erreichen 🌍',
+    'es':
+        '¡Ingresa el código para obtener créditos bonus!\nMira las cartas viajar por el mapa en tiempo real\ny llegar a alguien especial 🌍',
+    'pt':
+        'Insira o código para ganhar créditos bônus!\nVeja cartas viajando pelo mapa em tempo real\ne alcançando alguém especial 🌍',
+    'ru':
+        'Введите код и получите бонусные кредиты!\nСмотрите, как письма путешествуют по карте в реальном времени\nи достигают кого-то особенного 🌍',
+    'tr':
+        'Kodu girerek bonus kredi kazan!\nMektupların haritada gerçek zamanlı yolculuğunu izle\nve özel birine ulaş 🌍',
+    'ar':
+        'أدخل الكود للحصول على رصيد إضافي!\nشاهد الرسائل تسافر عبر الخريطة في الوقت الحقيقي\nوتصل لشخص مميز 🌍',
+    'it':
+        'Inserisci il codice per ottenere crediti bonus!\nGuarda le lettere viaggiare sulla mappa in tempo reale\ne raggiungere qualcuno di speciale 🌍',
+    'hi':
+        'बोनस क्रेडिट पाने के लिए कोड दर्ज करें!\nमानचित्र पर पत्रों की वास्तविक समय यात्रा देखें\nऔर किसी विशेष व्यक्ति तक पहुंचें 🌍',
+    'th':
+        'กรอกโค้ดเพื่อรับเครดิตโบนัส!\nดูจดหมายเดินทางบนแ��นที่แบบเรียลไทม์\nและไปถึงคนพิเศษ 🌍',
   });
 
   String get premiumInviteShareSubject => _t({
@@ -9655,170 +10372,393 @@ class AppL10n {
   // ── Feature compare table ──
 
   String get premiumCompareFeature => _t({
-    'ko': '기능', 'en': 'Feature', 'ja': '機能', 'zh': '功能',
-    'fr': 'Fonction', 'de': 'Funktion', 'es': 'Función', 'pt': 'Função',
-    'ru': 'Функция', 'tr': 'Özellik', 'ar': 'الميزة', 'it': 'Funzione',
-    'hi': 'सुविधा', 'th': 'ฟีเจอร์',
+    'ko': '기능',
+    'en': 'Feature',
+    'ja': '機能',
+    'zh': '功能',
+    'fr': 'Fonction',
+    'de': 'Funktion',
+    'es': 'Función',
+    'pt': 'Função',
+    'ru': 'Функция',
+    'tr': 'Özellik',
+    'ar': 'الميزة',
+    'it': 'Funzione',
+    'hi': 'सुविधा',
+    'th': 'ฟีเจอร์',
   });
 
   String get premiumCompareDailyLetters => _t({
-    'ko': '일일 혜택', 'en': 'Daily rewards', 'ja': '日次手紙', 'zh': '每日信件',
-    'fr': 'Lettres/jour', 'de': 'Tägliche Briefe', 'es': 'Cartas diarias', 'pt': 'Cartas diárias',
-    'ru': 'Писем/день', 'tr': 'Günlük mektup', 'ar': 'رسائل يومية', 'it': 'Lettere/giorno',
-    'hi': 'दैनिक पत्र', 'th': 'จดหมายรายวัน',
+    'ko': '일일 혜택',
+    'en': 'Daily rewards',
+    'ja': '日次手紙',
+    'zh': '每日信件',
+    'fr': 'Lettres/jour',
+    'de': 'Tägliche Briefe',
+    'es': 'Cartas diarias',
+    'pt': 'Cartas diárias',
+    'ru': 'Писем/день',
+    'tr': 'Günlük mektup',
+    'ar': 'رسائل يومية',
+    'it': 'Lettere/giorno',
+    'hi': 'दैनिक पत्र',
+    'th': 'จดหมายรายวัน',
   });
 
   String get premiumCompareMonthlyLetters => _t({
-    'ko': '월 혜택', 'en': 'Monthly rewards', 'ja': '月次手紙', 'zh': '每月信件',
-    'fr': 'Lettres/mois', 'de': 'Monatliche Briefe', 'es': 'Cartas mensuales', 'pt': 'Cartas mensais',
-    'ru': 'Писем/месяц', 'tr': 'Aylık mektup', 'ar': 'رسائل شهرية', 'it': 'Lettere/mese',
-    'hi': 'मासिक पत्र', 'th': 'จดหมายรายเดือน',
+    'ko': '월 혜택',
+    'en': 'Monthly rewards',
+    'ja': '月次手紙',
+    'zh': '每月信件',
+    'fr': 'Lettres/mois',
+    'de': 'Monatliche Briefe',
+    'es': 'Cartas mensuales',
+    'pt': 'Cartas mensais',
+    'ru': 'Писем/месяц',
+    'tr': 'Aylık mektup',
+    'ar': 'رسائل شهرية',
+    'it': 'Lettere/mese',
+    'hi': 'मासिक पत्र',
+    'th': 'จดหมายรายเดือน',
   });
 
   String get premiumCompareImageLink => _t({
-    'ko': '이미지+링크', 'en': 'Image+Link', 'ja': '画像+リンク', 'zh': '图片+链接',
-    'fr': 'Image+Lien', 'de': 'Bild+Link', 'es': 'Imagen+Enlace', 'pt': 'Imagem+Link',
-    'ru': 'Фото+Ссылка', 'tr': 'Resim+Link', 'ar': 'صورة+رابط', 'it': 'Immagine+Link',
-    'hi': 'छवि+लिंक', 'th': 'ภาพ+ลิงก์',
+    'ko': '이미지+링크',
+    'en': 'Image+Link',
+    'ja': '画像+リンク',
+    'zh': '图片+链接',
+    'fr': 'Image+Lien',
+    'de': 'Bild+Link',
+    'es': 'Imagen+Enlace',
+    'pt': 'Imagem+Link',
+    'ru': 'Фото+Ссылка',
+    'tr': 'Resim+Link',
+    'ar': 'صورة+رابط',
+    'it': 'Immagine+Link',
+    'hi': 'छवि+लिंक',
+    'th': 'ภาพ+ลิงก์',
   });
 
   String get premiumCompare20PerDay => _t({
-    'ko': '1일 20통', 'en': '20/day', 'ja': '1日20通', 'zh': '每日20封',
-    'fr': '20/jour', 'de': '20/Tag', 'es': '20/día', 'pt': '20/dia',
-    'ru': '20/день', 'tr': 'Günde 20', 'ar': '20/يوم', 'it': '20/giorno',
-    'hi': '20/दिन', 'th': '20/วัน',
+    'ko': '1일 20통',
+    'en': '20/day',
+    'ja': '1日20通',
+    'zh': '每日20封',
+    'fr': '20/jour',
+    'de': '20/Tag',
+    'es': '20/día',
+    'pt': '20/dia',
+    'ru': '20/день',
+    'tr': 'Günde 20',
+    'ar': '20/يوم',
+    'it': '20/giorno',
+    'hi': '20/दिन',
+    'th': '20/วัน',
   });
 
   String get premiumCompareAllIncluded => _t({
-    'ko': '전부 포함', 'en': 'All included', 'ja': '全て含む', 'zh': '全部包含',
-    'fr': 'Tout inclus', 'de': 'Alles inklusive', 'es': 'Todo incluido', 'pt': 'Tudo incluído',
-    'ru': 'Всё включено', 'tr': 'Hepsi dahil', 'ar': 'الكل مشمول', 'it': 'Tutto incluso',
-    'hi': 'सभी शामिल', 'th': 'รวมทั้งหมด',
+    'ko': '전부 포함',
+    'en': 'All included',
+    'ja': '全て含む',
+    'zh': '全部包含',
+    'fr': 'Tout inclus',
+    'de': 'Alles inklusive',
+    'es': 'Todo incluido',
+    'pt': 'Tudo incluído',
+    'ru': 'Всё включено',
+    'tr': 'Hepsi dahil',
+    'ar': 'الكل مشمول',
+    'it': 'Tutto incluso',
+    'hi': 'सभी शामिल',
+    'th': 'รวมทั้งหมด',
   });
 
   String get premiumCompareExpress => _t({
-    'ko': '특급 배송', 'en': 'Express delivery', 'ja': '特急配送', 'zh': '特快配送',
-    'fr': 'Livraison express', 'de': 'Express-Zustellung', 'es': 'Entrega exprés', 'pt': 'Entrega expressa',
-    'ru': 'Экспресс-доставка', 'tr': 'Ekspres teslimat', 'ar': 'توصيل سريع', 'it': 'Consegna espressa',
-    'hi': 'एक्सप्रेस डिलीवरी', 'th': 'จัดส่งด่วน',
+    'ko': '특급 배송',
+    'en': 'Express delivery',
+    'ja': '特急配送',
+    'zh': '特快配送',
+    'fr': 'Livraison express',
+    'de': 'Express-Zustellung',
+    'es': 'Entrega exprés',
+    'pt': 'Entrega expressa',
+    'ru': 'Экспресс-доставка',
+    'tr': 'Ekspres teslimat',
+    'ar': 'توصيل سريع',
+    'it': 'Consegna espressa',
+    'hi': 'एक्सप्रेस डिलीवरी',
+    'th': 'จัดส่งด่วน',
   });
 
   String get premiumCompare3PerDay => _t({
-    'ko': '1일 3통', 'en': '3/day', 'ja': '1日3通', 'zh': '每日3封',
-    'fr': '3/jour', 'de': '3/Tag', 'es': '3/día', 'pt': '3/dia',
-    'ru': '3/день', 'tr': 'Günde 3', 'ar': '3/يوم', 'it': '3/giorno',
-    'hi': '3/दिन', 'th': '3/วัน',
+    'ko': '1일 3통',
+    'en': '3/day',
+    'ja': '1日3通',
+    'zh': '每日3封',
+    'fr': '3/jour',
+    'de': '3/Tag',
+    'es': '3/día',
+    'pt': '3/dia',
+    'ru': '3/день',
+    'tr': 'Günde 3',
+    'ar': '3/يوم',
+    'it': '3/giorno',
+    'hi': '3/दिन',
+    'th': '3/วัน',
   });
 
   String get premiumCompareInstantBulk => _t({
-    'ko': '5분 즉시·대량', 'en': '5min instant·bulk', 'ja': '5分即時·大量', 'zh': '5分钟即时·批量',
-    'fr': '5min instant·masse', 'de': '5Min sofort·Masse', 'es': '5min instant·masivo', 'pt': '5min instant·massa',
-    'ru': '5мин мгновенно·массово', 'tr': '5dk anında·toplu', 'ar': '5د فوري·جماعي', 'it': '5min istantaneo·massa',
-    'hi': '5मिनट तुरंत·बल्क', 'th': '5นาที ทันที·จำนวนมาก',
+    'ko': '5분 즉시·대량',
+    'en': '5min instant·bulk',
+    'ja': '5分即時·大量',
+    'zh': '5分钟即时·批量',
+    'fr': '5min instant·masse',
+    'de': '5Min sofort·Masse',
+    'es': '5min instant·masivo',
+    'pt': '5min instant·massa',
+    'ru': '5мин мгновенно·массово',
+    'tr': '5dk anında·toplu',
+    'ar': '5د فوري·جماعي',
+    'it': '5min istantaneo·massa',
+    'hi': '5मिनट तुरंत·बल्क',
+    'th': '5นาที ทันที·จำนวนมาก',
   });
 
   String get premiumCompareStyle => _t({
-    'ko': '혜택 스타일', 'en': 'Reward style', 'ja': '手紙スタイル', 'zh': '信件样式',
-    'fr': 'Style de lettre', 'de': 'Briefstil', 'es': 'Estilo de carta', 'pt': 'Estilo de carta',
-    'ru': 'Стиль письма', 'tr': 'Mektup stili', 'ar': 'نمط الرسالة', 'it': 'Stile lettera',
-    'hi': 'पत्र शैली', 'th': 'สไตล์จดหมาย',
+    'ko': '혜택 스타일',
+    'en': 'Reward style',
+    'ja': '手紙スタイル',
+    'zh': '信件样式',
+    'fr': 'Style de lettre',
+    'de': 'Briefstil',
+    'es': 'Estilo de carta',
+    'pt': 'Estilo de carta',
+    'ru': 'Стиль письма',
+    'tr': 'Mektup stili',
+    'ar': 'نمط الرسالة',
+    'it': 'Stile lettera',
+    'hi': 'पत्र शैली',
+    'th': 'สไตล์จดหมาย',
   });
 
   String get premiumCompareBasic => _t({
-    'ko': '기본', 'en': 'Basic', 'ja': '基本', 'zh': '基本',
-    'fr': 'Basique', 'de': 'Basis', 'es': 'Básico', 'pt': 'Básico',
-    'ru': 'Базовый', 'tr': 'Temel', 'ar': 'أساسي', 'it': 'Base',
-    'hi': 'बुनियादी', 'th': 'พื้นฐาน',
+    'ko': '기본',
+    'en': 'Basic',
+    'ja': '基本',
+    'zh': '基本',
+    'fr': 'Basique',
+    'de': 'Basis',
+    'es': 'Básico',
+    'pt': 'Básico',
+    'ru': 'Базовый',
+    'tr': 'Temel',
+    'ar': 'أساسي',
+    'it': 'Base',
+    'hi': 'बुनियादी',
+    'th': 'พื้นฐาน',
   });
 
   String get premiumCompareSpecial => _t({
-    'ko': '특별', 'en': 'Special', 'ja': '特別', 'zh': '特别',
-    'fr': 'Spécial', 'de': 'Speziell', 'es': 'Especial', 'pt': 'Especial',
-    'ru': 'Особый', 'tr': 'Özel', 'ar': 'خاص', 'it': 'Speciale',
-    'hi': 'विशेष', 'th': 'พิเศษ',
+    'ko': '특별',
+    'en': 'Special',
+    'ja': '特別',
+    'zh': '特别',
+    'fr': 'Spécial',
+    'de': 'Speziell',
+    'es': 'Especial',
+    'pt': 'Especial',
+    'ru': 'Особый',
+    'tr': 'Özel',
+    'ar': 'خاص',
+    'it': 'Speciale',
+    'hi': 'विशेष',
+    'th': 'พิเศษ',
   });
 
   String get premiumCompareBrand => _t({
-    'ko': '브랜드', 'en': 'Brand', 'ja': 'ブランド', 'zh': '品牌',
-    'fr': 'Marque', 'de': 'Marke', 'es': 'Marca', 'pt': 'Marca',
-    'ru': 'Бренд', 'tr': 'Marka', 'ar': 'علامة تجارية', 'it': 'Brand',
-    'hi': 'ब्रांड', 'th': 'แบรนด์',
+    'ko': '브랜드',
+    'en': 'Brand',
+    'ja': 'ブランド',
+    'zh': '品牌',
+    'fr': 'Marque',
+    'de': 'Marke',
+    'es': 'Marca',
+    'pt': 'Marca',
+    'ru': 'Бренд',
+    'tr': 'Marka',
+    'ar': 'علامة تجارية',
+    'it': 'Brand',
+    'hi': 'ब्रांड',
+    'th': 'แบรนด์',
   });
 
   String get premiumCompareBulkSend => _t({
-    'ko': '대량 발송', 'en': 'Bulk send', 'ja': '大量送信', 'zh': '批量发送',
-    'fr': 'Envoi en masse', 'de': 'Massenversand', 'es': 'Envío masivo', 'pt': 'Envio em massa',
-    'ru': 'Массовая рассылка', 'tr': 'Toplu gönderim', 'ar': 'إرسال ��ماعي', 'it': 'Invio in massa',
-    'hi': '���ल्क भेजें', 'th': 'ส่งจำนวนมาก',
+    'ko': '대량 발송',
+    'en': 'Bulk send',
+    'ja': '大量送信',
+    'zh': '批量发送',
+    'fr': 'Envoi en masse',
+    'de': 'Massenversand',
+    'es': 'Envío masivo',
+    'pt': 'Envio em massa',
+    'ru': 'Массовая рассылка',
+    'tr': 'Toplu gönderim',
+    'ar': 'إرسال ��ماعي',
+    'it': 'Invio in massa',
+    'hi': '���ल्क भेजें',
+    'th': 'ส่งจำนวนมาก',
   });
 
   // Build 185: 비교표 행 이름에서 타워 표현 제거. 레터 커스터마이즈로 통일.
   String get premiumCompareTowerCustom => _t({
-    'ko': '커스터마이즈', 'en': 'Customize', 'ja': 'カスタマイズ', 'zh': '自定义',
-    'fr': 'Personnaliser', 'de': 'Anpassung', 'es': 'Personalización', 'pt': 'Personalizar',
-    'ru': 'Кастомизация', 'tr': 'Özelleştirme', 'ar': 'تخصيص', 'it': 'Personalizzazione',
-    'hi': 'कस्टमाइज़', 'th': 'ปรับแต่ง',
+    'ko': '커스터마이즈',
+    'en': 'Customize',
+    'ja': 'カスタマイズ',
+    'zh': '自定义',
+    'fr': 'Personnaliser',
+    'de': 'Anpassung',
+    'es': 'Personalización',
+    'pt': 'Personalizar',
+    'ru': 'Кастомизация',
+    'tr': 'Özelleştirme',
+    'ar': 'تخصيص',
+    'it': 'Personalizzazione',
+    'hi': 'कस्टमाइज़',
+    'th': 'ปรับแต่ง',
   });
 
   String get premiumCompareBadge => _t({
-    'ko': '인증 배지', 'en': 'Verified badge', 'ja': '認証バッジ', 'zh': '认证徽章',
-    'fr': 'Badge vérifié', 'de': 'Verifizierungsabzeichen', 'es': 'Insignia verificada', 'pt': 'Selo verificado',
-    'ru': 'Значок верификации', 'tr': 'Doğrulama rozeti', 'ar': 'شارة التحقق', 'it': 'Badge verificato',
-    'hi': 'सत्यापित बैज', 'th': 'เครื่องหมายยืนยัน',
+    'ko': '인증 배지',
+    'en': 'Verified badge',
+    'ja': '認証バッジ',
+    'zh': '认证徽章',
+    'fr': 'Badge vérifié',
+    'de': 'Verifizierungsabzeichen',
+    'es': 'Insignia verificada',
+    'pt': 'Selo verificado',
+    'ru': 'Значок верификации',
+    'tr': 'Doğrulama rozeti',
+    'ar': 'شارة التحقق',
+    'it': 'Badge verificato',
+    'hi': 'सत्यापित बैज',
+    'th': 'เครื่องหมายยืนยัน',
   });
 
   String get premiumCompareReportBtn => _t({
-    'ko': '신고 버튼', 'en': 'Report button', 'ja': '通報ボタン', 'zh': '举报按钮',
-    'fr': 'Bouton signaler', 'de': 'Melden-Button', 'es': 'Botón reportar', 'pt': 'Botão denunciar',
-    'ru': 'Кнопка жалобы', 'tr': 'Şikayet butonu', 'ar': 'زر البلاغ', 'it': 'Pulsante segnala',
-    'hi': 'रिपोर्ट बटन', 'th': 'ปุ่มรายงาน',
+    'ko': '신고 버튼',
+    'en': 'Report button',
+    'ja': '通報ボタン',
+    'zh': '举报按钮',
+    'fr': 'Bouton signaler',
+    'de': 'Melden-Button',
+    'es': 'Botón reportar',
+    'pt': 'Botão denunciar',
+    'ru': 'Кнопка жалобы',
+    'tr': 'Şikayet butonu',
+    'ar': 'زر البلاغ',
+    'it': 'Pulsante segnala',
+    'hi': 'रिपोर्ट बटन',
+    'th': 'ปุ่มรายงาน',
   });
 
   String get premiumCompareShown => _t({
-    'ko': '표시', 'en': 'Shown', 'ja': '表示', 'zh': '显示',
-    'fr': 'Affiché', 'de': 'Angezeigt', 'es': 'Mostrado', 'pt': 'Exibido',
-    'ru': 'Показано', 'tr': 'Gösterilir', 'ar': 'معروض', 'it': 'Mostrato',
-    'hi': 'दिखाया गया', 'th': 'แสดง',
+    'ko': '표시',
+    'en': 'Shown',
+    'ja': '表示',
+    'zh': '显示',
+    'fr': 'Affiché',
+    'de': 'Angezeigt',
+    'es': 'Mostrado',
+    'pt': 'Exibido',
+    'ru': 'Показано',
+    'tr': 'Gösterilir',
+    'ar': 'معروض',
+    'it': 'Mostrato',
+    'hi': 'दिखाया गया',
+    'th': 'แสดง',
   });
 
   String get premiumCompareHidden => _t({
-    'ko': '미표시', 'en': 'Hidden', 'ja': '非表示', 'zh': '隐藏',
-    'fr': 'Masqué', 'de': 'Versteckt', 'es': 'Oculto', 'pt': 'Oculto',
-    'ru': 'Скрыто', 'tr': 'Gizli', 'ar': 'مخفي', 'it': 'Nascosto',
-    'hi': 'छिपा हुआ', 'th': 'ซ่อน',
+    'ko': '미표시',
+    'en': 'Hidden',
+    'ja': '非表示',
+    'zh': '隐藏',
+    'fr': 'Masqué',
+    'de': 'Versteckt',
+    'es': 'Oculto',
+    'pt': 'Oculto',
+    'ru': 'Скрыто',
+    'tr': 'Gizli',
+    'ar': 'مخفي',
+    'it': 'Nascosto',
+    'hi': 'छिपा हुआ',
+    'th': 'ซ่อน',
   });
 
   String get premiumCompareMonthlyPrice => _t({
-    'ko': '월 가격', 'en': 'Monthly price', 'ja': '月額', 'zh': '月价格',
-    'fr': 'Prix mensuel', 'de': 'Monatspreis', 'es': 'Precio mensual', 'pt': 'Preço mensal',
-    'ru': 'Цена/месяц', 'tr': 'Aylık fiyat', 'ar': 'السعر الشهري', 'it': 'Prezzo mensile',
-    'hi': 'मासिक मूल्य', 'th': 'ราคารายเดือน',
+    'ko': '월 가격',
+    'en': 'Monthly price',
+    'ja': '月額',
+    'zh': '月价格',
+    'fr': 'Prix mensuel',
+    'de': 'Monatspreis',
+    'es': 'Precio mensual',
+    'pt': 'Preço mensal',
+    'ru': 'Цена/месяц',
+    'tr': 'Aylık fiyat',
+    'ar': 'السعر الشهري',
+    'it': 'Prezzo mensile',
+    'hi': 'मासिक मूल्य',
+    'th': 'ราคารายเดือน',
   });
 
   String get premiumCompareFree => _t({
-    'ko': '무료', 'en': 'Free', 'ja': '無料', 'zh': '免费',
-    'fr': 'Gratuit', 'de': 'Kostenlos', 'es': 'Gratis', 'pt': 'Grátis',
-    'ru': 'Бесплатно', 'tr': 'Ücretsiz', 'ar': 'مجاني', 'it': 'Gratuito',
-    'hi': 'मुफ्त', 'th': 'ฟรี',
+    'ko': '무료',
+    'en': 'Free',
+    'ja': '無料',
+    'zh': '免费',
+    'fr': 'Gratuit',
+    'de': 'Kostenlos',
+    'es': 'Gratis',
+    'pt': 'Grátis',
+    'ru': 'Бесплатно',
+    'tr': 'Ücretsiz',
+    'ar': 'مجاني',
+    'it': 'Gratuito',
+    'hi': 'मुफ्त',
+    'th': 'ฟรี',
   });
 
   // ── Downgrade section ──
 
   String get premiumDowngradeDialogBody => _t({
-    'ko': '플랜을 무료로 변경하면:\n• 현재 결제 기간 종료 후 무료로 전환됩니다\n• 다음 결제일부터 요금이 청구되지 않아요\n• 현재 기간 동안은 모든 기능을 계속 이용하실 수 있어요',
-    'en': 'If you switch to the Free plan:\n• You will switch to Free after the current billing period\n• No charges from the next billing date\n• You can continue using all features during the current period',
-    'ja': '無料プランに変更すると：\n• 現在の決済期間終了後に無料に変更されます\n• 次の決済日から料金は発生しません\n• 現在の期間中は全機能をご利用いただけます',
+    'ko':
+        '플랜을 무료로 변경하면:\n• 현재 결제 기간 종료 후 무료로 전환됩니다\n• 다음 결제일부터 요금이 청구되지 않아요\n• 현재 기간 동안은 모든 기능을 계속 이용하실 수 있어요',
+    'en':
+        'If you switch to the Free plan:\n• You will switch to Free after the current billing period\n• No charges from the next billing date\n• You can continue using all features during the current period',
+    'ja':
+        '無料プランに変更すると：\n• 現在の決済期間終了後に無料に変更されます\n• 次の決済日から料金は発生しません\n• 現在の期間中は全機能をご利用いただけます',
     'zh': '切换到免费���案后：\n• 当前付费期结束后切换为免费\n• 下一个付款日起不再收费\n• 当前期间内可继续使用所有功能',
-    'fr': 'Si vous passez au forfait gratuit :\n• Vous passerez en gratuit après la période de facturation actuelle\n• Aucun frais à partir de la prochaine date de facturation\n• Vous pouvez continuer à utiliser toutes les fonctions pendant la période actuelle',
-    'de': 'Wenn Sie zum kostenlosen Plan wechseln:\n• Sie wechseln nach dem aktuellen Abrechnungszeitraum zu Kostenlos\n• Keine Gebühren ab dem nächsten Abrechnungsdatum\n• Sie können alle Funktionen während des aktuellen Zeitraums weiter nutzen',
-    'es': 'Si cambia al plan gratuito:\n• Cambiará a Gratis después del período de facturación actual\n• Sin cargos desde la próxima fecha de facturación\n• Puede seguir usando todas las funciones durante el período actual',
-    'pt': 'Se mudar para o plano gratuito:\n• Mudará para Grátis após o período de cobrança atual\n• Sem cobranças a partir da próxima data de cobrança\n• Pode continuar usando todas as funções durante o período atual',
-    'ru': 'При переходе на бесплатный план:\n• Переход произойдёт после текущего периода оплаты\n• Со следующей даты оплаты средства списываться не будут\n• До конца текущего периода все функции доступны',
-    'tr': 'Ücretsiz plana geçerseniz:\n• Mevcut fatura döneminden sonra ücretsiz olacaksınız\n• Sonraki fatura tarihinden itibaren ücret alınmaz\n• Mevcut dönem boyunca tüm özellikleri kullanmaya devam edebilirsiniz',
-    'ar': 'عند التبديل إلى الخطة المجانية:\n• ستنتقل إلى المجانية بعد فترة الفوترة الحالية\n• لن يتم ت��صيل رسوم من تاريخ الفوترة التالي\n• يمكنك الاستمرار في استخدام جميع الميزات خلال الفترة الحالية',
-    'it': 'Se passi al piano gratuito:\n• Passerai a Gratuito dopo il periodo di fatturazione attuale\n• Nessun addebito dalla prossima data di fatturazione\n• Puoi continuare a usare tutte le funzioni durante il periodo attuale',
-    'hi': 'यदि आप मुफ्त योजना पर स्विच करते हैं:\n• वर्तमान बिलिंग अवधि के बाद मुफ्त में बदलेंगे\n• अगली बिलिंग तिथि से कोई शुल्क नहीं\n• वर्तमान अवधि के दौरान सभी सुविधाओं का उपयोग जारी रख सकते हैं',
-    'th': 'หากเปลี่ยนเป็นแพ็กเกจฟรี:\n• จะเปลี่ยนเป็นฟรีหลังสิ้นสุดรอบบิลปัจจุบัน\n• ไม่เรียกเก็บเงินตั้งแต่วันบิลถัดไป\n• ยังใช้งานฟีเจอร์ทั้งหมดได้ในรอบปัจจุบัน',
+    'fr':
+        'Si vous passez au forfait gratuit :\n• Vous passerez en gratuit après la période de facturation actuelle\n• Aucun frais à partir de la prochaine date de facturation\n• Vous pouvez continuer à utiliser toutes les fonctions pendant la période actuelle',
+    'de':
+        'Wenn Sie zum kostenlosen Plan wechseln:\n• Sie wechseln nach dem aktuellen Abrechnungszeitraum zu Kostenlos\n• Keine Gebühren ab dem nächsten Abrechnungsdatum\n• Sie können alle Funktionen während des aktuellen Zeitraums weiter nutzen',
+    'es':
+        'Si cambia al plan gratuito:\n• Cambiará a Gratis después del período de facturación actual\n• Sin cargos desde la próxima fecha de facturación\n• Puede seguir usando todas las funciones durante el período actual',
+    'pt':
+        'Se mudar para o plano gratuito:\n• Mudará para Grátis após o período de cobrança atual\n• Sem cobranças a partir da próxima data de cobrança\n• Pode continuar usando todas as funções durante o período atual',
+    'ru':
+        'При переходе на бесплатный план:\n• Переход произойдёт после текущего периода оплаты\n• Со следующей даты оплаты средства списываться не будут\n• До конца текущего периода все функции доступны',
+    'tr':
+        'Ücretsiz plana geçerseniz:\n• Mevcut fatura döneminden sonra ücretsiz olacaksınız\n• Sonraki fatura tarihinden itibaren ücret alınmaz\n• Mevcut dönem boyunca tüm özellikleri kullanmaya devam edebilirsiniz',
+    'ar':
+        'عند التبديل إلى الخطة المجانية:\n• ستنتقل إلى المجانية بعد فترة الفوترة الحالية\n• لن يتم ت��صيل رسوم من تاريخ الفوترة التالي\n• يمكنك الاستمرار في استخدام جميع الميزات خلال الفترة الحالية',
+    'it':
+        'Se passi al piano gratuito:\n• Passerai a Gratuito dopo il periodo di fatturazione attuale\n• Nessun addebito dalla prossima data di fatturazione\n• Puoi continuare a usare tutte le funzioni durante il periodo attuale',
+    'hi':
+        'यदि आप मुफ्त योजना पर स्विच करते हैं:\n• वर्तमान बिलिंग अवधि के बाद मुफ्त में बदलेंगे\n• अगली बिलिंग तिथि से कोई शुल्क नहीं\n• वर्तमान अवधि के दौरान सभी सुविधाओं का उपयोग जारी रख सकते हैं',
+    'th':
+        'หากเปลี่ยนเป็นแพ็กเกจฟรี:\n• จะเปลี่ยนเป็นฟรีหลังสิ้นสุดรอบบิลปัจจุบัน\n• ไม่เรียกเก็บเงินตั้งแต่วันบิลถัดไป\n• ยังใช้งานฟีเจอร์ทั้งหมดได้ในรอบปัจจุบัน',
   });
 
   String get premiumDowngradeNextBilling => _t({
@@ -9829,7 +10769,8 @@ class AppL10n {
     'fr': 'Vous passerez au forfait gratuit à la prochaine date de facturation',
     'de': 'Sie wechseln ab dem nächsten Abrechnungsdatum zum kostenlosen Plan',
     'es': 'Cambiará al plan gratuito desde la próxima fecha de facturación',
-    'pt': 'Você mudará para o plano gratuito a partir da próxima data de cobrança',
+    'pt':
+        'Você mudará para o plano gratuito a partir da próxima data de cobrança',
     'ru': 'Вы перейдёте на бесплатный план со следующей даты оплаты',
     'tr': 'Bir sonraki fatura tarihinden itibaren ücretsiz plana geçeceksiniz',
     'ar': 'ستنتقل إلى الخطة المجانية من تاريخ الفوترة التالي',
@@ -9841,96 +10782,226 @@ class AppL10n {
   // ── Pending plan change ──
 
   String get premiumPendingFreeChange => _t({
-    'ko': '무료 플랜 전환 예정', 'en': 'Free plan change scheduled', 'ja': '無料プラン変更予定', 'zh': '免费方案切换预定',
-    'fr': 'Passage au gratuit prévu', 'de': 'Wechsel zu Kostenlos geplant', 'es': 'Cambio a gratuito programado', 'pt': 'Mudança para gratuito agendada',
-    'ru': 'Запланирован переход на бесплатный', 'tr': 'Ücretsiz plana geçiş planlandı', 'ar': 'مقرر التبديل إلى المجانية', 'it': 'Passaggio a gratuito previsto',
-    'hi': 'मुफ्त योजना बदलाव निर्धारि��', 'th': 'กำหนดเปลี่ยนเป็นแพ็กเกจฟรี',
+    'ko': '무료 플랜 전환 예정',
+    'en': 'Free plan change scheduled',
+    'ja': '無料プラン変更予定',
+    'zh': '免费方案切换预定',
+    'fr': 'Passage au gratuit prévu',
+    'de': 'Wechsel zu Kostenlos geplant',
+    'es': 'Cambio a gratuito programado',
+    'pt': 'Mudança para gratuito agendada',
+    'ru': 'Запланирован переход на бесплатный',
+    'tr': 'Ücretsiz plana geçiş planlandı',
+    'ar': 'مقرر التبديل إلى المجانية',
+    'it': 'Passaggio a gratuito previsto',
+    'hi': 'मुफ्त योजना बदलाव निर्धारि��',
+    'th': 'กำหนดเปลี่ยนเป็นแพ็กเกจฟรี',
   });
 
   String get premiumPendingBrandChange => _t({
-    'ko': 'Brand / Creator 변경 예정', 'en': 'Brand / Creator change scheduled', 'ja': 'Brand / Creator変更予定', 'zh': 'Brand / Creator 切换预定',
-    'fr': 'Passage à Brand / Creator prévu', 'de': 'Wechsel zu Brand / Creator geplant', 'es': 'Cambio a Brand / Creator programado', 'pt': 'Mudança para Brand / Creator agendada',
-    'ru': 'Запланирован переход на Brand / Creator', 'tr': 'Brand / Creator geçişi planlandı', 'ar': 'مقرر التبديل إلى Brand / Creator', 'it': 'Passaggio a Brand / Creator previsto',
-    'hi': 'Brand / Creator बदलाव निर्धारित', 'th': 'กำหนดเปลี่ยนเป็น Brand / Creator',
+    'ko': 'Brand / Creator 변경 예정',
+    'en': 'Brand / Creator change scheduled',
+    'ja': 'Brand / Creator変更予定',
+    'zh': 'Brand / Creator 切换预定',
+    'fr': 'Passage à Brand / Creator prévu',
+    'de': 'Wechsel zu Brand / Creator geplant',
+    'es': 'Cambio a Brand / Creator programado',
+    'pt': 'Mudança para Brand / Creator agendada',
+    'ru': 'Запланирован переход на Brand / Creator',
+    'tr': 'Brand / Creator geçişi planlandı',
+    'ar': 'مقرر التبديل إلى Brand / Creator',
+    'it': 'Passaggio a Brand / Creator previsto',
+    'hi': 'Brand / Creator बदलाव निर्धारित',
+    'th': 'กำหนดเปลี่ยนเป็น Brand / Creator',
   });
 
   String get premiumPendingFreeAfter => _t({
-    'ko': '이후 무료로 변경됩니다', 'en': 'will switch to Free', 'ja': '以降無料に変更されます', 'zh': '之后切换为免费',
-    'fr': 'passage au gratuit', 'de': 'Wechsel zu Kostenlos', 'es': 'cambio a gratuito', 'pt': 'mudança para gratuito',
-    'ru': 'переход на бесплатный', 'tr': 'ücretsiz plana geçilecek', 'ar': 'سيتم التبديل إلى المجانية', 'it': 'passaggio a gratuito',
-    'hi': 'मुफ्त में बदलेंगे', 'th': 'จะเปลี่ยนเป็นฟรี',
+    'ko': '이후 무료로 변경됩니다',
+    'en': 'will switch to Free',
+    'ja': '以降無料に変更されます',
+    'zh': '之后切换为免费',
+    'fr': 'passage au gratuit',
+    'de': 'Wechsel zu Kostenlos',
+    'es': 'cambio a gratuito',
+    'pt': 'mudança para gratuito',
+    'ru': 'переход на бесплатный',
+    'tr': 'ücretsiz plana geçilecek',
+    'ar': 'سيتم التبديل إلى المجانية',
+    'it': 'passaggio a gratuito',
+    'hi': 'मुफ्त में बदलेंगे',
+    'th': 'จะเปลี่ยนเป็นฟรี',
   });
 
   String get premiumPendingBrandAfter => _t({
-    'ko': '이후 Brand / Creator로 변경됩니다', 'en': 'will switch to Brand / Creator', 'ja': '以降Brand / Creatorに変更されます', 'zh': '之后切换为Brand / Creator',
-    'fr': 'passage à Brand / Creator', 'de': 'Wechsel zu Brand / Creator', 'es': 'cambio a Brand / Creator', 'pt': 'mudança para Brand / Creator',
-    'ru': 'переход на Brand / Creator', 'tr': 'Brand / Creator\'a geçilecek', 'ar': 'سيتم التبديل إلى Brand / Creator', 'it': 'passaggio a Brand / Creator',
-    'hi': 'Brand / Creator में बदलेंगे', 'th': 'จะเปลี่ยนเป็น Brand / Creator',
+    'ko': '이후 Brand / Creator로 변경됩니다',
+    'en': 'will switch to Brand / Creator',
+    'ja': '以降Brand / Creatorに変更されます',
+    'zh': '之后切换为Brand / Creator',
+    'fr': 'passage à Brand / Creator',
+    'de': 'Wechsel zu Brand / Creator',
+    'es': 'cambio a Brand / Creator',
+    'pt': 'mudança para Brand / Creator',
+    'ru': 'переход на Brand / Creator',
+    'tr': 'Brand / Creator\'a geçilecek',
+    'ar': 'سيتم التبديل إلى Brand / Creator',
+    'it': 'passaggio a Brand / Creator',
+    'hi': 'Brand / Creator में बदलेंगे',
+    'th': 'จะเปลี่ยนเป็น Brand / Creator',
   });
 
   // ── Brand extra tile ──
 
   String get premiumQuotaMonthlyLimit => _t({
-    'ko': '이번 달 한도', 'en': 'Monthly limit', 'ja': '今月の上限', 'zh': '本月额度',
-    'fr': 'Limite mensuelle', 'de': 'Monatslimit', 'es': 'Límite mensual', 'pt': 'Limite mensal',
-    'ru': 'Лимит за месяц', 'tr': 'Aylık limit', 'ar': 'حد الشهر', 'it': 'Limite mensile',
-    'hi': 'मासिक सीमा', 'th': 'โควต้าเดือนนี้',
+    'ko': '이번 달 한도',
+    'en': 'Monthly limit',
+    'ja': '今月の上限',
+    'zh': '本月额度',
+    'fr': 'Limite mensuelle',
+    'de': 'Monatslimit',
+    'es': 'Límite mensual',
+    'pt': 'Limite mensal',
+    'ru': 'Лимит за месяц',
+    'tr': 'Aylık limit',
+    'ar': 'حد الشهر',
+    'it': 'Limite mensile',
+    'hi': 'मासिक सीमा',
+    'th': 'โควต้าเดือนนี้',
   });
 
   String get premiumQuotaBase => _t({
-    'ko': '기본', 'en': 'Base', 'ja': '基本', 'zh': '基本',
-    'fr': 'Base', 'de': 'Basis', 'es': 'Base', 'pt': 'Base',
-    'ru': 'Базовый', 'tr': 'Temel', 'ar': 'أساسي', 'it': 'Base',
-    'hi': 'आधार', 'th': 'พื้นฐาน',
+    'ko': '기본',
+    'en': 'Base',
+    'ja': '基本',
+    'zh': '基本',
+    'fr': 'Base',
+    'de': 'Basis',
+    'es': 'Base',
+    'pt': 'Base',
+    'ru': 'Базовый',
+    'tr': 'Temel',
+    'ar': 'أساسي',
+    'it': 'Base',
+    'hi': 'आधार',
+    'th': 'พื้นฐาน',
   });
 
   String get premiumQuotaExtra => _t({
-    'ko': '추가', 'en': 'Extra', 'ja': '追加', 'zh': '额外',
-    'fr': 'Extra', 'de': 'Extra', 'es': 'Extra', 'pt': 'Extra',
-    'ru': 'Доп.', 'tr': 'Ek', 'ar': 'إضافي', 'it': 'Extra',
-    'hi': 'अतिरिक्त', 'th': 'เพิ่มเติม',
+    'ko': '추가',
+    'en': 'Extra',
+    'ja': '追加',
+    'zh': '额外',
+    'fr': 'Extra',
+    'de': 'Extra',
+    'es': 'Extra',
+    'pt': 'Extra',
+    'ru': 'Доп.',
+    'tr': 'Ek',
+    'ar': 'إضافي',
+    'it': 'Extra',
+    'hi': 'अतिरिक्त',
+    'th': 'เพิ่มเติม',
   });
 
   String get premiumQuotaBaseLimit => _t({
-    'ko': '기본 한도', 'en': 'Base limit', 'ja': '基本上限', 'zh': '基本额度',
-    'fr': 'Limite de base', 'de': 'Basislimit', 'es': 'Límite base', 'pt': 'Limite base',
-    'ru': 'Базовый лимит', 'tr': 'Temel limit', 'ar': 'الحد الأساسي', 'it': 'Limite base',
-    'hi': 'आधार सीमा', 'th': 'โควต้าพื้นฐาน',
+    'ko': '기본 한도',
+    'en': 'Base limit',
+    'ja': '基本上限',
+    'zh': '基本额度',
+    'fr': 'Limite de base',
+    'de': 'Basislimit',
+    'es': 'Límite base',
+    'pt': 'Limite base',
+    'ru': 'Базовый лимит',
+    'tr': 'Temel limit',
+    'ar': 'الحد الأساسي',
+    'it': 'Limite base',
+    'hi': 'आधार सीमा',
+    'th': 'โควต้าพื้นฐาน',
   });
 
   String get premiumQuotaRemaining => _t({
-    'ko': '남은 발송량', 'en': 'Remaining', 'ja': '残り送信数', 'zh': '剩余发送量',
-    'fr': 'Restant', 'de': 'Verbleibend', 'es': 'Restante', 'pt': 'Restante',
-    'ru': 'Осталось', 'tr': 'Kalan', 'ar': 'المتبقي', 'it': 'Rimanente',
-    'hi': 'शेष', 'th': 'คงเหลือ',
+    'ko': '남은 발송량',
+    'en': 'Remaining',
+    'ja': '残り送信数',
+    'zh': '剩余发送量',
+    'fr': 'Restant',
+    'de': 'Verbleibend',
+    'es': 'Restante',
+    'pt': 'Restante',
+    'ru': 'Осталось',
+    'tr': 'Kalan',
+    'ar': 'المتبقي',
+    'it': 'Rimanente',
+    'hi': 'शेष',
+    'th': 'คงเหลือ',
   });
 
   String get premiumQuotaThisMonth => _t({
-    'ko': '이번 달 기준', 'en': 'This month', 'ja': '今月基準', 'zh': '本月基准',
-    'fr': 'Ce mois', 'de': 'Diesen Monat', 'es': 'Este mes', 'pt': 'Este mês',
-    'ru': 'За этот месяц', 'tr': 'Bu ay', 'ar': 'هذا الشهر', 'it': 'Questo mese',
-    'hi': 'इस महीने', 'th': 'เดือนนี้',
+    'ko': '이번 달 기준',
+    'en': 'This month',
+    'ja': '今月基準',
+    'zh': '本月基准',
+    'fr': 'Ce mois',
+    'de': 'Diesen Monat',
+    'es': 'Este mes',
+    'pt': 'Este mês',
+    'ru': 'За этот месяц',
+    'tr': 'Bu ay',
+    'ar': 'هذا الشهر',
+    'it': 'Questo mese',
+    'hi': 'इस महीने',
+    'th': 'เดือนนี้',
   });
 
   String get premiumQuotaExtraPurchase => _t({
-    'ko': '추가 구매', 'en': 'Extra purchased', 'ja': '追加購入', 'zh': '额外购买',
-    'fr': 'Acheté en extra', 'de': 'Extra gekauft', 'es': 'Compra extra', 'pt': 'Compra extra',
-    'ru': 'Доп. покупки', 'tr': 'Ek satın alma', 'ar': 'شراء إضافي', 'it': 'Acquisto extra',
-    'hi': 'अतिरिक्त खरीद', 'th': 'ซื้อเพิ่ม',
+    'ko': '추가 구매',
+    'en': 'Extra purchased',
+    'ja': '追加購入',
+    'zh': '额外购买',
+    'fr': 'Acheté en extra',
+    'de': 'Extra gekauft',
+    'es': 'Compra extra',
+    'pt': 'Compra extra',
+    'ru': 'Доп. покупки',
+    'tr': 'Ek satın alma',
+    'ar': 'شراء إضافي',
+    'it': 'Acquisto extra',
+    'hi': 'अतिरिक्त खरीद',
+    'th': 'ซื้อเพิ่ม',
   });
 
   String get premiumQuotaExtraAdded => _t({
-    'ko': '통 추가', 'en': 'extra', 'ja': '通追加', 'zh': '封额外',
-    'fr': 'supplémentaires', 'de': 'zusätzlich', 'es': 'extra', 'pt': 'extras',
-    'ru': 'доп.', 'tr': 'ek', 'ar': 'إضافي', 'it': 'extra',
-    'hi': 'अतिरिक्त', 'th': 'เพิ่มเติม',
+    'ko': '통 추가',
+    'en': 'extra',
+    'ja': '通追加',
+    'zh': '封额外',
+    'fr': 'supplémentaires',
+    'de': 'zusätzlich',
+    'es': 'extra',
+    'pt': 'extras',
+    'ru': 'доп.',
+    'tr': 'ek',
+    'ar': 'إضافي',
+    'it': 'extra',
+    'hi': 'अतिरिक्त',
+    'th': 'เพิ่มเติม',
   });
 
   String get premiumQuotaPacks => _t({
-    'ko': '팩', 'en': 'packs', 'ja': 'パック', 'zh': '包',
-    'fr': 'packs', 'de': 'Pakete', 'es': 'paquetes', 'pt': 'pacotes',
-    'ru': 'пакетов', 'tr': 'paket', 'ar': 'حزم', 'it': 'pacchetti',
-    'hi': 'पैक', 'th': 'แพ็ค',
+    'ko': '팩',
+    'en': 'packs',
+    'ja': 'パック',
+    'zh': '包',
+    'fr': 'packs',
+    'de': 'Pakete',
+    'es': 'paquetes',
+    'pt': 'pacotes',
+    'ru': 'пакетов',
+    'tr': 'paket',
+    'ar': 'حزم',
+    'it': 'pacchetti',
+    'hi': 'पैक',
+    'th': 'แพ็ค',
   });
 
   String get premiumExtraAdded => _t({
@@ -10041,17 +11112,26 @@ class AppL10n {
 
   String get premiumBrandUpgradeDesc1 => _t({
     'ko': '다음 결제부터 Brand / Creator 플랜(₩99,000/월)으로 변경됩니다.',
-    'en': 'Starting from the next billing, you will be switched to the Brand / Creator plan (₩99,000/mo).',
+    'en':
+        'Starting from the next billing, you will be switched to the Brand / Creator plan (₩99,000/mo).',
     'ja': '次の決済からBrand / Creatorプラン（₩99,000/月）に変更されます。',
     'zh': '从下次付款起将切换到Brand / Creator方案（₩99,000/月）。',
-    'fr': 'À partir de la prochaine facturation, vous passerez au forfait Brand / Creator (₩99 000/mois).',
-    'de': 'Ab der nächsten Abrechnung wechseln Sie zum Brand / Creator-Plan (₩99.000/Monat).',
-    'es': 'A partir de la próxima facturación, cambiará al plan Brand / Creator (₩99.000/mes).',
-    'pt': 'A partir da próxima cobrança, mudará para o plano Brand / Creator (₩99.000/mês).',
-    'ru': 'Со следующей оплаты вы перейдёте на план Brand / Creator (₩99 000/мес).',
-    'tr': 'Bir sonraki faturadan itibaren Brand / Creator planına (₩99.000/ay) geçilecek.',
-    'ar': 'بدءاً من الفوترة التالية، ستنتقل إلى خطة Brand / Creator (₩99,000/شهر).',
-    'it': 'Dalla prossima fatturazione, passerai al piano Brand / Creator (₩99.000/mese).',
+    'fr':
+        'À partir de la prochaine facturation, vous passerez au forfait Brand / Creator (₩99 000/mois).',
+    'de':
+        'Ab der nächsten Abrechnung wechseln Sie zum Brand / Creator-Plan (₩99.000/Monat).',
+    'es':
+        'A partir de la próxima facturación, cambiará al plan Brand / Creator (₩99.000/mes).',
+    'pt':
+        'A partir da próxima cobrança, mudará para o plano Brand / Creator (₩99.000/mês).',
+    'ru':
+        'Со следующей оплаты вы перейдёте на план Brand / Creator (₩99 000/мес).',
+    'tr':
+        'Bir sonraki faturadan itibaren Brand / Creator planına (₩99.000/ay) geçilecek.',
+    'ar':
+        'بدءاً من الفوترة التالية، ستنتقل إلى خطة Brand / Creator (₩99,000/شهر).',
+    'it':
+        'Dalla prossima fatturazione, passerai al piano Brand / Creator (₩99.000/mese).',
     'hi': 'अगली बिलिंग से Brand / Creator योजना (₩99,000/माह) पर स्विच होगा।',
     'th': 'ตั้งแต่บิลถัดไปจะเปลี่ยนเป็นแพ็กเกจ Brand / Creator (₩99,000/เดือน)',
   });
@@ -10110,17 +11190,37 @@ class AppL10n {
   // ── Share options ──
 
   String get premiumShareTitle => _t({
-    'ko': '공유하기', 'en': 'Share', 'ja': 'シェア', 'zh': '分享',
-    'fr': 'Partager', 'de': 'Teilen', 'es': 'Compartir', 'pt': 'Compartilhar',
-    'ru': 'Поделиться', 'tr': 'Paylaş', 'ar': 'مشاركة', 'it': 'Condividi',
-    'hi': 'साझा करें', 'th': 'แชร์',
+    'ko': '공유하기',
+    'en': 'Share',
+    'ja': 'シェア',
+    'zh': '分享',
+    'fr': 'Partager',
+    'de': 'Teilen',
+    'es': 'Compartir',
+    'pt': 'Compartilhar',
+    'ru': 'Поделиться',
+    'tr': 'Paylaş',
+    'ar': 'مشاركة',
+    'it': 'Condividi',
+    'hi': 'साझा करें',
+    'th': 'แชร์',
   });
 
   String get premiumShareKakao => _t({
-    'ko': '카카오톡', 'en': 'KakaoTalk', 'ja': 'KakaoTalk', 'zh': 'KakaoTalk',
-    'fr': 'KakaoTalk', 'de': 'KakaoTalk', 'es': 'KakaoTalk', 'pt': 'KakaoTalk',
-    'ru': 'KakaoTalk', 'tr': 'KakaoTalk', 'ar': 'KakaoTalk', 'it': 'KakaoTalk',
-    'hi': 'KakaoTalk', 'th': 'KakaoTalk',
+    'ko': '카카오톡',
+    'en': 'KakaoTalk',
+    'ja': 'KakaoTalk',
+    'zh': 'KakaoTalk',
+    'fr': 'KakaoTalk',
+    'de': 'KakaoTalk',
+    'es': 'KakaoTalk',
+    'pt': 'KakaoTalk',
+    'ru': 'KakaoTalk',
+    'tr': 'KakaoTalk',
+    'ar': 'KakaoTalk',
+    'it': 'KakaoTalk',
+    'hi': 'KakaoTalk',
+    'th': 'KakaoTalk',
   });
 
   String get premiumShareKakaoDesc => _t({
@@ -10148,7 +11248,8 @@ class AppL10n {
     'fr': 'KakaoTalk introuvable. Texte copié dans le presse-papiers 📋',
     'de': 'KakaoTalk nicht gefunden. Text in die Zwischenablage kopiert 📋',
     'es': 'KakaoTalk no encontrado. Texto copiado al portapapeles 📋',
-    'pt': 'KakaoTalk não encontrado. Texto copiado para a área de transferência 📋',
+    'pt':
+        'KakaoTalk não encontrado. Texto copiado para a área de transferência 📋',
     'ru': 'KakaoTalk не найден. Текст скопирован в буфер обмена 📋',
     'tr': 'KakaoTalk bulunamadı. Metin panoya kopyalandı 📋',
     'ar': 'KakaoTalk غير موجود. تم نسخ النص إلى الحافظة 📋',
@@ -10158,10 +11259,20 @@ class AppL10n {
   });
 
   String get premiumShareEmail => _t({
-    'ko': '이메일', 'en': 'Email', 'ja': 'メール', 'zh': '电子邮件',
-    'fr': 'E-mail', 'de': 'E-Mail', 'es': 'Correo electrónico', 'pt': 'E-mail',
-    'ru': 'Электронная почта', 'tr': 'E-posta', 'ar': 'البريد الإلكتروني', 'it': 'E-mail',
-    'hi': 'ईमेल', 'th': 'อีเมล',
+    'ko': '이메일',
+    'en': 'Email',
+    'ja': 'メール',
+    'zh': '电子邮件',
+    'fr': 'E-mail',
+    'de': 'E-Mail',
+    'es': 'Correo electrónico',
+    'pt': 'E-mail',
+    'ru': 'Электронная почта',
+    'tr': 'E-posta',
+    'ar': 'البريد الإلكتروني',
+    'it': 'E-mail',
+    'hi': 'ईमेल',
+    'th': 'อีเมล',
   });
 
   String get premiumShareEmailDesc => _t({
@@ -10182,10 +11293,20 @@ class AppL10n {
   });
 
   String get premiumShareSms => _t({
-    'ko': '문자 메시지', 'en': 'Text Message', 'ja': 'テキストメッセージ', 'zh': '短信',
-    'fr': 'SMS', 'de': 'SMS', 'es': 'Mensaje de texto', 'pt': 'Mensagem de texto',
-    'ru': 'SMS', 'tr': 'SMS', 'ar': 'رسالة نصية', 'it': 'SMS',
-    'hi': 'टेक्स्ट संदेश', 'th': 'ข้อความ',
+    'ko': '문자 메시지',
+    'en': 'Text Message',
+    'ja': 'テキストメッセージ',
+    'zh': '短信',
+    'fr': 'SMS',
+    'de': 'SMS',
+    'es': 'Mensaje de texto',
+    'pt': 'Mensagem de texto',
+    'ru': 'SMS',
+    'tr': 'SMS',
+    'ar': 'رسالة نصية',
+    'it': 'SMS',
+    'hi': 'टेक्स्ट संदेश',
+    'th': 'ข้อความ',
   });
 
   String get premiumShareSmsDesc => _t({
@@ -10206,10 +11327,20 @@ class AppL10n {
   });
 
   String get premiumShareCopyLink => _t({
-    'ko': '링크 복사', 'en': 'Copy link', 'ja': 'リンクをコピー', 'zh': '复制链接',
-    'fr': 'Copier le lien', 'de': 'Link kopieren', 'es': 'Copiar enlace', 'pt': 'Copiar link',
-    'ru': 'Копировать ссылку', 'tr': 'Bağlantıyı kopyala', 'ar': 'نسخ الرابط', 'it': 'Copia link',
-    'hi': 'लिंक कॉपी करें', 'th': 'คัดลอกลิงก์',
+    'ko': '링크 복사',
+    'en': 'Copy link',
+    'ja': 'リンクをコピー',
+    'zh': '复制链接',
+    'fr': 'Copier le lien',
+    'de': 'Link kopieren',
+    'es': 'Copiar enlace',
+    'pt': 'Copiar link',
+    'ru': 'Копировать ссылку',
+    'tr': 'Bağlantıyı kopyala',
+    'ar': 'نسخ الرابط',
+    'it': 'Copia link',
+    'hi': 'लिंक कॉपी करें',
+    'th': 'คัดลอกลิงก์',
   });
 
   String get premiumShareCopyLinkDesc => _t({
@@ -10644,24 +11775,54 @@ class AppL10n {
 
   // Build 186: 온보딩 슬라이드의 티어 뱃지 라벨 (일관된 브랜딩).
   String get tierLabelFree => _t({
-    'ko': 'Free', 'en': 'Free', 'ja': 'Free', 'zh': 'Free',
-    'fr': 'Free', 'de': 'Free', 'es': 'Free', 'pt': 'Free',
-    'ru': 'Free', 'tr': 'Free', 'ar': 'Free', 'it': 'Free',
-    'hi': 'Free', 'th': 'Free',
+    'ko': 'Free',
+    'en': 'Free',
+    'ja': 'Free',
+    'zh': 'Free',
+    'fr': 'Free',
+    'de': 'Free',
+    'es': 'Free',
+    'pt': 'Free',
+    'ru': 'Free',
+    'tr': 'Free',
+    'ar': 'Free',
+    'it': 'Free',
+    'hi': 'Free',
+    'th': 'Free',
   });
 
   String get tierLabelPremium => _t({
-    'ko': 'Premium', 'en': 'Premium', 'ja': 'Premium', 'zh': 'Premium',
-    'fr': 'Premium', 'de': 'Premium', 'es': 'Premium', 'pt': 'Premium',
-    'ru': 'Premium', 'tr': 'Premium', 'ar': 'Premium', 'it': 'Premium',
-    'hi': 'Premium', 'th': 'Premium',
+    'ko': 'Premium',
+    'en': 'Premium',
+    'ja': 'Premium',
+    'zh': 'Premium',
+    'fr': 'Premium',
+    'de': 'Premium',
+    'es': 'Premium',
+    'pt': 'Premium',
+    'ru': 'Premium',
+    'tr': 'Premium',
+    'ar': 'Premium',
+    'it': 'Premium',
+    'hi': 'Premium',
+    'th': 'Premium',
   });
 
   String get tierLabelBrand => _t({
-    'ko': 'Brand', 'en': 'Brand', 'ja': 'Brand', 'zh': 'Brand',
-    'fr': 'Brand', 'de': 'Brand', 'es': 'Brand', 'pt': 'Brand',
-    'ru': 'Brand', 'tr': 'Brand', 'ar': 'Brand', 'it': 'Brand',
-    'hi': 'Brand', 'th': 'Brand',
+    'ko': 'Brand',
+    'en': 'Brand',
+    'ja': 'Brand',
+    'zh': 'Brand',
+    'fr': 'Brand',
+    'de': 'Brand',
+    'es': 'Brand',
+    'pt': 'Brand',
+    'ru': 'Brand',
+    'tr': 'Brand',
+    'ar': 'Brand',
+    'it': 'Brand',
+    'hi': 'Brand',
+    'th': 'Brand',
   });
 
   // Build 189.1: compose 닫기 확인 다이얼로그.
@@ -10863,7 +12024,8 @@ class AppL10n {
     'ja': '手紙が届きました！\nこの場所を訪れると開封できます。',
     'zh': '信已到达！\n请亲自前往此地点才能打开。',
     'fr': 'Une lettre est arrivée !\nRendez-vous sur place pour l\'ouvrir.',
-    'de': 'Ein Brief ist angekommen!\nBesuchen Sie diesen Ort, um ihn zu öffnen.',
+    'de':
+        'Ein Brief ist angekommen!\nBesuchen Sie diesen Ort, um ihn zu öffnen.',
     'es': '¡Ha llegado una carta!\nVisita este lugar para abrirla.',
     'pt': 'Uma carta chegou!\nVisite este local para abri-la.',
     'ru': 'Письмо прибыло!\nПосетите это место, чтобы открыть его.',
@@ -10926,20 +12088,32 @@ class AppL10n {
   });
 
   String get mapLocationPermissionDesc => _t({
-    'ko': 'Thiscount는 홍보를 보내고 받기 위해 위치 권한이 필요합니다.\n설정 앱에서 위치 권한을 "앱 사용 중 허용" 으로 변경해주세요.',
-    'en': 'Thiscount needs location permission to send and receive rewards.\nPlease change location permission to "While Using the App" in Settings.',
+    'ko':
+        'Thiscount는 홍보를 보내고 받기 위해 위치 권한이 필요합니다.\n설정 앱에서 위치 권한을 "앱 사용 중 허용" 으로 변경해주세요.',
+    'en':
+        'Thiscount needs location permission to send and receive rewards.\nPlease change location permission to "While Using the App" in Settings.',
     'ja': 'Thiscountは手紙の送受信に位置情報の許可が必要です。\n設定アプリで位置情報を「アプリ使用中のみ許可」に変更してください。',
     'zh': 'Thiscount需要位置权限来发送和接收信件。\n请在设置中将位置权限更改为"使用App时允许"。',
-    'fr': 'Thiscount a besoin de la localisation pour envoyer et recevoir des lettres.\nVeuillez activer « En cours d\'utilisation » dans les paramètres.',
-    'de': 'Thiscount benötigt den Standortzugriff zum Senden und Empfangen von Briefen.\nBitte ändern Sie die Standortberechtigung in den Einstellungen auf „Während der Nutzung".',
-    'es': 'Thiscount necesita permisos de ubicación para enviar y recibir cartas.\nPor favor, cambia el permiso a "Mientras se usa la app" en Ajustes.',
-    'pt': 'O Thiscount precisa de permissão de localização para enviar e receber cartas.\nAltere a permissão para "Durante o uso do app" nas Configurações.',
-    'ru': 'Thiscount нужен доступ к геолокации для отправки и получения писем.\nИзмените разрешение на «При использовании приложения» в Настройках.',
-    'tr': 'Thiscount mektup gönderip almak için konum iznine ihtiyaç duyar.\nLütfen Ayarlar\'dan konum iznini "Uygulama Kullanılırken" olarak değiştirin.',
-    'ar': 'يحتاج Thiscount إلى إذن الموقع لإرسال واستلام الرسائل.\nيرجى تغيير إذن الموقع إلى "أثناء استخدام التطبيق" في الإعدادات.',
-    'it': 'Thiscount ha bisogno del permesso di localizzazione per inviare e ricevere lettere.\nModifica il permesso su "Durante l\'uso dell\'app" nelle Impostazioni.',
-    'hi': 'Thiscount को पत्र भेजने और प्राप्त करने के लिए स्थान अनुमति चाहिए।\nकृपया सेटिंग्स में स्थान अनुमति को "ऐप उपयोग के दौरान" में बदलें।',
-    'th': 'Thiscount ต้องการสิทธิ์ตำแหน่งเพื่อส่งและรับจดหมาย\nกรุณาเปลี่ยนสิทธิ์ตำแหน่งเป็น "ขณะใช้แอป" ในการตั้งค่า',
+    'fr':
+        'Thiscount a besoin de la localisation pour envoyer et recevoir des lettres.\nVeuillez activer « En cours d\'utilisation » dans les paramètres.',
+    'de':
+        'Thiscount benötigt den Standortzugriff zum Senden und Empfangen von Briefen.\nBitte ändern Sie die Standortberechtigung in den Einstellungen auf „Während der Nutzung".',
+    'es':
+        'Thiscount necesita permisos de ubicación para enviar y recibir cartas.\nPor favor, cambia el permiso a "Mientras se usa la app" en Ajustes.',
+    'pt':
+        'O Thiscount precisa de permissão de localização para enviar e receber cartas.\nAltere a permissão para "Durante o uso do app" nas Configurações.',
+    'ru':
+        'Thiscount нужен доступ к геолокации для отправки и получения писем.\nИзмените разрешение на «При использовании приложения» в Настройках.',
+    'tr':
+        'Thiscount mektup gönderip almak için konum iznine ihtiyaç duyar.\nLütfen Ayarlar\'dan konum iznini "Uygulama Kullanılırken" olarak değiştirin.',
+    'ar':
+        'يحتاج Thiscount إلى إذن الموقع لإرسال واستلام الرسائل.\nيرجى تغيير إذن الموقع إلى "أثناء استخدام التطبيق" في الإعدادات.',
+    'it':
+        'Thiscount ha bisogno del permesso di localizzazione per inviare e ricevere lettere.\nModifica il permesso su "Durante l\'uso dell\'app" nelle Impostazioni.',
+    'hi':
+        'Thiscount को पत्र भेजने और प्राप्त करने के लिए स्थान अनुमति चाहिए।\nकृपया सेटिंग्स में स्थान अनुमति को "ऐप उपयोग के दौरान" में बदलें।',
+    'th':
+        'Thiscount ต้องการสิทธิ์ตำแหน่งเพื่อส่งและรับจดหมาย\nกรุณาเปลี่ยนสิทธิ์ตำแหน่งเป็น "ขณะใช้แอป" ในการตั้งค่า',
   });
 
   String get mapLater => _t({
@@ -10981,10 +12155,13 @@ class AppL10n {
     'en': 'Location permission is required. Please allow it in Settings.',
     'ja': '位置情報の許可が必要です。設定で許可してください。',
     'zh': '需要位置权限。请在设置中允许。',
-    'fr': 'Autorisation de localisation requise. Veuillez l\'activer dans les paramètres.',
-    'de': 'Standortberechtigung erforderlich. Bitte in den Einstellungen erlauben.',
+    'fr':
+        'Autorisation de localisation requise. Veuillez l\'activer dans les paramètres.',
+    'de':
+        'Standortberechtigung erforderlich. Bitte in den Einstellungen erlauben.',
     'es': 'Se requiere permiso de ubicación. Por favor, permítalo en Ajustes.',
-    'pt': 'Permissão de localização necessária. Por favor, permita nas Configurações.',
+    'pt':
+        'Permissão de localização necessária. Por favor, permita nas Configurações.',
     'ru': 'Требуется разрешение на геолокацию. Разрешите в Настройках.',
     'tr': 'Konum izni gerekli. Lütfen Ayarlar\'dan izin verin.',
     'ar': 'مطلوب إذن الموقع. يرجى السماح به في الإعدادات.',
@@ -10999,7 +12176,8 @@ class AppL10n {
     'ja': '位置情報を取得できません。後でもう一度お試しください。',
     'zh': '无法获取位置。请稍后重试。',
     'fr': 'Impossible d\'obtenir la position. Réessayez plus tard.',
-    'de': 'Standort konnte nicht ermittelt werden. Bitte versuchen Sie es später erneut.',
+    'de':
+        'Standort konnte nicht ermittelt werden. Bitte versuchen Sie es später erneut.',
     'es': 'No se puede obtener la ubicación. Inténtalo de nuevo más tarde.',
     'pt': 'Não foi possível obter a localização. Tente novamente mais tarde.',
     'ru': 'Не удалось получить местоположение. Попробуйте позже.',
@@ -11499,36 +12677,59 @@ class AppL10n {
 
   String get stateDmUnavailableBrand => _t({
     'ko': '브랜드 계정은 DM을 사용할 수 없어요.\n홍보 발송을 통해 수신자와 소통해보세요.',
-    'en': 'Brand accounts cannot use DM.\nPlease communicate with recipients through promos.',
+    'en':
+        'Brand accounts cannot use DM.\nPlease communicate with recipients through promos.',
     'ja': 'ブランドアカウントはDMを使用できません。\n手紙の送信で受信者とコミュニケーションしてください。',
     'zh': '品牌账号无法使用私信功能。\n请通过发送信件与收件人沟通。',
-    'fr': 'Les comptes de marque ne peuvent pas utiliser les MP.\nCommuniquez avec les destinataires via les lettres.',
-    'de': 'Markenkonten können keine DMs nutzen.\nKommunizieren Sie mit Empfängern über Briefe.',
-    'es': 'Las cuentas de marca no pueden usar MD.\nComunícate con los destinatarios a través de cartas.',
-    'pt': 'Contas de marca não podem usar MD.\nComunique-se com os destinatários por cartas.',
-    'ru': 'Бренд-аккаунты не могут использовать ЛС.\nОбщайтесь с получателями через письма.',
-    'tr': 'Marka hesapları DM kullanamaz.\nAlıcılarla mektup yoluyla iletişim kurun.',
-    'ar': 'حسابات العلامة التجارية لا يمكنها استخدام الرسائل المباشرة.\nتواصل مع المستلمين عبر الرسائل.',
-    'it': 'Gli account brand non possono usare i MD.\nComunica con i destinatari tramite lettere.',
-    'hi': 'ब्रांड अकाउंट DM का उपयोग नहीं कर सकते।\nकृपया पत्र भेजकर संवाद करें।',
+    'fr':
+        'Les comptes de marque ne peuvent pas utiliser les MP.\nCommuniquez avec les destinataires via les lettres.',
+    'de':
+        'Markenkonten können keine DMs nutzen.\nKommunizieren Sie mit Empfängern über Briefe.',
+    'es':
+        'Las cuentas de marca no pueden usar MD.\nComunícate con los destinatarios a través de cartas.',
+    'pt':
+        'Contas de marca não podem usar MD.\nComunique-se com os destinatários por cartas.',
+    'ru':
+        'Бренд-аккаунты не могут использовать ЛС.\nОбщайтесь с получателями через письма.',
+    'tr':
+        'Marka hesapları DM kullanamaz.\nAlıcılarla mektup yoluyla iletişim kurun.',
+    'ar':
+        'حسابات العلامة التجارية لا يمكنها استخدام الرسائل المباشرة.\nتواصل مع المستلمين عبر الرسائل.',
+    'it':
+        'Gli account brand non possono usare i MD.\nComunica con i destinatari tramite lettere.',
+    'hi':
+        'ब्रांड अकाउंट DM का उपयोग नहीं कर सकते।\nकृपया पत्र भेजकर संवाद करें।',
     'th': 'บัญชีแบรนด์ไม่สามารถใช้ DM ได้\nกรุณาสื่อสารกับผู้รับผ่านจดหมาย',
   });
 
   String stateDmUnavailableFree(int premiumLimit) => _t({
-    'ko': '빠른 메시지(DM)는 프리미엄 회원 전용이에요.\n프리미엄으로 업그레이드하면 DM 이용 및 하루 $premiumLimit통 발송이 가능해요.',
-    'en': 'Quick Message (DM) is for premium members only.\nUpgrade to Premium for DM access and $premiumLimit promos/day.',
-    'ja': 'クイックレター（DM）はプレミアム会員限定です。\nプレミアムにアップグレードするとDMと1日${premiumLimit}通の送信が可能です。',
+    'ko':
+        '빠른 메시지(DM)는 프리미엄 회원 전용이에요.\n프리미엄으로 업그레이드하면 DM 이용 및 하루 $premiumLimit통 발송이 가능해요.',
+    'en':
+        'Quick Message (DM) is for premium members only.\nUpgrade to Premium for DM access and $premiumLimit promos/day.',
+    'ja':
+        'クイックレター（DM）はプレミアム会員限定です。\nプレミアムにアップグレードするとDMと1日${premiumLimit}通の送信が可能です。',
     'zh': '快信（私信）仅限高级会员使用。\n升级高级版即可使用私信功能，每日发送$premiumLimit封。',
-    'fr': 'La lettre rapide (MP) est réservée aux membres premium.\nPassez au Premium pour les MP et $premiumLimit lettres/jour.',
-    'de': 'Schnellbrief (DM) ist nur für Premium-Mitglieder.\nUpgrade auf Premium für DMs und $premiumLimit Briefe/Tag.',
-    'es': 'Carta rápida (MD) es solo para miembros premium.\nActualiza a Premium para MD y $premiumLimit cartas/día.',
-    'pt': 'Carta rápida (MD) é exclusiva para membros premium.\nAtualize para Premium para MD e $premiumLimit cartas/dia.',
-    'ru': 'Быстрое письмо (ЛС) — только для премиум-участников.\nОформите подписку Premium для ЛС и $premiumLimit писем/день.',
-    'tr': 'Hızlı mektup (DM) yalnızca premium üyelere özeldir.\nPremium\'a yükselterek DM ve günde $premiumLimit mektup gönderebilirsiniz.',
-    'ar': 'الرسالة السريعة (DM) مخصصة للأعضاء المميزين فقط.\nقم بالترقية إلى Premium للوصول إلى DM و$premiumLimit رسالة/يوم.',
-    'it': 'Lettera rapida (MD) è solo per membri premium.\nPassa a Premium per MD e $premiumLimit lettere/giorno.',
-    'hi': 'क्विक लेटर (DM) केवल प्रीमियम सदस्यों के लिए है।\nDM और प्रतिदिन $premiumLimit पत्र भेजने के लिए प्रीमियम में अपग्रेड करें।',
-    'th': 'จดหมายด่วน (DM) สำหรับสมาชิกพรีเมียมเท่านั้น\nอัปเกรดเป็น Premium เพื่อใช้ DM และส่งวันละ $premiumLimit ฉบับ',
+    'fr':
+        'La lettre rapide (MP) est réservée aux membres premium.\nPassez au Premium pour les MP et $premiumLimit lettres/jour.',
+    'de':
+        'Schnellbrief (DM) ist nur für Premium-Mitglieder.\nUpgrade auf Premium für DMs und $premiumLimit Briefe/Tag.',
+    'es':
+        'Carta rápida (MD) es solo para miembros premium.\nActualiza a Premium para MD y $premiumLimit cartas/día.',
+    'pt':
+        'Carta rápida (MD) é exclusiva para membros premium.\nAtualize para Premium para MD e $premiumLimit cartas/dia.',
+    'ru':
+        'Быстрое письмо (ЛС) — только для премиум-участников.\nОформите подписку Premium для ЛС и $premiumLimit писем/день.',
+    'tr':
+        'Hızlı mektup (DM) yalnızca premium üyelere özeldir.\nPremium\'a yükselterek DM ve günde $premiumLimit mektup gönderebilirsiniz.',
+    'ar':
+        'الرسالة السريعة (DM) مخصصة للأعضاء المميزين فقط.\nقم بالترقية إلى Premium للوصول إلى DM و$premiumLimit رسالة/يوم.',
+    'it':
+        'Lettera rapida (MD) è solo per membri premium.\nPassa a Premium per MD e $premiumLimit lettere/giorno.',
+    'hi':
+        'क्विक लेटर (DM) केवल प्रीमियम सदस्यों के लिए है।\nDM और प्रतिदिन $premiumLimit पत्र भेजने के लिए प्रीमियम में अपग्रेड करें।',
+    'th':
+        'จดหมายด่วน (DM) สำหรับสมาชิกพรีเมียมเท่านั้น\nอัปเกรดเป็น Premium เพื่อใช้ DM และส่งวันละ $premiumLimit ฉบับ',
   });
 
   String statePremiumExpressLimitExceeded(int limit) => _t({
@@ -11550,170 +12751,281 @@ class AppL10n {
 
   String stateImageLimitExceeded(int limit) => _t({
     'ko': '오늘 이미지 혜택 한도(${limit}통)에 도달했어요. 내일 다시 시도해주세요.',
-    'en': 'You\'ve reached today\'s image promo limit ($limit). Please try again tomorrow.',
+    'en':
+        'You\'ve reached today\'s image promo limit ($limit). Please try again tomorrow.',
     'ja': '本日の画像レター上限（${limit}通）に達しました。明日もう一度お試しください。',
     'zh': '已达到今日图片信件上限（$limit封）。请明天再试。',
-    'fr': 'Vous avez atteint la limite de lettres image ($limit). Réessayez demain.',
-    'de': 'Sie haben das heutige Bildbrief-Limit ($limit) erreicht. Versuchen Sie es morgen erneut.',
-    'es': 'Has alcanzado el límite de cartas con imagen ($limit). Inténtalo mañana.',
-    'pt': 'Você atingiu o limite de cartas com imagem ($limit). Tente novamente amanhã.',
-    'ru': 'Достигнут дневной лимит писем с изображениями ($limit). Попробуйте завтра.',
-    'tr': 'Bugünkü resimli mektup limitine ($limit) ulaştınız. Yarın tekrar deneyin.',
+    'fr':
+        'Vous avez atteint la limite de lettres image ($limit). Réessayez demain.',
+    'de':
+        'Sie haben das heutige Bildbrief-Limit ($limit) erreicht. Versuchen Sie es morgen erneut.',
+    'es':
+        'Has alcanzado el límite de cartas con imagen ($limit). Inténtalo mañana.',
+    'pt':
+        'Você atingiu o limite de cartas com imagem ($limit). Tente novamente amanhã.',
+    'ru':
+        'Достигнут дневной лимит писем с изображениями ($limit). Попробуйте завтра.',
+    'tr':
+        'Bugünkü resimli mektup limitine ($limit) ulaştınız. Yarın tekrar deneyin.',
     'ar': 'لقد وصلت إلى حد رسائل الصور اليومي ($limit). يرجى المحاولة غداً.',
-    'it': 'Hai raggiunto il limite giornaliero di lettere con immagine ($limit). Riprova domani.',
-    'hi': 'आज का इमेज पत्र सीमा ($limit) पूरी हो गई। कृपया कल पुनः प्रयास करें।',
-    'th': 'ถึงขีดจำกัดจดหมายรูปภาพวันนี้แล้ว ($limit ฉบับ) กรุณาลองใหม่พรุ่งนี้',
+    'it':
+        'Hai raggiunto il limite giornaliero di lettere con immagine ($limit). Riprova domani.',
+    'hi':
+        'आज का इमेज पत्र सीमा ($limit) पूरी हो गई। कृपया कल पुनः प्रयास करें।',
+    'th':
+        'ถึงขีดจำกัดจดหมายรูปภาพวันนี้แล้ว ($limit ฉบับ) กรุณาลองใหม่พรุ่งนี้',
   });
 
   String get stateBrandExtraVerificationUnavailable => _t({
     'ko': '서버 검증이 활성화되지 않아 추가 발송권 구매를 완료할 수 없어요.\n로그인 상태와 Firebase 설정을 확인해주세요.',
-    'en': 'Server verification is not active, so the extra quota purchase cannot be completed.\nPlease check your login status and Firebase settings.',
+    'en':
+        'Server verification is not active, so the extra quota purchase cannot be completed.\nPlease check your login status and Firebase settings.',
     'ja': 'サーバー検証が有効でないため、追加送信権の購入を完了できません。\nログイン状態とFirebase設定を確認してください。',
     'zh': '服务器验证未启用，无法完成额外配额购买。\n请检查登录状态和Firebase设置。',
-    'fr': 'La vérification serveur n\'est pas active. L\'achat de quota supplémentaire ne peut pas être finalisé.\nVérifiez votre connexion et les paramètres Firebase.',
-    'de': 'Serververifizierung ist nicht aktiv. Der Kauf zusätzlicher Kontingente kann nicht abgeschlossen werden.\nBitte überprüfen Sie Ihren Login-Status und die Firebase-Einstellungen.',
-    'es': 'La verificación del servidor no está activa. No se puede completar la compra de cuota adicional.\nVerifica tu estado de inicio de sesión y la configuración de Firebase.',
-    'pt': 'A verificação do servidor não está ativa. A compra de cota extra não pode ser concluída.\nVerifique seu status de login e as configurações do Firebase.',
-    'ru': 'Проверка на сервере не активна. Покупка дополнительной квоты невозможна.\nПроверьте статус входа и настройки Firebase.',
-    'tr': 'Sunucu doğrulaması etkin değil. Ek gönderim hakkı satın alma tamamlanamıyor.\nGiriş durumunuzu ve Firebase ayarlarınızı kontrol edin.',
-    'ar': 'التحقق من الخادم غير مفعّل. لا يمكن إتمام شراء الحصة الإضافية.\nيرجى التحقق من حالة تسجيل الدخول وإعدادات Firebase.',
-    'it': 'La verifica del server non è attiva. L\'acquisto della quota aggiuntiva non può essere completato.\nVerifica lo stato di accesso e le impostazioni Firebase.',
-    'hi': 'सर्वर सत्यापन सक्रिय नहीं है। अतिरिक्त कोटा खरीद पूरी नहीं हो सकती।\nकृपया अपनी लॉगिन स्थिति और Firebase सेटिंग्स जांचें।',
-    'th': 'การตรวจสอบเซิร์ฟเวอร์ไม่ได้เปิดใช้งาน ไม่สามารถซื้อโควต้าเพิ่มเติมได้\nกรุณาตรวจสอบสถานะการเข้าสู่ระบบและการตั้งค่า Firebase',
+    'fr':
+        'La vérification serveur n\'est pas active. L\'achat de quota supplémentaire ne peut pas être finalisé.\nVérifiez votre connexion et les paramètres Firebase.',
+    'de':
+        'Serververifizierung ist nicht aktiv. Der Kauf zusätzlicher Kontingente kann nicht abgeschlossen werden.\nBitte überprüfen Sie Ihren Login-Status und die Firebase-Einstellungen.',
+    'es':
+        'La verificación del servidor no está activa. No se puede completar la compra de cuota adicional.\nVerifica tu estado de inicio de sesión y la configuración de Firebase.',
+    'pt':
+        'A verificação do servidor não está ativa. A compra de cota extra não pode ser concluída.\nVerifique seu status de login e as configurações do Firebase.',
+    'ru':
+        'Проверка на сервере не активна. Покупка дополнительной квоты невозможна.\nПроверьте статус входа и настройки Firebase.',
+    'tr':
+        'Sunucu doğrulaması etkin değil. Ek gönderim hakkı satın alma tamamlanamıyor.\nGiriş durumunuzu ve Firebase ayarlarınızı kontrol edin.',
+    'ar':
+        'التحقق من الخادم غير مفعّل. لا يمكن إتمام شراء الحصة الإضافية.\nيرجى التحقق من حالة تسجيل الدخول وإعدادات Firebase.',
+    'it':
+        'La verifica del server non è attiva. L\'acquisto della quota aggiuntiva non può essere completato.\nVerifica lo stato di accesso e le impostazioni Firebase.',
+    'hi':
+        'सर्वर सत्यापन सक्रिय नहीं है। अतिरिक्त कोटा खरीद पूरी नहीं हो सकती।\nकृपया अपनी लॉगिन स्थिति और Firebase सेटिंग्स जांचें।',
+    'th':
+        'การตรวจสอบเซิร์ฟเวอร์ไม่ได้เปิดใช้งาน ไม่สามารถซื้อโควต้าเพิ่มเติมได้\nกรุณาตรวจสอบสถานะการเข้าสู่ระบบและการตั้งค่า Firebase',
   });
 
   String stateDailyLimitFreeValueCopy(int freeLimit, int premiumLimit) => _t({
-    'ko': '오늘 무료 한도(${freeLimit}통)를 모두 사용했어요.\n프리미엄(월 ₩4,900)으로 업그레이드하면 하루 ${premiumLimit}통까지 보내서 답장 기회를 최대 10배까지 넓힐 수 있어요.',
-    'en': 'You\'ve used all $freeLimit free promos today.\nUpgrade to Premium to send up to $premiumLimit/day and multiply your reply chances by 10x.',
-    'ja': '本日の無料枠（${freeLimit}通）を使い切りました。\nプレミアムにアップグレードすると1日${premiumLimit}通まで送信でき、返信チャンスが最大10倍に。',
+    'ko':
+        '오늘 무료 한도(${freeLimit}통)를 모두 사용했어요.\n프리미엄(월 ₩4,900)으로 업그레이드하면 하루 ${premiumLimit}통까지 보내서 답장 기회를 최대 10배까지 넓힐 수 있어요.',
+    'en':
+        'You\'ve used all $freeLimit free promos today.\nUpgrade to Premium to send up to $premiumLimit/day and multiply your reply chances by 10x.',
+    'ja':
+        '本日の無料枠（${freeLimit}通）を使い切りました。\nプレミアムにアップグレードすると1日${premiumLimit}通まで送信でき、返信チャンスが最大10倍に。',
     'zh': '今日免费额度（$freeLimit封）已用完。\n升级Premium每日可发$premiumLimit封，回信机会增加10倍。',
-    'fr': 'Vous avez utilisé vos $freeLimit lettres gratuites aujourd\'hui.\nPassez au Premium pour envoyer jusqu\'à $premiumLimit/jour et multiplier vos chances de réponse par 10.',
-    'de': 'Sie haben heute alle $freeLimit kostenlosen Briefe verbraucht.\nUpgraden Sie auf Premium für bis zu $premiumLimit/Tag und verzehnfachen Sie Ihre Antwortchancen.',
-    'es': 'Has usado todas las $freeLimit cartas gratis hoy.\nActualiza a Premium para enviar hasta $premiumLimit/día y multiplicar tus oportunidades de respuesta por 10.',
-    'pt': 'Você usou todas as $freeLimit cartas grátis hoje.\nAtualize para Premium para enviar até $premiumLimit/dia e multiplicar suas chances de resposta por 10x.',
-    'ru': 'Вы использовали все $freeLimit бесплатных писем сегодня.\nПодпишитесь на Premium — до $premiumLimit писем/день и в 10 раз больше шансов на ответ.',
-    'tr': 'Bugünkü ücretsiz $freeLimit mektup hakkınızı kullandınız.\nPremium\'a yükselerek günde $premiumLimit mektup gönderebilir ve yanıt şansınızı 10 katına çıkarabilirsiniz.',
-    'ar': 'لقد استخدمت جميع الرسائل المجانية ($freeLimit) اليوم.\nقم بالترقية إلى Premium لإرسال حتى $premiumLimit/يوم ومضاعفة فرص الرد 10 أضعاف.',
-    'it': 'Hai usato tutte le $freeLimit lettere gratuite oggi.\nPassa a Premium per inviare fino a $premiumLimit/giorno e moltiplicare le possibilità di risposta per 10.',
-    'hi': 'आज की $freeLimit मुफ्त पत्र सीमा समाप्त हो गई।\nPremium में अपग्रेड करें - प्रतिदिन $premiumLimit पत्र भेजें और जवाब की संभावना 10 गुना बढ़ाएं।',
-    'th': 'คุณใช้จดหมายฟรี $freeLimit ฉบับหมดแล้ววันนี้\nอัปเกรดเป็น Premium ส่งได้ถึง $premiumLimit ฉบับ/วัน เพิ่มโอกาสได้รับตอบกลับ 10 เท่า',
+    'fr':
+        'Vous avez utilisé vos $freeLimit lettres gratuites aujourd\'hui.\nPassez au Premium pour envoyer jusqu\'à $premiumLimit/jour et multiplier vos chances de réponse par 10.',
+    'de':
+        'Sie haben heute alle $freeLimit kostenlosen Briefe verbraucht.\nUpgraden Sie auf Premium für bis zu $premiumLimit/Tag und verzehnfachen Sie Ihre Antwortchancen.',
+    'es':
+        'Has usado todas las $freeLimit cartas gratis hoy.\nActualiza a Premium para enviar hasta $premiumLimit/día y multiplicar tus oportunidades de respuesta por 10.',
+    'pt':
+        'Você usou todas as $freeLimit cartas grátis hoje.\nAtualize para Premium para enviar até $premiumLimit/dia e multiplicar suas chances de resposta por 10x.',
+    'ru':
+        'Вы использовали все $freeLimit бесплатных писем сегодня.\nПодпишитесь на Premium — до $premiumLimit писем/день и в 10 раз больше шансов на ответ.',
+    'tr':
+        'Bugünkü ücretsiz $freeLimit mektup hakkınızı kullandınız.\nPremium\'a yükselerek günde $premiumLimit mektup gönderebilir ve yanıt şansınızı 10 katına çıkarabilirsiniz.',
+    'ar':
+        'لقد استخدمت جميع الرسائل المجانية ($freeLimit) اليوم.\nقم بالترقية إلى Premium لإرسال حتى $premiumLimit/يوم ومضاعفة فرص الرد 10 أضعاف.',
+    'it':
+        'Hai usato tutte le $freeLimit lettere gratuite oggi.\nPassa a Premium per inviare fino a $premiumLimit/giorno e moltiplicare le possibilità di risposta per 10.',
+    'hi':
+        'आज की $freeLimit मुफ्त पत्र सीमा समाप्त हो गई।\nPremium में अपग्रेड करें - प्रतिदिन $premiumLimit पत्र भेजें और जवाब की संभावना 10 गुना बढ़ाएं।',
+    'th':
+        'คุณใช้จดหมายฟรี $freeLimit ฉบับหมดแล้ววันนี้\nอัปเกรดเป็น Premium ส่งได้ถึง $premiumLimit ฉบับ/วัน เพิ่มโอกาสได้รับตอบกลับ 10 เท่า',
   });
 
   String stateDailyLimitFree(int freeLimit, int premiumLimit) => _t({
-    'ko': '무료 회원은 하루 ${freeLimit}통까지 발송할 수 있어요.\n프리미엄(월 ₩4,900)으로 업그레이드하면 하루 ${premiumLimit}통 발송 가능해요!',
-    'en': 'Free members can send up to $freeLimit promos/day.\nUpgrade to Premium for $premiumLimit promos/day!',
-    'ja': '無料会員は1日${freeLimit}通まで送信できます。\nプレミアムにアップグレードすると1日${premiumLimit}通送信可能！',
+    'ko':
+        '무료 회원은 하루 ${freeLimit}통까지 발송할 수 있어요.\n프리미엄(월 ₩4,900)으로 업그레이드하면 하루 ${premiumLimit}통 발송 가능해요!',
+    'en':
+        'Free members can send up to $freeLimit promos/day.\nUpgrade to Premium for $premiumLimit promos/day!',
+    'ja':
+        '無料会員は1日${freeLimit}通まで送信できます。\nプレミアムにアップグレードすると1日${premiumLimit}通送信可能！',
     'zh': '免费会员每日可发送$freeLimit封信件。\n升级Premium每日可发$premiumLimit封！',
-    'fr': 'Les membres gratuits peuvent envoyer $freeLimit lettres/jour.\nPassez au Premium pour $premiumLimit lettres/jour !',
-    'de': 'Kostenlose Mitglieder können $freeLimit Briefe/Tag senden.\nUpgraden Sie auf Premium für $premiumLimit Briefe/Tag!',
-    'es': 'Los miembros gratis pueden enviar $freeLimit cartas/día.\n¡Actualiza a Premium para $premiumLimit cartas/día!',
-    'pt': 'Membros gratuitos podem enviar $freeLimit cartas/dia.\nAtualize para Premium para $premiumLimit cartas/dia!',
-    'ru': 'Бесплатные участники могут отправлять $freeLimit писем/день.\nОформите Premium — $premiumLimit писем/день!',
-    'tr': 'Ücretsiz üyeler günde $freeLimit mektup gönderebilir.\nPremium\'a yükselerek günde $premiumLimit mektup gönderin!',
-    'ar': 'يمكن للأعضاء المجانيين إرسال $freeLimit رسائل/يوم.\nقم بالترقية إلى Premium لإرسال $premiumLimit رسالة/يوم!',
-    'it': 'I membri gratuiti possono inviare $freeLimit lettere/giorno.\nPassa a Premium per $premiumLimit lettere/giorno!',
-    'hi': 'मुफ्त सदस्य प्रतिदिन $freeLimit पत्र भेज सकते हैं।\nPremium में अपग्रेड करें - प्रतिदिन $premiumLimit पत्र!',
-    'th': 'สมาชิกฟรีส่งได้ $freeLimit ฉบับ/วัน\nอัปเกรดเป็น Premium ส่งได้ $premiumLimit ฉบับ/วัน!',
+    'fr':
+        'Les membres gratuits peuvent envoyer $freeLimit lettres/jour.\nPassez au Premium pour $premiumLimit lettres/jour !',
+    'de':
+        'Kostenlose Mitglieder können $freeLimit Briefe/Tag senden.\nUpgraden Sie auf Premium für $premiumLimit Briefe/Tag!',
+    'es':
+        'Los miembros gratis pueden enviar $freeLimit cartas/día.\n¡Actualiza a Premium para $premiumLimit cartas/día!',
+    'pt':
+        'Membros gratuitos podem enviar $freeLimit cartas/dia.\nAtualize para Premium para $premiumLimit cartas/dia!',
+    'ru':
+        'Бесплатные участники могут отправлять $freeLimit писем/день.\nОформите Premium — $premiumLimit писем/день!',
+    'tr':
+        'Ücretsiz üyeler günde $freeLimit mektup gönderebilir.\nPremium\'a yükselerek günde $premiumLimit mektup gönderin!',
+    'ar':
+        'يمكن للأعضاء المجانيين إرسال $freeLimit رسائل/يوم.\nقم بالترقية إلى Premium لإرسال $premiumLimit رسالة/يوم!',
+    'it':
+        'I membri gratuiti possono inviare $freeLimit lettere/giorno.\nPassa a Premium per $premiumLimit lettere/giorno!',
+    'hi':
+        'मुफ्त सदस्य प्रतिदिन $freeLimit पत्र भेज सकते हैं।\nPremium में अपग्रेड करें - प्रतिदिन $premiumLimit पत्र!',
+    'th':
+        'สมาชิกฟรีส่งได้ $freeLimit ฉบับ/วัน\nอัปเกรดเป็น Premium ส่งได้ $premiumLimit ฉบับ/วัน!',
   });
 
   String stateDailyLimitBrand(int brandLimit) => _t({
-    'ko': '오늘 브랜드 발송 한도(${brandLimit}통)에 도달했어요. 추가 발송권(1,000통 ₩15,000)을 구매하거나 내일 다시 시도해주세요.',
-    'en': 'You\'ve reached today\'s brand limit ($brandLimit). Purchase extra quota (1,000 promos) or try again tomorrow.',
+    'ko':
+        '오늘 브랜드 발송 한도(${brandLimit}통)에 도달했어요. 추가 발송권(1,000통 ₩15,000)을 구매하거나 내일 다시 시도해주세요.',
+    'en':
+        'You\'ve reached today\'s brand limit ($brandLimit). Purchase extra quota (1,000 promos) or try again tomorrow.',
     'ja': '本日のブランド送信上限（${brandLimit}通）に達しました。追加送信権（1,000通）を購入するか、明日再度お試しください。',
     'zh': '已达今日品牌发送上限（$brandLimit封）。请购买额外配额（1,000封）或明天再试。',
-    'fr': 'Vous avez atteint la limite de marque ($brandLimit). Achetez un quota supplémentaire (1 000 lettres) ou réessayez demain.',
-    'de': 'Sie haben das heutige Markenlimit ($brandLimit) erreicht. Kaufen Sie zusätzliches Kontingent (1.000 Briefe) oder versuchen Sie es morgen erneut.',
-    'es': 'Has alcanzado el límite de marca ($brandLimit). Compra cuota extra (1.000 cartas) o inténtalo mañana.',
-    'pt': 'Você atingiu o limite de marca ($brandLimit). Compre cota extra (1.000 cartas) ou tente amanhã.',
-    'ru': 'Достигнут лимит бренда ($brandLimit). Купите дополнительную квоту (1 000 писем) или попробуйте завтра.',
-    'tr': 'Bugünkü marka limitine ($brandLimit) ulaştınız. Ek gönderim hakkı (1.000 mektup) satın alın veya yarın deneyin.',
-    'ar': 'لقد وصلت إلى حد العلامة التجارية ($brandLimit). اشترِ حصة إضافية (1,000 رسالة) أو حاول غداً.',
-    'it': 'Hai raggiunto il limite brand ($brandLimit). Acquista quota aggiuntiva (1.000 lettere) o riprova domani.',
-    'hi': 'आज का ब्रांड सीमा ($brandLimit) पूरी हो गई। अतिरिक्त कोटा (1,000 पत्र) खरीदें या कल पुनः प्रयास करें।',
-    'th': 'ถึงขีดจำกัดแบรนด์วันนี้แล้ว ($brandLimit ฉบับ) ซื้อโควต้าเพิ่ม (1,000 ฉบับ) หรือลองใหม่พรุ่งนี้',
+    'fr':
+        'Vous avez atteint la limite de marque ($brandLimit). Achetez un quota supplémentaire (1 000 lettres) ou réessayez demain.',
+    'de':
+        'Sie haben das heutige Markenlimit ($brandLimit) erreicht. Kaufen Sie zusätzliches Kontingent (1.000 Briefe) oder versuchen Sie es morgen erneut.',
+    'es':
+        'Has alcanzado el límite de marca ($brandLimit). Compra cuota extra (1.000 cartas) o inténtalo mañana.',
+    'pt':
+        'Você atingiu o limite de marca ($brandLimit). Compre cota extra (1.000 cartas) ou tente amanhã.',
+    'ru':
+        'Достигнут лимит бренда ($brandLimit). Купите дополнительную квоту (1 000 писем) или попробуйте завтра.',
+    'tr':
+        'Bugünkü marka limitine ($brandLimit) ulaştınız. Ek gönderim hakkı (1.000 mektup) satın alın veya yarın deneyin.',
+    'ar':
+        'لقد وصلت إلى حد العلامة التجارية ($brandLimit). اشترِ حصة إضافية (1,000 رسالة) أو حاول غداً.',
+    'it':
+        'Hai raggiunto il limite brand ($brandLimit). Acquista quota aggiuntiva (1.000 lettere) o riprova domani.',
+    'hi':
+        'आज का ब्रांड सीमा ($brandLimit) पूरी हो गई। अतिरिक्त कोटा (1,000 पत्र) खरीदें या कल पुनः प्रयास करें।',
+    'th':
+        'ถึงขีดจำกัดแบรนด์วันนี้แล้ว ($brandLimit ฉบับ) ซื้อโควต้าเพิ่ม (1,000 ฉบับ) หรือลองใหม่พรุ่งนี้',
   });
 
   String stateDailyLimitPremium(int premiumLimit) => _t({
     'ko': '오늘 프리미엄 발송 한도(${premiumLimit}통)에 도달했어요. 내일 다시 시도해주세요.',
-    'en': 'You\'ve reached today\'s premium limit ($premiumLimit). Please try again tomorrow.',
+    'en':
+        'You\'ve reached today\'s premium limit ($premiumLimit). Please try again tomorrow.',
     'ja': '本日のプレミアム送信上限（${premiumLimit}通）に達しました。明日もう一度お試しください。',
     'zh': '已达今日高级发送上限（$premiumLimit封）。请明天再试。',
-    'fr': 'Vous avez atteint la limite premium ($premiumLimit). Réessayez demain.',
-    'de': 'Sie haben das heutige Premium-Limit ($premiumLimit) erreicht. Versuchen Sie es morgen erneut.',
+    'fr':
+        'Vous avez atteint la limite premium ($premiumLimit). Réessayez demain.',
+    'de':
+        'Sie haben das heutige Premium-Limit ($premiumLimit) erreicht. Versuchen Sie es morgen erneut.',
     'es': 'Has alcanzado el límite premium ($premiumLimit). Inténtalo mañana.',
-    'pt': 'Você atingiu o limite premium ($premiumLimit). Tente novamente amanhã.',
+    'pt':
+        'Você atingiu o limite premium ($premiumLimit). Tente novamente amanhã.',
     'ru': 'Достигнут дневной премиум-лимит ($premiumLimit). Попробуйте завтра.',
-    'tr': 'Bugünkü premium limitine ($premiumLimit) ulaştınız. Yarın tekrar deneyin.',
+    'tr':
+        'Bugünkü premium limitine ($premiumLimit) ulaştınız. Yarın tekrar deneyin.',
     'ar': 'لقد وصلت إلى الحد المميز ($premiumLimit). يرجى المحاولة غداً.',
     'it': 'Hai raggiunto il limite premium ($premiumLimit). Riprova domani.',
-    'hi': 'आज का प्रीमियम सीमा ($premiumLimit) पूरी हो गई। कृपया कल पुनः प्रयास करें।',
-    'th': 'ถึงขีดจำกัดพรีเมียมวันนี้แล้ว ($premiumLimit ฉบับ) กรุณาลองใหม่พรุ่งนี้',
+    'hi':
+        'आज का प्रीमियम सीमा ($premiumLimit) पूरी हो गई। कृपया कल पुनः प्रयास करें।',
+    'th':
+        'ถึงขีดจำกัดพรีเมียมวันนี้แล้ว ($premiumLimit ฉบับ) กรุณาลองใหม่พรุ่งนี้',
   });
 
   String stateMonthlyLimitFreeValueCopy(int freeLimit, int premiumLimit) => _t({
-    'ko': '이번 달 무료 한도(${freeLimit}통)를 모두 사용했어요.\n프리미엄으로 전환하면 월 ${premiumLimit}통까지 발송 가능해서 더 많은 국가와 연결을 만들 수 있어요.',
-    'en': 'You\'ve used all $freeLimit free promos this month.\nSwitch to Premium to send up to $premiumLimit/month and connect with more countries.',
-    'ja': '今月の無料枠（${freeLimit}通）を使い切りました。\nプレミアムに切り替えると月${premiumLimit}通まで送信でき、もっと多くの国とつながれます。',
+    'ko':
+        '이번 달 무료 한도(${freeLimit}통)를 모두 사용했어요.\n프리미엄으로 전환하면 월 ${premiumLimit}통까지 발송 가능해서 더 많은 국가와 연결을 만들 수 있어요.',
+    'en':
+        'You\'ve used all $freeLimit free promos this month.\nSwitch to Premium to send up to $premiumLimit/month and connect with more countries.',
+    'ja':
+        '今月の無料枠（${freeLimit}通）を使い切りました。\nプレミアムに切り替えると月${premiumLimit}通まで送信でき、もっと多くの国とつながれます。',
     'zh': '本月免费额度（$freeLimit封）已用完。\n升级Premium月发$premiumLimit封，连接更多国家。',
-    'fr': 'Vous avez utilisé vos $freeLimit lettres gratuites ce mois.\nPassez au Premium pour $premiumLimit/mois et connectez-vous avec plus de pays.',
-    'de': 'Sie haben alle $freeLimit kostenlosen Briefe diesen Monat verbraucht.\nWechseln Sie zu Premium für $premiumLimit/Monat und verbinden Sie sich mit mehr Ländern.',
-    'es': 'Has usado todas las $freeLimit cartas gratis este mes.\nCambia a Premium para $premiumLimit/mes y conecta con más países.',
-    'pt': 'Você usou todas as $freeLimit cartas grátis este mês.\nMude para Premium para $premiumLimit/mês e conecte-se com mais países.',
-    'ru': 'Вы использовали все $freeLimit бесплатных писем в этом месяце.\nПодпишитесь на Premium — $premiumLimit писем/месяц и связь с большим числом стран.',
-    'tr': 'Bu ayki ücretsiz $freeLimit mektup hakkınızı kullandınız.\nPremium\'a geçerek ayda $premiumLimit mektup gönderebilir ve daha fazla ülkeyle bağlantı kurabilirsiniz.',
-    'ar': 'لقد استخدمت جميع الرسائل المجانية ($freeLimit) هذا الشهر.\nانتقل إلى Premium لإرسال $premiumLimit/شهر والتواصل مع المزيد من البلدان.',
-    'it': 'Hai usato tutte le $freeLimit lettere gratuite questo mese.\nPassa a Premium per $premiumLimit/mese e connettiti con più paesi.',
-    'hi': 'इस महीने की $freeLimit मुफ्त पत्र सीमा समाप्त हो गई।\nPremium में बदलें - $premiumLimit पत्र/माह और अधिक देशों से जुड़ें।',
-    'th': 'คุณใช้จดหมายฟรี $freeLimit ฉบับหมดแล้วเดือนนี้\nเปลี่ยนเป็น Premium ส่งได้ $premiumLimit ฉบับ/เดือน เชื่อมต่อกับประเทศต่างๆ มากขึ้น',
+    'fr':
+        'Vous avez utilisé vos $freeLimit lettres gratuites ce mois.\nPassez au Premium pour $premiumLimit/mois et connectez-vous avec plus de pays.',
+    'de':
+        'Sie haben alle $freeLimit kostenlosen Briefe diesen Monat verbraucht.\nWechseln Sie zu Premium für $premiumLimit/Monat und verbinden Sie sich mit mehr Ländern.',
+    'es':
+        'Has usado todas las $freeLimit cartas gratis este mes.\nCambia a Premium para $premiumLimit/mes y conecta con más países.',
+    'pt':
+        'Você usou todas as $freeLimit cartas grátis este mês.\nMude para Premium para $premiumLimit/mês e conecte-se com mais países.',
+    'ru':
+        'Вы использовали все $freeLimit бесплатных писем в этом месяце.\nПодпишитесь на Premium — $premiumLimit писем/месяц и связь с большим числом стран.',
+    'tr':
+        'Bu ayki ücretsiz $freeLimit mektup hakkınızı kullandınız.\nPremium\'a geçerek ayda $premiumLimit mektup gönderebilir ve daha fazla ülkeyle bağlantı kurabilirsiniz.',
+    'ar':
+        'لقد استخدمت جميع الرسائل المجانية ($freeLimit) هذا الشهر.\nانتقل إلى Premium لإرسال $premiumLimit/شهر والتواصل مع المزيد من البلدان.',
+    'it':
+        'Hai usato tutte le $freeLimit lettere gratuite questo mese.\nPassa a Premium per $premiumLimit/mese e connettiti con più paesi.',
+    'hi':
+        'इस महीने की $freeLimit मुफ्त पत्र सीमा समाप्त हो गई।\nPremium में बदलें - $premiumLimit पत्र/माह और अधिक देशों से जुड़ें।',
+    'th':
+        'คุณใช้จดหมายฟรี $freeLimit ฉบับหมดแล้วเดือนนี้\nเปลี่ยนเป็น Premium ส่งได้ $premiumLimit ฉบับ/เดือน เชื่อมต่อกับประเทศต่างๆ มากขึ้น',
   });
 
   String stateMonthlyLimitFree(int freeLimit, int premiumLimit) => _t({
-    'ko': '이번 달 발송 한도(${freeLimit}통)에 도달했어요.\n프리미엄으로 업그레이드하면 월 ${premiumLimit}통 발송 가능해요!',
-    'en': 'You\'ve reached this month\'s limit ($freeLimit).\nUpgrade to Premium for $premiumLimit promos/month!',
-    'ja': '今月の送信上限（${freeLimit}通）に達しました。\nプレミアムにアップグレードすると月${premiumLimit}通送信可能！',
+    'ko':
+        '이번 달 발송 한도(${freeLimit}통)에 도달했어요.\n프리미엄으로 업그레이드하면 월 ${premiumLimit}통 발송 가능해요!',
+    'en':
+        'You\'ve reached this month\'s limit ($freeLimit).\nUpgrade to Premium for $premiumLimit promos/month!',
+    'ja':
+        '今月の送信上限（${freeLimit}通）に達しました。\nプレミアムにアップグレードすると月${premiumLimit}通送信可能！',
     'zh': '已达本月发送上限（$freeLimit封）。\n升级Premium月发$premiumLimit封！',
-    'fr': 'Vous avez atteint la limite mensuelle ($freeLimit).\nPassez au Premium pour $premiumLimit lettres/mois !',
-    'de': 'Sie haben das Monatslimit ($freeLimit) erreicht.\nUpgraden Sie auf Premium für $premiumLimit Briefe/Monat!',
-    'es': 'Has alcanzado el límite mensual ($freeLimit).\n¡Actualiza a Premium para $premiumLimit cartas/mes!',
-    'pt': 'Você atingiu o limite mensal ($freeLimit).\nAtualize para Premium para $premiumLimit cartas/mês!',
-    'ru': 'Достигнут месячный лимит ($freeLimit).\nОформите Premium — $premiumLimit писем/месяц!',
-    'tr': 'Bu ayın limitine ($freeLimit) ulaştınız.\nPremium\'a yükselerek ayda $premiumLimit mektup gönderin!',
-    'ar': 'لقد وصلت إلى الحد الشهري ($freeLimit).\nقم بالترقية إلى Premium لإرسال $premiumLimit رسالة/شهر!',
-    'it': 'Hai raggiunto il limite mensile ($freeLimit).\nPassa a Premium per $premiumLimit lettere/mese!',
-    'hi': 'इस महीने की सीमा ($freeLimit) पूरी हो गई।\nPremium में अपग्रेड करें - $premiumLimit पत्र/माह!',
-    'th': 'ถึงขีดจำกัดเดือนนี้แล้ว ($freeLimit ฉบับ)\nอัปเกรดเป็น Premium ส่งได้ $premiumLimit ฉบับ/เดือน!',
+    'fr':
+        'Vous avez atteint la limite mensuelle ($freeLimit).\nPassez au Premium pour $premiumLimit lettres/mois !',
+    'de':
+        'Sie haben das Monatslimit ($freeLimit) erreicht.\nUpgraden Sie auf Premium für $premiumLimit Briefe/Monat!',
+    'es':
+        'Has alcanzado el límite mensual ($freeLimit).\n¡Actualiza a Premium para $premiumLimit cartas/mes!',
+    'pt':
+        'Você atingiu o limite mensal ($freeLimit).\nAtualize para Premium para $premiumLimit cartas/mês!',
+    'ru':
+        'Достигнут месячный лимит ($freeLimit).\nОформите Premium — $premiumLimit писем/месяц!',
+    'tr':
+        'Bu ayın limitine ($freeLimit) ulaştınız.\nPremium\'a yükselerek ayda $premiumLimit mektup gönderin!',
+    'ar':
+        'لقد وصلت إلى الحد الشهري ($freeLimit).\nقم بالترقية إلى Premium لإرسال $premiumLimit رسالة/شهر!',
+    'it':
+        'Hai raggiunto il limite mensile ($freeLimit).\nPassa a Premium per $premiumLimit lettere/mese!',
+    'hi':
+        'इस महीने की सीमा ($freeLimit) पूरी हो गई।\nPremium में अपग्रेड करें - $premiumLimit पत्र/माह!',
+    'th':
+        'ถึงขีดจำกัดเดือนนี้แล้ว ($freeLimit ฉบับ)\nอัปเกรดเป็น Premium ส่งได้ $premiumLimit ฉบับ/เดือน!',
   });
 
   String stateMonthlyLimitBrand(int total) => _t({
     'ko': '이번 달 브랜드 발송 한도(${total}통)에 도달했어요.\n추가 발송권(1,000통 ₩15,000)을 구매하세요.',
-    'en': 'You\'ve reached this month\'s brand limit ($total).\nPurchase extra quota (1,000 promos).',
+    'en':
+        'You\'ve reached this month\'s brand limit ($total).\nPurchase extra quota (1,000 promos).',
     'ja': '今月のブランド送信上限（${total}通）に達しました。\n追加送信権（1,000通）を購入してください。',
     'zh': '已达本月品牌发送上限（$total封）。\n请购买额外配额（1,000封）。',
-    'fr': 'Vous avez atteint la limite mensuelle de marque ($total).\nAchetez un quota supplémentaire (1 000 lettres).',
-    'de': 'Sie haben das monatliche Markenlimit ($total) erreicht.\nKaufen Sie zusätzliches Kontingent (1.000 Briefe).',
-    'es': 'Has alcanzado el límite mensual de marca ($total).\nCompra cuota extra (1.000 cartas).',
-    'pt': 'Você atingiu o limite mensal de marca ($total).\nCompre cota extra (1.000 cartas).',
-    'ru': 'Достигнут месячный лимит бренда ($total).\nКупите дополнительную квоту (1 000 писем).',
-    'tr': 'Bu ayın marka limitine ($total) ulaştınız.\nEk gönderim hakkı (1.000 mektup) satın alın.',
-    'ar': 'لقد وصلت إلى الحد الشهري للعلامة التجارية ($total).\nاشترِ حصة إضافية (1,000 رسالة).',
-    'it': 'Hai raggiunto il limite mensile brand ($total).\nAcquista quota aggiuntiva (1.000 lettere).',
-    'hi': 'इस महीने का ब्रांड सीमा ($total) पूरी हो गई।\nअतिरिक्त कोटा (1,000 पत्र) खरीदें।',
-    'th': 'ถึงขีดจำกัดแบรนด์เดือนนี้แล้ว ($total ฉบับ)\nซื้อโควต้าเพิ่ม (1,000 ฉบับ)',
+    'fr':
+        'Vous avez atteint la limite mensuelle de marque ($total).\nAchetez un quota supplémentaire (1 000 lettres).',
+    'de':
+        'Sie haben das monatliche Markenlimit ($total) erreicht.\nKaufen Sie zusätzliches Kontingent (1.000 Briefe).',
+    'es':
+        'Has alcanzado el límite mensual de marca ($total).\nCompra cuota extra (1.000 cartas).',
+    'pt':
+        'Você atingiu o limite mensal de marca ($total).\nCompre cota extra (1.000 cartas).',
+    'ru':
+        'Достигнут месячный лимит бренда ($total).\nКупите дополнительную квоту (1 000 писем).',
+    'tr':
+        'Bu ayın marka limitine ($total) ulaştınız.\nEk gönderim hakkı (1.000 mektup) satın alın.',
+    'ar':
+        'لقد وصلت إلى الحد الشهري للعلامة التجارية ($total).\nاشترِ حصة إضافية (1,000 رسالة).',
+    'it':
+        'Hai raggiunto il limite mensile brand ($total).\nAcquista quota aggiuntiva (1.000 lettere).',
+    'hi':
+        'इस महीने का ब्रांड सीमा ($total) पूरी हो गई।\nअतिरिक्त कोटा (1,000 पत्र) खरीदें।',
+    'th':
+        'ถึงขีดจำกัดแบรนด์เดือนนี้แล้ว ($total ฉบับ)\nซื้อโควต้าเพิ่ม (1,000 ฉบับ)',
   });
 
   String stateMonthlyLimitPremium(int premiumLimit) => _t({
     'ko': '이번 달 프리미엄 발송 한도(${premiumLimit}통)에 도달했어요. DM 쿼터 포함 기준입니다.',
-    'en': 'You\'ve reached this month\'s premium limit ($premiumLimit), including DM quota.',
+    'en':
+        'You\'ve reached this month\'s premium limit ($premiumLimit), including DM quota.',
     'ja': '今月のプレミアム送信上限（${premiumLimit}通）に達しました。DMクォータを含みます。',
     'zh': '已达本月高级发送上限（$premiumLimit封），含私信配额。',
-    'fr': 'Vous avez atteint la limite mensuelle premium ($premiumLimit), quota MP inclus.',
-    'de': 'Sie haben das monatliche Premium-Limit ($premiumLimit) erreicht, inkl. DM-Kontingent.',
-    'es': 'Has alcanzado el límite mensual premium ($premiumLimit), incluyendo cuota de MD.',
-    'pt': 'Você atingiu o limite mensal premium ($premiumLimit), incluindo cota de MD.',
+    'fr':
+        'Vous avez atteint la limite mensuelle premium ($premiumLimit), quota MP inclus.',
+    'de':
+        'Sie haben das monatliche Premium-Limit ($premiumLimit) erreicht, inkl. DM-Kontingent.',
+    'es':
+        'Has alcanzado el límite mensual premium ($premiumLimit), incluyendo cuota de MD.',
+    'pt':
+        'Você atingiu o limite mensal premium ($premiumLimit), incluindo cota de MD.',
     'ru': 'Достигнут месячный премиум-лимит ($premiumLimit), включая квоту ЛС.',
-    'tr': 'Bu ayın premium limitine ($premiumLimit) ulaştınız. DM kotası dahildir.',
-    'ar': 'لقد وصلت إلى الحد الشهري المميز ($premiumLimit)، شاملاً حصة الرسائل المباشرة.',
-    'it': 'Hai raggiunto il limite mensile premium ($premiumLimit), inclusa la quota MD.',
+    'tr':
+        'Bu ayın premium limitine ($premiumLimit) ulaştınız. DM kotası dahildir.',
+    'ar':
+        'لقد وصلت إلى الحد الشهري المميز ($premiumLimit)، شاملاً حصة الرسائل المباشرة.',
+    'it':
+        'Hai raggiunto il limite mensile premium ($premiumLimit), inclusa la quota MD.',
     'hi': 'इस महीने का प्रीमियम सीमा ($premiumLimit) पूरी हो गई। DM कोटा सहित।',
     'th': 'ถึงขีดจำกัดพรีเมียมเดือนนี้แล้ว ($premiumLimit ฉบับ) รวมโควต้า DM',
   });
@@ -11970,9 +13282,14 @@ class AppL10n {
     'th': '⏳ มีจดหมายอยู่ใกล้ๆ!',
   });
 
-  String stateCooldownNearbyBody(String flag, String country, String timeStr) => _t({
+  String stateCooldownNearbyBody(
+    String flag,
+    String country,
+    String timeStr,
+  ) => _t({
     'ko': '$flag $country에서 온 혜택이 근처에 있지만, $timeStr 후에 수령할 수 있어요',
-    'en': 'A reward from $flag $country is nearby, but you can pick it up in $timeStr',
+    'en':
+        'A reward from $flag $country is nearby, but you can pick it up in $timeStr',
     'ja': '$flag ${country}からの手紙が近くにありますが、${timeStr}後に受け取れます',
     'zh': '来自$flag $country的信在附近，但$timeStr后才能领取',
     'fr': 'Une lettre de $flag $country est proche, ramassage dans $timeStr',
@@ -11980,7 +13297,8 @@ class AppL10n {
     'es': 'Una carta de $flag $country está cerca, recógela en $timeStr',
     'pt': 'Uma carta de $flag $country está por perto, colete em $timeStr',
     'ru': 'Письмо из $flag $country рядом, можно забрать через $timeStr',
-    'tr': '$flag $country\'den bir mektup yakınında, $timeStr sonra alabilirsiniz',
+    'tr':
+        '$flag $country\'den bir mektup yakınında, $timeStr sonra alabilirsiniz',
     'ar': 'رسالة من $flag $country بالقرب منك، يمكنك استلامها بعد $timeStr',
     'it': 'Una lettera da $flag $country è vicina, ritiro tra $timeStr',
     'hi': '$flag $country से एक पत्र पास में है, $timeStr बाद उठा सकते हैं',
@@ -12007,18 +13325,28 @@ class AppL10n {
 
   String get stateReportBlockBody => _t({
     'ko': '신고 접수로 홍보 발송이 일시 제한됩니다. 관리자 검토 후 조치됩니다.',
-    'en': 'Your promo sending is temporarily restricted due to a report. An admin will review shortly.',
+    'en':
+        'Your promo sending is temporarily restricted due to a report. An admin will review shortly.',
     'ja': '通報により手紙の送信が一時制限されています。管理者が確認後、対応します。',
     'zh': '由于举报，您的信件发送已暂时限制。管理员将尽快审核。',
-    'fr': 'L\'envoi de lettres est temporairement restreint suite à un signalement. Un administrateur examinera sous peu.',
-    'de': 'Ihr Briefversand ist vorübergehend eingeschränkt. Ein Administrator wird dies überprüfen.',
-    'es': 'El envío de cartas está temporalmente restringido por un reporte. Un administrador lo revisará pronto.',
-    'pt': 'O envio de cartas está temporariamente restrito. Um administrador revisará em breve.',
-    'ru': 'Отправка писем временно ограничена из-за жалобы. Администратор скоро проверит.',
-    'tr': 'Bir bildirim nedeniyle mektup gönderimi geçici olarak kısıtlandı. Yönetici yakında inceleyecek.',
-    'ar': 'تم تقييد إرسال الرسائل مؤقتاً بسبب بلاغ. سيقوم المسؤول بالمراجعة قريباً.',
-    'it': 'L\'invio di lettere è temporaneamente limitato. Un amministratore esaminerà a breve.',
-    'hi': 'रिपोर्ट के कारण पत्र भेजना अस्थायी रूप से प्रतिबंधित है। व्यवस्थापक जल्द समीक्षा करेगा।',
+    'fr':
+        'L\'envoi de lettres est temporairement restreint suite à un signalement. Un administrateur examinera sous peu.',
+    'de':
+        'Ihr Briefversand ist vorübergehend eingeschränkt. Ein Administrator wird dies überprüfen.',
+    'es':
+        'El envío de cartas está temporalmente restringido por un reporte. Un administrador lo revisará pronto.',
+    'pt':
+        'O envio de cartas está temporariamente restrito. Um administrador revisará em breve.',
+    'ru':
+        'Отправка писем временно ограничена из-за жалобы. Администратор скоро проверит.',
+    'tr':
+        'Bir bildirim nedeniyle mektup gönderimi geçici olarak kısıtlandı. Yönetici yakında inceleyecek.',
+    'ar':
+        'تم تقييد إرسال الرسائل مؤقتاً بسبب بلاغ. سيقوم المسؤول بالمراجعة قريباً.',
+    'it':
+        'L\'invio di lettere è temporaneamente limitato. Un amministratore esaminerà a breve.',
+    'hi':
+        'रिपोर्ट के कारण पत्र भेजना अस्थायी रूप से प्रतिबंधित है। व्यवस्थापक जल्द समीक्षा करेगा।',
     'th': 'การส่งจดหมายถูกจำกัดชั่วคราว ผู้ดูแลระบบจะตรวจสอบเร็วๆ นี้',
   });
 
@@ -12074,34 +13402,54 @@ class AppL10n {
   });
   String get brandOnlySendBody => _t({
     'ko': '홍보·이벤트·할인 혜택을 지구 곳곳에 뿌려보세요. 혜택 줍기는 일반·프리미엄 회원의 메리트예요.',
-    'en': 'Drop promos, events, and discounts around the world. Picking rewards up is the Free/Premium member\'s perk.',
+    'en':
+        'Drop promos, events, and discounts around the world. Picking rewards up is the Free/Premium member\'s perk.',
     'ja': '告知・イベント・割引の手紙を世界に配ってください。拾うのは一般・プレミアム会員の特典です。',
     'zh': '把宣传、活动和折扣信件撒到世界各地。收取是普通/高级会员的专属福利。',
-    'fr': 'Diffusez promos, événements et réductions dans le monde. Le ramassage est l\'avantage Free/Premium.',
-    'de': 'Verbreite Promos, Events und Rabatte weltweit. Abholen bleibt Free/Premium-Mitgliedern vorbehalten.',
-    'es': 'Lanza promociones, eventos y descuentos por el mundo. Recoger es el privilegio Free/Premium.',
-    'pt': 'Espalhe promos, eventos e descontos pelo mundo. Recolher é o benefício Free/Premium.',
-    'ru': 'Рассыпайте акции, события и скидки по миру. Подбирать могут только Free/Premium.',
-    'tr': 'Promosyon, etkinlik ve indirim mektuplarını dünyaya yayın. Toplamak Free/Premium ayrıcalığı.',
-    'ar': 'انشر العروض والفعاليات والخصومات حول العالم. الالتقاط ميزة Free/Premium.',
-    'it': 'Distribuisci promo, eventi e sconti nel mondo. Il ritiro è vantaggio Free/Premium.',
-    'hi': 'प्रचार/इवेंट/छूट पत्र दुनिया में बिखेरें। उठाना Free/Premium सदस्यों का लाभ है।',
-    'th': 'กระจายโปร, กิจกรรม, ส่วนลดไปทั่วโลก การเก็บเป็นสิทธิ์ของสมาชิก Free/Premium',
+    'fr':
+        'Diffusez promos, événements et réductions dans le monde. Le ramassage est l\'avantage Free/Premium.',
+    'de':
+        'Verbreite Promos, Events und Rabatte weltweit. Abholen bleibt Free/Premium-Mitgliedern vorbehalten.',
+    'es':
+        'Lanza promociones, eventos y descuentos por el mundo. Recoger es el privilegio Free/Premium.',
+    'pt':
+        'Espalhe promos, eventos e descontos pelo mundo. Recolher é o benefício Free/Premium.',
+    'ru':
+        'Рассыпайте акции, события и скидки по миру. Подбирать могут только Free/Premium.',
+    'tr':
+        'Promosyon, etkinlik ve indirim mektuplarını dünyaya yayın. Toplamak Free/Premium ayrıcalığı.',
+    'ar':
+        'انشر العروض والفعاليات والخصومات حول العالم. الالتقاط ميزة Free/Premium.',
+    'it':
+        'Distribuisci promo, eventi e sconti nel mondo. Il ritiro è vantaggio Free/Premium.',
+    'hi':
+        'प्रचार/इवेंट/छूट पत्र दुनिया में बिखेरें। उठाना Free/Premium सदस्यों का लाभ है।',
+    'th':
+        'กระจายโปร, กิจกรรม, ส่วนลดไปทั่วโลก การเก็บเป็นสิทธิ์ของสมาชิก Free/Premium',
   });
 
   String get statePickupBrandBlocked => _t({
     'ko': '브랜드 계정은 홍보를 보내는 데만 사용돼요 · 픽업은 일반·프리미엄 회원 전용이에요',
-    'en': 'Brand accounts can only send promos — pickup is for Free / Premium members',
+    'en':
+        'Brand accounts can only send promos — pickup is for Free / Premium members',
     'ja': 'ブランドアカウントは送信専用です — 受け取りは一般・プレミアム会員のみ',
     'zh': '品牌账号只能发送信件 · 收取仅限普通/高级会员',
-    'fr': 'Les comptes Marque ne peuvent qu\'envoyer — le ramassage est réservé aux membres Free/Premium',
-    'de': 'Markenkonten können nur senden — Abholung ist für Free/Premium-Mitglieder',
-    'es': 'Las cuentas Marca solo pueden enviar — la recogida es solo para Free/Premium',
-    'pt': 'Contas Marca só podem enviar — coleta é apenas para membros Free/Premium',
-    'ru': 'Аккаунты брендов только отправляют — подбирать могут только Free/Premium',
-    'tr': 'Marka hesapları yalnızca gönderebilir — toplama Free/Premium üyelere özel',
-    'ar': 'حسابات العلامات التجارية للإرسال فقط — الالتقاط لأعضاء مجاني/بريميوم',
-    'it': 'Gli account Brand possono solo inviare — il ritiro è per membri Free/Premium',
+    'fr':
+        'Les comptes Marque ne peuvent qu\'envoyer — le ramassage est réservé aux membres Free/Premium',
+    'de':
+        'Markenkonten können nur senden — Abholung ist für Free/Premium-Mitglieder',
+    'es':
+        'Las cuentas Marca solo pueden enviar — la recogida es solo para Free/Premium',
+    'pt':
+        'Contas Marca só podem enviar — coleta é apenas para membros Free/Premium',
+    'ru':
+        'Аккаунты брендов только отправляют — подбирать могут только Free/Premium',
+    'tr':
+        'Marka hesapları yalnızca gönderebilir — toplama Free/Premium üyelere özel',
+    'ar':
+        'حسابات العلامات التجارية للإرسال فقط — الالتقاط لأعضاء مجاني/بريميوم',
+    'it':
+        'Gli account Brand possono solo inviare — il ritiro è per membri Free/Premium',
     'hi': 'ब्रांड खाते केवल भेज सकते हैं — उठाना Free/Premium सदस्यों के लिए',
     'th': 'บัญชีแบรนด์ใช้เพื่อส่งเท่านั้น · การเก็บเฉพาะสมาชิก Free/Premium',
   });
@@ -12142,17 +13490,21 @@ class AppL10n {
 
   String get stateDistanceTooFar => _t({
     'ko': '📍 혜택 수령지 2km 이내에 있어야 받을 수 있어요',
-    'en': '📍 You must be within 2km of the reward\'s destination to pick it up',
+    'en':
+        '📍 You must be within 2km of the reward\'s destination to pick it up',
     'ja': '📍 手紙の受取地点から2km以内にいる必要があります',
     'zh': '📍 您需要在信件目的地2km范围内才能领取',
-    'fr': '📍 Vous devez être à moins de 2 km de la destination pour récupérer la lettre',
-    'de': '📍 Sie müssen innerhalb von 2 km vom Briefziel sein, um ihn abzuholen',
+    'fr':
+        '📍 Vous devez être à moins de 2 km de la destination pour récupérer la lettre',
+    'de':
+        '📍 Sie müssen innerhalb von 2 km vom Briefziel sein, um ihn abzuholen',
     'es': '📍 Debes estar a menos de 2 km del destino para recoger la carta',
     'pt': '📍 Você precisa estar a menos de 2 km do destino para pegar a carta',
     'ru': '📍 Вы должны быть в пределах 2 км от адресата, чтобы забрать письмо',
     'tr': '📍 Mektubu almak için 2 km içinde olmalısınız',
     'ar': '📍 يجب أن تكون على بعد 2 كم من وجهة الرسالة لاستلامها',
-    'it': '📍 Devi essere entro 2 km dalla destinazione per ritirare la lettera',
+    'it':
+        '📍 Devi essere entro 2 km dalla destinazione per ritirare la lettera',
     'hi': '📍 पत्र लेने के लिए गंतव्य के 2km के भीतर होना आवश्यक है',
     'th': '📍 ต้องอยู่ภายในระยะ 2 กม. จากจุดหมายจดหมายจึงจะเก็บได้',
   });
@@ -12277,7 +13629,7 @@ class AppL10n {
   });
 
   // ── Settings / Onboarding / Widgets ─────────────────────────────────
-// ── Settings Screen ─────────────────────────────────────────────────────────
+  // ── Settings Screen ─────────────────────────────────────────────────────────
 
   String get settingsSubscription => _t({
     'ko': '구독',
@@ -12687,7 +14039,7 @@ class AppL10n {
     'th': 'แผงผู้ดูแล',
   });
 
-// ── Navigation (main_scaffold) ──────────────────────────────────────────────
+  // ── Navigation (main_scaffold) ──────────────────────────────────────────────
 
   String get navTower => _t({
     'ko': '타워',
@@ -12708,54 +14060,117 @@ class AppL10n {
 
   /// Build 169: 수집첩 정렬 UI.
   String get inboxSortLabel => _t({
-    'ko': '정렬', 'en': 'Sort', 'ja': '並び替え', 'zh': '排序',
-    'fr': 'Tri', 'de': 'Sortieren', 'es': 'Ordenar', 'pt': 'Ordenar',
-    'ru': 'Сортировка', 'tr': 'Sırala', 'ar': 'فرز', 'it': 'Ordina',
-    'hi': 'छाँटें', 'th': 'เรียง',
+    'ko': '정렬',
+    'en': 'Sort',
+    'ja': '並び替え',
+    'zh': '排序',
+    'fr': 'Tri',
+    'de': 'Sortieren',
+    'es': 'Ordenar',
+    'pt': 'Ordenar',
+    'ru': 'Сортировка',
+    'tr': 'Sırala',
+    'ar': 'فرز',
+    'it': 'Ordina',
+    'hi': 'छाँटें',
+    'th': 'เรียง',
   });
   String get inboxSortNewest => _t({
-    'ko': '최신순', 'en': 'Newest', 'ja': '新しい順', 'zh': '最新',
-    'fr': 'Récent', 'de': 'Neueste', 'es': 'Recientes', 'pt': 'Recentes',
-    'ru': 'Новые', 'tr': 'Yeni', 'ar': 'الأحدث', 'it': 'Recenti',
-    'hi': 'नया', 'th': 'ใหม่สุด',
+    'ko': '최신순',
+    'en': 'Newest',
+    'ja': '新しい順',
+    'zh': '最新',
+    'fr': 'Récent',
+    'de': 'Neueste',
+    'es': 'Recientes',
+    'pt': 'Recentes',
+    'ru': 'Новые',
+    'tr': 'Yeni',
+    'ar': 'الأحدث',
+    'it': 'Recenti',
+    'hi': 'नया',
+    'th': 'ใหม่สุด',
   });
   String get inboxSortExpiring => _t({
-    'ko': '만료임박', 'en': 'Expiring', 'ja': '期限間近', 'zh': '即将到期',
-    'fr': 'Expire bientôt', 'de': 'Läuft bald ab', 'es': 'Por caducar',
-    'pt': 'Expira em breve', 'ru': 'Скоро истекает', 'tr': 'Süresi yakın',
-    'ar': 'قرب الانتهاء', 'it': 'In scadenza', 'hi': 'समाप्ति जल्द',
+    'ko': '만료임박',
+    'en': 'Expiring',
+    'ja': '期限間近',
+    'zh': '即将到期',
+    'fr': 'Expire bientôt',
+    'de': 'Läuft bald ab',
+    'es': 'Por caducar',
+    'pt': 'Expira em breve',
+    'ru': 'Скоро истекает',
+    'tr': 'Süresi yakın',
+    'ar': 'قرب الانتهاء',
+    'it': 'In scadenza',
+    'hi': 'समाप्ति जल्द',
     'th': 'ใกล้หมดอายุ',
   });
   String get inboxSortByBrand => _t({
-    'ko': '브랜드', 'en': 'Brand', 'ja': 'ブランド', 'zh': '品牌',
-    'fr': 'Marque', 'de': 'Marke', 'es': 'Marca', 'pt': 'Marca',
-    'ru': 'Бренд', 'tr': 'Marka', 'ar': 'علامة', 'it': 'Marca',
-    'hi': 'ब्रांड', 'th': 'แบรนด์',
+    'ko': '브랜드',
+    'en': 'Brand',
+    'ja': 'ブランド',
+    'zh': '品牌',
+    'fr': 'Marque',
+    'de': 'Marke',
+    'es': 'Marca',
+    'pt': 'Marca',
+    'ru': 'Бренд',
+    'tr': 'Marka',
+    'ar': 'علامة',
+    'it': 'Marca',
+    'hi': 'ब्रांड',
+    'th': 'แบรนด์',
   });
   String get inboxSortByCategory => _t({
-    'ko': '카테고리', 'en': 'Category', 'ja': 'カテゴリ', 'zh': '分类',
-    'fr': 'Catégorie', 'de': 'Kategorie', 'es': 'Categoría', 'pt': 'Categoria',
-    'ru': 'Категория', 'tr': 'Kategori', 'ar': 'فئة', 'it': 'Categoria',
-    'hi': 'श्रेणी', 'th': 'หมวดหมู่',
+    'ko': '카테고리',
+    'en': 'Category',
+    'ja': 'カテゴリ',
+    'zh': '分类',
+    'fr': 'Catégorie',
+    'de': 'Kategorie',
+    'es': 'Categoría',
+    'pt': 'Categoria',
+    'ru': 'Категория',
+    'tr': 'Kategori',
+    'ar': 'فئة',
+    'it': 'Categoria',
+    'hi': 'श्रेणी',
+    'th': 'หมวดหมู่',
   });
 
   /// Build 167: Premium Gate 소셜 증거 바.
   String premiumSocialProof(int count) {
     switch (languageCode) {
-      case 'ko': return '이번 주 $count명이 Premium 업그레이드';
-      case 'ja': return '今週 $count 人が Premium にアップグレード';
-      case 'zh': return '本周 $count 人升级到 Premium';
-      case 'fr': return 'Cette semaine, $count personnes passées Premium';
-      case 'de': return 'Diese Woche $count Upgrades zu Premium';
-      case 'es': return 'Esta semana $count pasaron a Premium';
-      case 'pt': return 'Esta semana $count passaram a Premium';
-      case 'ru': return 'На этой неделе $count перешли на Premium';
-      case 'tr': return 'Bu hafta $count kişi Premium\'a geçti';
-      case 'ar': return 'هذا الأسبوع $count ترقّوا إلى Premium';
-      case 'it': return 'Questa settimana $count sono passati a Premium';
-      case 'hi': return 'इस सप्ताह $count ने Premium अपग्रेड किया';
-      case 'th': return 'สัปดาห์นี้ $count คนอัปเกรด Premium';
-      default: return '$count upgraded to Premium this week';
+      case 'ko':
+        return '이번 주 $count명이 Premium 업그레이드';
+      case 'ja':
+        return '今週 $count 人が Premium にアップグレード';
+      case 'zh':
+        return '本周 $count 人升级到 Premium';
+      case 'fr':
+        return 'Cette semaine, $count personnes passées Premium';
+      case 'de':
+        return 'Diese Woche $count Upgrades zu Premium';
+      case 'es':
+        return 'Esta semana $count pasaron a Premium';
+      case 'pt':
+        return 'Esta semana $count passaram a Premium';
+      case 'ru':
+        return 'На этой неделе $count перешли на Premium';
+      case 'tr':
+        return 'Bu hafta $count kişi Premium\'a geçti';
+      case 'ar':
+        return 'هذا الأسبوع $count ترقّوا إلى Premium';
+      case 'it':
+        return 'Questa settimana $count sono passati a Premium';
+      case 'hi':
+        return 'इस सप्ताह $count ने Premium अपग्रेड किया';
+      case 'th':
+        return 'สัปดาห์นี้ $count คนอัปเกรด Premium';
+      default:
+        return '$count upgraded to Premium this week';
     }
   }
 
@@ -12778,20 +14193,33 @@ class AppL10n {
   });
 
   String get gpsTermsBody => _t({
-    'ko': '• 내 위치 주변의 혜택을 주울 수 있어요\n• 내가 보낸 혜택의 출발 지점을 기록해요\n• 위치 정보는 서비스 제공 외에 사용하지 않아요\n\n❗ 동의하지 않으면 홍보를 보내거나 줍을 수 없어요.',
-    'en': '• Pick up rewards dropped near you\n• Mark the origin of promos you send\n• Location is used only for this service\n\n❗ Without consent you cannot pick up or send rewards.',
-    'ja': '• 周辺の手紙を拾えます\n• 送った手紙の出発地点を記録します\n• 位置情報はサービス提供以外に使用しません\n\n❗ 同意しないと手紙を送ったり拾ったりできません。',
-    'zh': '• 拾起你身边的信件\n• 记录你寄出信件的出发地\n• 位置信息仅用于本服务\n\n❗ 不同意将无法收发信件。',
-    'fr': '• Ramasser les lettres déposées près de toi\n• Marquer le point de départ des lettres envoyées\n• Utilisé uniquement pour ce service\n\n❗ Sans consentement, impossible d\'envoyer ou ramasser.',
-    'de': '• Briefe in deiner Nähe aufsammeln\n• Absendeort deiner Briefe markieren\n• Nur für diesen Dienst verwendet\n\n❗ Ohne Zustimmung kannst du keine Briefe senden oder aufsammeln.',
-    'es': '• Recoge cartas cerca de ti\n• Marca el origen de tus cartas\n• Solo se usa para este servicio\n\n❗ Sin consentimiento no puedes enviar ni recoger.',
-    'pt': '• Apanha cartas perto de ti\n• Marca a origem das tuas cartas\n• Usado só para este serviço\n\n❗ Sem consentimento não podes enviar nem apanhar.',
-    'ru': '• Подбирайте письма рядом\n• Отмечайте место отправки\n• Используется только для этого сервиса\n\n❗ Без согласия нельзя отправлять или подбирать.',
-    'tr': '• Yakınındaki mektupları topla\n• Gönderdiğin mektubun başlangıç noktasını işaretle\n• Yalnızca bu hizmet için\n\n❗ İzin vermeden gönderme / toplama yok.',
-    'ar': '• التقط الرسائل القريبة\n• سجّل نقطة إرسال رسائلك\n• تُستخدم لهذه الخدمة فقط\n\n❗ بدون الموافقة لا يمكنك الإرسال أو الالتقاط.',
-    'it': '• Raccogli lettere vicino a te\n• Segna il punto di partenza\n• Usata solo per questo servizio\n\n❗ Senza consenso non puoi inviare o raccogliere.',
-    'hi': '• आस-पास के पत्र उठाएँ\n• भेजे पत्रों का मूल चिह्नित\n• सेवा के लिए ही उपयोग\n\n❗ सहमति बिना भेजना/उठाना असंभव.',
-    'th': '• เก็บจดหมายรอบตัว\n• บันทึกจุดส่งของคุณ\n• ใช้เฉพาะบริการนี้\n\n❗ ไม่ยินยอม = ส่ง/เก็บไม่ได้',
+    'ko':
+        '• 내 위치 주변의 혜택을 주울 수 있어요\n• 내가 보낸 혜택의 출발 지점을 기록해요\n• 위치 정보는 서비스 제공 외에 사용하지 않아요\n\n❗ 동의하지 않으면 홍보를 보내거나 줍을 수 없어요.',
+    'en':
+        '• Pick up rewards dropped near you\n• Mark the origin of promos you send\n• Location is used only for this service\n\n❗ Without consent you cannot pick up or send rewards.',
+    'ja':
+        '• 周辺にある特典を拾えます\n• 送ったプロモの出発地点を記録します\n• 位置情報はサービス提供以外に使用しません\n\n❗ 同意しないと特典を拾ったり送ったりできません。',
+    'zh': '• 拾取你附近的优惠\n• 记录你发送的推广内容起点\n• 位置信息仅用于本服务\n\n❗ 不同意将无法拾取或发送优惠。',
+    'fr':
+        '• Récupérer les avantages déposés près de vous\n• Marquer l\'origine des promos que vous envoyez\n• Utilisé uniquement pour ce service\n\n❗ Sans consentement, impossible d\'envoyer ou de récupérer des avantages.',
+    'de':
+        '• Belohnungen in deiner Nähe einsammeln\n• Den Startpunkt deiner gesendeten Promos markieren\n• Nur für diesen Dienst verwendet\n\n❗ Ohne Zustimmung kannst du keine Belohnungen senden oder einsammeln.',
+    'es':
+        '• Recoge recompensas cerca de ti\n• Marca el origen de las promos que envías\n• Solo se usa para este servicio\n\n❗ Sin consentimiento no puedes enviar ni recoger recompensas.',
+    'pt':
+        '• Recolha recompensas perto de você\n• Marque a origem das promos que enviar\n• Usado apenas para este serviço\n\n❗ Sem consentimento não é possível enviar nem recolher recompensas.',
+    'ru':
+        '• Подбирайте награды рядом с вами\n• Отмечайте место отправки своих промо\n• Используется только для этого сервиса\n\n❗ Без согласия нельзя отправлять или подбирать награды.',
+    'tr':
+        '• Yakınındaki ödülleri topla\n• Gönderdiğin promoların başlangıç noktasını işaretle\n• Yalnızca bu hizmet için kullanılır\n\n❗ İzin vermeden ödül gönderemez veya toplayamazsın.',
+    'ar':
+        '• التقط المكافآت القريبة منك\n• سجّل نقطة انطلاق العروض التي ترسلها\n• تُستخدم بيانات الموقع لهذه الخدمة فقط\n\n❗ بدون الموافقة لا يمكنك إرسال أو التقاط المكافآت.',
+    'it':
+        '• Raccogli i premi vicino a te\n• Segna il punto di partenza delle promo che invii\n• Usata solo per questo servizio\n\n❗ Senza consenso non puoi inviare o raccogliere premi.',
+    'hi':
+        '• अपने पास के रिवॉर्ड उठाएँ\n• भेजे गए प्रोमो का शुरुआती स्थान दर्ज करें\n• लोकेशन केवल इस सेवा के लिए उपयोग होती है\n\n❗ सहमति के बिना आप रिवॉर्ड भेज या उठा नहीं सकते।',
+    'th':
+        '• เก็บรางวัลที่อยู่ใกล้ตัวคุณ\n• บันทึกจุดเริ่มต้นของโปรโมชันที่คุณส่ง\n• ใช้ข้อมูลตำแหน่งเพื่อบริการนี้เท่านั้น\n\n❗ หากไม่ยินยอม คุณจะส่งหรือเก็บรางวัลไม่ได้',
   });
 
   String get gpsAgreeAndContinue => _t({
@@ -12829,20 +14257,34 @@ class AppL10n {
   });
 
   String get gpsSkipWarningBody => _t({
-    'ko': 'GPS 동의 없이는 다음 기능을 사용할 수 없어요:\n\n• 📍 주변 혜택 줍기 불가\n• ✉️ 홍보 발송 불가 (Premium/Brand)\n• 🗺 내 위치 마커 표시 불가\n\n설정에서 언제든지 다시 허용할 수 있지만, 지금 동의하는 것을 강력히 권장합니다.',
-    'en': 'Without GPS consent the following are disabled:\n\n• 📍 Pick up nearby rewards\n• 📣 Send promos (Premium/Brand)\n• 🗺 Show your location marker\n\nYou can enable it later in Settings, but we strongly recommend consenting now.',
-    'ja': 'GPS 同意なしでは次の機能が使えません:\n\n• 📍 周辺の手紙を拾う\n• ✉️ 手紙を送る (Premium/Brand)\n• 🗺 自分の位置マーカー\n\n設定から後で許可できますが、今すぐ同意することを強くお勧めします。',
-    'zh': '没有 GPS 同意将无法使用:\n\n• 📍 拾起附近信件\n• ✉️ 发送信件 (Premium/Brand)\n• 🗺 显示我的位置\n\n可在设置中重新允许，但强烈建议现在同意。',
-    'fr': 'Sans consentement GPS, désactivé:\n\n• 📍 Ramasser des lettres\n• ✉️ Envoyer (Premium/Brand)\n• 🗺 Marqueur de position\n\nActivable plus tard dans Paramètres, mais nous recommandons fortement maintenant.',
-    'de': 'Ohne GPS deaktiviert:\n\n• 📍 Briefe aufsammeln\n• ✉️ Briefe senden (Premium/Brand)\n• 🗺 Eigene Position\n\nSpäter in Einstellungen aktivierbar, jetzt empfohlen.',
-    'es': 'Sin GPS estará deshabilitado:\n\n• 📍 Recoger cartas\n• ✉️ Enviar (Premium/Brand)\n• 🗺 Tu marcador\n\nActívalo luego en Ajustes, pero ahora es recomendable.',
-    'pt': 'Sem GPS fica desativado:\n\n• 📍 Apanhar cartas\n• ✉️ Enviar (Premium/Brand)\n• 🗺 Teu marcador\n\nPodes ativar depois, mas recomendamos agora.',
-    'ru': 'Без GPS недоступно:\n\n• 📍 Подбор писем\n• ✉️ Отправка (Premium/Brand)\n• 🗺 Ваш маркер\n\nМожно включить позже в настройках, но рекомендуем сейчас.',
-    'tr': 'GPS onayı olmadan kapalı:\n\n• 📍 Mektup toplama\n• ✉️ Gönderme (Premium/Brand)\n• 🗺 Konumun\n\nSonra ayarlardan açabilirsin, şimdi öneriyoruz.',
-    'ar': 'دون GPS معطل:\n\n• 📍 التقاط الرسائل\n• ✉️ الإرسال (Premium/Brand)\n• 🗺 موقعك\n\nيمكن تفعيله لاحقًا من الإعدادات، ولكن يُنصح الآن.',
-    'it': 'Senza GPS disabilitato:\n\n• 📍 Raccogli lettere\n• ✉️ Invia (Premium/Brand)\n• 🗺 Tuo marcatore\n\nAttivabile poi in Impostazioni, ma consigliato ora.',
-    'hi': 'GPS बिना अक्षम:\n\n• 📍 पत्र उठाना\n• ✉️ भेजना (Premium/Brand)\n• 🗺 आपका मार्कर\n\nसेटिंग्स में बाद में चालू करें, अभी सुझावित.',
-    'th': 'ไม่มี GPS จะปิดใช้:\n\n• 📍 เก็บจดหมาย\n• ✉️ ส่ง (Premium/Brand)\n• 🗺 ตำแหน่งของคุณ\n\nเปิดภายหลังในตั้งค่าได้ แต่แนะนำตอนนี้',
+    'ko':
+        'GPS 동의 없이는 다음 기능을 사용할 수 없어요:\n\n• 📍 주변 혜택 줍기 불가\n• ✉️ 홍보 발송 불가 (Premium/Brand)\n• 🗺 내 위치 마커 표시 불가\n\n설정에서 언제든지 다시 허용할 수 있지만, 지금 동의하는 것을 강력히 권장합니다.',
+    'en':
+        'Without GPS consent the following are disabled:\n\n• 📍 Pick up nearby rewards\n• 📣 Send promos (Premium/Brand)\n• 🗺 Show your location marker\n\nYou can enable it later in Settings, but we strongly recommend consenting now.',
+    'ja':
+        'GPS 同意なしでは次の機能が使えません:\n\n• 📍 周辺の手紙を拾う\n• ✉️ 手紙を送る (Premium/Brand)\n• 🗺 自分の位置マーカー\n\n設定から後で許可できますが、今すぐ同意することを強くお勧めします。',
+    'zh':
+        '没有 GPS 同意将无法使用:\n\n• 📍 拾起附近信件\n• ✉️ 发送信件 (Premium/Brand)\n• 🗺 显示我的位置\n\n可在设置中重新允许，但强烈建议现在同意。',
+    'fr':
+        'Sans consentement GPS, désactivé:\n\n• 📍 Ramasser des lettres\n• ✉️ Envoyer (Premium/Brand)\n• 🗺 Marqueur de position\n\nActivable plus tard dans Paramètres, mais nous recommandons fortement maintenant.',
+    'de':
+        'Ohne GPS deaktiviert:\n\n• 📍 Briefe aufsammeln\n• ✉️ Briefe senden (Premium/Brand)\n• 🗺 Eigene Position\n\nSpäter in Einstellungen aktivierbar, jetzt empfohlen.',
+    'es':
+        'Sin GPS estará deshabilitado:\n\n• 📍 Recoger cartas\n• ✉️ Enviar (Premium/Brand)\n• 🗺 Tu marcador\n\nActívalo luego en Ajustes, pero ahora es recomendable.',
+    'pt':
+        'Sem GPS fica desativado:\n\n• 📍 Apanhar cartas\n• ✉️ Enviar (Premium/Brand)\n• 🗺 Teu marcador\n\nPodes ativar depois, mas recomendamos agora.',
+    'ru':
+        'Без GPS недоступно:\n\n• 📍 Подбор писем\n• ✉️ Отправка (Premium/Brand)\n• 🗺 Ваш маркер\n\nМожно включить позже в настройках, но рекомендуем сейчас.',
+    'tr':
+        'GPS onayı olmadan kapalı:\n\n• 📍 Mektup toplama\n• ✉️ Gönderme (Premium/Brand)\n• 🗺 Konumun\n\nSonra ayarlardan açabilirsin, şimdi öneriyoruz.',
+    'ar':
+        'دون GPS معطل:\n\n• 📍 التقاط الرسائل\n• ✉️ الإرسال (Premium/Brand)\n• 🗺 موقعك\n\nيمكن تفعيله لاحقًا من الإعدادات، ولكن يُنصح الآن.',
+    'it':
+        'Senza GPS disabilitato:\n\n• 📍 Raccogli lettere\n• ✉️ Invia (Premium/Brand)\n• 🗺 Tuo marcatore\n\nAttivabile poi in Impostazioni, ma consigliato ora.',
+    'hi':
+        'GPS बिना अक्षम:\n\n• 📍 पत्र उठाना\n• ✉️ भेजना (Premium/Brand)\n• 🗺 आपका मार्कर\n\nसेटिंग्स में बाद में चालू करें, अभी सुझावित.',
+    'th':
+        'ไม่มี GPS จะปิดใช้:\n\n• 📍 เก็บจดหมาย\n• ✉️ ส่ง (Premium/Brand)\n• 🗺 ตำแหน่งของคุณ\n\nเปิดภายหลังในตั้งค่าได้ แต่แนะนำตอนนี้',
   });
 
   String get gpsSkipBack => _t({
@@ -12899,20 +14341,20 @@ class AppL10n {
 
   /// Build 174: 카운터 캐릭터 갤러리 (과거 티어 회고) 라벨.
   String get letterGalleryTitle => _t({
-    'ko': '🧭 카운터 진화 갤러리',
-    'en': '🧭 Counter Evolution',
-    'ja': '🧭 カウンター進化ギャラリー',
-    'zh': '🧭 Letter 进化画廊',
-    'fr': '🧭 Évolution Letter',
-    'de': '🧭 Letter-Entwicklung',
-    'es': '🧭 Evolución Letter',
-    'pt': '🧭 Evolução Letter',
-    'ru': '🧭 Эволюция Letter',
-    'tr': '🧭 Letter Evrimi',
-    'ar': '🧭 تطور ليتر',
-    'it': '🧭 Evoluzione Letter',
-    'hi': '🧭 Letter विकास',
-    'th': '🧭 วิวัฒนาการ Letter',
+    'ko': '🧭 캐릭터 진화 갤러리',
+    'en': '🧭 Character Evolution',
+    'ja': '🧭 キャラクター進化',
+    'zh': '🧭 角色进化',
+    'fr': '🧭 Évolution du personnage',
+    'de': '🧭 Charakterentwicklung',
+    'es': '🧭 Evolución del personaje',
+    'pt': '🧭 Evolução do personagem',
+    'ru': '🧭 Эволюция персонажа',
+    'tr': '🧭 Karakter Evrimi',
+    'ar': '🧭 تطور الشخصية',
+    'it': '🧭 Evoluzione del personaggio',
+    'hi': '🧭 कैरेक्टर विकास',
+    'th': '🧭 พัฒนาการตัวละคร',
   });
 
   String get letterGallerySubtitle => _t({
@@ -12935,20 +14377,34 @@ class AppL10n {
   /// Build 173: 카운터 생일 (가입 기념일) 카피.
   String letterBirthdayAnniversary(int years) {
     switch (languageCode) {
-      case 'ko': return '🎉 카운터와 함께 $years주년!';
-      case 'ja': return '🎉 カウンターと $years 周年！';
-      case 'zh': return '🎉 与 Counter 同行 $years 周年！';
-      case 'fr': return '🎉 $years ans avec Counter !';
-      case 'de': return '🎉 $years Jahre mit Counter!';
-      case 'es': return '🎉 $years años con Counter!';
-      case 'pt': return '🎉 $years anos com Counter!';
-      case 'ru': return '🎉 $years лет с Counter!';
-      case 'tr': return '🎉 Counter ile $years. yıl!';
-      case 'ar': return '🎉 $years سنوات مع Counter!';
-      case 'it': return '🎉 $years anni con Counter!';
-      case 'hi': return '🎉 Counter के साथ $years साल!';
-      case 'th': return '🎉 $years ปีกับ Counter!';
-      default: return '🎉 $years years with Counter!';
+      case 'ko':
+        return '🎉 카운터와 함께 $years주년!';
+      case 'ja':
+        return '🎉 カウンターと $years 周年！';
+      case 'zh':
+        return '🎉 与 Counter 同行 $years 周年！';
+      case 'fr':
+        return '🎉 $years ans avec Counter !';
+      case 'de':
+        return '🎉 $years Jahre mit Counter!';
+      case 'es':
+        return '🎉 $years años con Counter!';
+      case 'pt':
+        return '🎉 $years anos com Counter!';
+      case 'ru':
+        return '🎉 $years лет с Counter!';
+      case 'tr':
+        return '🎉 Counter ile $years. yıl!';
+      case 'ar':
+        return '🎉 $years سنوات مع Counter!';
+      case 'it':
+        return '🎉 $years anni con Counter!';
+      case 'hi':
+        return '🎉 Counter के साथ $years साल!';
+      case 'th':
+        return '🎉 $years ปีกับ Counter!';
+      default:
+        return '🎉 $years years with Counter!';
     }
   }
 
@@ -12971,173 +14427,260 @@ class AppL10n {
 
   String letterAgeDays(int days) {
     switch (languageCode) {
-      case 'ko': return '카운터와 함께 $days일째';
-      case 'ja': return 'カウンターと $days 日目';
-      case 'zh': return '与 Counter 同行 $days 天';
-      case 'fr': return '$days jours avec Counter';
-      case 'de': return '$days Tage mit Counter';
-      case 'es': return '$days días con Counter';
-      case 'pt': return '$days dias com Counter';
-      case 'ru': return '$days дней с Counter';
-      case 'tr': return 'Counter ile $days gün';
-      case 'ar': return '$days أيام مع Counter';
-      case 'it': return '$days giorni con Counter';
-      case 'hi': return 'Counter के साथ $days दिन';
-      case 'th': return '$days วันกับ Counter';
-      default: return '$days days with Counter';
+      case 'ko':
+        return '카운터와 함께 $days일째';
+      case 'ja':
+        return 'カウンターと $days 日目';
+      case 'zh':
+        return '与 Counter 同行 $days 天';
+      case 'fr':
+        return '$days jours avec Counter';
+      case 'de':
+        return '$days Tage mit Counter';
+      case 'es':
+        return '$days días con Counter';
+      case 'pt':
+        return '$days dias com Counter';
+      case 'ru':
+        return '$days дней с Counter';
+      case 'tr':
+        return 'Counter ile $days gün';
+      case 'ar':
+        return '$days أيام مع Counter';
+      case 'it':
+        return '$days giorni con Counter';
+      case 'hi':
+        return 'Counter के साथ $days दिन';
+      case 'th':
+        return '$days วันกับ Counter';
+      default:
+        return '$days days with Counter';
     }
   }
 
   String letterBirthdayUpcoming(int daysRemaining) {
     if (daysRemaining == 0) return letterBirthdayFirstDay;
     switch (languageCode) {
-      case 'ko': return '생일까지 D-$daysRemaining';
-      case 'ja': return '誕生日まで D-$daysRemaining';
-      case 'zh': return '距生日 D-$daysRemaining';
-      case 'fr': return 'Anniv dans $daysRemaining j';
-      case 'de': return 'Geburtstag in $daysRemaining T';
-      case 'es': return 'Cumple en $daysRemaining d';
-      case 'pt': return 'Aniversário em $daysRemaining d';
-      case 'ru': return 'День рожд. через $daysRemaining д';
-      case 'tr': return 'Doğum günü $daysRemaining gün';
-      case 'ar': return 'عيد الميلاد بعد $daysRemaining يوم';
-      case 'it': return 'Compleanno tra $daysRemaining g';
-      case 'hi': return 'जन्मदिन D-$daysRemaining';
-      case 'th': return 'วันเกิดอีก $daysRemaining วัน';
-      default: return 'Birthday in $daysRemaining d';
+      case 'ko':
+        return '생일까지 D-$daysRemaining';
+      case 'ja':
+        return '誕生日まで D-$daysRemaining';
+      case 'zh':
+        return '距生日 D-$daysRemaining';
+      case 'fr':
+        return 'Anniv dans $daysRemaining j';
+      case 'de':
+        return 'Geburtstag in $daysRemaining T';
+      case 'es':
+        return 'Cumple en $daysRemaining d';
+      case 'pt':
+        return 'Aniversário em $daysRemaining d';
+      case 'ru':
+        return 'День рожд. через $daysRemaining д';
+      case 'tr':
+        return 'Doğum günü $daysRemaining gün';
+      case 'ar':
+        return 'عيد الميلاد بعد $daysRemaining يوم';
+      case 'it':
+        return 'Compleanno tra $daysRemaining g';
+      case 'hi':
+        return 'जन्मदिन D-$daysRemaining';
+      case 'th':
+        return 'วันเกิดอีก $daysRemaining วัน';
+      default:
+        return 'Birthday in $daysRemaining d';
     }
   }
 
   /// Build 171: 카운터 이름 수정 다이얼로그 라벨 (Free/Premium 전용).
   String get profileDialogLetterNameTitle => _t({
-    'ko': '내 카운터 이름',
-    'en': 'My Counter name',
-    'ja': 'カウンターの名前',
-    'zh': '我的 Counter 名',
-    'fr': 'Nom de mon Counter',
-    'de': 'Mein Counter-Name',
-    'es': 'Nombre de mi Counter',
-    'pt': 'Nome do meu Counter',
-    'ru': 'Имя моего Counter',
-    'tr': "Counter'imin adı",
-    'ar': 'اسم كاونتر الخاص بي',
-    'it': 'Nome del mio Counter',
-    'hi': 'मेरे Counter का नाम',
-    'th': 'ชื่อ Counter ของฉัน',
+    'ko': '캐릭터 이름',
+    'en': 'Character Name',
+    'ja': 'キャラクター名',
+    'zh': '角色名称',
+    'fr': 'Nom du personnage',
+    'de': 'Charaktername',
+    'es': 'Nombre del personaje',
+    'pt': 'Nome do personagem',
+    'ru': 'Имя персонажа',
+    'tr': 'Karakter adı',
+    'ar': 'اسم الشخصية',
+    'it': 'Nome del personaggio',
+    'hi': 'कैरेक्टर नाम',
+    'th': 'ชื่อตัวละคร',
   });
 
   String get profileDialogLetterNameHint => _t({
-    'ko': '예: 쿠폰헌터 루나', 'en': 'e.g. Coupon Hunter Luna', 'ja': '例: クーポンハンタールナ',
-    'zh': '例：优惠券猎人露娜', 'fr': 'ex. Chasseuse de coupons Luna', 'de': 'z.B. Couponjägerin Luna',
-    'es': 'ej. Cazadora de cupones Luna', 'pt': 'ex. Caçadora de cupons Luna', 'ru': 'напр. Охотник за купонами Луна',
-    'tr': 'örn. Kupon Avcısı Luna', 'ar': 'مثل: صائد الكوبونات لونا', 'it': 'es. Cacciatore di coupon Luna',
-    'hi': 'उदा. कूपन हंटर Luna', 'th': 'เช่น นักล่าคูปองลูน่า',
+    'ko': '예: 쿠폰헌터 루나',
+    'en': 'e.g. Coupon Hunter Luna',
+    'ja': '例: クーポンハンタールナ',
+    'zh': '例：优惠券猎人露娜',
+    'fr': 'ex. Chasseuse de coupons Luna',
+    'de': 'z.B. Couponjägerin Luna',
+    'es': 'ej. Cazadora de cupones Luna',
+    'pt': 'ex. Caçadora de cupons Luna',
+    'ru': 'напр. Охотник за купонами Луна',
+    'tr': 'örn. Kupon Avcısı Luna',
+    'ar': 'مثل: صائد الكوبونات لونا',
+    'it': 'es. Cacciatore di coupon Luna',
+    'hi': 'उदा. कूपन हंटर Luna',
+    'th': 'เช่น นักล่าคูปองลูน่า',
   });
 
   String get profileDialogLetterNameDesc => _t({
-    'ko': '내 카운터 캐릭터에 이름을 붙여보세요. 최대 20자.',
-    'en': 'Give your Counter character a name. Max 20 chars.',
-    'ja': 'カウンターキャラクターに名前を付けよう。最大20文字。',
-    'zh': '给你的 Counter 起个名字。最多 20 字符。',
-    'fr': 'Donne un nom à ton Counter. 20 caractères max.',
-    'de': 'Gib deinem Counter einen Namen. Max 20 Zeichen.',
-    'es': 'Ponle un nombre a tu Counter. Máx. 20 caracteres.',
-    'pt': 'Dá um nome ao teu Counter. Máx 20 caracteres.',
-    'ru': 'Назови своего Counter. Макс 20 символов.',
-    'tr': "Counter'ına isim ver. En fazla 20 karakter.",
-    'ar': 'سمّ كاونترك الخاص. 20 حرفًا بحد أقصى.',
-    'it': 'Dai un nome al tuo Counter. Max 20 caratteri.',
-    'hi': 'अपने Counter का नाम दें. अधिकतम 20 वर्ण.',
-    'th': 'ตั้งชื่อ Counter ของคุณ สูงสุด 20 ตัวอักษร',
+    'ko': '내 캐릭터에 이름을 붙여보세요. 최대 20자.',
+    'en': 'Give your character a name. Max 20 chars.',
+    'ja': 'キャラクターに名前を付けよう。最大20文字。',
+    'zh': '给你的角色起个名字。最多 20 个字符。',
+    'fr': 'Donnez un nom à votre personnage. 20 caractères max.',
+    'de': 'Gib deinem Charakter einen Namen. Max. 20 Zeichen.',
+    'es': 'Ponle un nombre a tu personaje. Máx. 20 caracteres.',
+    'pt': 'Dê um nome ao seu personagem. Máx. 20 caracteres.',
+    'ru': 'Дайте имя своему персонажу. Макс. 20 символов.',
+    'tr': 'Karakterine bir isim ver. En fazla 20 karakter.',
+    'ar': 'أطلق اسمًا على شخصيتك. 20 حرفًا كحد أقصى.',
+    'it': 'Dai un nome al tuo personaggio. Max 20 caratteri.',
+    'hi': 'अपने कैरेक्टर को नाम दें. अधिकतम 20 वर्ण.',
+    'th': 'ตั้งชื่อตัวละครของคุณ สูงสุด 20 ตัวอักษร',
   });
 
   /// Build 171: 카운터 캐릭터 로드맵 카드 (다음 해금까지).
   String get letterRoadmapTitle => _t({
-    'ko': '🎯 다음 해금', 'en': '🎯 Next unlock', 'ja': '🎯 次の解放',
-    'zh': '🎯 下次解锁', 'fr': '🎯 Prochain déblocage', 'de': '🎯 Nächstes Freischalten',
-    'es': '🎯 Próximo desbloqueo', 'pt': '🎯 Próximo desbloqueio',
-    'ru': '🎯 Следующая разблокировка', 'tr': '🎯 Sonraki açılma',
-    'ar': '🎯 الفتح التالي', 'it': '🎯 Prossimo sblocco',
-    'hi': '🎯 अगला अनलॉक', 'th': '🎯 ปลดล็อกถัดไป',
+    'ko': '🎯 다음 해금',
+    'en': '🎯 Next unlock',
+    'ja': '🎯 次の解放',
+    'zh': '🎯 下次解锁',
+    'fr': '🎯 Prochain déblocage',
+    'de': '🎯 Nächstes Freischalten',
+    'es': '🎯 Próximo desbloqueo',
+    'pt': '🎯 Próximo desbloqueio',
+    'ru': '🎯 Следующая разблокировка',
+    'tr': '🎯 Sonraki açılma',
+    'ar': '🎯 الفتح التالي',
+    'it': '🎯 Prossimo sblocco',
+    'hi': '🎯 अगला अनलॉक',
+    'th': '🎯 ปลดล็อกถัดไป',
   });
 
   String letterRoadmapCompanion(int level) {
     switch (languageCode) {
-      case 'ko': return '$level 레벨에 새 동반자 해금';
-      case 'ja': return 'レベル $level で新しい仲間を解放';
-      case 'zh': return '等级 $level 解锁新伙伴';
-      case 'fr': return 'Nouveau compagnon au niveau $level';
-      case 'de': return 'Neuer Gefährte auf Level $level';
-      case 'es': return 'Nuevo compañero en el nivel $level';
-      case 'pt': return 'Novo companheiro no nível $level';
-      case 'ru': return 'Новый спутник на уровне $level';
-      case 'tr': return 'Seviye $level yeni yoldaş';
-      case 'ar': return 'رفيق جديد في المستوى $level';
-      case 'it': return 'Nuovo compagno al livello $level';
-      case 'hi': return 'स्तर $level पर नया साथी';
-      case 'th': return 'ปลดล็อกเพื่อนใหม่ระดับ $level';
-      default: return 'New companion at Level $level';
+      case 'ko':
+        return '$level 레벨에 새 동반자 해금';
+      case 'ja':
+        return 'レベル $level で新しい仲間を解放';
+      case 'zh':
+        return '等级 $level 解锁新伙伴';
+      case 'fr':
+        return 'Nouveau compagnon au niveau $level';
+      case 'de':
+        return 'Neuer Gefährte auf Level $level';
+      case 'es':
+        return 'Nuevo compañero en el nivel $level';
+      case 'pt':
+        return 'Novo companheiro no nível $level';
+      case 'ru':
+        return 'Новый спутник на уровне $level';
+      case 'tr':
+        return 'Seviye $level yeni yoldaş';
+      case 'ar':
+        return 'رفيق جديد في المستوى $level';
+      case 'it':
+        return 'Nuovo compagno al livello $level';
+      case 'hi':
+        return 'स्तर $level पर नया साथी';
+      case 'th':
+        return 'ปลดล็อกเพื่อนใหม่ระดับ $level';
+      default:
+        return 'New companion at Level $level';
     }
   }
 
   String letterRoadmapAccessory(int level) {
     switch (languageCode) {
-      case 'ko': return '$level 레벨에 새 악세사리 해금';
-      case 'ja': return 'レベル $level で新しいアクセサリー';
-      case 'zh': return '等级 $level 解锁新配饰';
-      case 'fr': return 'Nouvel accessoire au niveau $level';
-      case 'de': return 'Neues Accessoire auf Level $level';
-      case 'es': return 'Nuevo accesorio en el nivel $level';
-      case 'pt': return 'Novo acessório no nível $level';
-      case 'ru': return 'Новый аксессуар на уровне $level';
-      case 'tr': return 'Seviye $level yeni aksesuar';
-      case 'ar': return 'إكسسوار جديد في المستوى $level';
-      case 'it': return 'Nuovo accessorio al livello $level';
-      case 'hi': return 'स्तर $level पर नया एक्सेसरी';
-      case 'th': return 'ปลดล็อกเครื่องประดับระดับ $level';
-      default: return 'New accessory at Level $level';
+      case 'ko':
+        return '$level 레벨에 새 악세사리 해금';
+      case 'ja':
+        return 'レベル $level で新しいアクセサリー';
+      case 'zh':
+        return '等级 $level 解锁新配饰';
+      case 'fr':
+        return 'Nouvel accessoire au niveau $level';
+      case 'de':
+        return 'Neues Accessoire auf Level $level';
+      case 'es':
+        return 'Nuevo accesorio en el nivel $level';
+      case 'pt':
+        return 'Novo acessório no nível $level';
+      case 'ru':
+        return 'Новый аксессуар на уровне $level';
+      case 'tr':
+        return 'Seviye $level yeni aksesuar';
+      case 'ar':
+        return 'إكسسوار جديد في المستوى $level';
+      case 'it':
+        return 'Nuovo accessorio al livello $level';
+      case 'hi':
+        return 'स्तर $level पर नया एक्सेसरी';
+      case 'th':
+        return 'ปลดล็อกเครื่องประดับระดับ $level';
+      default:
+        return 'New accessory at Level $level';
     }
   }
 
   String letterRoadmapCharacter(int level) {
     switch (languageCode) {
-      case 'ko': return '$level 레벨에 캐릭터 진화';
-      case 'ja': return 'レベル $level でキャラクター進化';
-      case 'zh': return '等级 $level 角色进化';
-      case 'fr': return 'Évolution du personnage au niveau $level';
-      case 'de': return 'Charakterentwicklung auf Level $level';
-      case 'es': return 'Evolución del personaje en nivel $level';
-      case 'pt': return 'Evolução do personagem no nível $level';
-      case 'ru': return 'Эволюция персонажа на уровне $level';
-      case 'tr': return 'Seviye $level karakter evrimi';
-      case 'ar': return 'تطور الشخصية في المستوى $level';
-      case 'it': return 'Evoluzione personaggio al livello $level';
-      case 'hi': return 'स्तर $level पर चरित्र विकास';
-      case 'th': return 'วิวัฒนาการตัวละครระดับ $level';
-      default: return 'Character evolves at Level $level';
+      case 'ko':
+        return '$level 레벨에 캐릭터 진화';
+      case 'ja':
+        return 'レベル $level でキャラクター進化';
+      case 'zh':
+        return '等级 $level 角色进化';
+      case 'fr':
+        return 'Évolution du personnage au niveau $level';
+      case 'de':
+        return 'Charakterentwicklung auf Level $level';
+      case 'es':
+        return 'Evolución del personaje en nivel $level';
+      case 'pt':
+        return 'Evolução do personagem no nível $level';
+      case 'ru':
+        return 'Эволюция персонажа на уровне $level';
+      case 'tr':
+        return 'Seviye $level karakter evrimi';
+      case 'ar':
+        return 'تطور الشخصية في المستوى $level';
+      case 'it':
+        return 'Evoluzione personaggio al livello $level';
+      case 'hi':
+        return 'स्तर $level पर चरित्र विकास';
+      case 'th':
+        return 'วิวัฒนาการตัวละครระดับ $level';
+      default:
+        return 'Character evolves at Level $level';
     }
   }
 
   /// Build 163 → 220: Free/Premium 전용 탭 라벨 — "카운터" 캐릭터 성장 경험.
   /// Brand 는 `navTower` 유지.
   String get navLetter => _t({
-    'ko': '카운터',
-    'en': 'Counter',
-    'ja': 'カウンター',
-    'zh': '计数器',
-    'fr': 'Counter',
-    'de': 'Counter',
-    'es': 'Counter',
-    'pt': 'Counter',
-    'ru': 'Counter',
-    'tr': 'Counter',
-    'ar': 'كاونتر',
-    'it': 'Letter',
-    'hi': 'लेटर',
-    'th': 'เลตเตอร์',
+    'ko': '캐릭터',
+    'en': 'Character',
+    'ja': 'キャラ',
+    'zh': '角色',
+    'fr': 'Personnage',
+    'de': 'Charakter',
+    'es': 'Personaje',
+    'pt': 'Personagem',
+    'ru': 'Персонаж',
+    'tr': 'Karakter',
+    'ar': 'الشخصية',
+    'it': 'Personaggio',
+    'hi': 'कैरेक्टर',
+    'th': 'คาแรกเตอร์',
   });
 
-// ── Offline Banner ──────────────────────────────────────────────────────────
+  // ── Offline Banner ──────────────────────────────────────────────────────────
 
   String get offlineDisconnected => _t({
     'ko': '인터넷 연결이 끊겼습니다',
@@ -13173,23 +14716,34 @@ class AppL10n {
     'th': 'ลองอีกครั้ง',
   });
 
-// ── Shared Profile Dialogs ──────────────────────────────────────────────────
+  // ── Shared Profile Dialogs ──────────────────────────────────────────────────
 
   String profileDialogNicknameCooldown(int days, String dateLabel) => _t({
     'ko': '닉네임은 3개월에 1회만 변경할 수 있어요. 약 $days일 남았습니다$dateLabel',
-    'en': 'You can only change your nickname once every 3 months. About $days days remaining$dateLabel',
+    'en':
+        'You can only change your nickname once every 3 months. About $days days remaining$dateLabel',
     'ja': 'ニックネームは3ヶ月に1回のみ変更できます。残り約${days}日$dateLabel',
     'zh': '昵称每3个月只能更改一次。还剩约${days}天$dateLabel',
-    'fr': 'Vous ne pouvez changer votre pseudo qu\'une fois tous les 3 mois. Environ $days jours restants$dateLabel',
-    'de': 'Der Spitzname kann nur alle 3 Monate geändert werden. Noch ca. $days Tage$dateLabel',
-    'es': 'Solo puedes cambiar tu apodo una vez cada 3 meses. Faltan unos $days días$dateLabel',
-    'pt': 'Você só pode alterar o apelido uma vez a cada 3 meses. Faltam cerca de $days dias$dateLabel',
-    'ru': 'Никнейм можно менять раз в 3 месяца. Осталось примерно $days дн.$dateLabel',
-    'tr': 'Takma adınızı yalnızca 3 ayda bir değiştirebilirsiniz. Yaklaşık $days gün kaldı$dateLabel',
-    'ar': 'يمكنك تغيير الاسم المستعار مرة واحدة فقط كل 3 أشهر. بقي حوالي $days يوم$dateLabel',
-    'it': 'Puoi cambiare il soprannome solo una volta ogni 3 mesi. Mancano circa $days giorni$dateLabel',
-    'hi': 'उपनाम हर 3 महीने में केवल एक बार बदल सकते हैं। लगभग $days दिन शेष$dateLabel',
-    'th': 'เปลี่ยนชื่อเล่นได้เพียง 1 ครั้งใน 3 เดือน เหลืออีกประมาณ $days วัน$dateLabel',
+    'fr':
+        'Vous ne pouvez changer votre pseudo qu\'une fois tous les 3 mois. Environ $days jours restants$dateLabel',
+    'de':
+        'Der Spitzname kann nur alle 3 Monate geändert werden. Noch ca. $days Tage$dateLabel',
+    'es':
+        'Solo puedes cambiar tu apodo una vez cada 3 meses. Faltan unos $days días$dateLabel',
+    'pt':
+        'Você só pode alterar o apelido uma vez a cada 3 meses. Faltam cerca de $days dias$dateLabel',
+    'ru':
+        'Никнейм можно менять раз в 3 месяца. Осталось примерно $days дн.$dateLabel',
+    'tr':
+        'Takma adınızı yalnızca 3 ayda bir değiştirebilirsiniz. Yaklaşık $days gün kaldı$dateLabel',
+    'ar':
+        'يمكنك تغيير الاسم المستعار مرة واحدة فقط كل 3 أشهر. بقي حوالي $days يوم$dateLabel',
+    'it':
+        'Puoi cambiare il soprannome solo una volta ogni 3 mesi. Mancano circa $days giorni$dateLabel',
+    'hi':
+        'उपनाम हर 3 महीने में केवल एक बार बदल सकते हैं। लगभग $days दिन शेष$dateLabel',
+    'th':
+        'เปลี่ยนชื่อเล่นได้เพียง 1 ครั้งใน 3 เดือน เหลืออีกประมาณ $days วัน$dateLabel',
   });
 
   String get profileDialogTowerNameTitle => _t({
@@ -13294,7 +14848,7 @@ class AppL10n {
     'th': 'ชื่อเล่นต้องมีอย่างน้อย 2 ตัวอักษร',
   });
 
-// ── Stamp Album ─────────────────────────────────────────────────────────────
+  // ── Stamp Album ─────────────────────────────────────────────────────────────
 
   String get stampAlbumTitle => _t({
     'ko': '우표 앨범',
@@ -13451,22 +15005,30 @@ class AppL10n {
 
   String get stampEmptyBody => _t({
     'ko': '혜택을 받으면 발신 국가 우표가\n자동으로 수집됩니다',
-    'en': 'When you receive a reward,\nthe sender\'s country stamp is collected automatically',
+    'en':
+        'When you receive a reward,\nthe sender\'s country stamp is collected automatically',
     'ja': '手紙を受け取ると、送信国の切手が\n自動的に収集されます',
     'zh': '收到信件后，发件国邮票\n会自动收集',
-    'fr': 'Quand vous recevez une lettre,\nle timbre du pays est collecté automatiquement',
-    'de': 'Wenn Sie einen Brief erhalten, wird die\nBriefmarke des Absenderlandes automatisch gesammelt',
-    'es': 'Cuando recibas una carta,\nel sello del país se coleccionará automáticamente',
+    'fr':
+        'Quand vous recevez une lettre,\nle timbre du pays est collecté automatiquement',
+    'de':
+        'Wenn Sie einen Brief erhalten, wird die\nBriefmarke des Absenderlandes automatisch gesammelt',
+    'es':
+        'Cuando recibas una carta,\nel sello del país se coleccionará automáticamente',
     'pt': 'Ao receber uma carta,\no selo do país é coletado automaticamente',
-    'ru': 'Когда вы получите письмо,\nмарка страны отправителя будет собрана автоматически',
-    'tr': 'Bir mektup aldığınızda gönderen\nülkenin pulu otomatik olarak toplanır',
+    'ru':
+        'Когда вы получите письмо,\nмарка страны отправителя будет собрана автоматически',
+    'tr':
+        'Bir mektup aldığınızda gönderen\nülkenin pulu otomatik olarak toplanır',
     'ar': 'عند استلام رسالة، يتم جمع\nطابع بلد المرسل تلقائيًا',
-    'it': 'Quando ricevi una lettera,\nil francobollo del paese viene raccolto automaticamente',
-    'hi': 'जब आपको पत्र मिलेगा,\nप्रेषक के देश का स्टैम्प स्वचालित रूप से एकत्र होगा',
+    'it':
+        'Quando ricevi una lettera,\nil francobollo del paese viene raccolto automaticamente',
+    'hi':
+        'जब आपको पत्र मिलेगा,\nप्रेषक के देश का स्टैम्प स्वचालित रूप से एकत्र होगा',
     'th': 'เมื่อได้รับจดหมาย แสตมป์ของประเทศ\nผู้ส่งจะถูกสะสมโดยอัตโนมัติ',
   });
 
-// ── Onboarding ──────────────────────────────────────────────────────────────
+  // ── Onboarding ──────────────────────────────────────────────────────────────
 
   String get onboardingCountryTitle => _t({
     'ko': '어디에서 오셨나요?',
@@ -13490,7 +15052,8 @@ class AppL10n {
     'en': 'Select your country and the app will display in that language',
     'ja': '居住国を選択すると、アプリがその言語で表示されます',
     'zh': '选择您的国家，应用将以该语言显示',
-    'fr': 'Sélectionnez votre pays et l\'application s\'affichera dans cette langue',
+    'fr':
+        'Sélectionnez votre pays et l\'application s\'affichera dans cette langue',
     'de': 'Wählen Sie Ihr Land und die App wird in dieser Sprache angezeigt',
     'es': 'Selecciona tu país y la app se mostrará en ese idioma',
     'pt': 'Selecione seu país e o app será exibido nesse idioma',
@@ -13541,19 +15104,27 @@ class AppL10n {
 
   String get onboardingPremiumSubtitle => _t({
     'ko': '줍기 반경 1km · 쿨다운 10분\n— Free보다 5배 넓고 6배 빠르게',
-    'en': '1 km pickup radius · 10-min cooldown\n— 5× wider, 6× faster than Free',
+    'en':
+        '1 km pickup radius · 10-min cooldown\n— 5× wider, 6× faster than Free',
     'ja': '拾える範囲 1km · クールダウン 10分\n— Freeより5倍広く、6倍速く',
     'zh': '拾取范围 1km · 冷却 10 分钟\n— 比 Free 大 5 倍、快 6 倍',
-    'fr': "Rayon 1 km · recharge 10 min\n— 5× plus large, 6× plus rapide que Free",
-    'de': '1 km Radius · 10 min Abklingzeit\n— 5× breiter, 6× schneller als Free',
-    'es': 'Radio 1 km · enfriamiento 10 min\n— 5× más amplio y 6× más rápido que Free',
+    'fr':
+        "Rayon 1 km · recharge 10 min\n— 5× plus large, 6× plus rapide que Free",
+    'de':
+        '1 km Radius · 10 min Abklingzeit\n— 5× breiter, 6× schneller als Free',
+    'es':
+        'Radio 1 km · enfriamiento 10 min\n— 5× más amplio y 6× más rápido que Free',
     'pt': 'Raio 1 km · recarga 10 min\n— 5× maior e 6× mais rápido que Free',
-    'ru': 'Радиус 1 км · перезарядка 10 мин\n— в 5 раз шире и в 6 раз быстрее Free',
+    'ru':
+        'Радиус 1 км · перезарядка 10 мин\n— в 5 раз шире и в 6 раз быстрее Free',
     'tr': '1 km yarıçap · 10 dk bekleme\n— Freeden 5× geniş, 6× hızlı',
-    'ar': 'نطاق 1 كم · تبريد 10 دقائق\n— أوسع بـ 5 أضعاف وأسرع بـ 6 أضعاف من Free',
-    'it': 'Raggio 1 km · cooldown 10 min\n— 5× più ampio, 6× più veloce di Free',
+    'ar':
+        'نطاق 1 كم · تبريد 10 دقائق\n— أوسع بـ 5 أضعاف وأسرع بـ 6 أضعاف من Free',
+    'it':
+        'Raggio 1 km · cooldown 10 min\n— 5× più ampio, 6× più veloce di Free',
     'hi': '1 किमी रेडियस · 10 मिनट कूलडाउन\n— Free से 5× बड़ा, 6× तेज़',
-    'th': 'รัศมี 1 กม. · คูลดาวน์ 10 นาที\n— กว้างกว่า 5 เท่า เร็วกว่า 6 เท่าของ Free',
+    'th':
+        'รัศมี 1 กม. · คูลดาวน์ 10 นาที\n— กว้างกว่า 5 เท่า เร็วกว่า 6 เท่าของ Free',
   });
 
   // Build 119: 온보딩 Free/Premium feature 리스트 재배치 — 양쪽 모두 픽업
@@ -13579,18 +15150,18 @@ class AppL10n {
   String get onboardingFreeFeat2 => _t({
     'ko': '하루 3통 홍보 발송 · 월 100통',
     'en': '3 promos/day · 100/month',
-    'ja': '1日3通 · 月100通',
-    'zh': '每天3封 · 每月100封',
-    'fr': '3 lettres/jour · 100/mois',
-    'de': '3 Briefe/Tag · 100/Monat',
-    'es': '3 cartas/día · 100/mes',
-    'pt': '3 cartas/dia · 100/mês',
-    'ru': '3 письма/день · 100/месяц',
-    'tr': '3 mektup/gün · 100/ay',
-    'ar': '3 رسائل/يوم · 100/شهر',
-    'it': '3 lettere/giorno · 100/mese',
-    'hi': '3 पत्र/दिन · 100/माह',
-    'th': '3 ฉบับ/วัน · 100/เดือน',
+    'ja': '1日3件のプロモ · 月100件',
+    'zh': '每天 3 条推广 · 每月 100 条',
+    'fr': '3 promos/jour · 100/mois',
+    'de': '3 Promos/Tag · 100/Monat',
+    'es': '3 promos/día · 100/mes',
+    'pt': '3 promos/dia · 100/mês',
+    'ru': '3 промо/день · 100/месяц',
+    'tr': 'Günde 3 promo · ayda 100',
+    'ar': '3 عروض ترويجية/يوم · 100/شهر',
+    'it': '3 promo/giorno · 100/mese',
+    'hi': '3 प्रोमो/दिन · 100/माह',
+    'th': 'โปรโมชัน 3 ครั้ง/วัน · 100 ครั้ง/เดือน',
   });
 
   String get onboardingFreeFeat3 => _t({
@@ -13871,12 +15442,15 @@ class AppL10n {
     'en': '"Brand rewards feel much warmer than regular ads."',
     'ja': '"ブランドレターは普通の広告よりずっと温かみがあります。"',
     'zh': '"品牌信件比普通广告感觉温暖得多。"',
-    'fr': '"Les lettres de marque semblent bien plus chaleureuses que les publicités."',
+    'fr':
+        '"Les lettres de marque semblent bien plus chaleureuses que les publicités."',
     'de': '"Markenbriefe fühlen sich viel wärmer an als normale Werbung."',
-    'es': '"Las cartas de marca se sienten mucho más cálidas que los anuncios."',
+    'es':
+        '"Las cartas de marca se sienten mucho más cálidas que los anuncios."',
     'pt': '"As cartas de marca parecem muito mais acolhedoras que anúncios."',
     'ru': '"Брендовые письма ощущаются гораздо теплее обычной рекламы."',
-    'tr': '"Marka mektupları normal reklamlardan çok daha sıcak hissettiriyor."',
+    'tr':
+        '"Marka mektupları normal reklamlardan çok daha sıcak hissettiriyor."',
     'ar': '"رسائل العلامة التجارية تبدو أكثر دفئًا من الإعلانات العادية."',
     'it': '"Le lettere di marca sembrano molto più calde della pubblicità."',
     'hi': '"ब्रांड पत्र सामान्य विज्ञापनों से बहुत गर्म महसूस होते हैं।"',
@@ -13885,17 +15459,22 @@ class AppL10n {
 
   String get onboardingReview2 => _t({
     'ko': '"프리미엄으로 올리니 홍보 무제한에 우선 배달까지, 완전 만족!"',
-    'en': '"Upgrading to Premium gave me unlimited promos and priority delivery!"',
+    'en':
+        '"Upgrading to Premium gave me unlimited promos and priority delivery!"',
     'ja': '"プレミアムにしたら手紙無制限＋優先配達で大満足！"',
     'zh': '"升级到高级版后，信件无限+优先配送，超级满意！"',
-    'fr': '"Passer en Premium m\'a donné des lettres illimitées et la livraison prioritaire !"',
+    'fr':
+        '"Passer en Premium m\'a donné des lettres illimitées et la livraison prioritaire !"',
     'de': '"Premium-Upgrade: unbegrenzte Briefe und Prioritätszustellung!"',
-    'es': '"Al pasar a Premium obtuve cartas ilimitadas y entrega prioritaria."',
-    'pt': '"Ao atualizar para Premium, ganhei cartas ilimitadas e entrega prioritária!"',
+    'es':
+        '"Al pasar a Premium obtuve cartas ilimitadas y entrega prioritaria."',
+    'pt':
+        '"Ao atualizar para Premium, ganhei cartas ilimitadas e entrega prioritária!"',
     'ru': '"Премиум дал безлимитные письма и приоритетную доставку!"',
     'tr': '"Premium\'a geçince sınırsız mektup ve öncelikli teslimat!"',
     'ar': '"الترقية إلى المميز أعطتني رسائل غير محدودة وتسليم أولوي!"',
-    'it': '"Passando a Premium ho ottenuto lettere illimitate e consegna prioritaria!"',
+    'it':
+        '"Passando a Premium ho ottenuto lettere illimitate e consegna prioritaria!"',
     'hi': '"प्रीमियम में अपग्रेड से असीमित पत्र और प्राथमिकता डिलीवरी मिली!"',
     'th': '"อัปเกรดเป็นพรีเมียมได้จดหมายไม่จำกัดและจัดส่งลำดับแรก!"',
   });
@@ -14093,7 +15672,8 @@ class AppL10n {
     'en': 'Start for free now and upgrade anytime.',
     'ja': '今すぐ無料で始めて、いつでもアップグレードできます。',
     'zh': '立即免费开始，随时可以升级。',
-    'fr': 'Commencez gratuitement et passez à la version supérieure quand vous voulez.',
+    'fr':
+        'Commencez gratuitement et passez à la version supérieure quand vous voulez.',
     'de': 'Starten Sie jetzt kostenlos und upgraden Sie jederzeit.',
     'es': 'Empieza gratis ahora y mejora cuando quieras.',
     'pt': 'Comece grátis agora e atualize quando quiser.',
@@ -14121,7 +15701,6 @@ class AppL10n {
     'hi': '/माह',
     'th': '/เดือน',
   });
-
 
   // ── Letter Read Screen ──────────────────────────────────────────────
   // ── Letter Read Screen ───────────────────────────────────────────────────
@@ -14247,19 +15826,30 @@ class AppL10n {
 
   String get letterReadReportDescription => _t({
     'ko': '신고 이유를 선택해주세요.\n3회 이상 신고 시 발신자가 자동 차단됩니다.',
-    'en': 'Please select a reason for your report.\nThe sender will be automatically blocked after 3 or more reports.',
+    'en':
+        'Please select a reason for your report.\nThe sender will be automatically blocked after 3 or more reports.',
     'ja': '報告理由を選択してください。\n3回以上報告されると送信者は自動的にブロックされます。',
     'zh': '请选择举报原因。\n被举报3次以上，发件人将被自动屏蔽。',
-    'fr': 'Veuillez sélectionner un motif de signalement.\nL\'expéditeur sera automatiquement bloqué après 3 signalements ou plus.',
-    'de': 'Bitte wählen Sie einen Grund für Ihre Meldung.\nDer Absender wird nach 3 oder mehr Meldungen automatisch gesperrt.',
-    'es': 'Selecciona un motivo para tu reporte.\nEl remitente será bloqueado automáticamente tras 3 o más reportes.',
-    'pt': 'Selecione um motivo para a denúncia.\nO remetente será bloqueado automaticamente após 3 ou mais denúncias.',
-    'ru': 'Выберите причину жалобы.\nОтправитель будет автоматически заблокирован после 3 и более жалоб.',
-    'tr': 'Şikayet nedeninizi seçin.\n3 veya daha fazla şikayette gönderen otomatik olarak engellenir.',
-    'ar': 'يرجى اختيار سبب البلاغ.\nسيتم حظر المرسل تلقائيًا بعد 3 بلاغات أو أكثر.',
-    'it': 'Seleziona un motivo per la segnalazione.\nIl mittente verrà bloccato automaticamente dopo 3 o più segnalazioni.',
-    'hi': 'कृपया रिपोर्ट का कारण चुनें।\n3 या अधिक रिपोर्ट के बाद प्रेषक स्वचालित रूप से ब्लॉक हो जाएगा।',
-    'th': 'กรุณาเลือกเหตุผลในการรายงาน\nผู้ส่งจะถูกบล็อกอัตโนมัติหลังจากถูกรายงาน 3 ครั้งขึ้นไป',
+    'fr':
+        'Veuillez sélectionner un motif de signalement.\nL\'expéditeur sera automatiquement bloqué après 3 signalements ou plus.',
+    'de':
+        'Bitte wählen Sie einen Grund für Ihre Meldung.\nDer Absender wird nach 3 oder mehr Meldungen automatisch gesperrt.',
+    'es':
+        'Selecciona un motivo para tu reporte.\nEl remitente será bloqueado automáticamente tras 3 o más reportes.',
+    'pt':
+        'Selecione um motivo para a denúncia.\nO remetente será bloqueado automaticamente após 3 ou mais denúncias.',
+    'ru':
+        'Выберите причину жалобы.\nОтправитель будет автоматически заблокирован после 3 и более жалоб.',
+    'tr':
+        'Şikayet nedeninizi seçin.\n3 veya daha fazla şikayette gönderen otomatik olarak engellenir.',
+    'ar':
+        'يرجى اختيار سبب البلاغ.\nسيتم حظر المرسل تلقائيًا بعد 3 بلاغات أو أكثر.',
+    'it':
+        'Seleziona un motivo per la segnalazione.\nIl mittente verrà bloccato automaticamente dopo 3 o più segnalazioni.',
+    'hi':
+        'कृपया रिपोर्ट का कारण चुनें।\n3 या अधिक रिपोर्ट के बाद प्रेषक स्वचालित रूप से ब्लॉक हो जाएगा।',
+    'th':
+        'กรุณาเลือกเหตุผลในการรายงาน\nผู้ส่งจะถูกบล็อกอัตโนมัติหลังจากถูกรายงาน 3 ครั้งขึ้นไป',
   });
 
   String get letterReadReportCustomInput => _t({
@@ -14846,7 +16436,8 @@ class AppL10n {
 
   String get composeBrandRedemptionDesc => _t({
     'ko': '수신자에게 보여줄 코드·링크·매장 안내 등 (최대 200자)',
-    'en': 'Code, link, or store instructions shown to the recipient (max 200 chars)',
+    'en':
+        'Code, link, or store instructions shown to the recipient (max 200 chars)',
     'ja': '受信者に表示するコード・リンク・店舗案内など (最大200文字)',
     'zh': '向收件人展示的代码、链接或门店说明 (最多200字)',
     'fr': 'Code, lien ou instructions (200 car. max)',
@@ -14886,44 +16477,84 @@ class AppL10n {
   // Build 125: 사용자 정체성 "레터" 통일에 따라 "헌트 기록" → "레터 기록"
   // 으로 교체. 14개 언어 모두 Letter 브랜드명 정합 재작성.
   String get huntWalletTitle => _t({
-    'ko': '나의 카운터 기록', 'en': 'My Counter Log', 'ja': '私のカウンター記録',
-    'zh': '我的 Counter 记录', 'fr': 'Mon journal Counter', 'de': 'Mein Counter-Log',
-    'es': 'Mi registro Counter', 'pt': 'Meu registro Counter',
-    'ru': 'Мой Counter-журнал', 'tr': 'Counter kaydım',
-    'ar': 'سجل Counter الخاص بي', 'it': 'Il mio diario Counter',
-    'hi': 'मेरा Counter लॉग', 'th': 'บันทึก Counter ของฉัน',
+    'ko': '나의 카운터 기록',
+    'en': 'My Counter Log',
+    'ja': '私のカウンター記録',
+    'zh': '我的 Counter 记录',
+    'fr': 'Mon journal Counter',
+    'de': 'Mein Counter-Log',
+    'es': 'Mi registro Counter',
+    'pt': 'Meu registro Counter',
+    'ru': 'Мой Counter-журнал',
+    'tr': 'Counter kaydım',
+    'ar': 'سجل Counter الخاص بي',
+    'it': 'Il mio diario Counter',
+    'hi': 'मेरा Counter लॉग',
+    'th': 'บันทึก Counter ของฉัน',
   });
   String get huntWalletPickupsMonth => _t({
-    'ko': '이번 달 픽업', 'en': 'Pickups this month', 'ja': '今月のピックアップ',
-    'zh': '本月拾取', 'fr': 'Ramassées ce mois', 'de': 'Diesen Monat',
-    'es': 'Recogidas este mes', 'pt': 'Apanhadas este mês',
-    'ru': 'Собрано в месяц', 'tr': 'Bu ay toplandı',
-    'ar': 'التقطت هذا الشهر', 'it': 'Raccolte questo mese',
-    'hi': 'इस महीने', 'th': 'เดือนนี้',
+    'ko': '이번 달 픽업',
+    'en': 'Pickups this month',
+    'ja': '今月のピックアップ',
+    'zh': '本月拾取',
+    'fr': 'Ramassées ce mois',
+    'de': 'Diesen Monat',
+    'es': 'Recogidas este mes',
+    'pt': 'Apanhadas este mês',
+    'ru': 'Собрано в месяц',
+    'tr': 'Bu ay toplandı',
+    'ar': 'التقطت هذا الشهر',
+    'it': 'Raccolte questo mese',
+    'hi': 'इस महीने',
+    'th': 'เดือนนี้',
   });
   String get huntWalletRedeemedMonth => _t({
-    'ko': '이번 달 사용', 'en': 'Redeemed this month', 'ja': '今月使用',
-    'zh': '本月已使用', 'fr': 'Utilisées ce mois', 'de': 'Eingelöst diesen Monat',
-    'es': 'Canjeadas este mes', 'pt': 'Usadas este mês',
-    'ru': 'Использовано в месяц', 'tr': 'Bu ay kullanıldı',
-    'ar': 'استُخدمت هذا الشهر', 'it': 'Riscattate questo mese',
-    'hi': 'इस महीने उपयोग', 'th': 'ใช้เดือนนี้',
+    'ko': '이번 달 사용',
+    'en': 'Redeemed this month',
+    'ja': '今月使用',
+    'zh': '本月已使用',
+    'fr': 'Utilisées ce mois',
+    'de': 'Eingelöst diesen Monat',
+    'es': 'Canjeadas este mes',
+    'pt': 'Usadas este mês',
+    'ru': 'Использовано в месяц',
+    'tr': 'Bu ay kullanıldı',
+    'ar': 'استُخدمت هذا الشهر',
+    'it': 'Riscattate questo mese',
+    'hi': 'इस महीने उपयोग',
+    'th': 'ใช้เดือนนี้',
   });
   String get huntWalletTotalPickups => _t({
-    'ko': '누적 픽업', 'en': 'Total pickups', 'ja': '累計ピックアップ',
-    'zh': '累计拾取', 'fr': 'Total ramassées', 'de': 'Gesamt aufgenommen',
-    'es': 'Total recogidas', 'pt': 'Total apanhadas',
-    'ru': 'Всего собрано', 'tr': 'Toplam toplanan',
-    'ar': 'الإجمالي', 'it': 'Totale raccolte',
-    'hi': 'कुल पिकअप', 'th': 'รวมทั้งหมด',
+    'ko': '누적 픽업',
+    'en': 'Total pickups',
+    'ja': '累計ピックアップ',
+    'zh': '累计拾取',
+    'fr': 'Total ramassées',
+    'de': 'Gesamt aufgenommen',
+    'es': 'Total recogidas',
+    'pt': 'Total apanhadas',
+    'ru': 'Всего собрано',
+    'tr': 'Toplam toplanan',
+    'ar': 'الإجمالي',
+    'it': 'Totale raccolte',
+    'hi': 'कुल पिकअप',
+    'th': 'รวมทั้งหมด',
   });
   String get huntWalletTotalRedemptions => _t({
-    'ko': '누적 사용', 'en': 'Total redemptions', 'ja': '累計使用',
-    'zh': '累计使用', 'fr': 'Total utilisées', 'de': 'Gesamt eingelöst',
-    'es': 'Total canjeadas', 'pt': 'Total usadas',
-    'ru': 'Всего использовано', 'tr': 'Toplam kullanılan',
-    'ar': 'إجمالي الاستخدام', 'it': 'Totale riscattate',
-    'hi': 'कुल उपयोग', 'th': 'รวมใช้',
+    'ko': '누적 사용',
+    'en': 'Total redemptions',
+    'ja': '累計使用',
+    'zh': '累计使用',
+    'fr': 'Total utilisées',
+    'de': 'Gesamt eingelöst',
+    'es': 'Total canjeadas',
+    'pt': 'Total usadas',
+    'ru': 'Всего использовано',
+    'tr': 'Toplam kullanılan',
+    'ar': 'إجمالي الاستخدام',
+    'it': 'Totale riscattate',
+    'hi': 'कुल उपयोग',
+    'th': 'รวมใช้',
   });
   // ─────────────────────────────────────────────────────────────────────
   // Build 120 — 픽업 감각 증폭 UX 로드맵 (7가지). 레벨업 반경 토스트·프로필
@@ -15069,10 +16700,19 @@ class AppL10n {
   });
 
   String get milestoneLevelCta => _t({
-    'ko': '계속 주우러 가기', 'en': 'Keep hunting', 'ja': '続けて拾う',
-    'zh': '继续寻找', 'fr': 'Continuer', 'de': 'Weiter sammeln',
-    'es': 'Seguir cazando', 'pt': 'Continuar', 'ru': 'Продолжить',
-    'tr': 'Devam', 'ar': 'متابعة', 'it': 'Continua', 'hi': 'जारी रखो',
+    'ko': '계속 주우러 가기',
+    'en': 'Keep hunting',
+    'ja': '続けて拾う',
+    'zh': '继续寻找',
+    'fr': 'Continuer',
+    'de': 'Weiter sammeln',
+    'es': 'Seguir cazando',
+    'pt': 'Continuar',
+    'ru': 'Продолжить',
+    'tr': 'Devam',
+    'ar': 'متابعة',
+    'it': 'Continua',
+    'hi': 'जारी रखो',
     'th': 'ไปต่อ',
   });
 
@@ -15100,12 +16740,20 @@ class AppL10n {
   // 최소. l10n key 이름과 코드 심볼은 기존 `hunter*` 그대로 유지 (내부
   // 식별자, 사용자 노출 없음).
   String get hunterItemsTitle => _t({
-    'ko': '카운터 아이템', 'en': 'Counter items', 'ja': 'カウンター アイテム',
-    'zh': 'Counter 道具', 'fr': 'Objets Counter', 'de': 'Counter-Ausrüstung',
-    'es': 'Objetos Counter', 'pt': 'Itens Counter',
-    'ru': 'Снаряжение Counter', 'tr': 'Counter eşyaları',
-    'ar': 'أدوات Counter', 'it': 'Oggetti Counter',
-    'hi': 'Counter सामान', 'th': 'ไอเท็ม Counter',
+    'ko': '카운터 아이템',
+    'en': 'Counter items',
+    'ja': 'カウンター アイテム',
+    'zh': 'Counter 道具',
+    'fr': 'Objets Counter',
+    'de': 'Counter-Ausrüstung',
+    'es': 'Objetos Counter',
+    'pt': 'Itens Counter',
+    'ru': 'Снаряжение Counter',
+    'tr': 'Counter eşyaları',
+    'ar': 'أدوات Counter',
+    'it': 'Oggetti Counter',
+    'hi': 'Counter सामान',
+    'th': 'ไอเท็ม Counter',
   });
 
   // ─────────────────────────────────────────────────────────────────────
@@ -15114,80 +16762,132 @@ class AppL10n {
   // ─────────────────────────────────────────────────────────────────────
 
   String get categoryHelpTitle => _t({
-    'ko': '혜택 종류 사용법', 'en': 'Reward types', 'ja': '手紙の種類',
-    'zh': '信件类型', 'fr': 'Types de lettres', 'de': 'Brieftypen',
-    'es': 'Tipos de carta', 'pt': 'Tipos de carta',
-    'ru': 'Типы писем', 'tr': 'Mektup türleri',
-    'ar': 'أنواع الرسائل', 'it': 'Tipi di lettera',
-    'hi': 'पत्र प्रकार', 'th': 'ประเภทจดหมาย',
+    'ko': '혜택 종류 사용법',
+    'en': 'Reward types',
+    'ja': '手紙の種類',
+    'zh': '信件类型',
+    'fr': 'Types de lettres',
+    'de': 'Brieftypen',
+    'es': 'Tipos de carta',
+    'pt': 'Tipos de carta',
+    'ru': 'Типы писем',
+    'tr': 'Mektup türleri',
+    'ar': 'أنواع الرسائل',
+    'it': 'Tipi di lettera',
+    'hi': 'पत्र प्रकार',
+    'th': 'ประเภทจดหมาย',
   });
 
   String get categoryHelpCouponDesc => _t({
     'ko': '웹사이트·앱에서 쓸 수 있는 코드 형식 쿠폰. 예: "THISCOUNT20" 같은 문자열을 받은 사람이 결제 시 입력.',
-    'en': 'Code-based discount for online use. The receiver types your code (e.g. "THISCOUNT20") at checkout.',
+    'en':
+        'Code-based discount for online use. The receiver types your code (e.g. "THISCOUNT20") at checkout.',
     'ja': 'ウェブサイトやアプリで使えるコード形式のクーポン。例: "THISCOUNT20" のような文字列を決済時に入力。',
     'zh': '网站/APP 使用的代码形式优惠。例如 "THISCOUNT20"，结账时输入即可。',
-    'fr': 'Code promo utilisable en ligne. Le destinataire tape ton code (ex : "THISCOUNT20") au paiement.',
-    'de': 'Code-basierter Online-Rabatt. Empfänger gibt deinen Code (z. B. "THISCOUNT20") an der Kasse ein.',
-    'es': 'Descuento con código para uso online. El receptor introduce tu código (ej. "THISCOUNT20") al pagar.',
-    'pt': 'Código de desconto para uso online. O destinatário insere o código (ex. "THISCOUNT20") no pagamento.',
-    'ru': 'Промокод для онлайн-оплаты. Получатель вводит ваш код (например, "THISCOUNT20") при оплате.',
-    'tr': 'Online kullanım için kod. Alıcı ödemede kodunu ("THISCOUNT20") girer.',
-    'ar': 'رمز خصم للاستخدام عبر الإنترنت. يُدخل المستلم الرمز (مثل "THISCOUNT20") عند الدفع.',
-    'it': 'Codice sconto per uso online. Il destinatario inserisce il codice (es. "THISCOUNT20") al checkout.',
-    'hi': 'ऑनलाइन उपयोग के लिए कोड-आधारित छूट। पाने वाला आपका कोड (जैसे "THISCOUNT20") चेकआउट पर डालता है।',
-    'th': 'ส่วนลดแบบรหัสสำหรับใช้ออนไลน์ ผู้รับใส่รหัส (เช่น "THISCOUNT20") ตอนชำระ',
+    'fr':
+        'Code promo utilisable en ligne. Le destinataire tape ton code (ex : "THISCOUNT20") au paiement.',
+    'de':
+        'Code-basierter Online-Rabatt. Empfänger gibt deinen Code (z. B. "THISCOUNT20") an der Kasse ein.',
+    'es':
+        'Descuento con código para uso online. El receptor introduce tu código (ej. "THISCOUNT20") al pagar.',
+    'pt':
+        'Código de desconto para uso online. O destinatário insere o código (ex. "THISCOUNT20") no pagamento.',
+    'ru':
+        'Промокод для онлайн-оплаты. Получатель вводит ваш код (например, "THISCOUNT20") при оплате.',
+    'tr':
+        'Online kullanım için kod. Alıcı ödemede kodunu ("THISCOUNT20") girer.',
+    'ar':
+        'رمز خصم للاستخدام عبر الإنترنت. يُدخل المستلم الرمز (مثل "THISCOUNT20") عند الدفع.',
+    'it':
+        'Codice sconto per uso online. Il destinatario inserisce il codice (es. "THISCOUNT20") al checkout.',
+    'hi':
+        'ऑनलाइन उपयोग के लिए कोड-आधारित छूट। पाने वाला आपका कोड (जैसे "THISCOUNT20") चेकआउट पर डालता है।',
+    'th':
+        'ส่วนลดแบบรหัสสำหรับใช้ออนไลน์ ผู้รับใส่รหัส (เช่น "THISCOUNT20") ตอนชำระ',
   });
 
   String get categoryHelpVoucherDesc => _t({
     'ko': '매장·오프라인에서 쓸 수 있는 쿠폰 이미지. 바코드·QR·스탬프 이미지를 업로드해 수신자가 현장에서 보여주고 사용.',
-    'en': 'Image coupon for in-store use. Upload a barcode / QR / stamp image the receiver shows at the counter.',
+    'en':
+        'Image coupon for in-store use. Upload a barcode / QR / stamp image the receiver shows at the counter.',
     'ja': '店舗で使える画像クーポン。バーコード・QR・スタンプ画像をアップロードし、受取人がレジで提示。',
     'zh': '线下门店使用的图片优惠。上传条形码 / 二维码 / 图章图片，收件人到店出示即可。',
-    'fr': "Bon image pour usage en boutique. Upload un code-barre, QR ou tampon que le destinataire montre en caisse.",
-    'de': 'Bild-Gutschein für Laden-Einsatz. Lade einen Barcode/QR/Stempel hoch, den der Empfänger an der Kasse zeigt.',
-    'es': 'Cupón de imagen para tienda. Sube un código de barras/QR/sello que el receptor muestra en caja.',
-    'pt': 'Cupão de imagem para loja física. Carrega um código de barras/QR/carimbo que o destinatário mostra no balcão.',
-    'ru': 'Купон-изображение для магазина. Загрузите штрих-код/QR/штамп — получатель покажет на кассе.',
-    'tr': 'Mağazada kullanım için görsel kupon. Barkod/QR/damga yükle, alıcı kasada gösterir.',
-    'ar': 'قسيمة صورة للاستخدام في المتجر. ارفع صورة باركود/QR/ختم يعرضها المستلم عند الدفع.',
-    'it': 'Coupon immagine per uso in negozio. Carica un codice a barre/QR/timbro che il destinatario mostra alla cassa.',
-    'hi': 'दुकान में उपयोग के लिए छवि कूपन। बारकोड/QR/स्टैंप छवि अपलोड करें, पाने वाला काउंटर पर दिखाएगा।',
-    'th': 'คูปองแบบรูปใช้ในร้าน อัปโหลดบาร์โค้ด/QR/ตราประทับ ผู้รับแสดงที่เคาน์เตอร์',
+    'fr':
+        "Bon image pour usage en boutique. Upload un code-barre, QR ou tampon que le destinataire montre en caisse.",
+    'de':
+        'Bild-Gutschein für Laden-Einsatz. Lade einen Barcode/QR/Stempel hoch, den der Empfänger an der Kasse zeigt.',
+    'es':
+        'Cupón de imagen para tienda. Sube un código de barras/QR/sello que el receptor muestra en caja.',
+    'pt':
+        'Cupão de imagem para loja física. Carrega um código de barras/QR/carimbo que o destinatário mostra no balcão.',
+    'ru':
+        'Купон-изображение для магазина. Загрузите штрих-код/QR/штамп — получатель покажет на кассе.',
+    'tr':
+        'Mağazada kullanım için görsel kupon. Barkod/QR/damga yükle, alıcı kasada gösterir.',
+    'ar':
+        'قسيمة صورة للاستخدام في المتجر. ارفع صورة باركود/QR/ختم يعرضها المستلم عند الدفع.',
+    'it':
+        'Coupon immagine per uso in negozio. Carica un codice a barre/QR/timbro che il destinatario mostra alla cassa.',
+    'hi':
+        'दुकान में उपयोग के लिए छवि कूपन। बारकोड/QR/स्टैंप छवि अपलोड करें, पाने वाला काउंटर पर दिखाएगा।',
+    'th':
+        'คูปองแบบรูปใช้ในร้าน อัปโหลดบาร์โค้ด/QR/ตราประทับ ผู้รับแสดงที่เคาน์เตอร์',
   });
 
   String get categoryHelpGeneralDesc => _t({
     'ko': '일반 브랜드 스토리·공지. 할인 코드나 이미지 없이 자유 메시지를 보낼 때 선택.',
-    'en': 'Plain brand message. Use when sending a story, announcement, or greeting without a code or image.',
+    'en':
+        'Plain brand message. Use when sending a story, announcement, or greeting without a code or image.',
     'ja': '一般のブランドメッセージ。割引コードや画像なしで自由なメッセージを送るときに。',
     'zh': '普通品牌信息。无优惠码或图片，仅发送品牌故事或通知时选择。',
-    'fr': "Message de marque libre. À utiliser pour une annonce ou histoire sans code ni image.",
-    'de': 'Freier Marken-Text. Nutze ihn für Story/Ankündigung ohne Code oder Bild.',
-    'es': 'Mensaje de marca libre. Úsalo para anuncios o historias sin código ni imagen.',
-    'pt': 'Mensagem de marca livre. Usa quando envias uma história ou anúncio sem código ou imagem.',
-    'ru': 'Обычное сообщение бренда. Для истории или анонса без кода или изображения.',
-    'tr': 'Serbest marka mesajı. Kod veya görsel olmadan hikaye/duyuru gönderirken kullan.',
+    'fr':
+        "Message de marque libre. À utiliser pour une annonce ou histoire sans code ni image.",
+    'de':
+        'Freier Marken-Text. Nutze ihn für Story/Ankündigung ohne Code oder Bild.',
+    'es':
+        'Mensaje de marca libre. Úsalo para anuncios o historias sin código ni imagen.',
+    'pt':
+        'Mensagem de marca livre. Usa quando envias uma história ou anúncio sem código ou imagem.',
+    'ru':
+        'Обычное сообщение бренда. Для истории или анонса без кода или изображения.',
+    'tr':
+        'Serbest marka mesajı. Kod veya görsel olmadan hikaye/duyuru gönderirken kullan.',
     'ar': 'رسالة علامة عادية. استخدمها لإرسال قصة أو إعلان دون رمز أو صورة.',
-    'it': 'Messaggio di marca libero. Per storie o annunci senza codice o immagine.',
-    'hi': 'सामान्य ब्रांड संदेश। कोड या छवि के बिना कहानी/घोषणा भेजते समय चुनें।',
-    'th': 'ข้อความแบรนด์ทั่วไป ใช้เมื่อส่งเรื่องราวหรือประกาศโดยไม่มีรหัสหรือรูป',
+    'it':
+        'Messaggio di marca libero. Per storie o annunci senza codice o immagine.',
+    'hi':
+        'सामान्य ब्रांड संदेश। कोड या छवि के बिना कहानी/घोषणा भेजते समय चुनें।',
+    'th':
+        'ข้อความแบรนด์ทั่วไป ใช้เมื่อส่งเรื่องราวหรือประกาศโดยไม่มีรหัสหรือรูป',
   });
 
   String get categoryHelpBrandOnlyNote => _t({
-    'ko': '🎟 할인권과 🎁 교환권은 Brand 계정만 발송 가능해요. 무료·Premium 회원은 지도에서 주워서 사용할 수 있어요.',
-    'en': '🎟 Coupons and 🎁 Vouchers can only be sent by Brand accounts. Free and Premium users pick them up on the map.',
+    'ko':
+        '🎟 할인권과 🎁 교환권은 Brand 계정만 발송 가능해요. 무료·Premium 회원은 지도에서 주워서 사용할 수 있어요.',
+    'en':
+        '🎟 Coupons and 🎁 Vouchers can only be sent by Brand accounts. Free and Premium users pick them up on the map.',
     'ja': '🎟 割引券と 🎁 交換券は Brand アカウント限定で送信可能。無料・Premium 会員は地図で拾って使えます。',
     'zh': '🎟 优惠券和 🎁 兑换券仅 Brand 账号可发送。免费/Premium 用户在地图上拾取使用。',
-    'fr': '🎟 Coupons et 🎁 Bons : envoi réservé aux comptes Brand. Utilisateurs Gratuit/Premium les ramassent sur la carte.',
-    'de': '🎟 Gutscheine und 🎁 Bons können nur Brand-Accounts senden. Free/Premium-User sammeln sie auf der Karte.',
-    'es': '🎟 Cupones y 🎁 Vales solo los envían cuentas Brand. Los usuarios Gratis/Premium los recogen en el mapa.',
-    'pt': '🎟 Cupões e 🎁 Vales só são enviados por contas Brand. Free/Premium apanham no mapa.',
-    'ru': '🎟 Купоны и 🎁 Ваучеры отправляют только Brand-аккаунты. Free/Premium подбирают их на карте.',
-    'tr': '🎟 Kupon ve 🎁 Fiş sadece Brand hesapları gönderir. Ücretsiz/Premium haritadan toplar.',
-    'ar': '🎟 الكوبونات و 🎁 القسائم يرسلها حسابات Brand فقط. يلتقطها Free/Premium من الخريطة.',
-    'it': '🎟 Coupon e 🎁 Buoni solo da account Brand. Gli utenti Free/Premium li raccolgono dalla mappa.',
-    'hi': '🎟 कूपन और 🎁 वाउचर केवल Brand खाते भेज सकते हैं। Free/Premium उपयोगकर्ता नक्शे पर उठाते हैं।',
-    'th': '🎟 คูปองและ 🎁 บัตรกำนัลส่งได้เฉพาะบัญชี Brand. ผู้ใช้ฟรี/Premium เก็บจากแผนที่',
+    'fr':
+        '🎟 Coupons et 🎁 Bons : envoi réservé aux comptes Brand. Utilisateurs Gratuit/Premium les ramassent sur la carte.',
+    'de':
+        '🎟 Gutscheine und 🎁 Bons können nur Brand-Accounts senden. Free/Premium-User sammeln sie auf der Karte.',
+    'es':
+        '🎟 Cupones y 🎁 Vales solo los envían cuentas Brand. Los usuarios Gratis/Premium los recogen en el mapa.',
+    'pt':
+        '🎟 Cupões e 🎁 Vales só são enviados por contas Brand. Free/Premium apanham no mapa.',
+    'ru':
+        '🎟 Купоны и 🎁 Ваучеры отправляют только Brand-аккаунты. Free/Premium подбирают их на карте.',
+    'tr':
+        '🎟 Kupon ve 🎁 Fiş sadece Brand hesapları gönderir. Ücretsiz/Premium haritadan toplar.',
+    'ar':
+        '🎟 الكوبونات و 🎁 القسائم يرسلها حسابات Brand فقط. يلتقطها Free/Premium من الخريطة.',
+    'it':
+        '🎟 Coupon e 🎁 Buoni solo da account Brand. Gli utenti Free/Premium li raccolgono dalla mappa.',
+    'hi':
+        '🎟 कूपन और 🎁 वाउचर केवल Brand खाते भेज सकते हैं। Free/Premium उपयोगकर्ता नक्शे पर उठाते हैं।',
+    'th':
+        '🎟 คูปองและ 🎁 บัตรกำนัลส่งได้เฉพาะบัญชี Brand. ผู้ใช้ฟรี/Premium เก็บจากแผนที่',
   });
 
   // Build 182: Brand 전용 게이트 시트 전용 문구 — Premium 과 구분하는 위계.
@@ -15209,20 +16909,32 @@ class AppL10n {
   });
 
   String get brandOnlyPremiumNote => _t({
-    'ko': 'Premium 이 이미 활성화되어 있어요. Brand 는 업그레이드가 아니라 사업자 광고주 계정으로 별도 등록이 필요한 트랙이에요.',
-    'en': 'Premium is already active. Brand is a separate advertiser track — not an upgrade, it needs a business registration.',
+    'ko':
+        'Premium 이 이미 활성화되어 있어요. Brand 는 업그레이드가 아니라 사업자 광고주 계정으로 별도 등록이 필요한 트랙이에요.',
+    'en':
+        'Premium is already active. Brand is a separate advertiser track — not an upgrade, it needs a business registration.',
     'ja': 'Premium は既に有効です。Brand はアップグレードではなく、別途事業者登録が必要な広告主アカウントです。',
     'zh': 'Premium 已激活。Brand 不是升级路径，而是需另行注册的商业广告主账号。',
-    'fr': 'Premium est déjà actif. Brand n\'est pas une mise à niveau mais un compte annonceur distinct nécessitant une vérification professionnelle.',
-    'de': 'Premium ist bereits aktiv. Brand ist kein Upgrade, sondern ein separates Werbekonto mit Unternehmensprüfung.',
-    'es': 'Premium ya está activo. Brand no es una mejora, es una cuenta de anunciante independiente con verificación empresarial.',
-    'pt': 'Premium já está ativo. Brand não é um upgrade, é uma conta de anunciante separada com verificação empresarial.',
-    'ru': 'Premium уже активен. Brand — это отдельный рекламодательский аккаунт, а не апгрейд.',
-    'tr': 'Premium zaten aktif. Brand bir yükseltme değil, ayrı bir reklamveren hesabıdır ve iş doğrulaması gerektirir.',
-    'ar': 'Premium مفعّل مسبقًا. Brand ليس ترقية بل حساب معلن منفصل يتطلّب التحقق التجاري.',
-    'it': 'Premium è già attivo. Brand non è un upgrade: è un account inserzionista separato con verifica aziendale.',
-    'hi': 'Premium पहले से सक्रिय है। Brand अपग्रेड नहीं है, अलग विज्ञापनदाता खाता है जिसे व्यावसायिक सत्यापन चाहिए।',
-    'th': 'Premium เปิดใช้งานอยู่แล้ว Brand ไม่ใช่การอัปเกรดแต่เป็นบัญชีผู้ลงโฆษณาแยกที่ต้องยืนยันธุรกิจ',
+    'fr':
+        'Premium est déjà actif. Brand n\'est pas une mise à niveau mais un compte annonceur distinct nécessitant une vérification professionnelle.',
+    'de':
+        'Premium ist bereits aktiv. Brand ist kein Upgrade, sondern ein separates Werbekonto mit Unternehmensprüfung.',
+    'es':
+        'Premium ya está activo. Brand no es una mejora, es una cuenta de anunciante independiente con verificación empresarial.',
+    'pt':
+        'Premium já está ativo. Brand não é um upgrade, é uma conta de anunciante separada com verificação empresarial.',
+    'ru':
+        'Premium уже активен. Brand — это отдельный рекламодательский аккаунт, а не апгрейд.',
+    'tr':
+        'Premium zaten aktif. Brand bir yükseltme değil, ayrı bir reklamveren hesabıdır ve iş doğrulaması gerektirir.',
+    'ar':
+        'Premium مفعّل مسبقًا. Brand ليس ترقية بل حساب معلن منفصل يتطلّب التحقق التجاري.',
+    'it':
+        'Premium è già attivo. Brand non è un upgrade: è un account inserzionista separato con verifica aziendale.',
+    'hi':
+        'Premium पहले से सक्रिय है। Brand अपग्रेड नहीं है, अलग विज्ञापनदाता खाता है जिसे व्यावसायिक सत्यापन चाहिए।',
+    'th':
+        'Premium เปิดใช้งานอยู่แล้ว Brand ไม่ใช่การอัปเกรดแต่เป็นบัญชีผู้ลงโฆษณาแยกที่ต้องยืนยันธุรกิจ',
   });
 
   String get brandOnlyAcknowledge => _t({
@@ -15279,17 +16991,25 @@ class AppL10n {
 
   String get brandExactDropCreditsHint => _t({
     'ko': '정확한 좌표에 혜택을 떨어뜨리려면 크레딧이 필요해요. 100통 단위로 구매.',
-    'en': 'Credits are required to drop promos at exact coordinates. Sold in 100-promo packs.',
+    'en':
+        'Credits are required to drop promos at exact coordinates. Sold in 100-promo packs.',
     'ja': '正確な座標に手紙を配るには ExactDrop クレジットが必要。100通単位で購入。',
     'zh': '向精确坐标投放信件需要 ExactDrop 额度。以 100 封为单位购买。',
-    'fr': 'Crédits requis pour lancer des lettres à des coordonnées précises. Packs de 100.',
-    'de': 'Guthaben nötig, um Briefe an exakten Koordinaten abzulegen. 100er-Pakete.',
-    'es': 'Se necesitan créditos para lanzar cartas en coordenadas exactas. Paquetes de 100.',
-    'pt': 'Créditos necessários para lançar cartas em coordenadas exatas. Pacotes de 100.',
-    'ru': 'Нужны кредиты для сброса писем по точным координатам. Пакеты по 100.',
-    'tr': 'Tam koordinatlara mektup bırakmak için kredi gerekli. 100\'lü paketler.',
+    'fr':
+        'Crédits requis pour lancer des lettres à des coordonnées précises. Packs de 100.',
+    'de':
+        'Guthaben nötig, um Briefe an exakten Koordinaten abzulegen. 100er-Pakete.',
+    'es':
+        'Se necesitan créditos para lanzar cartas en coordenadas exactas. Paquetes de 100.',
+    'pt':
+        'Créditos necessários para lançar cartas em coordenadas exatas. Pacotes de 100.',
+    'ru':
+        'Нужны кредиты для сброса писем по точным координатам. Пакеты по 100.',
+    'tr':
+        'Tam koordinatlara mektup bırakmak için kredi gerekli. 100\'lü paketler.',
     'ar': 'الأرصدة مطلوبة لإسقاط الرسائل في إحداثيات دقيقة. عبوات من 100.',
-    'it': 'Servono crediti per lanciare lettere in coordinate esatte. Pacchetti da 100.',
+    'it':
+        'Servono crediti per lanciare lettere in coordinate esatte. Pacchetti da 100.',
     'hi': 'सटीक निर्देशांक पर पत्र गिराने के लिए क्रेडिट चाहिए। 100 के पैक।',
     'th': 'ต้องใช้เครดิตเพื่อปล่อยจดหมายที่พิกัดแม่นยำ แพ็ก 100 ฉบับ',
   });
@@ -15329,20 +17049,34 @@ class AppL10n {
   });
 
   String get brandExactDropCreditsSheetBody => _t({
-    'ko': '지금은 앱 내 결제가 준비 중이라 관리자 승인으로만 지급돼요.\nsupport@thiscount.io 으로 사업자명과 필요한 통 수를 알려주시면 24시간 안에 충전해 드립니다.',
-    'en': 'In-app purchase is coming soon. For now, credits are granted by admin.\nEmail support@thiscount.io with your business name and desired quantity — topped up within 24 hours.',
-    'ja': 'アプリ内決済は準備中で、現在は管理者承認で支給されます。\nsupport@thiscount.io へ事業者名と希望通数を送ってください。24時間以内にチャージします。',
-    'zh': '应用内购买正在准备中，目前通过管理员审批发放。\n请发送企业名称和所需数量至 support@thiscount.io，24 小时内充值。',
-    'fr': 'L\'achat intégré arrive bientôt. En attendant, les crédits sont octroyés par un admin.\nEnvoyez support@thiscount.io votre nom d\'entreprise et quantité — rechargé sous 24h.',
-    'de': 'In-App-Kauf kommt bald. Bis dahin werden Guthaben von Admins vergeben.\nMail an support@thiscount.io mit Firmennamen und Menge — innerhalb 24h aufgeladen.',
-    'es': 'La compra dentro de la app llegará pronto. Por ahora, los admins asignan créditos.\nEnvíe a support@thiscount.io el nombre de su empresa y la cantidad — recarga en 24h.',
-    'pt': 'Compra na app em breve. Por agora, créditos são concedidos por admin.\nEmail support@thiscount.io com o nome da empresa e quantidade — em 24h.',
-    'ru': 'Встроенная покупка скоро. Пока кредиты выдаёт администратор.\nПишите на support@thiscount.io с названием бизнеса и количеством — начисление в 24ч.',
-    'tr': 'Uygulama içi satın alma yakında. Şimdilik admin kredi veriyor.\nsupport@thiscount.io adresine işletme adı ve miktarı yazın — 24 saat içinde yüklenir.',
-    'ar': 'الشراء داخل التطبيق قريبًا. حاليًا يمنح المسؤول الأرصدة.\nراسل support@thiscount.io باسم النشاط والعدد — شحن خلال 24 ساعة.',
-    'it': 'Acquisto in-app in arrivo. Per ora i crediti sono concessi dall\'admin.\nScrivi a support@thiscount.io con nome azienda e quantità — caricato entro 24h.',
-    'hi': 'इन-ऐप खरीदारी जल्द आ रही है। अभी क्रेडिट एडमिन द्वारा दिए जाते हैं।\nsupport@thiscount.io पर व्यवसाय नाम और मात्रा भेजें — 24 घंटे में लोड।',
-    'th': 'ซื้อในแอปกำลังมา ตอนนี้แอดมินเป็นผู้อนุมัติ\nส่งชื่อธุรกิจและจำนวนที่ต้องการไปยัง support@thiscount.io — เติมภายใน 24 ชม.',
+    'ko':
+        '지금은 앱 내 결제가 준비 중이라 관리자 승인으로만 지급돼요.\nsupport@thiscount.io 으로 사업자명과 필요한 통 수를 알려주시면 24시간 안에 충전해 드립니다.',
+    'en':
+        'In-app purchase is coming soon. For now, credits are granted by admin.\nEmail support@thiscount.io with your business name and desired quantity — topped up within 24 hours.',
+    'ja':
+        'アプリ内決済は準備中で、現在は管理者承認で支給されます。\nsupport@thiscount.io へ事業者名と希望通数を送ってください。24時間以内にチャージします。',
+    'zh':
+        '应用内购买正在准备中，目前通过管理员审批发放。\n请发送企业名称和所需数量至 support@thiscount.io，24 小时内充值。',
+    'fr':
+        'L\'achat intégré arrive bientôt. En attendant, les crédits sont octroyés par un admin.\nEnvoyez support@thiscount.io votre nom d\'entreprise et quantité — rechargé sous 24h.',
+    'de':
+        'In-App-Kauf kommt bald. Bis dahin werden Guthaben von Admins vergeben.\nMail an support@thiscount.io mit Firmennamen und Menge — innerhalb 24h aufgeladen.',
+    'es':
+        'La compra dentro de la app llegará pronto. Por ahora, los admins asignan créditos.\nEnvíe a support@thiscount.io el nombre de su empresa y la cantidad — recarga en 24h.',
+    'pt':
+        'Compra na app em breve. Por agora, créditos são concedidos por admin.\nEmail support@thiscount.io com o nome da empresa e quantidade — em 24h.',
+    'ru':
+        'Встроенная покупка скоро. Пока кредиты выдаёт администратор.\nПишите на support@thiscount.io с названием бизнеса и количеством — начисление в 24ч.',
+    'tr':
+        'Uygulama içi satın alma yakında. Şimdilik admin kredi veriyor.\nsupport@thiscount.io adresine işletme adı ve miktarı yazın — 24 saat içinde yüklenir.',
+    'ar':
+        'الشراء داخل التطبيق قريبًا. حاليًا يمنح المسؤول الأرصدة.\nراسل support@thiscount.io باسم النشاط والعدد — شحن خلال 24 ساعة.',
+    'it':
+        'Acquisto in-app in arrivo. Per ora i crediti sono concessi dall\'admin.\nScrivi a support@thiscount.io con nome azienda e quantità — caricato entro 24h.',
+    'hi':
+        'इन-ऐप खरीदारी जल्द आ रही है। अभी क्रेडिट एडमिन द्वारा दिए जाते हैं।\nsupport@thiscount.io पर व्यवसाय नाम और मात्रा भेजें — 24 घंटे में लोड।',
+    'th':
+        'ซื้อในแอปกำลังมา ตอนนี้แอดมินเป็นผู้อนุมัติ\nส่งชื่อธุรกิจและจำนวนที่ต้องการไปยัง support@thiscount.io — เติมภายใน 24 ชม.',
   });
 
   // 카테고리별 redemption 필드 설명 + 힌트 (할인권 코드 vs 교환권 이미지).
@@ -15364,39 +17098,64 @@ class AppL10n {
   });
 
   String get composeBrandCouponHint => _t({
-    'ko': '예: THISCOUNT20', 'en': 'e.g. THISCOUNT20', 'ja': '例: THISCOUNT20',
-    'zh': '例：THISCOUNT20', 'fr': 'ex : THISCOUNT20', 'de': 'z. B. THISCOUNT20',
-    'es': 'ej: THISCOUNT20', 'pt': 'ex: THISCOUNT20',
-    'ru': 'напр. THISCOUNT20', 'tr': 'örn: THISCOUNT20',
-    'ar': 'مثال: THISCOUNT20', 'it': 'es: THISCOUNT20',
-    'hi': 'उदा. THISCOUNT20', 'th': 'เช่น THISCOUNT20',
+    'ko': '예: THISCOUNT20',
+    'en': 'e.g. THISCOUNT20',
+    'ja': '例: THISCOUNT20',
+    'zh': '例：THISCOUNT20',
+    'fr': 'ex : THISCOUNT20',
+    'de': 'z. B. THISCOUNT20',
+    'es': 'ej: THISCOUNT20',
+    'pt': 'ex: THISCOUNT20',
+    'ru': 'напр. THISCOUNT20',
+    'tr': 'örn: THISCOUNT20',
+    'ar': 'مثال: THISCOUNT20',
+    'it': 'es: THISCOUNT20',
+    'hi': 'उदा. THISCOUNT20',
+    'th': 'เช่น THISCOUNT20',
   });
 
   String get composeBrandVoucherDesc => _t({
     'ko': '교환권 이미지 URL(바코드·QR·도장). 받은 사람이 매장에서 화면에 띄워 사용. 부가 설명은 본문에.',
-    'en': 'Image URL for a physical voucher (barcode/QR/stamp). Receivers show it at the counter. Use the promo body for notes.',
+    'en':
+        'Image URL for a physical voucher (barcode/QR/stamp). Receivers show it at the counter. Use the promo body for notes.',
     'ja': '交換券画像の URL(バーコード/QR/スタンプ)。受取人が店舗で画面に表示。補足は本文に。',
     'zh': '兑换券图片 URL（条形码/QR/图章）。收件人到店显示画面。补充说明写在正文中。',
-    'fr': "URL d'image pour bon physique (code-barre/QR/tampon). Destinataires la montrent en caisse.",
-    'de': 'Bild-URL für Gutschein (Barcode/QR/Stempel). Empfänger zeigt es an der Kasse.',
-    'es': 'URL de imagen del vale físico (código/QR/sello). El receptor la muestra en caja.',
-    'pt': 'URL da imagem do vale físico (código/QR/carimbo). O destinatário mostra no balcão.',
-    'ru': 'URL изображения ваучера (штрих-код/QR/штамп). Получатель покажет на кассе.',
-    'tr': 'Fiziksel kupon görseli URL (barkod/QR/damga). Alıcı kasada gösterir.',
-    'ar': 'رابط صورة القسيمة المادية (باركود/QR/ختم). يعرضها المستلم في المتجر.',
-    'it': "URL dell'immagine del buono (codice/QR/timbro). Il destinatario la mostra alla cassa.",
-    'hi': 'भौतिक वाउचर छवि URL (बारकोड/QR/स्टैंप)। पाने वाला काउंटर पर दिखाएगा।',
+    'fr':
+        "URL d'image pour bon physique (code-barre/QR/tampon). Destinataires la montrent en caisse.",
+    'de':
+        'Bild-URL für Gutschein (Barcode/QR/Stempel). Empfänger zeigt es an der Kasse.',
+    'es':
+        'URL de imagen del vale físico (código/QR/sello). El receptor la muestra en caja.',
+    'pt':
+        'URL da imagem do vale físico (código/QR/carimbo). O destinatário mostra no balcão.',
+    'ru':
+        'URL изображения ваучера (штрих-код/QR/штамп). Получатель покажет на кассе.',
+    'tr':
+        'Fiziksel kupon görseli URL (barkod/QR/damga). Alıcı kasada gösterir.',
+    'ar':
+        'رابط صورة القسيمة المادية (باركود/QR/ختم). يعرضها المستلم في المتجر.',
+    'it':
+        "URL dell'immagine del buono (codice/QR/timbro). Il destinatario la mostra alla cassa.",
+    'hi':
+        'भौतिक वाउचर छवि URL (बारकोड/QR/स्टैंप)। पाने वाला काउंटर पर दिखाएगा।',
     'th': 'URL รูปคูปองจริง (บาร์โค้ด/QR/ตรา) ผู้รับแสดงที่เคาน์เตอร์',
   });
 
   String get composeBrandVoucherHint => _t({
-    'ko': '예: https://... .png', 'en': 'e.g. https://... .png',
-    'ja': '例: https://... .png', 'zh': '例：https://... .png',
-    'fr': 'ex : https://... .png', 'de': 'z. B. https://... .png',
-    'es': 'ej: https://... .png', 'pt': 'ex: https://... .png',
-    'ru': 'напр. https://... .png', 'tr': 'örn: https://... .png',
-    'ar': 'مثال: https://... .png', 'it': 'es: https://... .png',
-    'hi': 'उदा. https://... .png', 'th': 'เช่น https://... .png',
+    'ko': '예: https://... .png',
+    'en': 'e.g. https://... .png',
+    'ja': '例: https://... .png',
+    'zh': '例：https://... .png',
+    'fr': 'ex : https://... .png',
+    'de': 'z. B. https://... .png',
+    'es': 'ej: https://... .png',
+    'pt': 'ex: https://... .png',
+    'ru': 'напр. https://... .png',
+    'tr': 'örn: https://... .png',
+    'ar': 'مثال: https://... .png',
+    'it': 'es: https://... .png',
+    'hi': 'उदा. https://... .png',
+    'th': 'เช่น https://... .png',
   });
 
   // Build 130: 교환권 이미지 선택 버튼 라벨.
@@ -15454,20 +17213,34 @@ class AppL10n {
 
   String composeBrandRedemptionExpiresOn(String date) {
     switch (languageCode) {
-      case 'ko': return '만료: $date';
-      case 'ja': return '期限: $date';
-      case 'zh': return '到期: $date';
-      case 'fr': return 'Expire le $date';
-      case 'de': return 'Läuft ab: $date';
-      case 'es': return 'Caduca el $date';
-      case 'pt': return 'Expira em $date';
-      case 'ru': return 'До $date';
-      case 'tr': return 'Son tarih: $date';
-      case 'ar': return 'ينتهي: $date';
-      case 'it': return 'Scade il $date';
-      case 'hi': return 'समाप्ति: $date';
-      case 'th': return 'หมดอายุ $date';
-      default: return 'Expires $date';
+      case 'ko':
+        return '만료: $date';
+      case 'ja':
+        return '期限: $date';
+      case 'zh':
+        return '到期: $date';
+      case 'fr':
+        return 'Expire le $date';
+      case 'de':
+        return 'Läuft ab: $date';
+      case 'es':
+        return 'Caduca el $date';
+      case 'pt':
+        return 'Expira em $date';
+      case 'ru':
+        return 'До $date';
+      case 'tr':
+        return 'Son tarih: $date';
+      case 'ar':
+        return 'ينتهي: $date';
+      case 'it':
+        return 'Scade il $date';
+      case 'hi':
+        return 'समाप्ति: $date';
+      case 'th':
+        return 'หมดอายุ $date';
+      default:
+        return 'Expires $date';
     }
   }
 
@@ -15524,40 +17297,63 @@ class AppL10n {
 
   String composeBrandRedemptionDays(int days) {
     switch (languageCode) {
-      case 'ko': return '${days}일';
-      case 'ja': return '$days日';
-      case 'zh': return '$days天';
-      case 'fr': return '$days jours';
-      case 'de': return '$days Tage';
-      case 'es': return '$days días';
-      case 'pt': return '$days dias';
-      case 'ru': return '$days дн.';
-      case 'tr': return '$days gün';
-      case 'ar': return '$days يوم';
-      case 'it': return '$days giorni';
-      case 'hi': return '$days दिन';
-      case 'th': return '$days วัน';
-      default: return '$days days';
+      case 'ko':
+        return '${days}일';
+      case 'ja':
+        return '$days日';
+      case 'zh':
+        return '$days天';
+      case 'fr':
+        return '$days jours';
+      case 'de':
+        return '$days Tage';
+      case 'es':
+        return '$days días';
+      case 'pt':
+        return '$days dias';
+      case 'ru':
+        return '$days дн.';
+      case 'tr':
+        return '$days gün';
+      case 'ar':
+        return '$days يوم';
+      case 'it':
+        return '$days giorni';
+      case 'hi':
+        return '$days दिन';
+      case 'th':
+        return '$days วัน';
+      default:
+        return '$days days';
     }
   }
 
   // Brand 사업자 인증 UI.
   String get brandVerificationTitle => _t({
-    'ko': '사업자 인증', 'en': 'Business verification', 'ja': '事業者認証',
-    'zh': '企业认证', 'fr': 'Vérification entreprise',
-    'de': 'Geschäftsverifizierung', 'es': 'Verificación empresarial',
-    'pt': 'Verificação empresarial', 'ru': 'Подтверждение бизнеса',
-    'tr': 'İşletme doğrulama', 'ar': 'التحقق من الأعمال',
-    'it': 'Verifica aziendale', 'hi': 'व्यवसाय सत्यापन',
+    'ko': '사업자 인증',
+    'en': 'Business verification',
+    'ja': '事業者認証',
+    'zh': '企业认证',
+    'fr': 'Vérification entreprise',
+    'de': 'Geschäftsverifizierung',
+    'es': 'Verificación empresarial',
+    'pt': 'Verificação empresarial',
+    'ru': 'Подтверждение бизнеса',
+    'tr': 'İşletme doğrulama',
+    'ar': 'التحقق من الأعمال',
+    'it': 'Verifica aziendale',
+    'hi': 'व्यवसाय सत्यापन',
     'th': 'ยืนยันธุรกิจ',
   });
 
   String get brandVerificationSubtitle => _t({
     'ko': '사업자 번호·등록증·담당자 연락처를 제출하면 인증 완료 후 프로필에 ✅ 마크가 붙어요.',
-    'en': 'Submit your business number, registration document, and contact phone to earn a ✅ badge.',
+    'en':
+        'Submit your business number, registration document, and contact phone to earn a ✅ badge.',
     'ja': '事業者番号・登録証・担当者連絡先を提出すると、認証後プロフィールに ✅ マーク。',
     'zh': '提交企业编号、注册证和联系电话，认证后资料上会显示 ✅。',
-    'fr': "Soumets le numéro, le document et le contact pour obtenir le badge ✅.",
+    'fr':
+        "Soumets le numéro, le document et le contact pour obtenir le badge ✅.",
     'de': 'Reiche Nummer, Urkunde und Kontakt ein, um das ✅ zu erhalten.',
     'es': 'Envía número, documento y contacto para conseguir la ✅.',
     'pt': 'Envia número, documento e contacto para obter ✅.',
@@ -15570,58 +17366,105 @@ class AppL10n {
   });
 
   String get brandVerificationNumberLabel => _t({
-    'ko': '사업자 등록번호', 'en': 'Business registration number',
-    'ja': '事業者登録番号', 'zh': '企业注册号',
-    'fr': 'N° d\'enregistrement', 'de': 'Handelsregister-Nr.',
-    'es': 'Nº de registro', 'pt': 'N.º de registo',
-    'ru': 'Регистрационный номер', 'tr': 'Kayıt numarası',
-    'ar': 'رقم التسجيل', 'it': 'N° di registrazione',
-    'hi': 'पंजीकरण नंबर', 'th': 'หมายเลขทะเบียน',
+    'ko': '사업자 등록번호',
+    'en': 'Business registration number',
+    'ja': '事業者登録番号',
+    'zh': '企业注册号',
+    'fr': 'N° d\'enregistrement',
+    'de': 'Handelsregister-Nr.',
+    'es': 'Nº de registro',
+    'pt': 'N.º de registo',
+    'ru': 'Регистрационный номер',
+    'tr': 'Kayıt numarası',
+    'ar': 'رقم التسجيل',
+    'it': 'N° di registrazione',
+    'hi': 'पंजीकरण नंबर',
+    'th': 'หมายเลขทะเบียน',
   });
 
   String get brandVerificationDocLabel => _t({
-    'ko': '등록증 URL', 'en': 'Document URL', 'ja': '登録証 URL',
-    'zh': '证件 URL', 'fr': 'URL du document', 'de': 'Dokument-URL',
-    'es': 'URL del documento', 'pt': 'URL do documento',
-    'ru': 'URL документа', 'tr': 'Belge URL',
-    'ar': 'رابط المستند', 'it': 'URL del documento',
-    'hi': 'दस्तावेज़ URL', 'th': 'URL เอกสาร',
+    'ko': '등록증 URL',
+    'en': 'Document URL',
+    'ja': '登録証 URL',
+    'zh': '证件 URL',
+    'fr': 'URL du document',
+    'de': 'Dokument-URL',
+    'es': 'URL del documento',
+    'pt': 'URL do documento',
+    'ru': 'URL документа',
+    'tr': 'Belge URL',
+    'ar': 'رابط المستند',
+    'it': 'URL del documento',
+    'hi': 'दस्तावेज़ URL',
+    'th': 'URL เอกสาร',
   });
 
   String get brandVerificationPhoneLabel => _t({
-    'ko': '담당자 전화번호', 'en': 'Contact phone', 'ja': '担当者電話番号',
-    'zh': '联系电话', 'fr': 'Téléphone du contact', 'de': 'Kontakttelefon',
-    'es': 'Teléfono de contacto', 'pt': 'Telefone de contacto',
-    'ru': 'Контактный телефон', 'tr': 'İletişim telefonu',
-    'ar': 'هاتف الاتصال', 'it': 'Telefono di contatto',
-    'hi': 'संपर्क फ़ोन', 'th': 'เบอร์ติดต่อ',
+    'ko': '담당자 전화번호',
+    'en': 'Contact phone',
+    'ja': '担当者電話番号',
+    'zh': '联系电话',
+    'fr': 'Téléphone du contact',
+    'de': 'Kontakttelefon',
+    'es': 'Teléfono de contacto',
+    'pt': 'Telefone de contacto',
+    'ru': 'Контактный телефон',
+    'tr': 'İletişim telefonu',
+    'ar': 'هاتف الاتصال',
+    'it': 'Telefono di contatto',
+    'hi': 'संपर्क फ़ोन',
+    'th': 'เบอร์ติดต่อ',
   });
 
   String get brandVerificationSubmitCta => _t({
-    'ko': '인증 요청 보내기', 'en': 'Submit verification',
-    'ja': '認証を申請', 'zh': '提交认证',
-    'fr': 'Envoyer la demande', 'de': 'Verifizierung anfordern',
-    'es': 'Enviar verificación', 'pt': 'Enviar verificação',
-    'ru': 'Отправить запрос', 'tr': 'Doğrulama gönder',
-    'ar': 'إرسال طلب التحقق', 'it': 'Invia verifica',
-    'hi': 'सत्यापन भेजें', 'th': 'ส่งคำขอยืนยัน',
+    'ko': '인증 요청 보내기',
+    'en': 'Submit verification',
+    'ja': '認証を申請',
+    'zh': '提交认证',
+    'fr': 'Envoyer la demande',
+    'de': 'Verifizierung anfordern',
+    'es': 'Enviar verificación',
+    'pt': 'Enviar verificação',
+    'ru': 'Отправить запрос',
+    'tr': 'Doğrulama gönder',
+    'ar': 'إرسال طلب التحقق',
+    'it': 'Invia verifica',
+    'hi': 'सत्यापन भेजें',
+    'th': 'ส่งคำขอยืนยัน',
   });
 
   String get brandVerificationStatusPending => _t({
-    'ko': '검토 대기 중', 'en': 'Under review', 'ja': '審査中',
-    'zh': '审核中', 'fr': 'En cours de vérification',
-    'de': 'In Prüfung', 'es': 'En revisión', 'pt': 'Em revisão',
-    'ru': 'На проверке', 'tr': 'İnceleniyor',
-    'ar': 'قيد المراجعة', 'it': 'In revisione',
-    'hi': 'समीक्षाधीन', 'th': 'กำลังตรวจสอบ',
+    'ko': '검토 대기 중',
+    'en': 'Under review',
+    'ja': '審査中',
+    'zh': '审核中',
+    'fr': 'En cours de vérification',
+    'de': 'In Prüfung',
+    'es': 'En revisión',
+    'pt': 'Em revisão',
+    'ru': 'На проверке',
+    'tr': 'İnceleniyor',
+    'ar': 'قيد المراجعة',
+    'it': 'In revisione',
+    'hi': 'समीक्षाधीन',
+    'th': 'กำลังตรวจสอบ',
   });
 
   String get brandVerificationStatusApproved => _t({
-    'ko': '✅ 인증 완료', 'en': '✅ Verified', 'ja': '✅ 認証済み',
-    'zh': '✅ 已认证', 'fr': '✅ Vérifié', 'de': '✅ Verifiziert',
-    'es': '✅ Verificado', 'pt': '✅ Verificado', 'ru': '✅ Подтверждено',
-    'tr': '✅ Doğrulandı', 'ar': '✅ مُوثَّق', 'it': '✅ Verificato',
-    'hi': '✅ सत्यापित', 'th': '✅ ยืนยันแล้ว',
+    'ko': '✅ 인증 완료',
+    'en': '✅ Verified',
+    'ja': '✅ 認証済み',
+    'zh': '✅ 已认证',
+    'fr': '✅ Vérifié',
+    'de': '✅ Verifiziert',
+    'es': '✅ Verificado',
+    'pt': '✅ Verificado',
+    'ru': '✅ Подтверждено',
+    'tr': '✅ Doğrulandı',
+    'ar': '✅ مُوثَّق',
+    'it': '✅ Verificato',
+    'hi': '✅ सत्यापित',
+    'th': '✅ ยืนยันแล้ว',
   });
 
   String get brandVerificationSubmittedToast => _t({
@@ -15643,19 +17486,37 @@ class AppL10n {
 
   // Build 125 — 레터 꾸미기 (동행·장식) 슬롯 타이틀.
   String get letterCompanionsTitle => _t({
-    'ko': '동행', 'en': 'Companions', 'ja': '仲間',
-    'zh': '伙伴', 'fr': 'Compagnons', 'de': 'Gefährten',
-    'es': 'Compañeros', 'pt': 'Companheiros', 'ru': 'Спутники',
-    'tr': 'Yoldaşlar', 'ar': 'الرفاق', 'it': 'Compagni',
-    'hi': 'साथी', 'th': 'เพื่อนร่วมทาง',
+    'ko': '동행',
+    'en': 'Companions',
+    'ja': '仲間',
+    'zh': '伙伴',
+    'fr': 'Compagnons',
+    'de': 'Gefährten',
+    'es': 'Compañeros',
+    'pt': 'Companheiros',
+    'ru': 'Спутники',
+    'tr': 'Yoldaşlar',
+    'ar': 'الرفاق',
+    'it': 'Compagni',
+    'hi': 'साथी',
+    'th': 'เพื่อนร่วมทาง',
   });
 
   String get letterAccessoriesTitle => _t({
-    'ko': '장식', 'en': 'Accessories', 'ja': 'アクセサリー',
-    'zh': '装饰', 'fr': 'Accessoires', 'de': 'Accessoires',
-    'es': 'Accesorios', 'pt': 'Acessórios', 'ru': 'Аксессуары',
-    'tr': 'Aksesuarlar', 'ar': 'الإكسسوارات', 'it': 'Accessori',
-    'hi': 'सहायक वस्तुएँ', 'th': 'เครื่องประดับ',
+    'ko': '장식',
+    'en': 'Accessories',
+    'ja': 'アクセサリー',
+    'zh': '装饰',
+    'fr': 'Accessoires',
+    'de': 'Accessoires',
+    'es': 'Accesorios',
+    'pt': 'Acessórios',
+    'ru': 'Аксессуары',
+    'tr': 'Aksesuarlar',
+    'ar': 'الإكسسوارات',
+    'it': 'Accessori',
+    'hi': 'सहायक वस्तुएँ',
+    'th': 'เครื่องประดับ',
   });
 
   String hunterItemLockedHint(int level) => _t({
@@ -15730,18 +17591,18 @@ class AppL10n {
   String get huntWalletEmpty => _t({
     'ko': '아직 주운 혜택이 없어요. 지도에서 찾아보세요!',
     'en': 'No rewards picked up yet. Open the map and hunt!',
-    'ja': 'まだ拾った手紙はありません。地図で探しましょう！',
-    'zh': '还没有拾起信件。打开地图找找看！',
-    'fr': "Aucune lettre ramassée. Ouvre la carte et chasse !",
-    'de': 'Noch keine Briefe. Öffne die Karte und jag!',
-    'es': '¡Aún no has recogido cartas. Abre el mapa y caza!',
-    'pt': 'Ainda sem cartas. Abre o mapa e caça!',
+    'ja': 'まだ拾った特典はありません。地図で探しましょう！',
+    'zh': '还没有拾取任何优惠。打开地图找找看！',
+    'fr': "Aucun avantage ramassé. Ouvre la carte et pars en chasse !",
+    'de': 'Noch keine Belohnungen gesammelt. Öffne die Karte und geh auf Jagd!',
+    'es': 'Aún no has recogido beneficios. Abre el mapa y sal a buscar.',
+    'pt': 'Ainda não recolheste recompensas. Abre o mapa e vai caçar.',
     'ru': 'Ещё ничего не собрано. Откройте карту и начните охоту!',
-    'tr': 'Henüz mektup yok. Haritayı aç ve avlan!',
-    'ar': 'لم تلتقط أي رسالة بعد. افتح الخريطة وابدأ الصيد!',
-    'it': 'Nessuna lettera ancora. Apri la mappa e caccia!',
-    'hi': 'अभी कुछ नहीं. नक्शा खोलो और शिकार करो!',
-    'th': 'ยังไม่มีจดหมาย เปิดแผนที่แล้วไปล่าเลย!',
+    'tr': 'Henüz ödül toplamadın. Haritayı aç ve avlan!',
+    'ar': 'لم تلتقط أي مكافأة بعد. افتح الخريطة وابدأ الصيد!',
+    'it': 'Ancora nessun premio raccolto. Apri la mappa e vai a caccia!',
+    'hi': 'अभी कोई रिवॉर्ड नहीं उठाया। नक्शा खोलो और खोज शुरू करो!',
+    'th': 'ยังไม่มีรางวัลที่เก็บได้ เปิดแผนที่แล้วออกล่าเลย!',
   });
 
   // 2) 인박스 "만료 사이렌" 스트립
@@ -15750,23 +17611,36 @@ class AppL10n {
     'en': '⏰ $n benefit${n == 1 ? '' : 's'} expire in 24h',
     'ja': '⏰ $n枚の特典が24時間以内に期限切れ',
     'zh': '⏰ $n 张优惠将在 24 小时内过期',
-    'fr': "⏰ $n avantage${n == 1 ? '' : 's'} expire${n == 1 ? '' : 'nt'} dans 24h",
+    'fr':
+        "⏰ $n avantage${n == 1 ? '' : 's'} expire${n == 1 ? '' : 'nt'} dans 24h",
     'de': '⏰ $n Vorteil${n == 1 ? '' : 'e'} läuft in 24h ab',
-    'es': '⏰ $n beneficio${n == 1 ? '' : 's'} expira${n == 1 ? '' : 'n'} en 24h',
-    'pt': '⏰ $n benefício${n == 1 ? '' : 's'} expira${n == 1 ? '' : 'm'} em 24h',
+    'es':
+        '⏰ $n beneficio${n == 1 ? '' : 's'} expira${n == 1 ? '' : 'n'} en 24h',
+    'pt':
+        '⏰ $n benefício${n == 1 ? '' : 's'} expira${n == 1 ? '' : 'm'} em 24h',
     'ru': '⏰ $n выгод${n == 1 ? 'а' : ''} истекает за 24 ч',
     'tr': '⏰ $n fayda 24 saat içinde sona eriyor',
     'ar': '⏰ $n مزايا تنتهي خلال 24 ساعة',
-    'it': '⏰ $n vantagg${n == 1 ? 'io' : 'i'} scade${n == 1 ? '' : 'no'} in 24h',
+    'it':
+        '⏰ $n vantagg${n == 1 ? 'io' : 'i'} scade${n == 1 ? '' : 'no'} in 24h',
     'hi': '⏰ $n लाभ 24 घंटे में समाप्त',
     'th': '⏰ สิทธิประโยชน์ $n รายการจะหมดใน 24 ชม.',
   });
   String get expirySirenCta => _t({
-    'ko': '지금 사용 →', 'en': 'Use now →', 'ja': '今すぐ使う →',
-    'zh': '立即使用 →', 'fr': 'Utiliser maintenant →', 'de': 'Jetzt nutzen →',
-    'es': 'Usar ahora →', 'pt': 'Usar já →', 'ru': 'Использовать →',
-    'tr': 'Şimdi kullan →', 'ar': 'استخدم الآن →', 'it': 'Usa ora →',
-    'hi': 'अभी उपयोग करें →', 'th': 'ใช้เลย →',
+    'ko': '지금 사용 →',
+    'en': 'Use now →',
+    'ja': '今すぐ使う →',
+    'zh': '立即使用 →',
+    'fr': 'Utiliser maintenant →',
+    'de': 'Jetzt nutzen →',
+    'es': 'Usar ahora →',
+    'pt': 'Usar já →',
+    'ru': 'Использовать →',
+    'tr': 'Şimdi kullan →',
+    'ar': 'استخدم الآن →',
+    'it': 'Usa ora →',
+    'hi': 'अभी उपयोग करें →',
+    'th': 'ใช้เลย →',
   });
 
   // 3) 인박스 빈 상태 근처 혜택 카운터 (부제)
@@ -15789,18 +17663,36 @@ class AppL10n {
 
   // 4) 혜택 읽기 화면 브랜드 팔로우 토글
   String get letterReadFollowBrand => _t({
-    'ko': '브랜드 팔로우', 'en': 'Follow brand', 'ja': 'ブランドをフォロー',
-    'zh': '关注品牌', 'fr': 'Suivre la marque', 'de': 'Marke folgen',
-    'es': 'Seguir marca', 'pt': 'Seguir marca', 'ru': 'Подписаться',
-    'tr': 'Markayı takip et', 'ar': 'متابعة العلامة', 'it': 'Segui brand',
-    'hi': 'ब्रांड फ़ॉलो करें', 'th': 'ติดตามแบรนด์',
+    'ko': '브랜드 팔로우',
+    'en': 'Follow brand',
+    'ja': 'ブランドをフォロー',
+    'zh': '关注品牌',
+    'fr': 'Suivre la marque',
+    'de': 'Marke folgen',
+    'es': 'Seguir marca',
+    'pt': 'Seguir marca',
+    'ru': 'Подписаться',
+    'tr': 'Markayı takip et',
+    'ar': 'متابعة العلامة',
+    'it': 'Segui brand',
+    'hi': 'ब्रांड फ़ॉलो करें',
+    'th': 'ติดตามแบรนด์',
   });
   String get letterReadUnfollowBrand => _t({
-    'ko': '팔로우 해제', 'en': 'Unfollow', 'ja': 'フォロー解除',
-    'zh': '取消关注', 'fr': 'Ne plus suivre', 'de': 'Nicht mehr folgen',
-    'es': 'Dejar de seguir', 'pt': 'Deixar de seguir', 'ru': 'Отписаться',
-    'tr': 'Takipten çık', 'ar': 'إلغاء المتابعة', 'it': 'Smetti di seguire',
-    'hi': 'अनफ़ॉलो', 'th': 'เลิกติดตาม',
+    'ko': '팔로우 해제',
+    'en': 'Unfollow',
+    'ja': 'フォロー解除',
+    'zh': '取消关注',
+    'fr': 'Ne plus suivre',
+    'de': 'Nicht mehr folgen',
+    'es': 'Dejar de seguir',
+    'pt': 'Deixar de seguir',
+    'ru': 'Отписаться',
+    'tr': 'Takipten çık',
+    'ar': 'إلغاء المتابعة',
+    'it': 'Smetti di seguire',
+    'hi': 'अनफ़ॉलो',
+    'th': 'เลิกติดตาม',
   });
   String get letterReadFollowedToast => _t({
     'ko': '이 브랜드를 팔로우했어요',
@@ -15838,18 +17730,27 @@ class AppL10n {
   });
   String get firstPickupCelebrationBody => _t({
     'ko': '이 동네에 흘린 혜택 혜택을 계속 찾아보세요. 레벨이 오를수록 줍는 반경이 넓어져요.',
-    'en': 'Keep exploring — rewards are dropped all around you. Every level you gain widens your pickup radius.',
+    'en':
+        'Keep exploring — rewards are dropped all around you. Every level you gain widens your pickup radius.',
     'ja': 'この街に散らばる手紙を探し続けましょう。レベルが上がるほど拾える範囲が広がります。',
     'zh': '继续探索——信件遍布你的周围。等级提升会扩大拾取范围。',
-    'fr': "Continue d'explorer — des lettres tombent autour de toi. Chaque niveau élargit ton rayon.",
-    'de': 'Erkunde weiter — überall in deiner Nähe fallen Briefe. Jedes Level vergrößert deinen Radius.',
-    'es': 'Sigue explorando: hay cartas por todas partes. Cada nivel amplía tu radio.',
-    'pt': 'Continua a explorar — caem cartas à tua volta. Cada nível amplia o teu raio.',
-    'ru': 'Продолжайте исследовать — письма падают вокруг вас. Каждый уровень расширяет радиус.',
-    'tr': 'Keşfetmeye devam et — etrafına mektuplar düşüyor. Her seviyede yarıçap artıyor.',
+    'fr':
+        "Continue d'explorer — des lettres tombent autour de toi. Chaque niveau élargit ton rayon.",
+    'de':
+        'Erkunde weiter — überall in deiner Nähe fallen Briefe. Jedes Level vergrößert deinen Radius.',
+    'es':
+        'Sigue explorando: hay cartas por todas partes. Cada nivel amplía tu radio.',
+    'pt':
+        'Continua a explorar — caem cartas à tua volta. Cada nível amplia o teu raio.',
+    'ru':
+        'Продолжайте исследовать — письма падают вокруг вас. Каждый уровень расширяет радиус.',
+    'tr':
+        'Keşfetmeye devam et — etrafına mektuplar düşüyor. Her seviyede yarıçap artıyor.',
     'ar': 'واصل الاستكشاف — الرسائل تتساقط حولك. كل مستوى يوسّع نطاقك.',
-    'it': 'Continua a esplorare — le lettere cadono ovunque. Ogni livello allarga il tuo raggio.',
-    'hi': 'खोजते रहो — तुम्हारे आसपास पत्र गिर रहे हैं। हर स्तर तुम्हारी रेंज बढ़ाता है।',
+    'it':
+        'Continua a esplorare — le lettere cadono ovunque. Ogni livello allarga il tuo raggio.',
+    'hi':
+        'खोजते रहो — तुम्हारे आसपास पत्र गिर रहे हैं। हर स्तर तुम्हारी रेंज बढ़ाता है।',
     'th': 'สำรวจต่อไป — จดหมายตกอยู่รอบตัวคุณ ระดับยิ่งสูง รัศมียิ่งกว้าง',
   });
   String get firstPickupCelebrationCta => _t({
@@ -16118,39 +18019,67 @@ class AppL10n {
 
   String letterReadRedemptionExpiresOn(String date) {
     switch (languageCode) {
-      case 'ko': return '$date까지';
-      case 'ja': return '$dateまで';
-      case 'zh': return '有效期至 $date';
-      case 'fr': return "jusqu'au $date";
-      case 'de': return 'bis $date';
-      case 'es': return 'hasta el $date';
-      case 'pt': return 'até $date';
-      case 'ru': return 'до $date';
-      case 'tr': return '$date tarihine kadar';
-      case 'ar': return 'حتى $date';
-      case 'it': return 'fino al $date';
-      case 'hi': return '$date तक';
-      case 'th': return 'ถึง $date';
-      default: return 'until $date';
+      case 'ko':
+        return '$date까지';
+      case 'ja':
+        return '$dateまで';
+      case 'zh':
+        return '有效期至 $date';
+      case 'fr':
+        return "jusqu'au $date";
+      case 'de':
+        return 'bis $date';
+      case 'es':
+        return 'hasta el $date';
+      case 'pt':
+        return 'até $date';
+      case 'ru':
+        return 'до $date';
+      case 'tr':
+        return '$date tarihine kadar';
+      case 'ar':
+        return 'حتى $date';
+      case 'it':
+        return 'fino al $date';
+      case 'hi':
+        return '$date तक';
+      case 'th':
+        return 'ถึง $date';
+      default:
+        return 'until $date';
     }
   }
 
   String letterReadRedemptionDaysLeft(int days) {
     switch (languageCode) {
-      case 'ko': return '$days일 남음';
-      case 'ja': return '残り$days日';
-      case 'zh': return '还剩$days天';
-      case 'fr': return '$days j. restants';
-      case 'de': return 'noch $days Tage';
-      case 'es': return '$days días rest.';
-      case 'pt': return '$days dias rest.';
-      case 'ru': return 'осталось $days дн.';
-      case 'tr': return '$days gün kaldı';
-      case 'ar': return 'متبقي $days يوم';
-      case 'it': return '$days gg rimasti';
-      case 'hi': return '$days दिन बाकी';
-      case 'th': return 'เหลือ $days วัน';
-      default: return '$days days left';
+      case 'ko':
+        return '$days일 남음';
+      case 'ja':
+        return '残り$days日';
+      case 'zh':
+        return '还剩$days天';
+      case 'fr':
+        return '$days j. restants';
+      case 'de':
+        return 'noch $days Tage';
+      case 'es':
+        return '$days días rest.';
+      case 'pt':
+        return '$days dias rest.';
+      case 'ru':
+        return 'осталось $days дн.';
+      case 'tr':
+        return '$days gün kaldı';
+      case 'ar':
+        return 'متبقي $days يوم';
+      case 'it':
+        return '$days gg rimasti';
+      case 'hi':
+        return '$days दिन बाकी';
+      case 'th':
+        return 'เหลือ $days วัน';
+      default:
+        return '$days days left';
     }
   }
 
@@ -16247,20 +18176,32 @@ class AppL10n {
     'th': 'Free — 🎟 เก็บรางวัล',
   });
   String get mapHelpTierFreeBody => _t({
-    'ko': '200m 반경 안의 혜택을 주워 내 수집첩에 담고 사용하세요. 레벨이 오를수록 반경이 늘어나고 카운터도 함께 성장합니다. 쿨다운 60분.',
-    'en': 'Pick up Rewards within 200 m into your collection. Your radius grows with each level as your Counter levels up. 60-min cooldown.',
+    'ko':
+        '200m 반경 안의 혜택을 주워 내 수집첩에 담고 사용하세요. 레벨이 오를수록 반경이 늘어나고 카운터도 함께 성장합니다. 쿨다운 60분.',
+    'en':
+        'Pick up Rewards within 200 m into your collection. Your radius grows with each level as your Counter levels up. 60-min cooldown.',
     'ja': '200m 圏内の特典を拾って受信箱に集めよう。レベルが上がるほど半径もカウンターも成長。クールダウン 60 分。',
     'zh': '拾取 200 米范围内的奖励到收件箱。等级越高半径越大，计数器也一同成长。冷却 60 分钟。',
-    'fr': 'Ramasse les récompenses dans un rayon de 200 m — ta portée grandit avec ton Counter. Cooldown 60 min.',
-    'de': 'Belohnungen im 200-m-Radius aufsammeln. Mit jedem Level wächst Radius und dein Counter. 60 min Abklingzeit.',
-    'es': 'Recoge recompensas en 200 m — tu radio crece con tu Counter. Cooldown 60 min.',
-    'pt': 'Apanha recompensas em 200 m — o teu raio cresce com o teu Counter. Cooldown 60 min.',
-    'ru': 'Собирайте награды в радиусе 200 м — радиус растёт вместе с вашим Counter. Перезарядка 60 мин.',
-    'tr': '200 m yarıçapta ödül topla. Her seviyede yarıçap ve Counter büyür. 60 dk cooldown.',
-    'ar': 'التقاط المكافآت في نطاق 200 م. يزداد النطاق مع نمو Counter. تبريد 60 دقيقة.',
-    'it': 'Raccogli ricompense entro 200 m — il tuo raggio cresce col tuo Counter. Cooldown 60 min.',
-    'hi': '200 मी में पुरस्कार उठाएँ। Counter बढ़ने पर परिधि भी बढ़ती है। कूलडाउन 60 मिनट।',
-    'th': 'เก็บรางวัลในรัศมี 200 ม. — รัศมีและ Counter เติบโตไปด้วยกัน คูลดาวน์ 60 นาที',
+    'fr':
+        'Ramasse les récompenses dans un rayon de 200 m — ta portée grandit avec ton Counter. Cooldown 60 min.',
+    'de':
+        'Belohnungen im 200-m-Radius aufsammeln. Mit jedem Level wächst Radius und dein Counter. 60 min Abklingzeit.',
+    'es':
+        'Recoge recompensas en 200 m — tu radio crece con tu Counter. Cooldown 60 min.',
+    'pt':
+        'Apanha recompensas em 200 m — o teu raio cresce com o teu Counter. Cooldown 60 min.',
+    'ru':
+        'Собирайте награды в радиусе 200 м — радиус растёт вместе с вашим Counter. Перезарядка 60 мин.',
+    'tr':
+        '200 m yarıçapta ödül topla. Her seviyede yarıçap ve Counter büyür. 60 dk cooldown.',
+    'ar':
+        'التقاط المكافآت في نطاق 200 م. يزداد النطاق مع نمو Counter. تبريد 60 دقيقة.',
+    'it':
+        'Raccogli ricompense entro 200 m — il tuo raggio cresce col tuo Counter. Cooldown 60 min.',
+    'hi':
+        '200 मी में पुरस्कार उठाएँ। Counter बढ़ने पर परिधि भी बढ़ती है। कूलडाउन 60 मिनट।',
+    'th':
+        'เก็บรางวัลในรัศมี 200 ม. — รัศมีและ Counter เติบโตไปด้วยกัน คูลดาวน์ 60 นาที',
   });
 
   String get mapHelpTierPremiumTitle => _t({
@@ -16280,20 +18221,33 @@ class AppL10n {
     'th': 'Premium — 📣 ปล่อยโปรโมของคุณ',
   });
   String get mapHelpTierPremiumBody => _t({
-    'ko': '1km 반경으로 주우면서 📸 사진 · 🔗 링크가 달린 내 홍보를 세계 지도에 떨어뜨릴 수 있어요. 내 카운터가 빠르게 성장합니다. 쿨다운 10분.',
-    'en': '1 km pickup radius + drop your own Promos with 📸 photos and 🔗 links on the map. Your Counter levels up faster. 10-min cooldown.',
-    'ja': '1km 圏で拾いつつ、📸 写真・🔗 リンクを添えた自分のプロモを世界に配れます。Counter の成長が早まります。クールダウン 10 分。',
+    'ko':
+        '1km 반경으로 주우면서 📸 사진 · 🔗 링크가 달린 내 홍보를 세계 지도에 떨어뜨릴 수 있어요. 내 카운터가 빠르게 성장합니다. 쿨다운 10분.',
+    'en':
+        '1 km pickup radius + drop your own Promos with 📸 photos and 🔗 links on the map. Your Counter levels up faster. 10-min cooldown.',
+    'ja':
+        '1km 圏で拾いつつ、📸 写真・🔗 リンクを添えた自分のプロモを世界に配れます。Counter の成長が早まります。クールダウン 10 分。',
     'zh': '1 公里范围内拾取 + 投放带 📸 照片和 🔗 链接的自己的促销。Counter 成长更快。冷却 10 分钟。',
-    'fr': 'Rayon 1 km · dépose tes promos avec photos et liens. Ton Counter grandit plus vite. Cooldown 10 min.',
-    'de': '1 km · verteile eigene Promos mit Fotos & Links weltweit. Dein Counter wächst schneller. 10 min Cooldown.',
-    'es': '1 km · lanza tus promos con fotos y enlaces. Tu Counter crece más rápido. Cooldown 10 min.',
-    'pt': '1 km · lança as tuas promos com fotos e links. O teu Counter cresce mais rápido. Cooldown 10 min.',
-    'ru': 'Радиус 1 км · раскладывайте свои промо с фото и ссылками. Ваш Counter растёт быстрее. Перезарядка 10 мин.',
-    'tr': '1 km · kendi promolarını fotoğraf ve linklerle dağıt. Counter\'ın daha hızlı büyür. 10 dk cooldown.',
-    'ar': 'نطاق 1 كم · وزّع عروضك بصور وروابط. ينمو Counter أسرع. تبريد 10 دقائق.',
-    'it': '1 km · rilascia le tue promo con foto e link. Il tuo Counter cresce più velocemente. Cooldown 10 min.',
-    'hi': '1 किमी · अपनी प्रोमो फ़ोटो और लिंक सहित बिखेरें। आपका Counter तेज़ी से बढ़ता है। कूलडाउन 10 मिनट।',
-    'th': 'รัศมี 1 กม. · ปล่อยโปรโมพร้อมรูปและลิงก์ Counter เติบโตเร็วขึ้น คูลดาวน์ 10 นาที',
+    'fr':
+        'Rayon 1 km · dépose tes promos avec photos et liens. Ton Counter grandit plus vite. Cooldown 10 min.',
+    'de':
+        '1 km · verteile eigene Promos mit Fotos & Links weltweit. Dein Counter wächst schneller. 10 min Cooldown.',
+    'es':
+        '1 km · lanza tus promos con fotos y enlaces. Tu Counter crece más rápido. Cooldown 10 min.',
+    'pt':
+        '1 km · lança as tuas promos com fotos e links. O teu Counter cresce mais rápido. Cooldown 10 min.',
+    'ru':
+        'Радиус 1 км · раскладывайте свои промо с фото и ссылками. Ваш Counter растёт быстрее. Перезарядка 10 мин.',
+    'tr':
+        '1 km · kendi promolarını fotoğraf ve linklerle dağıt. Counter\'ın daha hızlı büyür. 10 dk cooldown.',
+    'ar':
+        'نطاق 1 كم · وزّع عروضك بصور وروابط. ينمو Counter أسرع. تبريد 10 دقائق.',
+    'it':
+        '1 km · rilascia le tue promo con foto e link. Il tuo Counter cresce più velocemente. Cooldown 10 min.',
+    'hi':
+        '1 किमी · अपनी प्रोमो फ़ोटो और लिंक सहित बिखेरें। आपका Counter तेज़ी से बढ़ता है। कूलडाउन 10 मिनट।',
+    'th':
+        'รัศมี 1 กม. · ปล่อยโปรโมพร้อมรูปและลิงก์ Counter เติบโตเร็วขึ้น คูลดาวน์ 10 นาที',
   });
 
   String get mapHelpTierBrandTitle => _t({
@@ -16314,11 +18268,13 @@ class AppL10n {
   });
   String get mapHelpTierBrandBody => _t({
     'ko': '🎟 할인권·🎁 교환권 캠페인 · ExactDrop 위치 지정 · 발송/픽업/사용 집계 대시보드로 광고 효과 측정.',
-    'en': '🎟 Coupon & 🎁 voucher campaigns · ExactDrop location pinning · impression/pickup/redemption dashboard.',
+    'en':
+        '🎟 Coupon & 🎁 voucher campaigns · ExactDrop location pinning · impression/pickup/redemption dashboard.',
     'ja': '🎟 割引券・🎁 交換券キャンペーン · ExactDrop 位置指定 · 発送/ピック/使用集計ダッシュボード。',
     'zh': '🎟 优惠券·🎁 代金券活动 · ExactDrop 位置选择 · 发送/拾取/使用数据仪表板。',
     'fr': 'Campagnes 🎟 coupons & 🎁 bons · ExactDrop · tableau de bord.',
-    'de': '🎟 Coupon- & 🎁 Gutschein-Kampagnen · ExactDrop · Analytics-Dashboard.',
+    'de':
+        '🎟 Coupon- & 🎁 Gutschein-Kampagnen · ExactDrop · Analytics-Dashboard.',
     'es': 'Campañas 🎟 cupones & 🎁 vales · ExactDrop · panel de analíticas.',
     'pt': 'Campanhas 🎟 cupões & 🎁 vales · ExactDrop · painel de análise.',
     'ru': 'Кампании 🎟 купоны & 🎁 ваучеры · ExactDrop · панель аналитики.',
@@ -16508,10 +18464,12 @@ class AppL10n {
   });
   String get mapHelpStep1Body => _t({
     'ko': '내 위치 주변에 떨어진 혜택을 확인. 반경 밖 혜택은 상단 나침반에서 방향을 봐요.',
-    'en': 'See rewards near you. Outside the radius, the top compass shows direction.',
+    'en':
+        'See rewards near you. Outside the radius, the top compass shows direction.',
     'ja': '近くの手紙を確認。圏外の手紙は上部の方位で方向を確認。',
     'zh': '查看附近的信件。范围外的信件可在顶部方向指示查看。',
-    'fr': 'Voir les lettres près de toi. Hors portée, la boussole montre la direction.',
+    'fr':
+        'Voir les lettres près de toi. Hors portée, la boussole montre la direction.',
     'de': 'Briefe in der Nähe sehen. Außerhalb — oben am Kompass.',
     'es': 'Cartas cerca de ti. Fuera del radio, brújula superior.',
     'pt': 'Cartas perto. Fora do raio, bússola superior.',
@@ -16572,7 +18530,8 @@ class AppL10n {
   });
   String get mapHelpStep3Body => _t({
     'ko': '할인권은 📋 코드 복사, 교환권은 이미지를 매장에서 제시. 유효기간을 놓치지 마세요.',
-    'en': 'Coupons: copy 📋 code. Vouchers: show image at store. Mind the expiry.',
+    'en':
+        'Coupons: copy 📋 code. Vouchers: show image at store. Mind the expiry.',
     'ja': '割引券は 📋 コピー、交換券は画像を店舗で提示。有効期限に注意。',
     'zh': '优惠券 📋 复制码，代金券在店出示图片。注意有效期。',
     'fr': 'Coupons : 📋 copie. Bons : montre l\'image. Vérifie la date.',
@@ -16743,20 +18702,34 @@ class AppL10n {
 
   // Build 240: 14개 언어 letter/편지/手紙 잔존 → promos/rewards 통일
   String get composeGateDesc => _t({
-    'ko': '혜택을 세계에 뿌리고 싶다면 Premium 으로 업그레이드하세요.\n📸 사진 첨부 · 🔗 채널/SNS 링크로 나를 홍보할 수 있어요.\n무료 회원은 지도에서 혜택을 주워 사용할 수 있어요.',
-    'en': 'Upgrade to Premium to drop your own promos worldwide.\n📸 Attach photos · 🔗 Add channel/SNS links to promote yourself.\nFree members keep picking up rewards and claiming benefits.',
-    'ja': 'Premium にアップグレードして、自分のプロモを世界に届けましょう。\n📸 写真添付 · 🔗 チャンネル/SNS リンクで自己PR。\n無料会員は地図で特典を拾って活用できます。',
-    'zh': '升级 Premium 将你的促销发送到世界各地。\n📸 附加照片 · 🔗 添加频道/社交链接自我宣传。\n免费会员可以继续在地图上拾取奖励。',
-    'fr': 'Passe à Premium pour envoyer tes promos dans le monde entier.\n📸 Joins des photos · 🔗 Ajoute des liens de chaîne / réseaux.\nLes membres gratuits continuent de ramasser des récompenses.',
-    'de': 'Mit Premium sendest du eigene Promos weltweit.\n📸 Fotos anhängen · 🔗 Kanal-/Social-Links für Selbstvermarktung.\nFreie Mitglieder sammeln weiterhin Belohnungen auf der Karte.',
-    'es': 'Actualiza a Premium para lanzar tus promos al mundo.\n📸 Adjunta fotos · 🔗 Añade enlaces de canal/redes.\nLos miembros gratuitos siguen recogiendo recompensas.',
-    'pt': 'Atualiza para Premium e lança as tuas promoções ao mundo.\n📸 Anexa fotos · 🔗 Adiciona links de canal/redes.\nMembros gratuitos continuam a apanhar recompensas.',
-    'ru': 'Перейдите на Premium, чтобы отправлять промо по всему миру.\n📸 Прикрепляйте фото · 🔗 Добавляйте ссылки на канал/соцсети.\nБесплатные пользователи продолжают собирать награды.',
-    'tr': "Premium'a yükselt ve promolarını dünyaya bırak.\n📸 Fotoğraf ekle · 🔗 Kanal/SNS bağlantısıyla kendini tanıt.\nÜcretsiz üyeler haritadan ödül toplamaya devam eder.",
-    'ar': 'ارتقِ إلى Premium لإرسال عروضك للعالم.\n📸 أرفق الصور · 🔗 أضف روابط قناتك/وسائلك.\nالأعضاء المجانيون يواصلون التقاط المكافآت.',
-    'it': 'Passa a Premium per lanciare le tue promo nel mondo.\n📸 Allega foto · 🔗 Aggiungi link canale/social.\nI membri gratuiti continuano a raccogliere ricompense.',
-    'hi': 'Premium में अपग्रेड करें और अपनी प्रोमो दुनिया में भेजें।\n📸 फ़ोटो संलग्न करें · 🔗 चैनल/SNS लिंक जोड़ें।\nमुफ़्त सदस्य मानचित्र पर पुरस्कार उठाते रहें।',
-    'th': 'อัปเกรด Premium เพื่อส่งโปรโมไปทั่วโลก\n📸 แนบรูป · 🔗 ใส่ลิงก์ช่อง/โซเชียล\nสมาชิกฟรียังเก็บรางวัลบนแผนที่ได้',
+    'ko':
+        '혜택을 세계에 뿌리고 싶다면 Premium 으로 업그레이드하세요.\n📸 사진 첨부 · 🔗 채널/SNS 링크로 나를 홍보할 수 있어요.\n무료 회원은 지도에서 혜택을 주워 사용할 수 있어요.',
+    'en':
+        'Upgrade to Premium to drop your own promos worldwide.\n📸 Attach photos · 🔗 Add channel/SNS links to promote yourself.\nFree members keep picking up rewards and claiming benefits.',
+    'ja':
+        'Premium にアップグレードして、自分のプロモを世界に届けましょう。\n📸 写真添付 · 🔗 チャンネル/SNS リンクで自己PR。\n無料会員は地図で特典を拾って活用できます。',
+    'zh':
+        '升级 Premium 将你的促销发送到世界各地。\n📸 附加照片 · 🔗 添加频道/社交链接自我宣传。\n免费会员可以继续在地图上拾取奖励。',
+    'fr':
+        'Passe à Premium pour envoyer tes promos dans le monde entier.\n📸 Joins des photos · 🔗 Ajoute des liens de chaîne / réseaux.\nLes membres gratuits continuent de ramasser des récompenses.',
+    'de':
+        'Mit Premium sendest du eigene Promos weltweit.\n📸 Fotos anhängen · 🔗 Kanal-/Social-Links für Selbstvermarktung.\nFreie Mitglieder sammeln weiterhin Belohnungen auf der Karte.',
+    'es':
+        'Actualiza a Premium para lanzar tus promos al mundo.\n📸 Adjunta fotos · 🔗 Añade enlaces de canal/redes.\nLos miembros gratuitos siguen recogiendo recompensas.',
+    'pt':
+        'Atualiza para Premium e lança as tuas promoções ao mundo.\n📸 Anexa fotos · 🔗 Adiciona links de canal/redes.\nMembros gratuitos continuam a apanhar recompensas.',
+    'ru':
+        'Перейдите на Premium, чтобы отправлять промо по всему миру.\n📸 Прикрепляйте фото · 🔗 Добавляйте ссылки на канал/соцсети.\nБесплатные пользователи продолжают собирать награды.',
+    'tr':
+        "Premium'a yükselt ve promolarını dünyaya bırak.\n📸 Fotoğraf ekle · 🔗 Kanal/SNS bağlantısıyla kendini tanıt.\nÜcretsiz üyeler haritadan ödül toplamaya devam eder.",
+    'ar':
+        'ارتقِ إلى Premium لإرسال عروضك للعالم.\n📸 أرفق الصور · 🔗 أضف روابط قناتك/وسائلك.\nالأعضاء المجانيون يواصلون التقاط المكافآت.',
+    'it':
+        'Passa a Premium per lanciare le tue promo nel mondo.\n📸 Allega foto · 🔗 Aggiungi link canale/social.\nI membri gratuiti continuano a raccogliere ricompense.',
+    'hi':
+        'Premium में अपग्रेड करें और अपनी प्रोमो दुनिया में भेजें।\n📸 फ़ोटो संलग्न करें · 🔗 चैनल/SNS लिंक जोड़ें।\nमुफ़्त सदस्य मानचित्र पर पुरस्कार उठाते रहें।',
+    'th':
+        'อัปเกรด Premium เพื่อส่งโปรโมไปทั่วโลก\n📸 แนบรูป · 🔗 ใส่ลิงก์ช่อง/โซเชียล\nสมาชิกฟรียังเก็บรางวัลบนแผนที่ได้',
   });
 
   String get letterReadRedemptionTodayOnly => _t({
@@ -16830,25 +18803,52 @@ class AppL10n {
 
   // ── Build 259: 쿠폰/홍보 letter 액션 3종 (답장 / 보관 / 삭제) ──────────────
   String get letterReadKeep => _t({
-    'ko': '보관하기', 'en': 'Keep', 'ja': '保管する', 'zh': '保存',
-    'fr': 'Conserver', 'de': 'Behalten', 'es': 'Guardar', 'pt': 'Guardar',
-    'ru': 'Сохранить', 'tr': 'Sakla', 'ar': 'احتفظ', 'it': 'Conserva',
-    'hi': 'रखें', 'th': 'เก็บ',
+    'ko': '보관하기',
+    'en': 'Keep',
+    'ja': '保管する',
+    'zh': '保存',
+    'fr': 'Conserver',
+    'de': 'Behalten',
+    'es': 'Guardar',
+    'pt': 'Guardar',
+    'ru': 'Сохранить',
+    'tr': 'Sakla',
+    'ar': 'احتفظ',
+    'it': 'Conserva',
+    'hi': 'रखें',
+    'th': 'เก็บ',
   });
   String get letterReadKeepToast => _t({
-    'ko': '보관함에 보관됐어요', 'en': 'Kept in your inbox',
-    'ja': '受信箱に保管しました', 'zh': '已保存到收件箱',
-    'fr': 'Conservé dans la boîte', 'de': 'Im Posteingang behalten',
-    'es': 'Guardado en bandeja', 'pt': 'Guardado na caixa',
-    'ru': 'Сохранено во входящих', 'tr': 'Gelen kutusunda saklandı',
-    'ar': 'تم حفظه في الوارد', 'it': 'Conservato in entrata',
-    'hi': 'इनबॉक्स में रखा', 'th': 'เก็บในกล่องขาเข้า',
+    'ko': '보관함에 보관됐어요',
+    'en': 'Kept in your inbox',
+    'ja': '受信箱に保管しました',
+    'zh': '已保存到收件箱',
+    'fr': 'Conservé dans la boîte',
+    'de': 'Im Posteingang behalten',
+    'es': 'Guardado en bandeja',
+    'pt': 'Guardado na caixa',
+    'ru': 'Сохранено во входящих',
+    'tr': 'Gelen kutusunda saklandı',
+    'ar': 'تم حفظه في الوارد',
+    'it': 'Conservato in entrata',
+    'hi': 'इनबॉक्स में रखा',
+    'th': 'เก็บในกล่องขาเข้า',
   });
   String get letterReadDelete => _t({
-    'ko': '삭제하기', 'en': 'Delete', 'ja': '削除', 'zh': '删除',
-    'fr': 'Supprimer', 'de': 'Löschen', 'es': 'Eliminar', 'pt': 'Excluir',
-    'ru': 'Удалить', 'tr': 'Sil', 'ar': 'حذف', 'it': 'Elimina',
-    'hi': 'हटाएं', 'th': 'ลบ',
+    'ko': '삭제하기',
+    'en': 'Delete',
+    'ja': '削除',
+    'zh': '删除',
+    'fr': 'Supprimer',
+    'de': 'Löschen',
+    'es': 'Eliminar',
+    'pt': 'Excluir',
+    'ru': 'Удалить',
+    'tr': 'Sil',
+    'ar': 'حذف',
+    'it': 'Elimina',
+    'hi': 'हटाएं',
+    'th': 'ลบ',
   });
   String get letterReadDeleteConfirm => _t({
     'ko': '이 메세지를 삭제할까요? 되돌릴 수 없어요.',
@@ -16867,10 +18867,20 @@ class AppL10n {
     'th': 'ลบข้อความนี้? ย้อนกลับไม่ได้',
   });
   String get letterReadDeletedToast => _t({
-    'ko': '삭제됐어요', 'en': 'Deleted', 'ja': '削除しました', 'zh': '已删除',
-    'fr': 'Supprimé', 'de': 'Gelöscht', 'es': 'Eliminado', 'pt': 'Excluído',
-    'ru': 'Удалено', 'tr': 'Silindi', 'ar': 'تم الحذف', 'it': 'Eliminato',
-    'hi': 'हटाया गया', 'th': 'ลบแล้ว',
+    'ko': '삭제됐어요',
+    'en': 'Deleted',
+    'ja': '削除しました',
+    'zh': '已删除',
+    'fr': 'Supprimé',
+    'de': 'Gelöscht',
+    'es': 'Eliminado',
+    'pt': 'Excluído',
+    'ru': 'Удалено',
+    'tr': 'Silindi',
+    'ar': 'تم الحذف',
+    'it': 'Eliminato',
+    'hi': 'हटाया गया',
+    'th': 'ลบแล้ว',
   });
 
   // 답장 1회 제한 제거 후 "다시 답장 쓰기" / "이미 답장했어요" 상태 표시용
@@ -16980,7 +18990,8 @@ class AppL10n {
     'en': 'Save failed: Please check photo access permissions',
     'ja': '保存失敗: 写真のアクセス権限を確認してください',
     'zh': '保存失败：请检查照片访问权限',
-    'fr': 'Échec de l\'enregistrement : vérifiez les autorisations d\'accès aux photos',
+    'fr':
+        'Échec de l\'enregistrement : vérifiez les autorisations d\'accès aux photos',
     'de': 'Speichern fehlgeschlagen: Bitte Fotozugriffsrechte prüfen',
     'es': 'Error al guardar: comprueba los permisos de acceso a fotos',
     'pt': 'Falha ao salvar: verifique as permissões de acesso a fotos',
@@ -17043,55 +19054,124 @@ class AppL10n {
     'th': 'บันทึกรูปภาพ',
   });
 
-
   // ── Profile ─────────────────────────────────────────────────────────
   String get profileTitle => _t({
-    'ko': '프로필', 'en': 'Profile', 'ja': 'プロフィール', 'zh': '个人资料',
-    'fr': 'Profil', 'de': 'Profil', 'es': 'Perfil',
-    'pt': 'Perfil', 'ru': 'Профиль', 'tr': 'Profil',
-    'ar': 'الملف الشخصي', 'it': 'Profilo', 'hi': 'प्रोफ़ाइल', 'th': 'โปรไฟล์',
+    'ko': '프로필',
+    'en': 'Profile',
+    'ja': 'プロフィール',
+    'zh': '个人资料',
+    'fr': 'Profil',
+    'de': 'Profil',
+    'es': 'Perfil',
+    'pt': 'Perfil',
+    'ru': 'Профиль',
+    'tr': 'Profil',
+    'ar': 'الملف الشخصي',
+    'it': 'Profilo',
+    'hi': 'प्रोफ़ाइल',
+    'th': 'โปรไฟล์',
   });
 
   String get profileAccountSection => _t({
-    'ko': '계정', 'en': 'Account', 'ja': 'アカウント', 'zh': '账户',
-    'fr': 'Compte', 'de': 'Konto', 'es': 'Cuenta',
-    'pt': 'Conta', 'ru': 'Аккаунт', 'tr': 'Hesap',
-    'ar': 'الحساب', 'it': 'Account', 'hi': 'खाता', 'th': 'บัญชี',
+    'ko': '계정',
+    'en': 'Account',
+    'ja': 'アカウント',
+    'zh': '账户',
+    'fr': 'Compte',
+    'de': 'Konto',
+    'es': 'Cuenta',
+    'pt': 'Conta',
+    'ru': 'Аккаунт',
+    'tr': 'Hesap',
+    'ar': 'الحساب',
+    'it': 'Account',
+    'hi': 'खाता',
+    'th': 'บัญชี',
   });
 
   String get profilePrivacySection => _t({
-    'ko': '공개 설정', 'en': 'Privacy', 'ja': 'プライバシー', 'zh': '隐私设置',
-    'fr': 'Confidentialité', 'de': 'Datenschutz', 'es': 'Privacidad',
-    'pt': 'Privacidade', 'ru': 'Конфиденциальность', 'tr': 'Gizlilik',
-    'ar': 'الخصوصية', 'it': 'Privacy', 'hi': 'गोपनीयता', 'th': 'ความเป็นส่วนตัว',
+    'ko': '공개 설정',
+    'en': 'Privacy',
+    'ja': 'プライバシー',
+    'zh': '隐私设置',
+    'fr': 'Confidentialité',
+    'de': 'Datenschutz',
+    'es': 'Privacidad',
+    'pt': 'Privacidade',
+    'ru': 'Конфиденциальность',
+    'tr': 'Gizlilik',
+    'ar': 'الخصوصية',
+    'it': 'Privacy',
+    'hi': 'गोपनीयता',
+    'th': 'ความเป็นส่วนตัว',
   });
 
   String get profileNotificationSection => _t({
-    'ko': '알림', 'en': 'Notifications', 'ja': '通知', 'zh': '通知',
-    'fr': 'Notifications', 'de': 'Benachrichtigungen', 'es': 'Notificaciones',
-    'pt': 'Notificações', 'ru': 'Уведомления', 'tr': 'Bildirimler',
-    'ar': 'الإشعارات', 'it': 'Notifiche', 'hi': 'सूचनाएँ', 'th': 'การแจ้งเตือน',
+    'ko': '알림',
+    'en': 'Notifications',
+    'ja': '通知',
+    'zh': '通知',
+    'fr': 'Notifications',
+    'de': 'Benachrichtigungen',
+    'es': 'Notificaciones',
+    'pt': 'Notificações',
+    'ru': 'Уведомления',
+    'tr': 'Bildirimler',
+    'ar': 'الإشعارات',
+    'it': 'Notifiche',
+    'hi': 'सूचनाएँ',
+    'th': 'การแจ้งเตือน',
   });
 
   String get profileDisplaySection => _t({
-    'ko': '화면', 'en': 'Display', 'ja': '表示', 'zh': '显示',
-    'fr': 'Affichage', 'de': 'Anzeige', 'es': 'Pantalla',
-    'pt': 'Exibição', 'ru': 'Экран', 'tr': 'Görünüm',
-    'ar': 'العرض', 'it': 'Schermo', 'hi': 'प्रदर्शन', 'th': 'การแสดงผล',
+    'ko': '화면',
+    'en': 'Display',
+    'ja': '表示',
+    'zh': '显示',
+    'fr': 'Affichage',
+    'de': 'Anzeige',
+    'es': 'Pantalla',
+    'pt': 'Exibição',
+    'ru': 'Экран',
+    'tr': 'Görünüm',
+    'ar': 'العرض',
+    'it': 'Schermo',
+    'hi': 'प्रदर्शन',
+    'th': 'การแสดงผล',
   });
 
   String get profileAppInfoSection => _t({
-    'ko': '앱 정보', 'en': 'App Info', 'ja': 'アプリ情報', 'zh': '应用信息',
-    'fr': "Infos de l'app", 'de': 'App-Info', 'es': 'Info de la app',
-    'pt': 'Info do app', 'ru': 'О приложении', 'tr': 'Uygulama Bilgisi',
-    'ar': 'معلومات التطبيق', 'it': "Info sull'app", 'hi': 'ऐप जानकारी', 'th': 'ข้อมูลแอป',
+    'ko': '앱 정보',
+    'en': 'App Info',
+    'ja': 'アプリ情報',
+    'zh': '应用信息',
+    'fr': "Infos de l'app",
+    'de': 'App-Info',
+    'es': 'Info de la app',
+    'pt': 'Info do app',
+    'ru': 'О приложении',
+    'tr': 'Uygulama Bilgisi',
+    'ar': 'معلومات التطبيق',
+    'it': "Info sull'app",
+    'hi': 'ऐप जानकारी',
+    'th': 'ข้อมูลแอป',
   });
 
   String get profileAccountManageSection => _t({
-    'ko': '계정 관리', 'en': 'Account Management', 'ja': 'アカウント管理', 'zh': '账户管理',
-    'fr': 'Gestion du compte', 'de': 'Kontoverwaltung', 'es': 'Gestión de cuenta',
-    'pt': 'Gerenciamento de conta', 'ru': 'Управление аккаунтом', 'tr': 'Hesap Yönetimi',
-    'ar': 'إدارة الحساب', 'it': 'Gestione account', 'hi': 'खाता प्रबंधन', 'th': 'จัดการบัญชี',
+    'ko': '계정 관리',
+    'en': 'Account Management',
+    'ja': 'アカウント管理',
+    'zh': '账户管理',
+    'fr': 'Gestion du compte',
+    'de': 'Kontoverwaltung',
+    'es': 'Gestión de cuenta',
+    'pt': 'Gerenciamento de conta',
+    'ru': 'Управление аккаунтом',
+    'tr': 'Hesap Yönetimi',
+    'ar': 'إدارة الحساب',
+    'it': 'Gestione account',
+    'hi': 'खाता प्रबंधन',
+    'th': 'จัดการบัญชี',
   });
 
   // Build 183: 프로필 "설정" 섹션 접기 버튼 라벨.
@@ -17130,676 +19210,1649 @@ class AppL10n {
   });
 
   String get profileNickname => _t({
-    'ko': '닉네임', 'en': 'Nickname', 'ja': 'ニックネーム', 'zh': '昵称',
-    'fr': 'Pseudo', 'de': 'Spitzname', 'es': 'Apodo',
-    'pt': 'Apelido', 'ru': 'Никнейм', 'tr': 'Takma Ad',
-    'ar': 'الاسم المستعار', 'it': 'Soprannome', 'hi': 'उपनाम', 'th': 'ชื่อเล่น',
+    'ko': '닉네임',
+    'en': 'Nickname',
+    'ja': 'ニックネーム',
+    'zh': '昵称',
+    'fr': 'Pseudo',
+    'de': 'Spitzname',
+    'es': 'Apodo',
+    'pt': 'Apelido',
+    'ru': 'Никнейм',
+    'tr': 'Takma Ad',
+    'ar': 'الاسم المستعار',
+    'it': 'Soprannome',
+    'hi': 'उपनाम',
+    'th': 'ชื่อเล่น',
   });
 
   String get profileNicknamePublic => _t({
-    'ko': '닉네임 공개', 'en': 'Show Nickname', 'ja': 'ニックネームを公開', 'zh': '公开昵称',
-    'fr': 'Afficher le pseudo', 'de': 'Spitzname anzeigen', 'es': 'Mostrar apodo',
-    'pt': 'Mostrar apelido', 'ru': 'Показать никнейм', 'tr': 'Takma Adı Göster',
-    'ar': 'إظهار الاسم المستعار', 'it': 'Mostra soprannome', 'hi': 'उपनाम दिखाएँ', 'th': 'แสดงชื่อเล่น',
+    'ko': '닉네임 공개',
+    'en': 'Show Nickname',
+    'ja': 'ニックネームを公開',
+    'zh': '公开昵称',
+    'fr': 'Afficher le pseudo',
+    'de': 'Spitzname anzeigen',
+    'es': 'Mostrar apodo',
+    'pt': 'Mostrar apelido',
+    'ru': 'Показать никнейм',
+    'tr': 'Takma Adı Göster',
+    'ar': 'إظهار الاسم المستعار',
+    'it': 'Mostra soprannome',
+    'hi': 'उपनाम दिखाएँ',
+    'th': 'แสดงชื่อเล่น',
   });
 
   String get profileNicknamePublicDesc => _t({
-    'ko': '다른 사용자에게 닉네임 표시', 'en': 'Show your nickname to other users', 'ja': '他のユーザーにニックネームを表示', 'zh': '向其他用户显示昵称',
-    'fr': 'Afficher votre pseudo aux autres utilisateurs', 'de': 'Spitzname für andere Nutzer anzeigen', 'es': 'Mostrar tu apodo a otros usuarios',
-    'pt': 'Mostrar seu apelido para outros usuários', 'ru': 'Показывать никнейм другим пользователям', 'tr': 'Takma adınızı diğer kullanıcılara göster',
-    'ar': 'إظهار اسمك المستعار للمستخدمين الآخرين', 'it': 'Mostra il tuo soprannome agli altri utenti', 'hi': 'अन्य उपयोगकर्ताओं को अपना उपनाम दिखाएँ', 'th': 'แสดงชื่อเล่นของคุณแก่ผู้ใช้อื่น',
+    'ko': '다른 사용자에게 닉네임 표시',
+    'en': 'Show your nickname to other users',
+    'ja': '他のユーザーにニックネームを表示',
+    'zh': '向其他用户显示昵称',
+    'fr': 'Afficher votre pseudo aux autres utilisateurs',
+    'de': 'Spitzname für andere Nutzer anzeigen',
+    'es': 'Mostrar tu apodo a otros usuarios',
+    'pt': 'Mostrar seu apelido para outros usuários',
+    'ru': 'Показывать никнейм другим пользователям',
+    'tr': 'Takma adınızı diğer kullanıcılara göster',
+    'ar': 'إظهار اسمك المستعار للمستخدمين الآخرين',
+    'it': 'Mostra il tuo soprannome agli altri utenti',
+    'hi': 'अन्य उपयोगकर्ताओं को अपना उपनाम दिखाएँ',
+    'th': 'แสดงชื่อเล่นของคุณแก่ผู้ใช้อื่น',
   });
 
   String get profileSnsLink => _t({
-    'ko': 'SNS 링크', 'en': 'SNS Link', 'ja': 'SNSリンク', 'zh': 'SNS链接',
-    'fr': 'Lien SNS', 'de': 'SNS-Link', 'es': 'Enlace SNS',
-    'pt': 'Link SNS', 'ru': 'Ссылка на соцсеть', 'tr': 'SNS Bağlantısı',
-    'ar': 'رابط SNS', 'it': 'Link SNS', 'hi': 'SNS लिंक', 'th': 'ลิงก์ SNS',
+    'ko': 'SNS 링크',
+    'en': 'SNS Link',
+    'ja': 'SNSリンク',
+    'zh': 'SNS链接',
+    'fr': 'Lien SNS',
+    'de': 'SNS-Link',
+    'es': 'Enlace SNS',
+    'pt': 'Link SNS',
+    'ru': 'Ссылка на соцсеть',
+    'tr': 'SNS Bağlantısı',
+    'ar': 'رابط SNS',
+    'it': 'Link SNS',
+    'hi': 'SNS लिंक',
+    'th': 'ลิงก์ SNS',
   });
 
   String get profileSnsLinkEdit => _t({
-    'ko': 'SNS 링크 편집', 'en': 'Edit SNS Link', 'ja': 'SNSリンクを編集', 'zh': '编辑SNS链接',
-    'fr': 'Modifier le lien SNS', 'de': 'SNS-Link bearbeiten', 'es': 'Editar enlace SNS',
-    'pt': 'Editar link SNS', 'ru': 'Редактировать ссылку на соцсеть', 'tr': 'SNS Bağlantısını Düzenle',
-    'ar': 'تعديل رابط SNS', 'it': 'Modifica link SNS', 'hi': 'SNS लिंक संपादित करें', 'th': 'แก้ไขลิงก์ SNS',
+    'ko': 'SNS 링크 편집',
+    'en': 'Edit SNS Link',
+    'ja': 'SNSリンクを編集',
+    'zh': '编辑SNS链接',
+    'fr': 'Modifier le lien SNS',
+    'de': 'SNS-Link bearbeiten',
+    'es': 'Editar enlace SNS',
+    'pt': 'Editar link SNS',
+    'ru': 'Редактировать ссылку на соцсеть',
+    'tr': 'SNS Bağlantısını Düzenle',
+    'ar': 'تعديل رابط SNS',
+    'it': 'Modifica link SNS',
+    'hi': 'SNS लिंक संपादित करें',
+    'th': 'แก้ไขลิงก์ SNS',
   });
 
   String get profileSnsLinkPublic => _t({
-    'ko': 'SNS 공개', 'en': 'Show SNS', 'ja': 'SNSを公開', 'zh': '公开SNS',
-    'fr': 'Afficher le SNS', 'de': 'SNS anzeigen', 'es': 'Mostrar SNS',
-    'pt': 'Mostrar SNS', 'ru': 'Показать соцсеть', 'tr': "SNS'yi Göster",
-    'ar': 'إظهار SNS', 'it': 'Mostra SNS', 'hi': 'SNS दिखाएँ', 'th': 'แสดง SNS',
+    'ko': 'SNS 공개',
+    'en': 'Show SNS',
+    'ja': 'SNSを公開',
+    'zh': '公开SNS',
+    'fr': 'Afficher le SNS',
+    'de': 'SNS anzeigen',
+    'es': 'Mostrar SNS',
+    'pt': 'Mostrar SNS',
+    'ru': 'Показать соцсеть',
+    'tr': "SNS'yi Göster",
+    'ar': 'إظهار SNS',
+    'it': 'Mostra SNS',
+    'hi': 'SNS दिखाएँ',
+    'th': 'แสดง SNS',
   });
 
   String get profileSnsPublicDesc => _t({
-    'ko': '프로필에 SNS 링크 표시', 'en': 'Show SNS link on profile', 'ja': 'プロフィールにSNSリンクを表示', 'zh': '在个人资料上显示SNS链接',
-    'fr': 'Afficher le lien SNS sur le profil', 'de': 'SNS-Link im Profil anzeigen', 'es': 'Mostrar enlace SNS en el perfil',
-    'pt': 'Mostrar link SNS no perfil', 'ru': 'Показывать ссылку на соцсеть в профиле', 'tr': 'Profilde SNS bağlantısını göster',
-    'ar': 'إظهار رابط SNS في الملف الشخصي', 'it': 'Mostra il link SNS sul profilo', 'hi': 'प्रोफ़ाइल पर SNS लिंक दिखाएँ', 'th': 'แสดงลิงก์ SNS บนโปรไฟล์',
+    'ko': '프로필에 SNS 링크 표시',
+    'en': 'Show SNS link on profile',
+    'ja': 'プロフィールにSNSリンクを表示',
+    'zh': '在个人资料上显示SNS链接',
+    'fr': 'Afficher le lien SNS sur le profil',
+    'de': 'SNS-Link im Profil anzeigen',
+    'es': 'Mostrar enlace SNS en el perfil',
+    'pt': 'Mostrar link SNS no perfil',
+    'ru': 'Показывать ссылку на соцсеть в профиле',
+    'tr': 'Profilde SNS bağlantısını göster',
+    'ar': 'إظهار رابط SNS في الملف الشخصي',
+    'it': 'Mostra il link SNS sul profilo',
+    'hi': 'प्रोफ़ाइल पर SNS लिंक दिखाएँ',
+    'th': 'แสดงลิงก์ SNS บนโปรไฟล์',
   });
 
   String get profilePhoto => _t({
-    'ko': '프로필 사진', 'en': 'Profile Photo', 'ja': 'プロフィール写真', 'zh': '头像',
-    'fr': 'Photo de profil', 'de': 'Profilbild', 'es': 'Foto de perfil',
-    'pt': 'Foto de perfil', 'ru': 'Фото профиля', 'tr': 'Profil Fotoğrafı',
-    'ar': 'صورة الملف الشخصي', 'it': 'Foto profilo', 'hi': 'प्रोफ़ाइल फ़ोटो', 'th': 'รูปโปรไฟล์',
+    'ko': '프로필 사진',
+    'en': 'Profile Photo',
+    'ja': 'プロフィール写真',
+    'zh': '头像',
+    'fr': 'Photo de profil',
+    'de': 'Profilbild',
+    'es': 'Foto de perfil',
+    'pt': 'Foto de perfil',
+    'ru': 'Фото профиля',
+    'tr': 'Profil Fotoğrafı',
+    'ar': 'صورة الملف الشخصي',
+    'it': 'Foto profilo',
+    'hi': 'प्रोफ़ाइल फ़ोटो',
+    'th': 'รูปโปรไฟล์',
   });
 
   String get profilePhotoSet => _t({
-    'ko': '사진 설정됨', 'en': 'Photo Set', 'ja': '写真設定済み', 'zh': '已设置照片',
-    'fr': 'Photo définie', 'de': 'Foto festgelegt', 'es': 'Foto establecida',
-    'pt': 'Foto definida', 'ru': 'Фото установлено', 'tr': 'Fotoğraf Ayarlandı',
-    'ar': 'تم تعيين الصورة', 'it': 'Foto impostata', 'hi': 'फ़ोटो सेट', 'th': 'ตั้งรูปแล้ว',
+    'ko': '사진 설정됨',
+    'en': 'Photo Set',
+    'ja': '写真設定済み',
+    'zh': '已设置照片',
+    'fr': 'Photo définie',
+    'de': 'Foto festgelegt',
+    'es': 'Foto establecida',
+    'pt': 'Foto definida',
+    'ru': 'Фото установлено',
+    'tr': 'Fotoğraf Ayarlandı',
+    'ar': 'تم تعيين الصورة',
+    'it': 'Foto impostata',
+    'hi': 'फ़ोटो सेट',
+    'th': 'ตั้งรูปแล้ว',
   });
 
   String get profilePhotoDefault => _t({
-    'ko': '기본', 'en': 'Default', 'ja': 'デフォルト', 'zh': '默认',
-    'fr': 'Par défaut', 'de': 'Standard', 'es': 'Predeterminado',
-    'pt': 'Padrão', 'ru': 'По умолчанию', 'tr': 'Varsayılan',
-    'ar': 'افتراضي', 'it': 'Predefinito', 'hi': 'डिफ़ॉल्ट', 'th': 'ค่าเริ่มต้น',
+    'ko': '기본',
+    'en': 'Default',
+    'ja': 'デフォルト',
+    'zh': '默认',
+    'fr': 'Par défaut',
+    'de': 'Standard',
+    'es': 'Predeterminado',
+    'pt': 'Padrão',
+    'ru': 'По умолчанию',
+    'tr': 'Varsayılan',
+    'ar': 'افتراضي',
+    'it': 'Predefinito',
+    'hi': 'डिफ़ॉल्ट',
+    'th': 'ค่าเริ่มต้น',
   });
 
   String get profilePhotoChanged => _t({
-    'ko': '프로필 사진이 변경되었습니다', 'en': 'Profile photo changed', 'ja': 'プロフィール写真が変更されました', 'zh': '头像已更改',
-    'fr': 'Photo de profil modifiée', 'de': 'Profilbild geändert', 'es': 'Foto de perfil cambiada',
-    'pt': 'Foto de perfil alterada', 'ru': 'Фото профиля изменено', 'tr': 'Profil fotoğrafı değiştirildi',
-    'ar': 'تم تغيير صورة الملف الشخصي', 'it': 'Foto profilo modificata', 'hi': 'प्रोफ़ाइल फ़ोटो बदली गई', 'th': 'เปลี่ยนรูปโปรไฟล์แล้ว',
+    'ko': '프로필 사진이 변경되었습니다',
+    'en': 'Profile photo changed',
+    'ja': 'プロフィール写真が変更されました',
+    'zh': '头像已更改',
+    'fr': 'Photo de profil modifiée',
+    'de': 'Profilbild geändert',
+    'es': 'Foto de perfil cambiada',
+    'pt': 'Foto de perfil alterada',
+    'ru': 'Фото профиля изменено',
+    'tr': 'Profil fotoğrafı değiştirildi',
+    'ar': 'تم تغيير صورة الملف الشخصي',
+    'it': 'Foto profilo modificata',
+    'hi': 'प्रोफ़ाइल फ़ोटो बदली गई',
+    'th': 'เปลี่ยนรูปโปรไฟล์แล้ว',
   });
 
   String get profileSelectFromAlbum => _t({
-    'ko': '앨범에서 선택', 'en': 'Select from Album', 'ja': 'アルバムから選択', 'zh': '从相册选择',
-    'fr': "Sélectionner dans l'album", 'de': 'Aus Album auswählen', 'es': 'Seleccionar del álbum',
-    'pt': 'Selecionar do álbum', 'ru': 'Выбрать из альбома', 'tr': 'Albümden Seç',
-    'ar': 'اختيار من الألبوم', 'it': "Seleziona dall'album", 'hi': 'एल्बम से चुनें', 'th': 'เลือกจากอัลบั้ม',
+    'ko': '앨범에서 선택',
+    'en': 'Select from Album',
+    'ja': 'アルバムから選択',
+    'zh': '从相册选择',
+    'fr': "Sélectionner dans l'album",
+    'de': 'Aus Album auswählen',
+    'es': 'Seleccionar del álbum',
+    'pt': 'Selecionar do álbum',
+    'ru': 'Выбрать из альбома',
+    'tr': 'Albümden Seç',
+    'ar': 'اختيار من الألبوم',
+    'it': "Seleziona dall'album",
+    'hi': 'एल्बम से चुनें',
+    'th': 'เลือกจากอัลบั้ม',
   });
 
   String get profileChangeToDefaultAvatar => _t({
-    'ko': '기본 아바타로 변경', 'en': 'Change to Default Avatar', 'ja': 'デフォルトアバターに変更', 'zh': '更改为默认头像',
-    'fr': "Changer pour l'avatar par défaut", 'de': 'Zum Standard-Avatar wechseln', 'es': 'Cambiar al avatar predeterminado',
-    'pt': 'Alterar para avatar padrão', 'ru': 'Сменить на аватар по умолчанию', 'tr': 'Varsayılan Avatara Değiştir',
-    'ar': 'التغيير إلى الصورة الرمزية الافتراضية', 'it': "Cambia all'avatar predefinito", 'hi': 'डिफ़ॉल्ट अवतार में बदलें', 'th': 'เปลี่ยนเป็นอวาตาร์เริ่มต้น',
+    'ko': '기본 아바타로 변경',
+    'en': 'Change to Default Avatar',
+    'ja': 'デフォルトアバターに変更',
+    'zh': '更改为默认头像',
+    'fr': "Changer pour l'avatar par défaut",
+    'de': 'Zum Standard-Avatar wechseln',
+    'es': 'Cambiar al avatar predeterminado',
+    'pt': 'Alterar para avatar padrão',
+    'ru': 'Сменить на аватар по умолчанию',
+    'tr': 'Varsayılan Avatara Değiştir',
+    'ar': 'التغيير إلى الصورة الرمزية الافتراضية',
+    'it': "Cambia all'avatar predefinito",
+    'hi': 'डिफ़ॉल्ट अवतार में बदलें',
+    'th': 'เปลี่ยนเป็นอวาตาร์เริ่มต้น',
   });
 
   String get profileDefaultAvatarChanged => _t({
-    'ko': '기본 아바타로 변경되었습니다', 'en': 'Changed to default avatar', 'ja': 'デフォルトアバターに変更されました', 'zh': '已更改为默认头像',
-    'fr': "Changé pour l'avatar par défaut", 'de': 'Zum Standard-Avatar geändert', 'es': 'Cambiado al avatar predeterminado',
-    'pt': 'Alterado para avatar padrão', 'ru': 'Изменено на аватар по умолчанию', 'tr': 'Varsayılan avatara değiştirildi',
-    'ar': 'تم التغيير إلى الصورة الرمزية الافتراضية', 'it': "Cambiato all'avatar predefinito", 'hi': 'डिफ़ॉल्ट अवतार में बदल दिया गया', 'th': 'เปลี่ยนเป็นอวาตาร์เริ่มต้นแล้ว',
+    'ko': '기본 아바타로 변경되었습니다',
+    'en': 'Changed to default avatar',
+    'ja': 'デフォルトアバターに変更されました',
+    'zh': '已更改为默认头像',
+    'fr': "Changé pour l'avatar par défaut",
+    'de': 'Zum Standard-Avatar geändert',
+    'es': 'Cambiado al avatar predeterminado',
+    'pt': 'Alterado para avatar padrão',
+    'ru': 'Изменено на аватар по умолчанию',
+    'tr': 'Varsayılan avatara değiştirildi',
+    'ar': 'تم التغيير إلى الصورة الرمزية الافتراضية',
+    'it': "Cambiato all'avatar predefinito",
+    'hi': 'डिफ़ॉल्ट अवतार में बदल दिया गया',
+    'th': 'เปลี่ยนเป็นอวาตาร์เริ่มต้นแล้ว',
   });
 
   String get profileCountry => _t({
-    'ko': '나라', 'en': 'Country', 'ja': '国', 'zh': '国家',
-    'fr': 'Pays', 'de': 'Land', 'es': 'País',
-    'pt': 'País', 'ru': 'Страна', 'tr': 'Ülke',
-    'ar': 'البلد', 'it': 'Paese', 'hi': 'देश', 'th': 'ประเทศ',
+    'ko': '나라',
+    'en': 'Country',
+    'ja': '国',
+    'zh': '国家',
+    'fr': 'Pays',
+    'de': 'Land',
+    'es': 'País',
+    'pt': 'País',
+    'ru': 'Страна',
+    'tr': 'Ülke',
+    'ar': 'البلد',
+    'it': 'Paese',
+    'hi': 'देश',
+    'th': 'ประเทศ',
   });
 
   String get profileTowerName => _t({
-    'ko': '타워 이름', 'en': 'Tower Name', 'ja': 'タワー名', 'zh': '塔名',
-    'fr': 'Nom de la tour', 'de': 'Turmname', 'es': 'Nombre de la torre',
-    'pt': 'Nome da torre', 'ru': 'Название башни', 'tr': 'Kule Adı',
-    'ar': 'اسم البرج', 'it': 'Nome della torre', 'hi': 'टावर का नाम', 'th': 'ชื่อหอคอย',
+    'ko': '타워 이름',
+    'en': 'Tower Name',
+    'ja': 'タワー名',
+    'zh': '塔名',
+    'fr': 'Nom de la tour',
+    'de': 'Turmname',
+    'es': 'Nombre de la torre',
+    'pt': 'Nome da torre',
+    'ru': 'Название башни',
+    'tr': 'Kule Adı',
+    'ar': 'اسم البرج',
+    'it': 'Nome della torre',
+    'hi': 'टावर का नाम',
+    'th': 'ชื่อหอคอย',
+  });
+
+  String get profileCharacterName => _t({
+    'ko': '캐릭터 이름',
+    'en': 'Character Name',
+    'ja': 'キャラクター名',
+    'zh': '角色名称',
+    'fr': 'Nom du personnage',
+    'de': 'Charaktername',
+    'es': 'Nombre del personaje',
+    'pt': 'Nome do personagem',
+    'ru': 'Имя персонажа',
+    'tr': 'Karakter Adı',
+    'ar': 'اسم الشخصية',
+    'it': 'Nome del personaggio',
+    'hi': 'कैरेक्टर नाम',
+    'th': 'ชื่อตัวละคร',
   });
 
   String get profileSubscriptionPlan => _t({
-    'ko': '구독 플랜', 'en': 'Subscription Plan', 'ja': 'サブスクリプションプラン', 'zh': '订阅计划',
-    'fr': "Plan d'abonnement", 'de': 'Abonnementplan', 'es': 'Plan de suscripción',
-    'pt': 'Plano de assinatura', 'ru': 'План подписки', 'tr': 'Abonelik Planı',
-    'ar': 'خطة الاشتراك', 'it': 'Piano di abbonamento', 'hi': 'सदस्यता योजना', 'th': 'แผนการสมัครสมาชิก',
+    'ko': '구독 플랜',
+    'en': 'Subscription Plan',
+    'ja': 'サブスクリプションプラン',
+    'zh': '订阅计划',
+    'fr': "Plan d'abonnement",
+    'de': 'Abonnementplan',
+    'es': 'Plan de suscripción',
+    'pt': 'Plano de assinatura',
+    'ru': 'План подписки',
+    'tr': 'Abonelik Planı',
+    'ar': 'خطة الاشتراك',
+    'it': 'Piano di abbonamento',
+    'hi': 'सदस्यता योजना',
+    'th': 'แผนการสมัครสมาชิก',
   });
 
   String get profileFree => _t({
-    'ko': '무료', 'en': 'Free', 'ja': '無料', 'zh': '免费',
-    'fr': 'Gratuit', 'de': 'Kostenlos', 'es': 'Gratis',
-    'pt': 'Grátis', 'ru': 'Бесплатно', 'tr': 'Ücretsiz',
-    'ar': 'مجاني', 'it': 'Gratuito', 'hi': 'मुफ़्त', 'th': 'ฟรี',
+    'ko': '무료',
+    'en': 'Free',
+    'ja': '無料',
+    'zh': '免费',
+    'fr': 'Gratuit',
+    'de': 'Kostenlos',
+    'es': 'Gratis',
+    'pt': 'Grátis',
+    'ru': 'Бесплатно',
+    'tr': 'Ücretsiz',
+    'ar': 'مجاني',
+    'it': 'Gratuito',
+    'hi': 'मुफ़्त',
+    'th': 'ฟรี',
   });
 
   String get profileUpgrade => _t({
-    'ko': '업그레이드', 'en': 'Upgrade', 'ja': 'アップグレード', 'zh': '升级',
-    'fr': 'Mettre à niveau', 'de': 'Upgrade', 'es': 'Mejorar',
-    'pt': 'Atualizar', 'ru': 'Обновить', 'tr': 'Yükselt',
-    'ar': 'ترقية', 'it': 'Aggiorna', 'hi': 'अपग्रेड', 'th': 'อัปเกรด',
+    'ko': '업그레이드',
+    'en': 'Upgrade',
+    'ja': 'アップグレード',
+    'zh': '升级',
+    'fr': 'Mettre à niveau',
+    'de': 'Upgrade',
+    'es': 'Mejorar',
+    'pt': 'Atualizar',
+    'ru': 'Обновить',
+    'tr': 'Yükselt',
+    'ar': 'ترقية',
+    'it': 'Aggiorna',
+    'hi': 'अपग्रेड',
+    'th': 'อัปเกรด',
   });
 
   String get profileChangePassword => _t({
-    'ko': '비밀번호 변경', 'en': 'Change Password', 'ja': 'パスワード変更', 'zh': '更改密码',
-    'fr': 'Changer le mot de passe', 'de': 'Passwort ändern', 'es': 'Cambiar contraseña',
-    'pt': 'Alterar senha', 'ru': 'Изменить пароль', 'tr': 'Şifreyi Değiştir',
-    'ar': 'تغيير كلمة المرور', 'it': 'Cambia password', 'hi': 'पासवर्ड बदलें', 'th': 'เปลี่ยนรหัสผ่าน',
+    'ko': '비밀번호 변경',
+    'en': 'Change Password',
+    'ja': 'パスワード変更',
+    'zh': '更改密码',
+    'fr': 'Changer le mot de passe',
+    'de': 'Passwort ändern',
+    'es': 'Cambiar contraseña',
+    'pt': 'Alterar senha',
+    'ru': 'Изменить пароль',
+    'tr': 'Şifreyi Değiştir',
+    'ar': 'تغيير كلمة المرور',
+    'it': 'Cambia password',
+    'hi': 'पासवर्ड बदलें',
+    'th': 'เปลี่ยนรหัสผ่าน',
   });
 
   String get profileCurrentPassword => _t({
-    'ko': '현재 비밀번호', 'en': 'Current Password', 'ja': '現在のパスワード', 'zh': '当前密码',
-    'fr': 'Mot de passe actuel', 'de': 'Aktuelles Passwort', 'es': 'Contraseña actual',
-    'pt': 'Senha atual', 'ru': 'Текущий пароль', 'tr': 'Mevcut Şifre',
-    'ar': 'كلمة المرور الحالية', 'it': 'Password attuale', 'hi': 'वर्तमान पासवर्ड', 'th': 'รหัสผ่านปัจจุบัน',
+    'ko': '현재 비밀번호',
+    'en': 'Current Password',
+    'ja': '現在のパスワード',
+    'zh': '当前密码',
+    'fr': 'Mot de passe actuel',
+    'de': 'Aktuelles Passwort',
+    'es': 'Contraseña actual',
+    'pt': 'Senha atual',
+    'ru': 'Текущий пароль',
+    'tr': 'Mevcut Şifre',
+    'ar': 'كلمة المرور الحالية',
+    'it': 'Password attuale',
+    'hi': 'वर्तमान पासवर्ड',
+    'th': 'รหัสผ่านปัจจุบัน',
   });
 
   String get profileNewPassword => _t({
-    'ko': '새 비밀번호', 'en': 'New Password', 'ja': '新しいパスワード', 'zh': '新密码',
-    'fr': 'Nouveau mot de passe', 'de': 'Neues Passwort', 'es': 'Nueva contraseña',
-    'pt': 'Nova senha', 'ru': 'Новый пароль', 'tr': 'Yeni Şifre',
-    'ar': 'كلمة المرور الجديدة', 'it': 'Nuova password', 'hi': 'नया पासवर्ड', 'th': 'รหัสผ่านใหม่',
+    'ko': '새 비밀번호',
+    'en': 'New Password',
+    'ja': '新しいパスワード',
+    'zh': '新密码',
+    'fr': 'Nouveau mot de passe',
+    'de': 'Neues Passwort',
+    'es': 'Nueva contraseña',
+    'pt': 'Nova senha',
+    'ru': 'Новый пароль',
+    'tr': 'Yeni Şifre',
+    'ar': 'كلمة المرور الجديدة',
+    'it': 'Nuova password',
+    'hi': 'नया पासवर्ड',
+    'th': 'รหัสผ่านใหม่',
   });
 
   String get profileConfirmPassword => _t({
-    'ko': '비밀번호 확인', 'en': 'Confirm Password', 'ja': 'パスワード確認', 'zh': '确认密码',
-    'fr': 'Confirmer le mot de passe', 'de': 'Passwort bestätigen', 'es': 'Confirmar contraseña',
-    'pt': 'Confirmar senha', 'ru': 'Подтвердите пароль', 'tr': 'Şifreyi Onayla',
-    'ar': 'تأكيد كلمة المرور', 'it': 'Conferma password', 'hi': 'पासवर्ड की पुष्टि करें', 'th': 'ยืนยันรหัสผ่าน',
+    'ko': '비밀번호 확인',
+    'en': 'Confirm Password',
+    'ja': 'パスワード確認',
+    'zh': '确认密码',
+    'fr': 'Confirmer le mot de passe',
+    'de': 'Passwort bestätigen',
+    'es': 'Confirmar contraseña',
+    'pt': 'Confirmar senha',
+    'ru': 'Подтвердите пароль',
+    'tr': 'Şifreyi Onayla',
+    'ar': 'تأكيد كلمة المرور',
+    'it': 'Conferma password',
+    'hi': 'पासवर्ड की पुष्टि करें',
+    'th': 'ยืนยันรหัสผ่าน',
   });
 
   String get profilePasswordMinLength => _t({
-    'ko': '비밀번호는 6자 이상이어야 합니다', 'en': 'Password must be at least 6 characters', 'ja': 'パスワードは6文字以上である必要があります', 'zh': '密码至少需要6个字符',
-    'fr': 'Le mot de passe doit contenir au moins 6 caractères', 'de': 'Passwort muss mindestens 6 Zeichen lang sein', 'es': 'La contraseña debe tener al menos 6 caracteres',
-    'pt': 'A senha deve ter pelo menos 6 caracteres', 'ru': 'Пароль должен содержать не менее 6 символов', 'tr': 'Şifre en az 6 karakter olmalıdır',
-    'ar': 'يجب أن تتكون كلمة المرور من 6 أحرف على الأقل', 'it': 'La password deve contenere almeno 6 caratteri', 'hi': 'पासवर्ड कम से कम 6 अक्षर का होना चाहिए', 'th': 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร',
+    'ko': '비밀번호는 6자 이상이어야 합니다',
+    'en': 'Password must be at least 6 characters',
+    'ja': 'パスワードは6文字以上である必要があります',
+    'zh': '密码至少需要6个字符',
+    'fr': 'Le mot de passe doit contenir au moins 6 caractères',
+    'de': 'Passwort muss mindestens 6 Zeichen lang sein',
+    'es': 'La contraseña debe tener al menos 6 caracteres',
+    'pt': 'A senha deve ter pelo menos 6 caracteres',
+    'ru': 'Пароль должен содержать не менее 6 символов',
+    'tr': 'Şifre en az 6 karakter olmalıdır',
+    'ar': 'يجب أن تتكون كلمة المرور من 6 أحرف على الأقل',
+    'it': 'La password deve contenere almeno 6 caratteri',
+    'hi': 'पासवर्ड कम से कम 6 अक्षर का होना चाहिए',
+    'th': 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร',
   });
 
   String get profilePasswordMismatch => _t({
-    'ko': '비밀번호가 일치하지 않습니다', 'en': 'Passwords do not match', 'ja': 'パスワードが一致しません', 'zh': '密码不匹配',
-    'fr': 'Les mots de passe ne correspondent pas', 'de': 'Passwörter stimmen nicht überein', 'es': 'Las contraseñas no coinciden',
-    'pt': 'As senhas não coincidem', 'ru': 'Пароли не совпадают', 'tr': 'Şifreler eşleşmiyor',
-    'ar': 'كلمات المرور غير متطابقة', 'it': 'Le password non corrispondono', 'hi': 'पासवर्ड मेल नहीं खाते', 'th': 'รหัสผ่านไม่ตรงกัน',
+    'ko': '비밀번호가 일치하지 않습니다',
+    'en': 'Passwords do not match',
+    'ja': 'パスワードが一致しません',
+    'zh': '密码不匹配',
+    'fr': 'Les mots de passe ne correspondent pas',
+    'de': 'Passwörter stimmen nicht überein',
+    'es': 'Las contraseñas no coinciden',
+    'pt': 'As senhas não coincidem',
+    'ru': 'Пароли не совпадают',
+    'tr': 'Şifreler eşleşmiyor',
+    'ar': 'كلمات المرور غير متطابقة',
+    'it': 'Le password non corrispondono',
+    'hi': 'पासवर्ड मेल नहीं खाते',
+    'th': 'รหัสผ่านไม่ตรงกัน',
   });
 
   String get profileCurrentPasswordWrong => _t({
-    'ko': '현재 비밀번호가 올바르지 않습니다', 'en': 'Current password is incorrect', 'ja': '現在のパスワードが正しくありません', 'zh': '当前密码不正确',
-    'fr': 'Le mot de passe actuel est incorrect', 'de': 'Aktuelles Passwort ist falsch', 'es': 'La contraseña actual es incorrecta',
-    'pt': 'A senha atual está incorreta', 'ru': 'Текущий пароль неверен', 'tr': 'Mevcut şifre yanlış',
-    'ar': 'كلمة المرور الحالية غير صحيحة', 'it': 'La password attuale non è corretta', 'hi': 'वर्तमान पासवर्ड गलत है', 'th': 'รหัสผ่านปัจจุบันไม่ถูกต้อง',
+    'ko': '현재 비밀번호가 올바르지 않습니다',
+    'en': 'Current password is incorrect',
+    'ja': '現在のパスワードが正しくありません',
+    'zh': '当前密码不正确',
+    'fr': 'Le mot de passe actuel est incorrect',
+    'de': 'Aktuelles Passwort ist falsch',
+    'es': 'La contraseña actual es incorrecta',
+    'pt': 'A senha atual está incorreta',
+    'ru': 'Текущий пароль неверен',
+    'tr': 'Mevcut şifre yanlış',
+    'ar': 'كلمة المرور الحالية غير صحيحة',
+    'it': 'La password attuale non è corretta',
+    'hi': 'वर्तमान पासवर्ड गलत है',
+    'th': 'รหัสผ่านปัจจุบันไม่ถูกต้อง',
   });
 
   String get profilePasswordChanged => _t({
-    'ko': '비밀번호가 변경되었습니다', 'en': 'Password changed', 'ja': 'パスワードが変更されました', 'zh': '密码已更改',
-    'fr': 'Mot de passe modifié', 'de': 'Passwort geändert', 'es': 'Contraseña cambiada',
-    'pt': 'Senha alterada', 'ru': 'Пароль изменён', 'tr': 'Şifre değiştirildi',
-    'ar': 'تم تغيير كلمة المرور', 'it': 'Password modificata', 'hi': 'पासवर्ड बदल दिया गया', 'th': 'เปลี่ยนรหัสผ่านแล้ว',
+    'ko': '비밀번호가 변경되었습니다',
+    'en': 'Password changed',
+    'ja': 'パスワードが変更されました',
+    'zh': '密码已更改',
+    'fr': 'Mot de passe modifié',
+    'de': 'Passwort geändert',
+    'es': 'Contraseña cambiada',
+    'pt': 'Senha alterada',
+    'ru': 'Пароль изменён',
+    'tr': 'Şifre değiştirildi',
+    'ar': 'تم تغيير كلمة المرور',
+    'it': 'Password modificata',
+    'hi': 'पासवर्ड बदल दिया गया',
+    'th': 'เปลี่ยนรหัสผ่านแล้ว',
   });
 
   String get profileNearbyNotification => _t({
-    'ko': '근처 혜택 알림', 'en': 'Nearby Reward Notification', 'ja': '近くの手紙通知', 'zh': '附近信件通知',
-    'fr': 'Notification de lettre à proximité', 'de': 'Benachrichtigung über Briefe in der Nähe', 'es': 'Notificación de carta cercana',
-    'pt': 'Notificação de carta próxima', 'ru': 'Уведомление о письме поблизости', 'tr': 'Yakındaki Mektup Bildirimi',
-    'ar': 'إشعار الرسائل القريبة', 'it': 'Notifica lettera nelle vicinanze', 'hi': 'पास के पत्र की सूचना', 'th': 'แจ้งเตือนจดหมายใกล้เคียง',
+    'ko': '근처 혜택 알림',
+    'en': 'Nearby Reward Notification',
+    'ja': '近くの手紙通知',
+    'zh': '附近信件通知',
+    'fr': 'Notification de lettre à proximité',
+    'de': 'Benachrichtigung über Briefe in der Nähe',
+    'es': 'Notificación de carta cercana',
+    'pt': 'Notificação de carta próxima',
+    'ru': 'Уведомление о письме поблизости',
+    'tr': 'Yakındaki Mektup Bildirimi',
+    'ar': 'إشعار الرسائل القريبة',
+    'it': 'Notifica lettera nelle vicinanze',
+    'hi': 'पास के पत्र की सूचना',
+    'th': 'แจ้งเตือนจดหมายใกล้เคียง',
   });
 
   String get profileNearbyNotificationDesc => _t({
-    'ko': '2km 이내 도착 혜택 알림', 'en': 'Notify when reward arrives within 2km', 'ja': '2km以内に届いた手紙を通知', 'zh': '信件到达2km以内时通知',
-    'fr': 'Notifier quand une lettre arrive à moins de 2 km', 'de': 'Benachrichtigen, wenn ein Brief innerhalb von 2 km ankommt', 'es': 'Notificar cuando una carta llegue a menos de 2 km',
-    'pt': 'Notificar quando uma carta chegar a menos de 2 km', 'ru': 'Уведомлять, когда письмо прибудет в радиусе 2 км', 'tr': '2 km içinde mektup geldiğinde bildir',
-    'ar': 'إشعار عند وصول رسالة في نطاق 2 كم', 'it': 'Notifica quando una lettera arriva entro 2 km', 'hi': '2 किमी के भीतर पत्र आने पर सूचित करें', 'th': 'แจ้งเตือนเมื่อจดหมายมาถึงภายใน 2 กม.',
+    'ko': '2km 이내 도착 혜택 알림',
+    'en': 'Notify when reward arrives within 2km',
+    'ja': '2km以内に届いた手紙を通知',
+    'zh': '信件到达2km以内时通知',
+    'fr': 'Notifier quand une lettre arrive à moins de 2 km',
+    'de': 'Benachrichtigen, wenn ein Brief innerhalb von 2 km ankommt',
+    'es': 'Notificar cuando una carta llegue a menos de 2 km',
+    'pt': 'Notificar quando uma carta chegar a menos de 2 km',
+    'ru': 'Уведомлять, когда письмо прибудет в радиусе 2 км',
+    'tr': '2 km içinde mektup geldiğinde bildir',
+    'ar': 'إشعار عند وصول رسالة في نطاق 2 كم',
+    'it': 'Notifica quando una lettera arriva entro 2 km',
+    'hi': '2 किमी के भीतर पत्र आने पर सूचित करें',
+    'th': 'แจ้งเตือนเมื่อจดหมายมาถึงภายใน 2 กม.',
   });
 
   String get profileDisplayMode => _t({
-    'ko': '화면 모드', 'en': 'Display Mode', 'ja': '表示モード', 'zh': '显示模式',
-    'fr': "Mode d'affichage", 'de': 'Anzeigemodus', 'es': 'Modo de pantalla',
-    'pt': 'Modo de exibição', 'ru': 'Режим отображения', 'tr': 'Görünüm Modu',
-    'ar': 'وضع العرض', 'it': 'Modalità schermo', 'hi': 'डिस्प्ले मोड', 'th': 'โหมดการแสดงผล',
+    'ko': '화면 모드',
+    'en': 'Display Mode',
+    'ja': '表示モード',
+    'zh': '显示模式',
+    'fr': "Mode d'affichage",
+    'de': 'Anzeigemodus',
+    'es': 'Modo de pantalla',
+    'pt': 'Modo de exibição',
+    'ru': 'Режим отображения',
+    'tr': 'Görünüm Modu',
+    'ar': 'وضع العرض',
+    'it': 'Modalità schermo',
+    'hi': 'डिस्प्ले मोड',
+    'th': 'โหมดการแสดงผล',
   });
 
   String get profileSelectDisplayMode => _t({
-    'ko': '화면 모드 선택', 'en': 'Select Display Mode', 'ja': '表示モードを選択', 'zh': '选择显示模式',
-    'fr': "Sélectionner le mode d'affichage", 'de': 'Anzeigemodus auswählen', 'es': 'Seleccionar modo de pantalla',
-    'pt': 'Selecionar modo de exibição', 'ru': 'Выбрать режим отображения', 'tr': 'Görünüm Modunu Seç',
-    'ar': 'اختيار وضع العرض', 'it': 'Seleziona modalità schermo', 'hi': 'डिस्प्ले मोड चुनें', 'th': 'เลือกโหมดการแสดงผล',
+    'ko': '화면 모드 선택',
+    'en': 'Select Display Mode',
+    'ja': '表示モードを選択',
+    'zh': '选择显示模式',
+    'fr': "Sélectionner le mode d'affichage",
+    'de': 'Anzeigemodus auswählen',
+    'es': 'Seleccionar modo de pantalla',
+    'pt': 'Selecionar modo de exibição',
+    'ru': 'Выбрать режим отображения',
+    'tr': 'Görünüm Modunu Seç',
+    'ar': 'اختيار وضع العرض',
+    'it': 'Seleziona modalità schermo',
+    'hi': 'डिस्प्ले मोड चुनें',
+    'th': 'เลือกโหมดการแสดงผล',
   });
 
   String get profileAutoTimezone => _t({
-    'ko': '자동 (시간대)', 'en': 'Auto (Timezone)', 'ja': '自動（タイムゾーン）', 'zh': '自动（时区）',
-    'fr': 'Auto (fuseau horaire)', 'de': 'Auto (Zeitzone)', 'es': 'Auto (zona horaria)',
-    'pt': 'Auto (fuso horário)', 'ru': 'Авто (часовой пояс)', 'tr': 'Otomatik (Saat Dilimi)',
-    'ar': 'تلقائي (المنطقة الزمنية)', 'it': 'Auto (fuso orario)', 'hi': 'स्वचालित (समय क्षेत्र)', 'th': 'อัตโนมัติ (เขตเวลา)',
+    'ko': '자동 (시간대)',
+    'en': 'Auto (Timezone)',
+    'ja': '自動（タイムゾーン）',
+    'zh': '自动（时区）',
+    'fr': 'Auto (fuseau horaire)',
+    'de': 'Auto (Zeitzone)',
+    'es': 'Auto (zona horaria)',
+    'pt': 'Auto (fuso horário)',
+    'ru': 'Авто (часовой пояс)',
+    'tr': 'Otomatik (Saat Dilimi)',
+    'ar': 'تلقائي (المنطقة الزمنية)',
+    'it': 'Auto (fuso orario)',
+    'hi': 'स्वचालित (समय क्षेत्र)',
+    'th': 'อัตโนมัติ (เขตเวลา)',
   });
 
   String get profileAutoTimezoneDesc => _t({
-    'ko': '시간대에 따라 자동 변경', 'en': 'Changes automatically by timezone', 'ja': 'タイムゾーンに応じて自動変更', 'zh': '根据时区自动更改',
-    'fr': 'Change automatiquement selon le fuseau horaire', 'de': 'Ändert sich automatisch nach Zeitzone', 'es': 'Cambia automáticamente según la zona horaria',
-    'pt': 'Muda automaticamente pelo fuso horário', 'ru': 'Автоматически меняется по часовому поясу', 'tr': 'Saat dilimine göre otomatik değişir',
-    'ar': 'يتغير تلقائيًا حسب المنطقة الزمنية', 'it': 'Cambia automaticamente in base al fuso orario', 'hi': 'समय क्षेत्र के अनुसार स्वचालित बदलाव', 'th': 'เปลี่ยนอัตโนมัติตามเขตเวลา',
+    'ko': '시간대에 따라 자동 변경',
+    'en': 'Changes automatically by timezone',
+    'ja': 'タイムゾーンに応じて自動変更',
+    'zh': '根据时区自动更改',
+    'fr': 'Change automatiquement selon le fuseau horaire',
+    'de': 'Ändert sich automatisch nach Zeitzone',
+    'es': 'Cambia automáticamente según la zona horaria',
+    'pt': 'Muda automaticamente pelo fuso horário',
+    'ru': 'Автоматически меняется по часовому поясу',
+    'tr': 'Saat dilimine göre otomatik değişir',
+    'ar': 'يتغير تلقائيًا حسب المنطقة الزمنية',
+    'it': 'Cambia automaticamente in base al fuso orario',
+    'hi': 'समय क्षेत्र के अनुसार स्वचालित बदलाव',
+    'th': 'เปลี่ยนอัตโนมัติตามเขตเวลา',
   });
 
   String get profileLightMode => _t({
-    'ko': '밝은 모드', 'en': 'Light Mode', 'ja': 'ライトモード', 'zh': '浅色模式',
-    'fr': 'Mode clair', 'de': 'Heller Modus', 'es': 'Modo claro',
-    'pt': 'Modo claro', 'ru': 'Светлый режим', 'tr': 'Açık Mod',
-    'ar': 'الوضع الفاتح', 'it': 'Modalità chiara', 'hi': 'लाइट मोड', 'th': 'โหมดสว่าง',
+    'ko': '밝은 모드',
+    'en': 'Light Mode',
+    'ja': 'ライトモード',
+    'zh': '浅色模式',
+    'fr': 'Mode clair',
+    'de': 'Heller Modus',
+    'es': 'Modo claro',
+    'pt': 'Modo claro',
+    'ru': 'Светлый режим',
+    'tr': 'Açık Mod',
+    'ar': 'الوضع الفاتح',
+    'it': 'Modalità chiara',
+    'hi': 'लाइट मोड',
+    'th': 'โหมดสว่าง',
   });
 
   String get profileLightModeDesc => _t({
-    'ko': '항상 밝은 모드', 'en': 'Always light mode', 'ja': '常にライトモード', 'zh': '始终浅色模式',
-    'fr': 'Toujours en mode clair', 'de': 'Immer heller Modus', 'es': 'Siempre modo claro',
-    'pt': 'Sempre modo claro', 'ru': 'Всегда светлый режим', 'tr': 'Her zaman açık mod',
-    'ar': 'الوضع الفاتح دائمًا', 'it': 'Sempre modalità chiara', 'hi': 'हमेशा लाइट मोड', 'th': 'โหมดสว่างเสมอ',
+    'ko': '항상 밝은 모드',
+    'en': 'Always light mode',
+    'ja': '常にライトモード',
+    'zh': '始终浅色模式',
+    'fr': 'Toujours en mode clair',
+    'de': 'Immer heller Modus',
+    'es': 'Siempre modo claro',
+    'pt': 'Sempre modo claro',
+    'ru': 'Всегда светлый режим',
+    'tr': 'Her zaman açık mod',
+    'ar': 'الوضع الفاتح دائمًا',
+    'it': 'Sempre modalità chiara',
+    'hi': 'हमेशा लाइट मोड',
+    'th': 'โหมดสว่างเสมอ',
   });
 
   String get profileDarkMode => _t({
-    'ko': '다크 모드', 'en': 'Dark Mode', 'ja': 'ダークモード', 'zh': '深色模式',
-    'fr': 'Mode sombre', 'de': 'Dunkler Modus', 'es': 'Modo oscuro',
-    'pt': 'Modo escuro', 'ru': 'Тёмный режим', 'tr': 'Karanlık Mod',
-    'ar': 'الوضع الداكن', 'it': 'Modalità scura', 'hi': 'डार्क मोड', 'th': 'โหมดมืด',
+    'ko': '다크 모드',
+    'en': 'Dark Mode',
+    'ja': 'ダークモード',
+    'zh': '深色模式',
+    'fr': 'Mode sombre',
+    'de': 'Dunkler Modus',
+    'es': 'Modo oscuro',
+    'pt': 'Modo escuro',
+    'ru': 'Тёмный режим',
+    'tr': 'Karanlık Mod',
+    'ar': 'الوضع الداكن',
+    'it': 'Modalità scura',
+    'hi': 'डार्क मोड',
+    'th': 'โหมดมืด',
   });
 
   String get profileDarkModeDesc => _t({
-    'ko': '항상 다크 모드', 'en': 'Always dark mode', 'ja': '常にダークモード', 'zh': '始终深色模式',
-    'fr': 'Toujours en mode sombre', 'de': 'Immer dunkler Modus', 'es': 'Siempre modo oscuro',
-    'pt': 'Sempre modo escuro', 'ru': 'Всегда тёмный режим', 'tr': 'Her zaman karanlık mod',
-    'ar': 'الوضع الداكن دائمًا', 'it': 'Sempre modalità scura', 'hi': 'हमेशा डार्क मोड', 'th': 'โหมดมืดเสมอ',
+    'ko': '항상 다크 모드',
+    'en': 'Always dark mode',
+    'ja': '常にダークモード',
+    'zh': '始终深色模式',
+    'fr': 'Toujours en mode sombre',
+    'de': 'Immer dunkler Modus',
+    'es': 'Siempre modo oscuro',
+    'pt': 'Sempre modo escuro',
+    'ru': 'Всегда тёмный режим',
+    'tr': 'Her zaman karanlık mod',
+    'ar': 'الوضع الداكن دائمًا',
+    'it': 'Sempre modalità scura',
+    'hi': 'हमेशा डार्क मोड',
+    'th': 'โหมดมืดเสมอ',
   });
 
   String get profileNotSet => _t({
-    'ko': '미설정', 'en': 'Not Set', 'ja': '未設定', 'zh': '未设置',
-    'fr': 'Non défini', 'de': 'Nicht festgelegt', 'es': 'No configurado',
-    'pt': 'Não definido', 'ru': 'Не задано', 'tr': 'Ayarlanmadı',
-    'ar': 'غير محدد', 'it': 'Non impostato', 'hi': 'सेट नहीं', 'th': 'ยังไม่ตั้ง',
+    'ko': '미설정',
+    'en': 'Not Set',
+    'ja': '未設定',
+    'zh': '未设置',
+    'fr': 'Non défini',
+    'de': 'Nicht festgelegt',
+    'es': 'No configurado',
+    'pt': 'Não definido',
+    'ru': 'Не задано',
+    'tr': 'Ayarlanmadı',
+    'ar': 'غير محدد',
+    'it': 'Non impostato',
+    'hi': 'सेट नहीं',
+    'th': 'ยังไม่ตั้ง',
   });
 
   String get profileVersion => _t({
-    'ko': '버전', 'en': 'Version', 'ja': 'バージョン', 'zh': '版本',
-    'fr': 'Version', 'de': 'Version', 'es': 'Versión',
-    'pt': 'Versão', 'ru': 'Версия', 'tr': 'Sürüm',
-    'ar': 'الإصدار', 'it': 'Versione', 'hi': 'संस्करण', 'th': 'เวอร์ชัน',
+    'ko': '버전',
+    'en': 'Version',
+    'ja': 'バージョン',
+    'zh': '版本',
+    'fr': 'Version',
+    'de': 'Version',
+    'es': 'Versión',
+    'pt': 'Versão',
+    'ru': 'Версия',
+    'tr': 'Sürüm',
+    'ar': 'الإصدار',
+    'it': 'Versione',
+    'hi': 'संस्करण',
+    'th': 'เวอร์ชัน',
   });
 
   String get profileDeleteAccountMsg => _t({
-    'ko': '정말 탈퇴하시겠습니까? 모든 데이터가 삭제됩니다.', 'en': 'Are you sure you want to delete your account? All data will be deleted.', 'ja': '本当に退会しますか？すべてのデータが削除されます。', 'zh': '确定要注销账户吗？所有数据将被删除。',
-    'fr': 'Voulez-vous vraiment supprimer votre compte ? Toutes les données seront supprimées.', 'de': 'Möchten Sie Ihr Konto wirklich löschen? Alle Daten werden gelöscht.', 'es': '¿Está seguro de que desea eliminar su cuenta? Todos los datos serán eliminados.',
-    'pt': 'Tem certeza de que deseja excluir sua conta? Todos os dados serão excluídos.', 'ru': 'Вы уверены, что хотите удалить аккаунт? Все данные будут удалены.', 'tr': 'Hesabınızı silmek istediğinizden emin misiniz? Tüm veriler silinecektir.',
-    'ar': 'هل أنت متأكد من حذف حسابك؟ سيتم حذف جميع البيانات.', 'it': 'Sei sicuro di voler eliminare il tuo account? Tutti i dati verranno eliminati.', 'hi': 'क्या आप वाकई अपना खाता हटाना चाहते हैं? सारा डेटा हटा दिया जाएगा।', 'th': 'คุณแน่ใจหรือไม่ว่าต้องการลบบัญชี? ข้อมูลทั้งหมดจะถูกลบ',
+    'ko': '정말 탈퇴하시겠습니까? 모든 데이터가 삭제됩니다.',
+    'en':
+        'Are you sure you want to delete your account? All data will be deleted.',
+    'ja': '本当に退会しますか？すべてのデータが削除されます。',
+    'zh': '确定要注销账户吗？所有数据将被删除。',
+    'fr':
+        'Voulez-vous vraiment supprimer votre compte ? Toutes les données seront supprimées.',
+    'de': 'Möchten Sie Ihr Konto wirklich löschen? Alle Daten werden gelöscht.',
+    'es':
+        '¿Está seguro de que desea eliminar su cuenta? Todos los datos serán eliminados.',
+    'pt':
+        'Tem certeza de que deseja excluir sua conta? Todos os dados serão excluídos.',
+    'ru': 'Вы уверены, что хотите удалить аккаунт? Все данные будут удалены.',
+    'tr':
+        'Hesabınızı silmek istediğinizden emin misiniz? Tüm veriler silinecektir.',
+    'ar': 'هل أنت متأكد من حذف حسابك؟ سيتم حذف جميع البيانات.',
+    'it':
+        'Sei sicuro di voler eliminare il tuo account? Tutti i dati verranno eliminati.',
+    'hi': 'क्या आप वाकई अपना खाता हटाना चाहते हैं? सारा डेटा हटा दिया जाएगा।',
+    'th': 'คุณแน่ใจหรือไม่ว่าต้องการลบบัญชี? ข้อมูลทั้งหมดจะถูกลบ',
   });
 
   String get profileLogoutMsg => _t({
-    'ko': '로그아웃 하시겠습니까?', 'en': 'Are you sure you want to log out?', 'ja': 'ログアウトしますか？', 'zh': '确定要退出登录吗？',
-    'fr': 'Voulez-vous vous déconnecter ?', 'de': 'Möchten Sie sich abmelden?', 'es': '¿Está seguro de que desea cerrar sesión?',
-    'pt': 'Tem certeza de que deseja sair?', 'ru': 'Вы уверены, что хотите выйти?', 'tr': 'Çıkış yapmak istediğinizden emin misiniz?',
-    'ar': 'هل أنت متأكد من تسجيل الخروج؟', 'it': 'Sei sicuro di voler uscire?', 'hi': 'क्या आप लॉग आउट करना चाहते हैं?', 'th': 'คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?',
+    'ko': '로그아웃 하시겠습니까?',
+    'en': 'Are you sure you want to log out?',
+    'ja': 'ログアウトしますか？',
+    'zh': '确定要退出登录吗？',
+    'fr': 'Voulez-vous vous déconnecter ?',
+    'de': 'Möchten Sie sich abmelden?',
+    'es': '¿Está seguro de que desea cerrar sesión?',
+    'pt': 'Tem certeza de que deseja sair?',
+    'ru': 'Вы уверены, что хотите выйти?',
+    'tr': 'Çıkış yapmak istediğinizden emin misiniz?',
+    'ar': 'هل أنت متأكد من تسجيل الخروج؟',
+    'it': 'Sei sicuro di voler uscire?',
+    'hi': 'क्या आप लॉग आउट करना चाहते हैं?',
+    'th': 'คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?',
   });
 
   String get profileTodaySent => _t({
-    'ko': '오늘 발송', 'en': 'Sent Today', 'ja': '今日の送信', 'zh': '今日发送',
-    'fr': "Envoyés aujourd'hui", 'de': 'Heute gesendet', 'es': 'Enviados hoy',
-    'pt': 'Enviados hoje', 'ru': 'Отправлено сегодня', 'tr': 'Bugün Gönderilen',
-    'ar': 'أُرسل اليوم', 'it': 'Inviati oggi', 'hi': 'आज भेजे गए', 'th': 'ส่งวันนี้',
+    'ko': '오늘 발송',
+    'en': 'Sent Today',
+    'ja': '今日の送信',
+    'zh': '今日发送',
+    'fr': "Envoyés aujourd'hui",
+    'de': 'Heute gesendet',
+    'es': 'Enviados hoy',
+    'pt': 'Enviados hoje',
+    'ru': 'Отправлено сегодня',
+    'tr': 'Bugün Gönderilen',
+    'ar': 'أُرسل اليوم',
+    'it': 'Inviati oggi',
+    'hi': 'आज भेजे गए',
+    'th': 'ส่งวันนี้',
   });
 
   String get profileResetMidnight => _t({
-    'ko': '자정에 초기화', 'en': 'Resets at midnight', 'ja': '午前0時にリセット', 'zh': '午夜重置',
-    'fr': 'Réinitialisé à minuit', 'de': 'Wird um Mitternacht zurückgesetzt', 'es': 'Se reinicia a medianoche',
-    'pt': 'Reinicia à meia-noite', 'ru': 'Сбрасывается в полночь', 'tr': 'Gece yarısı sıfırlanır',
-    'ar': 'يُعاد التعيين عند منتصف الليل', 'it': 'Si azzera a mezzanotte', 'hi': 'आधी रात को रीसेट', 'th': 'รีเซ็ตตอนเที่ยงคืน',
+    'ko': '자정에 초기화',
+    'en': 'Resets at midnight',
+    'ja': '午前0時にリセット',
+    'zh': '午夜重置',
+    'fr': 'Réinitialisé à minuit',
+    'de': 'Wird um Mitternacht zurückgesetzt',
+    'es': 'Se reinicia a medianoche',
+    'pt': 'Reinicia à meia-noite',
+    'ru': 'Сбрасывается в полночь',
+    'tr': 'Gece yarısı sıfırlanır',
+    'ar': 'يُعاد التعيين عند منتصف الليل',
+    'it': 'Si azzera a mezzanotte',
+    'hi': 'आधी रात को रीसेट',
+    'th': 'รีเซ็ตตอนเที่ยงคืน',
   });
 
   String get profileReceivedLetters => _t({
-    'ko': '받은 혜택', 'en': 'Received', 'ja': '受信', 'zh': '收到',
-    'fr': 'Reçues', 'de': 'Empfangen', 'es': 'Recibidas',
-    'pt': 'Recebidas', 'ru': 'Получено', 'tr': 'Alınan',
-    'ar': 'المستلمة', 'it': 'Ricevute', 'hi': 'प्राप्त', 'th': 'ได้รับ',
+    'ko': '받은 혜택',
+    'en': 'Received',
+    'ja': '受信',
+    'zh': '收到',
+    'fr': 'Reçues',
+    'de': 'Empfangen',
+    'es': 'Recibidas',
+    'pt': 'Recebidas',
+    'ru': 'Получено',
+    'tr': 'Alınan',
+    'ar': 'المستلمة',
+    'it': 'Ricevute',
+    'hi': 'प्राप्त',
+    'th': 'ได้รับ',
   });
 
   String get profileSentLetters => _t({
-    'ko': '보낸 혜택', 'en': 'Sent', 'ja': '送信', 'zh': '已发送',
-    'fr': 'Envoyées', 'de': 'Gesendet', 'es': 'Enviadas',
-    'pt': 'Enviadas', 'ru': 'Отправлено', 'tr': 'Gönderilen',
-    'ar': 'المرسلة', 'it': 'Inviate', 'hi': 'भेजे गए', 'th': 'ส่งแล้ว',
+    'ko': '보낸 혜택',
+    'en': 'Sent',
+    'ja': '送信',
+    'zh': '已发送',
+    'fr': 'Envoyées',
+    'de': 'Gesendet',
+    'es': 'Enviadas',
+    'pt': 'Enviadas',
+    'ru': 'Отправлено',
+    'tr': 'Gönderilen',
+    'ar': 'المرسلة',
+    'it': 'Inviate',
+    'hi': 'भेजे गए',
+    'th': 'ส่งแล้ว',
   });
 
   String get profileVisitedCountries => _t({
-    'ko': '방문 국가', 'en': 'Countries', 'ja': '訪問国', 'zh': '访问国家',
-    'fr': 'Pays', 'de': 'Länder', 'es': 'Países',
-    'pt': 'Países', 'ru': 'Страны', 'tr': 'Ülkeler',
-    'ar': 'الدول', 'it': 'Paesi', 'hi': 'देश', 'th': 'ประเทศ',
+    'ko': '방문 국가',
+    'en': 'Countries',
+    'ja': '訪問国',
+    'zh': '访问国家',
+    'fr': 'Pays',
+    'de': 'Länder',
+    'es': 'Países',
+    'pt': 'Países',
+    'ru': 'Страны',
+    'tr': 'Ülkeler',
+    'ar': 'الدول',
+    'it': 'Paesi',
+    'hi': 'देश',
+    'th': 'ประเทศ',
   });
 
   String get profileFollowing => _t({
-    'ko': '팔로잉', 'en': 'Following', 'ja': 'フォロー中', 'zh': '关注',
-    'fr': 'Abonnements', 'de': 'Folge ich', 'es': 'Siguiendo',
-    'pt': 'Seguindo', 'ru': 'Подписки', 'tr': 'Takip Edilen',
-    'ar': 'المتابَعون', 'it': 'Seguiti', 'hi': 'फ़ॉलो कर रहे हैं', 'th': 'กำลังติดตาม',
+    'ko': '팔로잉',
+    'en': 'Following',
+    'ja': 'フォロー中',
+    'zh': '关注',
+    'fr': 'Abonnements',
+    'de': 'Folge ich',
+    'es': 'Siguiendo',
+    'pt': 'Seguindo',
+    'ru': 'Подписки',
+    'tr': 'Takip Edilen',
+    'ar': 'المتابَعون',
+    'it': 'Seguiti',
+    'hi': 'फ़ॉलो कर रहे हैं',
+    'th': 'กำลังติดตาม',
   });
 
   String get profileFollowers => _t({
-    'ko': '팔로워', 'en': 'Followers', 'ja': 'フォロワー', 'zh': '粉丝',
-    'fr': 'Abonnés', 'de': 'Follower', 'es': 'Seguidores',
-    'pt': 'Seguidores', 'ru': 'Подписчики', 'tr': 'Takipçiler',
-    'ar': 'المتابِعون', 'it': 'Follower', 'hi': 'फ़ॉलोअर्स', 'th': 'ผู้ติดตาม',
+    'ko': '팔로워',
+    'en': 'Followers',
+    'ja': 'フォロワー',
+    'zh': '粉丝',
+    'fr': 'Abonnés',
+    'de': 'Follower',
+    'es': 'Seguidores',
+    'pt': 'Seguidores',
+    'ru': 'Подписчики',
+    'tr': 'Takipçiler',
+    'ar': 'المتابِعون',
+    'it': 'Follower',
+    'hi': 'फ़ॉलोअर्स',
+    'th': 'ผู้ติดตาม',
   });
 
   String get profileNoFollowing => _t({
-    'ko': '팔로잉 없음', 'en': 'No following', 'ja': 'フォローなし', 'zh': '没有关注',
-    'fr': 'Aucun abonnement', 'de': 'Keine Abonnements', 'es': 'Sin seguidos',
-    'pt': 'Nenhum seguido', 'ru': 'Нет подписок', 'tr': 'Takip edilen yok',
-    'ar': 'لا يوجد متابَعون', 'it': 'Nessun seguito', 'hi': 'कोई फ़ॉलो नहीं', 'th': 'ไม่มีการติดตาม',
+    'ko': '팔로잉 없음',
+    'en': 'No following',
+    'ja': 'フォローなし',
+    'zh': '没有关注',
+    'fr': 'Aucun abonnement',
+    'de': 'Keine Abonnements',
+    'es': 'Sin seguidos',
+    'pt': 'Nenhum seguido',
+    'ru': 'Нет подписок',
+    'tr': 'Takip edilen yok',
+    'ar': 'لا يوجد متابَعون',
+    'it': 'Nessun seguito',
+    'hi': 'कोई फ़ॉलो नहीं',
+    'th': 'ไม่มีการติดตาม',
   });
 
   String get profileNoFollowers => _t({
-    'ko': '팔로워 없음', 'en': 'No followers', 'ja': 'フォロワーなし', 'zh': '没有粉丝',
-    'fr': 'Aucun abonné', 'de': 'Keine Follower', 'es': 'Sin seguidores',
-    'pt': 'Nenhum seguidor', 'ru': 'Нет подписчиков', 'tr': 'Takipçi yok',
-    'ar': 'لا يوجد متابِعون', 'it': 'Nessun follower', 'hi': 'कोई फ़ॉलोअर नहीं', 'th': 'ไม่มีผู้ติดตาม',
+    'ko': '팔로워 없음',
+    'en': 'No followers',
+    'ja': 'フォロワーなし',
+    'zh': '没有粉丝',
+    'fr': 'Aucun abonné',
+    'de': 'Keine Follower',
+    'es': 'Sin seguidores',
+    'pt': 'Nenhum seguidor',
+    'ru': 'Нет подписчиков',
+    'tr': 'Takipçi yok',
+    'ar': 'لا يوجد متابِعون',
+    'it': 'Nessun follower',
+    'hi': 'कोई फ़ॉलोअर नहीं',
+    'th': 'ไม่มีผู้ติดตาม',
   });
 
   String get profileNoStamps => _t({
-    'ko': '아직 스탬프가 없어요', 'en': 'No stamps yet', 'ja': 'まだスタンプがありません', 'zh': '还没有邮票',
-    'fr': 'Pas encore de timbres', 'de': 'Noch keine Stempel', 'es': 'Aún no hay sellos',
-    'pt': 'Nenhum selo ainda', 'ru': 'Пока нет марок', 'tr': 'Henüz pul yok',
-    'ar': 'لا توجد طوابع بعد', 'it': 'Nessun timbro ancora', 'hi': 'अभी तक कोई स्टैम्प नहीं', 'th': 'ยังไม่มีแสตมป์',
+    'ko': '아직 스탬프가 없어요',
+    'en': 'No stamps yet',
+    'ja': 'まだスタンプがありません',
+    'zh': '还没有邮票',
+    'fr': 'Pas encore de timbres',
+    'de': 'Noch keine Stempel',
+    'es': 'Aún no hay sellos',
+    'pt': 'Nenhum selo ainda',
+    'ru': 'Пока нет марок',
+    'tr': 'Henüz pul yok',
+    'ar': 'لا توجد طوابع بعد',
+    'it': 'Nessun timbro ancora',
+    'hi': 'अभी तक कोई स्टैम्प नहीं',
+    'th': 'ยังไม่มีแสตมป์',
   });
 
   String profileStampCollected(int count) => _t({
-    'ko': '$count개 수집', 'en': '$count collected', 'ja': '$count個収集', 'zh': '已收集$count个',
-    'fr': '$count collectés', 'de': '$count gesammelt', 'es': '$count recopilados',
-    'pt': '$count coletados', 'ru': '$count собрано', 'tr': '$count toplandı',
-    'ar': 'تم جمع $count', 'it': '$count raccolti', 'hi': '$count एकत्रित', 'th': 'สะสมแล้ว $count',
+    'ko': '$count개 수집',
+    'en': '$count collected',
+    'ja': '$count個収集',
+    'zh': '已收集$count个',
+    'fr': '$count collectés',
+    'de': '$count gesammelt',
+    'es': '$count recopilados',
+    'pt': '$count coletados',
+    'ru': '$count собрано',
+    'tr': '$count toplandı',
+    'ar': 'تم جمع $count',
+    'it': '$count raccolti',
+    'hi': '$count एकत्रित',
+    'th': 'สะสมแล้ว $count',
   });
 
   String get save => _t({
-    'ko': '저장', 'en': 'Save', 'ja': '保存', 'zh': '保存',
-    'fr': 'Enregistrer', 'de': 'Speichern', 'es': 'Guardar',
-    'pt': 'Salvar', 'ru': 'Сохранить', 'tr': 'Kaydet',
-    'ar': 'حفظ', 'it': 'Salva', 'hi': 'सहेजें', 'th': 'บันทึก',
+    'ko': '저장',
+    'en': 'Save',
+    'ja': '保存',
+    'zh': '保存',
+    'fr': 'Enregistrer',
+    'de': 'Speichern',
+    'es': 'Guardar',
+    'pt': 'Salvar',
+    'ru': 'Сохранить',
+    'tr': 'Kaydet',
+    'ar': 'حفظ',
+    'it': 'Salva',
+    'hi': 'सहेजें',
+    'th': 'บันทึก',
   });
 
   String get cancel => _t({
-    'ko': '취소', 'en': 'Cancel', 'ja': 'キャンセル', 'zh': '取消',
-    'fr': 'Annuler', 'de': 'Abbrechen', 'es': 'Cancelar',
-    'pt': 'Cancelar', 'ru': 'Отмена', 'tr': 'İptal',
-    'ar': 'إلغاء', 'it': 'Annulla', 'hi': 'रद्द करें', 'th': 'ยกเลิก',
+    'ko': '취소',
+    'en': 'Cancel',
+    'ja': 'キャンセル',
+    'zh': '取消',
+    'fr': 'Annuler',
+    'de': 'Abbrechen',
+    'es': 'Cancelar',
+    'pt': 'Cancelar',
+    'ru': 'Отмена',
+    'tr': 'İptal',
+    'ar': 'إلغاء',
+    'it': 'Annulla',
+    'hi': 'रद्द करें',
+    'th': 'ยกเลิก',
   });
 
   String get change => _t({
-    'ko': '변경', 'en': 'Change', 'ja': '変更', 'zh': '更改',
-    'fr': 'Modifier', 'de': 'Ändern', 'es': 'Cambiar',
-    'pt': 'Alterar', 'ru': 'Изменить', 'tr': 'Değiştir',
-    'ar': 'تغيير', 'it': 'Modifica', 'hi': 'बदलें', 'th': 'เปลี่ยน',
+    'ko': '변경',
+    'en': 'Change',
+    'ja': '変更',
+    'zh': '更改',
+    'fr': 'Modifier',
+    'de': 'Ändern',
+    'es': 'Cambiar',
+    'pt': 'Alterar',
+    'ru': 'Изменить',
+    'tr': 'Değiştir',
+    'ar': 'تغيير',
+    'it': 'Modifica',
+    'hi': 'बदलें',
+    'th': 'เปลี่ยน',
   });
 
   String get withdraw => _t({
-    'ko': '탈퇴', 'en': 'Withdraw', 'ja': '退会', 'zh': '注销',
-    'fr': 'Se désinscrire', 'de': 'Konto löschen', 'es': 'Darse de baja',
-    'pt': 'Cancelar conta', 'ru': 'Удалить аккаунт', 'tr': 'Hesabı Sil',
-    'ar': 'حذف الحساب', 'it': 'Cancella account', 'hi': 'खाता हटाएँ', 'th': 'ลบบัญชี',
+    'ko': '탈퇴',
+    'en': 'Withdraw',
+    'ja': '退会',
+    'zh': '注销',
+    'fr': 'Se désinscrire',
+    'de': 'Konto löschen',
+    'es': 'Darse de baja',
+    'pt': 'Cancelar conta',
+    'ru': 'Удалить аккаунт',
+    'tr': 'Hesabı Sil',
+    'ar': 'حذف الحساب',
+    'it': 'Cancella account',
+    'hi': 'खाता हटाएँ',
+    'th': 'ลบบัญชี',
   });
 
   // ── Tower / Badges ──────────────────────────────────────────────────
   // ── Tower / Ranking Display ────────────────────────────────────────────────
 
   String get towerMyTower => _t({
-    'ko': '내 타워', 'en': 'My Tower', 'ja': 'マイタワー', 'zh': '我的塔',
-    'fr': 'Ma tour', 'de': 'Mein Turm', 'es': 'Mi torre',
-    'pt': 'Minha torre', 'ru': 'Моя башня', 'tr': 'Kulem',
-    'ar': 'برجي', 'it': 'La mia torre', 'hi': 'मेरा टावर', 'th': 'หอคอยของฉัน',
+    'ko': '내 타워',
+    'en': 'My Tower',
+    'ja': 'マイタワー',
+    'zh': '我的塔',
+    'fr': 'Ma tour',
+    'de': 'Mein Turm',
+    'es': 'Mi torre',
+    'pt': 'Minha torre',
+    'ru': 'Моя башня',
+    'tr': 'Kulem',
+    'ar': 'برجي',
+    'it': 'La mia torre',
+    'hi': 'मेरा टावर',
+    'th': 'หอคอยของฉัน',
   });
 
   // Build 183: Free/Premium 용 "내 레터" 타이틀 — 타워 대신.
   String get letterMyCharacter => _t({
-    'ko': '내 카운터', 'en': 'My Counter', 'ja': 'マイカウンター', 'zh': '我的信使',
-    'fr': 'Ma lettre', 'de': 'Mein Letter', 'es': 'Mi carta',
-    'pt': 'Meu Letter', 'ru': 'Мой Letter', 'tr': 'Letter\'ım',
-    'ar': 'Letter الخاص بي', 'it': 'Il mio Letter', 'hi': 'मेरा Letter', 'th': 'Letter ของฉัน',
+    'ko': '내 카운터',
+    'en': 'My Counter',
+    'ja': 'マイカウンター',
+    'zh': '我的信使',
+    'fr': 'Ma lettre',
+    'de': 'Mein Letter',
+    'es': 'Mi carta',
+    'pt': 'Meu Letter',
+    'ru': 'Мой Letter',
+    'tr': 'Letter\'ım',
+    'ar': 'Letter الخاص بي',
+    'it': 'Il mio Letter',
+    'hi': 'मेरा Letter',
+    'th': 'Letter ของฉัน',
   });
 
   String get towerEditProfile => _t({
-    'ko': '프로필 편집', 'en': 'Edit Profile', 'ja': 'プロフィール編集', 'zh': '编辑资料',
-    'fr': 'Modifier le profil', 'de': 'Profil bearbeiten', 'es': 'Editar perfil',
-    'pt': 'Editar perfil', 'ru': 'Редактировать профиль', 'tr': 'Profili düzenle',
-    'ar': 'تعديل الملف الشخصي', 'it': 'Modifica profilo', 'hi': 'प्रोफ़ाइल संपादित करें', 'th': 'แก้ไขโปรไฟล์',
+    'ko': '프로필 편집',
+    'en': 'Edit Profile',
+    'ja': 'プロフィール編集',
+    'zh': '编辑资料',
+    'fr': 'Modifier le profil',
+    'de': 'Profil bearbeiten',
+    'es': 'Editar perfil',
+    'pt': 'Editar perfil',
+    'ru': 'Редактировать профиль',
+    'tr': 'Profili düzenle',
+    'ar': 'تعديل الملف الشخصي',
+    'it': 'Modifica profilo',
+    'hi': 'प्रोफ़ाइल संपादित करें',
+    'th': 'แก้ไขโปรไฟล์',
   });
 
   String get towerSettings => _t({
-    'ko': '설정', 'en': 'Settings', 'ja': '設定', 'zh': '设置',
-    'fr': 'Paramètres', 'de': 'Einstellungen', 'es': 'Ajustes',
-    'pt': 'Configurações', 'ru': 'Настройки', 'tr': 'Ayarlar',
-    'ar': 'الإعدادات', 'it': 'Impostazioni', 'hi': 'सेटिंग्स', 'th': 'การตั้งค่า',
+    'ko': '설정',
+    'en': 'Settings',
+    'ja': '設定',
+    'zh': '设置',
+    'fr': 'Paramètres',
+    'de': 'Einstellungen',
+    'es': 'Ajustes',
+    'pt': 'Configurações',
+    'ru': 'Настройки',
+    'tr': 'Ayarlar',
+    'ar': 'الإعدادات',
+    'it': 'Impostazioni',
+    'hi': 'सेटिंग्स',
+    'th': 'การตั้งค่า',
   });
 
   String get towerCustomize => _t({
-    'ko': '꾸미기', 'en': 'Customize', 'ja': 'カスタマイズ', 'zh': '装饰',
-    'fr': 'Personnaliser', 'de': 'Anpassen', 'es': 'Personalizar',
-    'pt': 'Personalizar', 'ru': 'Настроить', 'tr': 'Özelleştir',
-    'ar': 'تخصيص', 'it': 'Personalizza', 'hi': 'कस्टमाइज़', 'th': 'ตกแต่ง',
+    'ko': '꾸미기',
+    'en': 'Customize',
+    'ja': 'カスタマイズ',
+    'zh': '装饰',
+    'fr': 'Personnaliser',
+    'de': 'Anpassen',
+    'es': 'Personalizar',
+    'pt': 'Personalizar',
+    'ru': 'Настроить',
+    'tr': 'Özelleştir',
+    'ar': 'تخصيص',
+    'it': 'Personalizza',
+    'hi': 'कस्टमाइज़',
+    'th': 'ตกแต่ง',
   });
 
   String get towerCustomizeTitle => _t({
-    'ko': '타워 꾸미기', 'en': 'Customize Tower', 'ja': 'タワーをカスタマイズ', 'zh': '装饰塔',
-    'fr': 'Personnaliser la tour', 'de': 'Turm anpassen', 'es': 'Personalizar torre',
-    'pt': 'Personalizar torre', 'ru': 'Настроить башню', 'tr': 'Kuleyi özelleştir',
-    'ar': 'تخصيص البرج', 'it': 'Personalizza torre', 'hi': 'टावर कस्टमाइज़ करें', 'th': 'ตกแต่งหอคอย',
+    'ko': '타워 꾸미기',
+    'en': 'Customize Tower',
+    'ja': 'タワーをカスタマイズ',
+    'zh': '装饰塔',
+    'fr': 'Personnaliser la tour',
+    'de': 'Turm anpassen',
+    'es': 'Personalizar torre',
+    'pt': 'Personalizar torre',
+    'ru': 'Настроить башню',
+    'tr': 'Kuleyi özelleştir',
+    'ar': 'تخصيص البرج',
+    'it': 'Personalizza torre',
+    'hi': 'टावर कस्टमाइज़ करें',
+    'th': 'ตกแต่งหอคอย',
   });
 
   String get towerCustomTitle => _t({
-    'ko': '꾸미기', 'en': 'Customize', 'ja': 'カスタマイズ', 'zh': '装饰',
-    'fr': 'Personnaliser', 'de': 'Anpassen', 'es': 'Personalizar',
-    'pt': 'Personalizar', 'ru': 'Настроить', 'tr': 'Özelleştir',
-    'ar': 'تخصيص', 'it': 'Personalizza', 'hi': 'कस्टमाइज़', 'th': 'ตกแต่ง',
+    'ko': '꾸미기',
+    'en': 'Customize',
+    'ja': 'カスタマイズ',
+    'zh': '装饰',
+    'fr': 'Personnaliser',
+    'de': 'Anpassen',
+    'es': 'Personalizar',
+    'pt': 'Personalizar',
+    'ru': 'Настроить',
+    'tr': 'Özelleştir',
+    'ar': 'تخصيص',
+    'it': 'Personalizza',
+    'hi': 'कस्टमाइज़',
+    'th': 'ตกแต่ง',
   });
 
   String get towerCustomDesc => _t({
-    'ko': '타워를 나만의 스타일로', 'en': 'Make your tower unique', 'ja': 'タワーを自分らしく', 'zh': '打造你的专属塔',
-    'fr': 'Rendez votre tour unique', 'de': 'Mach deinen Turm einzigartig', 'es': 'Haz tu torre única',
-    'pt': 'Torne sua torre única', 'ru': 'Сделайте башню уникальной', 'tr': 'Kuleni benzersiz yap',
-    'ar': 'اجعل برجك فريداً', 'it': 'Rendi unica la tua torre', 'hi': 'अपने टावर को अनोखा बनाएं', 'th': 'ทำให้หอคอยเป็นแบบของคุณ',
+    'ko': '타워를 나만의 스타일로',
+    'en': 'Make your tower unique',
+    'ja': 'タワーを自分らしく',
+    'zh': '打造你的专属塔',
+    'fr': 'Rendez votre tour unique',
+    'de': 'Mach deinen Turm einzigartig',
+    'es': 'Haz tu torre única',
+    'pt': 'Torne sua torre única',
+    'ru': 'Сделайте башню уникальной',
+    'tr': 'Kuleni benzersiz yap',
+    'ar': 'اجعل برجك فريداً',
+    'it': 'Rendi unica la tua torre',
+    'hi': 'अपने टावर को अनोखा बनाएं',
+    'th': 'ทำให้หอคอยเป็นแบบของคุณ',
   });
 
   String get towerDecoEmoji => _t({
-    'ko': '장식 이모지', 'en': 'Decoration Emoji', 'ja': 'デコレーション絵文字', 'zh': '装饰表情',
-    'fr': 'Émoji décoratif', 'de': 'Deko-Emoji', 'es': 'Emoji decorativo',
-    'pt': 'Emoji decorativo', 'ru': 'Декоративный эмодзи', 'tr': 'Dekorasyon emojisi',
-    'ar': 'إيموجي زخرفي', 'it': 'Emoji decorativo', 'hi': 'सजावटी इमोजी', 'th': 'อิโมจิตกแต่ง',
+    'ko': '장식 이모지',
+    'en': 'Decoration Emoji',
+    'ja': 'デコレーション絵文字',
+    'zh': '装饰表情',
+    'fr': 'Émoji décoratif',
+    'de': 'Deko-Emoji',
+    'es': 'Emoji decorativo',
+    'pt': 'Emoji decorativo',
+    'ru': 'Декоративный эмодзи',
+    'tr': 'Dekorasyon emojisi',
+    'ar': 'إيموجي زخرفي',
+    'it': 'Emoji decorativo',
+    'hi': 'सजावटी इमोजी',
+    'th': 'อิโมจิตกแต่ง',
   });
 
   String get towerGlowColor => _t({
-    'ko': '발광 색상', 'en': 'Glow Color', 'ja': '発光カラー', 'zh': '发光颜色',
-    'fr': 'Couleur de lueur', 'de': 'Leuchtfarbe', 'es': 'Color de brillo',
-    'pt': 'Cor de brilho', 'ru': 'Цвет свечения', 'tr': 'Parlama rengi',
-    'ar': 'لون التوهج', 'it': 'Colore bagliore', 'hi': 'चमक रंग', 'th': 'สีเรืองแสง',
+    'ko': '발광 색상',
+    'en': 'Glow Color',
+    'ja': '発光カラー',
+    'zh': '发光颜色',
+    'fr': 'Couleur de lueur',
+    'de': 'Leuchtfarbe',
+    'es': 'Color de brillo',
+    'pt': 'Cor de brilho',
+    'ru': 'Цвет свечения',
+    'tr': 'Parlama rengi',
+    'ar': 'لون التوهج',
+    'it': 'Colore bagliore',
+    'hi': 'चमक रंग',
+    'th': 'สีเรืองแสง',
   });
 
   // ── Roof & Window Styles ──────────────────────────────────────────────────
 
   String get towerRoofStyle => _t({
-    'ko': '지붕 스타일', 'en': 'Roof Style', 'ja': '屋根スタイル', 'zh': '屋顶样式',
-    'fr': 'Style de toit', 'de': 'Dachstil', 'es': 'Estilo de techo',
-    'pt': 'Estilo de telhado', 'ru': 'Стиль крыши', 'tr': 'Çatı stili',
-    'ar': 'نمط السقف', 'it': 'Stile del tetto', 'hi': 'छत शैली', 'th': 'รูปแบบหลังคา',
+    'ko': '지붕 스타일',
+    'en': 'Roof Style',
+    'ja': '屋根スタイル',
+    'zh': '屋顶样式',
+    'fr': 'Style de toit',
+    'de': 'Dachstil',
+    'es': 'Estilo de techo',
+    'pt': 'Estilo de telhado',
+    'ru': 'Стиль крыши',
+    'tr': 'Çatı stili',
+    'ar': 'نمط السقف',
+    'it': 'Stile del tetto',
+    'hi': 'छत शैली',
+    'th': 'รูปแบบหลังคา',
   });
 
   String get towerRoofDefault => _t({
-    'ko': '기본', 'en': 'Default', 'ja': 'デフォルト', 'zh': '默认',
-    'fr': 'Par défaut', 'de': 'Standard', 'es': 'Predeterminado',
-    'pt': 'Padrão', 'ru': 'По умолчанию', 'tr': 'Varsayılan',
-    'ar': 'افتراضي', 'it': 'Predefinito', 'hi': 'डिफ़ॉल्ट', 'th': 'ค่าเริ่มต้น',
+    'ko': '기본',
+    'en': 'Default',
+    'ja': 'デフォルト',
+    'zh': '默认',
+    'fr': 'Par défaut',
+    'de': 'Standard',
+    'es': 'Predeterminado',
+    'pt': 'Padrão',
+    'ru': 'По умолчанию',
+    'tr': 'Varsayılan',
+    'ar': 'افتراضي',
+    'it': 'Predefinito',
+    'hi': 'डिफ़ॉल्ट',
+    'th': 'ค่าเริ่มต้น',
   });
 
   String get towerRoofPointed => _t({
-    'ko': '뾰족', 'en': 'Pointed', 'ja': '尖塔', 'zh': '尖顶',
-    'fr': 'Pointu', 'de': 'Spitz', 'es': 'Puntiagudo',
-    'pt': 'Pontiagudo', 'ru': 'Остроконечная', 'tr': 'Sivri',
-    'ar': 'مدبب', 'it': 'Appuntito', 'hi': 'नुकीला', 'th': 'แหลม',
+    'ko': '뾰족',
+    'en': 'Pointed',
+    'ja': '尖塔',
+    'zh': '尖顶',
+    'fr': 'Pointu',
+    'de': 'Spitz',
+    'es': 'Puntiagudo',
+    'pt': 'Pontiagudo',
+    'ru': 'Остроконечная',
+    'tr': 'Sivri',
+    'ar': 'مدبب',
+    'it': 'Appuntito',
+    'hi': 'नुकीला',
+    'th': 'แหลม',
   });
 
   String get towerRoofDome => _t({
-    'ko': '돔', 'en': 'Dome', 'ja': 'ドーム', 'zh': '圆顶',
-    'fr': 'Dôme', 'de': 'Kuppel', 'es': 'Cúpula',
-    'pt': 'Cúpula', 'ru': 'Купол', 'tr': 'Kubbe',
-    'ar': 'قبة', 'it': 'Cupola', 'hi': 'गुंबद', 'th': 'โดม',
+    'ko': '돔',
+    'en': 'Dome',
+    'ja': 'ドーム',
+    'zh': '圆顶',
+    'fr': 'Dôme',
+    'de': 'Kuppel',
+    'es': 'Cúpula',
+    'pt': 'Cúpula',
+    'ru': 'Купол',
+    'tr': 'Kubbe',
+    'ar': 'قبة',
+    'it': 'Cupola',
+    'hi': 'गुंबद',
+    'th': 'โดม',
   });
 
   String get towerRoofFlat => _t({
-    'ko': '평지붕', 'en': 'Flat', 'ja': 'フラット', 'zh': '平顶',
-    'fr': 'Plat', 'de': 'Flach', 'es': 'Plano',
-    'pt': 'Plano', 'ru': 'Плоская', 'tr': 'Düz',
-    'ar': 'مسطح', 'it': 'Piatto', 'hi': 'सपाट', 'th': 'แบน',
+    'ko': '평지붕',
+    'en': 'Flat',
+    'ja': 'フラット',
+    'zh': '平顶',
+    'fr': 'Plat',
+    'de': 'Flach',
+    'es': 'Plano',
+    'pt': 'Plano',
+    'ru': 'Плоская',
+    'tr': 'Düz',
+    'ar': 'مسطح',
+    'it': 'Piatto',
+    'hi': 'सपाट',
+    'th': 'แบน',
   });
 
   String get towerRoofAntenna => _t({
-    'ko': '안테나', 'en': 'Antenna', 'ja': 'アンテナ', 'zh': '天线',
-    'fr': 'Antenne', 'de': 'Antenne', 'es': 'Antena',
-    'pt': 'Antena', 'ru': 'Антенна', 'tr': 'Anten',
-    'ar': 'هوائي', 'it': 'Antenna', 'hi': 'एंटीना', 'th': 'เสาอากาศ',
+    'ko': '안테나',
+    'en': 'Antenna',
+    'ja': 'アンテナ',
+    'zh': '天线',
+    'fr': 'Antenne',
+    'de': 'Antenne',
+    'es': 'Antena',
+    'pt': 'Antena',
+    'ru': 'Антенна',
+    'tr': 'Anten',
+    'ar': 'هوائي',
+    'it': 'Antenna',
+    'hi': 'एंटीना',
+    'th': 'เสาอากาศ',
   });
 
   String get towerWindowStyle => _t({
-    'ko': '창문 스타일', 'en': 'Window Style', 'ja': '窓スタイル', 'zh': '窗户样式',
-    'fr': 'Style de fenêtre', 'de': 'Fensterstil', 'es': 'Estilo de ventana',
-    'pt': 'Estilo de janela', 'ru': 'Стиль окон', 'tr': 'Pencere stili',
-    'ar': 'نمط النافذة', 'it': 'Stile finestra', 'hi': 'खिड़की शैली', 'th': 'รูปแบบหน้าต่าง',
+    'ko': '창문 스타일',
+    'en': 'Window Style',
+    'ja': '窓スタイル',
+    'zh': '窗户样式',
+    'fr': 'Style de fenêtre',
+    'de': 'Fensterstil',
+    'es': 'Estilo de ventana',
+    'pt': 'Estilo de janela',
+    'ru': 'Стиль окон',
+    'tr': 'Pencere stili',
+    'ar': 'نمط النافذة',
+    'it': 'Stile finestra',
+    'hi': 'खिड़की शैली',
+    'th': 'รูปแบบหน้าต่าง',
   });
 
   String get towerWindowSquare => _t({
-    'ko': '사각', 'en': 'Square', 'ja': '四角', 'zh': '方形',
-    'fr': 'Carré', 'de': 'Quadratisch', 'es': 'Cuadrada',
-    'pt': 'Quadrada', 'ru': 'Квадратное', 'tr': 'Kare',
-    'ar': 'مربع', 'it': 'Quadrata', 'hi': 'चौकोर', 'th': 'สี่เหลี่ยม',
+    'ko': '사각',
+    'en': 'Square',
+    'ja': '四角',
+    'zh': '方形',
+    'fr': 'Carré',
+    'de': 'Quadratisch',
+    'es': 'Cuadrada',
+    'pt': 'Quadrada',
+    'ru': 'Квадратное',
+    'tr': 'Kare',
+    'ar': 'مربع',
+    'it': 'Quadrata',
+    'hi': 'चौकोर',
+    'th': 'สี่เหลี่ยม',
   });
 
   String get towerWindowCircle => _t({
-    'ko': '원형', 'en': 'Circle', 'ja': '円形', 'zh': '圆形',
-    'fr': 'Rond', 'de': 'Rund', 'es': 'Circular',
-    'pt': 'Circular', 'ru': 'Круглое', 'tr': 'Yuvarlak',
-    'ar': 'دائري', 'it': 'Circolare', 'hi': 'गोल', 'th': 'กลม',
+    'ko': '원형',
+    'en': 'Circle',
+    'ja': '円形',
+    'zh': '圆形',
+    'fr': 'Rond',
+    'de': 'Rund',
+    'es': 'Circular',
+    'pt': 'Circular',
+    'ru': 'Круглое',
+    'tr': 'Yuvarlak',
+    'ar': 'دائري',
+    'it': 'Circolare',
+    'hi': 'गोल',
+    'th': 'กลม',
   });
 
   String get towerWindowArch => _t({
-    'ko': '아치', 'en': 'Arch', 'ja': 'アーチ', 'zh': '拱形',
-    'fr': 'Arche', 'de': 'Bogen', 'es': 'Arco',
-    'pt': 'Arco', 'ru': 'Арочное', 'tr': 'Kemer',
-    'ar': 'مقوس', 'it': 'Arco', 'hi': 'मेहराब', 'th': 'โค้ง',
+    'ko': '아치',
+    'en': 'Arch',
+    'ja': 'アーチ',
+    'zh': '拱形',
+    'fr': 'Arche',
+    'de': 'Bogen',
+    'es': 'Arco',
+    'pt': 'Arco',
+    'ru': 'Арочное',
+    'tr': 'Kemer',
+    'ar': 'مقوس',
+    'it': 'Arco',
+    'hi': 'मेहराब',
+    'th': 'โค้ง',
   });
 
   String get towerWindowModern => _t({
-    'ko': '모던', 'en': 'Modern', 'ja': 'モダン', 'zh': '现代',
-    'fr': 'Moderne', 'de': 'Modern', 'es': 'Moderno',
-    'pt': 'Moderno', 'ru': 'Современное', 'tr': 'Modern',
-    'ar': 'حديث', 'it': 'Moderno', 'hi': 'आधुनिक', 'th': 'โมเดิร์น',
+    'ko': '모던',
+    'en': 'Modern',
+    'ja': 'モダン',
+    'zh': '现代',
+    'fr': 'Moderne',
+    'de': 'Modern',
+    'es': 'Moderno',
+    'pt': 'Moderno',
+    'ru': 'Современное',
+    'tr': 'Modern',
+    'ar': 'حديث',
+    'it': 'Moderno',
+    'hi': 'आधुनिक',
+    'th': 'โมเดิร์น',
   });
 
   // ── Ranking Labels ────────────────────────────────────────────────────────
 
   String get towerRank1 => _t({
-    'ko': '1위', 'en': '#1', 'ja': '1位', 'zh': '第1名',
-    'fr': '1er', 'de': 'Rang 1', 'es': '1.º',
-    'pt': '1º lugar', 'ru': '1-е место', 'tr': '1. sıra',
-    'ar': 'المرتبة 1', 'it': '1° posto', 'hi': 'रैंक #1', 'th': 'อันดับ 1',
+    'ko': '1위',
+    'en': '#1',
+    'ja': '1位',
+    'zh': '第1名',
+    'fr': '1er',
+    'de': 'Rang 1',
+    'es': '1.º',
+    'pt': '1º lugar',
+    'ru': '1-е место',
+    'tr': '1. sıra',
+    'ar': 'المرتبة 1',
+    'it': '1° posto',
+    'hi': 'रैंक #1',
+    'th': 'อันดับ 1',
   });
 
   String get towerRank2 => _t({
-    'ko': '2위', 'en': '#2', 'ja': '2位', 'zh': '第2名',
-    'fr': '2e', 'de': 'Rang 2', 'es': '2.º',
-    'pt': '2º lugar', 'ru': '2-е место', 'tr': '2. sıra',
-    'ar': 'المرتبة 2', 'it': '2° posto', 'hi': 'रैंक #2', 'th': 'อันดับ 2',
+    'ko': '2위',
+    'en': '#2',
+    'ja': '2位',
+    'zh': '第2名',
+    'fr': '2e',
+    'de': 'Rang 2',
+    'es': '2.º',
+    'pt': '2º lugar',
+    'ru': '2-е место',
+    'tr': '2. sıra',
+    'ar': 'المرتبة 2',
+    'it': '2° posto',
+    'hi': 'रैंक #2',
+    'th': 'อันดับ 2',
   });
 
   String get towerRank3 => _t({
-    'ko': '3위', 'en': '#3', 'ja': '3位', 'zh': '第3名',
-    'fr': '3e', 'de': 'Rang 3', 'es': '3.º',
-    'pt': '3º lugar', 'ru': '3-е место', 'tr': '3. sıra',
-    'ar': 'المرتبة 3', 'it': '3° posto', 'hi': 'रैंक #3', 'th': 'อันดับ 3',
+    'ko': '3위',
+    'en': '#3',
+    'ja': '3位',
+    'zh': '第3名',
+    'fr': '3e',
+    'de': 'Rang 3',
+    'es': '3.º',
+    'pt': '3º lugar',
+    'ru': '3-е место',
+    'tr': '3. sıra',
+    'ar': 'المرتبة 3',
+    'it': '3° posto',
+    'hi': 'रैंक #3',
+    'th': 'อันดับ 3',
   });
 
   String towerRankN(int rank) => _t({
-    'ko': '${rank}위', 'en': '#$rank', 'ja': '${rank}位', 'zh': '第${rank}名',
-    'fr': '${rank}e', 'de': 'Rang $rank', 'es': '$rank.º',
-    'pt': '${rank}º lugar', 'ru': '${rank}-е место', 'tr': '$rank. sıra',
-    'ar': 'المرتبة $rank', 'it': '${rank}° posto', 'hi': 'रैंक #$rank', 'th': 'อันดับ $rank',
+    'ko': '${rank}위',
+    'en': '#$rank',
+    'ja': '${rank}位',
+    'zh': '第${rank}名',
+    'fr': '${rank}e',
+    'de': 'Rang $rank',
+    'es': '$rank.º',
+    'pt': '${rank}º lugar',
+    'ru': '${rank}-е место',
+    'tr': '$rank. sıra',
+    'ar': 'المرتبة $rank',
+    'it': '${rank}° posto',
+    'hi': 'रैंक #$rank',
+    'th': 'อันดับ $rank',
   });
 
   String towerMyRankLabel(int rank) => _t({
-    'ko': '내 순위 ${rank}위', 'en': 'My rank #$rank', 'ja': '自分の順位 ${rank}位', 'zh': '我的排名 第${rank}名',
-    'fr': 'Mon classement ${rank}e', 'de': 'Mein Rang $rank', 'es': 'Mi puesto $rank.º',
-    'pt': 'Meu ranking ${rank}º', 'ru': 'Моё место: ${rank}-е', 'tr': 'Sıralamam: $rank.',
-    'ar': 'ترتيبي: $rank', 'it': 'La mia posizione: ${rank}°', 'hi': 'मेरी रैंक #$rank', 'th': 'อันดับของฉัน $rank',
+    'ko': '내 순위 ${rank}위',
+    'en': 'My rank #$rank',
+    'ja': '自分の順位 ${rank}位',
+    'zh': '我的排名 第${rank}名',
+    'fr': 'Mon classement ${rank}e',
+    'de': 'Mein Rang $rank',
+    'es': 'Mi puesto $rank.º',
+    'pt': 'Meu ranking ${rank}º',
+    'ru': 'Моё место: ${rank}-е',
+    'tr': 'Sıralamam: $rank.',
+    'ar': 'ترتيبي: $rank',
+    'it': 'La mia posizione: ${rank}°',
+    'hi': 'मेरी रैंक #$rank',
+    'th': 'อันดับของฉัน $rank',
   });
 
   String get towerSaveChanges => _t({
-    'ko': '변경 저장', 'en': 'Save Changes', 'ja': '変更を保存', 'zh': '保存更改',
-    'fr': 'Enregistrer', 'de': 'Änderungen speichern', 'es': 'Guardar cambios',
-    'pt': 'Salvar alterações', 'ru': 'Сохранить изменения', 'tr': 'Değişiklikleri kaydet',
-    'ar': 'حفظ التغييرات', 'it': 'Salva modifiche', 'hi': 'बदलाव सहेजें', 'th': 'บันทึกการเปลี่ยนแปลง',
+    'ko': '변경 저장',
+    'en': 'Save Changes',
+    'ja': '変更を保存',
+    'zh': '保存更改',
+    'fr': 'Enregistrer',
+    'de': 'Änderungen speichern',
+    'es': 'Guardar cambios',
+    'pt': 'Salvar alterações',
+    'ru': 'Сохранить изменения',
+    'tr': 'Değişiklikleri kaydet',
+    'ar': 'حفظ التغييرات',
+    'it': 'Salva modifiche',
+    'hi': 'बदलाव सहेजें',
+    'th': 'บันทึกการเปลี่ยนแปลง',
   });
 
   String get towerClose => _t({
-    'ko': '닫기', 'en': 'Close', 'ja': '閉じる', 'zh': '关闭',
-    'fr': 'Fermer', 'de': 'Schließen', 'es': 'Cerrar',
-    'pt': 'Fechar', 'ru': 'Закрыть', 'tr': 'Kapat',
-    'ar': 'إغلاق', 'it': 'Chiudi', 'hi': 'बंद करें', 'th': 'ปิด',
+    'ko': '닫기',
+    'en': 'Close',
+    'ja': '閉じる',
+    'zh': '关闭',
+    'fr': 'Fermer',
+    'de': 'Schließen',
+    'es': 'Cerrar',
+    'pt': 'Fechar',
+    'ru': 'Закрыть',
+    'tr': 'Kapat',
+    'ar': 'إغلاق',
+    'it': 'Chiudi',
+    'hi': 'बंद करें',
+    'th': 'ปิด',
   });
 
   String get towerNickname => _t({
-    'ko': '닉네임', 'en': 'Nickname', 'ja': 'ニックネーム', 'zh': '昵称',
-    'fr': 'Pseudo', 'de': 'Spitzname', 'es': 'Apodo',
-    'pt': 'Apelido', 'ru': 'Никнейм', 'tr': 'Takma ad',
-    'ar': 'الاسم المستعار', 'it': 'Soprannome', 'hi': 'उपनाम', 'th': 'ชื่อเล่น',
+    'ko': '닉네임',
+    'en': 'Nickname',
+    'ja': 'ニックネーム',
+    'zh': '昵称',
+    'fr': 'Pseudo',
+    'de': 'Spitzname',
+    'es': 'Apodo',
+    'pt': 'Apelido',
+    'ru': 'Никнейм',
+    'tr': 'Takma ad',
+    'ar': 'الاسم المستعار',
+    'it': 'Soprannome',
+    'hi': 'उपनाम',
+    'th': 'ชื่อเล่น',
   });
 
   String get towerSetNameHint => _t({
-    'ko': '타워 이름 입력', 'en': 'Enter tower name', 'ja': 'タワー名を入力', 'zh': '输入塔名',
-    'fr': 'Entrez le nom de la tour', 'de': 'Turmnamen eingeben', 'es': 'Ingrese nombre de torre',
-    'pt': 'Digite o nome da torre', 'ru': 'Введите название башни', 'tr': 'Kule adını girin',
-    'ar': 'أدخل اسم البرج', 'it': 'Inserisci nome torre', 'hi': 'टावर का नाम दर्ज करें', 'th': 'ป้อนชื่อหอคอย',
+    'ko': '타워 이름 입력',
+    'en': 'Enter tower name',
+    'ja': 'タワー名を入力',
+    'zh': '输入塔名',
+    'fr': 'Entrez le nom de la tour',
+    'de': 'Turmnamen eingeben',
+    'es': 'Ingrese nombre de torre',
+    'pt': 'Digite o nome da torre',
+    'ru': 'Введите название башни',
+    'tr': 'Kule adını girin',
+    'ar': 'أدخل اسم البرج',
+    'it': 'Inserisci nome torre',
+    'hi': 'टावर का नाम दर्ज करें',
+    'th': 'ป้อนชื่อหอคอย',
   });
 
   String get towerSnsLinkOptional => _t({
-    'ko': 'SNS 링크 (선택)', 'en': 'SNS Link (optional)', 'ja': 'SNSリンク（任意）', 'zh': 'SNS链接（可选）',
-    'fr': 'Lien SNS (facultatif)', 'de': 'SNS-Link (optional)', 'es': 'Enlace SNS (opcional)',
-    'pt': 'Link SNS (opcional)', 'ru': 'Ссылка на соцсеть (необязательно)', 'tr': 'SNS bağlantısı (isteğe bağlı)',
-    'ar': 'رابط SNS (اختياري)', 'it': 'Link SNS (facoltativo)', 'hi': 'SNS लिंक (वैकल्पिक)', 'th': 'ลิงก์ SNS (ไม่บังคับ)',
+    'ko': 'SNS 링크 (선택)',
+    'en': 'SNS Link (optional)',
+    'ja': 'SNSリンク（任意）',
+    'zh': 'SNS链接（可选）',
+    'fr': 'Lien SNS (facultatif)',
+    'de': 'SNS-Link (optional)',
+    'es': 'Enlace SNS (opcional)',
+    'pt': 'Link SNS (opcional)',
+    'ru': 'Ссылка на соцсеть (необязательно)',
+    'tr': 'SNS bağlantısı (isteğe bağlı)',
+    'ar': 'رابط SNS (اختياري)',
+    'it': 'Link SNS (facoltativo)',
+    'hi': 'SNS लिंक (वैकल्पिक)',
+    'th': 'ลิงก์ SNS (ไม่บังคับ)',
   });
 
   String get towerActivityStats => _t({
-    'ko': '활동 통계', 'en': 'Activity Stats', 'ja': 'アクティビティ統計', 'zh': '活动统计',
-    'fr': 'Statistiques d\'activité', 'de': 'Aktivitätsstatistiken', 'es': 'Estadísticas de actividad',
-    'pt': 'Estatísticas de atividade', 'ru': 'Статистика активности', 'tr': 'Aktivite istatistikleri',
-    'ar': 'إحصائيات النشاط', 'it': 'Statistiche attività', 'hi': 'गतिविधि आँकड़े', 'th': 'สถิติกิจกรรม',
+    'ko': '활동 통계',
+    'en': 'Activity Stats',
+    'ja': 'アクティビティ統計',
+    'zh': '活动统计',
+    'fr': 'Statistiques d\'activité',
+    'de': 'Aktivitätsstatistiken',
+    'es': 'Estadísticas de actividad',
+    'pt': 'Estatísticas de atividade',
+    'ru': 'Статистика активности',
+    'tr': 'Aktivite istatistikleri',
+    'ar': 'إحصائيات النشاط',
+    'it': 'Statistiche attività',
+    'hi': 'गतिविधि आँकड़े',
+    'th': 'สถิติกิจกรรม',
   });
 
   String towerTierProgress(int current, int total) => _t({
-    'ko': '$current단계 / $total단계', 'en': 'Tier $current / $total', 'ja': 'ステージ$current / $total', 'zh': '第$current阶 / $total阶',
-    'fr': 'Étape $current / $total', 'de': 'Stufe $current / $total', 'es': 'Nivel $current / $total',
-    'pt': 'Nível $current / $total', 'ru': 'Уровень $current / $total', 'tr': 'Aşama $current / $total',
-    'ar': 'المرحلة $current / $total', 'it': 'Livello $current / $total', 'hi': 'चरण $current / $total', 'th': 'ระดับ $current / $total',
+    'ko': '$current단계 / $total단계',
+    'en': 'Tier $current / $total',
+    'ja': 'ステージ$current / $total',
+    'zh': '第$current阶 / $total阶',
+    'fr': 'Étape $current / $total',
+    'de': 'Stufe $current / $total',
+    'es': 'Nivel $current / $total',
+    'pt': 'Nível $current / $total',
+    'ru': 'Уровень $current / $total',
+    'tr': 'Aşama $current / $total',
+    'ar': 'المرحلة $current / $total',
+    'it': 'Livello $current / $total',
+    'hi': 'चरण $current / $total',
+    'th': 'ระดับ $current / $total',
   });
 
   String get towerActivityScore => _t({
-    'ko': '활동 점수', 'en': 'Activity Score', 'ja': 'アクティビティスコア', 'zh': '活动分数',
-    'fr': 'Score d\'activité', 'de': 'Aktivitätspunktzahl', 'es': 'Puntuación de actividad',
-    'pt': 'Pontuação de atividade', 'ru': 'Баллы активности', 'tr': 'Aktivite puanı',
-    'ar': 'نقاط النشاط', 'it': 'Punteggio attività', 'hi': 'गतिविधि स्कोर', 'th': 'คะแนนกิจกรรม',
+    'ko': '활동 점수',
+    'en': 'Activity Score',
+    'ja': 'アクティビティスコア',
+    'zh': '活动分数',
+    'fr': 'Score d\'activité',
+    'de': 'Aktivitätspunktzahl',
+    'es': 'Puntuación de actividad',
+    'pt': 'Pontuação de atividade',
+    'ru': 'Баллы активности',
+    'tr': 'Aktivite puanı',
+    'ar': 'نقاط النشاط',
+    'it': 'Punteggio attività',
+    'hi': 'गतिविधि स्कोर',
+    'th': 'คะแนนกิจกรรม',
   });
 
   String get towerScoreFormula => _t({
-    'ko': '점수 = 보낸×2 + 받은×1 + 답장×3', 'en': 'Score = Sent×2 + Received×1 + Reply×3', 'ja': 'スコア = 送信×2 + 受信×1 + 返信×3', 'zh': '分数 = 发送×2 + 接收×1 + 回复×3',
-    'fr': 'Score = Envoyé×2 + Reçu×1 + Réponse×3', 'de': 'Punkte = Gesendet×2 + Empfangen×1 + Antwort×3', 'es': 'Puntos = Enviado×2 + Recibido×1 + Respuesta×3',
-    'pt': 'Pontos = Enviado×2 + Recebido×1 + Resposta×3', 'ru': 'Баллы = Отправлено×2 + Получено×1 + Ответ×3', 'tr': 'Puan = Gönderilen×2 + Alınan×1 + Yanıt×3',
-    'ar': 'النقاط = مرسل×2 + مستلم×1 + رد×3', 'it': 'Punti = Inviato×2 + Ricevuto×1 + Risposta×3', 'hi': 'स्कोर = भेजे×2 + प्राप्त×1 + उत्तर×3', 'th': 'คะแนน = ส่ง×2 + รับ×1 + ตอบ×3',
+    'ko': '점수 = 보낸×2 + 받은×1 + 답장×3',
+    'en': 'Score = Sent×2 + Received×1 + Reply×3',
+    'ja': 'スコア = 送信×2 + 受信×1 + 返信×3',
+    'zh': '分数 = 发送×2 + 接收×1 + 回复×3',
+    'fr': 'Score = Envoyé×2 + Reçu×1 + Réponse×3',
+    'de': 'Punkte = Gesendet×2 + Empfangen×1 + Antwort×3',
+    'es': 'Puntos = Enviado×2 + Recibido×1 + Respuesta×3',
+    'pt': 'Pontos = Enviado×2 + Recebido×1 + Resposta×3',
+    'ru': 'Баллы = Отправлено×2 + Получено×1 + Ответ×3',
+    'tr': 'Puan = Gönderilen×2 + Alınan×1 + Yanıt×3',
+    'ar': 'النقاط = مرسل×2 + مستلم×1 + رد×3',
+    'it': 'Punti = Inviato×2 + Ricevuto×1 + Risposta×3',
+    'hi': 'स्कोर = भेजे×2 + प्राप्त×1 + उत्तर×3',
+    'th': 'คะแนน = ส่ง×2 + รับ×1 + ตอบ×3',
   });
 
   String get towerSentLetters => _t({
-    'ko': '보낸 혜택', 'en': 'Sent Promos', 'ja': '送った手紙', 'zh': '已发信件',
-    'fr': 'Lettres envoyées', 'de': 'Gesendete Briefe', 'es': 'Cartas enviadas',
-    'pt': 'Cartas enviadas', 'ru': 'Отправленные письма', 'tr': 'Gönderilen mektuplar',
-    'ar': 'الرسائل المرسلة', 'it': 'Lettere inviate', 'hi': 'भेजे गए पत्र', 'th': 'จดหมายที่ส่ง',
+    'ko': '보낸 혜택',
+    'en': 'Sent Promos',
+    'ja': '送った手紙',
+    'zh': '已发信件',
+    'fr': 'Lettres envoyées',
+    'de': 'Gesendete Briefe',
+    'es': 'Cartas enviadas',
+    'pt': 'Cartas enviadas',
+    'ru': 'Отправленные письма',
+    'tr': 'Gönderilen mektuplar',
+    'ar': 'الرسائل المرسلة',
+    'it': 'Lettere inviate',
+    'hi': 'भेजे गए पत्र',
+    'th': 'จดหมายที่ส่ง',
   });
 
   String get towerReceivedLetters => _t({
-    'ko': '받은 혜택', 'en': 'Received Rewards', 'ja': '受け取った手紙', 'zh': '已收信件',
-    'fr': 'Lettres reçues', 'de': 'Empfangene Briefe', 'es': 'Cartas recibidas',
-    'pt': 'Cartas recebidas', 'ru': 'Полученные письма', 'tr': 'Alınan mektuplar',
-    'ar': 'الرسائل المستلمة', 'it': 'Lettere ricevute', 'hi': 'प्राप्त पत्र', 'th': 'จดหมายที่ได้รับ',
+    'ko': '받은 혜택',
+    'en': 'Received Rewards',
+    'ja': '受け取った手紙',
+    'zh': '已收信件',
+    'fr': 'Lettres reçues',
+    'de': 'Empfangene Briefe',
+    'es': 'Cartas recibidas',
+    'pt': 'Cartas recebidas',
+    'ru': 'Полученные письма',
+    'tr': 'Alınan mektuplar',
+    'ar': 'الرسائل المستلمة',
+    'it': 'Lettere ricevute',
+    'hi': 'प्राप्त पत्र',
+    'th': 'จดหมายที่ได้รับ',
   });
 
   String get towerBuildingFloors => _t({
-    'ko': '건물 층수', 'en': 'Building Floors', 'ja': '建物の階数', 'zh': '建筑层数',
-    'fr': 'Nombre d\'étages', 'de': 'Gebäudestockwerke', 'es': 'Pisos del edificio',
-    'pt': 'Andares do edifício', 'ru': 'Этажей здания', 'tr': 'Bina katları',
-    'ar': 'طوابق المبنى', 'it': 'Piani dell\'edificio', 'hi': 'भवन की मंजिलें', 'th': 'จำนวนชั้น',
+    'ko': '건물 층수',
+    'en': 'Building Floors',
+    'ja': '建物の階数',
+    'zh': '建筑层数',
+    'fr': 'Nombre d\'étages',
+    'de': 'Gebäudestockwerke',
+    'es': 'Pisos del edificio',
+    'pt': 'Andares do edifício',
+    'ru': 'Этажей здания',
+    'tr': 'Bina katları',
+    'ar': 'طوابق المبنى',
+    'it': 'Piani dell\'edificio',
+    'hi': 'भवन की मंजिलें',
+    'th': 'จำนวนชั้น',
   });
 
   String get towerTowerHeight => _t({
-    'ko': '타워 높이', 'en': 'Tower Height', 'ja': 'タワーの高さ', 'zh': '塔高',
-    'fr': 'Hauteur de la tour', 'de': 'Turmhöhe', 'es': 'Altura de la torre',
-    'pt': 'Altura da torre', 'ru': 'Высота башни', 'tr': 'Kule yüksekliği',
-    'ar': 'ارتفاع البرج', 'it': 'Altezza torre', 'hi': 'टावर की ऊँचाई', 'th': 'ความสูงหอคอย',
+    'ko': '타워 높이',
+    'en': 'Tower Height',
+    'ja': 'タワーの高さ',
+    'zh': '塔高',
+    'fr': 'Hauteur de la tour',
+    'de': 'Turmhöhe',
+    'es': 'Altura de la torre',
+    'pt': 'Altura da torre',
+    'ru': 'Высота башни',
+    'tr': 'Kule yüksekliği',
+    'ar': 'ارتفاع البرج',
+    'it': 'Altezza torre',
+    'hi': 'टावर की ऊँचाई',
+    'th': 'ความสูงหอคอย',
   });
 
   // Build 183: Brand 쪽에서는 타워 맥락 유지, Free/Premium 은 어차피
@@ -17808,510 +20861,1220 @@ class AppL10n {
   /// Build 217: Brand 사용자에게는 "타워 순위" 라는 명칭이 더 적합 (캠페인 영향력
   /// 컨텍스트). Free/Premium 은 캐릭터 없는 화면이라 이 키 자체가 referenced 안 됨.
   String get towerWorldRanking => _t({
-    'ko': '타워 순위', 'en': 'Tower Ranking', 'ja': 'タワーランキング', 'zh': '塔排名',
-    'fr': 'Classement de tours', 'de': 'Turm-Rangliste', 'es': 'Ranking de torres',
-    'pt': 'Ranking de torres', 'ru': 'Рейтинг башен', 'tr': 'Kule sıralaması',
-    'ar': 'تصنيف الأبراج', 'it': 'Classifica torri', 'hi': 'टावर रैंकिंग', 'th': 'อันดับหอคอย',
+    'ko': '타워 순위',
+    'en': 'Tower Ranking',
+    'ja': 'タワーランキング',
+    'zh': '塔排名',
+    'fr': 'Classement de tours',
+    'de': 'Turm-Rangliste',
+    'es': 'Ranking de torres',
+    'pt': 'Ranking de torres',
+    'ru': 'Рейтинг башен',
+    'tr': 'Kule sıralaması',
+    'ar': 'تصنيف الأبراج',
+    'it': 'Classifica torri',
+    'hi': 'टावर रैंकिंग',
+    'th': 'อันดับหอคอย',
   });
 
   String towerMyRank(int rank) => _t({
-    'ko': '$rank위', 'en': 'Rank #$rank', 'ja': '${rank}位', 'zh': '第${rank}名',
-    'fr': '${rank}e', 'de': 'Rang $rank', 'es': 'Puesto $rank',
-    'pt': '${rank}º lugar', 'ru': '${rank}-е место', 'tr': '${rank}. sıra',
-    'ar': 'المرتبة $rank', 'it': '${rank}° posto', 'hi': 'रैंक #$rank', 'th': 'อันดับที่ $rank',
+    'ko': '$rank위',
+    'en': 'Rank #$rank',
+    'ja': '${rank}位',
+    'zh': '第${rank}名',
+    'fr': '${rank}e',
+    'de': 'Rang $rank',
+    'es': 'Puesto $rank',
+    'pt': '${rank}º lugar',
+    'ru': '${rank}-е место',
+    'tr': '${rank}. sıra',
+    'ar': 'المرتبة $rank',
+    'it': '${rank}° posto',
+    'hi': 'रैंक #$rank',
+    'th': 'อันดับที่ $rank',
   });
 
   String get towerNextGoal => _t({
-    'ko': '다음 목표', 'en': 'Next Goal', 'ja': '次の目標', 'zh': '下一个目标',
-    'fr': 'Prochain objectif', 'de': 'Nächstes Ziel', 'es': 'Siguiente meta',
-    'pt': 'Próxima meta', 'ru': 'Следующая цель', 'tr': 'Sonraki hedef',
-    'ar': 'الهدف التالي', 'it': 'Prossimo obiettivo', 'hi': 'अगला लक्ष्य', 'th': 'เป้าหมายถัดไป',
+    'ko': '다음 목표',
+    'en': 'Next Goal',
+    'ja': '次の目標',
+    'zh': '下一个目标',
+    'fr': 'Prochain objectif',
+    'de': 'Nächstes Ziel',
+    'es': 'Siguiente meta',
+    'pt': 'Próxima meta',
+    'ru': 'Следующая цель',
+    'tr': 'Sonraki hedef',
+    'ar': 'الهدف التالي',
+    'it': 'Prossimo obiettivo',
+    'hi': 'अगला लक्ष्य',
+    'th': 'เป้าหมายถัดไป',
   });
 
   String towerNextTierInfo(int tierMax, String ptsNeeded) => _t({
-    'ko': '$tierMax까지 ${ptsNeeded}점 필요', 'en': '$ptsNeeded pts to tier $tierMax', 'ja': 'ティア${tierMax}まであと${ptsNeeded}ポイント', 'zh': '距等级${tierMax}还需${ptsNeeded}分',
-    'fr': '$ptsNeeded pts pour tier $tierMax', 'de': '$ptsNeeded Pkt. bis Stufe $tierMax', 'es': '$ptsNeeded pts para nivel $tierMax',
-    'pt': '$ptsNeeded pts para nível $tierMax', 'ru': '$ptsNeeded очков до уровня $tierMax', 'tr': 'Seviye $tierMax için $ptsNeeded puan',
-    'ar': '$ptsNeeded نقطة إلى المستوى $tierMax', 'it': '$ptsNeeded punti per livello $tierMax', 'hi': 'टियर $tierMax तक $ptsNeeded अंक', 'th': 'อีก $ptsNeeded คะแนนถึงระดับ $tierMax',
+    'ko': '$tierMax까지 ${ptsNeeded}점 필요',
+    'en': '$ptsNeeded pts to tier $tierMax',
+    'ja': 'ティア${tierMax}まであと${ptsNeeded}ポイント',
+    'zh': '距等级${tierMax}还需${ptsNeeded}分',
+    'fr': '$ptsNeeded pts pour tier $tierMax',
+    'de': '$ptsNeeded Pkt. bis Stufe $tierMax',
+    'es': '$ptsNeeded pts para nivel $tierMax',
+    'pt': '$ptsNeeded pts para nível $tierMax',
+    'ru': '$ptsNeeded очков до уровня $tierMax',
+    'tr': 'Seviye $tierMax için $ptsNeeded puan',
+    'ar': '$ptsNeeded نقطة إلى المستوى $tierMax',
+    'it': '$ptsNeeded punti per livello $tierMax',
+    'hi': 'टियर $tierMax तक $ptsNeeded अंक',
+    'th': 'อีก $ptsNeeded คะแนนถึงระดับ $tierMax',
   });
 
   String get towerTopTierReached => _t({
-    'ko': '최고 등급 달성!', 'en': 'Top tier reached!', 'ja': '最高ランク達成！', 'zh': '已达最高等级！',
-    'fr': 'Niveau maximum atteint !', 'de': 'Höchste Stufe erreicht!', 'es': '¡Nivel máximo alcanzado!',
-    'pt': 'Nível máximo alcançado!', 'ru': 'Высший уровень достигнут!', 'tr': 'En üst seviyeye ulaşıldı!',
-    'ar': 'تم الوصول للمستوى الأعلى!', 'it': 'Livello massimo raggiunto!', 'hi': 'शीर्ष स्तर प्राप्त!', 'th': 'ถึงระดับสูงสุดแล้ว!',
+    'ko': '최고 등급 달성!',
+    'en': 'Top tier reached!',
+    'ja': '最高ランク達成！',
+    'zh': '已达最高等级！',
+    'fr': 'Niveau maximum atteint !',
+    'de': 'Höchste Stufe erreicht!',
+    'es': '¡Nivel máximo alcanzado!',
+    'pt': 'Nível máximo alcançado!',
+    'ru': 'Высший уровень достигнут!',
+    'tr': 'En üst seviyeye ulaşıldı!',
+    'ar': 'تم الوصول للمستوى الأعلى!',
+    'it': 'Livello massimo raggiunto!',
+    'hi': 'शीर्ष स्तर प्राप्त!',
+    'th': 'ถึงระดับสูงสุดแล้ว!',
   });
 
   String towerPtsRemaining(String pts) => _t({
-    'ko': '${pts}점 남음', 'en': '$pts pts remaining', 'ja': '残り${pts}ポイント', 'zh': '还剩${pts}分',
-    'fr': '$pts pts restants', 'de': '$pts Pkt. verbleibend', 'es': '$pts pts restantes',
-    'pt': '$pts pts restantes', 'ru': 'Осталось $pts очков', 'tr': '$pts puan kaldı',
-    'ar': '$pts نقطة متبقية', 'it': '$pts punti rimanenti', 'hi': '$pts अंक शेष', 'th': 'เหลืออีก $pts คะแนน',
+    'ko': '${pts}점 남음',
+    'en': '$pts pts remaining',
+    'ja': '残り${pts}ポイント',
+    'zh': '还剩${pts}分',
+    'fr': '$pts pts restants',
+    'de': '$pts Pkt. verbleibend',
+    'es': '$pts pts restantes',
+    'pt': '$pts pts restantes',
+    'ru': 'Осталось $pts очков',
+    'tr': '$pts puan kaldı',
+    'ar': '$pts نقطة متبقية',
+    'it': '$pts punti rimanenti',
+    'hi': '$pts अंक शेष',
+    'th': 'เหลืออีก $pts คะแนน',
   });
 
   String get towerStartPremium => _t({
-    'ko': '프리미엄 시작', 'en': 'Start Premium', 'ja': 'プレミアム開始', 'zh': '开始高级版',
-    'fr': 'Démarrer Premium', 'de': 'Premium starten', 'es': 'Iniciar Premium',
-    'pt': 'Iniciar Premium', 'ru': 'Начать Премиум', 'tr': 'Premium\'u başlat',
-    'ar': 'ابدأ بريميوم', 'it': 'Avvia Premium', 'hi': 'प्रीमियम शुरू करें', 'th': 'เริ่มพรีเมียม',
+    'ko': '프리미엄 시작',
+    'en': 'Start Premium',
+    'ja': 'プレミアム開始',
+    'zh': '开始高级版',
+    'fr': 'Démarrer Premium',
+    'de': 'Premium starten',
+    'es': 'Iniciar Premium',
+    'pt': 'Iniciar Premium',
+    'ru': 'Начать Премиум',
+    'tr': 'Premium\'u başlat',
+    'ar': 'ابدأ بريميوم',
+    'it': 'Avvia Premium',
+    'hi': 'प्रीमियम शुरू करें',
+    'th': 'เริ่มพรีเมียม',
   });
 
   String get towerManageSent => _t({
-    'ko': '보낸 혜택 관리', 'en': 'Manage Sent', 'ja': '送信済み管理', 'zh': '管理已发',
-    'fr': 'Gérer envoyés', 'de': 'Gesendete verwalten', 'es': 'Gestionar enviados',
-    'pt': 'Gerenciar enviados', 'ru': 'Управление отправленными', 'tr': 'Gönderilenler yönet',
-    'ar': 'إدارة المرسلة', 'it': 'Gestisci inviati', 'hi': 'भेजे गए प्रबंधित करें', 'th': 'จัดการจดหมายที่ส่ง',
+    'ko': '보낸 혜택 관리',
+    'en': 'Manage Sent',
+    'ja': '送信済み管理',
+    'zh': '管理已发',
+    'fr': 'Gérer envoyés',
+    'de': 'Gesendete verwalten',
+    'es': 'Gestionar enviados',
+    'pt': 'Gerenciar enviados',
+    'ru': 'Управление отправленными',
+    'tr': 'Gönderilenler yönet',
+    'ar': 'إدارة المرسلة',
+    'it': 'Gestisci inviati',
+    'hi': 'भेजे गए प्रबंधित करें',
+    'th': 'จัดการจดหมายที่ส่ง',
   });
 
   String get towerManageReceived => _t({
-    'ko': '받은 혜택 관리', 'en': 'Manage Received', 'ja': '受信済み管理', 'zh': '管理已收',
-    'fr': 'Gérer reçus', 'de': 'Empfangene verwalten', 'es': 'Gestionar recibidos',
-    'pt': 'Gerenciar recebidos', 'ru': 'Управление полученными', 'tr': 'Alınanları yönet',
-    'ar': 'إدارة المستلمة', 'it': 'Gestisci ricevuti', 'hi': 'प्राप्त प्रबंधित करें', 'th': 'จัดการจดหมายที่ได้รับ',
+    'ko': '받은 혜택 관리',
+    'en': 'Manage Received',
+    'ja': '受信済み管理',
+    'zh': '管理已收',
+    'fr': 'Gérer reçus',
+    'de': 'Empfangene verwalten',
+    'es': 'Gestionar recibidos',
+    'pt': 'Gerenciar recebidos',
+    'ru': 'Управление полученными',
+    'tr': 'Alınanları yönet',
+    'ar': 'إدارة المستلمة',
+    'it': 'Gestisci ricevuti',
+    'hi': 'प्राप्त प्रबंधित करें',
+    'th': 'จัดการจดหมายที่ได้รับ',
   });
 
   String get towerNoLetters => _t({
-    'ko': '혜택이 없습니다', 'en': 'No rewards', 'ja': '手紙がありません', 'zh': '没有信件',
-    'fr': 'Aucune lettre', 'de': 'Keine Briefe', 'es': 'Sin cartas',
-    'pt': 'Sem cartas', 'ru': 'Нет писем', 'tr': 'Mektup yok',
-    'ar': 'لا توجد رسائل', 'it': 'Nessuna lettera', 'hi': 'कोई पत्र नहीं', 'th': 'ไม่มีจดหมาย',
+    'ko': '혜택이 없습니다',
+    'en': 'No rewards',
+    'ja': '手紙がありません',
+    'zh': '没有信件',
+    'fr': 'Aucune lettre',
+    'de': 'Keine Briefe',
+    'es': 'Sin cartas',
+    'pt': 'Sem cartas',
+    'ru': 'Нет писем',
+    'tr': 'Mektup yok',
+    'ar': 'لا توجد رسائل',
+    'it': 'Nessuna lettera',
+    'hi': 'कोई पत्र नहीं',
+    'th': 'ไม่มีจดหมาย',
   });
 
   String get towerRead => _t({
-    'ko': '읽기', 'en': 'Read', 'ja': '読む', 'zh': '阅读',
-    'fr': 'Lire', 'de': 'Lesen', 'es': 'Leer',
-    'pt': 'Ler', 'ru': 'Читать', 'tr': 'Oku',
-    'ar': 'قراءة', 'it': 'Leggi', 'hi': 'पढ़ें', 'th': 'อ่าน',
+    'ko': '읽기',
+    'en': 'Read',
+    'ja': '読む',
+    'zh': '阅读',
+    'fr': 'Lire',
+    'de': 'Lesen',
+    'es': 'Leer',
+    'pt': 'Ler',
+    'ru': 'Читать',
+    'tr': 'Oku',
+    'ar': 'قراءة',
+    'it': 'Leggi',
+    'hi': 'पढ़ें',
+    'th': 'อ่าน',
   });
 
   String get towerReply => _t({
-    'ko': '답장', 'en': 'Reply', 'ja': '返信', 'zh': '回复',
-    'fr': 'Répondre', 'de': 'Antworten', 'es': 'Responder',
-    'pt': 'Responder', 'ru': 'Ответить', 'tr': 'Yanıtla',
-    'ar': 'رد', 'it': 'Rispondi', 'hi': 'उत्तर दें', 'th': 'ตอบกลับ',
+    'ko': '답장',
+    'en': 'Reply',
+    'ja': '返信',
+    'zh': '回复',
+    'fr': 'Répondre',
+    'de': 'Antworten',
+    'es': 'Responder',
+    'pt': 'Responder',
+    'ru': 'Ответить',
+    'tr': 'Yanıtla',
+    'ar': 'رد',
+    'it': 'Rispondi',
+    'hi': 'उत्तर दें',
+    'th': 'ตอบกลับ',
   });
 
   String get towerAnonymousLetter => _t({
-    'ko': '익명 혜택', 'en': 'Anonymous Reward', 'ja': '匿名の手紙', 'zh': '匿名信件',
-    'fr': 'Lettre anonyme', 'de': 'Anonymer Brief', 'es': 'Carta anónima',
-    'pt': 'Carta anônima', 'ru': 'Анонимное письмо', 'tr': 'Anonim mektup',
-    'ar': 'رسالة مجهولة', 'it': 'Lettera anonima', 'hi': 'गुमनाम पत्र', 'th': 'จดหมายนิรนาม',
+    'ko': '익명 혜택',
+    'en': 'Anonymous Reward',
+    'ja': '匿名の手紙',
+    'zh': '匿名信件',
+    'fr': 'Lettre anonyme',
+    'de': 'Anonymer Brief',
+    'es': 'Carta anónima',
+    'pt': 'Carta anônima',
+    'ru': 'Анонимное письмо',
+    'tr': 'Anonim mektup',
+    'ar': 'رسالة مجهولة',
+    'it': 'Lettera anonima',
+    'hi': 'गुमनाम पत्र',
+    'th': 'จดหมายนิรนาม',
   });
 
   String get towerAnonymousUser => _t({
-    'ko': '익명 사용자', 'en': 'Anonymous User', 'ja': '匿名ユーザー', 'zh': '匿名用户',
-    'fr': 'Utilisateur anonyme', 'de': 'Anonymer Benutzer', 'es': 'Usuario anónimo',
-    'pt': 'Usuário anônimo', 'ru': 'Анонимный пользователь', 'tr': 'Anonim kullanıcı',
-    'ar': 'مستخدم مجهول', 'it': 'Utente anonimo', 'hi': 'गुमनाम उपयोगकर्ता', 'th': 'ผู้ใช้นิรนาม',
+    'ko': '익명 사용자',
+    'en': 'Anonymous User',
+    'ja': '匿名ユーザー',
+    'zh': '匿名用户',
+    'fr': 'Utilisateur anonyme',
+    'de': 'Anonymer Benutzer',
+    'es': 'Usuario anónimo',
+    'pt': 'Usuário anônimo',
+    'ru': 'Анонимный пользователь',
+    'tr': 'Anonim kullanıcı',
+    'ar': 'مستخدم مجهول',
+    'it': 'Utente anonimo',
+    'hi': 'गुमनाम उपयोगकर्ता',
+    'th': 'ผู้ใช้นิรนาม',
   });
 
   String towerSentLetterCount(int count) => _t({
-    'ko': '보낸 혜택 ${count}통', 'en': '$count sent', 'ja': '送信 ${count}通', 'zh': '已发 ${count}封',
-    'fr': '$count envoyée(s)', 'de': '$count gesendet', 'es': '$count enviada(s)',
-    'pt': '$count enviada(s)', 'ru': '$count отправлено', 'tr': '$count gönderildi',
-    'ar': '$count مرسلة', 'it': '$count inviate', 'hi': '$count भेजे गए', 'th': 'ส่ง $count ฉบับ',
+    'ko': '보낸 혜택 ${count}통',
+    'en': '$count sent',
+    'ja': '送信 ${count}通',
+    'zh': '已发 ${count}封',
+    'fr': '$count envoyée(s)',
+    'de': '$count gesendet',
+    'es': '$count enviada(s)',
+    'pt': '$count enviada(s)',
+    'ru': '$count отправлено',
+    'tr': '$count gönderildi',
+    'ar': '$count مرسلة',
+    'it': '$count inviate',
+    'hi': '$count भेजे गए',
+    'th': 'ส่ง $count ฉบับ',
   });
 
   String towerReceivedLetterCount(int count) => _t({
-    'ko': '받은 혜택 ${count}통', 'en': '$count received', 'ja': '受信 ${count}通', 'zh': '已收 ${count}封',
-    'fr': '$count reçue(s)', 'de': '$count empfangen', 'es': '$count recibida(s)',
-    'pt': '$count recebida(s)', 'ru': '$count получено', 'tr': '$count alındı',
-    'ar': '$count مستلمة', 'it': '$count ricevute', 'hi': '$count प्राप्त', 'th': 'รับ $count ฉบับ',
+    'ko': '받은 혜택 ${count}통',
+    'en': '$count received',
+    'ja': '受信 ${count}通',
+    'zh': '已收 ${count}封',
+    'fr': '$count reçue(s)',
+    'de': '$count empfangen',
+    'es': '$count recibida(s)',
+    'pt': '$count recebida(s)',
+    'ru': '$count получено',
+    'tr': '$count alındı',
+    'ar': '$count مستلمة',
+    'it': '$count ricevute',
+    'hi': '$count प्राप्त',
+    'th': 'รับ $count ฉบับ',
   });
 
   String towerTotalCount(int count) => _t({
-    'ko': '총 ${count}통', 'en': '$count total', 'ja': '合計 ${count}通', 'zh': '共 ${count}封',
-    'fr': '$count au total', 'de': '$count insgesamt', 'es': '$count en total',
-    'pt': '$count no total', 'ru': 'Всего $count', 'tr': 'Toplam $count',
-    'ar': '$count إجمالي', 'it': '$count in totale', 'hi': 'कुल $count', 'th': 'ทั้งหมด $count ฉบับ',
+    'ko': '총 ${count}통',
+    'en': '$count total',
+    'ja': '合計 ${count}通',
+    'zh': '共 ${count}封',
+    'fr': '$count au total',
+    'de': '$count insgesamt',
+    'es': '$count en total',
+    'pt': '$count no total',
+    'ru': 'Всего $count',
+    'tr': 'Toplam $count',
+    'ar': '$count إجمالي',
+    'it': '$count in totale',
+    'hi': 'कुल $count',
+    'th': 'ทั้งหมด $count ฉบับ',
   });
 
   String get towerDeleteAccountTitle => _t({
-    'ko': '회원 탈퇴', 'en': 'Delete Account', 'ja': 'アカウント削除', 'zh': '注销账户',
-    'fr': 'Supprimer le compte', 'de': 'Konto löschen', 'es': 'Eliminar cuenta',
-    'pt': 'Excluir conta', 'ru': 'Удалить аккаунт', 'tr': 'Hesabı sil',
-    'ar': 'حذف الحساب', 'it': 'Elimina account', 'hi': 'खाता हटाएं', 'th': 'ลบบัญชี',
+    'ko': '회원 탈퇴',
+    'en': 'Delete Account',
+    'ja': 'アカウント削除',
+    'zh': '注销账户',
+    'fr': 'Supprimer le compte',
+    'de': 'Konto löschen',
+    'es': 'Eliminar cuenta',
+    'pt': 'Excluir conta',
+    'ru': 'Удалить аккаунт',
+    'tr': 'Hesabı sil',
+    'ar': 'حذف الحساب',
+    'it': 'Elimina account',
+    'hi': 'खाता हटाएं',
+    'th': 'ลบบัญชี',
   });
 
   String get towerDeleteAccountMsg => _t({
-    'ko': '정말 탈퇴하시겠습니까?', 'en': 'Are you sure?', 'ja': '本当に退会しますか？', 'zh': '确定要注销吗？',
-    'fr': 'Êtes-vous sûr(e) ?', 'de': 'Sind Sie sicher?', 'es': '¿Está seguro?',
-    'pt': 'Tem certeza?', 'ru': 'Вы уверены?', 'tr': 'Emin misiniz?',
-    'ar': 'هل أنت متأكد؟', 'it': 'Sei sicuro?', 'hi': 'क्या आप सुनिश्चित हैं?', 'th': 'คุณแน่ใจหรือไม่?',
+    'ko': '정말 탈퇴하시겠습니까?',
+    'en': 'Are you sure?',
+    'ja': '本当に退会しますか？',
+    'zh': '确定要注销吗？',
+    'fr': 'Êtes-vous sûr(e) ?',
+    'de': 'Sind Sie sicher?',
+    'es': '¿Está seguro?',
+    'pt': 'Tem certeza?',
+    'ru': 'Вы уверены?',
+    'tr': 'Emin misiniz?',
+    'ar': 'هل أنت متأكد؟',
+    'it': 'Sei sicuro?',
+    'hi': 'क्या आप सुनिश्चित हैं?',
+    'th': 'คุณแน่ใจหรือไม่?',
   });
 
   String get towerDeleteAccountConfirm => _t({
-    'ko': '탈퇴 확인', 'en': 'Confirm Delete', 'ja': '削除を確認', 'zh': '确认注销',
-    'fr': 'Confirmer la suppression', 'de': 'Löschen bestätigen', 'es': 'Confirmar eliminación',
-    'pt': 'Confirmar exclusão', 'ru': 'Подтвердить удаление', 'tr': 'Silmeyi onayla',
-    'ar': 'تأكيد الحذف', 'it': 'Conferma eliminazione', 'hi': 'हटाने की पुष्टि करें', 'th': 'ยืนยันการลบ',
+    'ko': '탈퇴 확인',
+    'en': 'Confirm Delete',
+    'ja': '削除を確認',
+    'zh': '确认注销',
+    'fr': 'Confirmer la suppression',
+    'de': 'Löschen bestätigen',
+    'es': 'Confirmar eliminación',
+    'pt': 'Confirmar exclusão',
+    'ru': 'Подтвердить удаление',
+    'tr': 'Silmeyi onayla',
+    'ar': 'تأكيد الحذف',
+    'it': 'Conferma eliminazione',
+    'hi': 'हटाने की पुष्टि करें',
+    'th': 'ยืนยันการลบ',
   });
 
   String get towerLogoutMsg => _t({
-    'ko': '로그아웃 하시겠습니까?', 'en': 'Log out?', 'ja': 'ログアウトしますか？', 'zh': '确定退出登录？',
-    'fr': 'Se déconnecter ?', 'de': 'Abmelden?', 'es': '¿Cerrar sesión?',
-    'pt': 'Sair?', 'ru': 'Выйти?', 'tr': 'Çıkış yapılsın mı?',
-    'ar': 'تسجيل الخروج؟', 'it': 'Disconnettersi?', 'hi': 'लॉग आउट करें?', 'th': 'ออกจากระบบ?',
+    'ko': '로그아웃 하시겠습니까?',
+    'en': 'Log out?',
+    'ja': 'ログアウトしますか？',
+    'zh': '确定退出登录？',
+    'fr': 'Se déconnecter ?',
+    'de': 'Abmelden?',
+    'es': '¿Cerrar sesión?',
+    'pt': 'Sair?',
+    'ru': 'Выйти?',
+    'tr': 'Çıkış yapılsın mı?',
+    'ar': 'تسجيل الخروج؟',
+    'it': 'Disconnettersi?',
+    'hi': 'लॉग आउट करें?',
+    'th': 'ออกจากระบบ?',
   });
 
   // ── Achievement Badges ────────────────────────────────────────────────────
 
   String get towerAchievementBadges => _t({
-    'ko': '업적 배지', 'en': 'Achievement Badges', 'ja': '実績バッジ', 'zh': '成就徽章',
-    'fr': 'Badges de réussite', 'de': 'Erfolgsabzeichen', 'es': 'Insignias de logros',
-    'pt': 'Medalhas de conquista', 'ru': 'Значки достижений', 'tr': 'Başarı rozetleri',
-    'ar': 'شارات الإنجاز', 'it': 'Badge dei traguardi', 'hi': 'उपलब्धि बैज', 'th': 'เหรียญความสำเร็จ',
+    'ko': '업적 배지',
+    'en': 'Achievement Badges',
+    'ja': '実績バッジ',
+    'zh': '成就徽章',
+    'fr': 'Badges de réussite',
+    'de': 'Erfolgsabzeichen',
+    'es': 'Insignias de logros',
+    'pt': 'Medalhas de conquista',
+    'ru': 'Значки достижений',
+    'tr': 'Başarı rozetleri',
+    'ar': 'شارات الإنجاز',
+    'it': 'Badge dei traguardi',
+    'hi': 'उपलब्धि बैज',
+    'th': 'เหรียญความสำเร็จ',
   });
 
   String get towerBadgeFirstStep => _t({
-    'ko': '첫 발걸음', 'en': 'First Step', 'ja': '最初の一歩', 'zh': '第一步',
-    'fr': 'Premier pas', 'de': 'Erster Schritt', 'es': 'Primer paso',
-    'pt': 'Primeiro passo', 'ru': 'Первый шаг', 'tr': 'İlk adım',
-    'ar': 'الخطوة الأولى', 'it': 'Primo passo', 'hi': 'पहला कदम', 'th': 'ก้าวแรก',
+    'ko': '첫 발걸음',
+    'en': 'First Step',
+    'ja': '最初の一歩',
+    'zh': '第一步',
+    'fr': 'Premier pas',
+    'de': 'Erster Schritt',
+    'es': 'Primer paso',
+    'pt': 'Primeiro passo',
+    'ru': 'Первый шаг',
+    'tr': 'İlk adım',
+    'ar': 'الخطوة الأولى',
+    'it': 'Primo passo',
+    'hi': 'पहला कदम',
+    'th': 'ก้าวแรก',
   });
 
   String get towerBadgeFirstStepDesc => _t({
-    'ko': '첫 홍보 발송', 'en': 'Send your first promo', 'ja': '初めての手紙を送る', 'zh': '发送第一封信',
-    'fr': 'Envoyer votre première lettre', 'de': 'Sende deinen ersten Brief', 'es': 'Envía tu primera carta',
-    'pt': 'Envie sua primeira carta', 'ru': 'Отправьте первое письмо', 'tr': 'İlk mektubunu gönder',
-    'ar': 'أرسل رسالتك الأولى', 'it': 'Invia la tua prima lettera', 'hi': 'अपना पहला पत्र भेजें', 'th': 'ส่งจดหมายฉบับแรก',
+    'ko': '첫 홍보 발송',
+    'en': 'Send your first promo',
+    'ja': '初めての手紙を送る',
+    'zh': '发送第一封信',
+    'fr': 'Envoyer votre première lettre',
+    'de': 'Sende deinen ersten Brief',
+    'es': 'Envía tu primera carta',
+    'pt': 'Envie sua primeira carta',
+    'ru': 'Отправьте первое письмо',
+    'tr': 'İlk mektubunu gönder',
+    'ar': 'أرسل رسالتك الأولى',
+    'it': 'Invia la tua prima lettera',
+    'hi': 'अपना पहला पत्र भेजें',
+    'th': 'ส่งจดหมายฉบับแรก',
   });
 
   String get towerBadgeCollector => _t({
-    'ko': '혜택 수집가', 'en': 'Reward Collector', 'ja': '手紙コレクター', 'zh': '信件收藏家',
-    'fr': 'Collectionneur de lettres', 'de': 'Briefesammler', 'es': 'Coleccionista de cartas',
-    'pt': 'Colecionador de cartas', 'ru': 'Коллекционер писем', 'tr': 'Mektup koleksiyoncusu',
-    'ar': 'جامع الرسائل', 'it': 'Collezionista di lettere', 'hi': 'पत्र संग्रहकर्ता', 'th': 'นักสะสมจดหมาย',
+    'ko': '혜택 수집가',
+    'en': 'Reward Collector',
+    'ja': '手紙コレクター',
+    'zh': '信件收藏家',
+    'fr': 'Collectionneur de lettres',
+    'de': 'Briefesammler',
+    'es': 'Coleccionista de cartas',
+    'pt': 'Colecionador de cartas',
+    'ru': 'Коллекционер писем',
+    'tr': 'Mektup koleksiyoncusu',
+    'ar': 'جامع الرسائل',
+    'it': 'Collezionista di lettere',
+    'hi': 'पत्र संग्रहकर्ता',
+    'th': 'นักสะสมจดหมาย',
   });
 
   String get towerBadgeCollectorDesc => _t({
-    'ko': '혜택 10통 수집', 'en': 'Collect 10 rewards', 'ja': '手紙を10通集める', 'zh': '收集10封信',
-    'fr': 'Collectez 10 lettres', 'de': 'Sammle 10 Briefe', 'es': 'Recopila 10 cartas',
-    'pt': 'Colete 10 cartas', 'ru': 'Соберите 10 писем', 'tr': '10 mektup topla',
-    'ar': 'اجمع 10 رسائل', 'it': 'Raccogli 10 lettere', 'hi': '10 पत्र संग्रह करें', 'th': 'สะสมจดหมาย 10 ฉบับ',
+    'ko': '혜택 10통 수집',
+    'en': 'Collect 10 rewards',
+    'ja': '手紙を10通集める',
+    'zh': '收集10封信',
+    'fr': 'Collectez 10 lettres',
+    'de': 'Sammle 10 Briefe',
+    'es': 'Recopila 10 cartas',
+    'pt': 'Colete 10 cartas',
+    'ru': 'Соберите 10 писем',
+    'tr': '10 mektup topla',
+    'ar': 'اجمع 10 رسائل',
+    'it': 'Raccogli 10 lettere',
+    'hi': '10 पत्र संग्रह करें',
+    'th': 'สะสมจดหมาย 10 ฉบับ',
   });
 
   String get towerBadgeCommunicator => _t({
-    'ko': '소통의 달인', 'en': 'Master Communicator', 'ja': 'コミュニケーション達人', 'zh': '沟通达人',
-    'fr': 'Maître communicant', 'de': 'Kommunikationsmeister', 'es': 'Maestro comunicador',
-    'pt': 'Mestre comunicador', 'ru': 'Мастер общения', 'tr': 'İletişim ustası',
-    'ar': 'خبير التواصل', 'it': 'Maestro comunicatore', 'hi': 'संवाद विशेषज्ञ', 'th': 'นักสื่อสารระดับเซียน',
+    'ko': '소통의 달인',
+    'en': 'Master Communicator',
+    'ja': 'コミュニケーション達人',
+    'zh': '沟通达人',
+    'fr': 'Maître communicant',
+    'de': 'Kommunikationsmeister',
+    'es': 'Maestro comunicador',
+    'pt': 'Mestre comunicador',
+    'ru': 'Мастер общения',
+    'tr': 'İletişim ustası',
+    'ar': 'خبير التواصل',
+    'it': 'Maestro comunicatore',
+    'hi': 'संवाद विशेषज्ञ',
+    'th': 'นักสื่อสารระดับเซียน',
   });
 
   String get towerBadgeCommunicatorDesc => _t({
-    'ko': '답장 10회', 'en': 'Reply 10 times', 'ja': '返信10回', 'zh': '回复10次',
-    'fr': 'Répondez 10 fois', 'de': 'Antworte 10 Mal', 'es': 'Responde 10 veces',
-    'pt': 'Responda 10 vezes', 'ru': 'Ответьте 10 раз', 'tr': '10 kez yanıtla',
-    'ar': 'قم بالرد 10 مرات', 'it': 'Rispondi 10 volte', 'hi': '10 बार उत्तर दें', 'th': 'ตอบกลับ 10 ครั้ง',
+    'ko': '답장 10회',
+    'en': 'Reply 10 times',
+    'ja': '返信10回',
+    'zh': '回复10次',
+    'fr': 'Répondez 10 fois',
+    'de': 'Antworte 10 Mal',
+    'es': 'Responde 10 veces',
+    'pt': 'Responda 10 vezes',
+    'ru': 'Ответьте 10 раз',
+    'tr': '10 kez yanıtla',
+    'ar': 'قم بالرد 10 مرات',
+    'it': 'Rispondi 10 volte',
+    'hi': '10 बार उत्तर दें',
+    'th': 'ตอบกลับ 10 ครั้ง',
   });
 
   String get towerBadgeTraveler => _t({
-    'ko': '세계 여행자', 'en': 'World Traveler', 'ja': '世界旅行者', 'zh': '世界旅行者',
-    'fr': 'Voyageur du monde', 'de': 'Weltreisender', 'es': 'Viajero mundial',
-    'pt': 'Viajante mundial', 'ru': 'Путешественник', 'tr': 'Dünya gezgini',
-    'ar': 'مسافر حول العالم', 'it': 'Viaggiatore mondiale', 'hi': 'विश्व यात्री', 'th': 'นักเดินทางรอบโลก',
+    'ko': '세계 여행자',
+    'en': 'World Traveler',
+    'ja': '世界旅行者',
+    'zh': '世界旅行者',
+    'fr': 'Voyageur du monde',
+    'de': 'Weltreisender',
+    'es': 'Viajero mundial',
+    'pt': 'Viajante mundial',
+    'ru': 'Путешественник',
+    'tr': 'Dünya gezgini',
+    'ar': 'مسافر حول العالم',
+    'it': 'Viaggiatore mondiale',
+    'hi': 'विश्व यात्री',
+    'th': 'นักเดินทางรอบโลก',
   });
 
   String get towerBadgeTravelerDesc => _t({
-    'ko': '5개국 혜택 수신', 'en': 'Receive rewards from 5 countries', 'ja': '5か国から手紙を受け取る', 'zh': '收到来自5个国家的信',
-    'fr': 'Recevez des lettres de 5 pays', 'de': 'Erhalte Briefe aus 5 Ländern', 'es': 'Recibe cartas de 5 países',
-    'pt': 'Receba cartas de 5 países', 'ru': 'Получите письма из 5 стран', 'tr': '5 ülkeden mektup al',
-    'ar': 'استلم رسائل من 5 دول', 'it': 'Ricevi lettere da 5 paesi', 'hi': '5 देशों से पत्र प्राप्त करें', 'th': 'รับจดหมายจาก 5 ประเทศ',
+    'ko': '5개국 혜택 수신',
+    'en': 'Receive rewards from 5 countries',
+    'ja': '5か国から手紙を受け取る',
+    'zh': '收到来自5个国家的信',
+    'fr': 'Recevez des lettres de 5 pays',
+    'de': 'Erhalte Briefe aus 5 Ländern',
+    'es': 'Recibe cartas de 5 países',
+    'pt': 'Receba cartas de 5 países',
+    'ru': 'Получите письма из 5 стран',
+    'tr': '5 ülkeden mektup al',
+    'ar': 'استلم رسائل من 5 دول',
+    'it': 'Ricevi lettere da 5 paesi',
+    'hi': '5 देशों से पत्र प्राप्त करें',
+    'th': 'รับจดหมายจาก 5 ประเทศ',
   });
 
   String get towerBadgeHouseBuilder => _t({
-    'ko': '마을집 건축', 'en': 'House Builder', 'ja': '家の建築', 'zh': '房屋建造者',
-    'fr': 'Constructeur de maison', 'de': 'Hausbauer', 'es': 'Constructor de casa',
-    'pt': 'Construtor de casa', 'ru': 'Строитель дома', 'tr': 'Ev inşaatçısı',
-    'ar': 'باني المنزل', 'it': 'Costruttore di case', 'hi': 'घर निर्माता', 'th': 'ช่างสร้างบ้าน',
+    'ko': '마을집 건축',
+    'en': 'House Builder',
+    'ja': '家の建築',
+    'zh': '房屋建造者',
+    'fr': 'Constructeur de maison',
+    'de': 'Hausbauer',
+    'es': 'Constructor de casa',
+    'pt': 'Construtor de casa',
+    'ru': 'Строитель дома',
+    'tr': 'Ev inşaatçısı',
+    'ar': 'باني المنزل',
+    'it': 'Costruttore di case',
+    'hi': 'घर निर्माता',
+    'th': 'ช่างสร้างบ้าน',
   });
 
   String get towerBadgeHouseBuilderDesc => _t({
-    'ko': '타워 5층 달성', 'en': 'Reach tower floor 5', 'ja': 'タワー5階達成', 'zh': '塔达到5层',
-    'fr': 'Atteindre l\'étage 5', 'de': 'Erreiche Stockwerk 5', 'es': 'Alcanza el piso 5',
-    'pt': 'Alcance o andar 5', 'ru': 'Достигните 5-го этажа', 'tr': '5. kata ulaş',
-    'ar': 'الوصول للطابق 5', 'it': 'Raggiungi il piano 5', 'hi': 'टावर मंजिल 5 तक पहुंचें', 'th': 'ถึงชั้นที่ 5',
+    'ko': '타워 5층 달성',
+    'en': 'Reach tower floor 5',
+    'ja': 'タワー5階達成',
+    'zh': '塔达到5层',
+    'fr': 'Atteindre l\'étage 5',
+    'de': 'Erreiche Stockwerk 5',
+    'es': 'Alcanza el piso 5',
+    'pt': 'Alcance o andar 5',
+    'ru': 'Достигните 5-го этажа',
+    'tr': '5. kata ulaş',
+    'ar': 'الوصول للطابق 5',
+    'it': 'Raggiungi il piano 5',
+    'hi': 'टावर मंजिल 5 तक पहुंचें',
+    'th': 'ถึงชั้นที่ 5',
   });
 
   String get towerBadgeBuildingArchitect => _t({
-    'ko': '빌딩 건축가', 'en': 'Building Architect', 'ja': 'ビル建築家', 'zh': '建筑师',
-    'fr': 'Architecte de bâtiment', 'de': 'Gebäudearchitekt', 'es': 'Arquitecto de edificios',
-    'pt': 'Arquiteto de edifícios', 'ru': 'Архитектор здания', 'tr': 'Bina mimarı',
-    'ar': 'مهندس معماري', 'it': 'Architetto di edifici', 'hi': 'भवन वास्तुकार', 'th': 'สถาปนิก',
+    'ko': '빌딩 건축가',
+    'en': 'Building Architect',
+    'ja': 'ビル建築家',
+    'zh': '建筑师',
+    'fr': 'Architecte de bâtiment',
+    'de': 'Gebäudearchitekt',
+    'es': 'Arquitecto de edificios',
+    'pt': 'Arquiteto de edifícios',
+    'ru': 'Архитектор здания',
+    'tr': 'Bina mimarı',
+    'ar': 'مهندس معماري',
+    'it': 'Architetto di edifici',
+    'hi': 'भवन वास्तुकार',
+    'th': 'สถาปนิก',
   });
 
   String get towerBadgeBuildingArchitectDesc => _t({
-    'ko': '타워 20층 달성', 'en': 'Reach tower floor 20', 'ja': 'タワー20階達成', 'zh': '塔达到20层',
-    'fr': 'Atteindre l\'étage 20', 'de': 'Erreiche Stockwerk 20', 'es': 'Alcanza el piso 20',
-    'pt': 'Alcance o andar 20', 'ru': 'Достигните 20-го этажа', 'tr': '20. kata ulaş',
-    'ar': 'الوصول للطابق 20', 'it': 'Raggiungi il piano 20', 'hi': 'टावर मंजिल 20 तक पहुंचें', 'th': 'ถึงชั้นที่ 20',
+    'ko': '타워 20층 달성',
+    'en': 'Reach tower floor 20',
+    'ja': 'タワー20階達成',
+    'zh': '塔达到20层',
+    'fr': 'Atteindre l\'étage 20',
+    'de': 'Erreiche Stockwerk 20',
+    'es': 'Alcanza el piso 20',
+    'pt': 'Alcance o andar 20',
+    'ru': 'Достигните 20-го этажа',
+    'tr': '20. kata ulaş',
+    'ar': 'الوصول للطابق 20',
+    'it': 'Raggiungi il piano 20',
+    'hi': 'टावर मंजिल 20 तक पहुंचें',
+    'th': 'ถึงชั้นที่ 20',
   });
 
   String get towerBadgeSkyscraper => _t({
-    'ko': '마천루', 'en': 'Skyscraper', 'ja': '摩天楼', 'zh': '摩天大楼',
-    'fr': 'Gratte-ciel', 'de': 'Wolkenkratzer', 'es': 'Rascacielos',
-    'pt': 'Arranha-céu', 'ru': 'Небоскрёб', 'tr': 'Gökdelen',
-    'ar': 'ناطحة سحاب', 'it': 'Grattacielo', 'hi': 'गगनचुंबी इमारत', 'th': 'ตึกระฟ้า',
+    'ko': '마천루',
+    'en': 'Skyscraper',
+    'ja': '摩天楼',
+    'zh': '摩天大楼',
+    'fr': 'Gratte-ciel',
+    'de': 'Wolkenkratzer',
+    'es': 'Rascacielos',
+    'pt': 'Arranha-céu',
+    'ru': 'Небоскрёб',
+    'tr': 'Gökdelen',
+    'ar': 'ناطحة سحاب',
+    'it': 'Grattacielo',
+    'hi': 'गगनचुंबी इमारत',
+    'th': 'ตึกระฟ้า',
   });
 
   String get towerBadgeSkyscraperDesc => _t({
-    'ko': '타워 50층 달성', 'en': 'Reach tower floor 50', 'ja': 'タワー50階達成', 'zh': '塔达到50层',
-    'fr': 'Atteindre l\'étage 50', 'de': 'Erreiche Stockwerk 50', 'es': 'Alcanza el piso 50',
-    'pt': 'Alcance o andar 50', 'ru': 'Достигните 50-го этажа', 'tr': '50. kata ulaş',
-    'ar': 'الوصول للطابق 50', 'it': 'Raggiungi il piano 50', 'hi': 'टावर मंजिल 50 तक पहुंचें', 'th': 'ถึงชั้นที่ 50',
+    'ko': '타워 50층 달성',
+    'en': 'Reach tower floor 50',
+    'ja': 'タワー50階達成',
+    'zh': '塔达到50层',
+    'fr': 'Atteindre l\'étage 50',
+    'de': 'Erreiche Stockwerk 50',
+    'es': 'Alcanza el piso 50',
+    'pt': 'Alcance o andar 50',
+    'ru': 'Достигните 50-го этажа',
+    'tr': '50. kata ulaş',
+    'ar': 'الوصول للطابق 50',
+    'it': 'Raggiungi il piano 50',
+    'hi': 'टावर मंजिल 50 तक पहुंचें',
+    'th': 'ถึงชั้นที่ 50',
   });
 
   String get towerBadgePopular => _t({
-    'ko': '인기 카운터', 'en': 'Popular Penpal', 'ja': '人気のペンパル', 'zh': '人气笔友',
-    'fr': 'Correspondant populaire', 'de': 'Beliebter Brieffreund', 'es': 'Corresponsal popular',
-    'pt': 'Correspondente popular', 'ru': 'Популярный друг по переписке', 'tr': 'Popüler mektup arkadaşı',
-    'ar': 'صديق مراسلة مشهور', 'it': 'Amico di penna popolare', 'hi': 'लोकप्रिय पेनपाल', 'th': 'เพื่อนทางจดหมายยอดนิยม',
+    'ko': '인기 카운터',
+    'en': 'Popular Penpal',
+    'ja': '人気のペンパル',
+    'zh': '人气笔友',
+    'fr': 'Correspondant populaire',
+    'de': 'Beliebter Brieffreund',
+    'es': 'Corresponsal popular',
+    'pt': 'Correspondente popular',
+    'ru': 'Популярный друг по переписке',
+    'tr': 'Popüler mektup arkadaşı',
+    'ar': 'صديق مراسلة مشهور',
+    'it': 'Amico di penna popolare',
+    'hi': 'लोकप्रिय पेनपाल',
+    'th': 'เพื่อนทางจดหมายยอดนิยม',
   });
 
   String get towerBadgePopularDesc => _t({
-    'ko': '팔로워 10명 달성', 'en': 'Get 10 followers', 'ja': 'フォロワー10人達成', 'zh': '获得10个关注者',
-    'fr': 'Obtenez 10 abonnés', 'de': 'Erreiche 10 Follower', 'es': 'Consigue 10 seguidores',
-    'pt': 'Consiga 10 seguidores', 'ru': 'Наберите 10 подписчиков', 'tr': '10 takipçi kazan',
-    'ar': 'احصل على 10 متابعين', 'it': 'Ottieni 10 follower', 'hi': '10 फ़ॉलोअर प्राप्त करें', 'th': 'มีผู้ติดตาม 10 คน',
+    'ko': '팔로워 10명 달성',
+    'en': 'Get 10 followers',
+    'ja': 'フォロワー10人達成',
+    'zh': '获得10个关注者',
+    'fr': 'Obtenez 10 abonnés',
+    'de': 'Erreiche 10 Follower',
+    'es': 'Consigue 10 seguidores',
+    'pt': 'Consiga 10 seguidores',
+    'ru': 'Наберите 10 подписчиков',
+    'tr': '10 takipçi kazan',
+    'ar': 'احصل على 10 متابعين',
+    'it': 'Ottieni 10 follower',
+    'hi': '10 फ़ॉलोअर प्राप्त करें',
+    'th': 'มีผู้ติดตาม 10 คน',
   });
 
   String get towerBadgeLegendaryLandmark => _t({
-    'ko': '전설의 랜드마크', 'en': 'Legendary Landmark', 'ja': '伝説のランドマーク', 'zh': '传奇地标',
-    'fr': 'Monument légendaire', 'de': 'Legendäres Wahrzeichen', 'es': 'Monumento legendario',
-    'pt': 'Marco lendário', 'ru': 'Легендарный ориентир', 'tr': 'Efsanevi simge',
-    'ar': 'معلم أسطوري', 'it': 'Punto di riferimento leggendario', 'hi': 'महान स्थल', 'th': 'สถานที่ระดับตำนาน',
+    'ko': '전설의 랜드마크',
+    'en': 'Legendary Landmark',
+    'ja': '伝説のランドマーク',
+    'zh': '传奇地标',
+    'fr': 'Monument légendaire',
+    'de': 'Legendäres Wahrzeichen',
+    'es': 'Monumento legendario',
+    'pt': 'Marco lendário',
+    'ru': 'Легендарный ориентир',
+    'tr': 'Efsanevi simge',
+    'ar': 'معلم أسطوري',
+    'it': 'Punto di riferimento leggendario',
+    'hi': 'महान स्थल',
+    'th': 'สถานที่ระดับตำนาน',
   });
 
   String get towerBadgeLegendaryLandmarkDesc => _t({
-    'ko': '타워 100층 달성', 'en': 'Reach tower floor 100', 'ja': 'タワー100階達成', 'zh': '塔达到100层',
-    'fr': 'Atteindre l\'étage 100', 'de': 'Erreiche Stockwerk 100', 'es': 'Alcanza el piso 100',
-    'pt': 'Alcance o andar 100', 'ru': 'Достигните 100-го этажа', 'tr': '100. kata ulaş',
-    'ar': 'الوصول للطابق 100', 'it': 'Raggiungi il piano 100', 'hi': 'टावर मंजिल 100 तक पहुंचें', 'th': 'ถึงชั้นที่ 100',
+    'ko': '타워 100층 달성',
+    'en': 'Reach tower floor 100',
+    'ja': 'タワー100階達成',
+    'zh': '塔达到100层',
+    'fr': 'Atteindre l\'étage 100',
+    'de': 'Erreiche Stockwerk 100',
+    'es': 'Alcanza el piso 100',
+    'pt': 'Alcance o andar 100',
+    'ru': 'Достигните 100-го этажа',
+    'tr': '100. kata ulaş',
+    'ar': 'الوصول للطابق 100',
+    'it': 'Raggiungi il piano 100',
+    'hi': 'टावर मंजिल 100 तक पहुंचें',
+    'th': 'ถึงชั้นที่ 100',
   });
 
   // ── DM / Status / ETA / Transport ──────────────────────────────────
   // ── DM (Direct Message) ──────────────────────────────────────────────────
 
   String get dmTitle => _t({
-    'ko': '메시지', 'en': 'Messages', 'ja': 'メッセージ', 'zh': '消息',
-    'fr': 'Messages', 'de': 'Nachrichten', 'es': 'Mensajes',
-    'pt': 'Mensagens', 'ru': 'Сообщения', 'tr': 'Mesajlar',
-    'ar': 'الرسائل', 'it': 'Messaggi', 'hi': 'संदेश', 'th': 'ข้อความ',
+    'ko': '메시지',
+    'en': 'Messages',
+    'ja': 'メッセージ',
+    'zh': '消息',
+    'fr': 'Messages',
+    'de': 'Nachrichten',
+    'es': 'Mensajes',
+    'pt': 'Mensagens',
+    'ru': 'Сообщения',
+    'tr': 'Mesajlar',
+    'ar': 'الرسائل',
+    'it': 'Messaggi',
+    'hi': 'संदेश',
+    'th': 'ข้อความ',
   });
 
   String get dmWriteMessage => _t({
-    'ko': '메시지 입력...', 'en': 'Type a message...', 'ja': 'メッセージを入力...', 'zh': '输入消息...',
-    'fr': 'Saisissez un message...', 'de': 'Nachricht eingeben...', 'es': 'Escribe un mensaje...',
-    'pt': 'Digite uma mensagem...', 'ru': 'Введите сообщение...', 'tr': 'Bir mesaj yazın...',
-    'ar': 'اكتب رسالة...', 'it': 'Scrivi un messaggio...', 'hi': 'संदेश लिखें...', 'th': 'พิมพ์ข้อความ...',
+    'ko': '메시지 입력...',
+    'en': 'Type a message...',
+    'ja': 'メッセージを入力...',
+    'zh': '输入消息...',
+    'fr': 'Saisissez un message...',
+    'de': 'Nachricht eingeben...',
+    'es': 'Escribe un mensaje...',
+    'pt': 'Digite uma mensagem...',
+    'ru': 'Введите сообщение...',
+    'tr': 'Bir mesaj yazın...',
+    'ar': 'اكتب رسالة...',
+    'it': 'Scrivi un messaggio...',
+    'hi': 'संदेश लिखें...',
+    'th': 'พิมพ์ข้อความ...',
   });
 
   String get dmPremiumOnly => _t({
-    'ko': 'DM은 프리미엄 전용 기능입니다', 'en': 'DM is a premium-only feature', 'ja': 'DMはプレミアム専用機能です', 'zh': 'DM是高级专属功能',
-    'fr': 'Les DM sont réservés aux abonnés premium', 'de': 'DM ist eine Premium-exklusive Funktion', 'es': 'Los DM son una función exclusiva premium',
-    'pt': 'DM é um recurso exclusivo premium', 'ru': 'Личные сообщения доступны только в премиум', 'tr': 'DM yalnızca premium kullanıcılara özeldir',
-    'ar': 'الرسائل المباشرة ميزة حصرية للمميزين', 'it': 'I DM sono una funzione esclusiva premium', 'hi': 'DM केवल प्रीमियम सुविधा है', 'th': 'DM เป็นฟีเจอร์สำหรับพรีเมียมเท่านั้น',
+    'ko': 'DM은 프리미엄 전용 기능입니다',
+    'en': 'DM is a premium-only feature',
+    'ja': 'DMはプレミアム専用機能です',
+    'zh': 'DM是高级专属功能',
+    'fr': 'Les DM sont réservés aux abonnés premium',
+    'de': 'DM ist eine Premium-exklusive Funktion',
+    'es': 'Los DM son una función exclusiva premium',
+    'pt': 'DM é um recurso exclusivo premium',
+    'ru': 'Личные сообщения доступны только в премиум',
+    'tr': 'DM yalnızca premium kullanıcılara özeldir',
+    'ar': 'الرسائل المباشرة ميزة حصرية للمميزين',
+    'it': 'I DM sono una funzione esclusiva premium',
+    'hi': 'DM केवल प्रीमियम सुविधा है',
+    'th': 'DM เป็นฟีเจอร์สำหรับพรีเมียมเท่านั้น',
   });
 
   String get dmUnavailableTitle => _t({
-    'ko': 'DM 사용 불가', 'en': 'DM Unavailable', 'ja': 'DMは利用できません', 'zh': 'DM不可用',
-    'fr': 'DM indisponible', 'de': 'DM nicht verfügbar', 'es': 'DM no disponible',
-    'pt': 'DM indisponível', 'ru': 'Личные сообщения недоступны', 'tr': 'DM kullanılamıyor',
-    'ar': 'الرسائل المباشرة غير متاحة', 'it': 'DM non disponibile', 'hi': 'DM उपलब्ध नहीं', 'th': 'DM ไม่พร้อมใช้งาน',
+    'ko': 'DM 사용 불가',
+    'en': 'DM Unavailable',
+    'ja': 'DMは利用できません',
+    'zh': 'DM不可用',
+    'fr': 'DM indisponible',
+    'de': 'DM nicht verfügbar',
+    'es': 'DM no disponible',
+    'pt': 'DM indisponível',
+    'ru': 'Личные сообщения недоступны',
+    'tr': 'DM kullanılamıyor',
+    'ar': 'الرسائل المباشرة غير متاحة',
+    'it': 'DM non disponibile',
+    'hi': 'DM उपलब्ध नहीं',
+    'th': 'DM ไม่พร้อมใช้งาน',
   });
 
   String get dmGateFeature1 => _t({
-    'ko': '1:1 실시간 대화', 'en': 'Real-time 1:1 chat', 'ja': '1:1リアルタイムチャット', 'zh': '1:1实时聊天',
-    'fr': 'Chat 1:1 en temps réel', 'de': '1:1-Echtzeit-Chat', 'es': 'Chat 1:1 en tiempo real',
-    'pt': 'Chat 1:1 em tempo real', 'ru': 'Чат 1:1 в реальном времени', 'tr': '1:1 gerçek zamanlı sohbet',
-    'ar': 'محادثة فردية فورية', 'it': 'Chat 1:1 in tempo reale', 'hi': '1:1 रीयल-टाइम चैट', 'th': 'แชท 1:1 แบบเรียลไทม์',
+    'ko': '1:1 실시간 대화',
+    'en': 'Real-time 1:1 chat',
+    'ja': '1:1リアルタイムチャット',
+    'zh': '1:1实时聊天',
+    'fr': 'Chat 1:1 en temps réel',
+    'de': '1:1-Echtzeit-Chat',
+    'es': 'Chat 1:1 en tiempo real',
+    'pt': 'Chat 1:1 em tempo real',
+    'ru': 'Чат 1:1 в реальном времени',
+    'tr': '1:1 gerçek zamanlı sohbet',
+    'ar': 'محادثة فردية فورية',
+    'it': 'Chat 1:1 in tempo reale',
+    'hi': '1:1 रीयल-टाइम चैट',
+    'th': 'แชท 1:1 แบบเรียลไทม์',
   });
 
   // Build 114: "펜팔 / 혜택 친구" 문구를 "긴 대화 스레드" 로 교체. DM 기능은
   // Build 104 패치에서 UI 숨김 상태지만, 코드 경로가 살아있어 l10n 만이라도
   // 현재 헌트 포지셔닝과 충돌하지 않게 정리.
   String get dmGateFeature2 => _t({
-    'ko': '오래 이어가는 대화 스레드', 'en': 'Ongoing conversation threads', 'ja': '長く続ける会話スレッド', 'zh': '持续的对话主题',
-    'fr': 'Fils de conversation continus', 'de': 'Fortlaufende Gesprächsstränge', 'es': 'Hilos de conversación continuos',
-    'pt': 'Threads de conversa contínuos', 'ru': 'Долговременные ветки диалогов', 'tr': 'Uzun süreli sohbet akışları',
-    'ar': 'خيوط محادثة مستمرة', 'it': 'Fili di conversazione continui', 'hi': 'लगातार चलने वाले बातचीत थ्रेड', 'th': 'กระทู้สนทนาต่อเนื่อง',
+    'ko': '오래 이어가는 대화 스레드',
+    'en': 'Ongoing conversation threads',
+    'ja': '長く続ける会話スレッド',
+    'zh': '持续的对话主题',
+    'fr': 'Fils de conversation continus',
+    'de': 'Fortlaufende Gesprächsstränge',
+    'es': 'Hilos de conversación continuos',
+    'pt': 'Threads de conversa contínuos',
+    'ru': 'Долговременные ветки диалогов',
+    'tr': 'Uzun süreli sohbet akışları',
+    'ar': 'خيوط محادثة مستمرة',
+    'it': 'Fili di conversazione continui',
+    'hi': 'लगातार चलने वाले बातचीत थ्रेड',
+    'th': 'กระทู้สนทนาต่อเนื่อง',
   });
 
   String get dmGateFeature3 => _t({
-    'ko': '사진 및 이미지 공유', 'en': 'Share photos and images', 'ja': '写真や画像を共有', 'zh': '分享照片和图片',
-    'fr': 'Partager des photos et des images', 'de': 'Fotos und Bilder teilen', 'es': 'Compartir fotos e imágenes',
-    'pt': 'Compartilhar fotos e imagens', 'ru': 'Делитесь фото и изображениями', 'tr': 'Fotoğraf ve görsel paylaşın',
-    'ar': 'مشاركة الصور والصور', 'it': 'Condividi foto e immagini', 'hi': 'फ़ोटो और चित्र साझा करें', 'th': 'แชร์รูปภาพและภาพ',
+    'ko': '사진 및 이미지 공유',
+    'en': 'Share photos and images',
+    'ja': '写真や画像を共有',
+    'zh': '分享照片和图片',
+    'fr': 'Partager des photos et des images',
+    'de': 'Fotos und Bilder teilen',
+    'es': 'Compartir fotos e imágenes',
+    'pt': 'Compartilhar fotos e imagens',
+    'ru': 'Делитесь фото и изображениями',
+    'tr': 'Fotoğraf ve görsel paylaşın',
+    'ar': 'مشاركة الصور والصور',
+    'it': 'Condividi foto e immagini',
+    'hi': 'फ़ोटो और चित्र साझा करें',
+    'th': 'แชร์รูปภาพและภาพ',
   });
 
   String get dmGateFeature4 => _t({
-    'ko': '상호 팔로우 시 자동 활성화', 'en': 'Auto-enabled with mutual follow', 'ja': '相互フォローで自動有効化', 'zh': '互相关注后自动启用',
-    'fr': 'Activation auto avec suivi mutuel', 'de': 'Automatisch aktiviert bei gegenseitigem Folgen', 'es': 'Activación automática con seguimiento mutuo',
-    'pt': 'Ativação automática com seguimento mútuo', 'ru': 'Автоматическая активация при взаимной подписке', 'tr': 'Karşılıklı takipte otomatik etkinleşir',
-    'ar': 'تفعيل تلقائي عند المتابعة المتبادلة', 'it': 'Attivazione automatica con follow reciproco', 'hi': 'आपसी फ़ॉलो पर स्वतः सक्रिय', 'th': 'เปิดใช้งานอัตโนมัติเมื่อติดตามกัน',
+    'ko': '상호 팔로우 시 자동 활성화',
+    'en': 'Auto-enabled with mutual follow',
+    'ja': '相互フォローで自動有効化',
+    'zh': '互相关注后自动启用',
+    'fr': 'Activation auto avec suivi mutuel',
+    'de': 'Automatisch aktiviert bei gegenseitigem Folgen',
+    'es': 'Activación automática con seguimiento mutuo',
+    'pt': 'Ativação automática com seguimento mútuo',
+    'ru': 'Автоматическая активация при взаимной подписке',
+    'tr': 'Karşılıklı takipte otomatik etkinleşir',
+    'ar': 'تفعيل تلقائي عند المتابعة المتبادلة',
+    'it': 'Attivazione automatica con follow reciproco',
+    'hi': 'आपसी फ़ॉलो पर स्वतः सक्रिय',
+    'th': 'เปิดใช้งานอัตโนมัติเมื่อติดตามกัน',
   });
 
   String get dmCancel => _t({
-    'ko': '취소', 'en': 'Cancel', 'ja': 'キャンセル', 'zh': '取消',
-    'fr': 'Annuler', 'de': 'Abbrechen', 'es': 'Cancelar',
-    'pt': 'Cancelar', 'ru': 'Отмена', 'tr': 'İptal',
-    'ar': 'إلغاء', 'it': 'Annulla', 'hi': 'रद्द करें', 'th': 'ยกเลิก',
+    'ko': '취소',
+    'en': 'Cancel',
+    'ja': 'キャンセル',
+    'zh': '取消',
+    'fr': 'Annuler',
+    'de': 'Abbrechen',
+    'es': 'Cancelar',
+    'pt': 'Cancelar',
+    'ru': 'Отмена',
+    'tr': 'İptal',
+    'ar': 'إلغاء',
+    'it': 'Annulla',
+    'hi': 'रद्द करें',
+    'th': 'ยกเลิก',
   });
 
   String get dmConfirm => _t({
-    'ko': '확인', 'en': 'Confirm', 'ja': '確認', 'zh': '确认',
-    'fr': 'Confirmer', 'de': 'Bestätigen', 'es': 'Confirmar',
-    'pt': 'Confirmar', 'ru': 'Подтвердить', 'tr': 'Onayla',
-    'ar': 'تأكيد', 'it': 'Conferma', 'hi': 'पुष्टि करें', 'th': 'ยืนยัน',
+    'ko': '확인',
+    'en': 'Confirm',
+    'ja': '確認',
+    'zh': '确认',
+    'fr': 'Confirmer',
+    'de': 'Bestätigen',
+    'es': 'Confirmar',
+    'pt': 'Confirmar',
+    'ru': 'Подтвердить',
+    'tr': 'Onayla',
+    'ar': 'تأكيد',
+    'it': 'Conferma',
+    'hi': 'पुष्टि करें',
+    'th': 'ยืนยัน',
   });
 
   String get dmBlock => _t({
-    'ko': '차단', 'en': 'Block', 'ja': 'ブロック', 'zh': '屏蔽',
-    'fr': 'Bloquer', 'de': 'Blockieren', 'es': 'Bloquear',
-    'pt': 'Bloquear', 'ru': 'Заблокировать', 'tr': 'Engelle',
-    'ar': 'حظر', 'it': 'Blocca', 'hi': 'ब्लॉक करें', 'th': 'บล็อก',
+    'ko': '차단',
+    'en': 'Block',
+    'ja': 'ブロック',
+    'zh': '屏蔽',
+    'fr': 'Bloquer',
+    'de': 'Blockieren',
+    'es': 'Bloquear',
+    'pt': 'Bloquear',
+    'ru': 'Заблокировать',
+    'tr': 'Engelle',
+    'ar': 'حظر',
+    'it': 'Blocca',
+    'hi': 'ब्लॉक करें',
+    'th': 'บล็อก',
   });
 
   String get dmBlockUser => _t({
-    'ko': '사용자 차단', 'en': 'Block User', 'ja': 'ユーザーをブロック', 'zh': '屏蔽用户',
-    'fr': 'Bloquer l\'utilisateur', 'de': 'Benutzer blockieren', 'es': 'Bloquear usuario',
-    'pt': 'Bloquear usuário', 'ru': 'Заблокировать пользователя', 'tr': 'Kullanıcıyı engelle',
-    'ar': 'حظر المستخدم', 'it': 'Blocca utente', 'hi': 'उपयोगकर्ता को ब्लॉक करें', 'th': 'บล็อกผู้ใช้',
+    'ko': '사용자 차단',
+    'en': 'Block User',
+    'ja': 'ユーザーをブロック',
+    'zh': '屏蔽用户',
+    'fr': 'Bloquer l\'utilisateur',
+    'de': 'Benutzer blockieren',
+    'es': 'Bloquear usuario',
+    'pt': 'Bloquear usuário',
+    'ru': 'Заблокировать пользователя',
+    'tr': 'Kullanıcıyı engelle',
+    'ar': 'حظر المستخدم',
+    'it': 'Blocca utente',
+    'hi': 'उपयोगकर्ता को ब्लॉक करें',
+    'th': 'บล็อกผู้ใช้',
   });
 
   String get dmBlockAction => _t({
-    'ko': '차단하기', 'en': 'Block', 'ja': 'ブロックする', 'zh': '屏蔽',
-    'fr': 'Bloquer', 'de': 'Blockieren', 'es': 'Bloquear',
-    'pt': 'Bloquear', 'ru': 'Заблокировать', 'tr': 'Engelle',
-    'ar': 'حظر', 'it': 'Blocca', 'hi': 'ब्लॉक करें', 'th': 'บล็อก',
+    'ko': '차단하기',
+    'en': 'Block',
+    'ja': 'ブロックする',
+    'zh': '屏蔽',
+    'fr': 'Bloquer',
+    'de': 'Blockieren',
+    'es': 'Bloquear',
+    'pt': 'Bloquear',
+    'ru': 'Заблокировать',
+    'tr': 'Engelle',
+    'ar': 'حظر',
+    'it': 'Blocca',
+    'hi': 'ब्लॉक करें',
+    'th': 'บล็อก',
   });
 
   String dmBlockConfirm(String name) => _t({
-    'ko': '$name님을 차단하시겠습니까?', 'en': 'Block $name?', 'ja': '$nameさんをブロックしますか？', 'zh': '屏蔽$name？',
-    'fr': 'Bloquer $name ?', 'de': '$name blockieren?', 'es': '¿Bloquear a $name?',
-    'pt': 'Bloquear $name?', 'ru': 'Заблокировать $name?', 'tr': '$name engellensin mi?',
-    'ar': 'حظر $name؟', 'it': 'Bloccare $name?', 'hi': '$name को ब्लॉक करें?', 'th': 'บล็อก $name?',
+    'ko': '$name님을 차단하시겠습니까?',
+    'en': 'Block $name?',
+    'ja': '$nameさんをブロックしますか？',
+    'zh': '屏蔽$name？',
+    'fr': 'Bloquer $name ?',
+    'de': '$name blockieren?',
+    'es': '¿Bloquear a $name?',
+    'pt': 'Bloquear $name?',
+    'ru': 'Заблокировать $name?',
+    'tr': '$name engellensin mi?',
+    'ar': 'حظر $name؟',
+    'it': 'Bloccare $name?',
+    'hi': '$name को ब्लॉक करें?',
+    'th': 'บล็อก $name?',
   });
 
   String dmBlocked(String name) => _t({
-    'ko': '$name님을 차단했습니다', 'en': '$name has been blocked', 'ja': '$nameさんをブロックしました', 'zh': '已屏蔽$name',
-    'fr': '$name a été bloqué', 'de': '$name wurde blockiert', 'es': '$name ha sido bloqueado',
-    'pt': '$name foi bloqueado', 'ru': '$name заблокирован(а)', 'tr': '$name engellendi',
-    'ar': 'تم حظر $name', 'it': '$name è stato bloccato', 'hi': '$name को ब्लॉक किया गया', 'th': 'บล็อก $name แล้ว',
+    'ko': '$name님을 차단했습니다',
+    'en': '$name has been blocked',
+    'ja': '$nameさんをブロックしました',
+    'zh': '已屏蔽$name',
+    'fr': '$name a été bloqué',
+    'de': '$name wurde blockiert',
+    'es': '$name ha sido bloqueado',
+    'pt': '$name foi bloqueado',
+    'ru': '$name заблокирован(а)',
+    'tr': '$name engellendi',
+    'ar': 'تم حظر $name',
+    'it': '$name è stato bloccato',
+    'hi': '$name को ब्लॉक किया गया',
+    'th': 'บล็อก $name แล้ว',
   });
 
   String get dmReport => _t({
-    'ko': '신고', 'en': 'Report', 'ja': '報告', 'zh': '举报',
-    'fr': 'Signaler', 'de': 'Melden', 'es': 'Reportar',
-    'pt': 'Denunciar', 'ru': 'Пожаловаться', 'tr': 'Şikayet et',
-    'ar': 'إبلاغ', 'it': 'Segnala', 'hi': 'रिपोर्ट करें', 'th': 'รายงาน',
+    'ko': '신고',
+    'en': 'Report',
+    'ja': '報告',
+    'zh': '举报',
+    'fr': 'Signaler',
+    'de': 'Melden',
+    'es': 'Reportar',
+    'pt': 'Denunciar',
+    'ru': 'Пожаловаться',
+    'tr': 'Şikayet et',
+    'ar': 'إبلاغ',
+    'it': 'Segnala',
+    'hi': 'रिपोर्ट करें',
+    'th': 'รายงาน',
   });
 
   String get dmReportUser => _t({
-    'ko': '사용자 신고', 'en': 'Report User', 'ja': 'ユーザーを報告', 'zh': '举报用户',
-    'fr': 'Signaler l\'utilisateur', 'de': 'Benutzer melden', 'es': 'Reportar usuario',
-    'pt': 'Denunciar usuário', 'ru': 'Пожаловаться на пользователя', 'tr': 'Kullanıcıyı şikayet et',
-    'ar': 'الإبلاغ عن المستخدم', 'it': 'Segnala utente', 'hi': 'उपयोगकर्ता की रिपोर्ट करें', 'th': 'รายงานผู้ใช้',
+    'ko': '사용자 신고',
+    'en': 'Report User',
+    'ja': 'ユーザーを報告',
+    'zh': '举报用户',
+    'fr': 'Signaler l\'utilisateur',
+    'de': 'Benutzer melden',
+    'es': 'Reportar usuario',
+    'pt': 'Denunciar usuário',
+    'ru': 'Пожаловаться на пользователя',
+    'tr': 'Kullanıcıyı şikayet et',
+    'ar': 'الإبلاغ عن المستخدم',
+    'it': 'Segnala utente',
+    'hi': 'उपयोगकर्ता की रिपोर्ट करें',
+    'th': 'รายงานผู้ใช้',
   });
 
   String get dmReportAction => _t({
-    'ko': '신고하기', 'en': 'Report', 'ja': '報告する', 'zh': '举报',
-    'fr': 'Signaler', 'de': 'Melden', 'es': 'Reportar',
-    'pt': 'Denunciar', 'ru': 'Пожаловаться', 'tr': 'Şikayet et',
-    'ar': 'إبلاغ', 'it': 'Segnala', 'hi': 'रिपोर्ट करें', 'th': 'รายงาน',
+    'ko': '신고하기',
+    'en': 'Report',
+    'ja': '報告する',
+    'zh': '举报',
+    'fr': 'Signaler',
+    'de': 'Melden',
+    'es': 'Reportar',
+    'pt': 'Denunciar',
+    'ru': 'Пожаловаться',
+    'tr': 'Şikayet et',
+    'ar': 'إبلاغ',
+    'it': 'Segnala',
+    'hi': 'रिपोर्ट करें',
+    'th': 'รายงาน',
   });
 
   String get dmReportAutoBlock => _t({
-    'ko': '신고 시 자동으로 차단됩니다', 'en': 'User will be auto-blocked on report', 'ja': '報告すると自動的にブロックされます', 'zh': '举报后将自动屏蔽该用户',
-    'fr': 'L\'utilisateur sera automatiquement bloqué lors du signalement', 'de': 'Der Benutzer wird bei Meldung automatisch blockiert', 'es': 'El usuario será bloqueado automáticamente al reportar',
-    'pt': 'O usuário será bloqueado automaticamente ao denunciar', 'ru': 'Пользователь будет автоматически заблокирован при жалобе', 'tr': 'Şikayet edildiğinde kullanıcı otomatik olarak engellenecektir',
-    'ar': 'سيتم حظر المستخدم تلقائياً عند الإبلاغ', 'it': 'L\'utente verrà bloccato automaticamente alla segnalazione', 'hi': 'रिपोर्ट करने पर उपयोगकर्ता स्वतः ब्लॉक हो जाएगा', 'th': 'ผู้ใช้จะถูกบล็อกอัตโนมัติเมื่อรายงาน',
+    'ko': '신고 시 자동으로 차단됩니다',
+    'en': 'User will be auto-blocked on report',
+    'ja': '報告すると自動的にブロックされます',
+    'zh': '举报后将自动屏蔽该用户',
+    'fr': 'L\'utilisateur sera automatiquement bloqué lors du signalement',
+    'de': 'Der Benutzer wird bei Meldung automatisch blockiert',
+    'es': 'El usuario será bloqueado automáticamente al reportar',
+    'pt': 'O usuário será bloqueado automaticamente ao denunciar',
+    'ru': 'Пользователь будет автоматически заблокирован при жалобе',
+    'tr': 'Şikayet edildiğinde kullanıcı otomatik olarak engellenecektir',
+    'ar': 'سيتم حظر المستخدم تلقائياً عند الإبلاغ',
+    'it': 'L\'utente verrà bloccato automaticamente alla segnalazione',
+    'hi': 'रिपोर्ट करने पर उपयोगकर्ता स्वतः ब्लॉक हो जाएगा',
+    'th': 'ผู้ใช้จะถูกบล็อกอัตโนมัติเมื่อรายงาน',
   });
 
   String get dmReportReasonSpam => _t({
-    'ko': '스팸', 'en': 'Spam', 'ja': 'スパム', 'zh': '垃圾信息',
-    'fr': 'Spam', 'de': 'Spam', 'es': 'Spam',
-    'pt': 'Spam', 'ru': 'Спам', 'tr': 'Spam',
-    'ar': 'بريد مزعج', 'it': 'Spam', 'hi': 'स्पैम', 'th': 'สแปม',
+    'ko': '스팸',
+    'en': 'Spam',
+    'ja': 'スパム',
+    'zh': '垃圾信息',
+    'fr': 'Spam',
+    'de': 'Spam',
+    'es': 'Spam',
+    'pt': 'Spam',
+    'ru': 'Спам',
+    'tr': 'Spam',
+    'ar': 'بريد مزعج',
+    'it': 'Spam',
+    'hi': 'स्पैम',
+    'th': 'สแปม',
   });
 
   String get dmReportReasonHarass => _t({
-    'ko': '괴롭힘', 'en': 'Harassment', 'ja': 'ハラスメント', 'zh': '骚扰',
-    'fr': 'Harcèlement', 'de': 'Belästigung', 'es': 'Acoso',
-    'pt': 'Assédio', 'ru': 'Домогательство', 'tr': 'Taciz',
-    'ar': 'تحرش', 'it': 'Molestie', 'hi': 'उत्पीड़न', 'th': 'การคุกคาม',
+    'ko': '괴롭힘',
+    'en': 'Harassment',
+    'ja': 'ハラスメント',
+    'zh': '骚扰',
+    'fr': 'Harcèlement',
+    'de': 'Belästigung',
+    'es': 'Acoso',
+    'pt': 'Assédio',
+    'ru': 'Домогательство',
+    'tr': 'Taciz',
+    'ar': 'تحرش',
+    'it': 'Molestie',
+    'hi': 'उत्पीड़न',
+    'th': 'การคุกคาม',
   });
 
   String get dmReportReasonHate => _t({
-    'ko': '혐오 발언', 'en': 'Hate Speech', 'ja': 'ヘイトスピーチ', 'zh': '仇恨言论',
-    'fr': 'Discours haineux', 'de': 'Hassrede', 'es': 'Discurso de odio',
-    'pt': 'Discurso de ódio', 'ru': 'Язык ненависти', 'tr': 'Nefret söylemi',
-    'ar': 'خطاب كراهية', 'it': 'Incitamento all\'odio', 'hi': 'घृणा भाषण', 'th': 'ถ้อยคำแห่งความเกลียดชัง',
+    'ko': '혐오 발언',
+    'en': 'Hate Speech',
+    'ja': 'ヘイトスピーチ',
+    'zh': '仇恨言论',
+    'fr': 'Discours haineux',
+    'de': 'Hassrede',
+    'es': 'Discurso de odio',
+    'pt': 'Discurso de ódio',
+    'ru': 'Язык ненависти',
+    'tr': 'Nefret söylemi',
+    'ar': 'خطاب كراهية',
+    'it': 'Incitamento all\'odio',
+    'hi': 'घृणा भाषण',
+    'th': 'ถ้อยคำแห่งความเกลียดชัง',
   });
 
   String get dmReportReasonIllegal => _t({
-    'ko': '불법 콘텐츠', 'en': 'Illegal Content', 'ja': '違法コンテンツ', 'zh': '违法内容',
-    'fr': 'Contenu illégal', 'de': 'Illegaler Inhalt', 'es': 'Contenido ilegal',
-    'pt': 'Conteúdo ilegal', 'ru': 'Незаконный контент', 'tr': 'Yasadışı içerik',
-    'ar': 'محتوى غير قانوني', 'it': 'Contenuto illegale', 'hi': 'अवैध सामग्री', 'th': 'เนื้อหาผิดกฎหมาย',
+    'ko': '불법 콘텐츠',
+    'en': 'Illegal Content',
+    'ja': '違法コンテンツ',
+    'zh': '违法内容',
+    'fr': 'Contenu illégal',
+    'de': 'Illegaler Inhalt',
+    'es': 'Contenido ilegal',
+    'pt': 'Conteúdo ilegal',
+    'ru': 'Незаконный контент',
+    'tr': 'Yasadışı içerik',
+    'ar': 'محتوى غير قانوني',
+    'it': 'Contenuto illegale',
+    'hi': 'अवैध सामग्री',
+    'th': 'เนื้อหาผิดกฎหมาย',
   });
 
   String get dmReportReasonOther => _t({
-    'ko': '기타', 'en': 'Other', 'ja': 'その他', 'zh': '其他',
-    'fr': 'Autre', 'de': 'Sonstiges', 'es': 'Otro',
-    'pt': 'Outro', 'ru': 'Другое', 'tr': 'Diğer',
-    'ar': 'أخرى', 'it': 'Altro', 'hi': 'अन्य', 'th': 'อื่นๆ',
+    'ko': '기타',
+    'en': 'Other',
+    'ja': 'その他',
+    'zh': '其他',
+    'fr': 'Autre',
+    'de': 'Sonstiges',
+    'es': 'Otro',
+    'pt': 'Outro',
+    'ru': 'Другое',
+    'tr': 'Diğer',
+    'ar': 'أخرى',
+    'it': 'Altro',
+    'hi': 'अन्य',
+    'th': 'อื่นๆ',
   });
 
   String dmReportReason(String reason) => _t({
-    'ko': '신고 사유: $reason', 'en': 'Report reason: $reason', 'ja': '報告理由: $reason', 'zh': '举报原因: $reason',
-    'fr': 'Motif du signalement : $reason', 'de': 'Meldegrund: $reason', 'es': 'Motivo del reporte: $reason',
-    'pt': 'Motivo da denúncia: $reason', 'ru': 'Причина жалобы: $reason', 'tr': 'Şikayet nedeni: $reason',
-    'ar': 'سبب الإبلاغ: $reason', 'it': 'Motivo della segnalazione: $reason', 'hi': 'रिपोर्ट का कारण: $reason', 'th': 'เหตุผลในการรายงาน: $reason',
+    'ko': '신고 사유: $reason',
+    'en': 'Report reason: $reason',
+    'ja': '報告理由: $reason',
+    'zh': '举报原因: $reason',
+    'fr': 'Motif du signalement : $reason',
+    'de': 'Meldegrund: $reason',
+    'es': 'Motivo del reporte: $reason',
+    'pt': 'Motivo da denúncia: $reason',
+    'ru': 'Причина жалобы: $reason',
+    'tr': 'Şikayet nedeni: $reason',
+    'ar': 'سبب الإبلاغ: $reason',
+    'it': 'Motivo della segnalazione: $reason',
+    'hi': 'रिपोर्ट का कारण: $reason',
+    'th': 'เหตุผลในการรายงาน: $reason',
   });
 
   String dmReported(String name) => _t({
-    'ko': '$name님을 신고했습니다', 'en': '$name has been reported', 'ja': '$nameさんを報告しました', 'zh': '已举报$name',
-    'fr': '$name a été signalé', 'de': '$name wurde gemeldet', 'es': '$name ha sido reportado',
-    'pt': '$name foi denunciado', 'ru': 'Жалоба на $name отправлена', 'tr': '$name şikayet edildi',
-    'ar': 'تم الإبلاغ عن $name', 'it': '$name è stato segnalato', 'hi': '$name की रिपोर्ट की गई', 'th': 'รายงาน $name แล้ว',
+    'ko': '$name님을 신고했습니다',
+    'en': '$name has been reported',
+    'ja': '$nameさんを報告しました',
+    'zh': '已举报$name',
+    'fr': '$name a été signalé',
+    'de': '$name wurde gemeldet',
+    'es': '$name ha sido reportado',
+    'pt': '$name foi denunciado',
+    'ru': 'Жалоба на $name отправлена',
+    'tr': '$name şikayet edildi',
+    'ar': 'تم الإبلاغ عن $name',
+    'it': '$name è stato segnalato',
+    'hi': '$name की रिपोर्ट की गई',
+    'th': 'รายงาน $name แล้ว',
   });
 
   String dmConversationInfo(String name, int quota) => _t({
-    'ko': '$name님과의 대화 (메시지 $quota개 가능)', 'en': 'Chat with $name ($quota messages available)', 'ja': '$nameさんとの会話（残り$quota通）', 'zh': '与$name的对话（剩余$quota条）',
-    'fr': 'Discussion avec $name ($quota messages disponibles)', 'de': 'Chat mit $name ($quota Nachrichten verfügbar)', 'es': 'Chat con $name ($quota mensajes disponibles)',
-    'pt': 'Conversa com $name ($quota mensagens disponíveis)', 'ru': 'Чат с $name ($quota сообщений доступно)', 'tr': '$name ile sohbet ($quota mesaj kaldı)',
-    'ar': 'محادثة مع $name ($quota رسائل متاحة)', 'it': 'Chat con $name ($quota messaggi disponibili)', 'hi': '$name के साथ चैट ($quota संदेश उपलब्ध)', 'th': 'สนทนากับ $name (เหลือ $quota ข้อความ)',
+    'ko': '$name님과의 대화 (메시지 $quota개 가능)',
+    'en': 'Chat with $name ($quota messages available)',
+    'ja': '$nameさんとの会話（残り$quota通）',
+    'zh': '与$name的对话（剩余$quota条）',
+    'fr': 'Discussion avec $name ($quota messages disponibles)',
+    'de': 'Chat mit $name ($quota Nachrichten verfügbar)',
+    'es': 'Chat con $name ($quota mensajes disponibles)',
+    'pt': 'Conversa com $name ($quota mensagens disponíveis)',
+    'ru': 'Чат с $name ($quota сообщений доступно)',
+    'tr': '$name ile sohbet ($quota mesaj kaldı)',
+    'ar': 'محادثة مع $name ($quota رسائل متاحة)',
+    'it': 'Chat con $name ($quota messaggi disponibili)',
+    'hi': '$name के साथ चैट ($quota संदेश उपलब्ध)',
+    'th': 'สนทนากับ $name (เหลือ $quota ข้อความ)',
   });
 
   String dmStartChat(String name) => _t({
-    'ko': '$name님과 대화 시작', 'en': 'Start chat with $name', 'ja': '$nameさんとチャットを開始', 'zh': '开始与$name聊天',
-    'fr': 'Démarrer une discussion avec $name', 'de': 'Chat mit $name starten', 'es': 'Iniciar chat con $name',
-    'pt': 'Iniciar conversa com $name', 'ru': 'Начать чат с $name', 'tr': '$name ile sohbeti başlat',
-    'ar': 'بدء محادثة مع $name', 'it': 'Avvia chat con $name', 'hi': '$name के साथ चैट शुरू करें', 'th': 'เริ่มแชทกับ $name',
+    'ko': '$name님과 대화 시작',
+    'en': 'Start chat with $name',
+    'ja': '$nameさんとチャットを開始',
+    'zh': '开始与$name聊天',
+    'fr': 'Démarrer une discussion avec $name',
+    'de': 'Chat mit $name starten',
+    'es': 'Iniciar chat con $name',
+    'pt': 'Iniciar conversa com $name',
+    'ru': 'Начать чат с $name',
+    'tr': '$name ile sohbeti başlat',
+    'ar': 'بدء محادثة مع $name',
+    'it': 'Avvia chat con $name',
+    'hi': '$name के साथ चैट शुरू करें',
+    'th': 'เริ่มแชทกับ $name',
   });
 
   String dmQuotaInfo(String name, int remaining) => _t({
-    'ko': '$name님과 대화 · 남은 메시지: $remaining', 'en': 'Chat with $name · $remaining remaining', 'ja': '$nameさんとの会話 · 残り$remaining通', 'zh': '与$name聊天 · 剩余$remaining条',
-    'fr': 'Chat avec $name · $remaining restants', 'de': 'Chat mit $name · $remaining übrig', 'es': 'Chat con $name · $remaining restantes',
-    'pt': 'Chat com $name · $remaining restantes', 'ru': 'Чат с $name · осталось $remaining', 'tr': '$name ile sohbet · $remaining kaldı',
-    'ar': 'محادثة مع $name · $remaining متبقية', 'it': 'Chat con $name · $remaining rimanenti', 'hi': '$name के साथ चैट · $remaining शेष', 'th': 'แชทกับ $name · เหลือ $remaining',
+    'ko': '$name님과 대화 · 남은 메시지: $remaining',
+    'en': 'Chat with $name · $remaining remaining',
+    'ja': '$nameさんとの会話 · 残り$remaining通',
+    'zh': '与$name聊天 · 剩余$remaining条',
+    'fr': 'Chat avec $name · $remaining restants',
+    'de': 'Chat mit $name · $remaining übrig',
+    'es': 'Chat con $name · $remaining restantes',
+    'pt': 'Chat com $name · $remaining restantes',
+    'ru': 'Чат с $name · осталось $remaining',
+    'tr': '$name ile sohbet · $remaining kaldı',
+    'ar': 'محادثة مع $name · $remaining متبقية',
+    'it': 'Chat con $name · $remaining rimanenti',
+    'hi': '$name के साथ चैट · $remaining शेष',
+    'th': 'แชทกับ $name · เหลือ $remaining',
   });
 
   String dmQuotaInsufficient(int quota) => _t({
-    'ko': '오늘 메시지 한도에 도달했습니다', 'en': 'Daily message limit reached', 'ja': '本日のメッセージ上限に達しました', 'zh': '今日消息限额已达上限',
-    'fr': 'Limite quotidienne de messages atteinte', 'de': 'Tägliches Nachrichtenlimit erreicht', 'es': 'Límite diario de mensajes alcanzado',
-    'pt': 'Limite diário de mensagens atingido', 'ru': 'Дневной лимит сообщений достигнут', 'tr': 'Günlük mesaj limitine ulaşıldı',
-    'ar': 'تم الوصول إلى الحد اليومي للرسائل', 'it': 'Limite giornaliero di messaggi raggiunto', 'hi': 'दैनिक संदेश सीमा पूरी हो गई', 'th': 'ถึงขีดจำกัดข้อความรายวันแล้ว',
+    'ko': '오늘 메시지 한도에 도달했습니다',
+    'en': 'Daily message limit reached',
+    'ja': '本日のメッセージ上限に達しました',
+    'zh': '今日消息限额已达上限',
+    'fr': 'Limite quotidienne de messages atteinte',
+    'de': 'Tägliches Nachrichtenlimit erreicht',
+    'es': 'Límite diario de mensajes alcanzado',
+    'pt': 'Limite diário de mensagens atingido',
+    'ru': 'Дневной лимит сообщений достигнут',
+    'tr': 'Günlük mesaj limitine ulaşıldı',
+    'ar': 'تم الوصول إلى الحد اليومي للرسائل',
+    'it': 'Limite giornaliero di messaggi raggiunto',
+    'hi': 'दैनिक संदेश सीमा पूरी हो गई',
+    'th': 'ถึงขีดจำกัดข้อความรายวันแล้ว',
   });
 
   // ── Status / Stage (letter delivery) ────────────────────────────────────
 
   String get statusDrafting => _t({
-    'ko': '작성 중', 'en': 'Drafting', 'ja': '作成中', 'zh': '撰写中',
-    'fr': 'Rédaction', 'de': 'Entwurf', 'es': 'Redactando',
-    'pt': 'Redigindo', 'ru': 'Черновик', 'tr': 'Yazılıyor',
-    'ar': 'جارٍ الكتابة', 'it': 'In bozza', 'hi': 'लिखा जा रहा है', 'th': 'กำลังร่าง',
+    'ko': '작성 중',
+    'en': 'Drafting',
+    'ja': '作成中',
+    'zh': '撰写中',
+    'fr': 'Rédaction',
+    'de': 'Entwurf',
+    'es': 'Redactando',
+    'pt': 'Redigindo',
+    'ru': 'Черновик',
+    'tr': 'Yazılıyor',
+    'ar': 'جارٍ الكتابة',
+    'it': 'In bozza',
+    'hi': 'लिखा जा रहा है',
+    'th': 'กำลังร่าง',
   });
 
   String get statusNearby => _t({
@@ -18366,142 +22129,332 @@ class AppL10n {
   });
 
   String get statusRead => _t({
-    'ko': '읽음', 'en': 'Read', 'ja': '既読', 'zh': '已读',
-    'fr': 'Lu', 'de': 'Gelesen', 'es': 'Leído',
-    'pt': 'Lido', 'ru': 'Прочитано', 'tr': 'Okundu',
-    'ar': 'مقروءة', 'it': 'Letta', 'hi': 'पढ़ा गया', 'th': 'อ่านแล้ว',
+    'ko': '읽음',
+    'en': 'Read',
+    'ja': '既読',
+    'zh': '已读',
+    'fr': 'Lu',
+    'de': 'Gelesen',
+    'es': 'Leído',
+    'pt': 'Lido',
+    'ru': 'Прочитано',
+    'tr': 'Okundu',
+    'ar': 'مقروءة',
+    'it': 'Letta',
+    'hi': 'पढ़ा गया',
+    'th': 'อ่านแล้ว',
   });
 
   String get stageDelivered => _t({
-    'ko': '전달 완료', 'en': 'Delivered', 'ja': '配達完了', 'zh': '已送达',
-    'fr': 'Livré', 'de': 'Zugestellt', 'es': 'Entregado',
-    'pt': 'Entregue', 'ru': 'Доставлено', 'tr': 'Teslim edildi',
-    'ar': 'تم التسليم', 'it': 'Consegnata', 'hi': 'वितरित', 'th': 'ส่งแล้ว',
+    'ko': '전달 완료',
+    'en': 'Delivered',
+    'ja': '配達完了',
+    'zh': '已送达',
+    'fr': 'Livré',
+    'de': 'Zugestellt',
+    'es': 'Entregado',
+    'pt': 'Entregue',
+    'ru': 'Доставлено',
+    'tr': 'Teslim edildi',
+    'ar': 'تم التسليم',
+    'it': 'Consegnata',
+    'hi': 'वितरित',
+    'th': 'ส่งแล้ว',
   });
 
   String get stageNearby2km => _t({
-    'ko': '2km 이내 도착', 'en': 'Arrived within 2km', 'ja': '2km以内に到着', 'zh': '已到达2km以内',
-    'fr': 'Arrivé à moins de 2 km', 'de': 'Innerhalb von 2 km angekommen', 'es': 'Llegó a menos de 2 km',
-    'pt': 'Chegou a menos de 2 km', 'ru': 'Прибыло в пределах 2 км', 'tr': '2 km içinde ulaştı',
-    'ar': 'وصلت ضمن 2 كم', 'it': 'Arrivata entro 2 km', 'hi': '2 km के भीतर पहुँचा', 'th': 'มาถึงภายใน 2 กม.',
+    'ko': '2km 이내 도착',
+    'en': 'Arrived within 2km',
+    'ja': '2km以内に到着',
+    'zh': '已到达2km以内',
+    'fr': 'Arrivé à moins de 2 km',
+    'de': 'Innerhalb von 2 km angekommen',
+    'es': 'Llegó a menos de 2 km',
+    'pt': 'Chegou a menos de 2 km',
+    'ru': 'Прибыло в пределах 2 км',
+    'tr': '2 km içinde ulaştı',
+    'ar': 'وصلت ضمن 2 كم',
+    'it': 'Arrivata entro 2 km',
+    'hi': '2 km के भीतर पहुँचा',
+    'th': 'มาถึงภายใน 2 กม.',
   });
 
   String get stageArrivedLocalPickup => _t({
-    'ko': '현지 도착 - 수령 가능', 'en': 'Local arrival - Ready for pickup', 'ja': '現地到着 - 受取可能', 'zh': '已到达当地 - 可取件',
-    'fr': 'Arrivée locale - Prêt pour le retrait', 'de': 'Vor Ort angekommen - Abholbereit', 'es': 'Llegada local - Listo para recoger',
-    'pt': 'Chegada local - Pronto para retirada', 'ru': 'Прибыло на месте - Готово к получению', 'tr': 'Yerel varış - Teslim almaya hazır',
-    'ar': 'وصول محلي - جاهز للاستلام', 'it': 'Arrivo locale - Pronto per il ritiro', 'hi': 'स्थानीय आगमन - लेने के लिए तैयार', 'th': 'ถึงในพื้นที่ - พร้อมรับ',
+    'ko': '현지 도착 - 수령 가능',
+    'en': 'Local arrival - Ready for pickup',
+    'ja': '現地到着 - 受取可能',
+    'zh': '已到达当地 - 可取件',
+    'fr': 'Arrivée locale - Prêt pour le retrait',
+    'de': 'Vor Ort angekommen - Abholbereit',
+    'es': 'Llegada local - Listo para recoger',
+    'pt': 'Chegada local - Pronto para retirada',
+    'ru': 'Прибыло на месте - Готово к получению',
+    'tr': 'Yerel varış - Teslim almaya hazır',
+    'ar': 'وصول محلي - جاهز للاستلام',
+    'it': 'Arrivo locale - Pronto per il ritiro',
+    'hi': 'स्थानीय आगमन - लेने के लिए तैयार',
+    'th': 'ถึงในพื้นที่ - พร้อมรับ',
   });
 
   // ── Arrival (time estimates) ────────────────────────────────────────────
 
   String arrivalMinutes(int min) => _t({
-    'ko': '$min분', 'en': '$min min', 'ja': '$min分', 'zh': '$min分钟',
-    'fr': '$min min', 'de': '$min Min.', 'es': '$min min',
-    'pt': '$min min', 'ru': '$min мин.', 'tr': '$min dk',
-    'ar': '$min دقيقة', 'it': '$min min', 'hi': '$min मिनट', 'th': '$min นาที',
+    'ko': '$min분',
+    'en': '$min min',
+    'ja': '$min分',
+    'zh': '$min分钟',
+    'fr': '$min min',
+    'de': '$min Min.',
+    'es': '$min min',
+    'pt': '$min min',
+    'ru': '$min мин.',
+    'tr': '$min dk',
+    'ar': '$min دقيقة',
+    'it': '$min min',
+    'hi': '$min मिनट',
+    'th': '$min นาที',
   });
 
   String arrivalHours(int h) => _t({
-    'ko': '$h시간', 'en': '$h hr', 'ja': '$h時間', 'zh': '$h小时',
-    'fr': '$h h', 'de': '$h Std.', 'es': '$h h',
-    'pt': '$h h', 'ru': '$h ч.', 'tr': '$h sa',
-    'ar': '$h ساعة', 'it': '$h ore', 'hi': '$h घंटा', 'th': '$h ชั่วโมง',
+    'ko': '$h시간',
+    'en': '$h hr',
+    'ja': '$h時間',
+    'zh': '$h小时',
+    'fr': '$h h',
+    'de': '$h Std.',
+    'es': '$h h',
+    'pt': '$h h',
+    'ru': '$h ч.',
+    'tr': '$h sa',
+    'ar': '$h ساعة',
+    'it': '$h ore',
+    'hi': '$h घंटा',
+    'th': '$h ชั่วโมง',
   });
 
   String arrivalHoursMinutes(int h, int m) => _t({
-    'ko': '$h시간 $m분', 'en': '$h hr $m min', 'ja': '$h時間$m分', 'zh': '$h小时$m分钟',
-    'fr': '$h h $m min', 'de': '$h Std. $m Min.', 'es': '$h h $m min',
-    'pt': '$h h $m min', 'ru': '$h ч. $m мин.', 'tr': '$h sa $m dk',
-    'ar': '$h ساعة $m دقيقة', 'it': '$h ore $m min', 'hi': '$h घंटा $m मिनट', 'th': '$h ชั่วโมง $m นาที',
+    'ko': '$h시간 $m분',
+    'en': '$h hr $m min',
+    'ja': '$h時間$m分',
+    'zh': '$h小时$m分钟',
+    'fr': '$h h $m min',
+    'de': '$h Std. $m Min.',
+    'es': '$h h $m min',
+    'pt': '$h h $m min',
+    'ru': '$h ч. $m мин.',
+    'tr': '$h sa $m dk',
+    'ar': '$h ساعة $m دقيقة',
+    'it': '$h ore $m min',
+    'hi': '$h घंटा $m मिनट',
+    'th': '$h ชั่วโมง $m นาที',
   });
 
   String arrivalDays(int d, String date) => _t({
-    'ko': '$d일 ($date)', 'en': '$d days ($date)', 'ja': '$d日 ($date)', 'zh': '$d天 ($date)',
-    'fr': '$d jours ($date)', 'de': '$d Tage ($date)', 'es': '$d días ($date)',
-    'pt': '$d dias ($date)', 'ru': '$d дн. ($date)', 'tr': '$d gün ($date)',
-    'ar': '$d يوم ($date)', 'it': '$d giorni ($date)', 'hi': '$d दिन ($date)', 'th': '$d วัน ($date)',
+    'ko': '$d일 ($date)',
+    'en': '$d days ($date)',
+    'ja': '$d日 ($date)',
+    'zh': '$d天 ($date)',
+    'fr': '$d jours ($date)',
+    'de': '$d Tage ($date)',
+    'es': '$d días ($date)',
+    'pt': '$d dias ($date)',
+    'ru': '$d дн. ($date)',
+    'tr': '$d gün ($date)',
+    'ar': '$d يوم ($date)',
+    'it': '$d giorni ($date)',
+    'hi': '$d दिन ($date)',
+    'th': '$d วัน ($date)',
   });
 
   String get arrivalComplete => _t({
-    'ko': '도착 완료', 'en': 'Arrived', 'ja': '到着完了', 'zh': '已到达',
-    'fr': 'Arrivé', 'de': 'Angekommen', 'es': 'Llegó',
-    'pt': 'Chegou', 'ru': 'Прибыло', 'tr': 'Ulaştı',
-    'ar': 'وصلت', 'it': 'Arrivata', 'hi': 'पहुँच गया', 'th': 'มาถึงแล้ว',
+    'ko': '도착 완료',
+    'en': 'Arrived',
+    'ja': '到着完了',
+    'zh': '已到达',
+    'fr': 'Arrivé',
+    'de': 'Angekommen',
+    'es': 'Llegó',
+    'pt': 'Chegou',
+    'ru': 'Прибыло',
+    'tr': 'Ulaştı',
+    'ar': 'وصلت',
+    'it': 'Arrivata',
+    'hi': 'पहुँच गया',
+    'th': 'มาถึงแล้ว',
   });
 
   String get arrivalDestinationWaiting => _t({
-    'ko': '목적지 대기 중', 'en': 'Waiting at destination', 'ja': '目的地で待機中', 'zh': '在目的地等待中',
-    'fr': 'En attente à destination', 'de': 'Wartet am Zielort', 'es': 'Esperando en destino',
-    'pt': 'Aguardando no destino', 'ru': 'Ожидание на месте назначения', 'tr': 'Hedefte bekliyor',
-    'ar': 'في انتظار الوجهة', 'it': 'In attesa a destinazione', 'hi': 'गंतव्य पर प्रतीक्षा', 'th': 'รอที่จุดหมาย',
+    'ko': '목적지 대기 중',
+    'en': 'Waiting at destination',
+    'ja': '目的地で待機中',
+    'zh': '在目的地等待中',
+    'fr': 'En attente à destination',
+    'de': 'Wartet am Zielort',
+    'es': 'Esperando en destino',
+    'pt': 'Aguardando no destino',
+    'ru': 'Ожидание на месте назначения',
+    'tr': 'Hedefte bekliyor',
+    'ar': 'في انتظار الوجهة',
+    'it': 'In attesa a destinazione',
+    'hi': 'गंतव्य पर प्रतीक्षा',
+    'th': 'รอที่จุดหมาย',
   });
 
   String get arrivalNearbyPickup => _t({
-    'ko': '근처에서 수령 가능', 'en': 'Available for nearby pickup', 'ja': '近くで受取可能', 'zh': '可在附近取件',
-    'fr': 'Disponible pour retrait à proximité', 'de': 'Zur Abholung in der Nähe verfügbar', 'es': 'Disponible para recogida cercana',
-    'pt': 'Disponível para retirada próxima', 'ru': 'Доступно для получения поблизости', 'tr': 'Yakınlarda teslim alınabilir',
-    'ar': 'متاح للاستلام القريب', 'it': 'Disponibile per ritiro nelle vicinanze', 'hi': 'आस-पास से लेने के लिए उपलब्ध', 'th': 'พร้อมรับใกล้เคียง',
+    'ko': '근처에서 수령 가능',
+    'en': 'Available for nearby pickup',
+    'ja': '近くで受取可能',
+    'zh': '可在附近取件',
+    'fr': 'Disponible pour retrait à proximité',
+    'de': 'Zur Abholung in der Nähe verfügbar',
+    'es': 'Disponible para recogida cercana',
+    'pt': 'Disponível para retirada próxima',
+    'ru': 'Доступно для получения поблизости',
+    'tr': 'Yakınlarda teslim alınabilir',
+    'ar': 'متاح للاستلام القريب',
+    'it': 'Disponibile per ritiro nelle vicinanze',
+    'hi': 'आस-पास से लेने के लिए उपलब्ध',
+    'th': 'พร้อมรับใกล้เคียง',
   });
 
   // ── ETA (delivery time estimates) ───────────────────────────────────────
 
   String get etaSameDay => _t({
-    'ko': '당일 배송', 'en': 'Same day', 'ja': '当日配達', 'zh': '当日送达',
-    'fr': 'Le jour même', 'de': 'Am selben Tag', 'es': 'El mismo día',
-    'pt': 'No mesmo dia', 'ru': 'В тот же день', 'tr': 'Aynı gün',
-    'ar': 'نفس اليوم', 'it': 'Lo stesso giorno', 'hi': 'उसी दिन', 'th': 'ภายในวันเดียวกัน',
+    'ko': '당일 배송',
+    'en': 'Same day',
+    'ja': '当日配達',
+    'zh': '当日送达',
+    'fr': 'Le jour même',
+    'de': 'Am selben Tag',
+    'es': 'El mismo día',
+    'pt': 'No mesmo dia',
+    'ru': 'В тот же день',
+    'tr': 'Aynı gün',
+    'ar': 'نفس اليوم',
+    'it': 'Lo stesso giorno',
+    'hi': 'उसी दिन',
+    'th': 'ภายในวันเดียวกัน',
   });
 
   String get etaDomestic => _t({
-    'ko': '국내 1~3시간', 'en': 'Domestic 1-3 hours', 'ja': '国内 1〜3時間', 'zh': '国内 1-3小时',
-    'fr': 'National 1 à 3 heures', 'de': 'Inland 1–3 Stunden', 'es': 'Nacional 1-3 horas',
-    'pt': 'Nacional 1-3 horas', 'ru': 'Внутри страны 1–3 часа', 'tr': 'Yurt içi 1-3 saat',
-    'ar': 'محلي 1-3 ساعات', 'it': 'Nazionale 1-3 ore', 'hi': 'घरेलू 1-3 घंटे', 'th': 'ภายในประเทศ 1-3 ชั่วโมง',
+    'ko': '국내 1~3시간',
+    'en': 'Domestic 1-3 hours',
+    'ja': '国内 1〜3時間',
+    'zh': '国内 1-3小时',
+    'fr': 'National 1 à 3 heures',
+    'de': 'Inland 1–3 Stunden',
+    'es': 'Nacional 1-3 horas',
+    'pt': 'Nacional 1-3 horas',
+    'ru': 'Внутри страны 1–3 часа',
+    'tr': 'Yurt içi 1-3 saat',
+    'ar': 'محلي 1-3 ساعات',
+    'it': 'Nazionale 1-3 ore',
+    'hi': 'घरेलू 1-3 घंटे',
+    'th': 'ภายในประเทศ 1-3 ชั่วโมง',
   });
 
   String get etaIntlAirShort => _t({
-    'ko': '국제 항공 6~12시간', 'en': 'Intl. air 6-12 hours', 'ja': '国際航空 6〜12時間', 'zh': '国际航空 6-12小时',
-    'fr': 'Aérien intl. 6 à 12 heures', 'de': 'Intl. Luftpost 6–12 Stunden', 'es': 'Aéreo intl. 6-12 horas',
-    'pt': 'Aéreo intl. 6-12 horas', 'ru': 'Междунар. авиа 6–12 часов', 'tr': 'Uluslararası hava 6-12 saat',
-    'ar': 'جوي دولي 6-12 ساعة', 'it': 'Aereo intl. 6-12 ore', 'hi': 'अंतर्राष्ट्रीय हवाई 6-12 घंटे', 'th': 'ทางอากาศระหว่างประเทศ 6-12 ชั่วโมง',
+    'ko': '국제 항공 6~12시간',
+    'en': 'Intl. air 6-12 hours',
+    'ja': '国際航空 6〜12時間',
+    'zh': '国际航空 6-12小时',
+    'fr': 'Aérien intl. 6 à 12 heures',
+    'de': 'Intl. Luftpost 6–12 Stunden',
+    'es': 'Aéreo intl. 6-12 horas',
+    'pt': 'Aéreo intl. 6-12 horas',
+    'ru': 'Междунар. авиа 6–12 часов',
+    'tr': 'Uluslararası hava 6-12 saat',
+    'ar': 'جوي دولي 6-12 ساعة',
+    'it': 'Aereo intl. 6-12 ore',
+    'hi': 'अंतर्राष्ट्रीय हवाई 6-12 घंटे',
+    'th': 'ทางอากาศระหว่างประเทศ 6-12 ชั่วโมง',
   });
 
   String get etaIntlAirLong => _t({
-    'ko': '국제 항공 12~24시간', 'en': 'Intl. air 12-24 hours', 'ja': '国際航空 12〜24時間', 'zh': '国际航空 12-24小时',
-    'fr': 'Aérien intl. 12 à 24 heures', 'de': 'Intl. Luftpost 12–24 Stunden', 'es': 'Aéreo intl. 12-24 horas',
-    'pt': 'Aéreo intl. 12-24 horas', 'ru': 'Междунар. авиа 12–24 часа', 'tr': 'Uluslararası hava 12-24 saat',
-    'ar': 'جوي دولي 12-24 ساعة', 'it': 'Aereo intl. 12-24 ore', 'hi': 'अंतर्राष्ट्रीय हवाई 12-24 घंटे', 'th': 'ทางอากาศระหว่างประเทศ 12-24 ชั่วโมง',
+    'ko': '국제 항공 12~24시간',
+    'en': 'Intl. air 12-24 hours',
+    'ja': '国際航空 12〜24時間',
+    'zh': '国际航空 12-24小时',
+    'fr': 'Aérien intl. 12 à 24 heures',
+    'de': 'Intl. Luftpost 12–24 Stunden',
+    'es': 'Aéreo intl. 12-24 horas',
+    'pt': 'Aéreo intl. 12-24 horas',
+    'ru': 'Междунар. авиа 12–24 часа',
+    'tr': 'Uluslararası hava 12-24 saat',
+    'ar': 'جوي دولي 12-24 ساعة',
+    'it': 'Aereo intl. 12-24 ore',
+    'hi': 'अंतर्राष्ट्रीय हवाई 12-24 घंटे',
+    'th': 'ทางอากาศระหว่างประเทศ 12-24 ชั่วโมง',
   });
 
   String get etaIntlSea => _t({
-    'ko': '해상 운송 2~5일', 'en': 'Sea shipping 2-5 days', 'ja': '海上輸送 2〜5日', 'zh': '海运 2-5天',
-    'fr': 'Transport maritime 2 à 5 jours', 'de': 'Seeweg 2–5 Tage', 'es': 'Marítimo 2-5 días',
-    'pt': 'Marítimo 2-5 dias', 'ru': 'Морская доставка 2–5 дней', 'tr': 'Deniz yolu 2-5 gün',
-    'ar': 'شحن بحري 2-5 أيام', 'it': 'Via mare 2-5 giorni', 'hi': 'समुद्री शिपिंग 2-5 दिन', 'th': 'ทางเรือ 2-5 วัน',
+    'ko': '해상 운송 2~5일',
+    'en': 'Sea shipping 2-5 days',
+    'ja': '海上輸送 2〜5日',
+    'zh': '海运 2-5天',
+    'fr': 'Transport maritime 2 à 5 jours',
+    'de': 'Seeweg 2–5 Tage',
+    'es': 'Marítimo 2-5 días',
+    'pt': 'Marítimo 2-5 dias',
+    'ru': 'Морская доставка 2–5 дней',
+    'tr': 'Deniz yolu 2-5 gün',
+    'ar': 'شحن بحري 2-5 أيام',
+    'it': 'Via mare 2-5 giorni',
+    'hi': 'समुद्री शिपिंग 2-5 दिन',
+    'th': 'ทางเรือ 2-5 วัน',
   });
 
   // ── Transport ───────────────────────────────────────────────────────────
 
   String get transportLand => _t({
-    'ko': '육로', 'en': 'Land', 'ja': '陸路', 'zh': '陆路',
-    'fr': 'Terrestre', 'de': 'Landweg', 'es': 'Terrestre',
-    'pt': 'Terrestre', 'ru': 'Наземный', 'tr': 'Kara',
-    'ar': 'بري', 'it': 'Terrestre', 'hi': 'स्थलमार्ग', 'th': 'ทางบก',
+    'ko': '육로',
+    'en': 'Land',
+    'ja': '陸路',
+    'zh': '陆路',
+    'fr': 'Terrestre',
+    'de': 'Landweg',
+    'es': 'Terrestre',
+    'pt': 'Terrestre',
+    'ru': 'Наземный',
+    'tr': 'Kara',
+    'ar': 'بري',
+    'it': 'Terrestre',
+    'hi': 'स्थलमार्ग',
+    'th': 'ทางบก',
   });
 
   String get transportAir => _t({
-    'ko': '항공', 'en': 'Air', 'ja': '航空', 'zh': '航空',
-    'fr': 'Aérien', 'de': 'Luftweg', 'es': 'Aéreo',
-    'pt': 'Aéreo', 'ru': 'Воздушный', 'tr': 'Hava',
-    'ar': 'جوي', 'it': 'Aereo', 'hi': 'हवाई', 'th': 'ทางอากาศ',
+    'ko': '항공',
+    'en': 'Air',
+    'ja': '航空',
+    'zh': '航空',
+    'fr': 'Aérien',
+    'de': 'Luftweg',
+    'es': 'Aéreo',
+    'pt': 'Aéreo',
+    'ru': 'Воздушный',
+    'tr': 'Hava',
+    'ar': 'جوي',
+    'it': 'Aereo',
+    'hi': 'हवाई',
+    'th': 'ทางอากาศ',
   });
 
   String get transportSea => _t({
-    'ko': '해상', 'en': 'Sea', 'ja': '海上', 'zh': '海运',
-    'fr': 'Maritime', 'de': 'Seeweg', 'es': 'Marítimo',
-    'pt': 'Marítimo', 'ru': 'Морской', 'tr': 'Deniz',
-    'ar': 'بحري', 'it': 'Marittimo', 'hi': 'समुद्री', 'th': 'ทางทะเล',
+    'ko': '해상',
+    'en': 'Sea',
+    'ja': '海上',
+    'zh': '海运',
+    'fr': 'Maritime',
+    'de': 'Seeweg',
+    'es': 'Marítimo',
+    'pt': 'Marítimo',
+    'ru': 'Морской',
+    'tr': 'Deniz',
+    'ar': 'بحري',
+    'it': 'Marittimo',
+    'hi': 'समुद्री',
+    'th': 'ทางทะเล',
   });
 
   // ── Delivery Intro ──────────────────────────────────────────────────────
@@ -18544,18 +22497,19 @@ class AppL10n {
   String get appTagline => _t({
     'ko': '혜택은 천천히 여행합니다 — 육로, 항공, 해운으로',
     'en': 'Rewards travel at their own pace — by land, air, and sea',
-    'ja': 'お手紙はゆっくり旅をする — 陸路、空路、海路で',
-    'zh': '信件按自己的节奏旅行 — 经陆、空、海',
-    'fr': 'Les lettres voyagent à leur rythme — par terre, air et mer',
-    'de': 'Briefe reisen im eigenen Tempo — über Land, Luft und See',
-    'es': 'Las cartas viajan a su propio ritmo — por tierra, aire y mar',
-    'pt': 'As cartas viajam no seu próprio ritmo — por terra, ar e mar',
-    'ru': 'Письма путешествуют в своём ритме — по суше, воздуху и морю',
-    'tr': 'Mektuplar kendi hızında yolculuk eder — karadan, havadan, denizden',
-    'ar': 'تسافر الرسائل بإيقاعها الخاص — برًا وجوًا وبحرًا',
-    'it': 'Le lettere viaggiano con il proprio ritmo — per terra, aria e mare',
-    'hi': 'पत्र अपनी गति से चलते हैं — ज़मीन, हवा और समुद्र से',
-    'th': 'จดหมายเดินทางในจังหวะของตัวเอง — ทางบก ทางอากาศ ทางทะเล',
+    'ja': '特典はゆっくり旅をする — 陸路、空路、海路で',
+    'zh': '优惠按自己的节奏旅行 — 经陆、空、海',
+    'fr': 'Les avantages voyagent à leur rythme — par terre, air et mer',
+    'de': 'Belohnungen reisen im eigenen Tempo — über Land, Luft und See',
+    'es': 'Las recompensas viajan a su propio ritmo — por tierra, aire y mar',
+    'pt': 'As recompensas viajam no seu próprio ritmo — por terra, ar e mar',
+    'ru': 'Награды путешествуют в своём ритме — по суше, воздуху и морю',
+    'tr': 'Ödüller kendi hızında yolculuk eder — karadan, havadan, denizden',
+    'ar': 'تسافر المكافآت بإيقاعها الخاص — برًا وجوًا وبحرًا',
+    'it':
+        'Le ricompense viaggiano con il proprio ritmo — per terra, aria e mare',
+    'hi': 'रिवॉर्ड अपनी गति से चलते हैं — ज़मीन, हवा और समुद्र से',
+    'th': 'รางวัลเดินทางในจังหวะของตัวเอง — ทางบก ทางอากาศ ทางทะเล',
   });
 
   /// 앱의 핵심 가치 한 줄 — Build 114 에서 "느린 소셜" 에서
@@ -18566,18 +22520,25 @@ class AppL10n {
   String get appSubTagline => _t({
     'ko': '혜택을 줍는 글로벌 공간 쿠폰 플랫폼',
     'en': 'The global space-based coupon platform — pick rewards near you',
-    'ja': '手紙フォーマットのグローバル空間クーポンプラットフォーム',
-    'zh': '以信件形式的全球空间优惠券平台',
-    'fr': 'Plateforme mondiale de coupons spatiaux au format lettre',
-    'de': 'Globale Coupon-Plattform im Briefformat',
-    'es': 'Plataforma global de cupones espaciales en formato carta',
-    'pt': 'Plataforma global de cupões espaciais em formato carta',
-    'ru': 'Глобальная платформа купонов в формате писем',
-    'tr': 'Mektup formatında küresel konum tabanlı kupon platformu',
-    'ar': 'منصة القسائم المكانية العالمية بصيغة رسائل',
-    'it': 'Piattaforma globale di coupon spaziali in formato lettera',
-    'hi': 'पत्र फ़ॉर्मेट का वैश्विक स्थान-आधारित कूपन प्लेटफ़ॉर्म',
-    'th': 'แพลตฟอร์มคูปองเชิงพื้นที่ระดับโลกในรูปแบบจดหมาย',
+    'ja': '近くの特典を拾えるグローバル位置連動クーポンプラットフォーム',
+    'zh': '拾取附近优惠的全球位置优惠券平台',
+    'fr':
+        'La plateforme mondiale de coupons géolocalisés pour récupérer des avantages près de vous',
+    'de':
+        'Die globale standortbasierte Coupon-Plattform für Belohnungen in deiner Nähe',
+    'es':
+        'La plataforma global de cupones por ubicación para recoger recompensas cerca de ti',
+    'pt':
+        'A plataforma global de cupões por localização para recolher recompensas perto de você',
+    'ru': 'Глобальная геокупонная платформа для получения наград рядом с вами',
+    'tr':
+        'Yakındaki ödülleri toplamanı sağlayan küresel konum tabanlı kupon platformu',
+    'ar': 'منصة قسائم عالمية قائمة على الموقع لالتقاط المكافآت القريبة منك',
+    'it':
+        'La piattaforma globale di coupon geolocalizzati per raccogliere premi vicino a te',
+    'hi':
+        'आपके पास के रिवॉर्ड उठाने वाला वैश्विक लोकेशन-आधारित कूपन प्लेटफ़ॉर्म',
+    'th': 'แพลตฟอร์มคูปองตามตำแหน่งระดับโลกสำหรับเก็บรางวัลใกล้ตัวคุณ',
   });
 
   // ── v5 splash / brand ad (Build 203) ──────────────────────────────────
@@ -18586,36 +22547,36 @@ class AppL10n {
   String get splashSub => _t({
     'ko': '근처에 떠있는 쿠폰과 혜택을\n주워 쓰는 지갑.',
     'en': 'Pick up nearby coupons and rewards\nright into your wallet.',
-    'ja': '近くに浮かぶクーポンと手紙を\n拾って使う財布。',
-    'zh': '附近的优惠券和信件\n捡起来,放进钱包。',
-    'fr': 'Une cartera para coger les coupons\net les lettres autour de toi.',
-    'de': 'Coupons und Briefe aus deiner Nähe\ndirekt in dein Wallet.',
-    'es': 'Una cartera para recoger\ncupones y cartas a tu alrededor.',
-    'pt': 'Uma carteira para recolher\ncupões e cartas à tua volta.',
-    'ru': 'Кошелёк, чтобы собирать\nкупоны и письма рядом с тобой.',
-    'tr': 'Yakındaki kuponları ve mektupları\ncüzdanına alıp kullan.',
-    'ar': 'محفظة لالتقاط القسائم\nوالرسائل القريبة منك.',
-    'it': 'Un portafoglio per raccogliere\ncoupon e lettere intorno a te.',
-    'hi': 'आपके पास के कूपन और पत्र\nउठाकर इस्तेमाल करने वाला वॉलेट।',
-    'th': 'กระเป๋าเก็บคูปองและจดหมาย\nที่ลอยอยู่ใกล้คุณ',
+    'ja': '近くに浮かぶクーポンや特典を\n拾って使うウォレット。',
+    'zh': '把附近的优惠券和福利\n捡起来放进钱包。',
+    'fr': 'Un portefeuille pour récupérer\ncoupons et avantages autour de toi.',
+    'de': 'Sammle Coupons und Belohnungen\naus deiner Nähe direkt ins Wallet.',
+    'es': 'Una cartera para recoger\ncupones y beneficios a tu alrededor.',
+    'pt': 'Uma carteira para recolher\ncupões e recompensas ao teu redor.',
+    'ru': 'Кошелёк, чтобы собирать\nкупоны и награды рядом с вами.',
+    'tr': 'Yakındaki kuponları ve ödülleri\ncüzdanına alıp kullan.',
+    'ar': 'محفظة لالتقاط القسائم\nوالمكافآت القريبة منك.',
+    'it': 'Un portafoglio per raccogliere\ncoupon e premi intorno a te.',
+    'hi': 'आपके पास के कूपन और रिवॉर्ड\nउठाकर रखने वाला वॉलेट।',
+    'th': 'กระเป๋าสำหรับเก็บคูปองและรางวัล\nที่อยู่ใกล้ตัวคุณ',
   });
 
   /// 브랜드 광고 모달 "혜택 받기" CTA.
   String get brandAdPickup => _t({
     'ko': '혜택 받기',
     'en': 'Pick up reward',
-    'ja': '手紙を受け取る',
-    'zh': '领取信件',
-    'fr': 'Recevoir la lettre',
-    'de': 'Brief annehmen',
-    'es': 'Recoger carta',
-    'pt': 'Receber carta',
-    'ru': 'Получить письмо',
-    'tr': 'Mektubu al',
-    'ar': 'استلام الرسالة',
-    'it': 'Ricevi lettera',
-    'hi': 'पत्र प्राप्त करें',
-    'th': 'รับจดหมาย',
+    'ja': '特典を受け取る',
+    'zh': '领取优惠',
+    'fr': "Récupérer l'offre",
+    'de': 'Belohnung holen',
+    'es': 'Recoger beneficio',
+    'pt': 'Pegar recompensa',
+    'ru': 'Забрать награду',
+    'tr': 'Ödülü al',
+    'ar': 'استلام المكافأة',
+    'it': 'Raccogli premio',
+    'hi': 'रिवॉर्ड लें',
+    'th': 'รับรางวัล',
   });
 
   /// 브랜드 광고 모달 "닫기" CTA.
@@ -18639,94 +22600,224 @@ class AppL10n {
   // ── Hardcoded string l10n (formerly hardcoded) ─────────────────────────
 
   String get labelThiscountPremium => _t({
-    'ko': 'THISCOUNT PREMIUM', 'en': 'THISCOUNT PREMIUM', 'ja': 'THISCOUNT PREMIUM', 'zh': 'THISCOUNT PREMIUM',
-    'fr': 'THISCOUNT PREMIUM', 'de': 'THISCOUNT PREMIUM', 'es': 'THISCOUNT PREMIUM',
-    'pt': 'THISCOUNT PREMIUM', 'ru': 'THISCOUNT PREMIUM', 'tr': 'THISCOUNT PREMIUM',
-    'ar': 'THISCOUNT PREMIUM', 'it': 'THISCOUNT PREMIUM', 'hi': 'THISCOUNT PREMIUM', 'th': 'THISCOUNT PREMIUM',
+    'ko': 'THISCOUNT PREMIUM',
+    'en': 'THISCOUNT PREMIUM',
+    'ja': 'THISCOUNT PREMIUM',
+    'zh': 'THISCOUNT PREMIUM',
+    'fr': 'THISCOUNT PREMIUM',
+    'de': 'THISCOUNT PREMIUM',
+    'es': 'THISCOUNT PREMIUM',
+    'pt': 'THISCOUNT PREMIUM',
+    'ru': 'THISCOUNT PREMIUM',
+    'tr': 'THISCOUNT PREMIUM',
+    'ar': 'THISCOUNT PREMIUM',
+    'it': 'THISCOUNT PREMIUM',
+    'hi': 'THISCOUNT PREMIUM',
+    'th': 'THISCOUNT PREMIUM',
   });
 
   String get tierFree => _t({
-    'ko': 'FREE', 'en': 'FREE', 'ja': '無料', 'zh': '免费',
-    'fr': 'GRATUIT', 'de': 'KOSTENLOS', 'es': 'GRATIS',
-    'pt': 'GRÁTIS', 'ru': 'БЕСПЛАТНО', 'tr': 'ÜCRETSİZ',
-    'ar': 'مجاني', 'it': 'GRATIS', 'hi': 'मुफ़्त', 'th': 'ฟรี',
+    'ko': 'FREE',
+    'en': 'FREE',
+    'ja': '無料',
+    'zh': '免费',
+    'fr': 'GRATUIT',
+    'de': 'KOSTENLOS',
+    'es': 'GRATIS',
+    'pt': 'GRÁTIS',
+    'ru': 'БЕСПЛАТНО',
+    'tr': 'ÜCRETSİZ',
+    'ar': 'مجاني',
+    'it': 'GRATIS',
+    'hi': 'मुफ़्त',
+    'th': 'ฟรี',
   });
 
   String get tierPremium => _t({
-    'ko': 'PREMIUM', 'en': 'PREMIUM', 'ja': 'プレミアム', 'zh': '高级版',
-    'fr': 'PREMIUM', 'de': 'PREMIUM', 'es': 'PREMIUM',
-    'pt': 'PREMIUM', 'ru': 'ПРЕМИУМ', 'tr': 'PREMİUM',
-    'ar': 'مميز', 'it': 'PREMIUM', 'hi': 'प्रीमियम', 'th': 'พรีเมียม',
+    'ko': 'PREMIUM',
+    'en': 'PREMIUM',
+    'ja': 'プレミアム',
+    'zh': '高级版',
+    'fr': 'PREMIUM',
+    'de': 'PREMIUM',
+    'es': 'PREMIUM',
+    'pt': 'PREMIUM',
+    'ru': 'ПРЕМИУМ',
+    'tr': 'PREMİUM',
+    'ar': 'مميز',
+    'it': 'PREMIUM',
+    'hi': 'प्रीमियम',
+    'th': 'พรีเมียม',
   });
 
   String get tierBest => _t({
-    'ko': 'BEST', 'en': 'BEST', 'ja': 'おすすめ', 'zh': '最佳',
-    'fr': 'MEILLEUR', 'de': 'BESTE', 'es': 'MEJOR',
-    'pt': 'MELHOR', 'ru': 'ЛУЧШИЙ', 'tr': 'EN İYİ',
-    'ar': 'الأفضل', 'it': 'MIGLIORE', 'hi': 'सर्वश्रेष्ठ', 'th': 'ดีที่สุด',
+    'ko': 'BEST',
+    'en': 'BEST',
+    'ja': 'おすすめ',
+    'zh': '最佳',
+    'fr': 'MEILLEUR',
+    'de': 'BESTE',
+    'es': 'MEJOR',
+    'pt': 'MELHOR',
+    'ru': 'ЛУЧШИЙ',
+    'tr': 'EN İYİ',
+    'ar': 'الأفضل',
+    'it': 'MIGLIORE',
+    'hi': 'सर्वश्रेष्ठ',
+    'th': 'ดีที่สุด',
   });
 
   String get labelStampAlbum => _t({
-    'ko': '스탬프 앨범', 'en': 'STAMP ALBUM', 'ja': 'スタンプアルバム', 'zh': '邮票册',
-    'fr': 'ALBUM DE TIMBRES', 'de': 'STEMPELALBUM', 'es': 'ÁLBUM DE SELLOS',
-    'pt': 'ÁLBUM DE SELOS', 'ru': 'АЛЬБОМ МАРОК', 'tr': 'PUL ALBÜmü',
-    'ar': 'ألبوم الطوابع', 'it': 'ALBUM DI FRANCOBOLLI', 'hi': 'स्टाम्प एल्बम', 'th': 'อัลบั้มแสตมป์',
+    'ko': '스탬프 앨범',
+    'en': 'STAMP ALBUM',
+    'ja': 'スタンプアルバム',
+    'zh': '邮票册',
+    'fr': 'ALBUM DE TIMBRES',
+    'de': 'STEMPELALBUM',
+    'es': 'ÁLBUM DE SELLOS',
+    'pt': 'ÁLBUM DE SELOS',
+    'ru': 'АЛЬБОМ МАРОК',
+    'tr': 'PUL ALBÜmü',
+    'ar': 'ألبوم الطوابع',
+    'it': 'ALBUM DI FRANCOBOLLI',
+    'hi': 'स्टाम्प एल्बम',
+    'th': 'อัลบั้มแสตมป์',
   });
 
   String get labelReputationScore => _t({
-    'ko': '평판 점수', 'en': 'REPUTATION SCORE', 'ja': '評価スコア', 'zh': '声望分数',
-    'fr': 'SCORE DE RÉPUTATION', 'de': 'REPUTATIONSPUNKTE', 'es': 'PUNTUACIÓN',
-    'pt': 'PONTUAÇÃO', 'ru': 'РЕЙТИНГ', 'tr': 'İTİBAR PUANI',
-    'ar': 'نقاط السمعة', 'it': 'PUNTEGGIO', 'hi': 'प्रतिष्ठा स्कोर', 'th': 'คะแนนชื่อเสียง',
+    'ko': '평판 점수',
+    'en': 'REPUTATION SCORE',
+    'ja': '評価スコア',
+    'zh': '声望分数',
+    'fr': 'SCORE DE RÉPUTATION',
+    'de': 'REPUTATIONSPUNKTE',
+    'es': 'PUNTUACIÓN',
+    'pt': 'PONTUAÇÃO',
+    'ru': 'РЕЙТИНГ',
+    'tr': 'İTİBAR PUANI',
+    'ar': 'نقاط السمعة',
+    'it': 'PUNTEGGIO',
+    'hi': 'प्रतिष्ठा स्कोर',
+    'th': 'คะแนนชื่อเสียง',
   });
 
   String get unitPts => _t({
-    'ko': 'pts', 'en': 'pts', 'ja': 'pt', 'zh': '分',
-    'fr': 'pts', 'de': 'Pkt', 'es': 'pts',
-    'pt': 'pts', 'ru': 'очк', 'tr': 'puan',
-    'ar': 'نقطة', 'it': 'pts', 'hi': 'अंक', 'th': 'คะแนน',
+    'ko': 'pts',
+    'en': 'pts',
+    'ja': 'pt',
+    'zh': '分',
+    'fr': 'pts',
+    'de': 'Pkt',
+    'es': 'pts',
+    'pt': 'pts',
+    'ru': 'очк',
+    'tr': 'puan',
+    'ar': 'نقطة',
+    'it': 'pts',
+    'hi': 'अंक',
+    'th': 'คะแนน',
   });
 
   String get labelPassport => _t({
-    'ko': '여권', 'en': 'PASSPORT', 'ja': 'パスポート', 'zh': '护照',
-    'fr': 'PASSEPORT', 'de': 'REISEPASS', 'es': 'PASAPORTE',
-    'pt': 'PASSAPORTE', 'ru': 'ПАСПОРТ', 'tr': 'PASAPORT',
-    'ar': 'جواز سفر', 'it': 'PASSAPORTO', 'hi': 'पासपोर्ट', 'th': 'หนังสือเดินทาง',
+    'ko': '여권',
+    'en': 'PASSPORT',
+    'ja': 'パスポート',
+    'zh': '护照',
+    'fr': 'PASSEPORT',
+    'de': 'REISEPASS',
+    'es': 'PASAPORTE',
+    'pt': 'PASSAPORTE',
+    'ru': 'ПАСПОРТ',
+    'tr': 'PASAPORT',
+    'ar': 'جواز سفر',
+    'it': 'PASSAPORTO',
+    'hi': 'पासपोर्ट',
+    'th': 'หนังสือเดินทาง',
   });
 
   String get inboxSubtitle => _t({
-    'ko': '바다 건너 속삭임', 'en': 'WHISPERS FROM ACROSS THE TIDES', 'ja': '海を越えたささやき', 'zh': '跨越潮汐的耳语',
-    'fr': 'MURMURES D\'OUTRE-MER', 'de': 'FLÜSTERN VON JENSEITS DER GEZEITEN', 'es': 'SUSURROS DEL OTRO LADO',
-    'pt': 'SUSSURROS DO ALÉM-MAR', 'ru': 'ШЁПОТ ИЗДАЛЕКА', 'tr': 'DENİZLER ÖTESİNDEN FISILDAMALAR',
-    'ar': 'همسات عبر المد', 'it': 'SUSSURRI D\'OLTREMARE', 'hi': 'समुद्र पार की फुसफुसाहट', 'th': 'เสียงกระซิบจากอีกฝั่ง',
+    'ko': '바다 건너 속삭임',
+    'en': 'WHISPERS FROM ACROSS THE TIDES',
+    'ja': '海を越えたささやき',
+    'zh': '跨越潮汐的耳语',
+    'fr': 'MURMURES D\'OUTRE-MER',
+    'de': 'FLÜSTERN VON JENSEITS DER GEZEITEN',
+    'es': 'SUSURROS DEL OTRO LADO',
+    'pt': 'SUSSURROS DO ALÉM-MAR',
+    'ru': 'ШЁПОТ ИЗДАЛЕКА',
+    'tr': 'DENİZLER ÖTESİNDEN FISILDAMALAR',
+    'ar': 'همسات عبر المد',
+    'it': 'SUSSURRI D\'OLTREMARE',
+    'hi': 'समुद्र पार की फुसफुसाहट',
+    'th': 'เสียงกระซิบจากอีกฝั่ง',
   });
 
   String get labelBrand => _t({
-    'ko': '브랜드', 'en': 'BRAND', 'ja': 'ブランド', 'zh': '品牌',
-    'fr': 'MARQUE', 'de': 'MARKE', 'es': 'MARCA',
-    'pt': 'MARCA', 'ru': 'БРЕНД', 'tr': 'MARKA',
-    'ar': 'علامة تجارية', 'it': 'BRAND', 'hi': 'ब्रांड', 'th': 'แบรนด์',
+    'ko': '브랜드',
+    'en': 'BRAND',
+    'ja': 'ブランド',
+    'zh': '品牌',
+    'fr': 'MARQUE',
+    'de': 'MARKE',
+    'es': 'MARCA',
+    'pt': 'MARCA',
+    'ru': 'БРЕНД',
+    'tr': 'MARKA',
+    'ar': 'علامة تجارية',
+    'it': 'BRAND',
+    'hi': 'ब्रांड',
+    'th': 'แบรนด์',
   });
 
   String get labelBrandLetter => _t({
-    'ko': '브랜드 레터', 'en': 'BRAND LETTER', 'ja': 'ブランドレター', 'zh': '品牌信件',
-    'fr': 'LETTRE DE MARQUE', 'de': 'MARKENBRIEF', 'es': 'CARTA DE MARCA',
-    'pt': 'CARTA DA MARCA', 'ru': 'ПИСЬМО БРЕНДА', 'tr': 'MARKA MEKTUP',
-    'ar': 'رسالة العلامة التجارية', 'it': 'LETTERA BRAND', 'hi': 'ब्रांड पत्र', 'th': 'จดหมายแบรนด์',
+    'ko': '브랜드 레터',
+    'en': 'BRAND LETTER',
+    'ja': 'ブランドレター',
+    'zh': '品牌信件',
+    'fr': 'LETTRE DE MARQUE',
+    'de': 'MARKENBRIEF',
+    'es': 'CARTA DE MARCA',
+    'pt': 'CARTA DA MARCA',
+    'ru': 'ПИСЬМО БРЕНДА',
+    'tr': 'MARKA MEKTUP',
+    'ar': 'رسالة العلامة التجارية',
+    'it': 'LETTERA BRAND',
+    'hi': 'ब्रांड पत्र',
+    'th': 'จดหมายแบรนด์',
   });
 
   String get labelAdmin => _t({
-    'ko': 'ADMIN', 'en': 'ADMIN', 'ja': '管理者', 'zh': '管理员',
-    'fr': 'ADMIN', 'de': 'ADMIN', 'es': 'ADMIN',
-    'pt': 'ADMIN', 'ru': 'АДМИН', 'tr': 'YÖNETİCİ',
-    'ar': 'المسؤول', 'it': 'ADMIN', 'hi': 'व्यवस्थापक', 'th': 'ผู้ดูแล',
+    'ko': 'ADMIN',
+    'en': 'ADMIN',
+    'ja': '管理者',
+    'zh': '管理员',
+    'fr': 'ADMIN',
+    'de': 'ADMIN',
+    'es': 'ADMIN',
+    'pt': 'ADMIN',
+    'ru': 'АДМИН',
+    'tr': 'YÖNETİCİ',
+    'ar': 'المسؤول',
+    'it': 'ADMIN',
+    'hi': 'व्यवस्थापक',
+    'th': 'ผู้ดูแล',
   });
 
   String get labelGlobalFlow => _t({
-    'ko': '글로벌 흐름', 'en': 'GLOBAL FLOW', 'ja': 'グローバルフロー', 'zh': '全球流量',
-    'fr': 'FLUX GLOBAL', 'de': 'GLOBALER FLUSS', 'es': 'FLUJO GLOBAL',
-    'pt': 'FLUXO GLOBAL', 'ru': 'ГЛОБАЛЬНЫЙ ПОТОК', 'tr': 'KÜRESEL AKIŞ',
-    'ar': 'التدفق العالمي', 'it': 'FLUSSO GLOBALE', 'hi': 'वैश्विक प्रवाह', 'th': 'กระแสโลก',
+    'ko': '글로벌 흐름',
+    'en': 'GLOBAL FLOW',
+    'ja': 'グローバルフロー',
+    'zh': '全球流量',
+    'fr': 'FLUX GLOBAL',
+    'de': 'GLOBALER FLUSS',
+    'es': 'FLUJO GLOBAL',
+    'pt': 'FLUXO GLOBAL',
+    'ru': 'ГЛОБАЛЬНЫЙ ПОТОК',
+    'tr': 'KÜRESEL AKIŞ',
+    'ar': 'التدفق العالمي',
+    'it': 'FLUSSO GLOBALE',
+    'hi': 'वैश्विक प्रवाह',
+    'th': 'กระแสโลก',
   });
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -18751,20 +22842,32 @@ class AppL10n {
   });
 
   String get authTermsDesc => _t({
-    'ko': '혜택 내용은 신고 접수 시에만 관리자가 검토할 수 있습니다.\n부적절한 콘텐츠 게시 시 서비스 이용이 제한될 수 있습니다.',
-    'en': 'Reward content may only be reviewed by administrators upon receiving a report.\nPosting inappropriate content may result in service restrictions.',
+    'ko':
+        '혜택 내용은 신고 접수 시에만 관리자가 검토할 수 있습니다.\n부적절한 콘텐츠 게시 시 서비스 이용이 제한될 수 있습니다.',
+    'en':
+        'Reward content may only be reviewed by administrators upon receiving a report.\nPosting inappropriate content may result in service restrictions.',
     'ja': '手紙の内容は、報告を受けた場合にのみ管理者が確認できます。\n不適切なコンテンツの投稿はサービス制限の対象となります。',
     'zh': '信件内容仅在收到举报时由管理员审查。\n发布不当内容可能导致服务限制。',
-    'fr': 'Le contenu des lettres ne peut être examiné par les administrateurs que sur signalement.\nLa publication de contenu inapproprié peut entraîner des restrictions de service.',
-    'de': 'Briefinhalte werden nur bei einer Meldung von Administratoren überprüft.\nDas Veröffentlichen unangemessener Inhalte kann zu Diensteinschränkungen führen.',
-    'es': 'El contenido de las cartas solo puede ser revisado por administradores al recibir un reporte.\nPublicar contenido inapropiado puede resultar en restricciones del servicio.',
-    'pt': 'O conteúdo das cartas só pode ser revisado por administradores mediante denúncia.\nA publicação de conteúdo inadequado pode resultar em restrições de serviço.',
-    'ru': 'Содержание писем проверяется администраторами только при получении жалобы.\nПубликация неприемлемого контента может привести к ограничению сервиса.',
-    'tr': 'Mektup içeriği yalnızca şikayet alındığında yöneticiler tarafından incelenebilir.\nUygunsuz içerik yayınlamak hizmet kısıtlamalarına yol açabilir.',
-    'ar': 'يمكن مراجعة محتوى الرسائل من قبل المسؤولين فقط عند تلقي بلاغ.\nنشر محتوى غير لائق قد يؤدي إلى تقييد الخدمة.',
-    'it': 'Il contenuto delle lettere può essere esaminato dagli amministratori solo in caso di segnalazione.\nLa pubblicazione di contenuti inappropriati può comportare restrizioni del servizio.',
-    'hi': 'पत्र सामग्री की समीक्षा प्रशासकों द्वारा केवल शिकायत प्राप्त होने पर की जा सकती है।\nअनुचित सामग्री पोस्ट करने पर सेवा प्रतिबंध हो सकते हैं।',
-    'th': 'เนื้อหาจดหมายจะถูกตรวจสอบโดยผู้ดูแลเฉพาะเมื่อได้รับการรายงานเท่านั้น\nการโพสต์เนื้อหาที่ไม่เหมาะสมอาจส่งผลให้ถูกจำกัดการใช้บริการ',
+    'fr':
+        'Le contenu des lettres ne peut être examiné par les administrateurs que sur signalement.\nLa publication de contenu inapproprié peut entraîner des restrictions de service.',
+    'de':
+        'Briefinhalte werden nur bei einer Meldung von Administratoren überprüft.\nDas Veröffentlichen unangemessener Inhalte kann zu Diensteinschränkungen führen.',
+    'es':
+        'El contenido de las cartas solo puede ser revisado por administradores al recibir un reporte.\nPublicar contenido inapropiado puede resultar en restricciones del servicio.',
+    'pt':
+        'O conteúdo das cartas só pode ser revisado por administradores mediante denúncia.\nA publicação de conteúdo inadequado pode resultar em restrições de serviço.',
+    'ru':
+        'Содержание писем проверяется администраторами только при получении жалобы.\nПубликация неприемлемого контента может привести к ограничению сервиса.',
+    'tr':
+        'Mektup içeriği yalnızca şikayet alındığında yöneticiler tarafından incelenebilir.\nUygunsuz içerik yayınlamak hizmet kısıtlamalarına yol açabilir.',
+    'ar':
+        'يمكن مراجعة محتوى الرسائل من قبل المسؤولين فقط عند تلقي بلاغ.\nنشر محتوى غير لائق قد يؤدي إلى تقييد الخدمة.',
+    'it':
+        'Il contenuto delle lettere può essere esaminato dagli amministratori solo in caso di segnalazione.\nLa pubblicazione di contenuti inappropriati può comportare restrizioni del servizio.',
+    'hi':
+        'पत्र सामग्री की समीक्षा प्रशासकों द्वारा केवल शिकायत प्राप्त होने पर की जा सकती है।\nअनुचित सामग्री पोस्ट करने पर सेवा प्रतिबंध हो सकते हैं।',
+    'th':
+        'เนื้อหาจดหมายจะถูกตรวจสอบโดยผู้ดูแลเฉพาะเมื่อได้รับการรายงานเท่านั้น\nการโพสต์เนื้อหาที่ไม่เหมาะสมอาจส่งผลให้ถูกจำกัดการใช้บริการ',
   });
 
   // ── Privacy Policy expanded sections (5-7) ──────────────────────────────
@@ -18787,59 +22890,73 @@ class AppL10n {
   });
 
   String get authPrivacySec5Body => _t({
-    'ko': '관리자는 사용자의 혜택 내용을 일상적으로 열람하지 않습니다. '
+    'ko':
+        '관리자는 사용자의 혜택 내용을 일상적으로 열람하지 않습니다. '
         '혜택 내용은 다른 사용자로부터 신고가 접수된 경우에 한하여 검토됩니다. '
         '검토는 커뮤니티 가이드라인 위반 여부를 판단하기 위한 목적으로만 수행되며, '
         '위반이 확인되면 해당 콘텐츠의 차단 및 계정 제한 조치가 이루어질 수 있습니다.',
-    'en': 'Administrators do not routinely access your reward content. '
+    'en':
+        'Administrators do not routinely access your reward content. '
         'Rewards are reviewed only when a report is filed by another user. '
         'Reviews are conducted solely to determine violations of community guidelines. '
         'If a violation is confirmed, content may be blocked and account restrictions may apply.',
-    'ja': '管理者は日常的にあなたの手紙の内容を閲覧しません。'
+    'ja':
+        '管理者は日常的にあなたの手紙の内容を閲覧しません。'
         '手紙の内容は、他のユーザーから報告があった場合にのみ確認されます。'
         '確認はコミュニティガイドライン違反の判断のためにのみ行われ、'
         '違反が確認された場合、コンテンツのブロックやアカウント制限が行われることがあります。',
-    'zh': '管理员不会日常访问您的信件内容。'
+    'zh':
+        '管理员不会日常访问您的信件内容。'
         '仅在其他用户提交举报时才会审查信件。'
         '审查仅用于判断是否违反社区准则。'
         '如确认违规，相关内容可能被屏蔽，账号可能受到限制。',
-    'fr': 'Les administrateurs n\'accèdent pas régulièrement au contenu de vos lettres. '
+    'fr':
+        'Les administrateurs n\'accèdent pas régulièrement au contenu de vos lettres. '
         'Les lettres ne sont examinées que lorsqu\'un signalement est déposé par un autre utilisateur. '
         'Les examens sont effectués uniquement pour déterminer les violations des règles communautaires. '
         'Si une violation est confirmée, le contenu peut être bloqué et des restrictions de compte peuvent s\'appliquer.',
-    'de': 'Administratoren greifen nicht routinemäßig auf Ihre Briefinhalte zu. '
+    'de':
+        'Administratoren greifen nicht routinemäßig auf Ihre Briefinhalte zu. '
         'Briefe werden nur überprüft, wenn eine Meldung von einem anderen Benutzer eingeht. '
         'Überprüfungen dienen ausschließlich der Feststellung von Verstößen gegen Community-Richtlinien. '
         'Bei bestätigten Verstößen können Inhalte gesperrt und Kontoeinschränkungen verhängt werden.',
-    'es': 'Los administradores no acceden rutinariamente al contenido de sus cartas. '
+    'es':
+        'Los administradores no acceden rutinariamente al contenido de sus cartas. '
         'Las cartas se revisan solo cuando otro usuario presenta un reporte. '
         'Las revisiones se realizan únicamente para determinar violaciones de las normas de la comunidad. '
         'Si se confirma una violación, el contenido puede ser bloqueado y se pueden aplicar restricciones de cuenta.',
-    'pt': 'Os administradores não acessam rotineiramente o conteúdo de suas cartas. '
+    'pt':
+        'Os administradores não acessam rotineiramente o conteúdo de suas cartas. '
         'As cartas são revisadas apenas quando uma denúncia é feita por outro usuário. '
         'As revisões são realizadas exclusivamente para determinar violações das diretrizes da comunidade. '
         'Se uma violação for confirmada, o conteúdo pode ser bloqueado e restrições de conta podem ser aplicadas.',
-    'ru': 'Администраторы не просматривают содержание ваших писем на регулярной основе. '
+    'ru':
+        'Администраторы не просматривают содержание ваших писем на регулярной основе. '
         'Письма проверяются только при поступлении жалобы от другого пользователя. '
         'Проверки проводятся исключительно для выявления нарушений правил сообщества. '
         'При подтверждении нарушения контент может быть заблокирован, а на аккаунт наложены ограничения.',
-    'tr': 'Yöneticiler mektup içeriğinize rutin olarak erişmez. '
+    'tr':
+        'Yöneticiler mektup içeriğinize rutin olarak erişmez. '
         'Mektuplar yalnızca başka bir kullanıcı tarafından şikayet edildiğinde incelenir. '
         'İncelemeler yalnızca topluluk kurallarının ihlal edilip edilmediğini belirlemek için yapılır. '
         'İhlal tespit edilirse içerik engellenebilir ve hesap kısıtlamaları uygulanabilir.',
-    'ar': 'لا يصل المسؤولون بشكل روتيني إلى محتوى رسائلك. '
+    'ar':
+        'لا يصل المسؤولون بشكل روتيني إلى محتوى رسائلك. '
         'تتم مراجعة الرسائل فقط عند تقديم بلاغ من مستخدم آخر. '
         'تُجرى المراجعات فقط لتحديد انتهاكات إرشادات المجتمع. '
         'إذا تم تأكيد الانتهاك، قد يتم حظر المحتوى وتطبيق قيود على الحساب.',
-    'it': 'Gli amministratori non accedono regolarmente al contenuto delle tue lettere. '
+    'it':
+        'Gli amministratori non accedono regolarmente al contenuto delle tue lettere. '
         'Le lettere vengono esaminate solo quando viene presentata una segnalazione da un altro utente. '
         'Le revisioni vengono effettuate esclusivamente per determinare violazioni delle linee guida della comunità. '
         'Se viene confermata una violazione, il contenuto può essere bloccato e possono essere applicate restrizioni all\'account.',
-    'hi': 'प्रशासक आपके पत्र सामग्री को नियमित रूप से नहीं देखते। '
+    'hi':
+        'प्रशासक आपके पत्र सामग्री को नियमित रूप से नहीं देखते। '
         'पत्रों की समीक्षा केवल तब की जाती है जब किसी अन्य उपयोगकर्ता द्वारा शिकायत दर्ज की जाती है। '
         'समीक्षा केवल सामुदायिक दिशानिर्देशों के उल्लंघन का पता लगाने के लिए की जाती है। '
         'यदि उल्लंघन की पुष्टि होती है, तो सामग्री को अवरुद्ध किया जा सकता है और खाता प्रतिबंध लागू हो सकते हैं।',
-    'th': 'ผู้ดูแลระบบไม่เข้าถึงเนื้อหาจดหมายของคุณเป็นประจำ '
+    'th':
+        'ผู้ดูแลระบบไม่เข้าถึงเนื้อหาจดหมายของคุณเป็นประจำ '
         'จดหมายจะถูกตรวจสอบเฉพาะเมื่อมีการรายงานจากผู้ใช้รายอื่นเท่านั้น '
         'การตรวจสอบดำเนินการเพื่อตรวจสอบการละเมิดแนวทางชุมชนเท่านั้น '
         'หากยืนยันการละเมิด เนื้อหาอาจถูกบล็อกและอาจมีการจำกัดบัญชี',
@@ -18863,90 +22980,104 @@ class AppL10n {
   });
 
   String get authPrivacySec6Body => _t({
-    'ko': '• 열람권: 수집된 개인정보 열람을 요청할 수 있습니다\n'
+    'ko':
+        '• 열람권: 수집된 개인정보 열람을 요청할 수 있습니다\n'
         '• 정정권: 부정확한 정보의 수정을 요청할 수 있습니다\n'
         '• 삭제권: 계정 삭제 시 모든 데이터가 즉시 삭제됩니다\n'
         '• 이동권: 본인의 데이터 사본을 요청할 수 있습니다\n'
         '• 철회권: 동의를 언제든 철회할 수 있습니다\n'
-        '문의: ceo@airony.xyz',
-    'en': '• Right to Access: You may request access to your personal data\n'
+        '문의: support@thiscount.io',
+    'en':
+        '• Right to Access: You may request access to your personal data\n'
         '• Right to Rectification: You may request correction of inaccurate data\n'
         '• Right to Erasure: All data is deleted immediately upon account deletion\n'
         '• Right to Portability: You may request a copy of your data\n'
         '• Right to Withdraw Consent: You may withdraw consent at any time\n'
-        'Contact: ceo@airony.xyz',
-    'ja': '• アクセス権: 収集された個人情報の閲覧を要求できます\n'
+        'Contact: support@thiscount.io',
+    'ja':
+        '• アクセス権: 収集された個人情報の閲覧を要求できます\n'
         '• 訂正権: 不正確な情報の修正を要求できます\n'
         '• 削除権: アカウント削除時にすべてのデータが即座に削除されます\n'
         '• データポータビリティ権: データのコピーを要求できます\n'
         '• 同意撤回権: いつでも同意を撤回できます\n'
-        'お問い合わせ: ceo@airony.xyz',
-    'zh': '• 访问权: 您可以请求访问收集的个人信息\n'
+        'お問い合わせ: support@thiscount.io',
+    'zh':
+        '• 访问权: 您可以请求访问收集的个人信息\n'
         '• 更正权: 您可以请求更正不准确的信息\n'
         '• 删除权: 删除账号时所有数据将立即删除\n'
         '• 可携带权: 您可以请求数据副本\n'
         '• 撤回同意权: 您可以随时撤回同意\n'
-        '联系方式: ceo@airony.xyz',
-    'fr': '• Droit d\'accès : Vous pouvez demander l\'accès à vos données personnelles\n'
+        '联系方式: support@thiscount.io',
+    'fr':
+        '• Droit d\'accès : Vous pouvez demander l\'accès à vos données personnelles\n'
         '• Droit de rectification : Vous pouvez demander la correction des données inexactes\n'
         '• Droit à l\'effacement : Toutes les données sont supprimées lors de la suppression du compte\n'
         '• Droit à la portabilité : Vous pouvez demander une copie de vos données\n'
         '• Droit de retrait : Vous pouvez retirer votre consentement à tout moment\n'
-        'Contact : ceo@airony.xyz',
-    'de': '• Auskunftsrecht: Sie können Zugang zu Ihren personenbezogenen Daten anfordern\n'
+        'Contact : support@thiscount.io',
+    'de':
+        '• Auskunftsrecht: Sie können Zugang zu Ihren personenbezogenen Daten anfordern\n'
         '• Berichtigungsrecht: Sie können die Korrektur ungenauer Daten anfordern\n'
         '• Löschungsrecht: Alle Daten werden bei Kontolöschung sofort gelöscht\n'
         '• Recht auf Datenübertragbarkeit: Sie können eine Kopie Ihrer Daten anfordern\n'
         '• Widerrufsrecht: Sie können Ihre Einwilligung jederzeit widerrufen\n'
-        'Kontakt: ceo@airony.xyz',
-    'es': '• Derecho de acceso: Puede solicitar acceso a sus datos personales\n'
+        'Kontakt: support@thiscount.io',
+    'es':
+        '• Derecho de acceso: Puede solicitar acceso a sus datos personales\n'
         '• Derecho de rectificación: Puede solicitar la corrección de datos inexactos\n'
         '• Derecho de supresión: Todos los datos se eliminan al eliminar la cuenta\n'
         '• Derecho de portabilidad: Puede solicitar una copia de sus datos\n'
         '• Derecho de revocación: Puede retirar su consentimiento en cualquier momento\n'
-        'Contacto: ceo@airony.xyz',
-    'pt': '• Direito de acesso: Você pode solicitar acesso aos seus dados pessoais\n'
+        'Contacto: support@thiscount.io',
+    'pt':
+        '• Direito de acesso: Você pode solicitar acesso aos seus dados pessoais\n'
         '• Direito de retificação: Você pode solicitar a correção de dados imprecisos\n'
         '• Direito de exclusão: Todos os dados são excluídos ao deletar a conta\n'
         '• Direito de portabilidade: Você pode solicitar uma cópia dos seus dados\n'
         '• Direito de revogação: Você pode retirar seu consentimento a qualquer momento\n'
-        'Contato: ceo@airony.xyz',
-    'ru': '• Право на доступ: Вы можете запросить доступ к своим персональным данным\n'
+        'Contato: support@thiscount.io',
+    'ru':
+        '• Право на доступ: Вы можете запросить доступ к своим персональным данным\n'
         '• Право на исправление: Вы можете запросить исправление неточных данных\n'
         '• Право на удаление: Все данные удаляются при удалении аккаунта\n'
         '• Право на переносимость: Вы можете запросить копию своих данных\n'
         '• Право на отзыв: Вы можете отозвать согласие в любое время\n'
-        'Контакт: ceo@airony.xyz',
-    'tr': '• Erişim hakkı: Kişisel verilerinize erişim talep edebilirsiniz\n'
+        'Контакт: support@thiscount.io',
+    'tr':
+        '• Erişim hakkı: Kişisel verilerinize erişim talep edebilirsiniz\n'
         '• Düzeltme hakkı: Yanlış verilerin düzeltilmesini talep edebilirsiniz\n'
         '• Silme hakkı: Hesap silindiğinde tüm veriler hemen silinir\n'
         '• Taşınabilirlik hakkı: Verilerinizin bir kopyasını talep edebilirsiniz\n'
         '• Geri çekme hakkı: Onayınızı istediğiniz zaman geri çekebilirsiniz\n'
-        'İletişim: ceo@airony.xyz',
-    'ar': '• حق الوصول: يمكنك طلب الوصول إلى بياناتك الشخصية\n'
+        'İletişim: support@thiscount.io',
+    'ar':
+        '• حق الوصول: يمكنك طلب الوصول إلى بياناتك الشخصية\n'
         '• حق التصحيح: يمكنك طلب تصحيح البيانات غير الدقيقة\n'
         '• حق الحذف: يتم حذف جميع البيانات فور حذف الحساب\n'
         '• حق النقل: يمكنك طلب نسخة من بياناتك\n'
         '• حق السحب: يمكنك سحب موافقتك في أي وقت\n'
-        'التواصل: ceo@airony.xyz',
-    'it': '• Diritto di accesso: Puoi richiedere l\'accesso ai tuoi dati personali\n'
+        'التواصل: support@thiscount.io',
+    'it':
+        '• Diritto di accesso: Puoi richiedere l\'accesso ai tuoi dati personali\n'
         '• Diritto di rettifica: Puoi richiedere la correzione di dati inesatti\n'
         '• Diritto alla cancellazione: Tutti i dati vengono eliminati alla cancellazione dell\'account\n'
         '• Diritto alla portabilità: Puoi richiedere una copia dei tuoi dati\n'
         '• Diritto di revoca: Puoi revocare il consenso in qualsiasi momento\n'
-        'Contatto: ceo@airony.xyz',
-    'hi': '• पहुँच का अधिकार: आप अपने व्यक्तिगत डेटा तक पहुँच का अनुरोध कर सकते हैं\n'
+        'Contatto: support@thiscount.io',
+    'hi':
+        '• पहुँच का अधिकार: आप अपने व्यक्तिगत डेटा तक पहुँच का अनुरोध कर सकते हैं\n'
         '• सुधार का अधिकार: आप गलत डेटा में सुधार का अनुरोध कर सकते हैं\n'
         '• मिटाने का अधिकार: खाता हटाने पर सभी डेटा तुरंत हटा दिया जाता है\n'
         '• पोर्टेबिलिटी का अधिकार: आप अपने डेटा की प्रति का अनुरोध कर सकते हैं\n'
         '• सहमति वापसी का अधिकार: आप किसी भी समय सहमति वापस ले सकते हैं\n'
-        'संपर्क: ceo@airony.xyz',
-    'th': '• สิทธิ์ในการเข้าถึง: คุณสามารถขอเข้าถึงข้อมูลส่วนบุคคลของคุณ\n'
+        'संपर्क: support@thiscount.io',
+    'th':
+        '• สิทธิ์ในการเข้าถึง: คุณสามารถขอเข้าถึงข้อมูลส่วนบุคคลของคุณ\n'
         '• สิทธิ์ในการแก้ไข: คุณสามารถขอแก้ไขข้อมูลที่ไม่ถูกต้อง\n'
         '• สิทธิ์ในการลบ: ข้อมูลทั้งหมดจะถูกลบเมื่อลบบัญชี\n'
         '• สิทธิ์ในการเคลื่อนย้าย: คุณสามารถขอสำเนาข้อมูลของคุณ\n'
         '• สิทธิ์ในการถอน: คุณสามารถถอนความยินยอมได้ตลอดเวลา\n'
-        'ติดต่อ: ceo@airony.xyz',
+        'ติดต่อ: support@thiscount.io',
   });
 
   String get authPrivacySec7Title => _t({
@@ -18967,72 +23098,86 @@ class AppL10n {
   });
 
   String get authPrivacySec7Body => _t({
-    'ko': '• 혐오 발언, 차별, 괴롭힘 금지\n'
+    'ko':
+        '• 혐오 발언, 차별, 괴롭힘 금지\n'
         '• 음란물 또는 폭력적 콘텐츠 금지\n'
         '• 스팸, 사기, 피싱 금지\n'
         '• 타인의 개인정보 무단 공유 금지\n'
         '• 3회 이상 신고 시 자동 차단됩니다',
-    'en': '• No hate speech, discrimination, or harassment\n'
+    'en':
+        '• No hate speech, discrimination, or harassment\n'
         '• No explicit sexual or violent content\n'
         '• No spam, scams, or phishing\n'
         '• Do not share others\' personal information without consent\n'
         '• Accounts with 3+ reports may be automatically blocked',
-    'ja': '• ヘイトスピーチ、差別、嫌がらせの禁止\n'
+    'ja':
+        '• ヘイトスピーチ、差別、嫌がらせの禁止\n'
         '• わいせつまたは暴力的なコンテンツの禁止\n'
         '• スパム、詐欺、フィッシングの禁止\n'
         '• 他人の個人情報を無断で共有しないでください\n'
         '• 3回以上の報告で自動ブロックされます',
-    'zh': '• 禁止仇恨言论、歧视或骚扰\n'
+    'zh':
+        '• 禁止仇恨言论、歧视或骚扰\n'
         '• 禁止色情或暴力内容\n'
         '• 禁止垃圾邮件、欺诈或钓鱼\n'
         '• 不要未经同意分享他人个人信息\n'
         '• 被举报3次以上可能自动封禁',
-    'fr': '• Pas de discours haineux, de discrimination ou de harcèlement\n'
+    'fr':
+        '• Pas de discours haineux, de discrimination ou de harcèlement\n'
         '• Pas de contenu sexuel explicite ou violent\n'
         '• Pas de spam, d\'escroquerie ou de phishing\n'
         '• Ne partagez pas les informations personnelles d\'autrui sans consentement\n'
         '• Les comptes avec 3+ signalements peuvent être automatiquement bloqués',
-    'de': '• Keine Hassrede, Diskriminierung oder Belästigung\n'
+    'de':
+        '• Keine Hassrede, Diskriminierung oder Belästigung\n'
         '• Keine explizit sexuellen oder gewalttätigen Inhalte\n'
         '• Kein Spam, Betrug oder Phishing\n'
         '• Teilen Sie keine persönlichen Daten anderer ohne Zustimmung\n'
         '• Konten mit 3+ Meldungen können automatisch gesperrt werden',
-    'es': '• Prohibido el discurso de odio, discriminación o acoso\n'
+    'es':
+        '• Prohibido el discurso de odio, discriminación o acoso\n'
         '• Prohibido el contenido sexual explícito o violento\n'
         '• Prohibido el spam, estafas o phishing\n'
         '• No comparta información personal de otros sin consentimiento\n'
         '• Cuentas con 3+ reportes pueden ser bloqueadas automáticamente',
-    'pt': '• Proibido discurso de ódio, discriminação ou assédio\n'
+    'pt':
+        '• Proibido discurso de ódio, discriminação ou assédio\n'
         '• Proibido conteúdo sexual explícito ou violento\n'
         '• Proibido spam, fraudes ou phishing\n'
         '• Não compartilhe informações pessoais de outros sem consentimento\n'
         '• Contas com 3+ denúncias podem ser bloqueadas automaticamente',
-    'ru': '• Запрещены ненавистнические высказывания, дискриминация или преследование\n'
+    'ru':
+        '• Запрещены ненавистнические высказывания, дискриминация или преследование\n'
         '• Запрещён откровенный сексуальный или насильственный контент\n'
         '• Запрещены спам, мошенничество или фишинг\n'
         '• Не делитесь личной информацией других без согласия\n'
         '• Аккаунты с 3+ жалобами могут быть автоматически заблокированы',
-    'tr': '• Nefret söylemi, ayrımcılık veya taciz yasaktır\n'
+    'tr':
+        '• Nefret söylemi, ayrımcılık veya taciz yasaktır\n'
         '• Cinsel veya şiddet içerikli içerik yasaktır\n'
         '• Spam, dolandırıcılık veya kimlik avı yasaktır\n'
         '• Başkalarının kişisel bilgilerini izinsiz paylaşmayın\n'
         '• 3+ şikayet alan hesaplar otomatik olarak engellenebilir',
-    'ar': '• يحظر خطاب الكراهية والتمييز والمضايقة\n'
+    'ar':
+        '• يحظر خطاب الكراهية والتمييز والمضايقة\n'
         '• يحظر المحتوى الجنسي الصريح أو العنيف\n'
         '• يحظر البريد العشوائي والاحتيال والتصيد\n'
         '• لا تشارك المعلومات الشخصية للآخرين بدون موافقة\n'
         '• قد يتم حظر الحسابات التي تتلقى 3+ بلاغات تلقائياً',
-    'it': '• Vietati discorsi d\'odio, discriminazione o molestie\n'
+    'it':
+        '• Vietati discorsi d\'odio, discriminazione o molestie\n'
         '• Vietati contenuti sessuali espliciti o violenti\n'
         '• Vietati spam, truffe o phishing\n'
         '• Non condividere informazioni personali altrui senza consenso\n'
         '• Gli account con 3+ segnalazioni possono essere bloccati automaticamente',
-    'hi': '• नफ़रत भरे भाषण, भेदभाव या उत्पीड़न की मनाही\n'
+    'hi':
+        '• नफ़रत भरे भाषण, भेदभाव या उत्पीड़न की मनाही\n'
         '• स्पष्ट यौन या हिंसक सामग्री की मनाही\n'
         '• स्पैम, धोखाधड़ी या फ़िशिंग की मनाही\n'
         '• बिना सहमति दूसरों की व्यक्तिगत जानकारी साझा न करें\n'
         '• 3+ शिकायतों वाले खाते स्वचालित रूप से अवरुद्ध हो सकते हैं',
-    'th': '• ห้ามพูดจาเกลียดชัง เลือกปฏิบัติ หรือคุกคาม\n'
+    'th':
+        '• ห้ามพูดจาเกลียดชัง เลือกปฏิบัติ หรือคุกคาม\n'
         '• ห้ามเนื้อหาทางเพศหรือความรุนแรง\n'
         '• ห้ามสแปม การฉ้อโกง หรือฟิชชิ่ง\n'
         '• ห้ามแชร์ข้อมูลส่วนบุคคลของผู้อื่นโดยไม่ได้รับความยินยอม\n'
@@ -19110,20 +23255,29 @@ class AppL10n {
   });
 
   String get settingsRequestDataDesc => _t({
-    'ko': 'ceo@airony.xyz로 이메일을 보내 데이터 사본을 요청하세요',
-    'en': 'Email ceo@airony.xyz to request a copy of your data',
-    'ja': 'ceo@airony.xyzにメールでデータのコピーをリクエストしてください',
-    'zh': '发送邮件至ceo@airony.xyz请求数据副本',
-    'fr': 'Envoyez un email à ceo@airony.xyz pour demander une copie de vos données',
-    'de': 'Senden Sie eine E-Mail an ceo@airony.xyz, um eine Kopie Ihrer Daten anzufordern',
-    'es': 'Envíe un correo a ceo@airony.xyz para solicitar una copia de sus datos',
-    'pt': 'Envie um email para ceo@airony.xyz para solicitar uma cópia dos seus dados',
-    'ru': 'Отправьте email на ceo@airony.xyz для запроса копии ваших данных',
-    'tr': 'Verilerinizin bir kopyasını talep etmek için ceo@airony.xyz adresine e-posta gönderin',
-    'ar': 'أرسل بريداً إلكترونياً إلى ceo@airony.xyz لطلب نسخة من بياناتك',
-    'it': 'Invia un\'email a ceo@airony.xyz per richiedere una copia dei tuoi dati',
-    'hi': 'अपने डेटा की प्रति का अनुरोध करने के लिए ceo@airony.xyz पर ईमेल करें',
-    'th': 'ส่งอีเมลไปที่ ceo@airony.xyz เพื่อขอสำเนาข้อมูลของคุณ',
+    'ko': 'support@thiscount.io로 이메일을 보내 데이터 사본을 요청하세요',
+    'en': 'Email support@thiscount.io to request a copy of your data',
+    'ja': 'support@thiscount.ioにメールでデータのコピーをリクエストしてください',
+    'zh': '发送邮件至support@thiscount.io请求数据副本',
+    'fr':
+        'Envoyez un email à support@thiscount.io pour demander une copie de vos données',
+    'de':
+        'Senden Sie eine E-Mail an support@thiscount.io, um eine Kopie Ihrer Daten anzufordern',
+    'es':
+        'Envíe un correo a support@thiscount.io para solicitar una copia de sus datos',
+    'pt':
+        'Envie um email para support@thiscount.io para solicitar uma cópia dos seus dados',
+    'ru':
+        'Отправьте email на support@thiscount.io для запроса копии ваших данных',
+    'tr':
+        'Verilerinizin bir kopyasını talep etmek için support@thiscount.io adresine e-posta gönderin',
+    'ar':
+        'أرسل بريداً إلكترونياً إلى support@thiscount.io لطلب نسخة من بياناتك',
+    'it':
+        'Invia un\'email a support@thiscount.io per richiedere una copia dei tuoi dati',
+    'hi':
+        'अपने डेटा की प्रति का अनुरोध करने के लिए support@thiscount.io पर ईमेल करें',
+    'th': 'ส่งอีเมลไปที่ support@thiscount.io เพื่อขอสำเนาข้อมูลของคุณ',
   });
 
   // ── Content Policy Dialog ───────────────────────────────────────────────
@@ -19146,7 +23300,8 @@ class AppL10n {
   });
 
   String get contentPolicyBody => _t({
-    'ko': 'Thiscount는 사용자의 프라이버시를 존중합니다.\n\n'
+    'ko':
+        'Thiscount는 사용자의 프라이버시를 존중합니다.\n\n'
         '📋 기본 원칙\n'
         '관리자는 사용자의 혜택 내용을 일상적으로 열람하지 않습니다.\n\n'
         '🔍 열람이 이루어지는 경우\n'
@@ -19160,7 +23315,8 @@ class AppL10n {
         '4. 3회 이상 위반 시: 계정 영구 차단\n\n'
         '🔒 투명성\n'
         '열람 사유와 조치 결과를 기록하며, 사용자는 자신의 콘텐츠에 대한 조치 사유를 문의할 수 있습니다.',
-    'en': 'Thiscount respects your privacy.\n\n'
+    'en':
+        'Thiscount respects your privacy.\n\n'
         '📋 Core Principle\n'
         'Administrators do not routinely access your letter content.\n\n'
         '🔍 When Review Occurs\n'
@@ -19174,7 +23330,8 @@ class AppL10n {
         '4. 3+ violations: permanent account suspension\n\n'
         '🔒 Transparency\n'
         'Review reasons and outcomes are logged. Users may inquire about actions taken on their content.',
-    'ja': 'Thiscountはあなたのプライバシーを尊重します。\n\n'
+    'ja':
+        'Thiscountはあなたのプライバシーを尊重します。\n\n'
         '📋 基本原則\n'
         '管理者はあなたの手紙の内容を日常的に閲覧しません。\n\n'
         '🔍 閲覧が行われる場合\n'
@@ -19188,7 +23345,8 @@ class AppL10n {
         '4. 3回以上の違反：アカウント永久停止\n\n'
         '🔒 透明性\n'
         '閲覧理由と措置結果を記録し、ユーザーは自身のコンテンツに対する措置理由を問い合わせできます。',
-    'zh': 'Thiscount 尊重您的隐私。\n\n'
+    'zh':
+        'Thiscount 尊重您的隐私。\n\n'
         '📋 核心原则\n'
         '管理员不会日常访问您的信件内容。\n\n'
         '🔍 审查发生的情况\n'
@@ -19202,7 +23360,8 @@ class AppL10n {
         '4. 违规3次以上：永久封禁账号\n\n'
         '🔒 透明度\n'
         '审查原因和结果会被记录，用户可以查询对其内容采取的措施原因。',
-    'fr': 'Thiscount respecte votre vie privée.\n\n'
+    'fr':
+        'Thiscount respecte votre vie privée.\n\n'
         '📋 Principe fondamental\n'
         'Les administrateurs n\'accèdent pas régulièrement au contenu de vos lettres.\n\n'
         '🔍 Quand un examen a lieu\n'
@@ -19216,7 +23375,8 @@ class AppL10n {
         '4. 3+ violations : suspension permanente du compte\n\n'
         '🔒 Transparence\n'
         'Les raisons et résultats sont enregistrés. Les utilisateurs peuvent demander des explications.',
-    'de': 'Thiscount respektiert Ihre Privatsphäre.\n\n'
+    'de':
+        'Thiscount respektiert Ihre Privatsphäre.\n\n'
         '📋 Grundprinzip\n'
         'Administratoren greifen nicht routinemäßig auf Ihre Briefinhalte zu.\n\n'
         '🔍 Wann eine Überprüfung stattfindet\n'
@@ -19230,7 +23390,8 @@ class AppL10n {
         '4. 3+ Verstöße: dauerhafte Kontosperrung\n\n'
         '🔒 Transparenz\n'
         'Gründe und Ergebnisse werden protokolliert. Benutzer können Erklärungen anfordern.',
-    'es': 'Thiscount respeta su privacidad.\n\n'
+    'es':
+        'Thiscount respeta su privacidad.\n\n'
         '📋 Principio fundamental\n'
         'Los administradores no acceden rutinariamente al contenido de sus cartas.\n\n'
         '🔍 Cuándo se realiza una revisión\n'
@@ -19244,7 +23405,8 @@ class AppL10n {
         '4. 3+ violaciones: suspensión permanente\n\n'
         '🔒 Transparencia\n'
         'Las razones y resultados se registran. Los usuarios pueden consultar las acciones tomadas.',
-    'pt': 'Thiscount respeita sua privacidade.\n\n'
+    'pt':
+        'Thiscount respeita sua privacidade.\n\n'
         '📋 Princípio fundamental\n'
         'Administradores não acessam rotineiramente o conteúdo de suas cartas.\n\n'
         '🔍 Quando ocorre revisão\n'
@@ -19258,7 +23420,8 @@ class AppL10n {
         '4. 3+ violações: suspensão permanente\n\n'
         '🔒 Transparência\n'
         'Razões e resultados são registrados. Usuários podem consultar ações tomadas.',
-    'ru': 'Thiscount уважает вашу конфиденциальность.\n\n'
+    'ru':
+        'Thiscount уважает вашу конфиденциальность.\n\n'
         '📋 Основной принцип\n'
         'Администраторы не просматривают содержание ваших писем на регулярной основе.\n\n'
         '🔍 Когда проводится проверка\n'
@@ -19272,7 +23435,8 @@ class AppL10n {
         '4. 3+ нарушений: постоянная блокировка аккаунта\n\n'
         '🔒 Прозрачность\n'
         'Причины и результаты проверок фиксируются. Пользователи могут запросить информацию.',
-    'tr': 'Thiscount gizliliğinize saygı duyar.\n\n'
+    'tr':
+        'Thiscount gizliliğinize saygı duyar.\n\n'
         '📋 Temel İlke\n'
         'Yöneticiler mektup içeriğinize rutin olarak erişmez.\n\n'
         '🔍 İnceleme Ne Zaman Yapılır\n'
@@ -19286,7 +23450,8 @@ class AppL10n {
         '4. 3+ ihlal: kalıcı hesap askıya alma\n\n'
         '🔒 Şeffaflık\n'
         'İnceleme nedenleri ve sonuçları kaydedilir. Kullanıcılar bilgi talep edebilir.',
-    'ar': 'Thiscount يحترم خصوصيتك.\n\n'
+    'ar':
+        'Thiscount يحترم خصوصيتك.\n\n'
         '📋 المبدأ الأساسي\n'
         'لا يصل المسؤولون بشكل روتيني إلى محتوى رسائلك.\n\n'
         '🔍 متى تتم المراجعة\n'
@@ -19300,7 +23465,8 @@ class AppL10n {
         '4. 3+ مخالفات: تعليق دائم للحساب\n\n'
         '🔒 الشفافية\n'
         'يتم تسجيل الأسباب والنتائج. يمكن للمستخدمين الاستفسار عن الإجراءات المتخذة.',
-    'it': 'Thiscount rispetta la tua privacy.\n\n'
+    'it':
+        'Thiscount rispetta la tua privacy.\n\n'
         '📋 Principio fondamentale\n'
         'Gli amministratori non accedono regolarmente al contenuto delle tue lettere.\n\n'
         '🔍 Quando avviene la revisione\n'
@@ -19314,7 +23480,8 @@ class AppL10n {
         '4. 3+ violazioni: sospensione permanente dell\'account\n\n'
         '🔒 Trasparenza\n'
         'Motivazioni e risultati vengono registrati. Gli utenti possono richiedere informazioni.',
-    'hi': 'Thiscount आपकी गोपनीयता का सम्मान करता है।\n\n'
+    'hi':
+        'Thiscount आपकी गोपनीयता का सम्मान करता है।\n\n'
         '📋 मूल सिद्धांत\n'
         'प्रशासक आपके पत्र सामग्री को नियमित रूप से नहीं देखते।\n\n'
         '🔍 समीक्षा कब होती है\n'
@@ -19328,7 +23495,8 @@ class AppL10n {
         '4. 3+ उल्लंघन: स्थायी खाता निलंबन\n\n'
         '🔒 पारदर्शिता\n'
         'कारण और परिणाम दर्ज किए जाते हैं। उपयोगकर्ता कार्रवाई के बारे में पूछ सकते हैं।',
-    'th': 'Thiscount เคารพความเป็นส่วนตัวของคุณ\n\n'
+    'th':
+        'Thiscount เคารพความเป็นส่วนตัวของคุณ\n\n'
         '📋 หลักการพื้นฐาน\n'
         'ผู้ดูแลระบบไม่เข้าถึงเนื้อหาจดหมายของคุณเป็นประจำ\n\n'
         '🔍 เมื่อใดที่มีการตรวจสอบ\n'
@@ -19362,7 +23530,8 @@ class AppL10n {
   });
 
   String get communityGuidelinesBody => _t({
-    'ko': 'Thiscount는 전 세계 사용자가 혜택을 통해 따뜻한 소통을 나누는 공간입니다.\n'
+    'ko':
+        'Thiscount는 전 세계 사용자가 혜택을 통해 따뜻한 소통을 나누는 공간입니다.\n'
         '모든 사용자가 안전하고 즐거운 경험을 할 수 있도록 다음 규칙을 지켜주세요.\n\n'
         '✅ 권장 사항\n'
         '• 정중하고 친근한 톤으로 혜택을 쓰세요\n'
@@ -19380,7 +23549,8 @@ class AppL10n {
         '• 2회: 일시적 서비스 제한\n'
         '• 3회 이상: 영구 계정 차단\n\n'
         '부적절한 혜택을 받으면 혜택 읽기 화면에서 🚩 버튼으로 신고해 주세요.',
-    'en': 'Thiscount is a space where users worldwide connect through rewards.\n'
+    'en':
+        'Thiscount is a space where users worldwide connect through rewards.\n'
         'Please follow these rules so everyone can have a safe, enjoyable experience.\n\n'
         '✅ Encouraged\n'
         '• Write rewards with a polite, friendly tone\n'
@@ -19398,7 +23568,8 @@ class AppL10n {
         '• 2nd offense: Temporary service restriction\n'
         '• 3+ offenses: Permanent account suspension\n\n'
         'If you receive an inappropriate reward, please report it using the 🚩 button on the reward screen.',
-    'ja': 'Thiscountは世界中のユーザーが手紙でつながる場所です。\n'
+    'ja':
+        'Thiscountは世界中のユーザーが手紙でつながる場所です。\n'
         '安全で楽しい体験のために、以下のルールを守ってください。\n\n'
         '✅ 推奨事項\n'
         '• 丁寧で親しみやすいトーンで手紙を書いてください\n'
@@ -19416,7 +23587,8 @@ class AppL10n {
         '• 2回目：一時的なサービス制限\n'
         '• 3回以上：アカウント永久停止\n\n'
         '不適切な手紙を受け取った場合は、手紙画面の🚩ボタンで報告してください。',
-    'zh': 'Thiscount 是全球用户通过信件连接的空间。\n'
+    'zh':
+        'Thiscount 是全球用户通过信件连接的空间。\n'
         '请遵守以下规则，让每个人都能有安全、愉快的体验。\n\n'
         '✅ 鼓励的行为\n'
         '• 用礼貌、友好的语气写信\n'
@@ -19434,7 +23606,8 @@ class AppL10n {
         '• 第2次：暂时限制服务\n'
         '• 3次以上：永久封禁账号\n\n'
         '如收到不当信件，请在信件页面点击🚩按钮举报。',
-    'fr': 'Thiscount est un espace où les utilisateurs du monde entier communiquent par lettres.\n'
+    'fr':
+        'Thiscount est un espace où les utilisateurs du monde entier communiquent par lettres.\n'
         'Suivez ces règles pour que chacun puisse vivre une expérience sûre et agréable.\n\n'
         '✅ Recommandé\n'
         '• Écrivez avec un ton poli et amical\n'
@@ -19452,7 +23625,8 @@ class AppL10n {
         '• 2e infraction : Restriction temporaire\n'
         '• 3+ infractions : Suspension permanente\n\n'
         'Si vous recevez une lettre inappropriée, signalez-la avec le bouton 🚩.',
-    'de': 'Thiscount ist ein Raum, in dem Benutzer weltweit durch Briefe verbunden sind.\n'
+    'de':
+        'Thiscount ist ein Raum, in dem Benutzer weltweit durch Briefe verbunden sind.\n'
         'Bitte befolgen Sie diese Regeln für eine sichere, angenehme Erfahrung.\n\n'
         '✅ Empfohlen\n'
         '• Schreiben Sie höflich und freundlich\n'
@@ -19470,7 +23644,8 @@ class AppL10n {
         '• 2. Verstoß: Vorübergehende Einschränkung\n'
         '• 3+ Verstöße: Dauerhafte Kontosperrung\n\n'
         'Melden Sie unangemessene Briefe mit der 🚩-Taste.',
-    'es': 'Thiscount es un espacio donde usuarios de todo el mundo se conectan a través de cartas.\n'
+    'es':
+        'Thiscount es un espacio donde usuarios de todo el mundo se conectan a través de cartas.\n'
         'Siga estas reglas para que todos tengan una experiencia segura y agradable.\n\n'
         '✅ Recomendado\n'
         '• Escriba con un tono educado y amigable\n'
@@ -19488,7 +23663,8 @@ class AppL10n {
         '• 2ª infracción: Restricción temporal\n'
         '• 3+ infracciones: Suspensión permanente\n\n'
         'Si recibe una carta inapropiada, repórtela con el botón 🚩.',
-    'pt': 'Thiscount é um espaço onde usuários do mundo todo se conectam por cartas.\n'
+    'pt':
+        'Thiscount é um espaço onde usuários do mundo todo se conectam por cartas.\n'
         'Siga estas regras para que todos tenham uma experiência segura e agradável.\n\n'
         '✅ Recomendado\n'
         '• Escreva com um tom educado e amigável\n'
@@ -19506,7 +23682,8 @@ class AppL10n {
         '• 2ª infração: Restrição temporária\n'
         '• 3+ infrações: Suspensão permanente\n\n'
         'Se receber uma carta inadequada, denuncie com o botão 🚩.',
-    'ru': 'Thiscount — пространство, где пользователи со всего мира общаются через письма.\n'
+    'ru':
+        'Thiscount — пространство, где пользователи со всего мира общаются через письма.\n'
         'Соблюдайте эти правила для безопасного и приятного опыта.\n\n'
         '✅ Рекомендуется\n'
         '• Пишите вежливым и дружелюбным тоном\n'
@@ -19524,7 +23701,8 @@ class AppL10n {
         '• 2-е нарушение: Временное ограничение\n'
         '• 3+ нарушений: Постоянная блокировка аккаунта\n\n'
         'Если получите неприемлемое письмо, пожалуйтесь через кнопку 🚩.',
-    'tr': 'Thiscount, dünya genelinde kullanıcıların mektuplarla bağlandığı bir alandır.\n'
+    'tr':
+        'Thiscount, dünya genelinde kullanıcıların mektuplarla bağlandığı bir alandır.\n'
         'Herkesin güvenli ve keyifli bir deneyim yaşaması için bu kurallara uyun.\n\n'
         '✅ Önerilen\n'
         '• Kibar ve samimi bir tonla yazın\n'
@@ -19542,7 +23720,8 @@ class AppL10n {
         '• 2. ihlal: Geçici kısıtlama\n'
         '• 3+ ihlal: Kalıcı hesap askıya alma\n\n'
         'Uygunsuz bir mektup alırsanız 🚩 düğmesiyle bildirin.',
-    'ar': 'Thiscount مساحة يتواصل فيها المستخدمون حول العالم عبر الرسائل.\n'
+    'ar':
+        'Thiscount مساحة يتواصل فيها المستخدمون حول العالم عبر الرسائل.\n'
         'يرجى اتباع هذه القواعد ليحظى الجميع بتجربة آمنة وممتعة.\n\n'
         '✅ مُشجع\n'
         '• اكتب بنبرة مهذبة وودية\n'
@@ -19560,7 +23739,8 @@ class AppL10n {
         '• المخالفة الثانية: تقييد مؤقت\n'
         '• 3+ مخالفات: تعليق دائم للحساب\n\n'
         'إذا تلقيت رسالة غير لائقة، أبلغ عنها باستخدام زر 🚩.',
-    'it': 'Thiscount è uno spazio dove utenti di tutto il mondo si connettono tramite lettere.\n'
+    'it':
+        'Thiscount è uno spazio dove utenti di tutto il mondo si connettono tramite lettere.\n'
         'Segui queste regole per un\'esperienza sicura e piacevole per tutti.\n\n'
         '✅ Consigliato\n'
         '• Scrivi con un tono educato e amichevole\n'
@@ -19578,7 +23758,8 @@ class AppL10n {
         '• 2ª violazione: Restrizione temporanea\n'
         '• 3+ violazioni: Sospensione permanente\n\n'
         'Se ricevi una lettera inappropriata, segnalala con il pulsante 🚩.',
-    'hi': 'Thiscount एक ऐसा स्थान है जहां दुनिया भर के उपयोगकर्ता पत्रों के माध्यम से जुड़ते हैं।\n'
+    'hi':
+        'Thiscount एक ऐसा स्थान है जहां दुनिया भर के उपयोगकर्ता पत्रों के माध्यम से जुड़ते हैं।\n'
         'कृपया इन नियमों का पालन करें ताकि सभी को सुरक्षित, आनंददायक अनुभव मिले।\n\n'
         '✅ प्रोत्साहित\n'
         '• विनम्र, मैत्रीपूर्ण स्वर में लिखें\n'
@@ -19596,7 +23777,8 @@ class AppL10n {
         '• दूसरा उल्लंघन: अस्थायी प्रतिबंध\n'
         '• 3+ उल्लंघन: स्थायी खाता निलंबन\n\n'
         'अनुचित पत्र मिलने पर 🚩 बटन से रिपोर्ट करें।',
-    'th': 'Thiscount เป็นพื้นที่ที่ผู้ใช้ทั่วโลกเชื่อมต่อกันผ่านจดหมาย\n'
+    'th':
+        'Thiscount เป็นพื้นที่ที่ผู้ใช้ทั่วโลกเชื่อมต่อกันผ่านจดหมาย\n'
         'กรุณาปฏิบัติตามกฎเหล่านี้เพื่อให้ทุกคนมีประสบการณ์ที่ปลอดภัยและสนุกสนาน\n\n'
         '✅ แนะนำ\n'
         '• เขียนด้วยน้ำเสียงที่สุภาพและเป็นมิตร\n'
@@ -19884,14 +24066,18 @@ class AppL10n {
     'en': 'Used for signup verification and password reset',
     'ja': '会員登録確認やパスワードリセット時に使用されます',
     'zh': '用于注册验证和密码重置',
-    'fr': 'Utilisé pour la vérification d\'inscription et la réinitialisation du mot de passe',
-    'de': 'Wird für Registrierungsverifizierung und Passwort-Zurücksetzung verwendet',
-    'es': 'Usado para verificación de registro y restablecimiento de contraseña',
+    'fr':
+        'Utilisé pour la vérification d\'inscription et la réinitialisation du mot de passe',
+    'de':
+        'Wird für Registrierungsverifizierung und Passwort-Zurücksetzung verwendet',
+    'es':
+        'Usado para verificación de registro y restablecimiento de contraseña',
     'pt': 'Usado para verificação de cadastro e redefinição de senha',
     'ru': 'Используется для подтверждения регистрации и сброса пароля',
     'tr': 'Kayıt doğrulama ve şifre sıfırlama için kullanılır',
     'ar': 'يُستخدم لتأكيد التسجيل وإعادة تعيين كلمة المرور',
-    'it': 'Utilizzato per la verifica della registrazione e il ripristino della password',
+    'it':
+        'Utilizzato per la verifica della registrazione e il ripristino della password',
     'hi': 'साइनअप सत्यापन और पासवर्ड रीसेट के लिए उपयोग किया जाता है',
     'th': 'ใช้สำหรับยืนยันการสมัครและรีเซ็ตรหัสผ่าน',
   });
@@ -19901,10 +24087,14 @@ class AppL10n {
     'en': 'Please enter your phone number first to use SMS verification',
     'ja': 'SMS認証を使用するには、まず電話番号を入力してください',
     'zh': '请先输入手机号码才能使用短信验证',
-    'fr': 'Veuillez d\'abord entrer votre numéro de téléphone pour utiliser la vérification SMS',
-    'de': 'Bitte geben Sie zuerst Ihre Telefonnummer ein, um die SMS-Verifizierung zu nutzen',
-    'es': 'Ingrese su número de teléfono primero para usar la verificación por SMS',
-    'pt': 'Insira seu número de telefone primeiro para usar a verificação por SMS',
+    'fr':
+        'Veuillez d\'abord entrer votre numéro de téléphone pour utiliser la vérification SMS',
+    'de':
+        'Bitte geben Sie zuerst Ihre Telefonnummer ein, um die SMS-Verifizierung zu nutzen',
+    'es':
+        'Ingrese su número de teléfono primero para usar la verificación por SMS',
+    'pt':
+        'Insira seu número de telefone primeiro para usar a verificação por SMS',
     'ru': 'Сначала введите номер телефона для использования SMS-верификации',
     'tr': 'SMS doğrulama için lütfen önce telefon numaranızı girin',
     'ar': 'يرجى إدخال رقم هاتفك أولاً لاستخدام التحقق عبر SMS',
@@ -19919,40 +24109,70 @@ class AppL10n {
 
   // ── 일일 스트릭 ─────────────────────────────────────────────────────────
   String streakDayLabel(int days) => _t({
-    'ko': '$days일', 'en': '$days d', 'ja': '$days日', 'zh': '$days天',
-    'fr': '$days j', 'de': '$days T', 'es': '$days d', 'pt': '$days d',
-    'ru': '$days д', 'tr': '$days g', 'ar': '$days يوم',
-    'it': '$days g', 'hi': '$days दिन', 'th': '$days วัน',
+    'ko': '$days일',
+    'en': '$days d',
+    'ja': '$days日',
+    'zh': '$days天',
+    'fr': '$days j',
+    'de': '$days T',
+    'es': '$days d',
+    'pt': '$days d',
+    'ru': '$days д',
+    'tr': '$days g',
+    'ar': '$days يوم',
+    'it': '$days g',
+    'hi': '$days दिन',
+    'th': '$days วัน',
   });
 
   String streakFreezeUsedMessage(int days) {
     switch (languageCode) {
-      case 'ko': return '스트릭을 한 번 구해드렸어요! $days일 연속 유지 중';
-      case 'ja': return 'ストリークを1回救いました！$days日連続継続中';
-      case 'zh': return '我们帮你保住了一次连续签到！当前 $days 天';
-      case 'fr': return "On a sauvé votre série une fois ! $days jours d'affilée";
-      case 'de': return 'Wir haben deine Serie einmal gerettet! $days Tage in Folge';
-      case 'es': return '¡Salvamos tu racha una vez! $days días seguidos';
-      case 'pt': return 'Salvamos seu streak uma vez! $days dias seguidos';
-      case 'ru': return 'Мы сохранили вашу серию! $days дней подряд';
-      case 'tr': return 'Serini bir kez kurtardık! $days gün üst üste';
-      case 'ar': return 'أنقذنا سلسلتك مرة واحدة! $days يوماً متتالياً';
-      case 'it': return 'Abbiamo salvato la tua serie una volta! $days giorni di fila';
-      case 'hi': return 'हमने आपकी स्ट्रीक एक बार बचा ली! लगातार $days दिन';
-      case 'th': return 'เราช่วยสตรีคของคุณไว้หนึ่งครั้ง! ต่อเนื่อง $days วัน';
+      case 'ko':
+        return '스트릭을 한 번 구해드렸어요! $days일 연속 유지 중';
+      case 'ja':
+        return 'ストリークを1回救いました！$days日連続継続中';
+      case 'zh':
+        return '我们帮你保住了一次连续签到！当前 $days 天';
+      case 'fr':
+        return "On a sauvé votre série une fois ! $days jours d'affilée";
+      case 'de':
+        return 'Wir haben deine Serie einmal gerettet! $days Tage in Folge';
+      case 'es':
+        return '¡Salvamos tu racha una vez! $days días seguidos';
+      case 'pt':
+        return 'Salvamos seu streak uma vez! $days dias seguidos';
+      case 'ru':
+        return 'Мы сохранили вашу серию! $days дней подряд';
+      case 'tr':
+        return 'Serini bir kez kurtardık! $days gün üst üste';
+      case 'ar':
+        return 'أنقذنا سلسلتك مرة واحدة! $days يوماً متتالياً';
+      case 'it':
+        return 'Abbiamo salvato la tua serie una volta! $days giorni di fila';
+      case 'hi':
+        return 'हमने आपकी स्ट्रीक एक बार बचा ली! लगातार $days दिन';
+      case 'th':
+        return 'เราช่วยสตรีคของคุณไว้หนึ่งครั้ง! ต่อเนื่อง $days วัน';
       case 'en':
-      default: return 'We saved your streak once! $days days running';
+      default:
+        return 'We saved your streak once! $days days running';
     }
   }
 
   String streakMilestoneMessage(int days) {
     switch (days) {
-      case 3: return streakMilestone3;
-      case 7: return streakMilestone7;
-      case 14: return streakMilestone14;
-      case 30: return streakMilestone30;
-      case 100: return streakMilestone100;
-      default: return streakMilestoneGeneric(days);
+      case 3:
+        return streakMilestone3;
+      case 7:
+        return streakMilestone7;
+      case 14:
+        return streakMilestone14;
+      case 30:
+        return streakMilestone30;
+      case 100:
+        return streakMilestone100;
+      default:
+        return streakMilestoneGeneric(days);
     }
   }
 
@@ -20423,12 +24643,19 @@ class AppL10n {
 
   // ── 이번 달의 도시 ──────────────────────────────────────────────────────
   String cityOfMonthBadge(int month) => _t({
-    'ko': '$month월의 도시', 'en': 'City of month $month', 'ja': '$month月の都市',
-    'zh': '$month月之城', 'fr': 'Ville du mois $month',
-    'de': 'Stadt des Monats $month', 'es': 'Ciudad del mes $month',
-    'pt': 'Cidade do mês $month', 'ru': 'Город месяца $month',
-    'tr': '$month. ay şehri', 'ar': 'مدينة الشهر $month',
-    'it': 'Città del mese $month', 'hi': '$month महीने का शहर',
+    'ko': '$month월의 도시',
+    'en': 'City of month $month',
+    'ja': '$month月の都市',
+    'zh': '$month月之城',
+    'fr': 'Ville du mois $month',
+    'de': 'Stadt des Monats $month',
+    'es': 'Ciudad del mes $month',
+    'pt': 'Cidade do mês $month',
+    'ru': 'Город месяца $month',
+    'tr': '$month. ay şehri',
+    'ar': 'مدينة الشهر $month',
+    'it': 'Città del mese $month',
+    'hi': '$month महीने का शहर',
     'th': 'เมืองประจำเดือนที่ $month',
   });
 
@@ -20486,10 +24713,20 @@ class AppL10n {
 
   // ── 일반 공유 액션 라벨 ──────────────────────────────────────────────────
   String get shareAction => _t({
-    'ko': '공유', 'en': 'Share', 'ja': '共有', 'zh': '分享',
-    'fr': 'Partager', 'de': 'Teilen', 'es': 'Compartir',
-    'pt': 'Compartilhar', 'ru': 'Поделиться', 'tr': 'Paylaş',
-    'ar': 'مشاركة', 'it': 'Condividi', 'hi': 'शेयर', 'th': 'แชร์',
+    'ko': '공유',
+    'en': 'Share',
+    'ja': '共有',
+    'zh': '分享',
+    'fr': 'Partager',
+    'de': 'Teilen',
+    'es': 'Compartir',
+    'pt': 'Compartilhar',
+    'ru': 'Поделиться',
+    'tr': 'Paylaş',
+    'ar': 'مشاركة',
+    'it': 'Condividi',
+    'hi': 'शेयर',
+    'th': 'แชร์',
   });
 
   // ── 나의 여정 (Journey) ──────────────────────────────────────────────────
@@ -20511,10 +24748,20 @@ class AppL10n {
   });
 
   String get journeyStatSent => _t({
-    'ko': '보낸 혜택', 'en': 'Sent', 'ja': '送信', 'zh': '发送',
-    'fr': 'Envoyées', 'de': 'Gesendet', 'es': 'Enviadas',
-    'pt': 'Enviadas', 'ru': 'Отправлено', 'tr': 'Gönderilen',
-    'ar': 'مُرسلة', 'it': 'Inviate', 'hi': 'भेजे', 'th': 'ส่งแล้ว',
+    'ko': '보낸 혜택',
+    'en': 'Sent',
+    'ja': '送信',
+    'zh': '发送',
+    'fr': 'Envoyées',
+    'de': 'Gesendet',
+    'es': 'Enviadas',
+    'pt': 'Enviadas',
+    'ru': 'Отправлено',
+    'tr': 'Gönderilen',
+    'ar': 'مُرسلة',
+    'it': 'Inviate',
+    'hi': 'भेजे',
+    'th': 'ส่งแล้ว',
   });
 
   String get journeyStatCountries => _t({
@@ -20535,10 +24782,20 @@ class AppL10n {
   });
 
   String get journeyStatReplies => _t({
-    'ko': '답장', 'en': 'Replies', 'ja': '返信', 'zh': '回信',
-    'fr': 'Réponses', 'de': 'Antworten', 'es': 'Respuestas',
-    'pt': 'Respostas', 'ru': 'Ответы', 'tr': 'Yanıtlar',
-    'ar': 'الردود', 'it': 'Risposte', 'hi': 'जवाब', 'th': 'ตอบกลับ',
+    'ko': '답장',
+    'en': 'Replies',
+    'ja': '返信',
+    'zh': '回信',
+    'fr': 'Réponses',
+    'de': 'Antworten',
+    'es': 'Respuestas',
+    'pt': 'Respostas',
+    'ru': 'Ответы',
+    'tr': 'Yanıtlar',
+    'ar': 'الردود',
+    'it': 'Risposte',
+    'hi': 'जवाब',
+    'th': 'ตอบกลับ',
   });
 
   String get journeyLongestDistance => _t({
@@ -20592,7 +24849,7 @@ class AppL10n {
     'th': 'สตรีคที่ยาวที่สุด $days วัน',
   });
 
-  // Build 247: Air Mail Pass 서브브랜드 키 제거됨 (사용자 요청).
+  // Build 247: 이전 Premium 서브브랜드 키 제거됨 (사용자 요청).
   // premium_screen.dart 에서 사용처 제거 + l10n 키 자체 삭제로 클린업.
 
   // ── 편지 맥락 배지 ──────────────────────────────────────────────────────
@@ -20650,10 +24907,14 @@ class AppL10n {
   static String _ordinalEn(int n) {
     if (n % 100 >= 11 && n % 100 <= 13) return '${n}th';
     switch (n % 10) {
-      case 1: return '${n}st';
-      case 2: return '${n}nd';
-      case 3: return '${n}rd';
-      default: return '${n}th';
+      case 1:
+        return '${n}st';
+      case 2:
+        return '${n}nd';
+      case 3:
+        return '${n}rd';
+      default:
+        return '${n}th';
     }
   }
 
@@ -20821,18 +25082,27 @@ class AppL10n {
 
   String get xpMilestonesSubtitle => _t({
     'ko': '5 레벨마다 등급이 진화해요. 혜택을 더 많이 주울수록, 멀리 보낼수록 빨라져요.',
-    'en': 'Your tier evolves every 5 levels. Pick up more, send further — climb faster.',
+    'en':
+        'Your tier evolves every 5 levels. Pick up more, send further — climb faster.',
     'ja': '5レベルごとに称号が進化します。多く拾い、遠くへ送るほど早く上がります。',
     'zh': '每 5 级称号进化。拾得越多、送得越远，晋升越快。',
-    'fr': 'Votre rang évolue tous les 5 niveaux. Plus vous ramassez et envoyez loin, plus vite vous montez.',
-    'de': 'Dein Rang entwickelt sich alle 5 Level. Mehr sammeln und weiter senden lässt dich schneller aufsteigen.',
-    'es': 'Tu rango evoluciona cada 5 niveles. Recoger más y enviar más lejos acelera tu ascenso.',
-    'pt': 'O teu nível evolui a cada 5 níveis. Apanhar mais e enviar mais longe acelera a subida.',
-    'ru': 'Титул повышается каждые 5 уровней. Собирайте больше, отправляйте дальше — растите быстрее.',
-    'tr': 'Rütbe her 5 seviyede evrilir. Daha çok topla, daha uzağa gönder, daha hızlı yüksel.',
+    'fr':
+        'Votre rang évolue tous les 5 niveaux. Plus vous ramassez et envoyez loin, plus vite vous montez.',
+    'de':
+        'Dein Rang entwickelt sich alle 5 Level. Mehr sammeln und weiter senden lässt dich schneller aufsteigen.',
+    'es':
+        'Tu rango evoluciona cada 5 niveles. Recoger más y enviar más lejos acelera tu ascenso.',
+    'pt':
+        'O teu nível evolui a cada 5 níveis. Apanhar mais e enviar mais longe acelera a subida.',
+    'ru':
+        'Титул повышается каждые 5 уровней. Собирайте больше, отправляйте дальше — растите быстрее.',
+    'tr':
+        'Rütbe her 5 seviyede evrilir. Daha çok topla, daha uzağa gönder, daha hızlı yüksel.',
     'ar': 'تتطور رتبتك كل 5 مستويات. التقط أكثر وأرسل أبعد لترتفع أسرع.',
-    'it': 'Il tuo grado evolve ogni 5 livelli. Raccogli di più e invia più lontano per salire più veloce.',
-    'hi': 'हर 5 स्तर पर आपका रैंक विकसित होता है. अधिक उठाएँ और दूर भेजें — तेज़ी से बढ़ें.',
+    'it':
+        'Il tuo grado evolve ogni 5 livelli. Raccogli di più e invia più lontano per salire più veloce.',
+    'hi':
+        'हर 5 स्तर पर आपका रैंक विकसित होता है. अधिक उठाएँ और दूर भेजें — तेज़ी से बढ़ें.',
     'th': 'ยศจะพัฒนาทุก 5 ระดับ ยิ่งเก็บและส่งไกล ยิ่งไปเร็ว',
   });
 
@@ -20957,171 +25227,397 @@ class AppL10n {
 
   // Tower benefits popup (Build 205)
   String get towerBenefitsTitle => _t({
-    'ko': '내 카운터 성장 가이드', 'en': 'Your Counter Growth Guide', 'ja': 'カウンター成長ガイド', 'zh': '我的信件成长指南',
-    'fr': 'Votre guide de croissance Letter', 'de': 'Dein Letter-Wachstumsleitfaden', 'es': 'Guía de crecimiento de tu carta',
-    'pt': 'Guia de crescimento da carta', 'ru': 'Руководство роста', 'tr': 'Letter Büyüme Rehberi',
-    'ar': 'دليل نمو الرسائل', 'it': 'Guida crescita Letter', 'hi': 'लेटर ग्रोथ गाइड', 'th': 'คู่มือการเติบโตของเลตเตอร์',
+    'ko': '내 카운터 성장 가이드',
+    'en': 'Your Counter Growth Guide',
+    'ja': 'カウンター成長ガイド',
+    'zh': '我的信件成长指南',
+    'fr': 'Votre guide de croissance Letter',
+    'de': 'Dein Letter-Wachstumsleitfaden',
+    'es': 'Guía de crecimiento de tu carta',
+    'pt': 'Guia de crescimento da carta',
+    'ru': 'Руководство роста',
+    'tr': 'Letter Büyüme Rehberi',
+    'ar': 'دليل نمو الرسائل',
+    'it': 'Guida crescita Letter',
+    'hi': 'लेटर ग्रोथ गाइड',
+    'th': 'คู่มือการเติบโตของเลตเตอร์',
   });
 
   String get towerBenefitsLevelUpSection => _t({
-    'ko': '레벨업으로 얻는 것', 'en': 'What level-ups unlock', 'ja': 'レベルアップで得られるもの', 'zh': '升级解锁内容',
-    'fr': 'Récompenses de niveau', 'de': 'Level-Up Belohnungen', 'es': 'Recompensas por subir de nivel',
-    'pt': 'Recompensas de nível', 'ru': 'Награды за уровень', 'tr': 'Seviye atlama ödülleri',
-    'ar': 'مكافآت المستوى', 'it': 'Ricompense livello', 'hi': 'स्तर पुरस्कार', 'th': 'รางวัลเลเวลอัพ',
+    'ko': '레벨업으로 얻는 것',
+    'en': 'What level-ups unlock',
+    'ja': 'レベルアップで得られるもの',
+    'zh': '升级解锁内容',
+    'fr': 'Récompenses de niveau',
+    'de': 'Level-Up Belohnungen',
+    'es': 'Recompensas por subir de nivel',
+    'pt': 'Recompensas de nível',
+    'ru': 'Награды за уровень',
+    'tr': 'Seviye atlama ödülleri',
+    'ar': 'مكافآت المستوى',
+    'it': 'Ricompense livello',
+    'hi': 'स्तर पुरस्कार',
+    'th': 'รางวัลเลเวลอัพ',
   });
 
   String get towerBenefitsBulletRadius => _t({
-    'ko': '픽업 반경 확장 — 레벨당 +10m', 'en': 'Pickup radius expands — +10m per level', 'ja': 'ピックアップ範囲拡大 — レベルごとに+10m', 'zh': '拾取半径扩展 — 每级+10m',
-    'fr': 'Rayon de ramassage +10m par niveau', 'de': 'Abholradius +10m pro Level', 'es': 'Radio de recogida +10m por nivel',
-    'pt': 'Raio +10m por nível', 'ru': 'Радиус +10м за уровень', 'tr': 'Toplama yarıçapı +10m / seviye',
-    'ar': 'نطاق الالتقاط +10م لكل مستوى', 'it': 'Raggio +10m per livello', 'hi': 'पिकअप +10m प्रति स्तर', 'th': 'รัศมีรับ +10m/เลเวล',
+    'ko': '픽업 반경 확장 — 레벨당 +10m',
+    'en': 'Pickup radius expands — +10m per level',
+    'ja': 'ピックアップ範囲拡大 — レベルごとに+10m',
+    'zh': '拾取半径扩展 — 每级+10m',
+    'fr': 'Rayon de ramassage +10m par niveau',
+    'de': 'Abholradius +10m pro Level',
+    'es': 'Radio de recogida +10m por nivel',
+    'pt': 'Raio +10m por nível',
+    'ru': 'Радиус +10м за уровень',
+    'tr': 'Toplama yarıçapı +10m / seviye',
+    'ar': 'نطاق الالتقاط +10م لكل مستوى',
+    'it': 'Raggio +10m per livello',
+    'hi': 'पिकअप +10m प्रति स्तर',
+    'th': 'รัศมีรับ +10m/เลเวล',
   });
 
   String get towerBenefitsBulletTitles => _t({
-    'ko': '명예 호칭 진화 — 견습→숙련→…→전설의 카운터', 'en': 'Title evolves — Apprentice → … → Legendary', 'ja': '称号進化 — 見習い→…→伝説', 'zh': '称号进化 — 学徒→…→传奇',
-    'fr': 'Titres évoluent — Apprenti → … → Légendaire', 'de': 'Titel entwickeln sich', 'es': 'Títulos evolucionan',
-    'pt': 'Títulos evoluem', 'ru': 'Звания развиваются', 'tr': 'Unvanlar gelişir',
-    'ar': 'الألقاب تتطور', 'it': 'Titoli evolvono', 'hi': 'उपाधियाँ विकसित होती हैं', 'th': 'ฉายาก้าวหน้า',
+    'ko': '명예 호칭 진화 — 견습→숙련→…→전설의 카운터',
+    'en': 'Title evolves — Apprentice → … → Legendary',
+    'ja': '称号進化 — 見習い→…→伝説',
+    'zh': '称号进化 — 学徒→…→传奇',
+    'fr': 'Titres évoluent — Apprenti → … → Légendaire',
+    'de': 'Titel entwickeln sich',
+    'es': 'Títulos evolucionan',
+    'pt': 'Títulos evoluem',
+    'ru': 'Звания развиваются',
+    'tr': 'Unvanlar gelişir',
+    'ar': 'الألقاب تتطور',
+    'it': 'Titoli evolvono',
+    'hi': 'उपाधियाँ विकसित होती हैं',
+    'th': 'ฉายาก้าวหน้า',
   });
 
   String get towerBenefitsBulletUnlocks => _t({
-    'ko': '캐릭터/컴패니언/악세사리 해금', 'en': 'Unlock characters / companions / accessories', 'ja': 'キャラクター/コンパニオン/アクセサリー解放', 'zh': '解锁角色/伙伴/配饰',
-    'fr': 'Personnages/compagnons/accessoires', 'de': 'Charaktere/Begleiter/Accessoires', 'es': 'Personajes/compañeros/accesorios',
-    'pt': 'Personagens/companheiros/acessórios', 'ru': 'Персонажи/спутники/аксессуары', 'tr': 'Karakter/yoldaş/aksesuar',
-    'ar': 'شخصيات/رفقاء/إكسسوارات', 'it': 'Personaggi/compagni/accessori', 'hi': 'पात्र/साथी/सहायक', 'th': 'ตัวละคร/คู่หู/ของประดับ',
+    'ko': '캐릭터/컴패니언/악세사리 해금',
+    'en': 'Unlock characters / companions / accessories',
+    'ja': 'キャラクター/コンパニオン/アクセサリー解放',
+    'zh': '解锁角色/伙伴/配饰',
+    'fr': 'Personnages/compagnons/accessoires',
+    'de': 'Charaktere/Begleiter/Accessoires',
+    'es': 'Personajes/compañeros/accesorios',
+    'pt': 'Personagens/companheiros/acessórios',
+    'ru': 'Персонажи/спутники/аксессуары',
+    'tr': 'Karakter/yoldaş/aksesuar',
+    'ar': 'شخصيات/رفقاء/إكسسوارات',
+    'it': 'Personaggi/compagni/accessori',
+    'hi': 'पात्र/साथी/सहायक',
+    'th': 'ตัวละคร/คู่หู/ของประดับ',
   });
 
   String get towerBenefitsTierSection => _t({
-    'ko': '내 회원 등급 혜택', 'en': 'Your tier benefits', 'ja': '会員等級特典', 'zh': '会员等级权益',
-    'fr': 'Avantages selon votre niveau', 'de': 'Vorteile deiner Stufe', 'es': 'Beneficios de tu nivel',
-    'pt': 'Benefícios do seu nível', 'ru': 'Преимущества уровня', 'tr': 'Üyelik avantajları',
-    'ar': 'مزايا الفئة', 'it': 'Vantaggi del tuo livello', 'hi': 'टियर लाभ', 'th': 'สิทธิ์ตามระดับ',
+    'ko': '내 회원 등급 혜택',
+    'en': 'Your tier benefits',
+    'ja': '会員等級特典',
+    'zh': '会员等级权益',
+    'fr': 'Avantages selon votre niveau',
+    'de': 'Vorteile deiner Stufe',
+    'es': 'Beneficios de tu nivel',
+    'pt': 'Benefícios do seu nível',
+    'ru': 'Преимущества уровня',
+    'tr': 'Üyelik avantajları',
+    'ar': 'مزايا الفئة',
+    'it': 'Vantaggi del tuo livello',
+    'hi': 'टियर लाभ',
+    'th': 'สิทธิ์ตามระดับ',
   });
 
   String get towerBenefitsFreeFeat1 => _t({
-    'ko': '혜택 줍기 200m 반경', 'en': 'Pickup within 200m radius', 'ja': '200m範囲で手紙を拾える', 'zh': '200m半径拾取',
-    'fr': 'Ramassage 200m', 'de': 'Abholung 200m', 'es': 'Recogida 200m',
-    'pt': 'Coleta 200m', 'ru': 'Подбор 200м', 'tr': '200m içinde toplama',
-    'ar': 'نطاق 200م', 'it': 'Raccolta 200m', 'hi': '200m पिकअप', 'th': 'รับในรัศมี 200m',
+    'ko': '혜택 줍기 200m 반경',
+    'en': 'Pickup within 200m radius',
+    'ja': '200m範囲で手紙を拾える',
+    'zh': '200m半径拾取',
+    'fr': 'Ramassage 200m',
+    'de': 'Abholung 200m',
+    'es': 'Recogida 200m',
+    'pt': 'Coleta 200m',
+    'ru': 'Подбор 200м',
+    'tr': '200m içinde toplama',
+    'ar': 'نطاق 200م',
+    'it': 'Raccolta 200m',
+    'hi': '200m पिकअप',
+    'th': 'รับในรัศมี 200m',
   });
 
   String get towerBenefitsFreeFeat2 => _t({
-    'ko': '60분 쿨다운', 'en': '60min cooldown', 'ja': '60分クールダウン', 'zh': '60分钟冷却',
-    'fr': 'Délai 60min', 'de': '60min Cooldown', 'es': 'Espera 60min',
-    'pt': 'Espera 60min', 'ru': 'Ожидание 60мин', 'tr': '60dk bekleme',
-    'ar': 'تبريد 60د', 'it': 'Attesa 60min', 'hi': '60मि कूलडाउन', 'th': 'พัก 60 นาที',
+    'ko': '60분 쿨다운',
+    'en': '60min cooldown',
+    'ja': '60分クールダウン',
+    'zh': '60分钟冷却',
+    'fr': 'Délai 60min',
+    'de': '60min Cooldown',
+    'es': 'Espera 60min',
+    'pt': 'Espera 60min',
+    'ru': 'Ожидание 60мин',
+    'tr': '60dk bekleme',
+    'ar': 'تبريد 60د',
+    'it': 'Attesa 60min',
+    'hi': '60मि कूलडाउन',
+    'th': 'พัก 60 นาที',
   });
 
   String get towerBenefitsFreeFeat3 => _t({
-    'ko': '받은 혜택 답장은 가능', 'en': 'Replies to received rewards allowed', 'ja': '受信した手紙への返信可能', 'zh': '可回复已收信件',
-    'fr': 'Réponses possibles', 'de': 'Antworten möglich', 'es': 'Respuestas posibles',
-    'pt': 'Respostas possíveis', 'ru': 'Можно отвечать', 'tr': 'Yanıt verilebilir',
-    'ar': 'يمكن الرد', 'it': 'Risposte consentite', 'hi': 'उत्तर देना संभव', 'th': 'ตอบจดหมายได้',
+    'ko': '받은 혜택 답장은 가능',
+    'en': 'Replies to received rewards allowed',
+    'ja': '受信した手紙への返信可能',
+    'zh': '可回复已收信件',
+    'fr': 'Réponses possibles',
+    'de': 'Antworten möglich',
+    'es': 'Respuestas posibles',
+    'pt': 'Respostas possíveis',
+    'ru': 'Можно отвечать',
+    'tr': 'Yanıt verilebilir',
+    'ar': 'يمكن الرد',
+    'it': 'Risposte consentite',
+    'hi': 'उत्तर देना संभव',
+    'th': 'ตอบจดหมายได้',
   });
 
   String get towerBenefitsPremiumFeat1 => _t({
-    'ko': '혜택 줍기 1km 반경 + 10분 쿨다운', 'en': '1km pickup radius + 10min cooldown', 'ja': '1kmピックアップ + 10分クールダウン', 'zh': '1km半径 + 10分钟冷却',
-    'fr': 'Ramassage 1km, 10min', 'de': '1km Abholung + 10min', 'es': 'Recogida 1km + 10min',
-    'pt': 'Coleta 1km + 10min', 'ru': 'Подбор 1км + 10мин', 'tr': '1km alma + 10dk',
-    'ar': 'نطاق 1كم + 10د', 'it': 'Raccolta 1km + 10min', 'hi': '1km पिकअप + 10मि', 'th': 'รับ 1km + 10นาที',
+    'ko': '혜택 줍기 1km 반경 + 10분 쿨다운',
+    'en': '1km pickup radius + 10min cooldown',
+    'ja': '1kmピックアップ + 10分クールダウン',
+    'zh': '1km半径 + 10分钟冷却',
+    'fr': 'Ramassage 1km, 10min',
+    'de': '1km Abholung + 10min',
+    'es': 'Recogida 1km + 10min',
+    'pt': 'Coleta 1km + 10min',
+    'ru': 'Подбор 1км + 10мин',
+    'tr': '1km alma + 10dk',
+    'ar': 'نطاق 1كم + 10د',
+    'it': 'Raccolta 1km + 10min',
+    'hi': '1km पिकअप + 10मि',
+    'th': 'รับ 1km + 10นาที',
   });
 
   String get towerBenefitsPremiumFeat2 => _t({
-    'ko': '📸 사진 첨부 + 🔗 채널/SNS 링크 발송', 'en': '📸 Photo + 🔗 social link sending', 'ja': '📸 写真 + 🔗 SNSリンク送信', 'zh': '📸 照片 + 🔗 社交链接发送',
-    'fr': '📸 Photo + 🔗 lien social', 'de': '📸 Foto + 🔗 Social Link', 'es': '📸 Foto + 🔗 enlace social',
-    'pt': '📸 Foto + 🔗 link social', 'ru': '📸 Фото + 🔗 ссылка', 'tr': '📸 Fotoğraf + 🔗 sosyal bağlantı',
-    'ar': '📸 صورة + 🔗 رابط', 'it': '📸 Foto + 🔗 link social', 'hi': '📸 फोटो + 🔗 लिंक', 'th': '📸 รูป + 🔗 ลิงก์',
+    'ko': '📸 사진 첨부 + 🔗 채널/SNS 링크 발송',
+    'en': '📸 Photo + 🔗 social link sending',
+    'ja': '📸 写真 + 🔗 SNSリンク送信',
+    'zh': '📸 照片 + 🔗 社交链接发送',
+    'fr': '📸 Photo + 🔗 lien social',
+    'de': '📸 Foto + 🔗 Social Link',
+    'es': '📸 Foto + 🔗 enlace social',
+    'pt': '📸 Foto + 🔗 link social',
+    'ru': '📸 Фото + 🔗 ссылка',
+    'tr': '📸 Fotoğraf + 🔗 sosyal bağlantı',
+    'ar': '📸 صورة + 🔗 رابط',
+    'it': '📸 Foto + 🔗 link social',
+    'hi': '📸 फोटो + 🔗 लिंक',
+    'th': '📸 รูป + 🔗 ลิงก์',
   });
 
   String get towerBenefitsPremiumFeat3 => _t({
-    'ko': '일 30통 / 월 500통 발송', 'en': '30/day · 500/month send quota', 'ja': '日30通 / 月500通', 'zh': '日30 / 月500',
-    'fr': '30/jour · 500/mois', 'de': '30/Tag · 500/Monat', 'es': '30/día · 500/mes',
-    'pt': '30/dia · 500/mês', 'ru': '30/день · 500/мес', 'tr': '30/gün · 500/ay',
-    'ar': '30/يوم · 500/شهر', 'it': '30/giorno · 500/mese', 'hi': '30/दिन · 500/माह', 'th': '30/วัน · 500/เดือน',
+    'ko': '일 30통 / 월 500통 발송',
+    'en': '30/day · 500/month send quota',
+    'ja': '日30通 / 月500通',
+    'zh': '日30 / 月500',
+    'fr': '30/jour · 500/mois',
+    'de': '30/Tag · 500/Monat',
+    'es': '30/día · 500/mes',
+    'pt': '30/dia · 500/mês',
+    'ru': '30/день · 500/мес',
+    'tr': '30/gün · 500/ay',
+    'ar': '30/يوم · 500/شهر',
+    'it': '30/giorno · 500/mese',
+    'hi': '30/दिन · 500/माह',
+    'th': '30/วัน · 500/เดือน',
   });
 
   String get towerBenefitsBrandFeat1 => _t({
-    'ko': '🎟 할인권 · 🎁 교환권 캠페인 발송', 'en': '🎟 Coupon · 🎁 Voucher campaigns', 'ja': '🎟 割引券 · 🎁 引換券キャンペーン', 'zh': '🎟 优惠券 · 🎁 兑换券推广',
-    'fr': '🎟 Coupon · 🎁 Bon campagnes', 'de': '🎟 Gutschein · 🎁 Voucher Kampagnen', 'es': '🎟 Cupón · 🎁 Vale campañas',
-    'pt': '🎟 Cupom · 🎁 Voucher campanhas', 'ru': '🎟 Купон · 🎁 Ваучер кампании', 'tr': '🎟 Kupon · 🎁 Voucher kampanyaları',
-    'ar': '🎟 قسيمة · 🎁 سند حملات', 'it': '🎟 Coupon · 🎁 Voucher campagne', 'hi': '🎟 कूपन · 🎁 वाउचर अभियान', 'th': '🎟 คูปอง · 🎁 บัตรกำนัล',
+    'ko': '🎟 할인권 · 🎁 교환권 캠페인 발송',
+    'en': '🎟 Coupon · 🎁 Voucher campaigns',
+    'ja': '🎟 割引券 · 🎁 引換券キャンペーン',
+    'zh': '🎟 优惠券 · 🎁 兑换券推广',
+    'fr': '🎟 Coupon · 🎁 Bon campagnes',
+    'de': '🎟 Gutschein · 🎁 Voucher Kampagnen',
+    'es': '🎟 Cupón · 🎁 Vale campañas',
+    'pt': '🎟 Cupom · 🎁 Voucher campanhas',
+    'ru': '🎟 Купон · 🎁 Ваучер кампании',
+    'tr': '🎟 Kupon · 🎁 Voucher kampanyaları',
+    'ar': '🎟 قسيمة · 🎁 سند حملات',
+    'it': '🎟 Coupon · 🎁 Voucher campagne',
+    'hi': '🎟 कूपन · 🎁 वाउचर अभियान',
+    'th': '🎟 คูปอง · 🎁 บัตรกำนัล',
   });
 
   String get towerBenefitsBrandFeat2 => _t({
-    'ko': '🎯 정확한 위치 지정 · 대량 발송', 'en': '🎯 Exact-drop · bulk sending', 'ja': '🎯 正確な位置指定 · 一括送信', 'zh': '🎯 精确位置 · 批量发送',
-    'fr': '🎯 Drop exact · envoi en masse', 'de': '🎯 Exakter Drop · Massenversand', 'es': 'Drop exacto · envío masivo',
-    'pt': 'Drop exato · envio em massa', 'ru': 'Точная точка · массовая рассылка', 'tr': 'Tam konum · toplu gönderim',
-    'ar': '🎯 موقع دقيق · إرسال جماعي', 'it': '🎯 Drop esatto · invio in massa', 'hi': '🎯 सटीक · बल्क', 'th': '🎯 ตำแหน่ง · ส่งจำนวนมาก',
+    'ko': '🎯 정확한 위치 지정 · 대량 발송',
+    'en': '🎯 Exact-drop · bulk sending',
+    'ja': '🎯 正確な位置指定 · 一括送信',
+    'zh': '🎯 精确位置 · 批量发送',
+    'fr': '🎯 Drop exact · envoi en masse',
+    'de': '🎯 Exakter Drop · Massenversand',
+    'es': 'Drop exacto · envío masivo',
+    'pt': 'Drop exato · envio em massa',
+    'ru': 'Точная точка · массовая рассылка',
+    'tr': 'Tam konum · toplu gönderim',
+    'ar': '🎯 موقع دقيق · إرسال جماعي',
+    'it': '🎯 Drop esatto · invio in massa',
+    'hi': '🎯 सटीक · बल्क',
+    'th': '🎯 ตำแหน่ง · ส่งจำนวนมาก',
   });
 
   String get towerBenefitsBrandFeat3 => _t({
-    'ko': '일 200통 / 월 10,000통 + ROI 분석', 'en': '200/day · 10K/month + ROI analytics', 'ja': '日200 / 月10,000 + ROI分析', 'zh': '日200 / 月10K + ROI分析',
-    'fr': '200/jour · 10K/mois + ROI', 'de': '200/Tag · 10K/Monat + ROI', 'es': '200/día · 10K/mes + ROI',
-    'pt': '200/dia · 10K/mês + ROI', 'ru': '200/день · 10К/мес + ROI', 'tr': '200/gün · 10K/ay + ROI',
-    'ar': '200/يوم · 10K/شهر + ROI', 'it': '200/giorno · 10K/mese + ROI', 'hi': '200/दिन · 10K/माह + ROI', 'th': '200/วัน · 10K/เดือน + ROI',
+    'ko': '일 200통 / 월 10,000통 + ROI 분석',
+    'en': '200/day · 10K/month + ROI analytics',
+    'ja': '日200 / 月10,000 + ROI分析',
+    'zh': '日200 / 月10K + ROI分析',
+    'fr': '200/jour · 10K/mois + ROI',
+    'de': '200/Tag · 10K/Monat + ROI',
+    'es': '200/día · 10K/mes + ROI',
+    'pt': '200/dia · 10K/mês + ROI',
+    'ru': '200/день · 10К/мес + ROI',
+    'tr': '200/gün · 10K/ay + ROI',
+    'ar': '200/يوم · 10K/شهر + ROI',
+    'it': '200/giorno · 10K/mese + ROI',
+    'hi': '200/दिन · 10K/माह + ROI',
+    'th': '200/วัน · 10K/เดือน + ROI',
   });
 
   String get commonDontShowAgain => _t({
-    'ko': '다시 보지 않기', 'en': "Don't show again", 'ja': '次回から表示しない', 'zh': '不再显示',
-    'fr': 'Ne plus afficher', 'de': 'Nicht mehr anzeigen', 'es': 'No mostrar de nuevo',
-    'pt': 'Não mostrar novamente', 'ru': 'Не показывать снова', 'tr': 'Tekrar gösterme',
-    'ar': 'لا تظهر مرة أخرى', 'it': 'Non mostrare più', 'hi': 'फिर से न दिखाएँ', 'th': 'ไม่แสดงอีก',
+    'ko': '다시 보지 않기',
+    'en': "Don't show again",
+    'ja': '次回から表示しない',
+    'zh': '不再显示',
+    'fr': 'Ne plus afficher',
+    'de': 'Nicht mehr anzeigen',
+    'es': 'No mostrar de nuevo',
+    'pt': 'Não mostrar novamente',
+    'ru': 'Не показывать снова',
+    'tr': 'Tekrar gösterme',
+    'ar': 'لا تظهر مرة أخرى',
+    'it': 'Non mostrare più',
+    'hi': 'फिर से न दिखाएँ',
+    'th': 'ไม่แสดงอีก',
   });
 
   String get commonConfirm => _t({
-    'ko': '확인', 'en': 'OK', 'ja': '確認', 'zh': '确定',
-    'fr': 'OK', 'de': 'OK', 'es': 'OK',
-    'pt': 'OK', 'ru': 'ОК', 'tr': 'Tamam',
-    'ar': 'موافق', 'it': 'OK', 'hi': 'ठीक है', 'th': 'ตกลง',
+    'ko': '확인',
+    'en': 'OK',
+    'ja': '確認',
+    'zh': '确定',
+    'fr': 'OK',
+    'de': 'OK',
+    'es': 'OK',
+    'pt': 'OK',
+    'ru': 'ОК',
+    'tr': 'Tamam',
+    'ar': 'موافق',
+    'it': 'OK',
+    'hi': 'ठीक है',
+    'th': 'ตกลง',
   });
 
   String get towerBenefitsMyTierBadge => _t({
-    'ko': '내 등급', 'en': 'My tier', 'ja': '現在の等級', 'zh': '我的等级',
-    'fr': 'Mon niveau', 'de': 'Mein Level', 'es': 'Mi nivel',
-    'pt': 'Meu nível', 'ru': 'Мой уровень', 'tr': 'Seviyem',
-    'ar': 'فئتي', 'it': 'Mio livello', 'hi': 'मेरा स्तर', 'th': 'ระดับของฉัน',
+    'ko': '내 등급',
+    'en': 'My tier',
+    'ja': '現在の等級',
+    'zh': '我的等级',
+    'fr': 'Mon niveau',
+    'de': 'Mein Level',
+    'es': 'Mi nivel',
+    'pt': 'Meu nível',
+    'ru': 'Мой уровень',
+    'tr': 'Seviyem',
+    'ar': 'فئتي',
+    'it': 'Mio livello',
+    'hi': 'मेरा स्तर',
+    'th': 'ระดับของฉัน',
   });
 
   // PII linter (Build 207)
   String get piiLabelPhone => _t({
-    'ko': '전화번호', 'en': 'Phone number', 'ja': '電話番号', 'zh': '电话号码',
-    'fr': 'Numéro de téléphone', 'de': 'Telefonnummer', 'es': 'Número de teléfono',
-    'pt': 'Número de telefone', 'ru': 'Телефон', 'tr': 'Telefon numarası',
-    'ar': 'رقم الهاتف', 'it': 'Numero di telefono', 'hi': 'फोन नंबर', 'th': 'หมายเลขโทรศัพท์',
+    'ko': '전화번호',
+    'en': 'Phone number',
+    'ja': '電話番号',
+    'zh': '电话号码',
+    'fr': 'Numéro de téléphone',
+    'de': 'Telefonnummer',
+    'es': 'Número de teléfono',
+    'pt': 'Número de telefone',
+    'ru': 'Телефон',
+    'tr': 'Telefon numarası',
+    'ar': 'رقم الهاتف',
+    'it': 'Numero di telefono',
+    'hi': 'फोन नंबर',
+    'th': 'หมายเลขโทรศัพท์',
   });
 
   String get piiLabelKrRrn => _t({
-    'ko': '주민등록번호', 'en': 'Resident registration number', 'ja': '住民登録番号', 'zh': '居民登记号码',
-    'fr': 'Numéro d\'identité', 'de': 'Personalausweisnummer', 'es': 'DNI',
-    'pt': 'Número de identidade', 'ru': 'ИНН', 'tr': 'Kimlik no',
-    'ar': 'رقم الهوية', 'it': 'Codice fiscale', 'hi': 'पहचान संख्या', 'th': 'เลขประจำตัว',
+    'ko': '주민등록번호',
+    'en': 'Resident registration number',
+    'ja': '住民登録番号',
+    'zh': '居民登记号码',
+    'fr': 'Numéro d\'identité',
+    'de': 'Personalausweisnummer',
+    'es': 'DNI',
+    'pt': 'Número de identidade',
+    'ru': 'ИНН',
+    'tr': 'Kimlik no',
+    'ar': 'رقم الهوية',
+    'it': 'Codice fiscale',
+    'hi': 'पहचान संख्या',
+    'th': 'เลขประจำตัว',
   });
 
   String get piiLabelCard => _t({
-    'ko': '카드번호', 'en': 'Card number', 'ja': 'カード番号', 'zh': '卡号',
-    'fr': 'Numéro de carte', 'de': 'Kartennummer', 'es': 'Número de tarjeta',
-    'pt': 'Número do cartão', 'ru': 'Номер карты', 'tr': 'Kart numarası',
-    'ar': 'رقم البطاقة', 'it': 'Numero carta', 'hi': 'कार्ड नंबर', 'th': 'หมายเลขบัตร',
+    'ko': '카드번호',
+    'en': 'Card number',
+    'ja': 'カード番号',
+    'zh': '卡号',
+    'fr': 'Numéro de carte',
+    'de': 'Kartennummer',
+    'es': 'Número de tarjeta',
+    'pt': 'Número do cartão',
+    'ru': 'Номер карты',
+    'tr': 'Kart numarası',
+    'ar': 'رقم البطاقة',
+    'it': 'Numero carta',
+    'hi': 'कार्ड नंबर',
+    'th': 'หมายเลขบัตร',
   });
 
   String piiDialogTitle(String label) => _t({
-    'ko': '$label 가 포함됐어요', 'en': '$label detected', 'ja': '$label が含まれています', 'zh': '检测到$label',
-    'fr': '$label détecté', 'de': '$label erkannt', 'es': '$label detectado',
-    'pt': '$label detectado', 'ru': 'Найдено: $label', 'tr': '$label algılandı',
-    'ar': 'تم الكشف عن $label', 'it': '$label rilevato', 'hi': '$label मिला', 'th': 'พบ $label',
+    'ko': '$label 가 포함됐어요',
+    'en': '$label detected',
+    'ja': '$label が含まれています',
+    'zh': '检测到$label',
+    'fr': '$label détecté',
+    'de': '$label erkannt',
+    'es': '$label detectado',
+    'pt': '$label detectado',
+    'ru': 'Найдено: $label',
+    'tr': '$label algılandı',
+    'ar': 'تم الكشف عن $label',
+    'it': '$label rilevato',
+    'hi': '$label मिला',
+    'th': 'พบ $label',
   });
 
   String piiDialogBody(String label) => _t({
-    'ko': '홍보 본문은 받는 사람이 누구나 읽을 수 있어요.\n$label 같은 개인정보는 빼고 보내는 게 안전해요.\n그래도 그대로 보낼까요?',
-    'en': 'Promo content is publicly readable.\nIt is safer to remove $label before sending.\nSend it anyway?',
+    'ko':
+        '홍보 본문은 받는 사람이 누구나 읽을 수 있어요.\n$label 같은 개인정보는 빼고 보내는 게 안전해요.\n그래도 그대로 보낼까요?',
+    'en':
+        'Promo content is publicly readable.\nIt is safer to remove $label before sending.\nSend it anyway?',
     'ja': '手紙本文は誰でも読めます。\n$label のような個人情報は除いた方が安全です。\nそのまま送りますか？',
     'zh': '信件正文任何人都能阅读。\n建议移除$label等个人信息。\n仍然发送吗？',
-    'fr': 'Le contenu est public.\nMieux vaut retirer $label.\nEnvoyer quand même ?',
-    'de': 'Briefinhalt ist öffentlich.\nBitte $label entfernen.\nTrotzdem senden?',
-    'es': 'El contenido es público.\nQuita $label antes de enviar.\n¿Enviar igualmente?',
+    'fr':
+        'Le contenu est public.\nMieux vaut retirer $label.\nEnvoyer quand même ?',
+    'de':
+        'Briefinhalt ist öffentlich.\nBitte $label entfernen.\nTrotzdem senden?',
+    'es':
+        'El contenido es público.\nQuita $label antes de enviar.\n¿Enviar igualmente?',
     'pt': 'O conteúdo é público.\nRemova $label antes.\nEnviar mesmo assim?',
     'ru': 'Текст письма публичен.\nЛучше убрать $label.\nОтправить всё равно?',
-    'tr': 'Mektup içeriği herkese açık.\n$label kaldırın.\nYine de gönderilsin mi?',
+    'tr':
+        'Mektup içeriği herkese açık.\n$label kaldırın.\nYine de gönderilsin mi?',
     'ar': 'محتوى الرسالة عام.\nاحذف $label.\nأرسل على أي حال؟',
     'it': 'Il contenuto è pubblico.\nRimuovi $label prima.\nInvio comunque?',
     'hi': 'पत्र सार्वजनिक है।\n$label हटाएं।\nफिर भी भेजें?',
@@ -21129,46 +25625,106 @@ class AppL10n {
   });
 
   String get piiSendAnyway => _t({
-    'ko': '그래도 보내기', 'en': 'Send anyway', 'ja': 'そのまま送信', 'zh': '仍然发送',
-    'fr': 'Envoyer quand même', 'de': 'Trotzdem senden', 'es': 'Enviar igualmente',
-    'pt': 'Enviar mesmo assim', 'ru': 'Отправить', 'tr': 'Yine de gönder',
-    'ar': 'أرسل على أي حال', 'it': 'Invia comunque', 'hi': 'फिर भी भेजें', 'th': 'ส่งต่อไป',
+    'ko': '그래도 보내기',
+    'en': 'Send anyway',
+    'ja': 'そのまま送信',
+    'zh': '仍然发送',
+    'fr': 'Envoyer quand même',
+    'de': 'Trotzdem senden',
+    'es': 'Enviar igualmente',
+    'pt': 'Enviar mesmo assim',
+    'ru': 'Отправить',
+    'tr': 'Yine de gönder',
+    'ar': 'أرسل على أي حال',
+    'it': 'Invia comunque',
+    'hi': 'फिर भी भेजें',
+    'th': 'ส่งต่อไป',
   });
 
   // Tower customizer (Brand-only, hardcoded since 2024) — Build 211 i18n.
   String get towerCustomizeTabVehicle => _t({
-    'ko': '🚗 이동수단', 'en': '🚗 Vehicle', 'ja': '🚗 乗り物', 'zh': '🚗 交通工具',
-    'fr': '🚗 Véhicule', 'de': '🚗 Fahrzeug', 'es': '🚗 Vehículo',
-    'pt': '🚗 Veículo', 'ru': '🚗 Транспорт', 'tr': '🚗 Araç',
-    'ar': '🚗 المركبة', 'it': '🚗 Veicolo', 'hi': '🚗 वाहन', 'th': '🚗 ยานพาหนะ',
+    'ko': '🚗 이동수단',
+    'en': '🚗 Vehicle',
+    'ja': '🚗 乗り物',
+    'zh': '🚗 交通工具',
+    'fr': '🚗 Véhicule',
+    'de': '🚗 Fahrzeug',
+    'es': '🚗 Vehículo',
+    'pt': '🚗 Veículo',
+    'ru': '🚗 Транспорт',
+    'tr': '🚗 Araç',
+    'ar': '🚗 المركبة',
+    'it': '🚗 Veicolo',
+    'hi': '🚗 वाहन',
+    'th': '🚗 ยานพาหนะ',
   });
 
   String get towerCustomizeTabSkin => _t({
-    'ko': '🏢 타워스킨', 'en': '🏢 Tower skin', 'ja': '🏢 タワースキン', 'zh': '🏢 塔皮肤',
-    'fr': '🏢 Habillage', 'de': '🏢 Turmskin', 'es': '🏢 Apariencia',
-    'pt': '🏢 Skin da torre', 'ru': '🏢 Внешний вид', 'tr': '🏢 Kule görünümü',
-    'ar': '🏢 مظهر البرج', 'it': '🏢 Skin torre', 'hi': '🏢 टावर स्किन', 'th': '🏢 สกินหอคอย',
+    'ko': '🏢 타워스킨',
+    'en': '🏢 Tower skin',
+    'ja': '🏢 タワースキン',
+    'zh': '🏢 塔皮肤',
+    'fr': '🏢 Habillage',
+    'de': '🏢 Turmskin',
+    'es': '🏢 Apariencia',
+    'pt': '🏢 Skin da torre',
+    'ru': '🏢 Внешний вид',
+    'tr': '🏢 Kule görünümü',
+    'ar': '🏢 مظهر البرج',
+    'it': '🏢 Skin torre',
+    'hi': '🏢 टावर स्किन',
+    'th': '🏢 สกินหอคอย',
   });
 
   String get towerCustomizeVehicleSection => _t({
-    'ko': '이동수단 장식', 'en': 'Vehicle decoration', 'ja': '乗り物装飾', 'zh': '交通工具装饰',
-    'fr': 'Décoration véhicule', 'de': 'Fahrzeugdekoration', 'es': 'Decoración de vehículo',
-    'pt': 'Decoração de veículo', 'ru': 'Транспорт декор', 'tr': 'Araç süslemesi',
-    'ar': 'زخرفة المركبة', 'it': 'Decorazione veicolo', 'hi': 'वाहन सजावट', 'th': 'ตกแต่งยานพาหนะ',
+    'ko': '이동수단 장식',
+    'en': 'Vehicle decoration',
+    'ja': '乗り物装飾',
+    'zh': '交通工具装饰',
+    'fr': 'Décoration véhicule',
+    'de': 'Fahrzeugdekoration',
+    'es': 'Decoración de vehículo',
+    'pt': 'Decoração de veículo',
+    'ru': 'Транспорт декор',
+    'tr': 'Araç süslemesi',
+    'ar': 'زخرفة المركبة',
+    'it': 'Decorazione veicolo',
+    'hi': 'वाहन सजावट',
+    'th': 'ตกแต่งยานพาหนะ',
   });
 
   String get towerCustomizeRoofSection => _t({
-    'ko': '🏠 지붕 스타일', 'en': '🏠 Roof style', 'ja': '🏠 屋根スタイル', 'zh': '🏠 屋顶风格',
-    'fr': '🏠 Style toit', 'de': '🏠 Dachstil', 'es': '🏠 Estilo de techo',
-    'pt': '🏠 Estilo do telhado', 'ru': '🏠 Стиль крыши', 'tr': '🏠 Çatı stili',
-    'ar': '🏠 نمط السقف', 'it': '🏠 Stile tetto', 'hi': '🏠 छत शैली', 'th': '🏠 รูปแบบหลังคา',
+    'ko': '🏠 지붕 스타일',
+    'en': '🏠 Roof style',
+    'ja': '🏠 屋根スタイル',
+    'zh': '🏠 屋顶风格',
+    'fr': '🏠 Style toit',
+    'de': '🏠 Dachstil',
+    'es': '🏠 Estilo de techo',
+    'pt': '🏠 Estilo do telhado',
+    'ru': '🏠 Стиль крыши',
+    'tr': '🏠 Çatı stili',
+    'ar': '🏠 نمط السقف',
+    'it': '🏠 Stile tetto',
+    'hi': '🏠 छत शैली',
+    'th': '🏠 รูปแบบหลังคา',
   });
 
   String get towerCustomizeWindowSection => _t({
-    'ko': '🪟 창문 스타일', 'en': '🪟 Window style', 'ja': '🪟 窓スタイル', 'zh': '🪟 窗户风格',
-    'fr': '🪟 Style fenêtre', 'de': '🪟 Fensterstil', 'es': '🪟 Estilo de ventana',
-    'pt': '🪟 Estilo da janela', 'ru': '🪟 Стиль окон', 'tr': '🪟 Pencere stili',
-    'ar': '🪟 نمط النافذة', 'it': '🪟 Stile finestra', 'hi': '🪟 खिड़की शैली', 'th': '🪟 รูปแบบหน้าต่าง',
+    'ko': '🪟 창문 스타일',
+    'en': '🪟 Window style',
+    'ja': '🪟 窓スタイル',
+    'zh': '🪟 窗户风格',
+    'fr': '🪟 Style fenêtre',
+    'de': '🪟 Fensterstil',
+    'es': '🪟 Estilo de ventana',
+    'pt': '🪟 Estilo da janela',
+    'ru': '🪟 Стиль окон',
+    'tr': '🪟 Pencere stili',
+    'ar': '🪟 نمط النافذة',
+    'it': '🪟 Stile finestra',
+    'hi': '🪟 खिड़की शैली',
+    'th': '🪟 รูปแบบหน้าต่าง',
   });
 
   /// 타워 커스터마이즈 항목 label 통합 lookup (vehicle/roof/window).
@@ -21176,29 +25732,323 @@ class AppL10n {
   String towerItemLabel(String koreanKey) {
     const map = {
       // Vehicles
-      '여객기': {'en': 'Airliner', 'ja': '旅客機', 'zh': '客机', 'fr': 'Avion', 'de': 'Flugzeug', 'es': 'Avión', 'pt': 'Avião', 'ru': 'Самолёт', 'tr': 'Uçak', 'ar': 'طائرة', 'it': 'Aereo', 'hi': 'विमान', 'th': 'เครื่องบิน'},
-      '로켓': {'en': 'Rocket', 'ja': 'ロケット', 'zh': '火箭', 'fr': 'Fusée', 'de': 'Rakete', 'es': 'Cohete', 'pt': 'Foguete', 'ru': 'Ракета', 'tr': 'Roket', 'ar': 'صاروخ', 'it': 'Razzo', 'hi': 'रॉकेट', 'th': 'จรวด'},
-      'UFO': {'en': 'UFO', 'ja': 'UFO', 'zh': 'UFO', 'fr': 'OVNI', 'de': 'UFO', 'es': 'OVNI', 'pt': 'OVNI', 'ru': 'НЛО', 'tr': 'UFO', 'ar': 'UFO', 'it': 'UFO', 'hi': 'UFO', 'th': 'UFO'},
-      '열기구': {'en': 'Hot air balloon', 'ja': '熱気球', 'zh': '热气球', 'fr': 'Montgolfière', 'de': 'Heißluftballon', 'es': 'Globo aerostático', 'pt': 'Balão', 'ru': 'Воздушный шар', 'tr': 'Sıcak hava balonu', 'ar': 'منطاد', 'it': 'Mongolfiera', 'hi': 'हॉट एयर बैलून', 'th': 'บอลลูน'},
-      '여객선': {'en': 'Cruise ship', 'ja': '客船', 'zh': '客轮', 'fr': 'Paquebot', 'de': 'Kreuzfahrtschiff', 'es': 'Crucero', 'pt': 'Cruzeiro', 'ru': 'Лайнер', 'tr': 'Yolcu gemisi', 'ar': 'سفينة ركاب', 'it': 'Crociera', 'hi': 'क्रूज़', 'th': 'เรือสำราญ'},
-      '증기기차': {'en': 'Steam train', 'ja': '蒸気機関車', 'zh': '蒸汽火车', 'fr': 'Train à vapeur', 'de': 'Dampflok', 'es': 'Tren de vapor', 'pt': 'Trem a vapor', 'ru': 'Паровоз', 'tr': 'Buharlı tren', 'ar': 'قطار بخاري', 'it': 'Treno a vapore', 'hi': 'भाप ट्रेन', 'th': 'รถไฟไอน้ำ'},
-      '헬리콥터': {'en': 'Helicopter', 'ja': 'ヘリコプター', 'zh': '直升机', 'fr': 'Hélicoptère', 'de': 'Hubschrauber', 'es': 'Helicóptero', 'pt': 'Helicóptero', 'ru': 'Вертолёт', 'tr': 'Helikopter', 'ar': 'مروحية', 'it': 'Elicottero', 'hi': 'हेलीकॉप्टर', 'th': 'เฮลิคอปเตอร์'},
-      '나룻배': {'en': 'Rowboat', 'ja': '渡し舟', 'zh': '小船', 'fr': 'Barque', 'de': 'Ruderboot', 'es': 'Barca', 'pt': 'Barco a remo', 'ru': 'Лодка', 'tr': 'Sandal', 'ar': 'قارب', 'it': 'Barca a remi', 'hi': 'नौका', 'th': 'เรือพาย'},
-      '산타썰매': {'en': 'Sleigh', 'ja': 'サンタのそり', 'zh': '雪橇', 'fr': 'Traîneau', 'de': 'Schlitten', 'es': 'Trineo', 'pt': 'Trenó', 'ru': 'Сани', 'tr': 'Kızak', 'ar': 'مزلجة', 'it': 'Slitta', 'hi': 'स्लेज', 'th': 'เลื่อน'},
-      '낙하산': {'en': 'Parachute', 'ja': 'パラシュート', 'zh': '降落伞', 'fr': 'Parachute', 'de': 'Fallschirm', 'es': 'Paracaídas', 'pt': 'Paraquedas', 'ru': 'Парашют', 'tr': 'Paraşüt', 'ar': 'مظلة', 'it': 'Paracadute', 'hi': 'पैराशूट', 'th': 'ร่มชูชีพ'},
-      '소형비행기': {'en': 'Small plane', 'ja': '小型機', 'zh': '小型飞机', 'fr': 'Petit avion', 'de': 'Kleinflugzeug', 'es': 'Avioneta', 'pt': 'Aviãozinho', 'ru': 'Самолётик', 'tr': 'Küçük uçak', 'ar': 'طائرة صغيرة', 'it': 'Aereo piccolo', 'hi': 'छोटा विमान', 'th': 'เครื่องเล็ก'},
-      '스피드보트': {'en': 'Speedboat', 'ja': 'スピードボート', 'zh': '快艇', 'fr': 'Hors-bord', 'de': 'Schnellboot', 'es': 'Lancha', 'pt': 'Lancha', 'ru': 'Катер', 'tr': 'Sürat teknesi', 'ar': 'قارب سريع', 'it': 'Motoscafo', 'hi': 'स्पीडबोट', 'th': 'สปีดโบ๊ท'},
+      '여객기': {
+        'en': 'Airliner',
+        'ja': '旅客機',
+        'zh': '客机',
+        'fr': 'Avion',
+        'de': 'Flugzeug',
+        'es': 'Avión',
+        'pt': 'Avião',
+        'ru': 'Самолёт',
+        'tr': 'Uçak',
+        'ar': 'طائرة',
+        'it': 'Aereo',
+        'hi': 'विमान',
+        'th': 'เครื่องบิน',
+      },
+      '로켓': {
+        'en': 'Rocket',
+        'ja': 'ロケット',
+        'zh': '火箭',
+        'fr': 'Fusée',
+        'de': 'Rakete',
+        'es': 'Cohete',
+        'pt': 'Foguete',
+        'ru': 'Ракета',
+        'tr': 'Roket',
+        'ar': 'صاروخ',
+        'it': 'Razzo',
+        'hi': 'रॉकेट',
+        'th': 'จรวด',
+      },
+      'UFO': {
+        'en': 'UFO',
+        'ja': 'UFO',
+        'zh': 'UFO',
+        'fr': 'OVNI',
+        'de': 'UFO',
+        'es': 'OVNI',
+        'pt': 'OVNI',
+        'ru': 'НЛО',
+        'tr': 'UFO',
+        'ar': 'UFO',
+        'it': 'UFO',
+        'hi': 'UFO',
+        'th': 'UFO',
+      },
+      '열기구': {
+        'en': 'Hot air balloon',
+        'ja': '熱気球',
+        'zh': '热气球',
+        'fr': 'Montgolfière',
+        'de': 'Heißluftballon',
+        'es': 'Globo aerostático',
+        'pt': 'Balão',
+        'ru': 'Воздушный шар',
+        'tr': 'Sıcak hava balonu',
+        'ar': 'منطاد',
+        'it': 'Mongolfiera',
+        'hi': 'हॉट एयर बैलून',
+        'th': 'บอลลูน',
+      },
+      '여객선': {
+        'en': 'Cruise ship',
+        'ja': '客船',
+        'zh': '客轮',
+        'fr': 'Paquebot',
+        'de': 'Kreuzfahrtschiff',
+        'es': 'Crucero',
+        'pt': 'Cruzeiro',
+        'ru': 'Лайнер',
+        'tr': 'Yolcu gemisi',
+        'ar': 'سفينة ركاب',
+        'it': 'Crociera',
+        'hi': 'क्रूज़',
+        'th': 'เรือสำราญ',
+      },
+      '증기기차': {
+        'en': 'Steam train',
+        'ja': '蒸気機関車',
+        'zh': '蒸汽火车',
+        'fr': 'Train à vapeur',
+        'de': 'Dampflok',
+        'es': 'Tren de vapor',
+        'pt': 'Trem a vapor',
+        'ru': 'Паровоз',
+        'tr': 'Buharlı tren',
+        'ar': 'قطار بخاري',
+        'it': 'Treno a vapore',
+        'hi': 'भाप ट्रेन',
+        'th': 'รถไฟไอน้ำ',
+      },
+      '헬리콥터': {
+        'en': 'Helicopter',
+        'ja': 'ヘリコプター',
+        'zh': '直升机',
+        'fr': 'Hélicoptère',
+        'de': 'Hubschrauber',
+        'es': 'Helicóptero',
+        'pt': 'Helicóptero',
+        'ru': 'Вертолёт',
+        'tr': 'Helikopter',
+        'ar': 'مروحية',
+        'it': 'Elicottero',
+        'hi': 'हेलीकॉप्टर',
+        'th': 'เฮลิคอปเตอร์',
+      },
+      '나룻배': {
+        'en': 'Rowboat',
+        'ja': '渡し舟',
+        'zh': '小船',
+        'fr': 'Barque',
+        'de': 'Ruderboot',
+        'es': 'Barca',
+        'pt': 'Barco a remo',
+        'ru': 'Лодка',
+        'tr': 'Sandal',
+        'ar': 'قارب',
+        'it': 'Barca a remi',
+        'hi': 'नौका',
+        'th': 'เรือพาย',
+      },
+      '산타썰매': {
+        'en': 'Sleigh',
+        'ja': 'サンタのそり',
+        'zh': '雪橇',
+        'fr': 'Traîneau',
+        'de': 'Schlitten',
+        'es': 'Trineo',
+        'pt': 'Trenó',
+        'ru': 'Сани',
+        'tr': 'Kızak',
+        'ar': 'مزلجة',
+        'it': 'Slitta',
+        'hi': 'स्लेज',
+        'th': 'เลื่อน',
+      },
+      '낙하산': {
+        'en': 'Parachute',
+        'ja': 'パラシュート',
+        'zh': '降落伞',
+        'fr': 'Parachute',
+        'de': 'Fallschirm',
+        'es': 'Paracaídas',
+        'pt': 'Paraquedas',
+        'ru': 'Парашют',
+        'tr': 'Paraşüt',
+        'ar': 'مظلة',
+        'it': 'Paracadute',
+        'hi': 'पैराशूट',
+        'th': 'ร่มชูชีพ',
+      },
+      '소형비행기': {
+        'en': 'Small plane',
+        'ja': '小型機',
+        'zh': '小型飞机',
+        'fr': 'Petit avion',
+        'de': 'Kleinflugzeug',
+        'es': 'Avioneta',
+        'pt': 'Aviãozinho',
+        'ru': 'Самолётик',
+        'tr': 'Küçük uçak',
+        'ar': 'طائرة صغيرة',
+        'it': 'Aereo piccolo',
+        'hi': 'छोटा विमान',
+        'th': 'เครื่องเล็ก',
+      },
+      '스피드보트': {
+        'en': 'Speedboat',
+        'ja': 'スピードボート',
+        'zh': '快艇',
+        'fr': 'Hors-bord',
+        'de': 'Schnellboot',
+        'es': 'Lancha',
+        'pt': 'Lancha',
+        'ru': 'Катер',
+        'tr': 'Sürat teknesi',
+        'ar': 'قارب سريع',
+        'it': 'Motoscafo',
+        'hi': 'स्पीडबोट',
+        'th': 'สปีดโบ๊ท',
+      },
       // Roof
-      '기본': {'en': 'Default', 'ja': '基本', 'zh': '默认', 'fr': 'Par défaut', 'de': 'Standard', 'es': 'Predeterminado', 'pt': 'Padrão', 'ru': 'По умолч.', 'tr': 'Varsayılan', 'ar': 'افتراضي', 'it': 'Predefinito', 'hi': 'डिफ़ॉल्ट', 'th': 'ค่าเริ่มต้น'},
-      '뾰족': {'en': 'Pointed', 'ja': '尖り屋根', 'zh': '尖顶', 'fr': 'Pointu', 'de': 'Spitz', 'es': 'Puntiagudo', 'pt': 'Pontudo', 'ru': 'Острая', 'tr': 'Sivri', 'ar': 'مدبب', 'it': 'A punta', 'hi': 'नुकीला', 'th': 'แหลม'},
-      '돔': {'en': 'Dome', 'ja': 'ドーム', 'zh': '圆顶', 'fr': 'Dôme', 'de': 'Kuppel', 'es': 'Cúpula', 'pt': 'Cúpula', 'ru': 'Купол', 'tr': 'Kubbe', 'ar': 'قبة', 'it': 'Cupola', 'hi': 'गुंबद', 'th': 'โดม'},
-      '평지붕': {'en': 'Flat', 'ja': '平屋根', 'zh': '平顶', 'fr': 'Plat', 'de': 'Flach', 'es': 'Plano', 'pt': 'Plano', 'ru': 'Плоская', 'tr': 'Düz', 'ar': 'مسطح', 'it': 'Piatto', 'hi': 'सपाट', 'th': 'แบน'},
-      '안테나': {'en': 'Antenna', 'ja': 'アンテナ', 'zh': '天线', 'fr': 'Antenne', 'de': 'Antenne', 'es': 'Antena', 'pt': 'Antena', 'ru': 'Антенна', 'tr': 'Anten', 'ar': 'هوائي', 'it': 'Antenna', 'hi': 'एंटेना', 'th': 'เสาอากาศ'},
+      '기본': {
+        'en': 'Default',
+        'ja': '基本',
+        'zh': '默认',
+        'fr': 'Par défaut',
+        'de': 'Standard',
+        'es': 'Predeterminado',
+        'pt': 'Padrão',
+        'ru': 'По умолч.',
+        'tr': 'Varsayılan',
+        'ar': 'افتراضي',
+        'it': 'Predefinito',
+        'hi': 'डिफ़ॉल्ट',
+        'th': 'ค่าเริ่มต้น',
+      },
+      '뾰족': {
+        'en': 'Pointed',
+        'ja': '尖り屋根',
+        'zh': '尖顶',
+        'fr': 'Pointu',
+        'de': 'Spitz',
+        'es': 'Puntiagudo',
+        'pt': 'Pontudo',
+        'ru': 'Острая',
+        'tr': 'Sivri',
+        'ar': 'مدبب',
+        'it': 'A punta',
+        'hi': 'नुकीला',
+        'th': 'แหลม',
+      },
+      '돔': {
+        'en': 'Dome',
+        'ja': 'ドーム',
+        'zh': '圆顶',
+        'fr': 'Dôme',
+        'de': 'Kuppel',
+        'es': 'Cúpula',
+        'pt': 'Cúpula',
+        'ru': 'Купол',
+        'tr': 'Kubbe',
+        'ar': 'قبة',
+        'it': 'Cupola',
+        'hi': 'गुंबद',
+        'th': 'โดม',
+      },
+      '평지붕': {
+        'en': 'Flat',
+        'ja': '平屋根',
+        'zh': '平顶',
+        'fr': 'Plat',
+        'de': 'Flach',
+        'es': 'Plano',
+        'pt': 'Plano',
+        'ru': 'Плоская',
+        'tr': 'Düz',
+        'ar': 'مسطح',
+        'it': 'Piatto',
+        'hi': 'सपाट',
+        'th': 'แบน',
+      },
+      '안테나': {
+        'en': 'Antenna',
+        'ja': 'アンテナ',
+        'zh': '天线',
+        'fr': 'Antenne',
+        'de': 'Antenne',
+        'es': 'Antena',
+        'pt': 'Antena',
+        'ru': 'Антенна',
+        'tr': 'Anten',
+        'ar': 'هوائي',
+        'it': 'Antenna',
+        'hi': 'एंटेना',
+        'th': 'เสาอากาศ',
+      },
       // Window
-      '사각': {'en': 'Square', 'ja': '四角', 'zh': '方形', 'fr': 'Carré', 'de': 'Quadrat', 'es': 'Cuadrada', 'pt': 'Quadrada', 'ru': 'Квадрат', 'tr': 'Kare', 'ar': 'مربع', 'it': 'Quadrata', 'hi': 'चौकोर', 'th': 'สี่เหลี่ยม'},
-      '원형': {'en': 'Round', 'ja': '丸窓', 'zh': '圆形', 'fr': 'Rond', 'de': 'Rund', 'es': 'Redonda', 'pt': 'Redonda', 'ru': 'Круг', 'tr': 'Yuvarlak', 'ar': 'دائري', 'it': 'Rotonda', 'hi': 'गोल', 'th': 'กลม'},
-      '아치': {'en': 'Arch', 'ja': 'アーチ', 'zh': '拱形', 'fr': 'Arche', 'de': 'Bogen', 'es': 'Arco', 'pt': 'Arco', 'ru': 'Арка', 'tr': 'Kemer', 'ar': 'قوس', 'it': 'Arco', 'hi': 'आर्च', 'th': 'โค้ง'},
-      '모던': {'en': 'Modern', 'ja': 'モダン', 'zh': '现代', 'fr': 'Moderne', 'de': 'Modern', 'es': 'Moderna', 'pt': 'Moderna', 'ru': 'Модерн', 'tr': 'Modern', 'ar': 'حديث', 'it': 'Moderna', 'hi': 'आधुनिक', 'th': 'ทันสมัย'},
+      '사각': {
+        'en': 'Square',
+        'ja': '四角',
+        'zh': '方形',
+        'fr': 'Carré',
+        'de': 'Quadrat',
+        'es': 'Cuadrada',
+        'pt': 'Quadrada',
+        'ru': 'Квадрат',
+        'tr': 'Kare',
+        'ar': 'مربع',
+        'it': 'Quadrata',
+        'hi': 'चौकोर',
+        'th': 'สี่เหลี่ยม',
+      },
+      '원형': {
+        'en': 'Round',
+        'ja': '丸窓',
+        'zh': '圆形',
+        'fr': 'Rond',
+        'de': 'Rund',
+        'es': 'Redonda',
+        'pt': 'Redonda',
+        'ru': 'Круг',
+        'tr': 'Yuvarlak',
+        'ar': 'دائري',
+        'it': 'Rotonda',
+        'hi': 'गोल',
+        'th': 'กลม',
+      },
+      '아치': {
+        'en': 'Arch',
+        'ja': 'アーチ',
+        'zh': '拱形',
+        'fr': 'Arche',
+        'de': 'Bogen',
+        'es': 'Arco',
+        'pt': 'Arco',
+        'ru': 'Арка',
+        'tr': 'Kemer',
+        'ar': 'قوس',
+        'it': 'Arco',
+        'hi': 'आर्च',
+        'th': 'โค้ง',
+      },
+      '모던': {
+        'en': 'Modern',
+        'ja': 'モダン',
+        'zh': '现代',
+        'fr': 'Moderne',
+        'de': 'Modern',
+        'es': 'Moderna',
+        'pt': 'Moderna',
+        'ru': 'Модерн',
+        'tr': 'Modern',
+        'ar': 'حديث',
+        'it': 'Moderna',
+        'hi': 'आधुनिक',
+        'th': 'ทันสมัย',
+      },
     };
     if (languageCode == 'ko') return koreanKey;
     final entry = map[koreanKey];
@@ -21226,43 +26076,69 @@ class AppL10n {
 
   String get brandCompSubtitle => _t({
     'ko': '내 홍보 메시지를 세계에 뿌릴 수 있어요. 더 큰 광고가 필요하면 Brand 로 이동하세요.',
-    'en': 'Spread your promo messages worldwide. For larger campaigns, switch to Brand.',
+    'en':
+        'Spread your promo messages worldwide. For larger campaigns, switch to Brand.',
     'ja': 'プロモメッセージを世界に届けましょう。大規模な広告には Brand へ。',
     'zh': '将促销信息发送到全世界。需要更大规模广告请切换到 Brand。',
-    'fr': 'Diffusez vos promos dans le monde. Pour de plus grandes campagnes, passez à Brand.',
-    'de': 'Verbreite deine Promos weltweit. Für größere Kampagnen wechsle zu Brand.',
-    'es': 'Difunde tus promos por el mundo. Para campañas más grandes, pásate a Brand.',
-    'pt': 'Espalha as tuas promos pelo mundo. Para campanhas maiores, muda para Brand.',
+    'fr':
+        'Diffusez vos promos dans le monde. Pour de plus grandes campagnes, passez à Brand.',
+    'de':
+        'Verbreite deine Promos weltweit. Für größere Kampagnen wechsle zu Brand.',
+    'es':
+        'Difunde tus promos por el mundo. Para campañas más grandes, pásate a Brand.',
+    'pt':
+        'Espalha as tuas promos pelo mundo. Para campanhas maiores, muda para Brand.',
     'ru': 'Распространите промо по миру. Для больших кампаний — Brand.',
     'tr': 'Promolarını dünyaya yay. Büyük kampanyalar için Brand\'e geç.',
     'ar': 'انشر عروضك حول العالم. للحملات الأكبر، انتقل إلى Brand.',
-    'it': 'Diffondi le tue promo nel mondo. Per campagne più grandi, passa a Brand.',
+    'it':
+        'Diffondi le tue promo nel mondo. Per campagne più grandi, passa a Brand.',
     'hi': 'अपनी प्रोमो विश्वभर में फैलाएँ। बड़े अभियानों के लिए Brand पर जाएँ।',
     'th': 'กระจายโปรโมไปทั่วโลก หากต้องการแคมเปญใหญ่ ให้เปลี่ยนเป็น Brand',
   });
 
   String get brandCompCurrentBadge => _t({
-    'ko': '내 등급', 'en': 'Yours', 'ja': '現在', 'zh': '当前',
-    'fr': 'Vous', 'de': 'Aktiv', 'es': 'Tuyo', 'pt': 'Teu',
-    'ru': 'Ваш', 'tr': 'Senin', 'ar': 'لك', 'it': 'Tuo',
-    'hi': 'आपका', 'th': 'ของคุณ',
+    'ko': '내 등급',
+    'en': 'Yours',
+    'ja': '現在',
+    'zh': '当前',
+    'fr': 'Vous',
+    'de': 'Aktiv',
+    'es': 'Tuyo',
+    'pt': 'Teu',
+    'ru': 'Ваш',
+    'tr': 'Senin',
+    'ar': 'لك',
+    'it': 'Tuo',
+    'hi': 'आपका',
+    'th': 'ของคุณ',
   });
 
   String get brandCompFootnote => _t({
     'ko': 'Brand 는 광고주 트랙입니다. 사업자/브랜드 인증 후 쿠폰을 발행할 수 있어요.',
-    'en': 'Brand is an advertiser track. Issue coupons after business/brand verification.',
+    'en':
+        'Brand is an advertiser track. Issue coupons after business/brand verification.',
     'ja': 'Brand は広告主向けです。事業者/ブランド認証後にクーポンを発行できます。',
     'zh': 'Brand 是广告主通道。完成商家/品牌认证后可发行优惠券。',
-    'fr': 'Brand est un parcours annonceur. Émettez des coupons après vérification commerciale/marque.',
-    'de': 'Brand ist eine Werbespur. Coupons nach Geschäfts-/Markenverifizierung ausgeben.',
-    'es': 'Brand es la pista de anunciantes. Emite cupones tras verificación comercial/marca.',
-    'pt': 'Brand é o canal de anunciantes. Emite cupões após verificação de negócio/marca.',
-    'ru': 'Brand — трек для рекламодателей. Выпуск купонов после бизнес-верификации.',
-    'tr': 'Brand reklamveren parkurudur. İş/marka doğrulamasından sonra kupon yayınlayın.',
+    'fr':
+        'Brand est un parcours annonceur. Émettez des coupons après vérification commerciale/marque.',
+    'de':
+        'Brand ist eine Werbespur. Coupons nach Geschäfts-/Markenverifizierung ausgeben.',
+    'es':
+        'Brand es la pista de anunciantes. Emite cupones tras verificación comercial/marca.',
+    'pt':
+        'Brand é o canal de anunciantes. Emite cupões após verificação de negócio/marca.',
+    'ru':
+        'Brand — трек для рекламодателей. Выпуск купонов после бизнес-верификации.',
+    'tr':
+        'Brand reklamveren parkurudur. İş/marka doğrulamasından sonra kupon yayınlayın.',
     'ar': 'Brand مسار للمعلنين. أصدِر القسائم بعد التحقق من العمل/العلامة.',
-    'it': 'Brand è il canale degli inserzionisti. Emetti coupon dopo verifica business/marca.',
-    'hi': 'Brand विज्ञापनदाता ट्रैक है। व्यवसाय/ब्रांड सत्यापन के बाद कूपन जारी करें।',
-    'th': 'Brand เป็นเส้นทางสำหรับผู้ลงโฆษณา ออกคูปองได้หลังยืนยันธุรกิจ/แบรนด์',
+    'it':
+        'Brand è il canale degli inserzionisti. Emetti coupon dopo verifica business/marca.',
+    'hi':
+        'Brand विज्ञापनदाता ट्रैक है। व्यवसाय/ब्रांड सत्यापन के बाद कूपन जारी करें।',
+    'th':
+        'Brand เป็นเส้นทางสำหรับผู้ลงโฆษณา ออกคูปองได้หลังยืนยันธุรกิจ/แบรนด์',
   });
 
   String get brandCompCta => _t({
@@ -21301,194 +26177,430 @@ class AppL10n {
 
   // Premium feature items (5)
   String get brandCompPremPhoto => _t({
-    'ko': '📸 사진 첨부', 'en': '📸 Photo attach', 'ja': '📸 写真添付', 'zh': '📸 附加照片',
-    'fr': '📸 Photo', 'de': '📸 Foto', 'es': '📸 Foto', 'pt': '📸 Foto',
-    'ru': '📸 Фото', 'tr': '📸 Foto', 'ar': '📸 صورة', 'it': '📸 Foto',
-    'hi': '📸 फोटो', 'th': '📸 รูป',
+    'ko': '📸 사진 첨부',
+    'en': '📸 Photo attach',
+    'ja': '📸 写真添付',
+    'zh': '📸 附加照片',
+    'fr': '📸 Photo',
+    'de': '📸 Foto',
+    'es': '📸 Foto',
+    'pt': '📸 Foto',
+    'ru': '📸 Фото',
+    'tr': '📸 Foto',
+    'ar': '📸 صورة',
+    'it': '📸 Foto',
+    'hi': '📸 फोटो',
+    'th': '📸 รูป',
   });
 
   String get brandCompPremLink => _t({
-    'ko': '🔗 채널/SNS 링크', 'en': '🔗 Channel/SNS link', 'ja': '🔗 チャンネル/SNS リンク', 'zh': '🔗 频道/社交链接',
-    'fr': '🔗 Lien chaîne/réseaux', 'de': '🔗 Kanal/Social-Link', 'es': '🔗 Enlace canal/redes', 'pt': '🔗 Link canal/redes',
-    'ru': '🔗 Ссылка на канал/соцсети', 'tr': '🔗 Kanal/SNS bağlantısı', 'ar': '🔗 رابط القناة/الشبكات', 'it': '🔗 Link canale/social',
-    'hi': '🔗 चैनल/SNS लिंक', 'th': '🔗 ลิงก์ช่อง/โซเชียล',
+    'ko': '🔗 채널/SNS 링크',
+    'en': '🔗 Channel/SNS link',
+    'ja': '🔗 チャンネル/SNS リンク',
+    'zh': '🔗 频道/社交链接',
+    'fr': '🔗 Lien chaîne/réseaux',
+    'de': '🔗 Kanal/Social-Link',
+    'es': '🔗 Enlace canal/redes',
+    'pt': '🔗 Link canal/redes',
+    'ru': '🔗 Ссылка на канал/соцсети',
+    'tr': '🔗 Kanal/SNS bağlantısı',
+    'ar': '🔗 رابط القناة/الشبكات',
+    'it': '🔗 Link canale/social',
+    'hi': '🔗 चैनल/SNS लिंक',
+    'th': '🔗 ลิงก์ช่อง/โซเชียล',
   });
 
   String get brandCompPremFast => _t({
-    'ko': '⚡ 빠른 배송', 'en': '⚡ Fast delivery', 'ja': '⚡ 高速配送', 'zh': '⚡ 快速送达',
-    'fr': '⚡ Livraison rapide', 'de': '⚡ Schnelle Zustellung', 'es': '⚡ Entrega rápida', 'pt': '⚡ Entrega rápida',
-    'ru': '⚡ Быстрая доставка', 'tr': '⚡ Hızlı teslimat', 'ar': '⚡ توصيل سريع', 'it': '⚡ Consegna rapida',
-    'hi': '⚡ तेज़ डिलीवरी', 'th': '⚡ ส่งเร็ว',
+    'ko': '⚡ 빠른 배송',
+    'en': '⚡ Fast delivery',
+    'ja': '⚡ 高速配送',
+    'zh': '⚡ 快速送达',
+    'fr': '⚡ Livraison rapide',
+    'de': '⚡ Schnelle Zustellung',
+    'es': '⚡ Entrega rápida',
+    'pt': '⚡ Entrega rápida',
+    'ru': '⚡ Быстрая доставка',
+    'tr': '⚡ Hızlı teslimat',
+    'ar': '⚡ توصيل سريع',
+    'it': '⚡ Consegna rapida',
+    'hi': '⚡ तेज़ डिलीवरी',
+    'th': '⚡ ส่งเร็ว',
   });
 
   String get brandCompPremPromo => _t({
-    'ko': '✉️ 일반 홍보 메시지', 'en': '✉️ Standard promo message', 'ja': '✉️ 通常プロモ', 'zh': '✉️ 普通促销信息',
-    'fr': '✉️ Message promo standard', 'de': '✉️ Standard-Promo', 'es': '✉️ Promo estándar', 'pt': '✉️ Promo padrão',
-    'ru': '✉️ Стандартное промо', 'tr': '✉️ Standart promo', 'ar': '✉️ عرض قياسي', 'it': '✉️ Promo standard',
-    'hi': '✉️ मानक प्रोमो', 'th': '✉️ โปรโมมาตรฐาน',
+    'ko': '✉️ 일반 홍보 메시지',
+    'en': '✉️ Standard promo message',
+    'ja': '✉️ 通常プロモ',
+    'zh': '✉️ 普通促销信息',
+    'fr': '✉️ Message promo standard',
+    'de': '✉️ Standard-Promo',
+    'es': '✉️ Promo estándar',
+    'pt': '✉️ Promo padrão',
+    'ru': '✉️ Стандартное промо',
+    'tr': '✉️ Standart promo',
+    'ar': '✉️ عرض قياسي',
+    'it': '✉️ Promo standard',
+    'hi': '✉️ मानक प्रोमो',
+    'th': '✉️ โปรโมมาตรฐาน',
   });
 
   String get brandCompPremGeneral => _t({
-    'ko': '✅ 일반 카테고리 발송', 'en': '✅ General category sends', 'ja': '✅ 一般カテゴリで送信', 'zh': '✅ 普通类别发送',
-    'fr': '✅ Catégorie générale', 'de': '✅ Allgemeine Kategorie', 'es': '✅ Categoría general', 'pt': '✅ Categoria geral',
-    'ru': '✅ Общая категория', 'tr': '✅ Genel kategori', 'ar': '✅ فئة عامة', 'it': '✅ Categoria generale',
-    'hi': '✅ सामान्य श्रेणी', 'th': '✅ หมวดทั่วไป',
+    'ko': '✅ 일반 카테고리 발송',
+    'en': '✅ General category sends',
+    'ja': '✅ 一般カテゴリで送信',
+    'zh': '✅ 普通类别发送',
+    'fr': '✅ Catégorie générale',
+    'de': '✅ Allgemeine Kategorie',
+    'es': '✅ Categoría general',
+    'pt': '✅ Categoria geral',
+    'ru': '✅ Общая категория',
+    'tr': '✅ Genel kategori',
+    'ar': '✅ فئة عامة',
+    'it': '✅ Categoria generale',
+    'hi': '✅ सामान्य श्रेणी',
+    'th': '✅ หมวดทั่วไป',
   });
 
   // Brand feature items (5)
   String get brandCompBrandCoupon => _t({
-    'ko': '🎟 할인 쿠폰 발행', 'en': '🎟 Issue discount coupons', 'ja': '🎟 割引クーポン発行', 'zh': '🎟 发行折扣券',
-    'fr': '🎟 Émettre coupons remise', 'de': '🎟 Rabattcoupons ausgeben', 'es': '🎟 Emitir cupones', 'pt': '🎟 Emitir cupões',
-    'ru': '🎟 Выпуск купонов', 'tr': '🎟 İndirim kuponu', 'ar': '🎟 إصدار قسائم خصم', 'it': '🎟 Emetti coupon',
-    'hi': '🎟 छूट कूपन जारी करें', 'th': '🎟 ออกคูปองส่วนลด',
+    'ko': '🎟 할인 쿠폰 발행',
+    'en': '🎟 Issue discount coupons',
+    'ja': '🎟 割引クーポン発行',
+    'zh': '🎟 发行折扣券',
+    'fr': '🎟 Émettre coupons remise',
+    'de': '🎟 Rabattcoupons ausgeben',
+    'es': '🎟 Emitir cupones',
+    'pt': '🎟 Emitir cupões',
+    'ru': '🎟 Выпуск купонов',
+    'tr': '🎟 İndirim kuponu',
+    'ar': '🎟 إصدار قسائم خصم',
+    'it': '🎟 Emetti coupon',
+    'hi': '🎟 छूट कूपन जारी करें',
+    'th': '🎟 ออกคูปองส่วนลด',
   });
 
   String get brandCompBrandVoucher => _t({
-    'ko': '🎁 교환권 발행', 'en': '🎁 Issue vouchers', 'ja': '🎁 引換券発行', 'zh': '🎁 发行兑换券',
-    'fr': '🎁 Émettre bons', 'de': '🎁 Gutscheine ausgeben', 'es': '🎁 Emitir vales', 'pt': '🎁 Emitir vales',
-    'ru': '🎁 Выпуск ваучеров', 'tr': '🎁 Kupon yayınla', 'ar': '🎁 إصدار قسائم', 'it': '🎁 Emetti voucher',
-    'hi': '🎁 वाउचर जारी करें', 'th': '🎁 ออกบัตรกำนัล',
+    'ko': '🎁 교환권 발행',
+    'en': '🎁 Issue vouchers',
+    'ja': '🎁 引換券発行',
+    'zh': '🎁 发行兑换券',
+    'fr': '🎁 Émettre bons',
+    'de': '🎁 Gutscheine ausgeben',
+    'es': '🎁 Emitir vales',
+    'pt': '🎁 Emitir vales',
+    'ru': '🎁 Выпуск ваучеров',
+    'tr': '🎁 Kupon yayınla',
+    'ar': '🎁 إصدار قسائم',
+    'it': '🎁 Emetti voucher',
+    'hi': '🎁 वाउचर जारी करें',
+    'th': '🎁 ออกบัตรกำนัล',
   });
 
   String get brandCompBrandExact => _t({
-    'ko': '📍 ExactDrop (정확 좌표)', 'en': '📍 ExactDrop (precise coords)', 'ja': '📍 ExactDrop (正確な座標)', 'zh': '📍 ExactDrop (精确坐标)',
-    'fr': '📍 ExactDrop (coordonnées)', 'de': '📍 ExactDrop (genaue Koordinaten)', 'es': '📍 ExactDrop (coords precisas)', 'pt': '📍 ExactDrop (coords exatas)',
-    'ru': '📍 ExactDrop (точные коорд.)', 'tr': '📍 ExactDrop (kesin koord.)', 'ar': '📍 ExactDrop (إحداثيات دقيقة)', 'it': '📍 ExactDrop (coord. precise)',
-    'hi': '📍 ExactDrop (सटीक स्थान)', 'th': '📍 ExactDrop (พิกัดแม่นยำ)',
+    'ko': '📍 ExactDrop (정확 좌표)',
+    'en': '📍 ExactDrop (precise coords)',
+    'ja': '📍 ExactDrop (正確な座標)',
+    'zh': '📍 ExactDrop (精确坐标)',
+    'fr': '📍 ExactDrop (coordonnées)',
+    'de': '📍 ExactDrop (genaue Koordinaten)',
+    'es': '📍 ExactDrop (coords precisas)',
+    'pt': '📍 ExactDrop (coords exatas)',
+    'ru': '📍 ExactDrop (точные коорд.)',
+    'tr': '📍 ExactDrop (kesin koord.)',
+    'ar': '📍 ExactDrop (إحداثيات دقيقة)',
+    'it': '📍 ExactDrop (coord. precise)',
+    'hi': '📍 ExactDrop (सटीक स्थान)',
+    'th': '📍 ExactDrop (พิกัดแม่นยำ)',
   });
 
   String get brandCompBrandAnalytics => _t({
-    'ko': '📊 캠페인 분석', 'en': '📊 Campaign analytics', 'ja': '📊 キャンペーン分析', 'zh': '📊 活动分析',
-    'fr': '📊 Analyses campagne', 'de': '📊 Kampagnenanalyse', 'es': '📊 Análisis campaña', 'pt': '📊 Análise de campanha',
-    'ru': '📊 Аналитика кампаний', 'tr': '📊 Kampanya analizi', 'ar': '📊 تحليلات الحملات', 'it': '📊 Analisi campagne',
-    'hi': '📊 अभियान विश्लेषण', 'th': '📊 วิเคราะห์แคมเปญ',
+    'ko': '📊 캠페인 분석',
+    'en': '📊 Campaign analytics',
+    'ja': '📊 キャンペーン分析',
+    'zh': '📊 活动分析',
+    'fr': '📊 Analyses campagne',
+    'de': '📊 Kampagnenanalyse',
+    'es': '📊 Análisis campaña',
+    'pt': '📊 Análise de campanha',
+    'ru': '📊 Аналитика кампаний',
+    'tr': '📊 Kampanya analizi',
+    'ar': '📊 تحليلات الحملات',
+    'it': '📊 Analisi campagne',
+    'hi': '📊 अभियान विश्लेषण',
+    'th': '📊 วิเคราะห์แคมเปญ',
   });
 
   String get brandCompBrandBulk => _t({
-    'ko': '🌊 대량 발송', 'en': '🌊 Bulk sending', 'ja': '🌊 一括送信', 'zh': '🌊 批量发送',
-    'fr': '🌊 Envoi en masse', 'de': '🌊 Massenversand', 'es': '🌊 Envío masivo', 'pt': '🌊 Envio em massa',
-    'ru': '🌊 Массовая отправка', 'tr': '🌊 Toplu gönderim', 'ar': '🌊 إرسال جماعي', 'it': '🌊 Invio massivo',
-    'hi': '🌊 बल्क भेजें', 'th': '🌊 ส่งจำนวนมาก',
+    'ko': '🌊 대량 발송',
+    'en': '🌊 Bulk sending',
+    'ja': '🌊 一括送信',
+    'zh': '🌊 批量发送',
+    'fr': '🌊 Envoi en masse',
+    'de': '🌊 Massenversand',
+    'es': '🌊 Envío masivo',
+    'pt': '🌊 Envio em massa',
+    'ru': '🌊 Массовая отправка',
+    'tr': '🌊 Toplu gönderim',
+    'ar': '🌊 إرسال جماعي',
+    'it': '🌊 Invio massivo',
+    'hi': '🌊 बल्क भेजें',
+    'th': '🌊 ส่งจำนวนมาก',
   });
 
   // ── Build 249: Brand 인박스 캠페인 통계 (이전 한국어 하드코딩) ──────────
   String get brandStatsUnit => _t({
-    'ko': '통', 'en': '', 'ja': '通', 'zh': '封',
-    'fr': '', 'de': '', 'es': '', 'pt': '',
-    'ru': '', 'tr': '', 'ar': '', 'it': '',
-    'hi': '', 'th': 'ฉบับ',
+    'ko': '통',
+    'en': '',
+    'ja': '通',
+    'zh': '封',
+    'fr': '',
+    'de': '',
+    'es': '',
+    'pt': '',
+    'ru': '',
+    'tr': '',
+    'ar': '',
+    'it': '',
+    'hi': '',
+    'th': 'ฉบับ',
   });
 
   String get brandStatsPickRate => _t({
-    'ko': '픽업률', 'en': 'Pickup rate', 'ja': '受取率', 'zh': '领取率',
-    'fr': 'Taux ramassage', 'de': 'Abholrate', 'es': 'Tasa recogida',
-    'pt': 'Taxa de recolha', 'ru': 'Уровень получения', 'tr': 'Alma oranı',
-    'ar': 'معدل الاستلام', 'it': 'Tasso ritiro', 'hi': 'पिकअप दर',
+    'ko': '픽업률',
+    'en': 'Pickup rate',
+    'ja': '受取率',
+    'zh': '领取率',
+    'fr': 'Taux ramassage',
+    'de': 'Abholrate',
+    'es': 'Tasa recogida',
+    'pt': 'Taxa de recolha',
+    'ru': 'Уровень получения',
+    'tr': 'Alma oranı',
+    'ar': 'معدل الاستلام',
+    'it': 'Tasso ritiro',
+    'hi': 'पिकअप दर',
     'th': 'อัตรารับ',
   });
 
   String get brandStatsUseRate => _t({
-    'ko': '사용률', 'en': 'Usage rate', 'ja': '使用率', 'zh': '使用率',
-    'fr': 'Taux utilisation', 'de': 'Nutzungsrate', 'es': 'Tasa uso',
-    'pt': 'Taxa uso', 'ru': 'Уровень использования', 'tr': 'Kullanım oranı',
-    'ar': 'معدل الاستخدام', 'it': 'Tasso utilizzo', 'hi': 'उपयोग दर',
+    'ko': '사용률',
+    'en': 'Usage rate',
+    'ja': '使用率',
+    'zh': '使用率',
+    'fr': 'Taux utilisation',
+    'de': 'Nutzungsrate',
+    'es': 'Tasa uso',
+    'pt': 'Taxa uso',
+    'ru': 'Уровень использования',
+    'tr': 'Kullanım oranı',
+    'ar': 'معدل الاستخدام',
+    'it': 'Tasso utilizzo',
+    'hi': 'उपयोग दर',
     'th': 'อัตราใช้',
   });
 
   String get brandStatsPickedLabel => _t({
-    'ko': '픽업됨', 'en': 'Picked up', 'ja': '受取済', 'zh': '已领取',
-    'fr': 'Ramassé', 'de': 'Abgeholt', 'es': 'Recogido', 'pt': 'Apanhado',
-    'ru': 'Получено', 'tr': 'Alındı', 'ar': 'تم الاستلام', 'it': 'Ritirato',
-    'hi': 'उठाया', 'th': 'รับแล้ว',
+    'ko': '픽업됨',
+    'en': 'Picked up',
+    'ja': '受取済',
+    'zh': '已领取',
+    'fr': 'Ramassé',
+    'de': 'Abgeholt',
+    'es': 'Recogido',
+    'pt': 'Apanhado',
+    'ru': 'Получено',
+    'tr': 'Alındı',
+    'ar': 'تم الاستلام',
+    'it': 'Ritirato',
+    'hi': 'उठाया',
+    'th': 'รับแล้ว',
   });
 
   String get brandStatsInTransitLabel => _t({
-    'ko': '배송 중', 'en': 'In transit', 'ja': '配送中', 'zh': '配送中',
-    'fr': 'En transit', 'de': 'Unterwegs', 'es': 'En tránsito',
-    'pt': 'Em trânsito', 'ru': 'В пути', 'tr': 'Yolda', 'ar': 'قيد التوصيل',
-    'it': 'In transito', 'hi': 'पहुँच रहा', 'th': 'กำลังส่ง',
+    'ko': '배송 중',
+    'en': 'In transit',
+    'ja': '配送中',
+    'zh': '配送中',
+    'fr': 'En transit',
+    'de': 'Unterwegs',
+    'es': 'En tránsito',
+    'pt': 'Em trânsito',
+    'ru': 'В пути',
+    'tr': 'Yolda',
+    'ar': 'قيد التوصيل',
+    'it': 'In transito',
+    'hi': 'पहुँच रहा',
+    'th': 'กำลังส่ง',
   });
 
   String get brandStatsUsedLabel => _t({
-    'ko': '사용 완료', 'en': 'Used', 'ja': '使用済', 'zh': '已使用',
-    'fr': 'Utilisé', 'de': 'Eingelöst', 'es': 'Usado', 'pt': 'Usado',
-    'ru': 'Использовано', 'tr': 'Kullanıldı', 'ar': 'تم الاستخدام',
-    'it': 'Usato', 'hi': 'उपयोग किया', 'th': 'ใช้แล้ว',
+    'ko': '사용 완료',
+    'en': 'Used',
+    'ja': '使用済',
+    'zh': '已使用',
+    'fr': 'Utilisé',
+    'de': 'Eingelöst',
+    'es': 'Usado',
+    'pt': 'Usado',
+    'ru': 'Использовано',
+    'tr': 'Kullanıldı',
+    'ar': 'تم الاستخدام',
+    'it': 'Usato',
+    'hi': 'उपयोग किया',
+    'th': 'ใช้แล้ว',
   });
 
   String get brandStatsUnconfirmedLabel => _t({
-    'ko': '미확인', 'en': 'Unread', 'ja': '未確認', 'zh': '未查看',
-    'fr': 'Non lu', 'de': 'Ungesehen', 'es': 'Sin leer', 'pt': 'Não lido',
-    'ru': 'Непрочитано', 'tr': 'Okunmadı', 'ar': 'غير مقروء',
-    'it': 'Non letto', 'hi': 'अनदेखा', 'th': 'ยังไม่ดู',
+    'ko': '미확인',
+    'en': 'Unread',
+    'ja': '未確認',
+    'zh': '未查看',
+    'fr': 'Non lu',
+    'de': 'Ungesehen',
+    'es': 'Sin leer',
+    'pt': 'Não lido',
+    'ru': 'Непрочитано',
+    'tr': 'Okunmadı',
+    'ar': 'غير مقروء',
+    'it': 'Non letto',
+    'hi': 'अनदेखा',
+    'th': 'ยังไม่ดู',
   });
 
   String get brandStatsRepliedLabel => _t({
-    'ko': '답장 받음', 'en': 'Replied', 'ja': '返信あり', 'zh': '已回复',
-    'fr': 'Répondu', 'de': 'Geantwortet', 'es': 'Respondido',
-    'pt': 'Respondido', 'ru': 'Ответили', 'tr': 'Yanıtlandı',
-    'ar': 'تم الرد', 'it': 'Risposto', 'hi': 'जवाब मिला', 'th': 'ตอบกลับ',
+    'ko': '답장 받음',
+    'en': 'Replied',
+    'ja': '返信あり',
+    'zh': '已回复',
+    'fr': 'Répondu',
+    'de': 'Geantwortet',
+    'es': 'Respondido',
+    'pt': 'Respondido',
+    'ru': 'Ответили',
+    'tr': 'Yanıtlandı',
+    'ar': 'تم الرد',
+    'it': 'Risposto',
+    'hi': 'जवाब मिला',
+    'th': 'ตอบกลับ',
   });
 
   String get brandStatsViewAllLabel => _t({
-    'ko': '전체 보기', 'en': 'View all', 'ja': '全て表示', 'zh': '查看全部',
-    'fr': 'Voir tout', 'de': 'Alle ansehen', 'es': 'Ver todo',
-    'pt': 'Ver tudo', 'ru': 'Все', 'tr': 'Tümü', 'ar': 'عرض الكل',
-    'it': 'Vedi tutto', 'hi': 'सभी देखें', 'th': 'ดูทั้งหมด',
+    'ko': '전체 보기',
+    'en': 'View all',
+    'ja': '全て表示',
+    'zh': '查看全部',
+    'fr': 'Voir tout',
+    'de': 'Alle ansehen',
+    'es': 'Ver todo',
+    'pt': 'Ver tudo',
+    'ru': 'Все',
+    'tr': 'Tümü',
+    'ar': 'عرض الكل',
+    'it': 'Vedi tutto',
+    'hi': 'सभी देखें',
+    'th': 'ดูทั้งหมด',
   });
 
   String get brandStatsPickedDetailTitle => _t({
-    'ko': '픽업된 캠페인', 'en': 'Picked up campaigns', 'ja': '受取済キャンペーン',
-    'zh': '已领取活动', 'fr': 'Campagnes ramassées', 'de': 'Abgeholte Kampagnen',
-    'es': 'Campañas recogidas', 'pt': 'Campanhas apanhadas',
-    'ru': 'Полученные кампании', 'tr': 'Alınmış kampanyalar',
-    'ar': 'حملات مستلمة', 'it': 'Campagne ritirate',
-    'hi': 'उठाए गए अभियान', 'th': 'แคมเปญที่รับแล้ว',
+    'ko': '픽업된 캠페인',
+    'en': 'Picked up campaigns',
+    'ja': '受取済キャンペーン',
+    'zh': '已领取活动',
+    'fr': 'Campagnes ramassées',
+    'de': 'Abgeholte Kampagnen',
+    'es': 'Campañas recogidas',
+    'pt': 'Campanhas apanhadas',
+    'ru': 'Полученные кампании',
+    'tr': 'Alınmış kampanyalar',
+    'ar': 'حملات مستلمة',
+    'it': 'Campagne ritirate',
+    'hi': 'उठाए गए अभियान',
+    'th': 'แคมเปญที่รับแล้ว',
   });
 
   String get brandStatsInTransitDetailTitle => _t({
-    'ko': '배송 중 캠페인', 'en': 'In-transit campaigns', 'ja': '配送中キャンペーン',
-    'zh': '配送中活动', 'fr': 'Campagnes en transit', 'de': 'Kampagnen unterwegs',
-    'es': 'Campañas en tránsito', 'pt': 'Campanhas em trânsito',
-    'ru': 'Кампании в пути', 'tr': 'Yoldaki kampanyalar',
-    'ar': 'حملات قيد التوصيل', 'it': 'Campagne in transito',
-    'hi': 'अभियान पहुँच रहे', 'th': 'แคมเปญกำลังส่ง',
+    'ko': '배송 중 캠페인',
+    'en': 'In-transit campaigns',
+    'ja': '配送中キャンペーン',
+    'zh': '配送中活动',
+    'fr': 'Campagnes en transit',
+    'de': 'Kampagnen unterwegs',
+    'es': 'Campañas en tránsito',
+    'pt': 'Campanhas em trânsito',
+    'ru': 'Кампании в пути',
+    'tr': 'Yoldaki kampanyalar',
+    'ar': 'حملات قيد التوصيل',
+    'it': 'Campagne in transito',
+    'hi': 'अभियान पहुँच रहे',
+    'th': 'แคมเปญกำลังส่ง',
   });
 
   String get brandStatsUsedDetailTitle => _t({
-    'ko': '사용된 캠페인', 'en': 'Used campaigns', 'ja': '使用済キャンペーン',
-    'zh': '已使用活动', 'fr': 'Campagnes utilisées', 'de': 'Eingelöste Kampagnen',
-    'es': 'Campañas usadas', 'pt': 'Campanhas usadas',
-    'ru': 'Использованные кампании', 'tr': 'Kullanılmış kampanyalar',
-    'ar': 'حملات مستخدمة', 'it': 'Campagne usate',
-    'hi': 'उपयोग किए अभियान', 'th': 'แคมเปญที่ใช้แล้ว',
+    'ko': '사용된 캠페인',
+    'en': 'Used campaigns',
+    'ja': '使用済キャンペーン',
+    'zh': '已使用活动',
+    'fr': 'Campagnes utilisées',
+    'de': 'Eingelöste Kampagnen',
+    'es': 'Campañas usadas',
+    'pt': 'Campanhas usadas',
+    'ru': 'Использованные кампании',
+    'tr': 'Kullanılmış kampanyalar',
+    'ar': 'حملات مستخدمة',
+    'it': 'Campagne usate',
+    'hi': 'उपयोग किए अभियान',
+    'th': 'แคมเปญที่ใช้แล้ว',
   });
 
   String get brandStatsUnconfirmedDetailTitle => _t({
-    'ko': '미확인 캠페인', 'en': 'Unread campaigns', 'ja': '未確認キャンペーン',
-    'zh': '未查看活动', 'fr': 'Campagnes non lues', 'de': 'Ungesehene Kampagnen',
-    'es': 'Campañas sin leer', 'pt': 'Campanhas não lidas',
-    'ru': 'Непрочитанные кампании', 'tr': 'Okunmamış kampanyalar',
-    'ar': 'حملات غير مقروءة', 'it': 'Campagne non lette',
-    'hi': 'अनदेखे अभियान', 'th': 'แคมเปญที่ยังไม่ดู',
+    'ko': '미확인 캠페인',
+    'en': 'Unread campaigns',
+    'ja': '未確認キャンペーン',
+    'zh': '未查看活动',
+    'fr': 'Campagnes non lues',
+    'de': 'Ungesehene Kampagnen',
+    'es': 'Campañas sin leer',
+    'pt': 'Campanhas não lidas',
+    'ru': 'Непрочитанные кампании',
+    'tr': 'Okunmamış kampanyalar',
+    'ar': 'حملات غير مقروءة',
+    'it': 'Campagne non lette',
+    'hi': 'अनदेखे अभियान',
+    'th': 'แคมเปญที่ยังไม่ดู',
   });
 
   String get brandStatsRepliedDetailTitle => _t({
-    'ko': '답장 받은 캠페인', 'en': 'Replied campaigns', 'ja': '返信されたキャンペーン',
-    'zh': '收到回复的活动', 'fr': 'Campagnes avec réponse', 'de': 'Beantwortete Kampagnen',
-    'es': 'Campañas con respuesta', 'pt': 'Campanhas com resposta',
-    'ru': 'Кампании с ответами', 'tr': 'Yanıtlanmış kampanyalar',
-    'ar': 'حملات تم الرد عليها', 'it': 'Campagne con risposta',
-    'hi': 'जवाब मिले अभियान', 'th': 'แคมเปญที่ได้รับการตอบกลับ',
+    'ko': '답장 받은 캠페인',
+    'en': 'Replied campaigns',
+    'ja': '返信されたキャンペーン',
+    'zh': '收到回复的活动',
+    'fr': 'Campagnes avec réponse',
+    'de': 'Beantwortete Kampagnen',
+    'es': 'Campañas con respuesta',
+    'pt': 'Campanhas com resposta',
+    'ru': 'Кампании с ответами',
+    'tr': 'Yanıtlanmış kampanyalar',
+    'ar': 'حملات تم الرد عليها',
+    'it': 'Campagne con risposta',
+    'hi': 'जवाब मिले अभियान',
+    'th': 'แคมเปญที่ได้รับการตอบกลับ',
   });
 
   String get brandStatsAllDetailTitle => _t({
-    'ko': '전체 발송 캠페인', 'en': 'All sent campaigns', 'ja': '全送信キャンペーン',
-    'zh': '全部发送活动', 'fr': 'Toutes campagnes envoyées', 'de': 'Alle gesendeten Kampagnen',
-    'es': 'Todas campañas enviadas', 'pt': 'Todas campanhas enviadas',
-    'ru': 'Все отправленные кампании', 'tr': 'Gönderilen tüm kampanyalar',
-    'ar': 'جميع الحملات المرسلة', 'it': 'Tutte campagne inviate',
-    'hi': 'सभी भेजे अभियान', 'th': 'แคมเปญที่ส่งทั้งหมด',
+    'ko': '전체 발송 캠페인',
+    'en': 'All sent campaigns',
+    'ja': '全送信キャンペーン',
+    'zh': '全部发送活动',
+    'fr': 'Toutes campagnes envoyées',
+    'de': 'Alle gesendeten Kampagnen',
+    'es': 'Todas campañas enviadas',
+    'pt': 'Todas campanhas enviadas',
+    'ru': 'Все отправленные кампании',
+    'tr': 'Gönderilen tüm kampanyalar',
+    'ar': 'جميع الحملات المرسلة',
+    'it': 'Tutte campagne inviate',
+    'hi': 'सभी भेजे अभियान',
+    'th': 'แคมเปญที่ส่งทั้งหมด',
   });
 
   String get brandStatsTapHint => _t({
@@ -21510,11 +26622,20 @@ class AppL10n {
 
   // Build 253: deniedForever 시 설정 이동 SnackBar 액션 + GPS 정확도 경고
   String get openSettings => _t({
-    'ko': '설정 열기', 'en': 'Open Settings', 'ja': '設定を開く', 'zh': '打开设置',
-    'fr': 'Ouvrir Réglages', 'de': 'Einstellungen', 'es': 'Abrir ajustes',
-    'pt': 'Abrir definições', 'ru': 'Открыть настройки', 'tr': 'Ayarları aç',
-    'ar': 'فتح الإعدادات', 'it': 'Apri impostazioni',
-    'hi': 'सेटिंग्स खोलें', 'th': 'เปิดการตั้งค่า',
+    'ko': '설정 열기',
+    'en': 'Open Settings',
+    'ja': '設定を開く',
+    'zh': '打开设置',
+    'fr': 'Ouvrir Réglages',
+    'de': 'Einstellungen',
+    'es': 'Abrir ajustes',
+    'pt': 'Abrir definições',
+    'ru': 'Открыть настройки',
+    'tr': 'Ayarları aç',
+    'ar': 'فتح الإعدادات',
+    'it': 'Apri impostazioni',
+    'hi': 'सेटिंग्स खोलें',
+    'th': 'เปิดการตั้งค่า',
   });
 
   String get gpsAccuracyLow => _t({
@@ -21554,10 +26675,20 @@ class AppL10n {
 
   // Build 240: Premium 첨부 시트 완료 버튼 (이전 한국어 하드코딩)
   String get composeAttachDone => _t({
-    'ko': '완료', 'en': 'Done', 'ja': '完了', 'zh': '完成',
-    'fr': 'Terminé', 'de': 'Fertig', 'es': 'Listo', 'pt': 'Concluir',
-    'ru': 'Готово', 'tr': 'Tamam', 'ar': 'تم', 'it': 'Fatto',
-    'hi': 'पूर्ण', 'th': 'เสร็จ',
+    'ko': '완료',
+    'en': 'Done',
+    'ja': '完了',
+    'zh': '完成',
+    'fr': 'Terminé',
+    'de': 'Fertig',
+    'es': 'Listo',
+    'pt': 'Concluir',
+    'ru': 'Готово',
+    'tr': 'Tamam',
+    'ar': 'تم',
+    'it': 'Fatto',
+    'hi': 'पूर्ण',
+    'th': 'เสร็จ',
   });
 
   // ── Build 242: Merchant Interest (가맹점 영입 — Cold-start 부트스트랩) ─
@@ -21614,17 +26745,26 @@ class AppL10n {
 
   String get merchantHookSubtitle => _t({
     'ko': '내 가게의 쿠폰을 지도 위에 띄워서 손님이 직접 걸어오게 하세요. 베타 기간 무료.',
-    'en': 'Let your customers walk in by placing your coupons on the map. Free during beta.',
+    'en':
+        'Let your customers walk in by placing your coupons on the map. Free during beta.',
     'ja': 'クーポンを地図に置いてお客様を歩かせよう。ベータ期間中無料。',
     'zh': '把优惠券放在地图上，让顾客自己走进来。测试期免费。',
-    'fr': 'Faites venir vos clients en plaçant vos coupons sur la carte. Gratuit pendant la bêta.',
-    'de': 'Lassen Sie Kunden zu Ihnen kommen, indem Sie Coupons auf der Karte platzieren. Beta kostenlos.',
-    'es': 'Atrae clientes colocando tus cupones en el mapa. Gratis durante la beta.',
-    'pt': 'Atrai clientes colocando os teus cupões no mapa. Grátis durante a beta.',
-    'ru': 'Привлекайте клиентов, размещая купоны на карте. Бесплатно во время беты.',
-    'tr': 'Kuponlarınızı haritaya yerleştirerek müşterileri çekin. Beta süresi ücretsiz.',
-    'ar': 'استقطب العملاء بوضع قسائمك على الخريطة. مجاني خلال الفترة التجريبية.',
-    'it': 'Attira clienti mettendo i tuoi coupon sulla mappa. Gratis durante la beta.',
+    'fr':
+        'Faites venir vos clients en plaçant vos coupons sur la carte. Gratuit pendant la bêta.',
+    'de':
+        'Lassen Sie Kunden zu Ihnen kommen, indem Sie Coupons auf der Karte platzieren. Beta kostenlos.',
+    'es':
+        'Atrae clientes colocando tus cupones en el mapa. Gratis durante la beta.',
+    'pt':
+        'Atrai clientes colocando os teus cupões no mapa. Grátis durante a beta.',
+    'ru':
+        'Привлекайте клиентов, размещая купоны на карте. Бесплатно во время беты.',
+    'tr':
+        'Kuponlarınızı haritaya yerleştirerek müşterileri çekin. Beta süresi ücretsiz.',
+    'ar':
+        'استقطب العملاء بوضع قسائمك على الخريطة. مجاني خلال الفترة التجريبية.',
+    'it':
+        'Attira clienti mettendo i tuoi coupon sulla mappa. Gratis durante la beta.',
     'hi': 'अपने कूपन मानचित्र पर रखकर ग्राहक आकर्षित करें। बीटा में मुफ़्त।',
     'th': 'ดึงดูดลูกค้าโดยวางคูปองบนแผนที่ ฟรีช่วงทดลอง',
   });
@@ -21736,7 +26876,8 @@ class AppL10n {
     'en': 'First 100 beta merchants — 30 days free + priority slots',
     'ja': 'ベータ先着 100 店 — 30 日無料 + 優先枠',
     'zh': '前 100 家测试商家 — 30 天免费 + 优先位',
-    'fr': '100 premiers commerçants bêta — 30 jours gratuits + slots prioritaires',
+    'fr':
+        '100 premiers commerçants bêta — 30 jours gratuits + slots prioritaires',
     'de': 'Erste 100 Beta-Händler — 30 Tage kostenlos + Priorität',
     'es': 'Primeros 100 — 30 días gratis + slots prioritarios',
     'pt': 'Primeiros 100 — 30 dias grátis + slots prioritários',
@@ -21800,10 +26941,19 @@ class AppL10n {
   });
 
   String get merchantThanksClose => _t({
-    'ko': '닫기', 'en': 'Close', 'ja': '閉じる', 'zh': '关闭',
-    'fr': 'Fermer', 'de': 'Schließen', 'es': 'Cerrar', 'pt': 'Fechar',
-    'ru': 'Закрыть', 'tr': 'Kapat', 'ar': 'إغلاق', 'it': 'Chiudi',
-    'hi': 'बंद', 'th': 'ปิด',
+    'ko': '닫기',
+    'en': 'Close',
+    'ja': '閉じる',
+    'zh': '关闭',
+    'fr': 'Fermer',
+    'de': 'Schließen',
+    'es': 'Cerrar',
+    'pt': 'Fechar',
+    'ru': 'Закрыть',
+    'tr': 'Kapat',
+    'ar': 'إغلاق',
+    'it': 'Chiudi',
+    'hi': 'बंद',
+    'th': 'ปิด',
   });
-
 }

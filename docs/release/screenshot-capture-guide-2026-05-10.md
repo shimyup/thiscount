@@ -43,14 +43,14 @@ xcrun simctl status_bar booted override --time "9:41" \
 
 ### B. 앱 실행 (Build 273 debug)
 ```bash
-cd "/Users/shimyup/Documents/New project/Lettergo/.claude/worktrees/tender-black-40ada4"
+cd "/Users/shimyup/Documents/New project/Lettergo"
 ENV_FILE="/Users/shimyup/Documents/New project/Lettergo/.env.local" \
   ./scripts/run_ios_debug.sh "iPhone 17 Pro Max"
 ```
 
 ### C. 화면별 캡처 (각 화면 도달 후 실행)
 ```bash
-SHOT_DIR="/Users/shimyup/Documents/New project/Lettergo/.claude/worktrees/tender-black-40ada4/docs/marketing/screenshots/raw"
+SHOT_DIR="/Users/shimyup/Documents/New project/Lettergo/docs/marketing/screenshots/raw"
 mkdir -p "$SHOT_DIR"
 
 # 화면별로 액션 후 다음 명령 실행 (각 줄을 1개 화면 도달 후 실행)

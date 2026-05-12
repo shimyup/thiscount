@@ -66,7 +66,7 @@ class _V5SplashScreenState extends State<V5SplashScreen>
                     ),
                     const SizedBox(height: 18),
                     Text(
-                      '근처에 떠있는 쿠폰과 편지를\n주워 쓰는 지갑.',
+                      '근처에 떠있는 쿠폰과 혜택을\n주워 쓰는 지갑.',
                       style: V5Text.body.copyWith(
                         color: V5Colors.tx2,
                         fontSize: 17,
@@ -82,10 +82,7 @@ class _V5SplashScreenState extends State<V5SplashScreen>
                           height: 24,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(
-                              color: V5Colors.bg3,
-                              width: 2,
-                            ),
+                            border: Border.all(color: V5Colors.bg3, width: 2),
                           ),
                           child: CustomPaint(painter: _ArcPainter()),
                         ),
@@ -146,13 +143,7 @@ class _ArcPainter extends CustomPainter {
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
-    canvas.drawArc(
-      Offset.zero & size,
-      -1.57,
-      1.6,
-      false,
-      paint,
-    );
+    canvas.drawArc(Offset.zero & size, -1.57, 1.6, false, paint);
   }
 
   @override

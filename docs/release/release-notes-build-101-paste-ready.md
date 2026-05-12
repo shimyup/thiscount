@@ -34,7 +34,7 @@
 - 🔕 조용히 · 🛎 기본 · 📣 전체 — 3단계 푸시 볼륨 설정
 - 편지 개봉·발송·도착 3가지 순간의 섬세한 햅틱
 
-**Air Mail Pass 컬렉션**
+**Thiscount Premium 컬렉션**
 - 🌌 Aurora — 밤의 언어로 쓰는 편지
 - 🌾 Harvest — 계절이 지나가는 속도로
 - 💌 Postmaster — 공식 발송인의 권한
@@ -85,7 +85,7 @@ stability issues.
 - 🔕 Quiet · 🛎 Standard · 📣 Everything — 3-mode volume control
 - Subtle haptic patterns for opening, sending, and receiving letters
 
-**Air Mail Pass Collections**
+**Thiscount Premium Collections**
 - 🌌 Aurora — letters in the language of the night
 - 🌾 Harvest — paced by the seasons
 - 💌 Postmaster — the Official Sender tier
