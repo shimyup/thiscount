@@ -55,6 +55,17 @@ require_release_empty() {
 
 echo "[preflight] validating release environment..."
 
+# Build 282: pubspec 의 build number 가 baseline (+1 같은 placeholder) 인지
+# 검증. App Store Connect 가 중복 또는 너무 낮은 번호를 reject 하기 전에
+# 빌드 단계에서 차단해서 시간 낭비를 막는다.
+PUBSPEC_BUILD="$(grep -E "^version:\s*" "$ROOT_DIR/pubspec.yaml" | sed -E 's/.*\+([0-9]+).*/\1/')"
+if [[ -z "$PUBSPEC_BUILD" ]] || ! [[ "$PUBSPEC_BUILD" =~ ^[0-9]+$ ]]; then
+  fail "pubspec.yaml version 에서 build number 를 파싱할 수 없습니다 (예: 1.0.0+282)"
+fi
+if (( PUBSPEC_BUILD < 100 )); then
+  fail "pubspec build number ($PUBSPEC_BUILD) 가 너무 낮습니다. 실제 빌드인지 확인 후 적절한 번호로 설정하세요."
+fi
+
 require_var FIREBASE_PROJECT_ID
 require_var FIREBASE_API_KEY
 require_var FIREBASE_STORAGE_BUCKET

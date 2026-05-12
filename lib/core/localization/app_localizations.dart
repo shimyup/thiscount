@@ -6750,11 +6750,22 @@ class AppL10n {
     'th': 'ที่อยู่ต่อประเทศ',
   });
 
+  // Build 282: 14언어 풀 번역 (이전 ko/en/ja/zh 4 lang 만 있던 누락 보완)
   String get composeBulkRandomCountry => _t({
     'ko': '랜덤 국가로 발송',
     'en': 'Send to random countries',
     'ja': 'ランダムな国に送信',
     'zh': '随机国家发送',
+    'fr': 'Envoyer vers des pays aléatoires',
+    'de': 'An zufällige Länder senden',
+    'es': 'Enviar a países aleatorios',
+    'pt': 'Enviar para países aleatórios',
+    'ru': 'Отправить в случайные страны',
+    'tr': 'Rastgele ülkelere gönder',
+    'ar': 'إرسال إلى دول عشوائية',
+    'it': 'Invia a paesi casuali',
+    'hi': 'यादृच्छिक देशों को भेजें',
+    'th': 'ส่งไปยังประเทศแบบสุ่ม',
   });
 
   String get composeBulkRandomDesc => _t({
@@ -6762,6 +6773,16 @@ class AppL10n {
     'en': 'Promos sent to random countries from 198 nations',
     'ja': '198カ国からランダムに選んで送信します',
     'zh': '从198个国家中随机选择发送',
+    'fr': 'Promos envoyées à des pays aléatoires parmi 198 nations',
+    'de': 'Aktionen an zufällige Länder aus 198 Nationen',
+    'es': 'Promos enviadas a países aleatorios de 198 naciones',
+    'pt': 'Promoções enviadas para países aleatórios entre 198 nações',
+    'ru': 'Промо в случайные страны из 198 стран',
+    'tr': '198 ülke arasından rastgele ülkelere promo gönderilir',
+    'ar': 'يتم إرسال العروض إلى دول عشوائية من بين 198 دولة',
+    'it': 'Promo inviate a paesi casuali tra 198 nazioni',
+    'hi': '198 देशों में से यादृच्छिक देशों को प्रोमो भेजा जाता है',
+    'th': 'ส่งโปรโมไปยังประเทศแบบสุ่มจาก 198 ประเทศ',
   });
 
   String composeBulkRandomSummary(int count) => _t({
@@ -26348,20 +26369,22 @@ class AppL10n {
   });
 
   // ── Build 249: Brand 인박스 캠페인 통계 (이전 한국어 하드코딩) ──────────
+  // Build 282: en/유럽어 단위 보강 — 빈 문자열로 두면 UI 에 "5 " 같이 trailing
+  // space 만 남아 시각적 단절. 짧은 약어로 채워서 카운트 단위로 일관성 유지.
   String get brandStatsUnit => _t({
     'ko': '통',
-    'en': '',
+    'en': 'msgs',
     'ja': '通',
     'zh': '封',
-    'fr': '',
-    'de': '',
-    'es': '',
-    'pt': '',
-    'ru': '',
-    'tr': '',
-    'ar': '',
-    'it': '',
-    'hi': '',
+    'fr': 'envois',
+    'de': 'Nachr.',
+    'es': 'env.',
+    'pt': 'env.',
+    'ru': 'писем',
+    'tr': 'mesaj',
+    'ar': 'رسالة',
+    'it': 'msg',
+    'hi': 'संदेश',
     'th': 'ฉบับ',
   });
 
