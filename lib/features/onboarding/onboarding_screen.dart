@@ -133,9 +133,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             langCode: _langCode,
           );
         }
-      } else {
-        // 거부해도 앱 전반의 알림 권한은 요청해 둔다 (편지 도착 알림 등)
-        await NotificationService.requestPermissions();
       }
     } catch (_) {}
 
@@ -231,6 +228,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'South Africa': '남아프리카',
       'ประเทศไทย': '태국',
       'Argentina': '아르헨티나',
+      'Netherlands': '네덜란드',
+      'Sverige': '스웨덴',
+      'Norge': '노르웨이',
+      'Portugal': '포르투갈',
+      'Indonesia': '인도네시아',
+      'Malaysia': '말레이시아',
+      'Singapore': '싱가포르',
+      'New Zealand': '뉴질랜드',
+      'Philippines': '필리핀',
+      'Vietnam': '베트남',
     };
     return displayToKorean[displayName] ?? displayName;
   }
@@ -399,7 +406,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   padding: const EdgeInsets.all(16),
                   child: _currentPage < _totalPages - 1
                       ? TextButton(
-                          onPressed: _finish,
+                          onPressed: _currentPage == 1
+                              ? _skipLocationPermission
+                              : _finish,
                           child: Text(
                             _l.skip,
                             style: const TextStyle(
@@ -476,7 +485,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
                       ),
                     ),
-                    if (_currentPage == 1 && !_locationGranted && !_locationChecking)
+                    if (_currentPage == 1 &&
+                        !_locationGranted &&
+                        !_locationChecking)
                       Padding(
                         padding: const EdgeInsets.only(top: 6),
                         child: TextButton(
@@ -702,9 +713,7 @@ class _LocationPermissionPage extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  isGranted
-                      ? Icons.check_rounded
-                      : Icons.location_on_outlined,
+                  isGranted ? Icons.check_rounded : Icons.location_on_outlined,
                   size: 32,
                   color: isGranted
                       ? const Color(0xFF0A1A00)
@@ -836,13 +845,18 @@ class _PremiumPage extends StatelessWidget {
         'color': const Color(0xFFFF6B9D),
       },
       {'emoji': '⏱', 'text': l.onboardingPremiumFeat2, 'color': AppColors.teal},
-      {'emoji': '✈️', 'text': l.onboardingPremiumFeat3, 'color': AppColors.gold},
-      {'emoji': '🎨', 'text': l.onboardingPremiumFeat4, 'color': AppColors.coupon},
+      {
+        'emoji': '✈️',
+        'text': l.onboardingPremiumFeat3,
+        'color': AppColors.gold,
+      },
+      {
+        'emoji': '🎨',
+        'text': l.onboardingPremiumFeat4,
+        'color': AppColors.coupon,
+      },
     ];
-    final socialProofReviews = [
-      l.onboardingReview1,
-      l.onboardingReview2,
-    ];
+    final socialProofReviews = [l.onboardingReview1, l.onboardingReview2];
 
     return Container(
       color: AppColors.bgDeep,
@@ -1158,7 +1172,11 @@ class _PremiumPage extends StatelessWidget {
                           ],
                         ),
                       ),
-                    const Divider(color: AppColors.textMuted, height: 16, thickness: 0.3),
+                    const Divider(
+                      color: AppColors.textMuted,
+                      height: 16,
+                      thickness: 0.3,
+                    ),
                     ...socialProofReviews.map(
                       (review) => Padding(
                         padding: const EdgeInsets.only(bottom: 6),

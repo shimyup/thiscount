@@ -1237,6 +1237,34 @@ class _ComposeScreenState extends State<ComposeScreen>
     bool sent = false;
     await _refreshCurrentLocationIfAvailable(state);
 
+    // Build 281 (P0 Brand 약속 보장): 발송 직전 2차 거리 검증.
+    // _refreshCurrentLocationIfAvailable 가 위치를 갱신했으므로 picker 시점
+    // 보다 더 정확. 사용자가 picker 후 100m 이상 이동했어도 막힘.
+    if (_isExactDropped && !_isReply) {
+      final myLat = state.currentUser.latitude;
+      final myLng = state.currentUser.longitude;
+      if (myLat != 0 || myLng != 0) {
+        final distM = LatLng(
+          myLat,
+          myLng,
+        ).distanceTo(LatLng(_destLat, _destLng));
+        if (distM > 100.0) {
+          setState(() => _isSending = false);
+          _sendController.reset();
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(l10n.composeExactDropOutOfRange),
+                backgroundColor: AppColors.error,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+          return;
+        }
+      }
+    }
+
     // ExactDrop 사용 편지는 1 크레딧 차감. 부족 시 발송 중단.
     if (_isExactDropped && !_isReply) {
       final ok = await state.consumeExactDropCredit();
@@ -1550,6 +1578,23 @@ class _ComposeScreenState extends State<ComposeScreen>
       ),
     );
     if (!mounted || picked == null) return;
+
+    // Build 281 (P0 Brand 약속 보장): ExactDrop 은 "내가 서 있는 매장 앞"
+    // 반경 100m 이내 정밀 발송만 허용. picker UI 가 우회되거나 잘못된 좌표가
+    // 돌아와도 마지막 라인에서 enforce. (사용자 좌표가 (0,0) 인 경우는 위치
+    // 미확정 — 그 경우는 picker 단계에서 이미 거부되므로 그냥 통과시킴.)
+    final myLat = state.currentUser.latitude;
+    final myLng = state.currentUser.longitude;
+    if (myLat != 0 || myLng != 0) {
+      final distM = LatLng(
+        myLat,
+        myLng,
+      ).distanceTo(LatLng(picked.latitude, picked.longitude));
+      if (distM > 100.0) {
+        _showError(l.composeExactDropOutOfRange);
+        return;
+      }
+    }
 
     // 역조회로 국가·도시 이름을 채움. 실패 시 좌표만 세팅하고 국가는
     // "Unknown" 으로 두어 발송 자체는 막지 않는다.

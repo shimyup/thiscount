@@ -104,7 +104,7 @@ Build 94–98 누적 변경사항. 한 세션 내 5개 빌드가 이어지며 **
 - 📣 **전체**: 근처 도착·쿨다운·카운트다운까지 모두
 - 게이트가 모든 `show*` / `schedule*` 메서드 상단에 위치해 즉시 적용
 
-### 💎 Premium — Air Mail Pass 컬렉션 (Build 93 · 98)
+### 💎 Premium — Thiscount Premium 컬렉션 (Build 93 · 98)
 
 **감성 리프레이밍** (RevenueCat SKU·결제 흐름 불변)
 - 🌌 **Aurora** — 밤의 언어로 쓰는 편지 (야간 편지지 · 이미지 무제한)
@@ -205,7 +205,7 @@ Build 94–98 누적 변경사항. 한 세션 내 5개 빌드가 이어지며 **
 - Gate sits at the top of every show/schedule method — takes effect
   immediately when the mode changes
 
-### 💎 Premium — Air Mail Pass Collections (Build 93 · 98)
+### 💎 Premium — Thiscount Premium Collections (Build 93 · 98)
 
 Emotional reframing (RevenueCat SKU and payment flow unchanged)
 - 🌌 **Aurora** — letters in the language of the night

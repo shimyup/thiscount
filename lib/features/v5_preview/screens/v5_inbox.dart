@@ -123,7 +123,7 @@ class _V5InboxScreenState extends State<V5InboxScreen> {
             const SizedBox(height: 10),
             V5WalletCard(
               category: V5Category.premium,
-              brand: 'Air Mail Pass',
+              brand: 'Thiscount Premium',
               title: 'Premium',
               sub: '@shimyup · seq 0421',
               deadline: '∞',

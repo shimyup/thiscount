@@ -171,6 +171,7 @@ class PurchaseService extends ChangeNotifier {
       notifyListeners();
     }
   }
+
   Future<void>? _initializationFuture;
   bool _isRevenueCatConfigured = false;
   bool _customerInfoListenerAttached = false;
@@ -227,8 +228,7 @@ class PurchaseService extends ChangeNotifier {
     // 이전에 BETA_FREE_PREMIUM 로 받은 Premium 이 정식 빌드까지 유지되는
     // 것을 방지. 현재 빌드가 BETA 가 아닌데 과거에 베타 마커가 찍혀 있으면
     // 로컬 상태를 전부 무효화하고 RevenueCat 재검증을 유도.
-    final betaGranted =
-        (await _secure.read(key: _kBetaGrantedKey)) == '1';
+    final betaGranted = (await _secure.read(key: _kBetaGrantedKey)) == '1';
     if (betaGranted && !_isBetaFreePremium) {
       _isPremium = false;
       _isBrand = false;
@@ -340,11 +340,17 @@ class PurchaseService extends ChangeNotifier {
   // RevenueCat 상품이 App Store Connect 에 아직 미등록 / 미승인 상태에서도
   // 베타 테스터가 업그레이드 흐름을 끝까지 체험할 수 있도록 가짜 구매로 처리.
   // 빌드 시 --dart-define=BETA_UPGRADE_SIMULATOR=true 로 활성화.
-  // BETA_DISABLE_IN_RELEASE 와 독립 — 명시적으로 켜지 않으면 release 에서도 OFF.
-  static const bool _isBetaUpgradeSimulator = bool.fromEnvironment(
+  // Build 273 hardening: release + BETA_DISABLE_IN_RELEASE=true 이면
+  // 실수로 dart-define 이 남아 있어도 자동으로 비활성화.
+  static const bool _isBetaUpgradeSimulatorRaw = bool.fromEnvironment(
     'BETA_UPGRADE_SIMULATOR',
     defaultValue: false,
   );
+
+  static bool get _isBetaUpgradeSimulator {
+    if (BetaConstants.disableInRelease && kReleaseMode) return false;
+    return _isBetaUpgradeSimulatorRaw;
+  }
 
   /// UI 에서 베타 시뮬레이터 모드 노출용.
   bool get isBetaUpgradeSimulator => _isBetaUpgradeSimulator;
@@ -633,7 +639,9 @@ class PurchaseService extends ChangeNotifier {
   // ── Premium 구매 ────────────────────────────────────────────────────────
   Future<bool> buyPremium() async {
     _startLoading(PurchaseOperation.premium);
-    if (!_isTestMode && !_isBetaFreePremium && !_isBetaUpgradeSimulator &&
+    if (!_isTestMode &&
+        !_isBetaFreePremium &&
+        !_isBetaUpgradeSimulator &&
         !_isRcKeyConfiguredForCurrentPlatform) {
       _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
       return false;
@@ -686,7 +694,8 @@ class PurchaseService extends ChangeNotifier {
       return false;
     }
 
-    if (!_isTestMode && !_isBetaUpgradeSimulator &&
+    if (!_isTestMode &&
+        !_isBetaUpgradeSimulator &&
         !_isRcKeyConfiguredForCurrentPlatform) {
       _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
       return false;
@@ -873,7 +882,9 @@ class PurchaseService extends ChangeNotifier {
   // ── 구매 복원 ───────────────────────────────────────────────────────────
   Future<bool> restorePurchases() async {
     _startLoading(PurchaseOperation.restore);
-    if (!_isTestMode && !_isBetaFreePremium && !_isRcKeyConfiguredForCurrentPlatform) {
+    if (!_isTestMode &&
+        !_isBetaFreePremium &&
+        !_isRcKeyConfiguredForCurrentPlatform) {
       _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
       return false;
     }
@@ -1145,7 +1156,8 @@ class PurchaseService extends ChangeNotifier {
       pkg = _findPackage(productId);
       return pkg;
     } on PlatformException catch (e) {
-      if (kDebugMode) debugPrint('[PurchaseService] 상품 재조회 실패 ($productId): $e');
+      if (kDebugMode)
+        debugPrint('[PurchaseService] 상품 재조회 실패 ($productId): $e');
       return null;
     }
   }
@@ -1201,9 +1213,10 @@ class PurchaseService extends ChangeNotifier {
           }
         }
       } on PlatformException catch (e) {
-        if (kDebugMode) debugPrint(
-          '[PurchaseService] StoreProduct 조회 실패 ($productId/${category.name}): $e',
-        );
+        if (kDebugMode)
+          debugPrint(
+            '[PurchaseService] StoreProduct 조회 실패 ($productId/${category.name}): $e',
+          );
       }
     }
     return null;

@@ -38,6 +38,21 @@ require_not_placeholder() {
   fi
 }
 
+require_release_false() {
+  local name="$1"
+  local value="${!name:-false}"
+  if [[ "$value" == "true" ]]; then
+    fail "$name must be false or unset for release builds"
+  fi
+}
+
+require_release_empty() {
+  local name="$1"
+  if [[ -n "${!name:-}" ]]; then
+    fail "$name must be empty for release builds"
+  fi
+}
+
 echo "[preflight] validating release environment..."
 
 require_var FIREBASE_PROJECT_ID
@@ -51,6 +66,13 @@ require_not_placeholder FIREBASE_API_KEY
 require_not_placeholder FIREBASE_STORAGE_BUCKET
 require_not_placeholder REVENUECAT_IOS_KEY
 require_not_placeholder REVENUECAT_ANDROID_KEY
+
+if [[ "${BETA_DISABLE_IN_RELEASE:-true}" != "true" ]]; then
+  fail "BETA_DISABLE_IN_RELEASE must be true (or unset) for release builds"
+fi
+require_release_false BETA_FREE_PREMIUM
+require_release_false BETA_UPGRADE_SIMULATOR
+require_release_empty BETA_ADMIN_EMAIL
 
 if [[ ! -f "$ROOT_DIR/android/app/google-services.json" ]]; then
   if [[ -f "$SECRETS_DIR/android/google-services.json" ]]; then

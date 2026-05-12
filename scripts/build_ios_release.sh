@@ -62,25 +62,21 @@ if [[ -n "${STADIA_MAPS_API_KEY:-}" ]]; then
   DART_DEFINES+=("--dart-define=STADIA_MAPS_API_KEY=${STADIA_MAPS_API_KEY}")
 fi
 
-# 베타 테스트 기간 동안 RevenueCat/App Store 연동 없이 Premium을 무료로
-# 활성화합니다. 정식 출시 빌드에서는 .env.local 에서 BETA_FREE_PREMIUM 제거.
+# Build 273 hardening:
+# release_preflight.sh 가 BETA_* 플래그를 사전에 차단한다.
+# 여기서는 preflight 를 통과한 값만 주입한다.
 if [[ "${BETA_FREE_PREMIUM:-false}" == "true" ]]; then
   echo "[ios] BETA_FREE_PREMIUM=true — premium will be granted without purchase."
   DART_DEFINES+=("--dart-define=BETA_FREE_PREMIUM=true")
 fi
 
-# 베타 업그레이드 시뮬레이터 — 사용자가 업그레이드 버튼을 누르면 RevenueCat
-# 에 실제 결제 요청 안 보내고 즉시 Premium/Brand 활성화. App Store Connect
-# 상품 미등록 상태에서도 베타 테스터가 흐름을 끝까지 체험 가능.
-# Default true (베타 기간) — 정식 출시 시 .env.local 에서 명시적으로
-# `BETA_UPGRADE_SIMULATOR=false` 로 끄거나 키 자체 제거.
-if [[ "${BETA_UPGRADE_SIMULATOR:-true}" == "true" ]]; then
+# Build 275 (P0): default true → false. 정식 출시 빌드 매출 손실 방지.
+# 베타 기간엔 `.env.local 에 BETA_UPGRADE_SIMULATOR=true` 명시 필요.
+if [[ "${BETA_UPGRADE_SIMULATOR:-false}" == "true" ]]; then
   echo "[ios] BETA_UPGRADE_SIMULATOR=true — upgrade will be granted without purchase."
   DART_DEFINES+=("--dart-define=BETA_UPGRADE_SIMULATOR=true")
 fi
 
-# 베타 테스트 관리자 이메일 — 릴리스 빌드에서도 이 이메일만 관리자 패널/브랜드
-# 권한 활성. 정식 출시 시 .env.local 에서 BETA_ADMIN_EMAIL 제거하면 자동 잠김.
 if [[ -n "${BETA_ADMIN_EMAIL:-}" ]]; then
   echo "[ios] BETA_ADMIN_EMAIL=${BETA_ADMIN_EMAIL}"
   DART_DEFINES+=("--dart-define=BETA_ADMIN_EMAIL=${BETA_ADMIN_EMAIL}")

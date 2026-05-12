@@ -5,9 +5,7 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Your location is needed to discover nearby rewards.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Thiscount only uses your location while the app is open to find nearby rewards. Background location is never accessed.</string>
+	<string>Thiscount uses your location while the app is open to find nearby coupons and to identify the destination country during letter composition. Background location is never accessed.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Photo library access is needed to change your profile picture.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

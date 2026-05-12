@@ -247,7 +247,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<void> _showThemeModeSelector(BuildContext ctx, AppState state, AppL10n l) async {
+  Future<void> _showThemeModeSelector(
+    BuildContext ctx,
+    AppState state,
+    AppL10n l,
+  ) async {
     await showModalBottomSheet<void>(
       context: ctx,
       backgroundColor: AppColors.bgCard,
@@ -286,7 +290,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   subtitle: Text(
                     l.settingsThemeAutoDesc,
-                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 12,
+                    ),
                   ),
                   activeColor: AppColors.gold,
                 ),
@@ -304,7 +311,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   subtitle: Text(
                     l.settingsThemeLightDesc,
-                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 12,
+                    ),
                   ),
                   activeColor: AppColors.gold,
                 ),
@@ -322,7 +332,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   subtitle: Text(
                     l.settingsThemeDarkDesc,
-                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 12,
+                    ),
                   ),
                   activeColor: AppColors.gold,
                 ),
@@ -413,7 +426,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
               ),
-              Divider(height: 1, color: AppColors.textMuted.withValues(alpha: 0.2)),
+              Divider(
+                height: 1,
+                color: AppColors.textMuted.withValues(alpha: 0.2),
+              ),
               SizedBox(
                 height: MediaQuery.of(ctx).size.height * 0.45,
                 child: ListView.builder(
@@ -425,13 +441,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     return ListTile(
                       dense: true,
                       leading: isSelected
-                          ? const Icon(Icons.check_circle, color: AppColors.teal, size: 20)
-                          : const Icon(Icons.circle_outlined, color: AppColors.textMuted, size: 20),
+                          ? const Icon(
+                              Icons.check_circle,
+                              color: AppColors.teal,
+                              size: 20,
+                            )
+                          : const Icon(
+                              Icons.circle_outlined,
+                              color: AppColors.textMuted,
+                              size: 20,
+                            ),
                       title: Text(
                         name,
                         style: TextStyle(
-                          color: isSelected ? AppColors.teal : AppColors.textPrimary,
-                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                          color: isSelected
+                              ? AppColors.teal
+                              : AppColors.textPrimary,
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w400,
                         ),
                       ),
                       onTap: () {
@@ -461,10 +489,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (dCtx) => StatefulBuilder(
         builder: (dCtx2, setDState) => AlertDialog(
           backgroundColor: AppColors.bgCard,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: Text(
             l.settingsWithdraw,
-            style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.w800),
+            style: const TextStyle(
+              color: AppColors.error,
+              fontWeight: FontWeight.w800,
+            ),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -472,7 +505,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               Text(
                 l.settingsWithdrawConfirm,
-                style: const TextStyle(color: AppColors.textSecondary, height: 1.5),
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  height: 1.5,
+                ),
               ),
               const SizedBox(height: 16),
               // 경고 박스
@@ -481,14 +517,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.error.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.error.withValues(alpha: 0.25)),
+                  border: Border.all(
+                    color: AppColors.error.withValues(alpha: 0.25),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(l.settingsWithdrawItemsHeader, style: const TextStyle(color: AppColors.error, fontSize: 12, fontWeight: FontWeight.w700)),
+                    Text(
+                      l.settingsWithdrawItemsHeader,
+                      style: const TextStyle(
+                        color: AppColors.error,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     const SizedBox(height: 6),
-                    Text(l.settingsWithdrawItemsList, style: const TextStyle(color: AppColors.textMuted, fontSize: 12, height: 1.5)),
+                    Text(
+                      l.settingsWithdrawItemsList,
+                      style: const TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 12,
+                        height: 1.5,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -496,7 +548,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // 유저명 입력 확인
               Text(
                 l.settingsWithdrawTypeUsernameToConfirm(username),
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                ),
               ),
               const SizedBox(height: 8),
               TextField(
@@ -515,7 +570,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     borderRadius: BorderRadius.circular(10),
                     borderSide: const BorderSide(color: AppColors.bgSurface),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                 ),
                 style: const TextStyle(color: AppColors.textPrimary),
               ),
@@ -535,7 +593,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Navigator.pop(dCtx);
                       await AuthService.deleteAccount();
                       if (ctx.mounted) {
-                        Navigator.of(ctx).pushNamedAndRemoveUntil('/auth', (_) => false);
+                        Navigator.of(
+                          ctx,
+                        ).pushNamedAndRemoveUntil('/auth', (_) => false);
                       }
                     }
                   : null,
@@ -682,7 +742,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       icon: Icons.verified_user_rounded,
                       label: l.authVerifyMethodTitle,
                       trailing: Text(
-                        state.currentUser.verifyMethod == 'phone' ? 'SMS' : 'Email',
+                        state.currentUser.verifyMethod == 'phone'
+                            ? 'SMS'
+                            : 'Email',
                         style: const TextStyle(
                           color: AppColors.textMuted,
                           fontSize: 14,
@@ -819,7 +881,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           path: 'support@airony.xyz',
                           queryParameters: {
                             'subject': '[Thiscount] Support / 문의',
-                            'body': 'ID / 아이디: ${user.username}\nEmail / 이메일: ${user.email ?? "N/A"}\n\nMessage / 문의 내용:\n',
+                            'body':
+                                'ID / 아이디: ${user.username}\nEmail / 이메일: ${user.email ?? "N/A"}\n\nMessage / 문의 내용:\n',
                           },
                         );
                         try {
@@ -837,13 +900,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           subtitle: l.settingsManageSubscriptionDesc,
                           onTap: () async {
                             // iOS: App Store 구독 관리 / Android: Play Store
-                            const iosUrl = 'https://apps.apple.com/account/subscriptions';
-                            const androidUrl = 'https://play.google.com/store/account/subscriptions';
+                            const iosUrl =
+                                'https://apps.apple.com/account/subscriptions';
+                            const androidUrl =
+                                'https://play.google.com/store/account/subscriptions';
                             final url = Uri.parse(
-                              Theme.of(ctx2).platform == TargetPlatform.iOS ? iosUrl : androidUrl,
+                              Theme.of(ctx2).platform == TargetPlatform.iOS
+                                  ? iosUrl
+                                  : androidUrl,
                             );
                             try {
-                              await launchUrl(url, mode: LaunchMode.externalApplication);
+                              await launchUrl(
+                                url,
+                                mode: LaunchMode.externalApplication,
+                              );
                             } catch (_) {}
                           },
                         );
@@ -870,10 +940,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onTap: () async {
                         final uri = Uri(
                           scheme: 'mailto',
-                          path: 'ceo@airony.xyz',
+                          path: AppLinks.supportEmail,
                           queryParameters: {
                             'subject': 'Data Request - Thiscount',
-                            'body': 'I would like to request a copy of my personal data.\n\nUsername: ${user.username}\nEmail: ${user.email ?? "N/A"}',
+                            'body':
+                                'I would like to request a copy of my personal data.\n\nUsername: ${user.username}\nEmail: ${user.email ?? "N/A"}',
                           },
                         );
                         try {
@@ -981,16 +1052,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
               style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
             ),
             const SizedBox(height: 16),
-            _verifyOption(ctx, state, 'email', 'Email', Icons.email_rounded, current == 'email'),
+            _verifyOption(
+              ctx,
+              state,
+              'email',
+              'Email',
+              Icons.email_rounded,
+              current == 'email',
+            ),
             const SizedBox(height: 8),
-            _verifyOption(ctx, state, 'phone', 'SMS', Icons.phone_rounded, current == 'phone'),
+            _verifyOption(
+              ctx,
+              state,
+              'phone',
+              'SMS',
+              Icons.phone_rounded,
+              current == 'phone',
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _verifyOption(BuildContext ctx, AppState state, String method, String label, IconData icon, bool selected) {
+  Widget _verifyOption(
+    BuildContext ctx,
+    AppState state,
+    String method,
+    String label,
+    IconData icon,
+    bool selected,
+  ) {
     return GestureDetector(
       onTap: () async {
         await AuthService.updateProfile(verifyMethod: method);
@@ -1012,7 +1104,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         child: Row(
           children: [
-            Icon(icon, color: selected ? AppColors.teal : AppColors.textMuted, size: 20),
+            Icon(
+              icon,
+              color: selected ? AppColors.teal : AppColors.textMuted,
+              size: 20,
+            ),
             const SizedBox(width: 12),
             Text(
               label,
@@ -1023,7 +1119,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const Spacer(),
             if (selected)
-              const Icon(Icons.check_circle_rounded, color: AppColors.teal, size: 20),
+              const Icon(
+                Icons.check_circle_rounded,
+                color: AppColors.teal,
+                size: 20,
+              ),
           ],
         ),
       ),
@@ -1044,7 +1144,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Expanded(
               child: Text(
                 l.contentPolicyTitle,
-                style: const TextStyle(color: AppColors.textPrimary, fontSize: 17),
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 17,
+                ),
               ),
             ),
           ],
@@ -1086,7 +1189,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Expanded(
               child: Text(
                 l.communityGuidelinesTitle,
-                style: const TextStyle(color: AppColors.textPrimary, fontSize: 17),
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 17,
+                ),
               ),
             ),
           ],
@@ -1161,8 +1267,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       child: Column(
                         children: [
-                          Text(modes[i].emoji,
-                              style: const TextStyle(fontSize: 18)),
+                          Text(
+                            modes[i].emoji,
+                            style: const TextStyle(fontSize: 18),
+                          ),
                           const SizedBox(height: 4),
                           Text(
                             modes[i].label,
@@ -1189,8 +1297,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _pushMode == PushMode.quiet
                 ? l.pushModeQuietDesc
                 : _pushMode == PushMode.standard
-                    ? l.pushModeStandardDesc
-                    : l.pushModeFullDesc,
+                ? l.pushModeStandardDesc
+                : l.pushModeFullDesc,
             style: const TextStyle(
               color: AppColors.textMuted,
               fontSize: 11,

@@ -19,7 +19,8 @@ class UserProgress {
     required double sumPickupKm,
     required double sumSentKm,
   }) {
-    final raw = (pickedCount * 10) +
+    final raw =
+        (pickedCount * 10) +
         (sentCount * 5) +
         (sumPickupKm * 0.1) +
         (sumSentKm * 0.05);
@@ -73,7 +74,7 @@ class UserProgress {
 /// UI 에서만 사용 — 로직 분기 금지.
 /// Build 238: Thiscount 리브랜드 — 우편/편지 테마 → 혜택 헌트 테마.
 const Map<int, String> _levelNameByFloor = {
-  0: '🎟 새내기 카운터',
+  0: '🎟 새내기 탐험가',
   5: '🎫 초보 헌터',
   10: '🏷️ 숙련 헌터',
   15: '🛍 마을 쇼핑러',
@@ -81,12 +82,12 @@ const Map<int, String> _levelNameByFloor = {
   25: '💎 보물 발견러',
   30: '🏆 혜택 마스터',
   35: '⭐ 슈퍼 헌터',
-  40: '🌍 세계의 카운터장',
-  45: '👑 전설의 카운터',
+  40: '🌍 글로벌 픽업 리더',
+  45: '👑 전설의 혜택 헌터',
 };
 
 String xpLevelLabel(int level) {
-  // 가장 가까운 하위 floor 찾기 (45 ≤ level ≤ 50 → "전설의 카운터")
+  // 가장 가까운 하위 floor 찾기 (45 ≤ level ≤ 50 → "전설의 혜택 헌터")
   for (final floor in [45, 40, 35, 30, 25, 20, 15, 10, 5, 0]) {
     if (level >= floor) return _levelNameByFloor[floor]!;
   }

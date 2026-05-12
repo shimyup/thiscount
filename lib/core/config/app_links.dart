@@ -6,8 +6,7 @@
 /// thiscount.io 에 정적 호스팅 필수 (Vercel/Netlify/Cloudflare Pages).
 abstract class AppLinks {
   // ── 개인정보 처리방침 ──────────────────────────────────────────────────────
-  static const String privacyPolicy =
-      'https://thiscount.io/privacy.html';
+  static const String privacyPolicy = 'https://thiscount.io/privacy.html';
 
   /// 가입 나라에 맞는 개인정보 처리방침 URL 반환
   ///   대한민국 → ?lang=ko (한국어)
@@ -18,8 +17,7 @@ abstract class AppLinks {
   }
 
   // ── 이용약관 ─────────────────────────────────────────────────────────────
-  static const String termsOfService =
-      'https://thiscount.io/terms.html';
+  static const String termsOfService = 'https://thiscount.io/terms.html';
 
   /// 가입 나라에 맞는 이용약관 URL 반환
   static String termsForCountry(String country) {
@@ -28,9 +26,8 @@ abstract class AppLinks {
   }
 
   // ── 고객 지원 ────────────────────────────────────────────────────────────
-  // 도메인 thiscount.io 의 메일 호스팅 설정 후 support@thiscount.io 로 전환.
-  // 우선 기존 운영 메일 유지.
-  static const String supportEmail = 'ceo@airony.xyz';
+  // Build 281: 사용자 노출 지원 채널을 thiscount.io 기준으로 통일.
+  static const String supportEmail = 'support@thiscount.io';
 
   /// Build 221: 앱 마케팅 / 랜딩 페이지
   static const String marketingSite = 'https://thiscount.io';

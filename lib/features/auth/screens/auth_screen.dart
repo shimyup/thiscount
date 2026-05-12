@@ -1083,6 +1083,10 @@ class _SignupTabState extends State<_SignupTab> {
   bool _agreePrivacy = false;
   bool _agreeTerms = false; // 이용약관 + 커뮤니티 가이드라인 동의
   bool _agreeLocation = false; // 동의 체크
+  // Build 276 (P0 GDPR/KISA): 만 14세 이상 self-attestation.
+  // 한국 정보통신망법 제31조 + GDPR Art.8 (EU 16세 미만 별도 동의 필요).
+  // 향후 launch 직전 생년월일 입력으로 강화 예정. 베타에선 self-attestation 으로 시작.
+  bool _agreeAgeAbove14 = false;
 
   // ── 핸드폰 번호 (필수) + 국가코드 + 인증 수단 선택 ──
   final _phoneCtrl = TextEditingController();
@@ -1116,10 +1120,11 @@ class _SignupTabState extends State<_SignupTab> {
   int _otpCountdown = 0; // 남은 시간 (초)
   Timer? _otpTimer; // 타이머
 
-  // 가입 버튼 활성화 조건 (개인정보 동의 + 이용약관 동의)
-  // 전화번호는 선택 사항 — SMS 인증 미사용 중
+  // 가입 버튼 활성화 조건 (개인정보 + 이용약관 + 만 14세 이상 동의)
+  // 전화번호는 선택 사항 — SMS 인증 미사용 중.
+  // Build 276: _agreeAgeAbove14 추가 (GDPR/KISA 미성년자 보호).
   bool get _canSignUp =>
-      _agreePrivacy && _agreeTerms && !_isLoading;
+      _agreePrivacy && _agreeTerms && _agreeAgeAbove14 && !_isLoading;
 
   @override
   void initState() {
@@ -1357,6 +1362,8 @@ class _SignupTabState extends State<_SignupTab> {
       final ts = DateTime.now().toIso8601String();
       await prefs.setString('consent_privacy_ts', ts);
       await prefs.setString('consent_terms_ts', ts);
+      // Build 276: 만 14세 이상 동의 timestamp (KISA + GDPR audit log).
+      await prefs.setString('consent_age_above14_ts', ts);
     } catch (_) {}
 
     // Build 262: 신규 가입 무료 Premium 부여 (cold-start 해소).
@@ -1832,6 +1839,21 @@ class _SignupTabState extends State<_SignupTab> {
             langCode: widget.langCode,
             onCheckChanged: (v) => setState(() => _agreeTerms = v ?? false),
             onLinkTap: _showTermsAndGuidelines,
+          ),
+          const SizedBox(height: 10),
+
+          // ── 6-2. Build 276 (P0): 만 14세 이상 동의 (KISA 정보통신망법 제31조 +
+          // GDPR Art.8). 현재 self-attestation. 향후 launch 직전 생년월일 강화.
+          // Build 277: 한·영 분기 → 14언어 풀 번역.
+          _ConsentCard(
+            checked: _agreeAgeAbove14,
+            icon: Icons.cake_rounded,
+            iconColor: AppColors.coupon,
+            title: l10n.authAgeAbove14Title,
+            description: l10n.authAgeAbove14Desc,
+            langCode: widget.langCode,
+            onCheckChanged: (v) =>
+                setState(() => _agreeAgeAbove14 = v ?? false),
           ),
           const SizedBox(height: 10),
 

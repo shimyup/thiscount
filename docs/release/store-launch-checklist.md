@@ -17,9 +17,8 @@
 
 ### Ready now
 - App name: `Thiscount`
-- Subtitle (updated for current app): `세계로 보내는 랜덤 편지`
-- Description draft: `docs/marketing/aso-copy-ko-en.md`
-- Keywords draft: `docs/marketing/aso-copy-ko-en.md`
+- Subtitle (updated for current app): `근처 혜택을 줍는 쿠폰 지갑`
+- Description / Keywords draft: `docs/release/app-store-connect-paste-ready.md`
 - Privacy Policy page: `docs/privacy.html`
 
 ### Manual actions required in App Store Connect
@@ -30,9 +29,10 @@
   - iPad set if iPad distribution enabled
 - Add Support URL (web-hosted page)
 - Add Privacy Policy URL (web-hosted page)
+- Add Marketing URL (web-hosted page)
 - Set age rating questionnaire
 - Add App Review notes:
-  - sandbox test account
+  - core pickup path
   - purchase/restore test steps
   - brand/premium test path
 - Set price and territories
@@ -40,7 +40,7 @@
 ## 2) Google Play Console (Android)
 
 ### Ready now
-- Short/long description draft: `docs/marketing/aso-copy-ko-en.md`
+- Short/long description draft: `docs/release/app-store-connect-paste-ready.md`
 - Privacy Policy page: `docs/privacy.html`
 - Android release APK built
 
@@ -56,8 +56,8 @@
 - Select countries/rollout strategy
 
 ## 3) Marketing Text Pack (Ready Draft)
-- One-liner, value props: `docs/marketing/positioning.md`, `docs/marketing/value-props.md`
-- KO/EN store copy + screenshot captions: `docs/marketing/aso-copy-ko-en.md`
+- One-liner, value props: `docs/release/app-store-connect-paste-ready.md`
+- KO/EN store copy + screenshot captions: `docs/release/app-store-connect-paste-ready.md`
 - Campaign timeline: `docs/marketing/campaign-calendar.md`
 - App Store Connect paste-ready final: `docs/release/app-store-connect-paste-ready.md`
 - App Review Notes draft: `docs/release/app-store-review-notes.md`
@@ -83,9 +83,10 @@
   - Premium subscribe
   - Brand subscribe
   - Gift purchase
+  - Brand extra 1000 purchase
   - Restore purchase
 - Subscription product status in RevenueCat:
-  - products mapped
+  - latest iOS product ids mapped
   - default offering contains all required packages
 - Crash-free smoke test on:
   - iOS (latest + one previous)

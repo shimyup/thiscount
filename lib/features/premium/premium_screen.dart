@@ -171,7 +171,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                     ),
                     onPressed: () => Navigator.pop(context),
                   ),
-            // Build 247: Air Mail Pass 서브브랜드 라벨 제거 — 사용자 요청.
+            // Build 247: 이전 Premium 서브브랜드 라벨 제거 — 사용자 요청.
             // 'Thiscount Premium' 단일 라벨로 정리.
             title: Text(
               widget.isWelcomeMode
@@ -220,7 +220,8 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   Container(
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10,
+                      horizontal: 14,
+                      vertical: 10,
                     ),
                     decoration: BoxDecoration(
                       color: AppColors.gold.withValues(alpha: 0.12),
@@ -269,8 +270,8 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   badge: isFree
                       ? l.premiumCurrentPlan
                       : purchase.isTrialActive
-                          ? '체험 종료 시 자동'
-                          : '',
+                      ? '체험 종료 시 자동'
+                      : '',
                   badgeColor: AppColors.teal,
                   features: [
                     // Build 118: Free 플랜도 픽업 제약 (반경·쿨다운) 부터
@@ -388,8 +389,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                               emoji: '⭐',
                               productName: 'Premium',
                               price: '₩4,900${l.premiumPerMonth}',
-                              description:
-                                  l.premiumPremiumTestDesc,
+                              description: l.premiumPremiumTestDesc,
                             );
                             if (!ok || !context.mounted) return;
                           } else if (purchase.isBetaFreePremium) {
@@ -415,88 +415,100 @@ class _PremiumScreenState extends State<PremiumScreen> {
                         },
                   loading: isBuyingPremium,
                   color: AppColors.gold,
-                  actionLabel: isBrand ? l.premiumNoDowngrade : l.premiumSubscribeBtn,
+                  actionLabel: isBrand
+                      ? l.premiumNoDowngrade
+                      : l.premiumSubscribeBtn,
                 ),
                 const SizedBox(height: 16),
-                Builder(builder: (_) {
-                  final brandEmail = state.currentUser.email?.toLowerCase() ?? '';
-                  final isAdminBrand = brandEmail == DebugConstants.testBrandEmail ||
-                      BetaConstants.isAdmin(brandEmail);
-                  // 테스터는 브랜드 구매 비활성화 (보이기만 함)
-                  final brandDisabled = (kDebugMode && !isAdminBrand && !isBrand) ||
-                      (purchase.isBetaFreePremium && !isBrand);
-                  return _PlanCard(
-                    emoji: '🏷️',
-                    name: 'Brand / Creator',
-                    price: '₩99,000',
-                    period: l.premiumPerMonth,
-                    badge: isBrand
-                        ? l.premiumCurrentPlan
-                        : brandDisabled
-                            ? purchase.isBetaFreePremium
+                Builder(
+                  builder: (_) {
+                    final brandEmail =
+                        state.currentUser.email?.toLowerCase() ?? '';
+                    final isAdminBrand =
+                        brandEmail == DebugConstants.testBrandEmail ||
+                        BetaConstants.isAdmin(brandEmail);
+                    // 테스터는 브랜드 구매 비활성화 (보이기만 함)
+                    final brandDisabled =
+                        (kDebugMode && !isAdminBrand && !isBrand) ||
+                        (purchase.isBetaFreePremium && !isBrand);
+                    return _PlanCard(
+                      emoji: '🏷️',
+                      name: 'Brand / Creator',
+                      price: '₩99,000',
+                      period: l.premiumPerMonth,
+                      badge: isBrand
+                          ? l.premiumCurrentPlan
+                          : brandDisabled
+                          ? purchase.isBetaFreePremium
                                 ? l.koEn('베타 기간 미지원', 'Not Available in Beta')
                                 : l.koEn('관리자 전용', 'Admin Only')
-                            : '',
-                    badgeColor: isBrand
-                        ? AppColors.coupon
-                        : AppColors.textMuted,
-                    features: [
-                      '✉️  ${l.premiumBrandFeature1}',
-                      '💳  ${l.premiumBrandFeature2}',
-                      '🌍  ${l.premiumBrandFeature3}',
-                      '✅  ${l.premiumBrandFeature4}',
-                      '🚫  ${l.premiumBrandFeature5}',
-                      '⭐  ${l.premiumBrandFeature6}',
-                    ],
-                    isActive: isBrand,
-                    onTap: (isBrand || purchase.loading || brandDisabled)
-                        ? null
-                        : isPremium
-                        ? () {
-                            _showBrandUpgradeDialog(
-                              context: context,
-                              purchase: purchase,
-                              userEmail: brandEmail,
-                            );
-                          }
-                        : () async {
-                            if (purchase.isTestMode) {
-                              final ok = await _confirmTestPurchase(
-                                context,
-                                emoji: '🏷️',
-                                productName: 'Brand / Creator',
-                                price: '₩99,000${l.premiumPerMonth}',
-                                description:
-                                    l.premiumBrandTestDesc,
+                          : '',
+                      badgeColor: isBrand
+                          ? AppColors.coupon
+                          : AppColors.textMuted,
+                      features: [
+                        '✉️  ${l.premiumBrandFeature1}',
+                        '💳  ${l.premiumBrandFeature2}',
+                        '🌍  ${l.premiumBrandFeature3}',
+                        '✅  ${l.premiumBrandFeature4}',
+                        '🚫  ${l.premiumBrandFeature5}',
+                        '⭐  ${l.premiumBrandFeature6}',
+                      ],
+                      isActive: isBrand,
+                      onTap: (isBrand || purchase.loading || brandDisabled)
+                          ? null
+                          : isPremium
+                          ? () {
+                              _showBrandUpgradeDialog(
+                                context: context,
+                                purchase: purchase,
+                                userEmail: brandEmail,
                               );
-                              if (!ok || !context.mounted) return;
                             }
-                            final bought = await purchase.buyBrand();
-                            if (bought) {
-                              FeedbackService.onPurchaseSuccess();
-                            }
-                            if (!context.mounted) return;
-                            _showPurchaseResultToast(
-                              context,
-                              success: bought,
-                              message: bought ? null : purchase.errorMessage,
-                            );
-                          },
-                    loading: isBuyingBrand,
-                    color: brandDisabled
-                        ? AppColors.textMuted
-                        : AppColors.coupon,
-                    actionLabel: isBrand
-                        ? l.premiumNoDowngrade
-                        : brandDisabled
-                            ? purchase.isBetaFreePremium
-                                ? l.koEn('정식 출시 후 이용 가능', 'Available After Launch')
-                                : l.koEn('관리자 승급 필요', 'Admin Promotion Required')
-                            : isPremium
-                                ? l.premiumBrandSchedule
-                                : l.premiumSubscribeBtn,
-                  );
-                }),
+                          : () async {
+                              if (purchase.isTestMode) {
+                                final ok = await _confirmTestPurchase(
+                                  context,
+                                  emoji: '🏷️',
+                                  productName: 'Brand / Creator',
+                                  price: '₩99,000${l.premiumPerMonth}',
+                                  description: l.premiumBrandTestDesc,
+                                );
+                                if (!ok || !context.mounted) return;
+                              }
+                              final bought = await purchase.buyBrand();
+                              if (bought) {
+                                FeedbackService.onPurchaseSuccess();
+                              }
+                              if (!context.mounted) return;
+                              _showPurchaseResultToast(
+                                context,
+                                success: bought,
+                                message: bought ? null : purchase.errorMessage,
+                              );
+                            },
+                      loading: isBuyingBrand,
+                      color: brandDisabled
+                          ? AppColors.textMuted
+                          : AppColors.coupon,
+                      actionLabel: isBrand
+                          ? l.premiumNoDowngrade
+                          : brandDisabled
+                          ? purchase.isBetaFreePremium
+                                ? l.koEn(
+                                    '정식 출시 후 이용 가능',
+                                    'Available After Launch',
+                                  )
+                                : l.koEn(
+                                    '관리자 승급 필요',
+                                    'Admin Promotion Required',
+                                  )
+                          : isPremium
+                          ? l.premiumBrandSchedule
+                          : l.premiumSubscribeBtn,
+                    );
+                  },
+                ),
                 const SizedBox(height: 24),
 
                 // 브랜드 추가 발송권 (브랜드 회원만 표시)
@@ -766,9 +778,7 @@ class _ActivePlanBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     final color = isBrand ? AppColors.coupon : AppColors.gold;
-    final ink = isBrand
-        ? const Color(0xFF1A0008)
-        : const Color(0xFF1A1300);
+    final ink = isBrand ? const Color(0xFF1A0008) : const Color(0xFF1A1300);
     final label = isBrand
         ? 'Brand / Creator ${l.premiumActiveLabel}'
         : 'Premium ${l.premiumActiveLabel}';
@@ -793,15 +803,8 @@ class _ActivePlanBanner extends StatelessWidget {
             width: 40,
             height: 40,
             alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: ink,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.check_rounded,
-              color: color,
-              size: 20,
-            ),
+            decoration: BoxDecoration(color: ink, shape: BoxShape.circle),
+            child: Icon(Icons.check_rounded, color: color, size: 20),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -1118,7 +1121,9 @@ class _PlanCard extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w800,
-                                  color: isHighlight ? cardBg : AppColors.bgDeep,
+                                  color: isHighlight
+                                      ? cardBg
+                                      : AppColors.bgDeep,
                                   letterSpacing: -0.2,
                                 ),
                               ),
@@ -1761,14 +1766,39 @@ class _FeatureCompareTable extends StatelessWidget {
       [l10n.premiumCompareFeature, 'Free', 'Premium', 'Brand'],
       [l10n.premiumCompareDailyLetters, '3', '30', '200'],
       [l10n.premiumCompareMonthlyLetters, '100', '500', '10,000'],
-      [l10n.premiumCompareImageLink, '✗', l10n.premiumCompare20PerDay, l10n.premiumCompareAllIncluded],
-      [l10n.premiumCompareExpress, '✗', l10n.premiumCompare3PerDay, l10n.premiumCompareInstantBulk],
-      [l10n.premiumCompareStyle, l10n.premiumCompareBasic, l10n.premiumCompareSpecial, l10n.premiumCompareBrand],
+      [
+        l10n.premiumCompareImageLink,
+        '✗',
+        l10n.premiumCompare20PerDay,
+        l10n.premiumCompareAllIncluded,
+      ],
+      [
+        l10n.premiumCompareExpress,
+        '✗',
+        l10n.premiumCompare3PerDay,
+        l10n.premiumCompareInstantBulk,
+      ],
+      [
+        l10n.premiumCompareStyle,
+        l10n.premiumCompareBasic,
+        l10n.premiumCompareSpecial,
+        l10n.premiumCompareBrand,
+      ],
       [l10n.premiumCompareBulkSend, '✗', '✗', '✓'],
       [l10n.premiumCompareTowerCustom, '✗', '✓', '✓'],
       [l10n.premiumCompareBadge, '✗', '✗', '✓'],
-      [l10n.premiumCompareReportBtn, l10n.premiumCompareShown, l10n.premiumCompareShown, l10n.premiumCompareHidden],
-      [l10n.premiumCompareMonthlyPrice, l10n.premiumCompareFree, '₩4,900', '₩99,000'],
+      [
+        l10n.premiumCompareReportBtn,
+        l10n.premiumCompareShown,
+        l10n.premiumCompareShown,
+        l10n.premiumCompareHidden,
+      ],
+      [
+        l10n.premiumCompareMonthlyPrice,
+        l10n.premiumCompareFree,
+        '₩4,900',
+        '₩99,000',
+      ],
     ];
 
     return Container(
@@ -2010,7 +2040,9 @@ class _PendingPlanChangeBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isFreeTarget ? l.premiumPendingFreeChange : l.premiumPendingBrandChange,
+                  isFreeTarget
+                      ? l.premiumPendingFreeChange
+                      : l.premiumPendingBrandChange,
                   style: TextStyle(
                     color: isFreeTarget ? AppColors.error : AppColors.gold,
                     fontSize: 13,
@@ -2108,9 +2140,7 @@ class _BrandExtraTileState extends State<_BrandExtraTile> {
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: AppColors.coupon.withValues(alpha: 0.3),
-            ),
+            border: Border.all(color: AppColors.coupon.withValues(alpha: 0.3)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -2732,7 +2762,10 @@ Future<bool> _confirmBetaPremium(BuildContext context) async {
               ),
               child: Text(
                 l10n.koEn('프리미엄 활성화', 'Activate Premium'),
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
           ),
@@ -2782,7 +2815,10 @@ void _showBrandUpgradeDialog({
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx, false),
-          child: Text(l10n.premiumCancel, style: const TextStyle(color: AppColors.textMuted)),
+          child: Text(
+            l10n.premiumCancel,
+            style: const TextStyle(color: AppColors.textMuted),
+          ),
         ),
         TextButton(
           onPressed: () => Navigator.pop(ctx, true),
