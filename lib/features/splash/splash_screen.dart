@@ -45,7 +45,13 @@ class _SplashScreenState extends State<SplashScreen>
       return;
     }
     if (!onboardingDone) {
-      Navigator.of(context).pushReplacementNamed('/onboarding');
+      // Build 284: 첫 방문 → 인포그래픽 투어 → 기존 onboarding 으로.
+      // SharedPreferences `seen_onboarding_tour` 가 true 면 투어 건너뜀.
+      final seenTour = prefs.getBool('seen_onboarding_tour') ?? false;
+      if (!mounted) return;
+      Navigator.of(context).pushReplacementNamed(
+        seenTour ? '/onboarding' : '/onboarding_tour',
+      );
     } else if (widget.skipToAuth) {
       Navigator.of(context).pushReplacementNamed('/auth');
     } else {
