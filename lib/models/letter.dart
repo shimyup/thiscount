@@ -296,6 +296,11 @@ class Letter {
   /// null = 무제한.
   final DateTime? redemptionExpiresAt;
 
+  /// Build 283 (Brand auto-drop): 본 letter 가 어떤 brand_zone 의 자동 발급
+  /// 결과인지. null = 일반 letter (수동 발송 또는 시스템 letter). zone id 가
+  /// 있으면 분석/dedup/통계 용도로 추적 가능. 사용자 UI 엔 노출 X.
+  final String? brandZoneId;
+
   Letter({
     required this.id,
     required this.senderId,
@@ -341,6 +346,7 @@ class Letter {
     this.acceptsReplies = true,
     this.redemptionInfo,
     this.redemptionExpiresAt,
+    this.brandZoneId,
   }) : reportedBy = reportedBy ?? {};
 
   /// 인박스용 독립 복사본 (worldLetters에서 제거 전 inbox에 추가할 때 사용)
@@ -387,6 +393,7 @@ class Letter {
     acceptsReplies: acceptsReplies,
     redemptionInfo: redemptionInfo,
     redemptionExpiresAt: redemptionExpiresAt,
+    brandZoneId: brandZoneId,
     readCount: readCount,
     maxReaders: maxReaders,
   );
@@ -602,6 +609,7 @@ class Letter {
     if (redemptionInfo != null) 'redemptionInfo': redemptionInfo,
     if (redemptionExpiresAt != null)
       'redemptionExpiresAt': redemptionExpiresAt!.millisecondsSinceEpoch,
+    if (brandZoneId != null) 'brandZoneId': brandZoneId,
     'readCount': readCount,
     'maxReaders': maxReaders,
   };
@@ -664,6 +672,7 @@ class Letter {
             j['redemptionExpiresAt'] as int,
           )
         : null,
+    brandZoneId: j['brandZoneId'] as String?,
     expiresAt: j['expiresAt'] != null
         ? DateTime.fromMillisecondsSinceEpoch(j['expiresAt'] as int)
         : null,
