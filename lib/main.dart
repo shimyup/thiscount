@@ -19,6 +19,7 @@ import 'features/auth/screens/auth_screen.dart';
 import 'features/compose/screens/compose_screen.dart';
 import 'features/intro/delivery_intro_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
+import 'features/onboarding/onboarding_tour_screen.dart';
 import 'features/premium/premium_screen.dart';
 import 'features/v5_preview/v5_preview_root.dart';
 import 'widgets/main_scaffold.dart';
@@ -328,6 +329,9 @@ class _GlobalDriftAppState extends State<GlobalDriftApp> {
             initialRoute: _getInitialRoute(),
             routes: {
               '/onboarding': (_) => const OnboardingScreen(),
+              // Build 284: 첫 진입 인포그래픽 투어 (수동 스크롤 + 페이지 indicator)
+              OnboardingTourScreen.routeName: (_) =>
+                  const OnboardingTourScreen(),
               '/splash': (_) =>
                   SplashScreen(skipToAuth: !widget.initialLoggedIn),
               '/auth': (_) => const AuthScreen(),
