@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_palette.dart';
 
 // ── 시간대별 동적 색상 (ThemeExtension) ──────────────────────────────────────
 class AppTimeColors extends ThemeExtension<AppTimeColors> {
@@ -380,6 +381,77 @@ class AppTheme {
         thickness: 1,
       ),
       iconTheme: const IconThemeData(color: AppColors.textSecondary),
+      useMaterial3: true,
+    );
+  }
+
+  /// Build 283: Light theme — "카페에서 펼친 종이 지갑" 컨셉.
+  /// AppPalette (Build 282 PR #12) 의 light 토큰 기반. 실제 활성화는 main.dart
+  /// 의 `themeMode: ThemeMode.system` 으로 OS brightness 따라 전환되지만, 본
+  /// 빌드에서는 `ThemeMode.dark` 강제 (모든 widget 이 dark 가정 hardcoded).
+  ///
+  /// Phase 3: widget 들이 `AppColors.*` → `context.palette.*` 로 마이그레이션
+  /// 80% 이상 되면 themeMode 를 system 으로 전환해서 light 활성화.
+  static ThemeData get lightTheme {
+    const p = AppPaletteLight();
+    return ThemeData(
+      brightness: Brightness.light,
+      scaffoldBackgroundColor: p.bgCanvas,
+      colorScheme: ColorScheme.light(
+        primary: p.premium,
+        secondary: p.reward,
+        surface: p.bgCard,
+        onPrimary: p.premiumInk,
+        onSecondary: p.rewardInk,
+        onSurface: p.textPrimary,
+        error: p.error,
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        titleTextStyle: TextStyle(
+          color: p.textPrimary,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1.5,
+        ),
+        iconTheme: IconThemeData(color: p.textPrimary),
+      ),
+      textTheme: TextTheme(
+        displayLarge: TextStyle(
+          color: p.textPrimary,
+          fontSize: 32,
+          fontWeight: FontWeight.bold,
+          letterSpacing: -0.5,
+        ),
+        displayMedium: TextStyle(
+          color: p.textPrimary,
+          fontSize: 24,
+          fontWeight: FontWeight.w600,
+        ),
+        titleLarge: TextStyle(
+          color: p.textPrimary,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.5,
+        ),
+        titleMedium: TextStyle(
+          color: p.textPrimary,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+        bodyLarge: TextStyle(color: p.textPrimary, fontSize: 16),
+        bodyMedium: TextStyle(color: p.textSecondary, fontSize: 14),
+        bodySmall: TextStyle(color: p.textMuted, fontSize: 12),
+      ),
+      cardTheme: CardThemeData(
+        color: p.bgCard,
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      iconTheme: IconThemeData(color: p.textSecondary),
+      dividerTheme: DividerThemeData(color: p.hairline, thickness: 1),
       useMaterial3: true,
     );
   }

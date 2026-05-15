@@ -298,7 +298,13 @@ class _GlobalDriftAppState extends State<GlobalDriftApp> {
             debugShowCheckedModeBanner: false,
             // Build 254: 푸시 알림 탭 시 라우팅용 키 (state 의 _navKey 와 연결)
             navigatorKey: _navKey,
-            theme: _buildTheme(state),
+            // Build 283 (light mode 인프라): dark/light 두 테마 모두 정의.
+            // themeMode: dark 강제 — 모든 widget 이 dark 가정 hardcoded 인
+            // 동안엔 light 활성 시 vision 깨질 가능성. widget 마이그레이션
+            // (AppColors.* → context.palette.*) 80% 이후 ThemeMode.system 으로 전환.
+            theme: AppTheme.lightTheme,
+            darkTheme: _buildTheme(state),
+            themeMode: ThemeMode.dark,
             locale: appLocale,
             localizationsDelegates: const [
               GlobalMaterialLocalizations.delegate,
