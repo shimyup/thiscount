@@ -108,6 +108,47 @@ service cloud.firestore {
       allow read, list, update, delete: if false;
     }
 
+    // ── brand_zones 컬렉션 (Build 283 — Brand auto-drop) ───────────────
+    // Brand 사용자가 미리 설정한 "쿠폰 zone": 좌표 + 반경 + 쿠폰 내용. 일반
+    // 사용자가 zone 반경 안에 들어오면 자동으로 letter 1통이 인박스에 도착.
+    //
+    // 보안 모델 (anonymous Firebase Auth 한계):
+    //   - read/list 는 누구나 — 클라이언트가 가까운 zone 쿼리해야 함. 본문
+    //     은 brand 가 의도적으로 공개하는 쿠폰 정보 (PII 없음).
+    //   - create 는 isSignedIn() + 본문 크기 + brandId 비어있지 않음.
+    //     실제 brand verified 검증은 client-side + Phase 2 의 Cloud Function
+    //     server-side re-verify 로 강화 예정 (anonymous auth 이므로 본 rule
+    //     에서 직접 owner-check 불가).
+    //   - update 는 redeemedCount 만 (counter increment) — 본문/좌표/반경/
+    //     시간은 immutable.
+    //   - delete 차단 — admin REST + 만료된 zone 일괄 정리 (별도 cron 또는
+    //     Cloud Function).
+
+    function isValidBrandZoneCreate(data) {
+      return data.brandId is string && data.brandId.size() > 0
+          && data.brandName is string && data.brandName.size() <= 100
+          && data.content is string && data.content.size() <= 1000
+          && data.radiusM is number
+          && data.radiusM >= 50.0 && data.radiusM <= 5000.0
+          && data.startsAt is string
+          && data.expiresAt is string
+          && data.maxRedeems is number
+          && data.maxRedeems >= 0 && data.maxRedeems <= 100000;
+    }
+
+    function isAllowedBrandZoneUpdate() {
+      // redeemedCount 만 변경 가능. counter increment 흐름.
+      return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['redeemedCount']);
+    }
+
+    match /brand_zones/{zoneId} {
+      allow read, list: if true;
+      allow create: if isSignedIn() && isValidBrandZoneCreate(request.resource.data);
+      allow update: if isSignedIn() && isAllowedBrandZoneUpdate();
+      allow delete: if false;
+    }
+
     // ── 기타 경로는 모두 차단 ───────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;
