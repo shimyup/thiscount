@@ -23,6 +23,8 @@ import '../core/services/feedback_service.dart';
 import '../core/services/geocoding_service.dart';
 import '../core/services/firestore_service.dart';
 import '../core/services/firebase_auth_service.dart';
+import '../core/services/brand_zone_service.dart';
+import '../models/brand_zone.dart';
 import '../core/theme/time_theme.dart';
 import '../models/direct_message.dart';
 import 'package:encrypt/encrypt.dart' as enc;
@@ -5838,6 +5840,106 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         _saveToPrefs();
         notifyListeners();
       }
+
+      // Build 283 (Brand auto-drop Phase 2): 사용자 위치 update 마다 가까운
+      // brand_zone 매칭 → 처음 만나는 zone 마다 letter 1통 자동 발급.
+      // 비동기 호출 — _runDeliveryTick 의 sync 흐름을 막지 않음. trigger 결과는
+      // 다음 tick (또는 즉시 fire-and-forget) 에서 _worldLetters / _inbox 갱신.
+      _checkBrandZoneTriggers(triggerNotifications: triggerNotifications);
+  }
+
+  /// Build 283: BrandZoneService 호출 + 새 zone 진입 마다 자동 letter 생성.
+  /// fire-and-forget — _runDeliveryTick 의 sync flow 를 차단 안 함.
+  void _checkBrandZoneTriggers({bool triggerNotifications = true}) {
+    if (_currentUser.id.isEmpty) return;
+    if (_currentUser.latitude == 0 && _currentUser.longitude == 0) return;
+    final userPos = LatLng(_currentUser.latitude, _currentUser.longitude);
+    final userId = _currentUser.id;
+    final notify = triggerNotifications;
+
+    BrandZoneService.instance.triggerForUser(
+      userId: userId,
+      userPos: userPos,
+      onZoneEnter: (zone, destination) async {
+        _handleAutoBrandDrop(zone, destination, triggerNotification: notify);
+      },
+    ).catchError((e, st) {
+      if (kDebugMode) debugPrint('[BrandZone] trigger err: $e\n$st');
+      return const <BrandZone>[];
+    });
+  }
+
+  /// Brand zone 진입 시 letter 자동 생성. _worldLetters (지도) + _inbox 에 add.
+  /// status=nearYou (이미 픽업 반경 안 보장 — destination 이 user pos ± 30m).
+  ///
+  /// Firestore POST 는 본 letter 가 "이 사용자만의 것" 이라 skip (다른 device
+  /// 가 봐도 의미 없음). 영구 dedup 은 SharedPreferences (BrandZoneService 가
+  /// 책임). 사용자가 letter 를 읽거나 만료되면 자연스럽게 inbox 에서 정리.
+  void _handleAutoBrandDrop(
+    BrandZone zone,
+    LatLng destination, {
+    bool triggerNotification = true,
+  }) {
+    try {
+      final now = DateTime.now();
+      final id = 'brand_zone_${zone.id}_${now.millisecondsSinceEpoch}';
+
+      // 사용자가 zone 안에 있고 destination 이 user pos ± 30m → 즉시 nearYou.
+      final letter = Letter(
+        id: id,
+        senderId: zone.brandId,
+        senderName: zone.brandName,
+        senderCountry: _currentUser.country,
+        senderCountryFlag: _currentUser.countryFlag,
+        content: zone.content,
+        originLocation: zone.center,
+        destinationLocation: destination,
+        destinationCountry: _currentUser.country,
+        destinationCountryFlag: _currentUser.countryFlag,
+        segments: const [],
+        status: DeliveryStatus.nearYou,
+        sentAt: now,
+        arrivedAt: now,
+        isAnonymous: false,
+        estimatedTotalMinutes: 0,
+        senderIsBrand: true,
+        senderTier: LetterSenderTier.brand,
+        category: LetterCategory.coupon,
+        acceptsReplies: false,
+        redemptionInfo: zone.redemptionInfo,
+        // zone.expiresAt 와 픽업 후 72h 중 빠른 것 (Build 132 redemption vs
+        // expiresAt 분리 패턴 따름). expiresAt = letter 가 지도에서 사라지는
+        // 시각 (보통 12-72h).
+        expiresAt: now.add(const Duration(hours: 72)),
+        redemptionExpiresAt: zone.expiresAt,
+        brandZoneId: zone.id,
+      );
+
+      _worldLetters.add(letter);
+      _inbox.add(letter.clone());
+      _hasNearbyAlert = true;
+      _currentUser.activityScore.receivedCount++;
+
+      if (triggerNotification) {
+        // Build 263 카피 정리 후 — "혜택이 도착" 흐름 따름
+        NotificationService.showLetterArrivedNotification(
+          senderCountry: zone.brandName,
+          senderFlag: '🎁',
+          langCode: _currentUser.languageCode,
+        );
+      }
+
+      if (kDebugMode) {
+        debugPrint('[BrandZone] auto-drop ${zone.id} '
+            'brand=${zone.brandName} dest=${destination.latitude.toStringAsFixed(5)},'
+            '${destination.longitude.toStringAsFixed(5)}');
+      }
+
+      _saveToPrefs();
+      notifyListeners();
+    } catch (e, st) {
+      if (kDebugMode) debugPrint('[BrandZone] auto-drop err: $e\n$st');
+    }
   }
 
   // ── AI 자동 편지 발송 (하루 3통, 랜덤 3개국 → 유저 나라 랜덤 주소) ──────────
