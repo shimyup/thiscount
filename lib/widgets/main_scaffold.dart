@@ -3,10 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../core/theme/app_theme.dart';
 import '../core/localization/app_localizations.dart';
+import '../core/services/purchase_service.dart';
 import '../state/app_state.dart';
 import '../features/map/screens/world_map_screen.dart';
 import '../features/compose/screens/compose_screen.dart';
 import '../features/premium/premium_gate_sheet.dart';
+import '../features/premium/premium_screen.dart';
 import '../features/premium/brand_comparison_sheet.dart';
 import '../features/inbox/screens/inbox_screen.dart';
 import '../features/tower/screens/tower_screen.dart';
@@ -157,6 +159,10 @@ class _MainScaffoldState extends State<MainScaffold> {
         child: Column(
           children: [
             const OfflineBanner(),
+            // Build 288: trial 만료 카운트다운 배너 — Free 페르소나 friction
+            // point 1 (trial 만료 surprise) 해소. trial 활성 중 + 미결제 상태
+            // 일 때만 노출. 탭하면 premium_screen 진입.
+            const _TrialCountdownBanner(),
             Expanded(
               child: IndexedStack(index: _currentIndex, children: _pages),
             ),
@@ -623,6 +629,93 @@ class _NearbyCountChip extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Build 288: Premium trial 활성 중 매 화면 최상단에 잔여 시간 + 업그레이드 CTA.
+/// trial 만료 sudden surprise 회귀 차단 — 사용자가 마지막 1-2일에 결제 의사
+/// 결정 시간 확보.
+class _TrialCountdownBanner extends StatelessWidget {
+  const _TrialCountdownBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final purchase = context.watch<PurchaseService>();
+    final isPremium = context.select<AppState, bool>(
+      (s) => s.currentUser.isPremium,
+    );
+    // 본 결제 완료 (Brand 또는 정식 Premium) 시 배너 숨김 — trial 만 노출.
+    if (!purchase.isTrialActive) return const SizedBox.shrink();
+    if (purchase.trialExpiry == null) return const SizedBox.shrink();
+    // Premium 정식 결제 완료 사용자가 trial 잔여기 있는 케이스는 잠재적 — 노출 X.
+    if (isPremium && !purchase.isBetaFreePremium && !purchase.isTestMode) {
+      return const SizedBox.shrink();
+    }
+    final hours = purchase.trialHoursRemaining;
+    final langCode = context.select<AppState, String>(
+      (s) => s.currentUser.languageCode,
+    );
+    final l = AppL10n.of(langCode);
+    final isUrgent = hours <= 24;
+    final color = isUrgent ? AppColors.error : AppColors.gold;
+    return Material(
+      color: color.withValues(alpha: 0.14),
+      child: InkWell(
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const PremiumScreen()),
+        ),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: color.withValues(alpha: 0.32),
+                width: 0.6,
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                isUrgent ? Icons.access_time_filled : Icons.star_rounded,
+                color: color,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '${l.trialBannerLabel} · ${_formatRemaining(l, hours)}',
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.1,
+                  ),
+                ),
+              ),
+              Text(
+                l.trialBannerCta,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(Icons.chevron_right_rounded, color: color, size: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatRemaining(AppL10n l, int hours) {
+    if (hours <= 0) return l.trialBannerExpired;
+    if (hours < 24) return l.trialBannerHoursLeft(hours);
+    final days = (hours / 24).floor();
+    return l.trialBannerDaysLeft(days);
   }
 }
 

@@ -23975,6 +23975,64 @@ class AppL10n {
         'รหัส) กับผู้ส่ง (ร้านค้า/Brand) บริการจำกัดหากไม่ยินยอม',
   });
 
+  // Build 288: Premium trial 카운트다운 배너 (홈 최상단).
+  String get trialBannerLabel => _t({
+    'ko': '프리미엄 체험 중', 'en': 'Premium trial active',
+    'ja': 'Premium 体験中', 'zh': '高级试用中',
+    'fr': 'Essai Premium actif', 'de': 'Premium-Test aktiv',
+    'es': 'Prueba Premium activa', 'pt': 'Avaliação Premium ativa',
+    'ru': 'Пробная Premium активна', 'tr': 'Premium denemesi aktif',
+    'ar': 'تجربة Premium نشطة', 'it': 'Prova Premium attiva',
+    'hi': 'Premium ट्रायल सक्रिय', 'th': 'ทดลอง Premium ใช้งานอยู่',
+  });
+
+  String get trialBannerCta => _t({
+    'ko': '계속하기', 'en': 'Continue',
+    'ja': '継続する', 'zh': '继续',
+    'fr': 'Continuer', 'de': 'Fortsetzen',
+    'es': 'Continuar', 'pt': 'Continuar',
+    'ru': 'Продолжить', 'tr': 'Devam et',
+    'ar': 'استمرار', 'it': 'Continua',
+    'hi': 'जारी रखें', 'th': 'ดำเนินการต่อ',
+  });
+
+  String get trialBannerExpired => _t({
+    'ko': '만료됨 — 업그레이드 필요',
+    'en': 'Expired — upgrade required',
+    'ja': '期限切れ — アップグレード必要',
+    'zh': '已到期 — 需要升级',
+    'fr': 'Expiré — mise à niveau requise',
+    'de': 'Abgelaufen — Upgrade erforderlich',
+    'es': 'Caducado — requiere actualizar',
+    'pt': 'Expirado — atualize',
+    'ru': 'Истекло — нужен апгрейд',
+    'tr': 'Süresi doldu — yükseltme gerekli',
+    'ar': 'منتهي — يلزم الترقية',
+    'it': 'Scaduto — richiede aggiornamento',
+    'hi': 'समाप्त — अपग्रेड आवश्यक',
+    'th': 'หมดอายุ — ต้องอัปเกรด',
+  });
+
+  String trialBannerHoursLeft(int h) => _t({
+    'ko': '$h시간 남음', 'en': '$h hours left',
+    'ja': '残り $h 時間', 'zh': '剩 $h 小时',
+    'fr': '$h h restantes', 'de': '$h Std. übrig',
+    'es': '$h h restantes', 'pt': 'Restam $h h',
+    'ru': 'Осталось $h ч', 'tr': '$h saat kaldı',
+    'ar': 'باقي $h ساعة', 'it': '$h ore rimaste',
+    'hi': '$h घंटे शेष', 'th': 'เหลือ $h ชั่วโมง',
+  });
+
+  String trialBannerDaysLeft(int d) => _t({
+    'ko': '$d일 남음', 'en': '$d days left',
+    'ja': '残り $d 日', 'zh': '剩 $d 天',
+    'fr': '$d j restants', 'de': '$d Tage übrig',
+    'es': '$d días restantes', 'pt': 'Restam $d dias',
+    'ru': 'Осталось $d дн.', 'tr': '$d gün kaldı',
+    'ar': 'باقي $d أيام', 'it': '$d giorni rimasti',
+    'hi': '$d दिन शेष', 'th': 'เหลือ $d วัน',
+  });
+
   // ══════════════════════════════════════════════════════════════════════════
   // ── Compose: Recall Last Letter ─────────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
