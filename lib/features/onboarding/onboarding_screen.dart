@@ -328,6 +328,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         children: [
           PageView(
             controller: _pageCtrl,
+            // Build 287: 스크롤(swipe) 로 한장씩 넘김 명시. 자동 timer 없음 —
+            // 사용자가 손가락으로 슬라이드 또는 하단 "다음" 버튼으로 진행.
+            physics: const PageScrollPhysics(),
             onPageChanged: (i) => setState(() => _currentPage = i),
             children: [
               // Page 0: Country selection
