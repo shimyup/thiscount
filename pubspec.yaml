@@ -57,6 +57,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/branding/
     - assets/sounds/
     - assets/cities.json
     - assets/countries_bounds.json
