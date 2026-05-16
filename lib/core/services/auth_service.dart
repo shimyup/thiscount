@@ -437,29 +437,56 @@ class AuthService {
 
   // ── OTP Rate Limiting ────────────────────────────────────────────────────────
   // 10분 윈도우 내 최대 5회 요청 + 요청 간 60초 쿨다운
-  static int _otpRequestCount = 0;
-  static DateTime? _otpWindowStart;
-  static DateTime? _lastOtpSentAt;
+  // Build 288 (P2.3): email/phone 별도 윈도우. 이전엔 공유 카운터 → 공격자가
+  // email OTP 5회 발급해 quota 소진 시 정상 사용자의 SMS OTP 도 차단됐음.
+  static int _emailOtpRequestCount = 0;
+  static DateTime? _emailOtpWindowStart;
+  static DateTime? _lastEmailOtpSentAt;
+  static int _phoneOtpRequestCount = 0;
+  static DateTime? _phoneOtpWindowStart;
+  static DateTime? _lastPhoneOtpSentAt;
   static const _maxOtpRequestsPerWindow = 5;
   static const _otpWindowDuration = Duration(minutes: 10);
   static const _otpCooldownDuration = Duration(seconds: 60);
 
-  /// 다음 OTP 요청까지 남은 초 (0 = 즉시 가능)
+  /// 다음 email OTP 요청까지 남은 초 (Build 288: email/phone 분리).
+  /// 기존 호출자 (auth_screen) 가 email 채널 기준으로 보면 됨.
   static int get otpCooldownSecondsRemaining {
-    if (_lastOtpSentAt == null) return 0;
-    final elapsed = DateTime.now().difference(_lastOtpSentAt!);
+    if (_lastEmailOtpSentAt == null) return 0;
+    final elapsed = DateTime.now().difference(_lastEmailOtpSentAt!);
     if (elapsed >= _otpCooldownDuration) return 0;
     return (_otpCooldownDuration - elapsed).inSeconds;
   }
 
-  /// 현재 윈도우 내 남은 OTP 요청 횟수
+  /// 다음 phone OTP 요청까지 남은 초 (Build 288 신규).
+  static int get phoneOtpCooldownSecondsRemaining {
+    if (_lastPhoneOtpSentAt == null) return 0;
+    final elapsed = DateTime.now().difference(_lastPhoneOtpSentAt!);
+    if (elapsed >= _otpCooldownDuration) return 0;
+    return (_otpCooldownDuration - elapsed).inSeconds;
+  }
+
+  /// 현재 윈도우 내 남은 email OTP 요청 횟수 (Build 288: email/phone 분리).
   static int get otpRequestsRemaining {
     final now = DateTime.now();
-    if (_otpWindowStart == null ||
-        now.difference(_otpWindowStart!) >= _otpWindowDuration) {
+    if (_emailOtpWindowStart == null ||
+        now.difference(_emailOtpWindowStart!) >= _otpWindowDuration) {
       return _maxOtpRequestsPerWindow;
     }
-    return (_maxOtpRequestsPerWindow - _otpRequestCount).clamp(
+    return (_maxOtpRequestsPerWindow - _emailOtpRequestCount).clamp(
+      0,
+      _maxOtpRequestsPerWindow,
+    );
+  }
+
+  /// 현재 윈도우 내 남은 phone OTP 요청 횟수 (Build 288 신규).
+  static int get phoneOtpRequestsRemaining {
+    final now = DateTime.now();
+    if (_phoneOtpWindowStart == null ||
+        now.difference(_phoneOtpWindowStart!) >= _otpWindowDuration) {
+      return _maxOtpRequestsPerWindow;
+    }
+    return (_maxOtpRequestsPerWindow - _phoneOtpRequestCount).clamp(
       0,
       _maxOtpRequestsPerWindow,
     );
@@ -474,26 +501,26 @@ class AuthService {
   static String? generateEmailOtp(String email) {
     final now = DateTime.now();
 
-    // 윈도우 리셋 (10분 경과)
-    if (_otpWindowStart == null ||
-        now.difference(_otpWindowStart!) >= _otpWindowDuration) {
-      _otpWindowStart = now;
-      _otpRequestCount = 0;
+    // 윈도우 리셋 (10분 경과) — Build 288: email 전용 윈도우
+    if (_emailOtpWindowStart == null ||
+        now.difference(_emailOtpWindowStart!) >= _otpWindowDuration) {
+      _emailOtpWindowStart = now;
+      _emailOtpRequestCount = 0;
     }
 
     // 쿨다운 체크 (마지막 요청으로부터 60초)
-    if (_lastOtpSentAt != null &&
-        now.difference(_lastOtpSentAt!) < _otpCooldownDuration) {
+    if (_lastEmailOtpSentAt != null &&
+        now.difference(_lastEmailOtpSentAt!) < _otpCooldownDuration) {
       return null; // 쿨다운 중
     }
 
     // 윈도우 내 최대 요청 횟수 초과
-    if (_otpRequestCount >= _maxOtpRequestsPerWindow) {
+    if (_emailOtpRequestCount >= _maxOtpRequestsPerWindow) {
       return null; // Rate limit 초과
     }
 
-    _otpRequestCount++;
-    _lastOtpSentAt = now;
+    _emailOtpRequestCount++;
+    _lastEmailOtpSentAt = now;
 
     final rng = Random.secure();
     final code = List.generate(6, (_) => rng.nextInt(10)).join();
@@ -510,7 +537,7 @@ class AuthService {
       final prefix = atIdx > 0 ? email.substring(0, atIdx.clamp(0, 3)) : '***';
       final domain = atIdx > 0 ? email.substring(atIdx) : '';
       debugPrint(
-        '[AuthService] 인증 코드 발송: $prefix***$domain (10분 유효, 이번 윈도우 $_otpRequestCount/$_maxOtpRequestsPerWindow)',
+        '[AuthService] 인증 코드 발송: $prefix***$domain (10분 유효, 이번 윈도우 $_emailOtpRequestCount/$_maxOtpRequestsPerWindow)',
       );
       return true;
     }());
@@ -586,7 +613,8 @@ class AuthService {
   static String? _pendingOtpPhone;
 
   /// SMS로 6자리 OTP 생성 및 발송.
-  /// Rate limit은 이메일 OTP와 공유 (동일 윈도우).
+  /// Build 288: email OTP 와 별도 rate limit (이전엔 공유라 attacker 가
+  /// email quota 소진 시 사용자 SMS 차단되는 회귀 있었음).
   /// [phoneNumber]는 E.164 형식 (예: +821012345678).
   /// 성공 시 코드 반환 (개발용), 실패 시 null.
   static Future<String?> generatePhoneOtp(
@@ -595,26 +623,26 @@ class AuthService {
   }) async {
     final now = DateTime.now();
 
-    // 윈도우 리셋 (10분 경과)
-    if (_otpWindowStart == null ||
-        now.difference(_otpWindowStart!) >= _otpWindowDuration) {
-      _otpWindowStart = now;
-      _otpRequestCount = 0;
+    // 윈도우 리셋 (10분 경과) — Build 288: phone 전용 윈도우
+    if (_phoneOtpWindowStart == null ||
+        now.difference(_phoneOtpWindowStart!) >= _otpWindowDuration) {
+      _phoneOtpWindowStart = now;
+      _phoneOtpRequestCount = 0;
     }
 
     // 쿨다운 체크 (마지막 요청으로부터 60초)
-    if (_lastOtpSentAt != null &&
-        now.difference(_lastOtpSentAt!) < _otpCooldownDuration) {
+    if (_lastPhoneOtpSentAt != null &&
+        now.difference(_lastPhoneOtpSentAt!) < _otpCooldownDuration) {
       return null; // 쿨다운 중
     }
 
     // 윈도우 내 최대 요청 횟수 초과
-    if (_otpRequestCount >= _maxOtpRequestsPerWindow) {
+    if (_phoneOtpRequestCount >= _maxOtpRequestsPerWindow) {
       return null; // Rate limit 초과
     }
 
-    _otpRequestCount++;
-    _lastOtpSentAt = now;
+    _phoneOtpRequestCount++;
+    _lastPhoneOtpSentAt = now;
 
     final rng = Random.secure();
     final code = List.generate(6, (_) => rng.nextInt(10)).join();
@@ -644,7 +672,7 @@ class AuthService {
           ? '${'*' * (phoneNumber.length - 4)}${phoneNumber.substring(phoneNumber.length - 4)}'
           : '****';
       debugPrint(
-        '[AuthService] SMS 인증 코드 발송: $masked (10분 유효, 이번 윈도우 $_otpRequestCount/$_maxOtpRequestsPerWindow)',
+        '[AuthService] SMS 인증 코드 발송: $masked (10분 유효, 이번 윈도우 $_phoneOtpRequestCount/$_maxOtpRequestsPerWindow)',
       );
       return true;
     }());
@@ -1177,19 +1205,50 @@ class AuthService {
     if (userId.isEmpty) return;
     if (!FirebaseConfig.kFirebaseEnabled) return;
 
-    try {
-      await FirestoreService.deleteDocument('users/$userId');
-    } catch (e, st) {
-      debugPrint('[AuthService] remote user delete warning: $e\n$st');
+    // Build 288: GDPR Art.17 — 3회 재시도. 실패 시 pending_gdpr_deletions
+    // SharedPreferences 큐에 등록 → 다음 앱 실행 시 재시도. 사용자 입장에선
+    // 로컬 탈퇴는 즉시 완료, 원격 데이터 정리는 비동기 보장.
+    bool userDeleted = false;
+    for (int attempt = 0; attempt < 3; attempt++) {
+      try {
+        await FirestoreService.deleteDocument('users/$userId');
+        userDeleted = true;
+        break;
+      } catch (e) {
+        if (attempt == 2) {
+          debugPrint('[AuthService] remote user delete failed after 3 tries: $e');
+        }
+        await Future.delayed(Duration(milliseconds: 500 * (attempt + 1)));
+      }
     }
 
-    try {
-      // senderId == userId 인 letter 문서들의 PII 필드를 비움.
-      // pickupCount/redeemedCount/status 외 필드는 update rule 화이트리스트
-      // 밖이라 거부될 수 있음 — best-effort 시도 후 무시.
-      await FirestoreService.scrubLettersBySender(userId);
-    } catch (e, st) {
-      debugPrint('[AuthService] remote letters scrub warning: $e\n$st');
+    // senderId == userId 인 letter 문서들의 PII 필드를 비움.
+    // pickupCount/redeemedCount/status 외 필드는 update rule 화이트리스트
+    // 밖이라 거부될 수 있음 — best-effort 시도 후 무시.
+    bool scrubbed = false;
+    for (int attempt = 0; attempt < 3; attempt++) {
+      try {
+        await FirestoreService.scrubLettersBySender(userId);
+        scrubbed = true;
+        break;
+      } catch (e) {
+        if (attempt == 2) {
+          debugPrint('[AuthService] remote letters scrub failed after 3 tries: $e');
+        }
+        await Future.delayed(Duration(milliseconds: 500 * (attempt + 1)));
+      }
+    }
+
+    // 실패한 작업을 pending 큐에 등록 (다음 앱 실행 시 admin REST 로 후속 처리).
+    if (!userDeleted || !scrubbed) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final pending = prefs.getStringList('pending_gdpr_deletions') ?? [];
+        pending.add('$userId|${DateTime.now().toIso8601String()}|'
+            '${userDeleted ? 'doc_ok' : 'doc_fail'}|'
+            '${scrubbed ? 'scrub_ok' : 'scrub_fail'}');
+        await prefs.setStringList('pending_gdpr_deletions', pending);
+      } catch (_) {}
     }
   }
 
