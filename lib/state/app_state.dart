@@ -4089,13 +4089,24 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       // 게임플레이 영향 미미.
       final coarseLat = (_currentUser.latitude * 1000).round() / 1000.0;
       final coarseLng = (_currentUser.longitude * 1000).round() / 1000.0;
+      // Build 287: 좌표가 (0,0) 이면 Firestore 의 이전 값 보존. GPS 미허가
+      // 상태로 일시 저장이 발생해도 마지막 유효 위치를 잃지 않도록 — 로그아웃
+      // 후에도 지도에 마지막 GPS 기반으로 회원이 표시되는 흐름 보장.
+      final hasValidCoords = coarseLat != 0.0 || coarseLng != 0.0;
       final fields = <String, Map<String, dynamic>>{
         'id': {'stringValue': _currentUser.id},
         'username': {'stringValue': _currentUser.username},
         'countryFlag': {'stringValue': _currentUser.countryFlag},
         'country': {'stringValue': _currentUser.country},
-        'latitude': {'doubleValue': coarseLat},
-        'longitude': {'doubleValue': coarseLng},
+        if (hasValidCoords) 'latitude': {'doubleValue': coarseLat},
+        if (hasValidCoords) 'longitude': {'doubleValue': coarseLng},
+        // Build 287: 별도 lastKnownLat/Lng 필드 — 로그아웃 후에도 위치 보존.
+        // fetchMapUsers 가 latitude/longitude 가 (0,0) 일 때 이 값을 fallback
+        // 으로 사용하도록 확장 가능.
+        if (hasValidCoords)
+          'lastKnownLatitude': {'doubleValue': coarseLat},
+        if (hasValidCoords)
+          'lastKnownLongitude': {'doubleValue': coarseLng},
         'isUsernamePublic': {'booleanValue': _currentUser.isUsernamePublic},
         // 지도 노출은 명시적 opt-in 필드로 관리
         'isMapPublic': {'booleanValue': _currentUser.isUsernamePublic},
@@ -4986,6 +4997,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           'mask.fieldPaths=countryFlag',
           'mask.fieldPaths=latitude',
           'mask.fieldPaths=longitude',
+          // Build 287: 로그아웃 후 마지막 GPS 보존을 위한 fallback 필드.
+          'mask.fieldPaths=lastKnownLatitude',
+          'mask.fieldPaths=lastKnownLongitude',
           'mask.fieldPaths=isMapPublic',
           'mask.fieldPaths=isUsernamePublic',
           'mask.fieldPaths=username',
@@ -5034,13 +5048,24 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             var lat = parseDouble(fields, 'latitude');
             var lng = parseDouble(fields, 'longitude');
             final flag = parseString(fields, 'countryFlag', fallback: '🌍');
-            // Build 285: GPS 미허가 등으로 좌표 (0,0) 인 가입자는 국가 깃발
-            // 기준으로 해당 국가 중심에 표시. 좌표·깃발 모두 없으면만 skip.
+            // Build 287: 우선순위 — latitude/longitude → lastKnownLatitude/Longitude
+            // → countryFlag 중심 fallback. 로그아웃 후에도 마지막 GPS 가 별도
+            // 필드 (Build 287 이후 작성된 record) 로 보존되어 회원이 지도에 계속
+            // 표시되도록.
             if (lat == 0.0 && lng == 0.0) {
-              final fallback = _countryFlagCenter(flag);
-              if (fallback == null) continue;
-              lat = fallback.$1;
-              lng = fallback.$2;
+              final lkLat = parseDouble(fields, 'lastKnownLatitude');
+              final lkLng = parseDouble(fields, 'lastKnownLongitude');
+              if (lkLat != 0.0 || lkLng != 0.0) {
+                lat = lkLat;
+                lng = lkLng;
+              } else {
+                // Build 285: GPS 미허가 등으로 좌표 (0,0) 인 가입자는 국가 깃발
+                // 기준으로 해당 국가 중심에 표시. 좌표·깃발 모두 없으면만 skip.
+                final fallback = _countryFlagCenter(flag);
+                if (fallback == null) continue;
+                lat = fallback.$1;
+                lng = fallback.$2;
+              }
             }
             final isPublic = parseBool(
               fields,

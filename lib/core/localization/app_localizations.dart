@@ -23891,56 +23891,88 @@ class AppL10n {
   });
 
   // Build 286: 제3자 정보 제공 동의 — 체크박스 설명. 처리 위탁 업체 명시.
+  // Build 287: 할인권/교환권/경품 수령을 위해 발송자에게 최소한의 식별 정보
+  // 제공이 가능함을 명문화 (KISA 정보통신망법 제24조의2 — "수집 목적 내 최소
+  // 정보" 조항 + GDPR Art.6(1)(b) 계약 이행).
   String get authThirdPartySharingDesc => _t({
     'ko':
         '서비스 운영을 위해 다음 업체에 정보 처리를 위탁합니다: Google Firebase '
         '(인증/DB/푸시), Stadia Maps (지도), RevenueCat (결제), Resend (이메일). '
-        '미동의 시 서비스 이용이 제한됩니다.',
+        '또한 할인권·교환권·경품 수령을 위해 수집한 메세지의 발송자(가맹점/'
+        'Brand)에게 수령 확인에 필요한 최소한의 식별 정보(닉네임, 픽업 시각, '
+        '쿠폰 코드)를 제공할 수 있습니다. 미동의 시 서비스 이용이 제한됩니다.',
     'en':
         'For service operation, data is processed by: Google Firebase (auth/DB/push), '
         'Stadia Maps (maps), RevenueCat (purchase), Resend (email). '
-        'Service is limited without consent.',
+        'Additionally, to fulfill coupon/voucher/prize redemption, minimal '
+        'identifying info (username, pickup time, coupon code) may be shared '
+        'with the message sender (merchant/Brand). Service is limited without consent.',
     'ja':
         'サービス運営のため、以下の業者に情報処理を委託します: Google Firebase '
-        '(認証/DB/プッシュ), Stadia Maps (地図), RevenueCat (決済), Resend (メール).'
-        ' 同意がない場合、サービス利用が制限されます。',
+        '(認証/DB/プッシュ), Stadia Maps (地図), RevenueCat (決済), Resend (メール). '
+        'また、クーポン/引換券/景品の受領のため、メッセージ送信者(加盟店/Brand)'
+        'に受領確認に必要な最小限の識別情報(ユーザー名、ピックアップ時刻、コード)を'
+        '提供することがあります。同意がない場合、サービス利用が制限されます。',
     'zh':
         '为服务运营，信息将由以下机构处理：Google Firebase（认证/数据库/推送）、'
         'Stadia Maps（地图）、RevenueCat（支付）、Resend（邮件）。'
+        '此外，为完成优惠券/兑换券/奖品的领取，可能向消息发送者（商家/Brand）'
+        '提供领取确认所需的最小识别信息（用户名、领取时间、券码）。'
         '未同意时服务将受限。',
     'fr':
         'Pour l\'exploitation, les données sont traitées par : Google Firebase '
-        '(auth/BD/push), Stadia Maps (cartes), RevenueCat (paiement), Resend (e-mail).'
-        ' Service limité sans consentement.',
+        '(auth/BD/push), Stadia Maps (cartes), RevenueCat (paiement), Resend (e-mail). '
+        'De plus, pour le retrait de coupons/bons/cadeaux, des informations '
+        'minimales (nom d\'utilisateur, heure, code) peuvent être partagées avec '
+        'l\'expéditeur du message (marchand/Brand). Service limité sans consentement.',
     'de':
         'Für den Betrieb verarbeiten: Google Firebase (Auth/DB/Push), '
         'Stadia Maps (Karten), RevenueCat (Zahlung), Resend (E-Mail). '
-        'Ohne Zustimmung eingeschränkter Dienst.',
+        'Zusätzlich können für die Einlösung von Gutscheinen/Coupons/Preisen '
+        'minimale Identifikationsdaten (Benutzername, Zeit, Code) an den '
+        'Absender (Händler/Brand) weitergegeben werden. Ohne Zustimmung eingeschränkt.',
     'es':
         'Para la operación: Google Firebase (auth/BD/push), Stadia Maps (mapas), '
-        'RevenueCat (compra), Resend (correo). Servicio limitado sin consentimiento.',
+        'RevenueCat (compra), Resend (correo). Además, para canjear '
+        'cupones/vales/premios, se puede compartir información mínima '
+        '(usuario, hora, código) con el remitente (comercio/Brand). '
+        'Servicio limitado sin consentimiento.',
     'pt':
         'Para operação: Google Firebase (auth/BD/push), Stadia Maps (mapas), '
-        'RevenueCat (compra), Resend (e-mail). Serviço limitado sem consentimento.',
+        'RevenueCat (compra), Resend (e-mail). Para resgatar cupons/vales/'
+        'prêmios, informações mínimas (usuário, hora, código) podem ser '
+        'compartilhadas com o remetente (comerciante/Brand). Serviço limitado sem consentimento.',
     'ru':
         'Для работы: Google Firebase (аутентификация/БД/push), Stadia Maps (карты), '
-        'RevenueCat (оплата), Resend (email). Без согласия сервис ограничен.',
+        'RevenueCat (оплата), Resend (email). Также для получения купонов/'
+        'ваучеров/призов минимальная идентификационная информация (имя, время, '
+        'код) может передаваться отправителю (продавец/Brand). Без согласия сервис ограничен.',
     'tr':
         'Hizmet için: Google Firebase (kimlik/DB/push), Stadia Maps (harita), '
-        'RevenueCat (ödeme), Resend (e-posta). Onay olmadan hizmet sınırlıdır.',
+        'RevenueCat (ödeme), Resend (e-posta). Ayrıca kupon/voucher/ödül '
+        'kullanımı için minimum tanımlama bilgisi (kullanıcı adı, saat, kod) '
+        'gönderene (mağaza/Brand) iletilebilir. Onay olmadan hizmet sınırlıdır.',
     'ar':
         'لتشغيل الخدمة، تتم المعالجة بواسطة: Google Firebase (المصادقة/قاعدة البيانات/التنبيهات)، '
         'Stadia Maps (الخرائط)، RevenueCat (المدفوعات)، Resend (البريد الإلكتروني). '
+        'بالإضافة إلى ذلك، لاستلام القسائم/الكوبونات/الجوائز، قد تتم مشاركة الحد الأدنى '
+        'من معلومات التعريف (اسم المستخدم، الوقت، الرمز) مع المُرسِل (التاجر/Brand). '
         'الخدمة محدودة بدون موافقة.',
     'it':
         'Per il servizio: Google Firebase (auth/DB/push), Stadia Maps (mappe), '
-        'RevenueCat (pagamenti), Resend (e-mail). Servizio limitato senza consenso.',
+        'RevenueCat (pagamenti), Resend (e-mail). Inoltre, per il riscatto di '
+        'coupon/voucher/premi, informazioni minime (utente, ora, codice) possono '
+        'essere condivise con il mittente (commerciante/Brand). Servizio limitato senza consenso.',
     'hi':
         'सेवा के लिए: Google Firebase (प्रमाणीकरण/DB/पुश), Stadia Maps (मानचित्र), '
-        'RevenueCat (खरीद), Resend (ईमेल). सहमति के बिना सेवा सीमित।',
+        'RevenueCat (खरीद), Resend (ईमेल). इसके अतिरिक्त, कूपन/वाउचर/पुरस्कार '
+        'के मोचन के लिए न्यूनतम पहचान जानकारी (उपयोगकर्ता नाम, समय, कोड) '
+        'प्रेषक (विक्रेता/Brand) के साथ साझा की जा सकती है. सहमति के बिना सेवा सीमित।',
     'th':
         'เพื่อการให้บริการ: Google Firebase (auth/DB/push), Stadia Maps (แผนที่), '
-        'RevenueCat (การชำระเงิน), Resend (อีเมล). บริการจำกัดหากไม่ยินยอม',
+        'RevenueCat (การชำระเงิน), Resend (อีเมล). นอกจากนี้ เพื่อรับคูปอง/'
+        'บัตรกำนัล/ของรางวัล อาจมีการแชร์ข้อมูลระบุตัวตนขั้นต่ำ (ชื่อผู้ใช้ เวลา '
+        'รหัส) กับผู้ส่ง (ร้านค้า/Brand) บริการจำกัดหากไม่ยินยอม',
   });
 
   // ══════════════════════════════════════════════════════════════════════════

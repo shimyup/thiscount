@@ -398,6 +398,42 @@
           회원 탈퇴를 통해 가능하며, 탈퇴 시 위탁 업체의 데이터도 30일 이내
           삭제됩니다 (Firebase는 hard-delete cron, 그 외는 위탁 계약 종료 시).
         </p>
+        <h3 style="margin-top:20px;font-size:14px;color:#444;">5-1. 발송자에게 제공되는 최소 정보 (할인권·교환권·경품 수령)</h3>
+        <p style="font-size:13px;line-height:1.6;">
+          사용자가 매장에서 할인권·교환권·경품을 실제 수령(사용)하는 시점에,
+          해당 메세지의 <strong>발송자(가맹점 또는 Brand 회원)</strong>는 수령
+          확인을 위해 다음 <strong>최소한의 식별 정보</strong>를 받을 수 있습니다.
+          이는 메세지 본래 목적(쿠폰 발송 후 사용 확인)을 달성하기 위한
+          불가피한 정보 제공이며, KISA 정보통신망법 제24조의2 및 GDPR Art.6(1)(b)
+          (계약 이행) 에 근거합니다.
+        </p>
+        <table style="margin-top:8px;">
+          <tr>
+            <th>제공 항목</th>
+            <th>제공 시점</th>
+            <th>제공 목적</th>
+          </tr>
+          <tr>
+            <td>닉네임 (또는 익명 사용자 sentinel)</td>
+            <td>매장 사용 시</td>
+            <td>중복 사용 차단, 사용자 확인</td>
+          </tr>
+          <tr>
+            <td>픽업·사용 시각</td>
+            <td>매장 사용 시</td>
+            <td>발송자 ROI 분석 (캠페인 성과 측정)</td>
+          </tr>
+          <tr>
+            <td>쿠폰/경품 코드</td>
+            <td>매장 사용 시</td>
+            <td>발급 내역 대조 검증</td>
+          </tr>
+        </table>
+        <p style="margin-top:10px;font-size:13px;color:#666;">
+          이름·이메일·전화번호·정확한 GPS 좌표·구매 이력 등 기타 PII 는 절대
+          발송자에게 제공되지 않습니다. 익명 발송 메세지의 경우 발송자 본인의
+          정보도 익명 처리됩니다.
+        </p>
       </div>
     </div>
 
@@ -478,7 +514,7 @@
         </ul>
         <div class="highlight" style="margin-top:12px;">
           Thiscount는 CCPA 정의의 "판매(sell)" 또는 "공유(share)" 행위를 하지 않습니다.
-          권리 행사 요청은 <a href="mailto:support@thiscount.io">support@thiscount.io</a> 로 보내주세요.
+          권리 행사 요청은 <a href="mailto:ceo@airony.xyz">ceo@airony.xyz</a> (개인정보 담당자) 로 보내주세요.
         </div>
       </div>
     </div>
@@ -541,7 +577,7 @@
       <h3>📬 개인정보 보호 담당자</h3>
       <p>개인정보 관련 문의·열람·정정·삭제 요청</p>
       <p style="margin-top:8px;">
-        이메일: <a href="mailto:support@thiscount.io">support@thiscount.io</a>
+        개인정보 담당자: <a href="mailto:ceo@airony.xyz">ceo@airony.xyz</a>
       </p>
     </div>
 
@@ -678,6 +714,43 @@
           triggers data removal from processors within 30 days (Firebase via
           hard-delete cron; others on contract end).
         </p>
+        <h3 style="margin-top:20px;font-size:14px;color:#444;">5-1. Minimum info shared with senders (coupon / voucher / prize redemption)</h3>
+        <p style="font-size:13px;line-height:1.6;">
+          When a user actually redeems a coupon, voucher, or prize at a merchant,
+          the <strong>sender (merchant or Brand member)</strong> of that message
+          may receive the following <strong>minimum identifying information</strong>
+          to confirm redemption. This is unavoidable processing to fulfill the
+          original purpose of the message (issuing a coupon and confirming usage),
+          based on Korean ICT Network Act Art. 24-2 and GDPR Art. 6(1)(b)
+          (contract performance).
+        </p>
+        <table style="margin-top:8px;">
+          <tr>
+            <th>Item Shared</th>
+            <th>When</th>
+            <th>Purpose</th>
+          </tr>
+          <tr>
+            <td>Username (or anonymous sentinel)</td>
+            <td>At redemption</td>
+            <td>Duplicate-use prevention, identity confirmation</td>
+          </tr>
+          <tr>
+            <td>Pickup / redemption timestamp</td>
+            <td>At redemption</td>
+            <td>Sender ROI analytics (campaign performance)</td>
+          </tr>
+          <tr>
+            <td>Coupon / prize code</td>
+            <td>At redemption</td>
+            <td>Cross-check against issuance log</td>
+          </tr>
+        </table>
+        <p style="margin-top:10px;font-size:13px;color:#666;">
+          Other PII (real name, email, phone, exact GPS coordinates, purchase
+          history, etc.) is NEVER shared with the sender. For anonymous messages,
+          the sender's identity is also kept anonymized.
+        </p>
       </div>
     </div>
 
@@ -758,7 +831,7 @@
         </ul>
         <div class="highlight" style="margin-top:12px;">
           Thiscount does not "sell" or "share" personal information as defined by CCPA.
-          To exercise these rights, contact: <a href="mailto:support@thiscount.io">support@thiscount.io</a>
+          To exercise these rights, contact the Data Protection Officer: <a href="mailto:ceo@airony.xyz">ceo@airony.xyz</a>
         </div>
       </div>
     </div>
@@ -810,7 +883,7 @@
       <h3>📬 Privacy Contact</h3>
       <p>Questions, access, correction, or deletion requests</p>
       <p style="margin-top:8px;">
-        Email: <a href="mailto:support@thiscount.io">support@thiscount.io</a>
+        Data Protection Officer: <a href="mailto:ceo@airony.xyz">ceo@airony.xyz</a>
       </p>
     </div>
 
