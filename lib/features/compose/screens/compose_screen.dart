@@ -2077,6 +2077,8 @@ class _ComposeScreenState extends State<ComposeScreen>
                 ),
               ),
               // Brand 전용 — 정확한 위치 지정 버튼을 나라 선택 아래 보조 옵션으로 배치.
+              // Build 289: 크레딧 잔량을 토글 옆에 표시 → 사용자가 사전에 비용
+              // 인지 (Premium 페르소나 friction "ExactDrop 크레딧 트랩" 해소).
               if (state.currentUser.isBrand) ...[
                 const SizedBox(width: 8),
                 Expanded(
@@ -2107,6 +2109,29 @@ class _ComposeScreenState extends State<ComposeScreen>
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 1,
+                            ),
+                            decoration: BoxDecoration(
+                              color: state.canUseExactDrop
+                                  ? AppColors.gold.withValues(alpha: 0.22)
+                                  : AppColors.error.withValues(alpha: 0.22),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              '${state.brandExactDropCredits}',
+                              style: TextStyle(
+                                color: state.canUseExactDrop
+                                    ? AppColors.gold
+                                    : AppColors.error,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                              ),
                             ),
                           ),
                         ],
