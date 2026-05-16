@@ -5031,11 +5031,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             );
             if (!isMapPublic) continue;
 
-            final lat = parseDouble(fields, 'latitude');
-            final lng = parseDouble(fields, 'longitude');
-            if (lat == 0.0 && lng == 0.0) continue;
-
+            var lat = parseDouble(fields, 'latitude');
+            var lng = parseDouble(fields, 'longitude');
             final flag = parseString(fields, 'countryFlag', fallback: '🌍');
+            // Build 285: GPS 미허가 등으로 좌표 (0,0) 인 가입자는 국가 깃발
+            // 기준으로 해당 국가 중심에 표시. 좌표·깃발 모두 없으면만 skip.
+            if (lat == 0.0 && lng == 0.0) {
+              final fallback = _countryFlagCenter(flag);
+              if (fallback == null) continue;
+              lat = fallback.$1;
+              lng = fallback.$2;
+            }
             final isPublic = parseBool(
               fields,
               'isUsernamePublic',
@@ -5128,6 +5134,44 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     } finally {
       _isFetchingMapUsers = false;
     }
+  }
+
+  // Build 285: countryFlag → 해당 국가 수도 좌표 fallback. GPS 미허가 가입자
+  // 핀이 (0,0) 으로 죽지 않고 본인 나라에 표시되도록.
+  (double, double)? _countryFlagCenter(String flag) {
+    const m = <String, (double, double)>{
+      '🇰🇷': (37.5665, 126.9780),
+      '🇯🇵': (35.6762, 139.6503),
+      '🇺🇸': (40.7128, -74.0060),
+      '🇬🇧': (51.5074, -0.1278),
+      '🇫🇷': (48.8566, 2.3522),
+      '🇩🇪': (52.5200, 13.4050),
+      '🇮🇹': (41.9028, 12.4964),
+      '🇪🇸': (40.4168, -3.7038),
+      '🇧🇷': (-23.5505, -46.6333),
+      '🇮🇳': (28.6139, 77.2090),
+      '🇨🇳': (39.9042, 116.4074),
+      '🇦🇺': (-33.8688, 151.2093),
+      '🇨🇦': (43.6532, -79.3832),
+      '🇲🇽': (19.4326, -99.1332),
+      '🇷🇺': (55.7558, 37.6173),
+      '🇹🇷': (41.0082, 28.9784),
+      '🇪🇬': (30.0444, 31.2357),
+      '🇿🇦': (-26.2041, 28.0473),
+      '🇹🇭': (13.7563, 100.5018),
+      '🇦🇷': (-34.6037, -58.3816),
+      '🇳🇱': (52.3676, 4.9041),
+      '🇸🇪': (59.3293, 18.0686),
+      '🇳🇴': (59.9139, 10.7522),
+      '🇵🇹': (38.7223, -9.1393),
+      '🇮🇩': (-6.2088, 106.8456),
+      '🇲🇾': (3.1390, 101.6869),
+      '🇸🇬': (1.3521, 103.8198),
+      '🇳🇿': (-36.8485, 174.7633),
+      '🇵🇭': (14.5995, 120.9842),
+      '🇻🇳': (10.7769, 106.7009),
+    };
+    return m[flag];
   }
 
   // ── 가상 회원 20개국 데이터 ──────────────────────────────────────────────
