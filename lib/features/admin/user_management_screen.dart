@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -669,6 +670,17 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       final ok = await FirestoreService.deleteDocument('users/${user.id}');
       if (!mounted) return;
       if (ok) {
+        // Build 290 (P1): 사용자 doc 만 삭제하면 그 사용자가 보낸 letter 본문 +
+        // senderId/Name 이 다른 사용자 inbox + 지도에 영구 잔존 → PII 누출.
+        // GDPR Art.17 준수를 위해 auth_service 의 best-effort scrub 와 동일하게
+        // letter 본문 빈문자열 overwrite + senderId/Name 익명화.
+        try {
+          await FirestoreService.scrubLettersBySender(user.id);
+        } catch (e) {
+          if (kDebugMode) {
+            debugPrint('[AdminDelete] letters scrub warning ${user.id}: $e');
+          }
+        }
         _users.removeWhere((u) => u.id == user.id);
         _applyFilter();
         _showSnack(l.koEn('🗑️ ${user.username} 삭제 완료', '🗑️ ${user.username} deleted'));

@@ -568,6 +568,13 @@ class PurchaseService extends ChangeNotifier {
       } else {
         _trialExpiry = expiry;
       }
+    } else if (_isPremium && !_isBrand && _nextBillingDate == null) {
+      // Build 290 (P0): secure storage 에 _isPremium=true 인데 giftExpiry 도
+      // billingDate 도 없으면 무결성 위반 → trial 부여 시 prefs write 실패한
+      // 케이스 의심. _isPremium 을 false 로 reset → 영구 무료 Premium 회귀 차단.
+      // (실제 결제 사용자는 _nextBillingDate 가 있으므로 영향 없음.)
+      _isPremium = false;
+      await _saveSecurePremiumState(isPremium: false, isBrand: _isBrand);
     }
 
     _nextBillingDate = _loadDateFromPrefs(
@@ -646,13 +653,21 @@ class PurchaseService extends ChangeNotifier {
     if (_isPremium || _isBrand) return; // 이미 보유 → no-op
     final prefs = await _getPrefs();
     final expiry = DateTime.now().add(Duration(days: days));
-    _isPremium = true;
-    _trialExpiry = expiry;
-    await _saveSecurePremiumState(isPremium: true, isBrand: false);
-    await prefs.setInt(
+    // Build 290 (P0): 영구 Premium 노출 방지 — prefs 부터 쓰고 (failure surface
+    // 가 큰 쪽) 그 다음 secure storage 에 쓴다. 만약 prefs 가 실패하면 secure
+    // storage 도 안 쓰여서 다음 launch 에 _isPremium=false 유지 → 영구 unlimited
+    // trial 회귀 차단.
+    final ok = await prefs.setInt(
       PrefKeys.purchaseGiftExpiry,
       expiry.millisecondsSinceEpoch,
     );
+    if (!ok) {
+      // prefs write 실패 → trial 부여 자체를 포기.
+      return;
+    }
+    _isPremium = true;
+    _trialExpiry = expiry;
+    await _saveSecurePremiumState(isPremium: true, isBrand: false);
     notifyListeners();
   }
 

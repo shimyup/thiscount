@@ -183,8 +183,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           TextButton(
             onPressed: () async {
-              if (newCtrl.text.length < 6) {
-                _showSnack(ctx, l.settingsPwMin6);
+              // Build 290 (P2): signUp 정규식 (8-20자 + 영문+숫자) 과 정렬.
+              // 이전엔 6자 min 만 검사 → 가입시 8자 강제와 불일치 → 비밀번호
+              // 변경 후 다음 로그인 시 형식 거부되는 회귀 발생.
+              final pwErr = AuthService.validatePassword(
+                newCtrl.text,
+                langCode: state.currentUser.languageCode,
+              );
+              if (pwErr != null) {
+                _showSnack(ctx, pwErr);
                 return;
               }
               if (newCtrl.text != confirmCtrl.text) {
