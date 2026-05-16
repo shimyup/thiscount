@@ -77,6 +77,17 @@ const Map<String, Map<String, String>> _authMessages = {
     'pt': 'Código de verificação inválido.',
     'ru': 'Неверный код подтверждения.',
   },
+  'otp_too_many_attempts': {
+    'ko': '인증 실패가 너무 많습니다. 인증 코드를 다시 요청해주세요.',
+    'en': 'Too many failed attempts. Please request a new code.',
+    'ja': '認証失敗が多すぎます。新しいコードをリクエストしてください。',
+    'zh': '验证失败次数过多。请重新请求验证码。',
+    'es': 'Demasiados intentos fallidos. Solicite un nuevo código.',
+    'fr': 'Trop d\'échecs. Demandez un nouveau code.',
+    'de': 'Zu viele Fehlversuche. Bitte neuen Code anfordern.',
+    'pt': 'Muitas tentativas falhas. Solicite um novo código.',
+    'ru': 'Слишком много неудачных попыток. Запросите новый код.',
+  },
   'username_min': {
     'ko': '2자 이상 입력해주세요',
     'en': 'Must be at least 2 characters',
@@ -417,6 +428,12 @@ class AuthService {
   static String? _pendingOtpEmail;
   static DateTime? _otpExpiresAt;
   static const _otpTtl = Duration(minutes: 10);
+  // Build 286 (보안): OTP 검증 실패 brute-force 차단.
+  // 6자리 OTP = 10^6 = 100만 조합. TTL 10분 동안 무제한 검증 가능했음.
+  // 실패 5회 이후 OTP 즉시 무효화 → 사용자 재발급 필요. 공격자는 새 OTP 발급
+  // rate limit (60s 쿨다운 + 10분당 5회) 에 묶임.
+  static int _otpVerifyFailures = 0;
+  static const _maxOtpVerifyAttempts = 5;
 
   // ── OTP Rate Limiting ────────────────────────────────────────────────────────
   // 10분 윈도우 내 최대 5회 요청 + 요청 간 60초 쿨다운
@@ -483,6 +500,7 @@ class AuthService {
     _pendingOtpHash = _hashOtp(code); // 평문 대신 해시만 보관
     _pendingOtpEmail = email.trim().toLowerCase();
     _otpExpiresAt = now.add(_otpTtl);
+    _otpVerifyFailures = 0; // 새 OTP 발급 시 실패 카운터 리셋
     // 이메일 발송 연동 필요: Firebase Extensions "Trigger Email" 또는
     // SendGrid / Mailgun 등의 SMTP API를 사용하여 _pendingOtp 코드를 발송하세요.
     // 예) await EmailService.sendOtp(email: email, code: code);
@@ -518,12 +536,23 @@ class AuthService {
     }
     // 입력값을 해시화하여 저장된 해시와 비교 (타이밍 공격 방지)
     if (_pendingOtpHash != _hashOtp(otp.trim())) {
+      _otpVerifyFailures++;
+      // Build 286: 5회 실패 후 OTP 즉시 무효화 → brute force 방어.
+      // 공격자는 새 OTP 발급 받아야 함 (60s 쿨다운 + 5회/10분 rate limit 묶임).
+      if (_otpVerifyFailures >= _maxOtpVerifyAttempts) {
+        _pendingOtpHash = null;
+        _pendingOtpEmail = null;
+        _otpExpiresAt = null;
+        _otpVerifyFailures = 0;
+        return _authMsg('otp_too_many_attempts', langCode);
+      }
       return _authMsg('otp_invalid', langCode);
     }
-    // 인증 성공 → OTP 무효화
+    // 인증 성공 → OTP 무효화 + 실패 카운터 리셋
     _pendingOtpHash = null;
     _pendingOtpEmail = null;
     _otpExpiresAt = null;
+    _otpVerifyFailures = 0;
     return null;
   }
 

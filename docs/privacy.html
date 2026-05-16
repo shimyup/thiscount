@@ -356,25 +356,48 @@
         <span class="section-title">5. 제3자 제공 및 처리 위탁</span>
       </div>
       <div class="section-body">
-        <p>Thiscount는 원칙적으로 수집된 개인정보를 제3자에게 제공하지 않습니다.<br/>
-        단, 서비스 운영을 위해 아래 업체에 처리를 위탁합니다.</p>
+        <p>Thiscount는 원칙적으로 수집된 개인정보를 제3자에게 판매하지 않습니다.<br/>
+        단, 서비스 운영을 위해 아래 업체에 처리를 위탁하며,
+        <strong>회원 가입 시 별도의 동의 절차</strong>를 통해 명시적으로 안내합니다
+        (KISA 정보통신망법 제24조의2 및 GDPR Art.6 준수).</p>
         <table style="margin-top:12px;">
           <tr>
             <th>수탁 업체</th>
             <th>위탁 업무</th>
+            <th>처리 정보</th>
             <th>보유 기간</th>
           </tr>
           <tr>
             <td>Google Firebase</td>
-            <td>데이터베이스 저장, 인증, 푸시 알림</td>
-            <td>위탁 계약 종료 시</td>
+            <td>인증, 데이터베이스, 푸시 알림</td>
+            <td>이메일, 위치(~110m 정밀도), 프로필, 활동 데이터</td>
+            <td>회원 탈퇴 시 30일 이내</td>
           </tr>
           <tr>
             <td>Stadia Maps</td>
-            <td>지도 타일 제공 (지도 요청 좌표/네트워크 메타데이터 처리 가능)</td>
-            <td>해당 없음</td>
+            <td>지도 타일 제공</td>
+            <td>요청 좌표 및 네트워크 메타데이터</td>
+            <td>해당 없음 (즉시 폐기)</td>
+          </tr>
+          <tr>
+            <td>RevenueCat</td>
+            <td>구독 결제 처리</td>
+            <td>익명 사용자 ID, 결제 상태 (카드 정보는 처리 안 함 — Apple/Google 직접 처리)</td>
+            <td>구독 종료 후 1년</td>
+          </tr>
+          <tr>
+            <td>Resend</td>
+            <td>OTP 인증 이메일 발송</td>
+            <td>이메일 주소, OTP 코드 (SHA-256 해시만 서버 저장)</td>
+            <td>발송 후 10분 (OTP 만료)</td>
           </tr>
         </table>
+        <p style="margin-top:12px;font-size:13px;color:#666;">
+          ※ 사용자는 회원 가입 시점에 위 처리 위탁에 대해 별도 동의 체크박스로
+          인지하며, 미동의 시 서비스 가입이 제한됩니다. 가입 후 동의 철회는
+          회원 탈퇴를 통해 가능하며, 탈퇴 시 위탁 업체의 데이터도 30일 이내
+          삭제됩니다 (Firebase는 hard-delete cron, 그 외는 위탁 계약 종료 시).
+        </p>
       </div>
     </div>
 
@@ -613,12 +636,48 @@
       </div>
       <div class="section-body">
         <p>Thiscount does not sell personal information to third parties.<br/>
-        The following processors are used to operate the service:</p>
+        The following processors are used to operate the service, and
+        <strong>users explicitly consent at sign-up</strong> via a dedicated
+        checkbox (Korean ICT Network Act Art. 24-2 and GDPR Art. 6).</p>
         <table style="margin-top:12px;">
-          <tr><th>Processor</th><th>Purpose</th><th>Retention</th></tr>
-          <tr><td>Google Firebase</td><td>Database, authentication, push notifications</td><td>Until contract ends</td></tr>
-          <tr><td>Stadia Maps</td><td>Map tile delivery (map request coordinates/network metadata may be processed)</td><td>N/A</td></tr>
+          <tr>
+            <th>Processor</th>
+            <th>Purpose</th>
+            <th>Data Processed</th>
+            <th>Retention</th>
+          </tr>
+          <tr>
+            <td>Google Firebase</td>
+            <td>Authentication, database, push notifications</td>
+            <td>Email, location (~110m precision), profile, activity</td>
+            <td>Within 30 days of account deletion</td>
+          </tr>
+          <tr>
+            <td>Stadia Maps</td>
+            <td>Map tile delivery</td>
+            <td>Request coordinates and network metadata</td>
+            <td>N/A (discarded immediately)</td>
+          </tr>
+          <tr>
+            <td>RevenueCat</td>
+            <td>Subscription billing</td>
+            <td>Anonymous user ID, subscription state (card info NOT processed — handled directly by Apple/Google)</td>
+            <td>1 year after subscription ends</td>
+          </tr>
+          <tr>
+            <td>Resend</td>
+            <td>OTP verification email delivery</td>
+            <td>Email address, OTP (only SHA-256 hash stored server-side)</td>
+            <td>10 min post-delivery (OTP expiry)</td>
+          </tr>
         </table>
+        <p style="margin-top:12px;font-size:13px;color:#666;">
+          ※ Users acknowledge these processors via a dedicated consent checkbox
+          at sign-up; account registration is restricted without consent.
+          Withdrawal of consent post-signup requires account deletion, which
+          triggers data removal from processors within 30 days (Firebase via
+          hard-delete cron; others on contract end).
+        </p>
       </div>
     </div>
 
