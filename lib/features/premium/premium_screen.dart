@@ -9,7 +9,6 @@ import '../../core/theme/app_theme.dart';
 import '../../core/services/feedback_service.dart';
 import '../../core/services/purchase_service.dart';
 import '../../core/localization/app_localizations.dart';
-import 'premium_collections.dart';
 import '../../state/app_state.dart';
 
 class PremiumScreen extends StatefulWidget {
@@ -27,9 +26,14 @@ class _PremiumScreenState extends State<PremiumScreen> {
   void initState() {
     super.initState();
     // Build 215: 이전 buy 시도가 남긴 stale 에러 클리어 — 화면 다시 들어오면 깨끗.
+    // Build 285: 동시에 RevenueCat offerings 강제 refresh — 구독 변경 시 상품
+    // 정보가 stale 또는 null 이라 "상품 정보를 불러올 수 없습니다" 가 뜨던 회귀
+    // 차단.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      context.read<PurchaseService>().clearError();
+      final purchase = context.read<PurchaseService>();
+      purchase.clearError();
+      purchase.refreshOfferings();
     });
   }
 
@@ -248,12 +252,8 @@ class _PremiumScreenState extends State<PremiumScreen> {
                     ),
                   ),
 
-                // 비구독자에게만 컬렉션 스토리를 먼저 노출 — 기능 나열 대신
-                // "라이프스타일 패키지"로 감성 프레이밍
-                if (!isPremium && !isBrand) ...[
-                  const PremiumCollectionsPreview(),
-                  const SizedBox(height: 20),
-                ],
+                // Build 285: 컬렉션 3섹션 (Aurora/Harvest/Postmaster) 노출
+                // 제거 — 플랜 카드 직접 노출이 의사결정 더 빠름.
 
                 // 디버그 전용: 프리미엄 상태 토글
                 if (kDebugMode) ...[

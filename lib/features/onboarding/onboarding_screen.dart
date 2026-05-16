@@ -98,11 +98,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               permission == LocationPermission.whileInUse;
           _locationChecking = false;
         });
-        if (_locationGranted) {
-          // 자동으로 다음 페이지
-          await Future.delayed(const Duration(milliseconds: 400));
-          if (mounted) _nextPage();
-        }
+        // Build 285: 권한 허용 후 자동 페이지 넘김 제거.
+        // 사용자가 "다음" 또는 swipe 로 직접 진행 — UX 일관성 확보.
       }
     } catch (_) {
       if (mounted) setState(() => _locationChecking = false);

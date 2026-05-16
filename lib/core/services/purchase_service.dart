@@ -471,6 +471,26 @@ class PurchaseService extends ChangeNotifier {
     _isRevenueCatConfigured = true;
   }
 
+  // Build 285: premium_screen 진입 시 호출 — offerings 가 null 이거나 stale
+  // 일 때 즉시 refresh. 사용자가 plan 변경하려고 화면 열면 항상 최신 상품
+  // 정보를 보여주기 위함.
+  Future<bool> refreshOfferings() async {
+    if (_isTestMode || _isBetaFreePremium || _isBetaUpgradeSimulator) {
+      return true;
+    }
+    if (!_isRcKeyConfiguredForCurrentPlatform) return false;
+    try {
+      final ready = await _ensureRevenueCatConfigured();
+      if (!ready) return false;
+      _offerings = await Purchases.getOfferings();
+      notifyListeners();
+      return true;
+    } on PlatformException catch (e) {
+      if (kDebugMode) debugPrint('[PurchaseService] offering refresh 실패: $e');
+      return false;
+    }
+  }
+
   void _onCustomerInfoUpdated(CustomerInfo info) {
     _applyCustomerInfo(info);
     unawaited(_persistBillingDateToPrefs());
