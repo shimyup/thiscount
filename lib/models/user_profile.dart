@@ -431,6 +431,10 @@ class UserProfile {
   List<String> followerIds; // IDs of users who follow me
   bool isUsernamePublic; // 닉네임 공개 여부
   bool isSnsPublic; // SNS 링크 공개 여부
+  // Build 290 (P1): isMapPublic 을 isUsernamePublic 과 독립 — 이전엔 Firestore
+  // 에 동일 값으로 저장됐음 (audit E2/E9). 사용자가 닉네임 공개는 끄되 지도
+  // 표시는 유지 / 또는 반대 케이스 분리 제어 가능.
+  bool isMapPublic; // 지도 노출 여부 (Build 290 — 독립 필드로 분리)
   // ── 프리미엄/유료 전용 필드 ──────────────────────────────────────────────
   bool isBrand; // 브랜드/크리에이터 인증 계정
   String? brandName; // 브랜드 표시명
@@ -480,6 +484,7 @@ class UserProfile {
     List<String>? followerIds,
     this.isUsernamePublic = true,
     this.isSnsPublic = true,
+    this.isMapPublic = true,
     this.isBrand = false,
     this.brandName,
     this.towerColor = '#FFD700',

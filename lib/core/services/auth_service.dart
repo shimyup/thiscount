@@ -909,8 +909,14 @@ class AuthService {
   }
 
   /// 이메일 유효성 검사
+  /// Build 290 (보안 P1): trim() 만으론 \n / \r / null byte 등 control char
+  /// 차단 안 됨 → log injection / dual-account 가능. 명시적으로 controls 차단.
   static String? validateEmail(String email, {String langCode = 'en'}) {
     if (email.isEmpty) return _authMsg('email_required', langCode);
+    // 모든 control char + 줄바꿈 차단
+    if (RegExp(r'[\x00-\x1f\x7f]').hasMatch(email)) {
+      return _authMsg('email_invalid', langCode);
+    }
     if (!_emailRe.hasMatch(email)) return _authMsg('email_invalid', langCode);
     return null;
   }

@@ -4108,8 +4108,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         if (hasValidCoords)
           'lastKnownLongitude': {'doubleValue': coarseLng},
         'isUsernamePublic': {'booleanValue': _currentUser.isUsernamePublic},
-        // 지도 노출은 명시적 opt-in 필드로 관리
-        'isMapPublic': {'booleanValue': _currentUser.isUsernamePublic},
+        // Build 290 (P1): isMapPublic 을 isUsernamePublic 과 독립으로 저장.
+        // 이전엔 같은 값 강제 → 사용자가 둘을 분리 제어 불가했음 (audit E2/E9).
+        'isMapPublic': {'booleanValue': _currentUser.isMapPublic},
         // 로그아웃 스냅샷 + 최근 활동 타임스탬프
         'lastSeenAt': {
           'timestampValue': DateTime.now().toUtc().toIso8601String(),

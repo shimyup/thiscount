@@ -520,6 +520,19 @@ class _InboxScreenState extends State<InboxScreen>
     }).toList();
   }
 
+  // Build 290 (P1): inbox/sent letter 를 도착(또는 발송) 시각 DESC 로 정렬.
+  // 이전엔 `.reversed.toList()` 만 사용 → 원본 list 가 ASC 정렬됐다는 전제
+  // 가 깨지면 무작위 순서. arrivedAt 이 null 이면 sentAt 으로 fallback.
+  List<Letter> _sortByArrivedDesc(List<Letter> letters) {
+    final sorted = List<Letter>.from(letters);
+    sorted.sort((a, b) {
+      final ta = a.arrivedAt ?? a.sentAt;
+      final tb = b.arrivedAt ?? b.sentAt;
+      return tb.compareTo(ta); // DESC
+    });
+    return sorted;
+  }
+
   // Build 115: 팔로우한 브랜드의 편지는 인박스 상단에 고정. stable sort 라
   // 같은 follow/non-follow 그룹 내부의 시간 역순은 보존된다.
   List<Letter> _sortFollowedFirst(AppState state, List<Letter> letters) {
@@ -721,7 +734,7 @@ class _InboxScreenState extends State<InboxScreen>
                         ? [
                             _SentTab(
                               letters: _applyFilter(
-                                state.sent.reversed.toList(),
+                                _sortByArrivedDesc(state.sent.toList()),
                                 filter: _sentFilter,
                                 isInbox: false,
                               ),
@@ -734,15 +747,14 @@ class _InboxScreenState extends State<InboxScreen>
                               letters: _applyFilter(
                                 _sortFollowedFirst(
                                   state,
-                                  state.inbox
-                                      .where(
-                                        (l) =>
-                                            !(l.senderIsBrand &&
-                                                state.isBrandMuted(l.senderId)),
-                                      )
-                                      .toList()
-                                      .reversed
-                                      .toList(),
+                                  _sortByArrivedDesc(
+                                    state.inbox
+                                        .where(
+                                          (l) => !(l.senderIsBrand &&
+                                              state.isBrandMuted(l.senderId)),
+                                        )
+                                        .toList(),
+                                  ),
                                 ),
                                 filter: _inboxFilter,
                                 isInbox: true,
@@ -788,7 +800,7 @@ class _InboxScreenState extends State<InboxScreen>
                             ),
                             _SentTab(
                               letters: _applyFilter(
-                                state.sent.reversed.toList(),
+                                _sortByArrivedDesc(state.sent.toList()),
                                 filter: _sentFilter,
                                 isInbox: false,
                               ),
@@ -908,7 +920,7 @@ class _InboxScreenState extends State<InboxScreen>
                   onTap: () {
                     _tabController.animateTo(0);
                     final letters = _applyFilter(
-                      state.inbox.reversed.toList(),
+                      _sortByArrivedDesc(state.inbox.toList()),
                       filter: _inboxFilter,
                       isInbox: true,
                     );
