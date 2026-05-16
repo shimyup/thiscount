@@ -23836,6 +23836,113 @@ class AppL10n {
     'th': 'กรุณายอมรับข้อกำหนดการใช้งาน',
   });
 
+  // Build 286: 만 14세 이상 미동의 에러 메시지.
+  String get authMustAgreeAge14 => _t({
+    'ko': '만 14세 이상 동의가 필요합니다',
+    'en': 'Please confirm you are 14 years or older',
+    'ja': '14歳以上であることに同意してください',
+    'zh': '请确认您已年满 14 岁',
+    'fr': 'Veuillez confirmer que vous avez 14 ans ou plus',
+    'de': 'Bitte bestätigen Sie, dass Sie 14 Jahre oder älter sind',
+    'es': 'Confirme que tiene 14 años o más',
+    'pt': 'Confirme que tem 14 anos ou mais',
+    'ru': 'Подтвердите, что вам 14 лет или больше',
+    'tr': '14 yaşında veya daha büyük olduğunuzu onaylayın',
+    'ar': 'يرجى تأكيد أن عمرك 14 عامًا أو أكثر',
+    'it': 'Conferma di avere 14 anni o più',
+    'hi': 'कृपया पुष्टि करें कि आप 14 वर्ष या उससे अधिक हैं',
+    'th': 'โปรดยืนยันว่าคุณอายุ 14 ปีขึ้นไป',
+  });
+
+  // Build 286: 제3자 정보 제공 미동의 에러 메시지.
+  String get authMustAgreeThirdParty => _t({
+    'ko': '개인정보 제3자 제공에 동의해주세요',
+    'en': 'Please agree to share data with third parties',
+    'ja': '個人情報の第三者提供に同意してください',
+    'zh': '请同意向第三方共享个人信息',
+    'fr': 'Veuillez accepter le partage des données avec des tiers',
+    'de': 'Bitte stimmen Sie der Datenweitergabe an Dritte zu',
+    'es': 'Acepte compartir datos con terceros',
+    'pt': 'Concorde com o compartilhamento de dados com terceiros',
+    'ru': 'Согласитесь на передачу данных третьим лицам',
+    'tr': 'Lütfen verilerin üçüncü taraflarla paylaşılmasını kabul edin',
+    'ar': 'يرجى الموافقة على مشاركة البيانات مع أطراف ثالثة',
+    'it': 'Accetta la condivisione dei dati con terze parti',
+    'hi': 'कृपया तृतीय पक्षों के साथ डेटा साझा करने के लिए सहमत हों',
+    'th': 'โปรดยอมรับการแบ่งปันข้อมูลกับบุคคลที่สาม',
+  });
+
+  // Build 286 (KISA 정보통신망법 제24조의2): 제3자 정보 제공 동의 — 체크박스 타이틀.
+  String get authThirdPartySharingTitle => _t({
+    'ko': '개인정보 제3자 제공 동의 (필수)',
+    'en': 'Third-Party Data Sharing (Required)',
+    'ja': '個人情報の第三者提供に同意 (必須)',
+    'zh': '同意向第三方共享个人信息 (必填)',
+    'fr': 'Partage de données avec des tiers (Obligatoire)',
+    'de': 'Weitergabe an Dritte (Erforderlich)',
+    'es': 'Compartir datos con terceros (Obligatorio)',
+    'pt': 'Compartilhamento com terceiros (Obrigatório)',
+    'ru': 'Передача данных третьим лицам (Обязательно)',
+    'tr': 'Üçüncü taraflarla veri paylaşımı (Zorunlu)',
+    'ar': 'مشاركة البيانات مع أطراف ثالثة (إلزامي)',
+    'it': 'Condivisione con terzi (Obbligatorio)',
+    'hi': 'तृतीय पक्ष डेटा साझाकरण (आवश्यक)',
+    'th': 'การแบ่งปันข้อมูลกับบุคคลที่สาม (จำเป็น)',
+  });
+
+  // Build 286: 제3자 정보 제공 동의 — 체크박스 설명. 처리 위탁 업체 명시.
+  String get authThirdPartySharingDesc => _t({
+    'ko':
+        '서비스 운영을 위해 다음 업체에 정보 처리를 위탁합니다: Google Firebase '
+        '(인증/DB/푸시), Stadia Maps (지도), RevenueCat (결제), Resend (이메일). '
+        '미동의 시 서비스 이용이 제한됩니다.',
+    'en':
+        'For service operation, data is processed by: Google Firebase (auth/DB/push), '
+        'Stadia Maps (maps), RevenueCat (purchase), Resend (email). '
+        'Service is limited without consent.',
+    'ja':
+        'サービス運営のため、以下の業者に情報処理を委託します: Google Firebase '
+        '(認証/DB/プッシュ), Stadia Maps (地図), RevenueCat (決済), Resend (メール).'
+        ' 同意がない場合、サービス利用が制限されます。',
+    'zh':
+        '为服务运营，信息将由以下机构处理：Google Firebase（认证/数据库/推送）、'
+        'Stadia Maps（地图）、RevenueCat（支付）、Resend（邮件）。'
+        '未同意时服务将受限。',
+    'fr':
+        'Pour l\'exploitation, les données sont traitées par : Google Firebase '
+        '(auth/BD/push), Stadia Maps (cartes), RevenueCat (paiement), Resend (e-mail).'
+        ' Service limité sans consentement.',
+    'de':
+        'Für den Betrieb verarbeiten: Google Firebase (Auth/DB/Push), '
+        'Stadia Maps (Karten), RevenueCat (Zahlung), Resend (E-Mail). '
+        'Ohne Zustimmung eingeschränkter Dienst.',
+    'es':
+        'Para la operación: Google Firebase (auth/BD/push), Stadia Maps (mapas), '
+        'RevenueCat (compra), Resend (correo). Servicio limitado sin consentimiento.',
+    'pt':
+        'Para operação: Google Firebase (auth/BD/push), Stadia Maps (mapas), '
+        'RevenueCat (compra), Resend (e-mail). Serviço limitado sem consentimento.',
+    'ru':
+        'Для работы: Google Firebase (аутентификация/БД/push), Stadia Maps (карты), '
+        'RevenueCat (оплата), Resend (email). Без согласия сервис ограничен.',
+    'tr':
+        'Hizmet için: Google Firebase (kimlik/DB/push), Stadia Maps (harita), '
+        'RevenueCat (ödeme), Resend (e-posta). Onay olmadan hizmet sınırlıdır.',
+    'ar':
+        'لتشغيل الخدمة، تتم المعالجة بواسطة: Google Firebase (المصادقة/قاعدة البيانات/التنبيهات)، '
+        'Stadia Maps (الخرائط)، RevenueCat (المدفوعات)، Resend (البريد الإلكتروني). '
+        'الخدمة محدودة بدون موافقة.',
+    'it':
+        'Per il servizio: Google Firebase (auth/DB/push), Stadia Maps (mappe), '
+        'RevenueCat (pagamenti), Resend (e-mail). Servizio limitato senza consenso.',
+    'hi':
+        'सेवा के लिए: Google Firebase (प्रमाणीकरण/DB/पुश), Stadia Maps (मानचित्र), '
+        'RevenueCat (खरीद), Resend (ईमेल). सहमति के बिना सेवा सीमित।',
+    'th':
+        'เพื่อการให้บริการ: Google Firebase (auth/DB/push), Stadia Maps (แผนที่), '
+        'RevenueCat (การชำระเงิน), Resend (อีเมล). บริการจำกัดหากไม่ยินยอม',
+  });
+
   // ══════════════════════════════════════════════════════════════════════════
   // ── Compose: Recall Last Letter ─────────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════

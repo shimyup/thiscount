@@ -1087,6 +1087,20 @@ class _SignupTabState extends State<_SignupTab> {
   // 한국 정보통신망법 제31조 + GDPR Art.8 (EU 16세 미만 별도 동의 필요).
   // 향후 launch 직전 생년월일 입력으로 강화 예정. 베타에선 self-attestation 으로 시작.
   bool _agreeAgeAbove14 = false;
+  // Build 286 (P0 KISA 정보통신망법 제24조의2): 개인정보 제3자 제공 동의.
+  // Firebase / Stadia Maps / RevenueCat 등 처리 위탁 업체 명시. 별도 동의로
+  // privacy 동의와 분리 — 사용자가 의식적으로 인지하도록 함.
+  bool _agreeThirdPartySharing = false;
+
+  // Build 286 (보안 A3): 동의 audit log 를 Keychain/EncryptedSharedPreferences
+  // 로 옮김. 이전엔 SharedPreferences plain text 라 device root 환경에서 위변
+  // 조 가능. 일반 prefs 와 비교해 forensic 무결성 확보.
+  static const FlutterSecureStorage _consentStore = FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    iOptions: IOSOptions(
+      accessibility: KeychainAccessibility.first_unlock_this_device,
+    ),
+  );
 
   // ── 핸드폰 번호 (필수) + 국가코드 + 인증 수단 선택 ──
   final _phoneCtrl = TextEditingController();
@@ -1120,11 +1134,16 @@ class _SignupTabState extends State<_SignupTab> {
   int _otpCountdown = 0; // 남은 시간 (초)
   Timer? _otpTimer; // 타이머
 
-  // 가입 버튼 활성화 조건 (개인정보 + 이용약관 + 만 14세 이상 동의)
+  // 가입 버튼 활성화 조건 (개인정보 + 이용약관 + 만 14세 이상 + 제3자 제공 동의)
   // 전화번호는 선택 사항 — SMS 인증 미사용 중.
   // Build 276: _agreeAgeAbove14 추가 (GDPR/KISA 미성년자 보호).
+  // Build 286: _agreeThirdPartySharing 추가 (KISA 제24조의2 + GDPR Art.6).
   bool get _canSignUp =>
-      _agreePrivacy && _agreeTerms && _agreeAgeAbove14 && !_isLoading;
+      _agreePrivacy &&
+      _agreeTerms &&
+      _agreeAgeAbove14 &&
+      _agreeThirdPartySharing &&
+      !_isLoading;
 
   @override
   void initState() {
@@ -1229,6 +1248,14 @@ class _SignupTabState extends State<_SignupTab> {
     }
     if (!_agreeTerms) {
       setState(() => _error = l10n.authMustAgreeTerms);
+      return;
+    }
+    if (!_agreeAgeAbove14) {
+      setState(() => _error = l10n.authMustAgreeAge14);
+      return;
+    }
+    if (!_agreeThirdPartySharing) {
+      setState(() => _error = l10n.authMustAgreeThirdParty);
       return;
     }
     // 폼 기본 검증
@@ -1357,13 +1384,19 @@ class _SignupTabState extends State<_SignupTab> {
     }
 
     // 동의 타임스탬프 저장 (GDPR/개인정보보호법 대응)
+    // Build 286: SharedPreferences → FlutterSecureStorage 로 이전.
+    // forensic 무결성 + device root 환경에서 위변조 차단.
     try {
-      final prefs = await SharedPreferences.getInstance();
       final ts = DateTime.now().toIso8601String();
-      await prefs.setString('consent_privacy_ts', ts);
-      await prefs.setString('consent_terms_ts', ts);
+      await _consentStore.write(key: 'consent_privacy_ts', value: ts);
+      await _consentStore.write(key: 'consent_terms_ts', value: ts);
       // Build 276: 만 14세 이상 동의 timestamp (KISA + GDPR audit log).
-      await prefs.setString('consent_age_above14_ts', ts);
+      await _consentStore.write(key: 'consent_age_above14_ts', value: ts);
+      // Build 286: 제3자 정보 제공 동의 timestamp (KISA 제24조의2).
+      await _consentStore.write(
+        key: 'consent_third_party_sharing_ts',
+        value: ts,
+      );
     } catch (_) {}
 
     // Build 262: 신규 가입 무료 Premium 부여 (cold-start 해소).
@@ -1854,6 +1887,23 @@ class _SignupTabState extends State<_SignupTab> {
             langCode: widget.langCode,
             onCheckChanged: (v) =>
                 setState(() => _agreeAgeAbove14 = v ?? false),
+          ),
+          const SizedBox(height: 10),
+
+          // ── 6-3. Build 286 (P0 KISA 제24조의2): 제3자 정보 제공 동의.
+          // Firebase / Stadia Maps / RevenueCat / Resend 처리 위탁 명시.
+          // privacy 동의와 분리해 사용자가 의식적으로 인지하도록.
+          _ConsentCard(
+            checked: _agreeThirdPartySharing,
+            icon: Icons.swap_horiz_rounded,
+            iconColor: AppColors.gold,
+            title: l10n.authThirdPartySharingTitle,
+            linkLabel: l10n.authViewContent,
+            description: l10n.authThirdPartySharingDesc,
+            langCode: widget.langCode,
+            onCheckChanged: (v) =>
+                setState(() => _agreeThirdPartySharing = v ?? false),
+            onLinkTap: _openPrivacyPolicy,
           ),
           const SizedBox(height: 10),
 
