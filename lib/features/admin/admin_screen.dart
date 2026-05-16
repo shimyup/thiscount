@@ -380,6 +380,25 @@ class _AdminScreenState extends State<AdminScreen> {
             onTap: () => _sendSystemLetter(state),
           ),
           _divider(),
+          // Build 284 (PR #20): 관리자 특별 메시지 zone 생성. 좌표 + 반경 +
+          // 메시지 + 시간 + 수량 입력 → Firestore brand_zones 컬렉션에
+          // brandId='admin' 으로 POST. 일반 사용자가 zone 안에 들어오면
+          // BrandZoneService.triggerForUser 가 letter 자동 발급, 지도에
+          // AutoDropMarker (gold 핀+%) 로 차별 표시.
+          _actionTile(
+            icon: Icons.campaign_rounded,
+            iconColor: AppColors.premium,
+            label: l.koEn('🎯 특별 메시지 zone 생성', '🎯 Special Message Zone'),
+            subtitle: l.koEn(
+              '내 위치 주변 반경에 자동 발급 zone 만들기 (관리자 전용)',
+              'Create auto-drop zone around my location (admin only)',
+            ),
+            onTap: () => Navigator.pushNamed(
+              context,
+              '/admin_special_message',
+            ),
+          ),
+          _divider(),
           // 🎯 ExactDrop 크레딧 충전 (브랜드 전용 유료 기능) — Build 108
           // 현재 잔고 + "100 충전" / "1000 충전" / "초기화" 버튼 3개.
           // 실제 결제 연동은 후속. 관리자 수동 충전으로 운영.
