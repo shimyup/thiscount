@@ -54,6 +54,10 @@ class BrandZoneService {
       _cachedAt != null &&
       DateTime.now().difference(_cachedAt!).compareTo(_cacheTtl) < 0;
 
+  /// Build 289: admin/brand 화면에서 zone 목록을 보기 위한 read-only accessor.
+  /// 최신 캐시 그대로 (admin 만 사용 — 별도 PII 위험 없음).
+  List<BrandZone> get allCached => List.unmodifiable(_cache);
+
   /// 앱 부팅 또는 zone fetch 강제 시.
   Future<void> warmUp({bool force = false}) async {
     if (!force && _hasCacheFresh) return;

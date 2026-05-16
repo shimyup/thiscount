@@ -16,6 +16,7 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 import '../../core/config/firebase_config.dart';
+import '../../core/services/brand_zone_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/brand_zone.dart';
 import '../../models/letter.dart' show LatLng;
@@ -307,10 +308,190 @@ class _AdminSpecialMessageScreenState extends State<AdminSpecialMessageScreen> {
                         ),
                 ),
               ),
+              const SizedBox(height: 28),
+              // Build 289: 최근 생성 zone 목록 + 픽업/사용 카운터.
+              // 페르소나 피드백 "Brand/Admin 가 zone 생성 후 피드백 루프 없음"
+              // 해소. BrandZoneService 캐시 사용 → 같은 데이터 소스. admin 만
+              // 진입 가능한 화면이므로 PII 위험 없음.
+              const _RecentZonesList(),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Build 289: brand_zones 컬렉션의 활성 + 만료 zone 5개를 redeemed/max 와 함께
+/// 표시. BrandZoneService 의 캐시 (5분 TTL) 를 그대로 사용.
+class _RecentZonesList extends StatefulWidget {
+  const _RecentZonesList();
+  @override
+  State<_RecentZonesList> createState() => _RecentZonesListState();
+}
+
+class _RecentZonesListState extends State<_RecentZonesList> {
+  bool _loading = true;
+  List<BrandZone> _zones = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      await BrandZoneService.instance.warmUp(force: true);
+      if (!mounted) return;
+      final all = BrandZoneService.instance.allCached;
+      // admin 생성 zone 만 + 최근 5개.
+      final filtered = all.where((z) => z.brandId == 'admin').toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      setState(() {
+        _zones = filtered.take(5).toList();
+        _loading = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+    if (_zones.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Text(
+          '아직 생성된 admin zone 이 없습니다.',
+          style: TextStyle(color: AppColors.textMuted, fontSize: 12.5),
+        ),
+      );
+    }
+    final now = DateTime.now();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Text(
+              '📋 내가 만든 zone (최근 5개)',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const Spacer(),
+            TextButton(
+              onPressed: () {
+                setState(() => _loading = true);
+                _load();
+              },
+              child: const Text('새로고침', style: TextStyle(fontSize: 11)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        for (final z in _zones)
+          Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.bgCard,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: z.expiresAt.isAfter(now)
+                    ? AppColors.premium.withValues(alpha: .35)
+                    : AppColors.textMuted.withValues(alpha: .2),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: z.expiresAt.isAfter(now)
+                            ? AppColors.success.withValues(alpha: .2)
+                            : AppColors.textMuted.withValues(alpha: .2),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        z.expiresAt.isAfter(now) ? '활성' : '만료',
+                        style: TextStyle(
+                          color: z.expiresAt.isAfter(now)
+                              ? AppColors.success
+                              : AppColors.textMuted,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '반경 ${z.radiusM.toInt()}m',
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 11,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      '${z.redeemedCount} / ${z.maxRedeems == 0 ? '∞' : z.maxRedeems}',
+                      style: TextStyle(
+                        color: AppColors.premium,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  z.content,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 12.5,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '생성 ${z.createdAt.toLocal().toString().substring(0, 16)} · '
+                  '만료 ${z.expiresAt.toLocal().toString().substring(0, 16)}',
+                  style: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 10.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }

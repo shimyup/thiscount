@@ -429,7 +429,7 @@ class _TierComparePage extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    '신규 가입 7일 Premium 무료 체험\n언제든 해지 가능',
+                    '신규 가입 3일 Premium 무료 체험\n언제든 해지 가능',
                     style: TextStyle(
                       color: p.textPrimary,
                       fontSize: 13,
@@ -672,7 +672,7 @@ class _ReadyPage extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            '7일 무료 Premium 체험과 함께\n시작해 보세요.',
+            '3일 무료 Premium 체험과 함께\n시작해 보세요.',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: p.textSecondary,
