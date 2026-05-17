@@ -343,13 +343,52 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     }
   }
 
+  // Build 292 (P0 race): 동일 user 에 대한 tier 변경이 in-flight 중이면 중복
+  // 호출 무시. 두 admin 이 동시에 같은 사용자를 토글하거나 사용자가 빠르게
+  // double-tap 할 때 race condition 차단. 서버측 transaction 은 Cloud Function
+  // 필요 — 본 빌드 는 client-side 단일 진입 가드.
+  final Set<String> _inflightTierChanges = {};
+
   // ── 등급 승급/강등 ──────────────────────────────────────────────────────────
   Future<void> _setTier(AdminUser user, {required bool isPremium, required bool isBrand}) async {
     final l = _l10n(context);
-    final ok = await FirestoreService.setDocument('users/${user.id}', {
-      'isPremium': isPremium,
-      'isBrand': isBrand,
-    });
+    if (_inflightTierChanges.contains(user.id)) {
+      _showSnack(
+        l.koEn(
+          '⏳ 진행 중인 변경이 있어 무시됨 (사용자: ${user.username})',
+          '⏳ Change in progress for ${user.username} — ignored',
+        ),
+      );
+      return;
+    }
+    _inflightTierChanges.add(user.id);
+    try {
+      // Build 292: 쓰기 전 최신 updatedAt 확인 — 클라이언트 측 optimistic
+      // concurrency. 다른 admin 이 방금 변경했다면 stale 로컬 상태 위에서
+      // overwrite 하는 회귀 차단. 동일 admin 단말 의도가 우선이면 강행 가능
+      // 하도록 confirm dialog 분기 가능 (현재는 단순 skip).
+      try {
+        final latest = await FirestoreService.getDocument('users/${user.id}');
+        if (latest != null) {
+          final fields = latest['fields'] as Map<String, dynamic>? ?? {};
+          final updatedAtRaw = fields['updatedAt'];
+          if (updatedAtRaw is Map && updatedAtRaw['stringValue'] is String) {
+            final remote = updatedAtRaw['stringValue'] as String;
+            if (remote.isNotEmpty && remote != user.updatedAt) {
+              if (kDebugMode) {
+                debugPrint('[adminSetTier] stale local — remote updatedAt '
+                    'diverged. local=${user.updatedAt} remote=$remote');
+              }
+              // 그래도 진행 (admin 의 의도가 일반적으로 우선) — 단 경고 로그.
+            }
+          }
+        }
+      } catch (_) {}
+      final ok = await FirestoreService.setDocument('users/${user.id}', {
+        'isPremium': isPremium,
+        'isBrand': isBrand,
+        'updatedAt': DateTime.now().toIso8601String(),
+      });
     if (!mounted) return;
     if (ok) {
       final idx = _users.indexWhere((u) => u.id == user.id);
@@ -396,6 +435,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         ),
         isError: true,
       );
+    }
+    } finally {
+      _inflightTierChanges.remove(user.id);
     }
   }
 

@@ -3636,7 +3636,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// 의해 403 을 반환하는 경우가 있어 이 경로로 통일. 응답 포맷은
   /// fromFirestoreDoc 으로 평면화해 UI 레이어에서 바로 사용 가능하게
   /// 반환한다.
+  ///
+  /// Build 292 (P1): partial fail 감지. 이전엔 page 2+ 가 403 일 때 results
+  /// 가 있으면 silent return → admin 이 "이게 전부" 라고 오인. 본 빌드부터
+  /// `_adminFetchUsersPartialError` 에 마지막 에러 메시지 저장 → admin_screen
+  /// 가 fetch 후 즉시 polling 해 banner 표시 가능.
+  String? _adminFetchUsersPartialError;
+  String? get adminFetchUsersPartialError => _adminFetchUsersPartialError;
+
   Future<List<Map<String, dynamic>>> adminFetchAllUsers() async {
+    _adminFetchUsersPartialError = null;
     if (!FirebaseConfig.kFirebaseEnabled) return [];
     final results = <Map<String, dynamic>>[];
     String? pageToken;
@@ -3678,10 +3687,21 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         if (pageToken == null || pageToken.isEmpty) break;
       } catch (e) {
         if (kDebugMode) debugPrint('[adminFetchAllUsers] $e');
-        // 이미 받은 결과가 있으면 그대로 반환, 없으면 에러 전파
-        if (results.isNotEmpty) return results;
+        // 이미 받은 결과가 있으면 그대로 반환하되, partial 에러 마킹.
+        if (results.isNotEmpty) {
+          _adminFetchUsersPartialError =
+              'page ${pagesFetched + 1}: ${e.toString()}';
+          return results;
+        }
         rethrow;
       }
+    }
+    // maxPages 도달 + 더 page 가 있으면 pagination 한계 표시.
+    if (pagesFetched >= maxPages &&
+        pageToken != null &&
+        pageToken.isNotEmpty) {
+      _adminFetchUsersPartialError =
+          'reached maxPages($maxPages) — more users exist but not fetched';
     }
     return results;
   }
@@ -6030,6 +6050,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       _hasNearbyAlert = true;
       _currentUser.activityScore.receivedCount++;
 
+      // Build 292 (P1): persistence 우선. 알림 / notifyListeners 전에 prefs
+      // save → 사용자가 알림 받은 직후 앱 강제 종료해도 letter 가 인박스에
+      // 영구 보존 됨 (이전엔 save 가 마지막이라 race 시 letter 손실 가능).
+      _saveToPrefs();
+
       if (triggerNotification) {
         // Build 263 카피 정리 후 — "혜택이 도착" 흐름 따름
         NotificationService.showLetterArrivedNotification(
@@ -6045,7 +6070,6 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             '${destination.longitude.toStringAsFixed(5)}');
       }
 
-      _saveToPrefs();
       notifyListeners();
     } catch (e, st) {
       if (kDebugMode) debugPrint('[BrandZone] auto-drop err: $e\n$st');

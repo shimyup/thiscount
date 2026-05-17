@@ -1991,10 +1991,16 @@ class _TesterDashboardScreenState extends State<_TesterDashboardScreen>
         state.adminFetchAllLetters(),
       ]);
       if (mounted) {
+        // Build 292: partial fetch 감지 시 admin 에게 명시 알림 — 이전엔
+        // page 2+ 의 403 / pagination max 초과를 silent 처리.
+        final partial = state.adminFetchUsersPartialError;
         setState(() {
           _testers = results[0];
           _letters = results[1];
           _loading = false;
+          _error = partial != null
+              ? '⚠️ 사용자 목록 일부만 불러옴: $partial'
+              : null;
         });
       }
     } catch (e) {
