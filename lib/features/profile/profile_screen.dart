@@ -1091,6 +1091,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     isUsernamePublic: v,
                                   ),
                                 ),
+                                // Build 291: 지도 노출 토글 신규 — 닉네임 공개와
+                                // 독립. 이전엔 강제 동기화 → 한쪽만 끄기 불가능.
+                                _groupSwitchTile(
+                                  icon: Icons.map_rounded,
+                                  label: _l.profileMapPublic,
+                                  subtitle: _l.profileMapPublicDesc,
+                                  value: user.isMapPublic,
+                                  onChanged: (v) => state.updatePrivacySettings(
+                                    isMapPublic: v,
+                                  ),
+                                ),
                                 _groupSwitchTile(
                                   icon: Icons.link_rounded,
                                   label: _l.profileSnsLinkPublic,

@@ -435,6 +435,10 @@ class UserProfile {
   // 에 동일 값으로 저장됐음 (audit E2/E9). 사용자가 닉네임 공개는 끄되 지도
   // 표시는 유지 / 또는 반대 케이스 분리 제어 가능.
   bool isMapPublic; // 지도 노출 여부 (Build 290 — 독립 필드로 분리)
+  // Build 291 (P0 moderation): admin 이 차단한 계정. true 이면 compose / send 불가.
+  // Firestore `banned` 필드와 sync (Admin user_management_screen 가 set).
+  // login 직후 fetchMyServerProfile 흐름에서 매번 refresh.
+  bool isBanned;
   // ── 프리미엄/유료 전용 필드 ──────────────────────────────────────────────
   bool isBrand; // 브랜드/크리에이터 인증 계정
   String? brandName; // 브랜드 표시명
@@ -485,6 +489,7 @@ class UserProfile {
     this.isUsernamePublic = true,
     this.isSnsPublic = true,
     this.isMapPublic = true,
+    this.isBanned = false,
     this.isBrand = false,
     this.brandName,
     this.towerColor = '#FFD700',

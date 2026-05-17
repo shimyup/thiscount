@@ -900,12 +900,25 @@ class _ComposeScreenState extends State<ComposeScreen>
           _isCompressingImage = false;
         });
       }
-    } catch (_) {
+    } catch (e) {
+      // Build 291: 압축 실패 시 silent fall-through 대신 사용자 알림 + 원본
+      // path 그대로 사용 (이전엔 사용자가 첨부 성공한 줄 알았지만 실제로는
+      // 원본 그대로 — EXIF 미제거 위험 OR 큰 용량 그대로 업로드).
       if (mounted) {
+        final l = AppL10n.of(state.currentUser.languageCode);
         setState(() {
           _imageFilePath = picked.path;
           _isCompressingImage = false;
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l.composeImageCompressWarning),
+            backgroundColor: AppColors.gold,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+        if (kDebugMode) debugPrint('[compose] image compress failed: $e');
       }
     }
   }

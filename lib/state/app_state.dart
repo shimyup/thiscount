@@ -3392,6 +3392,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _mapSyncInFlight = true;
     try {
       await fetchMapUsers(force: true);
+      // Build 291: map sync 와 동일 주기로 본인 banned 상태 reconcile.
+      // admin 이 ban 설정 후 사용자가 다음 cycle 에 자동 차단됨.
+      unawaited(refreshOwnBannedStatus());
     } finally {
       _mapSyncInFlight = false;
     }
@@ -4055,10 +4058,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
-  void updatePrivacySettings({bool? isUsernamePublic, bool? isSnsPublic}) {
+  // Build 291: isMapPublic 독립 토글 추가. 닉네임 / SNS / 지도 노출을 사용자가
+  // 분리 제어 가능. 기존 호출자 (profile_screen) 시그니처 보존.
+  void updatePrivacySettings({
+    bool? isUsernamePublic,
+    bool? isSnsPublic,
+    bool? isMapPublic,
+  }) {
     _currentUser.isUsernamePublic =
         isUsernamePublic ?? _currentUser.isUsernamePublic;
     _currentUser.isSnsPublic = isSnsPublic ?? _currentUser.isSnsPublic;
+    _currentUser.isMapPublic = isMapPublic ?? _currentUser.isMapPublic;
     _saveToPrefs();
     _saveUserToFirestore();
     notifyListeners();
@@ -4896,6 +4906,36 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   // ── Firestore: 지도 회원 타워 불러오기 ────────────────────────────────────
+  // Build 291 (P0 moderation): 본인 Firestore doc 의 `banned` 필드를 가볍게
+  // 조회해 _currentUser.isBanned 와 sync. admin user_management_screen 가 ban
+  // 설정한 직후 사용자는 다음 sync (또는 앱 재시작) 시 isBanned=true 가 되어
+  // compose / send 차단됨. 호출처: 앱 부팅 직후 + fetchMapUsers cooldown 과 동일.
+  Future<void> refreshOwnBannedStatus() async {
+    if (!FirebaseConfig.kFirebaseEnabled) return;
+    if (_currentUser.id.isEmpty || _currentUser.id == 'guest') return;
+    try {
+      final url = Uri.parse(
+        '${FirebaseConfig.firestoreBase}/users/${_currentUser.id}'
+        '?key=${Uri.encodeQueryComponent(FirebaseConfig.apiKey)}'
+        '&mask.fieldPaths=banned',
+      );
+      final res = await http.get(url).timeout(const Duration(seconds: 8));
+      if (res.statusCode != 200) return;
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
+      final fields = (data['fields'] as Map<String, dynamic>?) ?? {};
+      final raw = fields['banned'] as Map<String, dynamic>?;
+      final banned = raw == null
+          ? false
+          : (raw['booleanValue'] is bool ? raw['booleanValue'] as bool : false);
+      if (_currentUser.isBanned != banned) {
+        _currentUser.isBanned = banned;
+        notifyListeners();
+      }
+    } catch (_) {
+      // 네트워크 오류 시 기존 상태 유지 (fail-open — 정상 사용자 차단 방지).
+    }
+  }
+
   Future<void> fetchMapUsers({bool force = false}) async {
     if (!FirebaseConfig.kFirebaseEnabled) {
       // Firebase 비활성 시에도 데모 타워 표시
