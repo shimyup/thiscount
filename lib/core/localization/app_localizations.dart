@@ -19281,6 +19281,71 @@ class AppL10n {
     'th': 'แสดงชื่อเล่นของคุณแก่ผู้ใช้อื่น',
   });
 
+  // Build 291: 사진 압축 실패 시 사용자 알림. 원본 path 사용으로 fall-through
+  // 되어도 사용자가 첨부 상태를 인지하도록.
+  String get composeImageCompressWarning => _t({
+    'ko': '이미지 압축 실패 — 원본으로 첨부됩니다 (큰 용량 가능)',
+    'en': 'Image compression failed — using original (may be larger)',
+    'ja': '画像圧縮に失敗 — 元画像で添付されます (容量大)',
+    'zh': '图片压缩失败 — 使用原图（容量可能较大）',
+    'fr': 'Compression échouée — original utilisé (taille plus grande)',
+    'de': 'Komprimierung fehlgeschlagen — Original wird verwendet (größere Datei)',
+    'es': 'Falló compresión — se usa original (puede ser grande)',
+    'pt': 'Falha na compressão — usando original (pode ser grande)',
+    'ru': 'Сжатие не удалось — используется оригинал (больший размер)',
+    'tr': 'Sıkıştırma başarısız — orijinal kullanılıyor (daha büyük)',
+    'ar': 'فشل ضغط الصورة — يتم استخدام الأصلية (قد تكون كبيرة)',
+    'it': 'Compressione fallita — uso originale (più grande)',
+    'hi': 'इमेज कंप्रेस फेल — मूल का उपयोग (बड़ा आकार)',
+    'th': 'การบีบอัดล้มเหลว — ใช้ต้นฉบับ (อาจมีขนาดใหญ่)',
+  });
+
+  // Build 291 (moderation): 차단된 계정이 발송 시도 시 노출.
+  String get composeBannedAccount => _t({
+    'ko': '계정이 차단되어 메시지 발송이 불가합니다. 고객 지원에 문의해주세요.',
+    'en': 'Your account has been suspended. Please contact support.',
+    'ja': 'アカウントが停止されています。サポートに連絡してください。',
+    'zh': '您的账户已被暂停。请联系客服。',
+    'fr': 'Votre compte a été suspendu. Contactez le support.',
+    'de': 'Ihr Konto wurde gesperrt. Wenden Sie sich an den Support.',
+    'es': 'Tu cuenta ha sido suspendida. Contacta con soporte.',
+    'pt': 'Sua conta foi suspensa. Contate o suporte.',
+    'ru': 'Ваша учетная запись приостановлена. Обратитесь в поддержку.',
+    'tr': 'Hesabınız askıya alındı. Destek ile iletişime geçin.',
+    'ar': 'تم تعليق حسابك. يرجى الاتصال بالدعم.',
+    'it': 'Il tuo account è sospeso. Contatta il supporto.',
+    'hi': 'आपका खाता निलंबित किया गया है. कृपया सपोर्ट से संपर्क करें.',
+    'th': 'บัญชีของคุณถูกระงับ. โปรดติดต่อฝ่ายสนับสนุน.',
+  });
+
+  // Build 291: 지도 노출 독립 토글 라벨/설명. 닉네임 공개와 별도 제어.
+  String get profileMapPublic => _t({
+    'ko': '지도에 표시', 'en': 'Show on map',
+    'ja': 'マップに表示', 'zh': '在地图上显示',
+    'fr': 'Afficher sur la carte', 'de': 'Auf Karte anzeigen',
+    'es': 'Mostrar en mapa', 'pt': 'Mostrar no mapa',
+    'ru': 'Показывать на карте', 'tr': 'Haritada göster',
+    'ar': 'عرض على الخريطة', 'it': 'Mostra sulla mappa',
+    'hi': 'मानचित्र पर दिखाएं', 'th': 'แสดงบนแผนที่',
+  });
+
+  String get profileMapPublicDesc => _t({
+    'ko': '내 타워가 지도에 나타납니다 (꺼두면 사라짐)',
+    'en': 'Your tower appears on the world map',
+    'ja': 'マップ上にタワーが表示されます',
+    'zh': '您的塔将显示在地图上',
+    'fr': 'Votre tour apparaît sur la carte',
+    'de': 'Ihr Turm erscheint auf der Karte',
+    'es': 'Tu torre aparece en el mapa',
+    'pt': 'Sua torre aparece no mapa',
+    'ru': 'Ваша башня появится на карте',
+    'tr': 'Kuleniz haritada görünür',
+    'ar': 'يظهر برجك على الخريطة',
+    'it': 'La tua torre appare sulla mappa',
+    'hi': 'आपका टावर मानचित्र पर दिखाई देता है',
+    'th': 'หอของคุณจะปรากฏบนแผนที่',
+  });
+
   String get profileSnsLink => _t({
     'ko': 'SNS 링크',
     'en': 'SNS Link',

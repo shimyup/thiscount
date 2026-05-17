@@ -83,6 +83,19 @@ class _MainScaffoldState extends State<MainScaffold> {
     // Premium 업그레이드 시트로 유도 — "자기 홍보 편지 (사진 + 채널 링크)"
     // 혜택을 어필. 답장은 `letter_read_screen` 에서 별도로 여전히 가능.
     final state = ctx.read<AppState>();
+    // Build 291 (P0 moderation): admin 이 차단한 계정은 compose 진입 즉시 차단.
+    // Firestore `banned=true` 가 다음 sync 에서 _currentUser.isBanned 로 반영됨.
+    if (state.currentUser.isBanned) {
+      final l = AppL10n.of(state.currentUser.languageCode);
+      ScaffoldMessenger.of(ctx).showSnackBar(
+        SnackBar(
+          backgroundColor: AppColors.error,
+          content: Text(l.composeBannedAccount),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
     if (!state.currentUser.isPremium && !state.currentUser.isBrand) {
       final l = AppL10n.of(state.currentUser.languageCode);
       PremiumGateSheet.show(
