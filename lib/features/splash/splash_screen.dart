@@ -38,6 +38,18 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _go() async {
     if (!mounted) return;
     final prefs = await SharedPreferences.getInstance();
+    // Build 313: 모든 기존 사용자에게 1회만 온보딩 강제 재진입.
+    // 이전 빌드 (294~) 에서 markSeen 된 사용자가 새 온보딩 콘텐츠 (Build 287
+    // 수동 스크롤 / Build 301 베타 체크박스 / Build 311 콘텐츠 갱신) 를 보지
+    // 못한 채로 잔존. 이 marker 가 false 면 1회 reset → true 로 저장 → 다음부터
+    // 정상 markSeen 흐름.
+    const _kForceResetMarker = 'onboarding_force_reset_v313';
+    final alreadyForceReset = prefs.getBool(_kForceResetMarker) ?? false;
+    if (!alreadyForceReset) {
+      await prefs.setBool('onboarding_v2_complete', false);
+      await prefs.setBool('seen_onboarding_tour', false);
+      await prefs.setBool(_kForceResetMarker, true);
+    }
     final onboardingDone = prefs.getBool('onboarding_v2_complete') ?? false;
     if (!mounted) return;
 

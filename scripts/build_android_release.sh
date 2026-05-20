@@ -66,6 +66,12 @@ if [[ "${BETA_UPGRADE_SIMULATOR:-false}" == "true" ]]; then
   DART_DEFINES+=("--dart-define=BETA_UPGRADE_SIMULATOR=true")
 fi
 
+# Build 313 (BLOCKER fix): BETA_DISABLE_IN_RELEASE 패스스루 (iOS 와 동일).
+if [[ -n "${BETA_DISABLE_IN_RELEASE:-}" ]]; then
+  echo "[android] BETA_DISABLE_IN_RELEASE=${BETA_DISABLE_IN_RELEASE}"
+  DART_DEFINES+=("--dart-define=BETA_DISABLE_IN_RELEASE=${BETA_DISABLE_IN_RELEASE}")
+fi
+
 if [[ -n "${BETA_ADMIN_EMAIL:-}" ]]; then
   echo "[android] BETA_ADMIN_EMAIL=${BETA_ADMIN_EMAIL}"
   DART_DEFINES+=("--dart-define=BETA_ADMIN_EMAIL=${BETA_ADMIN_EMAIL}")
