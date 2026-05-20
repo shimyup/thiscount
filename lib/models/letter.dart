@@ -277,6 +277,13 @@ class Letter {
   // "쿠폰함" 섹션에 시각적으로 분리 표시된다.
   final LetterCategory category;
 
+  /// Build 315: 픽업 시 자동 분류된 산업 카테고리 태그.
+  /// 7개 카테고리 (food/cafe/beauty/fashion/it/event/other) 중 하나.
+  /// pickUpLetter 시 inferCategoryTag(letter) 로 한 번만 계산해서 저장 →
+  /// inbox 필터링 시 매번 키워드 매칭 비용 없이 즉시 조회.
+  /// null 이면 keyword heuristic fallback (이전 빌드 letter 호환).
+  String? categoryTag;
+
   /// 발신자가 답장 수락 여부를 켠 편지인지. Brand 발송 시 한정 선택 가능.
   /// Free/Premium 은 항상 true. (false 면 수신자의 letter_read_screen 에서
   /// 답장 버튼이 숨겨지고, 발신자 브랜드가 "이 캠페인은 답장 미수락" 이라는
@@ -347,6 +354,7 @@ class Letter {
     this.redemptionInfo,
     this.redemptionExpiresAt,
     this.brandZoneId,
+    this.categoryTag,
   }) : reportedBy = reportedBy ?? {};
 
   /// 인박스용 독립 복사본 (worldLetters에서 제거 전 inbox에 추가할 때 사용)
@@ -394,6 +402,7 @@ class Letter {
     redemptionInfo: redemptionInfo,
     redemptionExpiresAt: redemptionExpiresAt,
     brandZoneId: brandZoneId,
+    categoryTag: categoryTag,
     readCount: readCount,
     maxReaders: maxReaders,
   );
@@ -610,6 +619,7 @@ class Letter {
     if (redemptionExpiresAt != null)
       'redemptionExpiresAt': redemptionExpiresAt!.millisecondsSinceEpoch,
     if (brandZoneId != null) 'brandZoneId': brandZoneId,
+    if (categoryTag != null) 'categoryTag': categoryTag,
     'readCount': readCount,
     'maxReaders': maxReaders,
   };
@@ -673,6 +683,7 @@ class Letter {
           )
         : null,
     brandZoneId: j['brandZoneId'] as String?,
+    categoryTag: j['categoryTag'] as String?,
     expiresAt: j['expiresAt'] != null
         ? DateTime.fromMillisecondsSinceEpoch(j['expiresAt'] as int)
         : null,

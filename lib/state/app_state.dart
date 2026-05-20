@@ -27,6 +27,7 @@ import '../core/services/firebase_auth_service.dart';
 import '../core/services/brand_zone_service.dart';
 import '../core/services/purchase_service.dart';
 import '../core/services/secure_clock.dart';
+import '../features/inbox/utils/category_inference.dart';
 import '../models/brand_zone.dart';
 import '../core/theme/time_theme.dart';
 import '../models/direct_message.dart';
@@ -7404,9 +7405,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _myPickedUpLetterIds.add(letterId);
 
     // 인박스용 독립 복사본 (status/arrivedAt 새로 설정)
+    // Build 315: 픽업 시점에 카테고리 태그를 자동 분류해서 저장 →
+    // inbox 필터링 시 매번 keyword 매칭 비용 없이 즉시 조회 가능.
     final inboxCopy = letter.clone()
       ..status = DeliveryStatus.delivered
-      ..arrivedAt = DateTime.now();
+      ..arrivedAt = DateTime.now()
+      ..categoryTag = letter.categoryTag ??
+          inferCategoryTagFromText(
+            letter.content,
+            letter.senderName,
+            letter.redemptionInfo,
+          );
 
     _inbox.add(inboxCopy);
 
