@@ -78,6 +78,16 @@ abstract class BetaConstants {
     defaultValue: true,
   );
 
+  /// Build 314: 명시적 TestFlight 베타 빌드 flag.
+  /// `BETA_DISABLE_IN_RELEASE=false` 와 무관하게 이 flag 만 true 면 베타
+  /// 시뮬레이터 / 가짜 구매 흐름 강제 활성. dart-define 누락 위험에 대한
+  /// 이중 안전망. release_to_testflight.sh 가 BETA_TESTFLIGHT_BUILD=true 도
+  /// 함께 전달하므로 어느 한 path 라도 통하면 베타 모드 작동.
+  static const bool isTestFlightBetaBuild = bool.fromEnvironment(
+    'BETA_TESTFLIGHT_BUILD',
+    defaultValue: false,
+  );
+
   static bool get isAdminEmailConfigured =>
       permanentAdminEmail.isNotEmpty || adminEmail.isNotEmpty;
 

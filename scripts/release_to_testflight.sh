@@ -66,6 +66,8 @@ grep "^BETA_" "$ENV_FILE" | sed 's/^/  /'
 
 # preflight 에게 testflight 빌드임을 알림
 export RELEASE_TARGET=testflight
+# Build 314: 명시적 베타 flag — 다른 BETA_* 가 누락돼도 이 하나로 베타 모드 활성
+export BETA_TESTFLIGHT_BUILD=true
 
 # 빌드/업로드 실패 시 .env.local 원복 보장
 trap 'cp "$BACKUP" "$ENV_FILE"; echo "[env] 원복 (trap)"' EXIT
