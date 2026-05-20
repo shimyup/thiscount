@@ -86,6 +86,14 @@ if [[ -n "${BETA_DISABLE_IN_RELEASE:-}" ]]; then
   DART_DEFINES+=("--dart-define=BETA_DISABLE_IN_RELEASE=${BETA_DISABLE_IN_RELEASE}")
 fi
 
+# Build 314 (이중 안전망): 명시적 TestFlight 베타 빌드 flag.
+# BETA_DISABLE_IN_RELEASE 가 어떤 이유로든 누락돼도 이 flag 가 true 면
+# 베타 시뮬레이터 강제 활성. release_to_testflight.sh 가 이 둘 다 set.
+if [[ "${BETA_TESTFLIGHT_BUILD:-false}" == "true" ]]; then
+  echo "[ios] BETA_TESTFLIGHT_BUILD=true — 명시적 TestFlight 베타 모드"
+  DART_DEFINES+=("--dart-define=BETA_TESTFLIGHT_BUILD=true")
+fi
+
 if [[ -n "${BETA_ADMIN_EMAIL:-}" ]]; then
   echo "[ios] BETA_ADMIN_EMAIL=${BETA_ADMIN_EMAIL}"
   DART_DEFINES+=("--dart-define=BETA_ADMIN_EMAIL=${BETA_ADMIN_EMAIL}")
@@ -117,6 +125,15 @@ if [[ -n "${SENDGRID_API_KEY:-}" && -n "${SENDGRID_FROM_EMAIL:-}" ]]; then
 fi
 
 cd "$ROOT_DIR"
+
+# Build 314: dart-define 검증 출력 — BETA flags 가 실제로 들어갔는지 확인.
+echo "[ios] === DART_DEFINES (BETA only) ==="
+for d in "${DART_DEFINES[@]}"; do
+  case "$d" in
+    *BETA*) echo "  $d" ;;
+  esac
+done
+echo "[ios] === DART_DEFINES end ==="
 
 IOS_BUILD_MODE="${IOS_BUILD_MODE:-app}"
 IOS_EXPORT_OPTIONS_PLIST="${IOS_EXPORT_OPTIONS_PLIST:-}"

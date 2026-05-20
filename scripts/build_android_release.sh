@@ -72,6 +72,12 @@ if [[ -n "${BETA_DISABLE_IN_RELEASE:-}" ]]; then
   DART_DEFINES+=("--dart-define=BETA_DISABLE_IN_RELEASE=${BETA_DISABLE_IN_RELEASE}")
 fi
 
+# Build 314 (이중 안전망): 명시적 TestFlight 베타 빌드 flag.
+if [[ "${BETA_TESTFLIGHT_BUILD:-false}" == "true" ]]; then
+  echo "[android] BETA_TESTFLIGHT_BUILD=true — 명시적 베타 모드"
+  DART_DEFINES+=("--dart-define=BETA_TESTFLIGHT_BUILD=true")
+fi
+
 if [[ -n "${BETA_ADMIN_EMAIL:-}" ]]; then
   echo "[android] BETA_ADMIN_EMAIL=${BETA_ADMIN_EMAIL}"
   DART_DEFINES+=("--dart-define=BETA_ADMIN_EMAIL=${BETA_ADMIN_EMAIL}")

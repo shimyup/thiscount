@@ -374,6 +374,8 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
     defaultValue: false,
   );
   static bool get _isBetaFreePremium {
+    // Build 314: 명시적 TestFlight 플래그가 있으면 disableInRelease 무관하게 활성.
+    if (BetaConstants.isTestFlightBetaBuild) return _isBetaFreePremiumRaw;
     if (BetaConstants.disableInRelease && kReleaseMode) return false;
     return _isBetaFreePremiumRaw;
   }
@@ -393,6 +395,8 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
   );
 
   static bool get _isBetaUpgradeSimulator {
+    // Build 314: 명시적 TestFlight 플래그가 있으면 disableInRelease 무관하게 활성.
+    if (BetaConstants.isTestFlightBetaBuild) return _isBetaUpgradeSimulatorRaw;
     if (BetaConstants.disableInRelease && kReleaseMode) return false;
     return _isBetaUpgradeSimulatorRaw;
   }
