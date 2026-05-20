@@ -26,13 +26,17 @@ enum LetterFilterType {
   coupon,
   voucher,
   general,
-  // Build 264: 산업군 필터 (heuristic content keyword matching).
-  // 사용자가 "오늘 음식점 쿠폰만 보고 싶다" 같은 빠른 탐색용. compose 단계에서
-  // 명시적 메타데이터가 아니라 letter 본문 + 발송인명 키워드 매칭으로 분류.
+  // Build 264: 카테고리 필터 (heuristic content keyword matching).
+  // 사용자가 "오늘 음식점 쿠폰만 보고 싶다" 같은 빠른 탐색용. 사용자 보이는
+  // 명칭은 "카테고리" (Build 315 — 이전 "산업군" 에서 명칭 변경).
+  // Build 315: 7개 카테고리로 확장 — 식당/카페/뷰티/패션/IT/행사/기타.
   food,
   cafe,
   beauty,
   fashion,
+  it,
+  event,
+  other,
 }
 
 /// 필터 바에 노출되는 타입.
@@ -46,11 +50,15 @@ const List<LetterFilterType> _mainFilters = [
   LetterFilterType.voucher,
 ];
 
+// Build 315: 7개 카테고리 (식당/카페/뷰티/패션/IT/행사/기타).
 const List<LetterFilterType> _industryFilters = [
   LetterFilterType.food,
   LetterFilterType.cafe,
   LetterFilterType.beauty,
   LetterFilterType.fashion,
+  LetterFilterType.it,
+  LetterFilterType.event,
+  LetterFilterType.other,
 ];
 
 const List<LetterFilterType> _visibleFilters = [
@@ -240,11 +248,62 @@ const Map<LetterFilterType, List<String>> _industryKeywords = {
     'boots',
     'watch',
   ],
+  // Build 315: IT/기술 카테고리 — SaaS / 앱 / 디바이스 / 컴퓨터 관련
+  LetterFilterType.it: [
+    'IT', 'it서비스', '앱', '소프트웨어', 'SaaS', '구독서비스',
+    '컴퓨터', '노트북', '맥북', '데스크탑', '스마트폰', '핸드폰',
+    '갤럭시', '아이폰', '아이패드', '태블릿', '이어폰', '에어팟',
+    '키보드', '마우스', '모니터', '게임', '구글', '애플', '마이크로소프트',
+    '클라우드', 'AI', '인공지능', '챗GPT', '데이터',
+    'app', 'software', 'saas', 'subscription', 'tech', 'technology',
+    'laptop', 'macbook', 'desktop', 'smartphone', 'phone', 'tablet',
+    'ipad', 'iphone', 'galaxy', 'airpods', 'keyboard', 'mouse',
+    'monitor', 'cloud', 'gaming', 'computer',
+  ],
+  // Build 315: 행사/이벤트 카테고리 — 공연 / 전시 / 페스티벌 / 컨퍼런스
+  LetterFilterType.event: [
+    '행사', '이벤트', '공연', '콘서트', '뮤지컬', '연극',
+    '전시', '전시회', '박람회', '페스티벌', '축제', '팝업',
+    '팝업스토어', '워크샵', '워크숍', '세미나', '컨퍼런스', '강연',
+    '클래스', '체험', '체험학습', '관람', '티켓', '입장권',
+    'event', 'concert', 'festival', 'exhibition', 'expo',
+    'show', 'popup', 'workshop', 'seminar', 'conference',
+    'class', 'ticket', 'admission', 'performance',
+  ],
+  // Build 315: 기타 — 위 카테고리 명시 매칭 안 되면 fallback 으로 처리
+  // (heuristic 만으로는 비어있음; 키워드 매칭 안 되는 letter 는 자동으로 기타).
+  LetterFilterType.other: [],
 };
 
 /// 영문 키워드는 단어 경계(`\b`) 로 매칭해 거짓양성 (예: "art" → "start") 방지.
 /// 한글 키워드는 부분 문자열 매칭 그대로 유지 (한글에는 단어 경계 의미 없음).
+///
+/// Build 315: letter.categoryTag 가 있으면 그것을 우선 사용 (픽업 시 명시 저장
+/// 된 카테고리). 없으면 키워드 heuristic. "other" 는 다른 카테고리 매칭 안 됐을
+/// 때 fallback.
 bool _matchesIndustry(LetterFilterType industry, dynamic letter) {
+  // 1) Letter 의 명시적 categoryTag 우선
+  final saved = (letter.categoryTag as String?)?.toLowerCase();
+  if (saved != null && saved.isNotEmpty) {
+    return saved == industry.name.toLowerCase();
+  }
+
+  // 2) "other" 는 다른 4개 산업 카테고리 매칭 안 됐을 때만 true
+  if (industry == LetterFilterType.other) {
+    for (final cat in const [
+      LetterFilterType.food,
+      LetterFilterType.cafe,
+      LetterFilterType.beauty,
+      LetterFilterType.fashion,
+      LetterFilterType.it,
+      LetterFilterType.event,
+    ]) {
+      if (_matchesIndustry(cat, letter)) return false;
+    }
+    return true;
+  }
+
+  // 3) 키워드 매칭
   final kws = _industryKeywords[industry];
   if (kws == null || kws.isEmpty) return false;
   final hay =
@@ -264,6 +323,9 @@ bool _matchesIndustry(LetterFilterType industry, dynamic letter) {
   }
   return false;
 }
+
+// Build 315: 카테고리 추론은 `lib/features/inbox/utils/category_inference.dart` 의
+// inferCategoryTagFromText 사용 (app_state pickUpLetter 와 공유).
 
 // 필터별 empty state 이모지. 수집첩이 비었을 때 어떤 종류의 편지를 찾고
 // 있었는지 시각적으로 힌트를 준다. (예: 할인권 필터에서 비면 🎟)
@@ -285,14 +347,21 @@ String _emptyEmojiForFilter(LetterFilterType f) {
       return '📬';
     case LetterFilterType.all:
       return '📭';
+    // Build 315: 7개 카테고리 — 알아보기 쉬운 직관 이모지로 통일.
     case LetterFilterType.food:
-      return '🍽️';
+      return '🍽️'; // 식당
     case LetterFilterType.cafe:
-      return '☕';
+      return '☕'; // 카페
     case LetterFilterType.beauty:
-      return '💄';
+      return '💄'; // 뷰티
     case LetterFilterType.fashion:
-      return '👗';
+      return '👗'; // 패션
+    case LetterFilterType.it:
+      return '💻'; // IT
+    case LetterFilterType.event:
+      return '🎉'; // 행사
+    case LetterFilterType.other:
+      return '📌'; // 기타
   }
 }
 
@@ -333,6 +402,13 @@ String _filterName(LetterFilterType f, AppL10n l10n) {
       return l10n.inboxFilterBeauty;
     case LetterFilterType.fashion:
       return l10n.inboxFilterFashion;
+    // Build 315: 새 3개 카테고리
+    case LetterFilterType.it:
+      return l10n.inboxFilterIt;
+    case LetterFilterType.event:
+      return l10n.inboxFilterEvent;
+    case LetterFilterType.other:
+      return l10n.inboxFilterOther;
   }
 }
 
@@ -517,7 +593,10 @@ class _InboxScreenState extends State<InboxScreen>
         case LetterFilterType.cafe:
         case LetterFilterType.beauty:
         case LetterFilterType.fashion:
-          // Build 264: 산업군 휴리스틱 필터 — 본문/발송인/redemption 키워드 매칭.
+        case LetterFilterType.it:
+        case LetterFilterType.event:
+        case LetterFilterType.other:
+          // Build 315: 카테고리 필터 — categoryTag 우선, keyword fallback.
           return _matchesIndustry(filter, letter);
         case LetterFilterType.all:
           return true;
@@ -947,16 +1026,59 @@ class _InboxScreenState extends State<InboxScreen>
                 ),
               ),
               // Build 295: 정렬 모드 선택 (유효기간 / 최신 / 중요도).
-              // Build 297 (P0 i18n): 14언어 번역.
+              // Build 315: 아이콘만 → 현재 모드 텍스트+icon 칩으로 가시성 강화.
+              //   "🕐 최신순 ▾" 같이 사용자가 어떤 정렬인지 즉시 인지.
               PopupMenuButton<InboxSortMode>(
                 tooltip: l10n.inboxSortTooltip,
-                icon: const Icon(
-                  Icons.sort_rounded,
-                  color: AppColors.textSecondary,
-                  size: 22,
-                ),
                 color: AppColors.bgCard,
                 onSelected: (mode) => setState(() => _sortMode = mode),
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.bgCard,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: AppColors.textMuted.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.sort_rounded,
+                        color: AppColors.textSecondary,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        () {
+                          switch (_sortMode) {
+                            case InboxSortMode.latest:
+                              return l10n.inboxSortLatest;
+                            case InboxSortMode.expiry:
+                              return l10n.inboxSortExpiry;
+                            case InboxSortMode.importance:
+                              return l10n.inboxSortImportance;
+                          }
+                        }(),
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const Icon(
+                        Icons.arrow_drop_down_rounded,
+                        color: AppColors.textSecondary,
+                        size: 18,
+                      ),
+                    ],
+                  ),
+                ),
                 itemBuilder: (_) => [
                   CheckedPopupMenuItem(
                     value: InboxSortMode.latest,
@@ -2998,6 +3120,12 @@ class _LetterFilterBar extends StatelessWidget {
         return l10n.inboxFilterBeauty;
       case LetterFilterType.fashion:
         return l10n.inboxFilterFashion;
+      case LetterFilterType.it:
+        return l10n.inboxFilterIt;
+      case LetterFilterType.event:
+        return l10n.inboxFilterEvent;
+      case LetterFilterType.other:
+        return l10n.inboxFilterOther;
     }
   }
 
@@ -3026,10 +3154,9 @@ class _LetterFilterBar extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 18),
-              // Build 271: 메인 필터는 화면 인라인 칩으로 이동. BottomSheet 에는
-              // 산업군 키워드 매칭 필터만 남김.
+              // Build 315: "산업군" → "카테고리" 명칭 변경 (i18n).
               Text(
-                l10n.koEn('산업군', 'INDUSTRY'),
+                l10n.inboxCategorySectionTitle.toUpperCase(),
                 style: const TextStyle(
                   color: AppColors.textMuted,
                   fontSize: 11,

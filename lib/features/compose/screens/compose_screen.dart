@@ -1592,8 +1592,16 @@ class _ComposeScreenState extends State<ComposeScreen>
     }
 
     final initial = ll.LatLng(
-      _destLat != 0.0 ? _destLat : state.currentUser.latitude,
-      _destLng != 0.0 ? _destLng : state.currentUser.longitude,
+      // Build 315: ExactDrop 은 "내가 서 있는 매장 앞" 기준 정밀 발송.
+      // 진입 시 사용자 GPS 좌표로 시작 (이전 _destLat/_destLng 무시).
+      // 이전 동작은 이전에 선택했던 destination (다른 국가 등) 으로 jump 해서
+      // "이상한 곳으로 이동" 사용자 회귀 보고를 유발.
+      state.currentUser.latitude != 0.0
+          ? state.currentUser.latitude
+          : (_destLat != 0.0 ? _destLat : 37.5665),
+      state.currentUser.longitude != 0.0
+          ? state.currentUser.longitude
+          : (_destLng != 0.0 ? _destLng : 126.9780),
     );
     // Build 158: 과거 Brand 발송 좌표 3개 → ExactDrop 추천 핀으로 전달.
     // 로컬 `_sent` 기반 경량 추천 — 동일 지역 재발송 시 원탭 이동.

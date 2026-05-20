@@ -8695,6 +8695,76 @@ class AppL10n {
     'th': 'แฟชั่น',
   });
 
+  // Build 315: 3개 카테고리 추가 (IT / 행사 / 기타).
+  String get inboxFilterIt => _t({
+    'ko': 'IT',
+    'en': 'IT',
+    'ja': 'IT',
+    'zh': 'IT',
+    'fr': 'IT',
+    'de': 'IT',
+    'es': 'TI',
+    'pt': 'TI',
+    'ru': 'ИТ',
+    'tr': 'BT',
+    'ar': 'تكنولوجيا',
+    'it': 'IT',
+    'hi': 'आईटी',
+    'th': 'ไอที',
+  });
+
+  String get inboxFilterEvent => _t({
+    'ko': '행사',
+    'en': 'Events',
+    'ja': 'イベント',
+    'zh': '活动',
+    'fr': 'Événements',
+    'de': 'Events',
+    'es': 'Eventos',
+    'pt': 'Eventos',
+    'ru': 'События',
+    'tr': 'Etkinlikler',
+    'ar': 'فعاليات',
+    'it': 'Eventi',
+    'hi': 'इवेंट्स',
+    'th': 'อีเวนต์',
+  });
+
+  String get inboxFilterOther => _t({
+    'ko': '기타',
+    'en': 'Other',
+    'ja': 'その他',
+    'zh': '其他',
+    'fr': 'Autres',
+    'de': 'Sonstige',
+    'es': 'Otros',
+    'pt': 'Outros',
+    'ru': 'Другое',
+    'tr': 'Diğer',
+    'ar': 'أخرى',
+    'it': 'Altri',
+    'hi': 'अन्य',
+    'th': 'อื่นๆ',
+  });
+
+  /// 카테고리 필터 섹션 헤더 (이전 "산업군" → Build 315 명칭 변경).
+  String get inboxCategorySectionTitle => _t({
+    'ko': '카테고리',
+    'en': 'Category',
+    'ja': 'カテゴリー',
+    'zh': '类别',
+    'fr': 'Catégorie',
+    'de': 'Kategorie',
+    'es': 'Categoría',
+    'pt': 'Categoria',
+    'ru': 'Категория',
+    'tr': 'Kategori',
+    'ar': 'الفئة',
+    'it': 'Categoria',
+    'hi': 'श्रेणी',
+    'th': 'หมวดหมู่',
+  });
+
   String get inboxFilterGeneral => _t({
     'ko': '메시지·홍보',
     'en': 'Messages',

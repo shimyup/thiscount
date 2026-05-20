@@ -195,6 +195,33 @@ class _ExactDropPickerState extends State<ExactDropPicker> {
               ],
             ),
           ),
+          // Build 315: 현위치로 복귀 FAB — 지도를 swipe 후 GPS 좌표로 원탭 복귀.
+          Positioned(
+            bottom: 96,
+            right: 20,
+            child: Material(
+              color: AppColors.bgCard,
+              elevation: 4,
+              shape: const CircleBorder(),
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: () {
+                  // widget.initial 는 호출자 (compose_screen) 가 사용자 GPS
+                  // 로 설정해 넘긴 좌표. 항상 그곳으로 복귀.
+                  _ctrl.move(widget.initial, _zoom);
+                  setState(() => _center = widget.initial);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: const Icon(
+                    Icons.my_location_rounded,
+                    color: AppColors.teal,
+                    size: 24,
+                  ),
+                ),
+              ),
+            ),
+          ),
           Positioned(
             bottom: 24,
             left: 20,
