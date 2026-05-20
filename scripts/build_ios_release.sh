@@ -77,6 +77,15 @@ if [[ "${BETA_UPGRADE_SIMULATOR:-false}" == "true" ]]; then
   DART_DEFINES+=("--dart-define=BETA_UPGRADE_SIMULATOR=true")
 fi
 
+# Build 313 (BLOCKER fix): BETA_DISABLE_IN_RELEASE 도 dart-define 으로 패스스루.
+# 이게 누락되면 코드의 default=true 가 적용 → release 빌드에서 모든 BETA 플래그
+# 자동 비활성화 → "상품정보 없음" 등 회귀 발생. TestFlight 베타 모드에서
+# `BETA_DISABLE_IN_RELEASE=false` 명시되어야 가짜 구매 흐름이 동작.
+if [[ -n "${BETA_DISABLE_IN_RELEASE:-}" ]]; then
+  echo "[ios] BETA_DISABLE_IN_RELEASE=${BETA_DISABLE_IN_RELEASE}"
+  DART_DEFINES+=("--dart-define=BETA_DISABLE_IN_RELEASE=${BETA_DISABLE_IN_RELEASE}")
+fi
+
 if [[ -n "${BETA_ADMIN_EMAIL:-}" ]]; then
   echo "[ios] BETA_ADMIN_EMAIL=${BETA_ADMIN_EMAIL}"
   DART_DEFINES+=("--dart-define=BETA_ADMIN_EMAIL=${BETA_ADMIN_EMAIL}")
