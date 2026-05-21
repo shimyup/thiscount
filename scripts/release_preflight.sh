@@ -91,6 +91,9 @@ if [[ "$RELEASE_TARGET" == "production" ]]; then
   fi
   require_release_false BETA_FREE_PREMIUM
   require_release_false BETA_UPGRADE_SIMULATOR
+  # Build 320: BETA_TESTFLIGHT_BUILD 가 production 빌드에 새어들어가지 않도록
+  # 다층 방어 — 코드 default false + release_to_production.sh + 이 검증.
+  require_release_false BETA_TESTFLIGHT_BUILD
   require_release_empty BETA_ADMIN_EMAIL
 elif [[ "$RELEASE_TARGET" == "testflight" ]]; then
   # TestFlight 베타 빌드 — ASC IAP 미등록 상태에서도 테스터가 결제 흐름 체험.
