@@ -6842,6 +6842,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     bool acceptsReplies = true, // 브랜드가 답장 받기 off로 보낼 수 있음
     String? redemptionInfo, // 브랜드: 쿠폰/교환권 사용 안내 (자유 텍스트)
     DateTime? redemptionExpiresAt, // Build 132: 브랜드 쿠폰/교환권 유효기간 (사용 가능 마지막 시각)
+    // Build 317: ExactDrop 으로 정확한 핀 좌표 발송임을 명시. true 면 destCityName
+    // 미정시에도 destLat/destLng 그대로 사용 (랜덤 분기 우회).
+    bool useExactCoordinates = false,
   }) async {
     if (!_canSendLetterByDailyLimit()) {
       return false;
@@ -6877,7 +6880,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     double finalLng;
     String? toCityName;
 
-    if (destCityName != null && destCityName.isNotEmpty) {
+    if (useExactCoordinates) {
+      // Build 317: ExactDrop — 사용자가 핀으로 지정한 좌표 그대로 발송.
+      // destCityName 가 비어도 랜덤 분기로 안 빠짐.
+      finalLat = destLat;
+      finalLng = destLng;
+      toCityName = destCityName?.isNotEmpty == true ? destCityName : null;
+    } else if (destCityName != null && destCityName.isNotEmpty) {
       // compose 화면에서 이미 선택된 도시 그대로 사용 → "서울→서울" 방지
       finalLat = destLat;
       finalLng = destLng;

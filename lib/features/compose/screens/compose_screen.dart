@@ -1332,6 +1332,8 @@ class _ComposeScreenState extends State<ComposeScreen>
         destLng: _destLng,
         // compose에서 이미 선택된 도시를 그대로 넘겨 재랜덤을 방지
         destCityName: _selectedCity.isNotEmpty ? _selectedCity : null,
+        // Build 317: ExactDrop 발송 시 destCityName 미정이어도 핀 좌표 보존.
+        useExactCoordinates: _isExactDropped,
         deliveryEmoji: _deliveryEmojiEncoded,
         socialLink: _attachSocial && _socialLinkController.text.isNotEmpty
             ? _socialLinkController.text.trim()
@@ -1621,22 +1623,9 @@ class _ComposeScreenState extends State<ComposeScreen>
     );
     if (!mounted || picked == null) return;
 
-    // Build 281 (P0 Brand 약속 보장): ExactDrop 은 "내가 서 있는 매장 앞"
-    // 반경 100m 이내 정밀 발송만 허용. picker UI 가 우회되거나 잘못된 좌표가
-    // 돌아와도 마지막 라인에서 enforce. (사용자 좌표가 (0,0) 인 경우는 위치
-    // 미확정 — 그 경우는 picker 단계에서 이미 거부되므로 그냥 통과시킴.)
-    final myLat = state.currentUser.latitude;
-    final myLng = state.currentUser.longitude;
-    if (myLat != 0 || myLng != 0) {
-      final distM = LatLng(
-        myLat,
-        myLng,
-      ).distanceTo(LatLng(picked.latitude, picked.longitude));
-      if (distM > 100.0) {
-        _showError(l.composeExactDropOutOfRange);
-        return;
-      }
-    }
+    // Build 281 (P0 Brand 약속): ExactDrop 100m 가드.
+    // Build 317: 100m 강제 해제 — 사용자가 picker 에서 지정한 핀 좌표 그대로
+    // 발송. Brand 가 본사에서 매장 위치 같은 다른 좌표로 발송 가능.
 
     // 역조회로 국가·도시 이름을 채움. 실패 시 좌표만 세팅하고 국가는
     // "Unknown" 으로 두어 발송 자체는 막지 않는다.

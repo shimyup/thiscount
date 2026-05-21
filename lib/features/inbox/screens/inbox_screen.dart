@@ -684,6 +684,17 @@ class _InboxScreenState extends State<InboxScreen>
       builder: (context, state, _) {
         return Scaffold(
           backgroundColor: AppTimeColors.of(context).bgDeep,
+          // Build 317: Brand 자동 발송 캠페인 등록 진입점 — Brand 사용자만 노출.
+          floatingActionButton: state.currentUser.isBrand
+              ? FloatingActionButton.extended(
+                  onPressed: () => Navigator.of(context)
+                      .pushNamed('/brand_zone_setup'),
+                  backgroundColor: AppColors.gold,
+                  foregroundColor: AppColors.bgDeep,
+                  icon: const Icon(Icons.add_location_alt_rounded),
+                  label: const Text('자동 발송 캠페인'),
+                )
+              : null,
           body: SafeArea(
             child: Column(
               children: [

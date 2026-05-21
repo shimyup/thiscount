@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/config/app_keys.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
 import '../../state/app_state.dart';
@@ -49,6 +50,17 @@ class _SplashScreenState extends State<SplashScreen>
       await prefs.setBool('onboarding_v2_complete', false);
       await prefs.setBool('seen_onboarding_tour', false);
       await prefs.setBool(_kForceResetMarker, true);
+    }
+    // Build 317: 베타 빌드 (BETA_TESTFLIGHT_BUILD=true 또는 dev) 면 매 실행마다
+    // 온보딩 강제 재진입 — 테스트 기간 동안 흐름 반복 확인 가능.
+    // 출시 빌드 (`disableInRelease=true` + release) 에선 이 분기 비활성 →
+    // 정상 1회만 표시.
+    final isBetaForOnboarding = BetaConstants.isTestFlightBetaBuild ||
+        kDebugMode ||
+        !BetaConstants.disableInRelease;
+    if (isBetaForOnboarding) {
+      await prefs.setBool('onboarding_v2_complete', false);
+      await prefs.setBool('seen_onboarding_tour', false);
     }
     final onboardingDone = prefs.getBool('onboarding_v2_complete') ?? false;
     if (!mounted) return;

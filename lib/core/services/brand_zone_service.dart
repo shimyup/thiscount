@@ -188,6 +188,68 @@ class BrandZoneService {
     _cachedAt = null;
   }
 
+  /// Build 317: Brand 자동 발송 캠페인 zone 등록 (Firestore POST).
+  /// 옵션: radiusM (300 or 2000), maxRedeems (0 = 상시 / 양수 = 한정).
+  Future<String?> createZone({
+    required String brandId,
+    required String brandName,
+    required LatLng center,
+    required double radiusM,
+    required String content,
+    String? redemptionInfo,
+    int maxRedeems = 0,
+    int durationDays = 30,
+  }) async {
+    if (!FirebaseConfig.kFirebaseEnabled) return null;
+    if (brandId.isEmpty || content.isEmpty) return null;
+    try {
+      final now = DateTime.now().toUtc();
+      final expires = now.add(Duration(days: durationDays));
+      final fields = <String, dynamic>{
+        'brandId': {'stringValue': brandId},
+        'brandName': {'stringValue': brandName},
+        'centerLat': {'doubleValue': center.latitude},
+        'centerLng': {'doubleValue': center.longitude},
+        'radiusM': {'doubleValue': radiusM},
+        'content': {'stringValue': content},
+        if (redemptionInfo != null && redemptionInfo.isNotEmpty)
+          'redemptionInfo': {'stringValue': redemptionInfo},
+        'startsAt': {'timestampValue': now.toIso8601String()},
+        'expiresAt': {'timestampValue': expires.toIso8601String()},
+        'maxRedeems': {'integerValue': '$maxRedeems'},
+        'redeemedCount': {'integerValue': '0'},
+        'createdAt': {'timestampValue': now.toIso8601String()},
+      };
+      final uri = Uri.parse(
+        '${FirebaseConfig.firestoreBase}/brand_zones'
+        '?key=${FirebaseConfig.apiKey}',
+      );
+      final body = jsonEncode({'fields': fields});
+      final r = await http
+          .post(
+            uri,
+            headers: {'Content-Type': 'application/json'},
+            body: body,
+          )
+          .timeout(const Duration(seconds: 15));
+      if (r.statusCode < 200 || r.statusCode >= 300) {
+        if (kDebugMode) {
+          debugPrint('[BrandZone] createZone ${r.statusCode}: ${r.body}');
+        }
+        return null;
+      }
+      final resp = jsonDecode(r.body) as Map<String, dynamic>;
+      final docName = resp['name'] as String? ?? '';
+      final id = docName.split('/').last;
+      _cache = const [];
+      _cachedAt = null;
+      return id;
+    } catch (e, st) {
+      if (kDebugMode) debugPrint('[BrandZone] createZone err: $e\n$st');
+      return null;
+    }
+  }
+
   /// 테스트용 cache 주입.
   @visibleForTesting
   void injectCacheForTest(List<BrandZone> zones) {
