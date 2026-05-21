@@ -39,26 +39,13 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _go() async {
     if (!mounted) return;
     final prefs = await SharedPreferences.getInstance();
-    // Build 313: 모든 기존 사용자에게 1회만 온보딩 강제 재진입.
-    // 이전 빌드 (294~) 에서 markSeen 된 사용자가 새 온보딩 콘텐츠 (Build 287
-    // 수동 스크롤 / Build 301 베타 체크박스 / Build 311 콘텐츠 갱신) 를 보지
-    // 못한 채로 잔존. 이 marker 가 false 면 1회 reset → true 로 저장 → 다음부터
-    // 정상 markSeen 흐름.
-    const _kForceResetMarker = 'onboarding_force_reset_v313';
-    final alreadyForceReset = prefs.getBool(_kForceResetMarker) ?? false;
-    if (!alreadyForceReset) {
-      await prefs.setBool('onboarding_v2_complete', false);
-      await prefs.setBool('seen_onboarding_tour', false);
-      await prefs.setBool(_kForceResetMarker, true);
-    }
-    // Build 317: 베타 빌드 (BETA_TESTFLIGHT_BUILD=true 또는 dev) 면 매 실행마다
-    // 온보딩 강제 재진입 — 테스트 기간 동안 흐름 반복 확인 가능.
-    // 출시 빌드 (`disableInRelease=true` + release) 에선 이 분기 비활성 →
-    // 정상 1회만 표시.
-    final isBetaForOnboarding = BetaConstants.isTestFlightBetaBuild ||
-        kDebugMode ||
-        !BetaConstants.disableInRelease;
-    if (isBetaForOnboarding) {
+    // Build 319 (단순화): 3개 marker → 단일 규칙.
+    //   - 베타 빌드 (BETA_TESTFLIGHT_BUILD || kDebugMode): 매 실행마다 reset
+    //     → 테스터가 온보딩 흐름 반복 확인 가능
+    //   - 출시 빌드: 한 번만 표시 (onboarding_v2_complete=true 면 skip)
+    // 이전 force_reset_v313 marker 는 deprecate — 출시 후 자연스럽게 사라짐.
+    final isBetaBuild = BetaConstants.isTestFlightBetaBuild || kDebugMode;
+    if (isBetaBuild) {
       await prefs.setBool('onboarding_v2_complete', false);
       await prefs.setBool('seen_onboarding_tour', false);
     }

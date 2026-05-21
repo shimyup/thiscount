@@ -374,8 +374,10 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
     defaultValue: false,
   );
   static bool get _isBetaFreePremium {
-    // Build 314: 명시적 TestFlight 플래그가 있으면 disableInRelease 무관하게 활성.
-    if (BetaConstants.isTestFlightBetaBuild) return _isBetaFreePremiumRaw;
+    // Build 319 (단순화): BETA_TESTFLIGHT_BUILD=true 면 무조건 활성.
+    // 이전 3중 분기 (disableInRelease / kReleaseMode / Raw) 를 1개로 통합.
+    // BETA_FREE_PREMIUM dart-define 은 deprecate — TestFlight flag 만 사용.
+    if (BetaConstants.isTestFlightBetaBuild) return true;
     if (BetaConstants.disableInRelease && kReleaseMode) return false;
     return _isBetaFreePremiumRaw;
   }
@@ -395,8 +397,9 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
   );
 
   static bool get _isBetaUpgradeSimulator {
-    // Build 314: 명시적 TestFlight 플래그가 있으면 disableInRelease 무관하게 활성.
-    if (BetaConstants.isTestFlightBetaBuild) return _isBetaUpgradeSimulatorRaw;
+    // Build 319 (단순화): BETA_TESTFLIGHT_BUILD=true 면 무조건 활성.
+    // 가짜 결제 흐름은 TestFlight 베타 빌드에서 항상 동작 (ASC IAP 미등록 대비).
+    if (BetaConstants.isTestFlightBetaBuild) return true;
     if (BetaConstants.disableInRelease && kReleaseMode) return false;
     return _isBetaUpgradeSimulatorRaw;
   }
