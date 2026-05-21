@@ -3220,11 +3220,9 @@ class _LetterFilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
-    // Build 271: 인라인 칩 row — 메인 4개 직접 노출 + 산업군은 "더보기" 칩 1개.
-    // 이전 단일 BottomSheet 진입 (탭 2회) 을 칩 직접 탭 (1회) 로 단축.
-    // Build 271.1: 컴팩트 + 우측 fade — 좁은 화면에서 칩 5개 모두 안 보일 때
-    // 가로 스크롤 가능함을 시각적으로 cue.
-    final isIndustryActive = _industryFilters.contains(activeFilter);
+    // Build 318: 인라인 칩 row 1줄로 통합 — 11개 필터 (메인 4 + 카테고리 7).
+    // 가로 스크롤 + 우측 fade 로 화면 폭 부족할 때 시각 cue.
+    // BottomSheet 제거 — 모든 선택이 1탭 (이전엔 BottomSheet 열고 닫는 추가 2탭).
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 6, 8, 4),
       child: SizedBox(
@@ -3239,11 +3237,14 @@ class _LetterFilterBar extends StatelessWidget {
             ).createShader(bounds);
           },
           blendMode: BlendMode.dstIn,
+          // Build 318 (단순화): BottomSheet + 더보기 ⋯ 칩 제거.
+          // 모든 11개 필터 (메인 4 + 카테고리 7) 를 가로 스크롤 row 에 직접 노출.
+          // 사용자가 BottomSheet 열고 닫는 1단계 제거 — 원탭으로 즉시 선택.
           child: ListView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 4),
             children: [
-              ..._mainFilters.map((type) {
+              ..._visibleFilters.map((type) {
                 final selected = type == activeFilter;
                 return _FilterChipInline(
                   label: _textLabel(type, l10n),
@@ -3251,17 +3252,6 @@ class _LetterFilterBar extends StatelessWidget {
                   onTap: () => onChanged(type),
                 );
               }),
-              // 산업군 더보기 칩 — 활성 산업군이 있으면 그 라벨, 없으면 "..."
-              _FilterChipInline(
-                label: isIndustryActive ? _textLabel(activeFilter, l10n) : '⋯',
-                selected: isIndustryActive,
-                onTap: () => _openSheet(context, l10n),
-                trailing: const Icon(
-                  Icons.expand_more_rounded,
-                  size: 14,
-                  color: AppColors.textMuted,
-                ),
-              ),
             ],
           ),
         ),
@@ -3274,13 +3264,11 @@ class _FilterChipInline extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
-  final Widget? trailing;
 
   const _FilterChipInline({
     required this.label,
     required this.selected,
     required this.onTap,
-    this.trailing,
   });
 
   @override
@@ -3309,7 +3297,7 @@ class _FilterChipInline extends StatelessWidget {
                     letterSpacing: -0.1,
                   ),
                 ),
-                if (trailing != null) ...[const SizedBox(width: 2), trailing!],
+                // Build 318: trailing 옵션 제거 (BottomSheet 화살표 미사용).
               ],
             ),
           ),
