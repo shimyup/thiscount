@@ -22,7 +22,7 @@ import 'features/intro/delivery_intro_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'features/onboarding/onboarding_tour_screen.dart';
 import 'features/admin/admin_special_message_screen.dart';
-import 'features/brand/brand_zone_setup_screen.dart';
+// Build 321: BrandZoneSetupScreen 제거됨 — compose 화면에 통합 (자동 zone 토글).
 import 'features/premium/premium_screen.dart';
 import 'features/v5_preview/v5_preview_root.dart';
 import 'widgets/main_scaffold.dart';
@@ -400,9 +400,7 @@ class _GlobalDriftAppState extends State<GlobalDriftApp> {
               // Build 284 (PR #20 wire): 관리자 특별 메시지 zone 생성
               '/admin_special_message': (_) =>
                   const AdminSpecialMessageScreen(),
-              // Build 317: Brand 자동 발송 캠페인 등록.
-              BrandZoneSetupScreen.routeName: (_) =>
-                  const BrandZoneSetupScreen(),
+              // Build 321: '/brand_zone_setup' 제거 — compose 화면 통합.
               '/splash': (_) =>
                   SplashScreen(skipToAuth: !widget.initialLoggedIn),
               '/auth': (_) => const AuthScreen(),

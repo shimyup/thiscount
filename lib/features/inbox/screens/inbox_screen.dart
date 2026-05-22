@@ -684,17 +684,9 @@ class _InboxScreenState extends State<InboxScreen>
       builder: (context, state, _) {
         return Scaffold(
           backgroundColor: AppTimeColors.of(context).bgDeep,
-          // Build 317: Brand 자동 발송 캠페인 등록 진입점 — Brand 사용자만 노출.
-          floatingActionButton: state.currentUser.isBrand
-              ? FloatingActionButton.extended(
-                  onPressed: () => Navigator.of(context)
-                      .pushNamed('/brand_zone_setup'),
-                  backgroundColor: AppColors.gold,
-                  foregroundColor: AppColors.bgDeep,
-                  icon: const Icon(Icons.add_location_alt_rounded),
-                  label: const Text('자동 발송 캠페인'),
-                )
-              : null,
+          // Build 321: 자동 발송 캠페인 등록을 compose 화면에 통합 — inbox FAB 제거.
+          // Brand 사용자는 일반 발송 화면 (compose) 에서 "자동 zone 으로 등록"
+          // 토글로 같은 흐름에 진입.
           body: SafeArea(
             child: Column(
               children: [
