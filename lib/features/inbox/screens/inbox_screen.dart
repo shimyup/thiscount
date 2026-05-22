@@ -4,6 +4,7 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../core/localization/country_names.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/person_emoji.dart';
+import '../../../core/services/recommendation_service.dart';
 import '../../../models/letter.dart';
 import '../../../models/direct_message.dart';
 import '../../../state/app_state.dart';
@@ -11,6 +12,7 @@ import '../widgets/letter_read_screen.dart';
 import '../../map/screens/letter_detail_map_screen.dart';
 import '../../dm/dm_conversation_screen.dart';
 import '../../merchant/merchant_interest_sheet.dart';
+import '../../premium/premium_gate_sheet.dart';
 
 // 포지셔닝 변경 + Build 183 에서 brand 제거, general 추가.
 //   all · general · coupon · voucher
@@ -420,7 +422,9 @@ class InboxScreen extends StatefulWidget {
 }
 
 // Build 295: 수집첩 정렬 모드. 사용자 요청 — 유효기간 / 최신 / 중요도.
-enum InboxSortMode { latest, expiry, importance }
+// Build 324: AI 추천 정렬 모드 추가 (Premium 전용). 카테고리 선호 / 만료 임박 /
+// 사회 신호 / 거리 / 팔로우 브랜드 등 다신호 heuristic 으로 score 산출.
+enum InboxSortMode { latest, expiry, importance, aiRecommend }
 
 class _InboxScreenState extends State<InboxScreen>
     with SingleTickerProviderStateMixin {
@@ -608,7 +612,11 @@ class _InboxScreenState extends State<InboxScreen>
   // 이전엔 `.reversed.toList()` 만 사용 → 원본 list 가 ASC 정렬됐다는 전제
   // 가 깨지면 무작위 순서. arrivedAt 이 null 이면 sentAt 으로 fallback.
   // Build 295: 정렬 모드 분기. _sortMode 기반.
-  List<Letter> _sortByArrivedDesc(List<Letter> letters) {
+  // Build 324: aiRecommend 모드 — RecommendationService 로 score 산출 후 DESC.
+  //   currentUser / followedBrandIds 가 필요해 AppState 인자를 받도록 확장.
+  //   Free 사용자가 aiRecommend 선택 시 호출 측에서 PremiumGateSheet 노출 후
+  //   latest 로 fallback — 이 메서드는 가드 없이 그대로 score 함수만 호출.
+  List<Letter> _sortByArrivedDesc(AppState state, List<Letter> letters) {
     final sorted = List<Letter>.from(letters);
     switch (_sortMode) {
       case InboxSortMode.latest:
@@ -648,6 +656,12 @@ class _InboxScreenState extends State<InboxScreen>
           return tb.compareTo(ta); // tiebreaker = 최신
         });
         break;
+      case InboxSortMode.aiRecommend:
+        return RecommendationService.rank(
+          sorted,
+          state.currentUser,
+          followedBrandIds: state.followedBrandIds,
+        );
     }
     return sorted;
   }
@@ -856,7 +870,7 @@ class _InboxScreenState extends State<InboxScreen>
                         ? [
                             _SentTab(
                               letters: _applyFilter(
-                                _sortByArrivedDesc(state.sent.toList()),
+                                _sortByArrivedDesc(state, state.sent.toList()),
                                 filter: _sentFilter,
                                 isInbox: false,
                               ),
@@ -870,6 +884,7 @@ class _InboxScreenState extends State<InboxScreen>
                                 _sortFollowedFirst(
                                   state,
                                   _sortByArrivedDesc(
+                                    state,
                                     state.inbox
                                         .where(
                                           (l) => !(l.senderIsBrand &&
@@ -897,15 +912,19 @@ class _InboxScreenState extends State<InboxScreen>
                               letters: _applyFilter(
                                 _sortFollowedFirst(
                                   state,
-                                  state.inbox
-                                      .where(
-                                        (l) =>
-                                            !(l.senderIsBrand &&
-                                                state.isBrandMuted(l.senderId)),
-                                      )
-                                      .toList()
-                                      .reversed
-                                      .toList(),
+                                  // Build 324: 정렬 모드 (Build 295 의 sort 필터)
+                                  //   를 비-Brand 인박스에도 적용. 이전엔
+                                  //   `.reversed.toList()` 만 사용 → sort 메뉴 무력화.
+                                  _sortByArrivedDesc(
+                                    state,
+                                    state.inbox
+                                        .where(
+                                          (l) =>
+                                              !(l.senderIsBrand &&
+                                                  state.isBrandMuted(l.senderId)),
+                                        )
+                                        .toList(),
+                                  ),
                                 ),
                                 filter: _inboxFilter,
                                 isInbox: true,
@@ -922,7 +941,7 @@ class _InboxScreenState extends State<InboxScreen>
                             ),
                             _SentTab(
                               letters: _applyFilter(
-                                _sortByArrivedDesc(state.sent.toList()),
+                                _sortByArrivedDesc(state, state.sent.toList()),
                                 filter: _sentFilter,
                                 isInbox: false,
                               ),
@@ -1031,10 +1050,24 @@ class _InboxScreenState extends State<InboxScreen>
               // Build 295: 정렬 모드 선택 (유효기간 / 최신 / 중요도).
               // Build 315: 아이콘만 → 현재 모드 텍스트+icon 칩으로 가시성 강화.
               //   "🕐 최신순 ▾" 같이 사용자가 어떤 정렬인지 즉시 인지.
+              // Build 324: aiRecommend 옵션 추가 (Premium 전용). Free 사용자가
+              //   선택 시 PremiumGateSheet 노출 + 모드는 변경하지 않음.
               PopupMenuButton<InboxSortMode>(
                 tooltip: l10n.inboxSortTooltip,
                 color: AppColors.bgCard,
-                onSelected: (mode) => setState(() => _sortMode = mode),
+                onSelected: (mode) {
+                  if (mode == InboxSortMode.aiRecommend &&
+                      !state.currentUser.isPremium) {
+                    PremiumGateSheet.show(
+                      context,
+                      featureName: l10n.aiRecommendSortName,
+                      featureEmoji: '✨',
+                      description: l10n.aiRecommendUpsellDesc,
+                    );
+                    return;
+                  }
+                  setState(() => _sortMode = mode);
+                },
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   padding: const EdgeInsets.symmetric(
@@ -1066,6 +1099,8 @@ class _InboxScreenState extends State<InboxScreen>
                               return l10n.inboxSortExpiry;
                             case InboxSortMode.importance:
                               return l10n.inboxSortImportance;
+                            case InboxSortMode.aiRecommend:
+                              return l10n.inboxSortAiRecommend;
                           }
                         }(),
                         style: const TextStyle(
@@ -1101,6 +1136,26 @@ class _InboxScreenState extends State<InboxScreen>
                     child: Text(l10n.inboxSortImportance,
                         style: const TextStyle(color: AppColors.textPrimary)),
                   ),
+                  // Build 324: AI 추천 (Premium 전용). 잠긴 상태는 트레일링 🔒
+                  //   배지로 명시 — Free 사용자가 탭하면 PremiumGateSheet 으로
+                  //   넘어가고 모드는 변경되지 않음.
+                  CheckedPopupMenuItem(
+                    value: InboxSortMode.aiRecommend,
+                    checked: _sortMode == InboxSortMode.aiRecommend,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(l10n.inboxSortAiRecommend,
+                            style: const TextStyle(
+                                color: AppColors.textPrimary)),
+                        if (!state.currentUser.isPremium) ...[
+                          const SizedBox(width: 6),
+                          const Text('🔒',
+                              style: TextStyle(fontSize: 11)),
+                        ],
+                      ],
+                    ),
+                  ),
                 ],
               ),
               // 검색 버튼
@@ -1117,7 +1172,7 @@ class _InboxScreenState extends State<InboxScreen>
                   onTap: () {
                     _tabController.animateTo(0);
                     final letters = _applyFilter(
-                      _sortByArrivedDesc(state.inbox.toList()),
+                      _sortByArrivedDesc(state, state.inbox.toList()),
                       filter: _inboxFilter,
                       isInbox: true,
                     );
