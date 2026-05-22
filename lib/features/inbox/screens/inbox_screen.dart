@@ -616,9 +616,18 @@ class _InboxScreenState extends State<InboxScreen>
   //   currentUser / followedBrandIds 가 필요해 AppState 인자를 받도록 확장.
   //   Free 사용자가 aiRecommend 선택 시 호출 측에서 PremiumGateSheet 노출 후
   //   latest 로 fallback — 이 메서드는 가드 없이 그대로 score 함수만 호출.
-  List<Letter> _sortByArrivedDesc(AppState state, List<Letter> letters) {
+  //   isInbox=false (Sent 탭) 면 aiRecommend 는 받은 letter 신호 (followed brand /
+  //   preferredCategory / 미사용 등) 가 의미 없으므로 latest 로 자동 fallback.
+  List<Letter> _sortByArrivedDesc(
+    AppState state,
+    List<Letter> letters, {
+    bool isInbox = true,
+  }) {
     final sorted = List<Letter>.from(letters);
-    switch (_sortMode) {
+    final effectiveMode = (!isInbox && _sortMode == InboxSortMode.aiRecommend)
+        ? InboxSortMode.latest
+        : _sortMode;
+    switch (effectiveMode) {
       case InboxSortMode.latest:
         sorted.sort((a, b) {
           final ta = a.arrivedAt ?? a.sentAt;
@@ -668,7 +677,12 @@ class _InboxScreenState extends State<InboxScreen>
 
   // Build 115: 팔로우한 브랜드의 편지는 인박스 상단에 고정. stable sort 라
   // 같은 follow/non-follow 그룹 내부의 시간 역순은 보존된다.
+  // Build 324: aiRecommend 모드에서는 score 자체에 followed brand +20 이 이미
+  //   포함되어 있고, 추가로 redeemed/만료 letter 도 큰 음수 패널티로 하단으로
+  //   밀려야 한다. 여기서 followed 그룹을 통째로 상단 고정하면 만료된 followed
+  //   쿠폰이 score 패널티를 무시하고 최상단에 노출되는 버그. AI 모드 시 skip.
   List<Letter> _sortFollowedFirst(AppState state, List<Letter> letters) {
+    if (_sortMode == InboxSortMode.aiRecommend) return letters;
     if (state.followedBrandIds.isEmpty) return letters;
     final followed = <Letter>[];
     final rest = <Letter>[];
@@ -870,7 +884,11 @@ class _InboxScreenState extends State<InboxScreen>
                         ? [
                             _SentTab(
                               letters: _applyFilter(
-                                _sortByArrivedDesc(state, state.sent.toList()),
+                                _sortByArrivedDesc(
+                                  state,
+                                  state.sent.toList(),
+                                  isInbox: false,
+                                ),
                                 filter: _sentFilter,
                                 isInbox: false,
                               ),
@@ -941,7 +959,11 @@ class _InboxScreenState extends State<InboxScreen>
                             ),
                             _SentTab(
                               letters: _applyFilter(
-                                _sortByArrivedDesc(state, state.sent.toList()),
+                                _sortByArrivedDesc(
+                                  state,
+                                  state.sent.toList(),
+                                  isInbox: false,
+                                ),
                                 filter: _sentFilter,
                                 isInbox: false,
                               ),

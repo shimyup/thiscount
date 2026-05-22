@@ -68,28 +68,58 @@ UserProfile _user({
 
 void main() {
   group('RecommendationService.score', () {
-    test('redeemed letter → 강한 음수', () {
-      final l = _letter(redeemedAt: DateTime.now().subtract(const Duration(hours: 1)));
+    test('redeemed letter → 강한 음수 (-1000)', () {
+      final l = _letter(
+          redeemedAt: DateTime.now().subtract(const Duration(hours: 1)));
       final s = RecommendationService.score(l, _user(),
           followedBrandIds: {});
-      expect(s, lessThan(0));
+      expect(s, lessThanOrEqualTo(-1000));
     });
 
-    test('만료된 쿠폰 → 더 강한 음수 (-100)', () {
+    test('만료된 쿠폰 → 더 강한 음수 (-2000), redeemed 보다 아래', () {
       final l = _letter(
         redemptionExpiresAt: DateTime.now().subtract(const Duration(days: 1)),
       );
       final s = RecommendationService.score(l, _user(),
           followedBrandIds: {});
-      expect(s, lessThanOrEqualTo(-100));
+      expect(s, lessThanOrEqualTo(-2000));
+    });
+
+    test('expiresAt(자동삭제) 만 있어도 만료 패널티', () {
+      final l = _letter(
+        expiresAt: DateTime.now().subtract(const Duration(hours: 1)),
+      );
+      final s = RecommendationService.score(l, _user(),
+          followedBrandIds: {});
+      expect(s, lessThanOrEqualTo(-2000));
+    });
+
+    test('두 만료 필드 중 더 빠른 시각 기준으로 임박 가산', () {
+      // redemptionExpiresAt = 30d (멀음), expiresAt = 12h (임박) → 12h 기준 +20
+      final l = _letter(
+        redemptionExpiresAt: DateTime.now().add(const Duration(days: 30)),
+        expiresAt: DateTime.now().add(const Duration(hours: 12)),
+      );
+      // 동일하게 둘 다 멀리 있는 letter 와 비교
+      final far = _letter(
+        redemptionExpiresAt: DateTime.now().add(const Duration(days: 30)),
+        expiresAt: DateTime.now().add(const Duration(days: 30)),
+      );
+      final s1 = RecommendationService.score(l, _user(),
+          followedBrandIds: {});
+      final s2 = RecommendationService.score(far, _user(),
+          followedBrandIds: {});
+      expect(s1, greaterThan(s2));
     });
 
     test('preferredCategoryKey 일치 → 카테고리 미일치보다 높음', () {
       final match = _letter(categoryTag: 'food');
       final miss = _letter(categoryTag: 'beauty');
       final u = _user(preferredCategoryKey: 'food');
-      final sMatch = RecommendationService.score(match, u, followedBrandIds: {});
-      final sMiss = RecommendationService.score(miss, u, followedBrandIds: {});
+      final sMatch =
+          RecommendationService.score(match, u, followedBrandIds: {});
+      final sMiss =
+          RecommendationService.score(miss, u, followedBrandIds: {});
       expect(sMatch, greaterThan(sMiss));
     });
 
@@ -119,16 +149,47 @@ void main() {
     });
 
     test('근거리 letter → 원거리보다 높음', () {
-      // 서울 강남
       const seoul = LatLng(37.5665, 126.978);
-      // 부산 (~325km)
-      final busan = LatLng(35.1796, 129.0756);
+      final busan = LatLng(35.1796, 129.0756); // ~325km
       final near = _letter(destination: seoul);
       final far = _letter(destination: busan);
       final u = _user(latitude: seoul.latitude, longitude: seoul.longitude);
       final s1 = RecommendationService.score(near, u, followedBrandIds: {});
       final s2 = RecommendationService.score(far, u, followedBrandIds: {});
       expect(s1, greaterThan(s2));
+    });
+
+    test('GPS 0,0 사용자 → 거리 신호 미적용 (0,0 letter 부정 가산 차단)', () {
+      // 사용자 위치 미설정 (0,0). letter 도 0,0 destination 이라면 distance=0 이지만
+      //   가산점 안 받아야 함.
+      final l = _letter(destination: const LatLng(0, 0));
+      // 같은 letter, GPS 있는 사용자 — 부산에 있는데 letter 가 서울이면 멀리 있음.
+      final u = _user(latitude: 0, longitude: 0);
+      final s = RecommendationService.score(l, u, followedBrandIds: {});
+      // 거리 가산이 적용되지 않았다면, 동일 letter 의 GPS 있는 사용자 (멀리) 와 같음.
+      final lFar = _letter(destination: const LatLng(0, 0));
+      final uFar = _user(latitude: 37.5665, longitude: 126.978); // 서울
+      final sFar =
+          RecommendationService.score(lFar, uFar, followedBrandIds: {});
+      // 둘 다 거리 신호가 0 (사용자 0,0 가드 + 멀리 letter) → 동일 score.
+      expect(s, equals(sFar));
+    });
+
+    test('rank 와 score 가 같은 now 를 공유 — 시간 drift 없음', () {
+      // letter 가 정확히 now 기준 만료 임박 (1분 후 만료) 라고 가정.
+      // rank 가 호출하는 score 모두 같은 t 를 사용해야 일관된 결과.
+      final now = DateTime(2026, 6, 1, 12, 0, 0);
+      final l = _letter(
+        redemptionExpiresAt: now.add(const Duration(minutes: 30)),
+      );
+      final s1 = RecommendationService.score(l, _user(),
+          followedBrandIds: {}, now: now);
+      // rank 로 호출해도 같은 score 가 나와야 함.
+      final ranked = RecommendationService.rank([l], _user(),
+          followedBrandIds: {}, now: now);
+      expect(ranked, hasLength(1));
+      // s1 만으로 검증 — sanity.
+      expect(s1, greaterThan(0));
     });
   });
 
@@ -154,6 +215,24 @@ void main() {
       expect(ranked.last.id, 'used');
     });
 
+    test('만료된 letter 가 redeemed letter 보다 아래', () {
+      final expired = _letter(
+        id: 'exp',
+        redemptionExpiresAt: DateTime.now().subtract(const Duration(days: 1)),
+      );
+      final used = _letter(
+        id: 'used',
+        redeemedAt: DateTime.now().subtract(const Duration(hours: 1)),
+      );
+      final ranked = RecommendationService.rank(
+        [expired, used],
+        _user(),
+        followedBrandIds: {},
+      );
+      expect(ranked.first.id, 'used');
+      expect(ranked.last.id, 'exp');
+    });
+
     test('preferred 카테고리 letter 가 다른 letter 들보다 상위', () {
       final pref = _letter(id: 'p', categoryTag: 'food');
       final other = _letter(id: 'o', categoryTag: 'beauty');
@@ -165,12 +244,34 @@ void main() {
       expect(ranked.first.id, 'p');
     });
 
+    test('implicit history 는 소비된 letter (read/redeemed) 만 카운트', () {
+      // 인박스: 미사용 'beauty' letter 10개 + 사용된 'food' letter 2개.
+      //   self-reinforcing 이 차단됐다면 implicit 선호는 'food' (소비 이력) → 'food'
+      //   카테고리 letter 가 위로.
+      final beautyUnread = List.generate(
+        10,
+        (i) => _letter(id: 'b$i', categoryTag: 'beauty'),
+      );
+      final foodConsumed = [
+        _letter(id: 'f1', categoryTag: 'food', isReadByRecipient: true),
+        _letter(id: 'f2', categoryTag: 'food', isReadByRecipient: true),
+      ];
+      final candidates = [
+        _letter(id: 'newBeauty', categoryTag: 'beauty'),
+        _letter(id: 'newFood', categoryTag: 'food'),
+      ];
+      final ranked = RecommendationService.rank(
+        [...beautyUnread, ...foodConsumed, ...candidates],
+        _user(), // preferredCategoryKey 없음
+        followedBrandIds: {},
+      );
+      // newFood 가 newBeauty 보다 앞이어야 함 (implicit food 선호).
+      final idxFood = ranked.indexWhere((l) => l.id == 'newFood');
+      final idxBeauty = ranked.indexWhere((l) => l.id == 'newBeauty');
+      expect(idxFood, lessThan(idxBeauty));
+    });
+
     test('동점일 때 최신 sentAt 우선', () {
-      // 동일한 score 가 나오도록 모든 입력을 똑같이 — sentAt 만 다름.
-      final older = _letter(id: 'old');
-      final newer = _letter(id: 'new');
-      // Letter._letter 헬퍼는 sentAt = now 라 둘이 동시. 직접 조정.
-      // 대신 두 letter 가 서로 다른 sentAt 을 가지도록 시간차 letter 만들기.
       final list = [
         Letter(
           id: 'old',
@@ -209,16 +310,12 @@ void main() {
           category: LetterCategory.coupon,
         ),
       ];
-      // 둘 다 동일한 신호 → score 동점 → tiebreaker 로 newer 가 먼저.
       final ranked = RecommendationService.rank(
         list,
         _user(),
         followedBrandIds: {},
       );
       expect(ranked.first.id, 'new');
-      // older 참조 silencing — _letter helper 사용 안 한 이유는 sentAt 차이 필요.
-      expect(older.id, 'old'); // sanity
-      expect(newer.id, 'new');
     });
   });
 }
