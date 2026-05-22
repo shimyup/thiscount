@@ -1530,10 +1530,20 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       _redeemedLetterIds.contains(letterId);
 
   /// 편지의 쿠폰/링크를 실제로 사용했음을 표시 (단방향 — 한번 사용 → 계속 사용됨).
+  /// Build 322: Letter.redeemedAt 필드도 같이 set + Firestore PATCH.
+  /// Brand 가 zone letter 의 redemption 시각으로 conversion 분석 가능.
   Future<void> markLetterRedeemed(String letterId) async {
     if (letterId.isEmpty) return;
     if (_redeemedLetterIds.contains(letterId)) return;
     _redeemedLetterIds.add(letterId);
+    final now = DateTime.now();
+    // inbox 안의 letter object 에도 redeemedAt 직접 set — UI 즉시 반영.
+    for (final l in _inbox) {
+      if (l.id == letterId) {
+        l.redeemedAt = now;
+        break;
+      }
+    }
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(
       'redeemedLetterIds',
@@ -1543,6 +1553,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     unawaited(NotificationService.cancelCouponExpiryReminder(letterId));
     // Build 138: 브랜드 편지 사용 완료 집계 — 브랜드 대시보드 conversion
     // 계산 원천. 로컬 `_redeemedLetterIds` 와 별도로 서버에도 기록.
+    // Build 322: redeemedAt timestamp 도 PATCH — 일자별 conversion rate 분석.
     if (FirebaseConfig.kFirebaseEnabled) {
       unawaited(
         FirestoreService.incrementField(
@@ -1550,8 +1561,19 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           field: 'redeemedCount',
         ),
       );
+      unawaited(
+        FirestoreService.patchFields(
+          path: 'letters/$letterId',
+          fields: {
+            'redeemedAt': {
+              'timestampValue': now.toUtc().toIso8601String(),
+            },
+          },
+        ),
+      );
     }
     notifyListeners();
+    _saveToPrefs();
   }
 
   /// 브랜드 대시보드 용 — 내가 보낸 편지 중 몇 통이 사용됐는지 (동일 디바이스 기준).

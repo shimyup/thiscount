@@ -205,6 +205,36 @@ class FirestoreService {
     return false;
   }
 
+  /// Build 322: 일부 필드만 PATCH (updateMask 자동 생성).
+  /// [fields] 는 Firestore REST 형식 — `{'foo': {'stringValue': 'bar'}, 'ts': {'timestampValue': '...'}}`.
+  /// 다른 필드는 보존됨 (updateMask.fieldPaths 가 명시된 키만 포함).
+  static Future<bool> patchFields({
+    required String path,
+    required Map<String, dynamic> fields,
+  }) async {
+    if (!FirebaseConfig.kFirebaseEnabled) return false;
+    if (fields.isEmpty) return false;
+    await FirebaseAuthService.ensureValidToken();
+    try {
+      final mask = fields.keys
+          .map((k) => 'updateMask.fieldPaths=${Uri.encodeQueryComponent(k)}')
+          .join('&');
+      final url = Uri.parse(
+        '${FirebaseConfig.firestoreBase}/$path'
+        '?key=${FirebaseConfig.apiKey}&$mask',
+      );
+      final res = await http
+          .patch(url, headers: _headers, body: jsonEncode({'fields': fields}))
+          .timeout(const Duration(seconds: 10));
+      return res.statusCode >= 200 && res.statusCode < 300;
+    } catch (e, st) {
+      if (kDebugMode) {
+        debugPrint('[FirestoreService] patchFields 에러: $e\n$st');
+      }
+    }
+    return false;
+  }
+
   // ── 문서 삭제 ────────────────────────────────────────────────────────────────
   static Future<bool> deleteDocument(String path) async {
     if (!FirebaseConfig.kFirebaseEnabled) return false;
