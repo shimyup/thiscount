@@ -954,6 +954,69 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             // (3/3 완료 시 자동 숨김).
                             const BrandChecklistCard(),
                             const SizedBox(height: 12),
+                            // Build 323: 인사이트 대시보드 진입 카드 — 1순위 ROI
+                            // 측정 도구. 한 탭으로 캠페인 효과 한눈에.
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: InkWell(
+                                onTap: () => Navigator.of(ctx)
+                                    .pushNamed('/brand_insights'),
+                                borderRadius: BorderRadius.circular(14),
+                                child: Container(
+                                  padding: const EdgeInsets.all(14),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        AppColors.gold.withValues(alpha: 0.16),
+                                        AppColors.gold.withValues(alpha: 0.04),
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: AppColors.gold
+                                          .withValues(alpha: 0.35),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Text('📊',
+                                          style: TextStyle(fontSize: 22)),
+                                      const SizedBox(width: 12),
+                                      const Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              '캠페인 인사이트',
+                                              style: TextStyle(
+                                                color: AppColors.textPrimary,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                            ),
+                                            SizedBox(height: 2),
+                                            Text(
+                                              '발송 → 픽업 → 사용 전환률 한눈에',
+                                              style: TextStyle(
+                                                color: AppColors.textSecondary,
+                                                fontSize: 11,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const Icon(
+                                        Icons.arrow_forward_ios_rounded,
+                                        color: AppColors.gold,
+                                        size: 14,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
                             const BrandAnalyticsCard(),
                             const SizedBox(height: 12),
                             // Build 186: ExactDrop 크레딧 카드 — Brand 본인이

@@ -28,6 +28,7 @@ import '../core/services/brand_zone_service.dart';
 import '../core/services/purchase_service.dart';
 import '../core/services/secure_clock.dart';
 import '../features/inbox/utils/category_inference.dart';
+import '../models/brand_insights.dart';
 import '../models/brand_zone.dart';
 import '../core/theme/time_theme.dart';
 import '../models/direct_message.dart';
@@ -1580,6 +1581,46 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   int get myRedeemedSentCount {
     if (!_currentUser.isBrand) return 0;
     return _sent.where((l) => _redeemedLetterIds.contains(l.id)).length;
+  }
+
+  /// Build 323: Brand 인사이트 — 발송 / 픽업 / 사용 단계별 funnel 집계.
+  /// 최근 30일 기준으로 _sent + letter object 의 readCount/redeemedAt 사용.
+  /// Brand 만 의미 있음 (Free/Premium 은 빈 결과).
+  BrandInsights get brandInsights {
+    if (!_currentUser.isBrand) {
+      return const BrandInsights.empty();
+    }
+    final cutoff = SecureClock.now().subtract(const Duration(days: 30));
+    final recent = _sent.where((l) => l.sentAt.isAfter(cutoff)).toList();
+    final totalSent = recent.length;
+    final totalPickup =
+        recent.fold<int>(0, (acc, l) => acc + l.readCount);
+    final totalRedeemed = recent.where((l) => l.redeemedAt != null).length;
+    final pickupRate = totalSent == 0 ? 0.0 : totalPickup / totalSent;
+    final redeemRate = totalPickup == 0 ? 0.0 : totalRedeemed / totalPickup;
+    // 캠페인별 conversion — 픽업 1+ 인 것만 (사용률 의미 있음).
+    final campaigns = recent.map((l) {
+      final p = l.readCount;
+      final r = l.redeemedAt != null ? 1 : 0; // 디바이스 local 기준
+      final rate = p == 0 ? 0.0 : r / p;
+      return CampaignInsight(
+        letterId: l.id,
+        title: l.content.length > 40 ? '${l.content.substring(0, 40)}…' : l.content,
+        sent: 1,
+        pickup: p,
+        redeemed: r,
+        redeemRate: rate,
+      );
+    }).toList()
+      ..sort((a, b) => b.pickup.compareTo(a.pickup));
+    return BrandInsights(
+      totalSent: totalSent,
+      totalPickup: totalPickup,
+      totalRedeemed: totalRedeemed,
+      pickupRate: pickupRate,
+      redeemRate: redeemRate,
+      campaigns: campaigns,
+    );
   }
 
   // ── 브랜드 팔로우 (뮤트의 반대 — Build 115) ──────────────────────────────
