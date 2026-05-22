@@ -16,6 +16,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/letter_style.dart';
 import '../../../core/data/country_cities.dart';
 import '../../../core/services/geocoding_service.dart';
+import '../../../core/services/brand_zone_service.dart';
 import '../../../models/letter.dart';
 import '../../../state/app_state.dart';
 import '../../../core/services/purchase_service.dart';
@@ -426,6 +427,15 @@ class _ComposeScreenState extends State<ComposeScreen>
   // 으로 분리 표시되므로 브랜드 운영자가 발송 의도를 명확히 지정한다.
   LetterCategory _brandCategory = LetterCategory.general;
 
+  // Build 321: 자동 발송 zone 모드 — 사용자가 반경 안에 들어오면 자동 letter.
+  // compose 화면에서 토글로 활성화. send 버튼이 createZone 호출로 변경.
+  // 이전 별도 BrandZoneSetupScreen 으로 분리됐던 UX 를 같은 작성 화면 통합.
+  bool _isAutoZoneMode = false;
+  double _zoneRadius = 300; // 300m / 2km
+  bool _zoneUnlimited = true;
+  final TextEditingController _zoneMaxRedeemsCtrl =
+      TextEditingController(text: '100');
+
   // Build 130: 교환권(voucher) 이미지 선택 로컬 경로. non-null 일 때는
   // `_redemptionInfoController.text` 도 이 경로와 동기화돼 있음. 유저가 URL
   // 을 직접 타이핑하면 null 로 되돌아가 이미지 선택 상태 해제.
@@ -831,6 +841,65 @@ class _ComposeScreenState extends State<ComposeScreen>
     });
   }
 
+  /// Build 321: 자동 발송 zone 등록. compose 의 본문 + redemption + 옵션
+  /// (반경 / 수량) 을 사용해 BrandZoneService.createZone 호출. 이전 별도
+  /// BrandZoneSetupScreen 흐름을 같은 작성 화면에 통합.
+  Future<void> _submitAutoZone(AppState state) async {
+    final l10n = AppL10n.of(state.currentUser.languageCode);
+    final user = state.currentUser;
+    // Build 321 audit: zone 등록 흐름에 isBanned 가드 추가.
+    // 일반 compose 흐름은 이미 가드되지만 zone 분기 (line 1057) 가 banned check
+    // 이전에 분기 → 우회 가능했음.
+    if (user.isBanned) {
+      _showError(l10n.composeBannedAccount);
+      return;
+    }
+    if (user.latitude == 0 && user.longitude == 0) {
+      _showError(l10n.composeNoLocation);
+      return;
+    }
+    final content = _stripBidiControls(_contentController.text.trim());
+    if (content.length < 5) {
+      _showError(l10n.composeMinLengthError(content.length));
+      return;
+    }
+    final maxR = _zoneUnlimited
+        ? 0
+        : int.tryParse(_zoneMaxRedeemsCtrl.text.trim()) ?? 0;
+    if (!_zoneUnlimited && maxR <= 0) {
+      _showError(l10n.zoneCampaignMaxRedeemsHint);
+      return;
+    }
+    setState(() => _isSending = true);
+    try {
+      final id = await BrandZoneService.instance.createZone(
+        brandId: user.id,
+        brandName: user.username,
+        center: LatLng(user.latitude, user.longitude),
+        radiusM: _zoneRadius,
+        content: content,
+        redemptionInfo: _redemptionInfoController.text.trim().isEmpty
+            ? null
+            : _redemptionInfoController.text.trim(),
+        maxRedeems: maxR,
+      );
+      if (!mounted) return;
+      if (id == null) {
+        _showError(l10n.zoneCampaignSubmitError);
+        setState(() => _isSending = false);
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.zoneCampaignSubmitOk)),
+      );
+      Navigator.of(context).pop();
+    } catch (_) {
+      if (!mounted) return;
+      _showError(l10n.zoneCampaignSubmitError);
+      setState(() => _isSending = false);
+    }
+  }
+
   @override
   void dispose() {
     _autoSaveTimer?.cancel();
@@ -842,6 +911,7 @@ class _ComposeScreenState extends State<ComposeScreen>
     _contentController.dispose();
     _socialLinkController.dispose();
     _redemptionInfoController.dispose();
+    _zoneMaxRedeemsCtrl.dispose();
     _contentFocus.dispose();
     _sendController.dispose();
     super.dispose();
@@ -1042,6 +1112,12 @@ class _ComposeScreenState extends State<ComposeScreen>
     // 우회 가능했음. 모든 발송 경로의 마지막 게이트로 isBanned 재검증.
     if (state.currentUser.isBanned) {
       _showError(l10n.composeBannedAccount);
+      return;
+    }
+    // Build 321: Brand + 자동 zone 모드 → createZone 분기.
+    // 별도 화면 (BrandZoneSetupScreen) 으로 분리됐던 흐름을 compose 통합.
+    if (_isAutoZoneMode && state.currentUser.isBrand) {
+      await _submitAutoZone(state);
       return;
     }
     final content = _stripBidiControls(_contentController.text.trim());
@@ -4349,6 +4425,138 @@ class _ComposeScreenState extends State<ComposeScreen>
     );
   }
 
+  // Build 321: 자동 발송 zone 토글 + 옵션. compose 통합 — 작성 본문 + 옵션
+  // 동시 입력 후 한 번에 등록. inbox FAB 진입점 제거됨.
+  Widget _buildAutoZoneSection(AppL10n l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 토글
+        GestureDetector(
+          onTap: () => setState(() => _isAutoZoneMode = !_isAutoZoneMode),
+          child: Row(
+            children: [
+              Icon(
+                _isAutoZoneMode ? Icons.check_circle : Icons.circle_outlined,
+                color: _isAutoZoneMode ? AppColors.gold : AppColors.textMuted,
+                size: 18,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                '📍 ${l10n.zoneCampaignToggle}',
+                style: TextStyle(
+                  color: _isAutoZoneMode ? AppColors.gold : AppColors.textPrimary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (_isAutoZoneMode) ...[
+          const SizedBox(height: 10),
+          // 반경 선택
+          Row(
+            children: [
+              Expanded(child: _zoneRadiusChip(300, '300 m')),
+              const SizedBox(width: 8),
+              Expanded(child: _zoneRadiusChip(2000, '2 km')),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // 수량 선택
+          Row(
+            children: [
+              Expanded(child: _zoneQuantityChip(true, '상시')),
+              const SizedBox(width: 8),
+              Expanded(child: _zoneQuantityChip(false, '한정')),
+            ],
+          ),
+          if (!_zoneUnlimited) ...[
+            const SizedBox(height: 8),
+            TextField(
+              controller: _zoneMaxRedeemsCtrl,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
+              decoration: InputDecoration(
+                hintText: '한정 수량 (예: 100)',
+                hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                filled: true,
+                fillColor: AppColors.bgSurface,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ],
+    );
+  }
+
+  Widget _zoneRadiusChip(double value, String label) {
+    final selected = _zoneRadius == value;
+    return InkWell(
+      onTap: () => setState(() => _zoneRadius = value),
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.gold.withValues(alpha: 0.2)
+              : AppColors.bgSurface,
+          border: Border.all(
+            color: selected ? AppColors.gold : Colors.transparent,
+            width: selected ? 1.5 : 0,
+          ),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? AppColors.gold : AppColors.textPrimary,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _zoneQuantityChip(bool unlimited, String label) {
+    final selected = _zoneUnlimited == unlimited;
+    return InkWell(
+      onTap: () => setState(() => _zoneUnlimited = unlimited),
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.coupon.withValues(alpha: 0.2)
+              : AppColors.bgSurface,
+          border: Border.all(
+            color: selected ? AppColors.coupon : Colors.transparent,
+            width: selected ? 1.5 : 0,
+          ),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? AppColors.coupon : AppColors.textPrimary,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+
   // ── 브랜드 고급 옵션 (ExpansionTile 내부) ───────────────────────────────
   Widget _buildBrandOptions(AppState state) {
     final l10n = AppL10n.of(state.currentUser.languageCode);
@@ -4387,6 +4595,9 @@ class _ComposeScreenState extends State<ComposeScreen>
               ),
             ],
           ),
+          const SizedBox(height: 10),
+          // Build 321: 자동 발송 zone 토글 + 옵션 ─ compose 통합
+          _buildAutoZoneSection(l10n),
           const SizedBox(height: 10),
           // ── 1 아이디당 1 편지 ──
           GestureDetector(

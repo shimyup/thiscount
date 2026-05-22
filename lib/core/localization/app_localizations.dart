@@ -8747,6 +8747,92 @@ class AppL10n {
     'th': 'อื่นๆ',
   });
 
+  // Build 321: compose 통합 자동 발송 zone — 4 키.
+  String get composeNoLocation => _t({
+    'ko': '현재 위치를 확인할 수 없어요. 위치 권한을 허용해주세요.',
+    'en': "Can't find your location. Please allow location permission.",
+    'ja': '現在地が確認できません。位置情報の許可をお願いします。',
+    'zh': '无法获取您的位置，请允许位置权限。',
+    'fr': "Impossible d'obtenir votre position. Autorisez la localisation.",
+    'de': 'Standort nicht verfügbar. Standortzugriff erlauben.',
+    'es': 'No se encontró tu ubicación. Habilita los permisos.',
+    'pt': 'Localização não encontrada. Permita o acesso.',
+    'ru': 'Не удалось определить местоположение. Разрешите доступ.',
+    'tr': 'Konum bulunamadı. İzin verin.',
+    'ar': 'تعذر تحديد موقعك. يرجى السماح بالأذونات.',
+    'it': 'Posizione non trovata. Concedi i permessi.',
+    'hi': 'आपका स्थान नहीं मिला। अनुमति दें।',
+    'th': 'ไม่พบตำแหน่งของคุณ โปรดอนุญาต',
+  });
+
+  String get zoneCampaignMaxRedeemsHint => _t({
+    'ko': '한정 수량은 1 이상이어야 해요.',
+    'en': 'Limited quantity must be 1 or more.',
+    'ja': '限定数量は1以上にしてください。',
+    'zh': '限定数量必须为1或以上。',
+    'fr': "La quantité doit être d'au moins 1.",
+    'de': 'Limitierte Menge muss mindestens 1 sein.',
+    'es': 'La cantidad limitada debe ser al menos 1.',
+    'pt': 'A quantidade deve ser pelo menos 1.',
+    'ru': 'Ограниченное количество должно быть 1 и больше.',
+    'tr': 'Sınırlı miktar en az 1 olmalı.',
+    'ar': 'يجب أن يكون العدد المحدود 1 أو أكثر.',
+    'it': 'La quantità deve essere almeno 1.',
+    'hi': 'सीमित मात्रा कम से कम 1 होनी चाहिए।',
+    'th': 'จำนวนจำกัดต้องเป็น 1 ขึ้นไป',
+  });
+
+  String get zoneCampaignSubmitOk => _t({
+    'ko': '캠페인이 등록됐어요! 회원이 지정 반경 안에 들어오면 자동 발송됩니다.',
+    'en': 'Campaign created! Letters auto-send when users enter the zone.',
+    'ja': 'キャンペーンを登録しました！',
+    'zh': '活动已注册！',
+    'fr': 'Campagne créée!',
+    'de': 'Kampagne erstellt!',
+    'es': '¡Campaña creada!',
+    'pt': 'Campanha criada!',
+    'ru': 'Кампания создана!',
+    'tr': 'Kampanya oluşturuldu!',
+    'ar': 'تم إنشاء الحملة!',
+    'it': 'Campagna creata!',
+    'hi': 'अभियान बनाया गया!',
+    'th': 'สร้างแคมเปญแล้ว!',
+  });
+
+  String get zoneCampaignSubmitError => _t({
+    'ko': '캠페인 등록에 실패했어요. 잠시 후 다시 시도해주세요.',
+    'en': 'Failed to create campaign. Please try again.',
+    'ja': 'キャンペーン登録に失敗しました。',
+    'zh': '活动注册失败。',
+    'fr': 'Échec de création de la campagne.',
+    'de': 'Kampagne konnte nicht erstellt werden.',
+    'es': 'Error al crear la campaña.',
+    'pt': 'Falha ao criar a campanha.',
+    'ru': 'Не удалось создать кампанию.',
+    'tr': 'Kampanya oluşturulamadı.',
+    'ar': 'فشل إنشاء الحملة.',
+    'it': 'Errore nella creazione.',
+    'hi': 'अभियान बनाने में विफल।',
+    'th': 'สร้างแคมเปญไม่สำเร็จ',
+  });
+
+  String get zoneCampaignToggle => _t({
+    'ko': '자동 발송 zone 으로 등록',
+    'en': 'Register as auto-drop zone',
+    'ja': '自動配信ゾーンに登録',
+    'zh': '注册为自动投放区',
+    'fr': 'Enregistrer comme zone auto',
+    'de': 'Als Auto-Zone registrieren',
+    'es': 'Registrar como zona auto',
+    'pt': 'Registrar como zona auto',
+    'ru': 'Зарегистрировать как авто-зону',
+    'tr': 'Otomatik bölge olarak kaydet',
+    'ar': 'تسجيل كمنطقة تلقائية',
+    'it': 'Registra come zona auto',
+    'hi': 'ऑटो-ज़ोन के रूप में पंजीकृत करें',
+    'th': 'ลงทะเบียนเป็นโซนอัตโนมัติ',
+  });
+
   /// 카테고리 필터 섹션 헤더 (이전 "산업군" → Build 315 명칭 변경).
   String get inboxCategorySectionTitle => _t({
     'ko': '카테고리',
