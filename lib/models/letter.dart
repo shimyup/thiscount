@@ -284,6 +284,12 @@ class Letter {
   /// null 이면 keyword heuristic fallback (이전 빌드 letter 호환).
   String? categoryTag;
 
+  /// Build 322: 쿠폰/교환권 사용 완료 시각. Brand 의 ROI 측정 핵심 지표.
+  /// 사용자가 letter_read_screen 에서 "사용 완료" 버튼을 누르면 set.
+  /// null = 미사용 / not null = 사용됨. Firestore 에 PATCH 되어 Brand 가 자기
+  /// 캠페인의 픽업→사용 전환율을 측정 가능.
+  DateTime? redeemedAt;
+
   /// 발신자가 답장 수락 여부를 켠 편지인지. Brand 발송 시 한정 선택 가능.
   /// Free/Premium 은 항상 true. (false 면 수신자의 letter_read_screen 에서
   /// 답장 버튼이 숨겨지고, 발신자 브랜드가 "이 캠페인은 답장 미수락" 이라는
@@ -355,6 +361,7 @@ class Letter {
     this.redemptionExpiresAt,
     this.brandZoneId,
     this.categoryTag,
+    this.redeemedAt,
   }) : reportedBy = reportedBy ?? {};
 
   /// 인박스용 독립 복사본 (worldLetters에서 제거 전 inbox에 추가할 때 사용)
@@ -403,6 +410,7 @@ class Letter {
     redemptionExpiresAt: redemptionExpiresAt,
     brandZoneId: brandZoneId,
     categoryTag: categoryTag,
+    redeemedAt: redeemedAt,
     readCount: readCount,
     maxReaders: maxReaders,
   );
@@ -620,6 +628,8 @@ class Letter {
       'redemptionExpiresAt': redemptionExpiresAt!.millisecondsSinceEpoch,
     if (brandZoneId != null) 'brandZoneId': brandZoneId,
     if (categoryTag != null) 'categoryTag': categoryTag,
+    if (redeemedAt != null)
+      'redeemedAt': redeemedAt!.millisecondsSinceEpoch,
     'readCount': readCount,
     'maxReaders': maxReaders,
   };
@@ -684,6 +694,9 @@ class Letter {
         : null,
     brandZoneId: j['brandZoneId'] as String?,
     categoryTag: j['categoryTag'] as String?,
+    redeemedAt: j['redeemedAt'] != null
+        ? DateTime.fromMillisecondsSinceEpoch(j['redeemedAt'] as int)
+        : null,
     expiresAt: j['expiresAt'] != null
         ? DateTime.fromMillisecondsSinceEpoch(j['expiresAt'] as int)
         : null,
