@@ -314,6 +314,13 @@ class Letter {
   /// 있으면 분석/dedup/통계 용도로 추적 가능. 사용자 UI 엔 노출 X.
   final String? brandZoneId;
 
+  /// Build 324: brandUniquePerUser=true 캠페인의 묶음 식별자.
+  /// 같은 발송 (bulk / express blast / zone auto-drop) 의 모든 letter 가 동일한
+  /// campaignId 를 공유 → 한 사용자가 그 캠페인의 letter 를 이미 픽업했으면
+  /// 같은 캠페인의 다른 letter 픽업 차단. null 이면 캠페인 dedup 미적용 (legacy).
+  /// 단건 발송 (sendLetter 1회) 의 경우 letter.id 자체가 campaignId 역할.
+  final String? campaignId;
+
   Letter({
     required this.id,
     required this.senderId,
@@ -362,6 +369,7 @@ class Letter {
     this.brandZoneId,
     this.categoryTag,
     this.redeemedAt,
+    this.campaignId,
   }) : reportedBy = reportedBy ?? {};
 
   /// 인박스용 독립 복사본 (worldLetters에서 제거 전 inbox에 추가할 때 사용)
@@ -411,6 +419,7 @@ class Letter {
     brandZoneId: brandZoneId,
     categoryTag: categoryTag,
     redeemedAt: redeemedAt,
+    campaignId: campaignId,
     readCount: readCount,
     maxReaders: maxReaders,
   );
@@ -630,6 +639,7 @@ class Letter {
     if (categoryTag != null) 'categoryTag': categoryTag,
     if (redeemedAt != null)
       'redeemedAt': redeemedAt!.millisecondsSinceEpoch,
+    if (campaignId != null) 'campaignId': campaignId,
     'readCount': readCount,
     'maxReaders': maxReaders,
   };
@@ -697,6 +707,7 @@ class Letter {
     redeemedAt: j['redeemedAt'] != null
         ? DateTime.fromMillisecondsSinceEpoch(j['redeemedAt'] as int)
         : null,
+    campaignId: j['campaignId'] as String?,
     expiresAt: j['expiresAt'] != null
         ? DateTime.fromMillisecondsSinceEpoch(j['expiresAt'] as int)
         : null,

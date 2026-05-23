@@ -14073,6 +14073,26 @@ class AppL10n {
     'th': 'มีคนเก็บรางวัลนี้ไปแล้ว 😢',
   });
 
+  // Build 324: brandUniquePerUser 캠페인의 dedup 알림 — 같은 캠페인의 다른
+  //   letter 를 이미 픽업했을 때 노출. 같은 브랜드가 대량으로 랜덤 발송한 letter
+  //   여러 개 중 1개만 받을 수 있다는 안내.
+  String get statePickupCampaignDup => _t({
+    'ko': '이 캠페인의 혜택은 이미 받았어요 🎁',
+    'en': 'You already received a reward from this campaign 🎁',
+    'ja': 'このキャンペーンの特典はすでに受け取り済みです 🎁',
+    'zh': '您已领取过此活动的优惠 🎁',
+    'fr': 'Vous avez déjà reçu une récompense de cette campagne 🎁',
+    'de': 'Sie haben bereits eine Belohnung aus dieser Kampagne erhalten 🎁',
+    'es': 'Ya recibiste una recompensa de esta campaña 🎁',
+    'pt': 'Você já recebeu uma recompensa desta campanha 🎁',
+    'ru': 'Вы уже получили награду из этой кампании 🎁',
+    'tr': 'Bu kampanyadan zaten bir ödül aldınız 🎁',
+    'ar': 'لقد تلقيت بالفعل مكافأة من هذه الحملة 🎁',
+    'it': 'Hai già ricevuto una ricompensa da questa campagna 🎁',
+    'hi': 'आपने इस अभियान से पहले ही पुरस्कार प्राप्त किया है 🎁',
+    'th': 'คุณได้รับรางวัลจากแคมเปญนี้แล้ว 🎁',
+  });
+
   String stateMaxReadersReached(int maxReaders) => _t({
     'ko': '이미 ${maxReaders}명이 읽은 혜택이에요 📪',
     'en': 'This reward has already been read by $maxReaders people 📪',

@@ -9,6 +9,8 @@ Letter _brandLetter({
   LetterCategory category = LetterCategory.coupon,
   DateTime? redemptionExpiresAt,
   DateTime? expiresAt,
+  bool brandUniquePerUser = false,
+  String? campaignId,
 }) {
   final now = DateTime.now();
   return Letter(
@@ -32,6 +34,8 @@ Letter _brandLetter({
     redemptionExpiresAt: redemptionExpiresAt,
     expiresAt: expiresAt,
     acceptsReplies: false,
+    brandUniquePerUser: brandUniquePerUser,
+    campaignId: campaignId,
   );
 }
 
@@ -88,6 +92,35 @@ void main() {
       json.remove('redemptionInfo');
       final restored = Letter.fromJson(json);
       expect(restored.redemptionInfo, isNull);
+    });
+
+    test('Build 324: campaignId + brandUniquePerUser 라운드트립', () {
+      final original = _brandLetter(
+        brandUniquePerUser: true,
+        campaignId: 'cmp_test_123',
+      );
+      final restored = Letter.fromJson(original.toJson());
+      expect(restored.brandUniquePerUser, isTrue);
+      expect(restored.campaignId, 'cmp_test_123');
+    });
+
+    test('Build 324: legacy letter (campaignId 키 없음) → null 복원', () {
+      final json = _brandLetter().toJson();
+      // 기존 letter 는 키가 아예 없을 수 있음.
+      expect(json.containsKey('campaignId'), isFalse);
+      final restored = Letter.fromJson(json);
+      expect(restored.campaignId, isNull);
+      expect(restored.brandUniquePerUser, isFalse);
+    });
+
+    test('Build 324: clone() 이 campaignId 보존', () {
+      final original = _brandLetter(
+        brandUniquePerUser: true,
+        campaignId: 'cmp_xyz',
+      );
+      final cloned = original.clone();
+      expect(cloned.campaignId, 'cmp_xyz');
+      expect(cloned.brandUniquePerUser, isTrue);
     });
   });
 

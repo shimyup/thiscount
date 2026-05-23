@@ -319,6 +319,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// 현재 유저가 이미 줍기한 편지 ID 집합 (동일 편지 중복 줍기 방지)
   final Set<String> _myPickedUpLetterIds = {};
 
+  /// Build 324: brandUniquePerUser 캠페인의 dedup 키. 같은 campaignId 의 letter 를
+  /// 한 사용자가 픽업하면 이 set 에 campaignId 추가 → 같은 캠페인의 다른 letter
+  /// 픽업 시도 차단. SharedPreferences `pickedUpCampaignIds` 에 영구 저장.
+  final Set<String> _pickedUpCampaignIds = {};
+
   /// 다음 줍기 가능까지 남은 시간 (null = 바로 가능)
   Duration? get nearbyPickupRemainingCooldown {
     if (_lastNearbyPickupAt == null) return null;
@@ -2440,6 +2445,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       );
       // 줍기 완료 편지 ID 목록 저장
       prefs.setStringList('myPickedUpLetterIds', _myPickedUpLetterIds.toList());
+      // Build 324: brandUniquePerUser 캠페인 dedup 키 영구 저장.
+      prefs.setStringList(
+        'pickedUpCampaignIds',
+        _pickedUpCampaignIds.toList(),
+      );
     } catch (e) {
       assert(() {
         debugPrint('[_flushPrefs] 실패: $e');
@@ -2793,6 +2803,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // 이미 줍기한 편지 ID 목록 복원
     final pickedIds = prefs.getStringList('myPickedUpLetterIds') ?? [];
     _myPickedUpLetterIds.addAll(pickedIds);
+
+    // Build 324: brandUniquePerUser 캠페인 dedup 키 복원.
+    final pickedCampaigns =
+        prefs.getStringList('pickedUpCampaignIds') ?? const [];
+    _pickedUpCampaignIds.addAll(pickedCampaigns);
 
     // 서버 동기화 중복 방지용 ID 캐시 초기화 (로컬 편지 모두 등록)
     _seenLetterIds
@@ -3197,6 +3212,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         senderIsBrand: data['senderIsBrand'] as bool? ?? (tier == LetterSenderTier.brand),
         senderTier: tier,
         brandUniquePerUser: data['brandUniquePerUser'] as bool? ?? false,
+        // Build 324: brandUniquePerUser 캠페인의 묶음 식별자. legacy letter 는 null.
+        campaignId: data['campaignId'] as String?,
         expiresAt: expAt,
       );
     } catch (e, st) {
@@ -3259,6 +3276,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'acceptsReplies': letter.acceptsReplies,
         'senderIsBrand': letter.senderIsBrand,
         'brandUniquePerUser': letter.brandUniquePerUser,
+        // Build 324: 캠페인 dedup 식별자. 픽업 시 같은 campaignId 이미 받은 경우 차단.
+        if (letter.campaignId != null) 'campaignId': letter.campaignId,
         if (letter.expiresAt != null)
           'expiresAt': letter.expiresAt!.toIso8601String(),
         'isAnonymous': letter.isAnonymous,
@@ -6908,6 +6927,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // Build 317: ExactDrop 으로 정확한 핀 좌표 발송임을 명시. true 면 destCityName
     // 미정시에도 destLat/destLng 그대로 사용 (랜덤 분기 우회).
     bool useExactCoordinates = false,
+    // Build 324: brandUniquePerUser 캠페인의 묶음 식별자. bulk/blast 호출자가
+    // 모든 letter 에 같은 값을 전달해 사용자당 1회 픽업을 강제. 단건 발송에서
+    // 호출자가 안 주면 letter.id 자체가 campaignId 역할 (자동 생성).
+    String? campaignId,
   }) async {
     if (!_canSendLetterByDailyLimit()) {
       return false;
@@ -7119,6 +7142,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           ? LetterSenderTier.premium
           : LetterSenderTier.free,
       brandUniquePerUser: _currentUser.isBrand && brandUniquePerUser,
+      // Build 324: brandUniquePerUser=true 일 때만 campaignId 부여. bulk/blast 호출자가
+      //   동일한 campaignId 를 모든 letter 에 전달하면 캠페인 dedup. 단건 발송이면
+      //   letter.id 자체로 fallback (그러면 한 letter 만 픽업 가능 = 단건 의미와 동일).
+      campaignId: (_currentUser.isBrand && brandUniquePerUser)
+          ? (campaignId ?? id)
+          : null,
       expiresAt: (_currentUser.isBrand && brandAutoExpireHours != null)
           ? now.add(Duration(minutes: totalMin) + Duration(hours: brandAutoExpireHours))
           : null,
@@ -7201,6 +7230,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (!_currentUser.isBrand) return 0;
     int sent = 0;
 
+    // Build 324: brandUniquePerUser=true 면 이번 bulk 호출 전체에 공통 캠페인
+    //   ID 부여 → 사용자당 1 letter 만 픽업. false 면 null (dedup 미적용).
+    final campaignId = brandUniquePerUser ? _newCampaignId() : null;
+
     if (randomMode) {
       // 랜덤 모드: 매 편지마다 198개국 중 랜덤 국가 선택
       final totalToSend = sendCount;
@@ -7224,6 +7257,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           acceptsReplies: acceptsReplies,
           redemptionInfo: redemptionInfo,
           redemptionExpiresAt: redemptionExpiresAt,
+          campaignId: campaignId,
         );
         if (ok) sent++;
       }
@@ -7249,6 +7283,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             acceptsReplies: acceptsReplies,
             redemptionInfo: redemptionInfo,
             redemptionExpiresAt: redemptionExpiresAt,
+            campaignId: campaignId,
           );
           if (ok) sent++;
         }
@@ -7256,6 +7291,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     }
     return sent;
   }
+
+  /// Build 324: brandUniquePerUser 캠페인 ID 생성. ms 타임스탬프 + 8자 hex.
+  /// 같은 ms 안에서 두 캠페인이 시작돼도 hex suffix 로 collision 방지.
+  String _newCampaignId() =>
+      'cmp_${DateTime.now().millisecondsSinceEpoch}_${_shortRandHex()}';
 
   // ── 브랜드 특송 (즉시 다중 주소 발송) ─────────────────────────────────────
   /// 브랜드 계정 전용: 선택한 나라의 랜덤 주소 [count]개에 즉시(5분) 발송
@@ -7283,6 +7323,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
     const expressTotalMin = 5; // 특송: 5분 즉시 배송
     final now = DateTime.now();
+    // Build 324: brandUniquePerUser=true 면 이 blast 전체에 공통 campaignId.
+    final blastCampaignId = brandUniquePerUser ? _newCampaignId() : null;
     final fromCity = LatLng(_currentUser.latitude, _currentUser.longitude);
     // 실제 위치 기반 발신국 (호주 여행 중인 한국 회원도 호주 발송으로 표시)
     final geoSvc = GeocodingService.instance;
@@ -7375,6 +7417,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         senderTier: LetterSenderTier.brand,
         isAnonymous: false,
         brandUniquePerUser: brandUniquePerUser,
+        // Build 324: 캠페인 dedup — 같은 blast 의 모든 letter 가 동일 campaignId.
+        campaignId: blastCampaignId,
         expiresAt: brandAutoExpireHours != null
             ? now.add(Duration(minutes: expressTotalMin) + Duration(hours: brandAutoExpireHours))
             : null,
@@ -7449,6 +7493,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
     final letter = _worldLetters[idx];
 
+    // Build 324: brandUniquePerUser=true 캠페인의 사용자당 1회 픽업 enforcement.
+    //   같은 campaignId 의 letter 를 이미 픽업했다면 다른 letter 라도 차단.
+    //   기존엔 letter.brandUniquePerUser 필드만 있고 enforcement 누락 → 대량
+    //   랜덤 발송 시 같은 사용자가 여러 letter 픽업 가능했던 버그 수정.
+    if (letter.brandUniquePerUser &&
+        letter.campaignId != null &&
+        _pickedUpCampaignIds.contains(letter.campaignId)) {
+      return _l10n.statePickupCampaignDup;
+    }
+
     // Build 309 (safety): 차단된 발송자 또는 자기 자신 letter 픽업 차단.
     // blockLetterSender 가 _worldLetters 를 정리하지만 sync 사이에 race 가능.
     if (_blockedSenderIds.contains(letter.senderId) ||
@@ -7475,6 +7529,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // ⑥ 수령 처리: readCount 증가 후 inbox에 복사본 추가
     letter.readCount++;
     _myPickedUpLetterIds.add(letterId);
+    // Build 324: 캠페인 dedup — 같은 campaignId 의 다른 letter 픽업 차단을 위해 기록.
+    if (letter.brandUniquePerUser && letter.campaignId != null) {
+      _pickedUpCampaignIds.add(letter.campaignId!);
+    }
 
     // 인박스용 독립 복사본 (status/arrivedAt 새로 설정)
     // Build 315: 픽업 시점에 카테고리 태그를 자동 분류해서 저장 →
@@ -7700,6 +7758,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         senderIsBrand: letter.senderIsBrand,
         senderTier: letter.senderTier,
         brandUniquePerUser: letter.brandUniquePerUser,
+        // Build 324: refetch 시 campaignId / 기타 누락 필드도 보존.
+        campaignId: letter.campaignId,
+        brandZoneId: letter.brandZoneId,
+        categoryTag: letter.categoryTag,
+        redeemedAt: letter.redeemedAt,
         expiresAt: letter.expiresAt,
         category: letter.category,
         acceptsReplies: letter.acceptsReplies,
