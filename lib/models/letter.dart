@@ -315,10 +315,11 @@ class Letter {
   final String? brandZoneId;
 
   /// Build 324: brandUniquePerUser=true 캠페인의 묶음 식별자.
-  /// 같은 발송 (bulk / express blast / zone auto-drop) 의 모든 letter 가 동일한
-  /// campaignId 를 공유 → 한 사용자가 그 캠페인의 letter 를 이미 픽업했으면
-  /// 같은 캠페인의 다른 letter 픽업 차단. null 이면 캠페인 dedup 미적용 (legacy).
-  /// 단건 발송 (sendLetter 1회) 의 경우 letter.id 자체가 campaignId 역할.
+  /// 같은 bulk send 또는 express blast 의 모든 letter 가 동일한 campaignId 를
+  /// 공유 → 한 사용자가 그 캠페인의 letter 를 이미 픽업했으면 같은 캠페인의
+  /// 다른 letter 픽업 차단. null = 캠페인 dedup 미적용 (legacy 호환 or 단건
+  /// 발송 — 단건은 readCount/maxReaders 가 이미 1회 제한 보장하므로 별도 필요 X).
+  /// Brand zone auto-drop letter 는 자체 `brand_zones_seen_$userId` 로 dedup 처리.
   final String? campaignId;
 
   Letter({

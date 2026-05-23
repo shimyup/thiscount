@@ -228,6 +228,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   List<Letter> get nearbyLetters {
     final list = _worldLetters
         .where((l) => l.status == DeliveryStatus.nearYou)
+        // Build 324: brandUniquePerUser 캠페인의 다른 letter 를 이미 픽업했다면
+        //   같은 캠페인의 잔여 letter 는 지도/리스트에서 숨김. 노출 후 탭 시점
+        //   "이미 받았어요" 차단보다 사전 차단이 UX 자연스럽다.
+        .where((l) => !(l.brandUniquePerUser &&
+            l.campaignId != null &&
+            _pickedUpCampaignIds.contains(l.campaignId)))
         .toList();
     final pref = preferredCategory;
     if (pref != null && _currentUser.isPremium && currentLevel >= 11) {
@@ -2445,7 +2451,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       );
       // 줍기 완료 편지 ID 목록 저장
       prefs.setStringList('myPickedUpLetterIds', _myPickedUpLetterIds.toList());
-      // Build 324: brandUniquePerUser 캠페인 dedup 키 영구 저장.
+      // Build 324: brandUniquePerUser 캠페인 dedup 키 영구 저장. cap 은 in-memory
+      //   추가 시 이미 enforce 됐으므로 그대로 직렬화 — prefs 도 자연 cap.
       prefs.setStringList(
         'pickedUpCampaignIds',
         _pickedUpCampaignIds.toList(),
@@ -3391,6 +3398,26 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         updated = true;
       }
 
+      // Build 324: brandUniquePerUser 캠페인 dedup 기록 복원.
+      //   다른 디바이스에서 픽업한 캠페인 ID 들이 서버에만 있고 이 기기엔 없을
+      //   수 있음 → addAll 로 merge. 이미 있는 entry 는 중복 차단.
+      final serverPicked = map['pickedUpCampaignIds'];
+      if (serverPicked is List) {
+        final before = _pickedUpCampaignIds.length;
+        for (final v in serverPicked) {
+          if (v is String && v.isNotEmpty) {
+            _pickedUpCampaignIds.add(v);
+          }
+        }
+        if (_pickedUpCampaignIds.length != before) {
+          // cap 적용 — server 가 5000 entry 이상 갖고 있을 수 있음.
+          while (_pickedUpCampaignIds.length > _pickedCampaignIdsCap) {
+            _pickedUpCampaignIds.remove(_pickedUpCampaignIds.first);
+          }
+          updated = true;
+        }
+      }
+
       if (updated) {
         notifyListeners();
         _saveToPrefs();
@@ -4020,6 +4047,19 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     String? phoneNumber,
     String? verifyMethod,
   }) {
+    // Build 324: 다른 uid 로 전환 시 (logout → 다른 계정 login) 캠페인 dedup
+    //   기록이 새 사용자에게 leakage 되지 않도록 in-memory + prefs 동시 clear.
+    //   restoreFromServerIfMissing 가 새 사용자의 서버 기록을 별도로 복원.
+    final isNewUser = id.isNotEmpty &&
+        _currentUser.id.isNotEmpty &&
+        _currentUser.id != 'guest' &&
+        _currentUser.id != id;
+    if (isNewUser) {
+      _pickedUpCampaignIds.clear();
+      _myPickedUpLetterIds.clear();
+      unawaited(_clearUserScopedPrefs());
+    }
+
     final resolvedLanguageCode =
         (languageCode != null && languageCode.isNotEmpty)
         ? languageCode
@@ -4566,6 +4606,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         if (_currentUser.preferredCategoryKey != null)
           'preferredCategoryKey': {
             'stringValue': _currentUser.preferredCategoryKey!,
+          },
+        // Build 324: brandUniquePerUser 캠페인 dedup 동기화. 같은 계정이 다른
+        //   기기에서 로그인해도 _restoreProfileFromServer 가 이 array 를 받아
+        //   로컬 set 에 merge → 멀티 디바이스/재설치 우회 차단.
+        if (_pickedUpCampaignIds.isNotEmpty)
+          'pickedUpCampaignIds': {
+            'arrayValue': {
+              'values': _pickedUpCampaignIds
+                  .map((id) => {'stringValue': id})
+                  .toList(),
+            },
           },
       };
       // updateMask 를 명시해야 PATCH 가 다른 필드(예: 병렬로 쓰는 invite 정보)를
@@ -7142,12 +7193,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           ? LetterSenderTier.premium
           : LetterSenderTier.free,
       brandUniquePerUser: _currentUser.isBrand && brandUniquePerUser,
-      // Build 324: brandUniquePerUser=true 일 때만 campaignId 부여. bulk/blast 호출자가
-      //   동일한 campaignId 를 모든 letter 에 전달하면 캠페인 dedup. 단건 발송이면
-      //   letter.id 자체로 fallback (그러면 한 letter 만 픽업 가능 = 단건 의미와 동일).
-      campaignId: (_currentUser.isBrand && brandUniquePerUser)
-          ? (campaignId ?? id)
-          : null,
+      // Build 324: bulk/blast 호출자가 campaignId 를 명시한 경우만 부여. 단건
+      //   발송 (compose 1건) 은 letter 자체가 이미 readCount/maxReaders 로 1회
+      //   픽업 제한이라 campaignId fallback 불필요 → null 유지해 prefs 오염
+      //   (letter.id 가 dedup set 에 쌓이는 의미 없는 entry) 차단.
+      campaignId:
+          (_currentUser.isBrand && brandUniquePerUser) ? campaignId : null,
       expiresAt: (_currentUser.isBrand && brandAutoExpireHours != null)
           ? now.add(Duration(minutes: totalMin) + Duration(hours: brandAutoExpireHours))
           : null,
@@ -7296,6 +7347,24 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// 같은 ms 안에서 두 캠페인이 시작돼도 hex suffix 로 collision 방지.
   String _newCampaignId() =>
       'cmp_${DateTime.now().millisecondsSinceEpoch}_${_shortRandHex()}';
+
+  /// Build 324: 계정 전환 시 호출 — 이전 사용자의 user-scoped prefs 삭제.
+  /// 같은 디바이스에서 user A → user B 전환했을 때 A 의 dedup 이력이 B 세션에
+  /// 새지 않게. logout 자체는 외부 (AuthService.logout) 에서 처리하지만, 그
+  /// 흐름이 _myPickedUpLetterIds / _pickedUpCampaignIds prefs 까지 안 지움.
+  Future<void> _clearUserScopedPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('myPickedUpLetterIds');
+      await prefs.remove('pickedUpCampaignIds');
+    } catch (e) {
+      if (kDebugMode) debugPrint('[setUser] clear prefs 실패: $e');
+    }
+  }
+
+  /// Build 324: `_pickedUpCampaignIds` 의 in-memory cap. 활성 사용자가 수년
+  /// 사용 시 무한 증가하지 않도록 FIFO 5000 entry 제한 (보존 우선).
+  static const int _pickedCampaignIdsCap = 5000;
 
   // ── 브랜드 특송 (즉시 다중 주소 발송) ─────────────────────────────────────
   /// 브랜드 계정 전용: 선택한 나라의 랜덤 주소 [count]개에 즉시(5분) 발송
@@ -7493,6 +7562,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
     final letter = _worldLetters[idx];
 
+    // Build 324: worldLetters 정리가 lag 일 때 만료된 letter 픽업 시도 차단.
+    //   캠페인 dedup 보다 먼저 — "만료" 메시지가 "이미 받았어요" 보다 정확.
+    if (letter.isExpired) {
+      return _l10n.stateAlreadyTaken;
+    }
+
     // Build 324: brandUniquePerUser=true 캠페인의 사용자당 1회 픽업 enforcement.
     //   같은 campaignId 의 letter 를 이미 픽업했다면 다른 letter 라도 차단.
     //   기존엔 letter.brandUniquePerUser 필드만 있고 enforcement 누락 → 대량
@@ -7530,8 +7605,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     letter.readCount++;
     _myPickedUpLetterIds.add(letterId);
     // Build 324: 캠페인 dedup — 같은 campaignId 의 다른 letter 픽업 차단을 위해 기록.
+    //   _pickedCampaignIdsCap 초과 시 가장 오래된 entry 부터 drop (LinkedHashSet 의
+    //   insertion order 보존 — first 가 가장 오래된 것).
     if (letter.brandUniquePerUser && letter.campaignId != null) {
       _pickedUpCampaignIds.add(letter.campaignId!);
+      while (_pickedUpCampaignIds.length > _pickedCampaignIdsCap) {
+        _pickedUpCampaignIds.remove(_pickedUpCampaignIds.first);
+      }
     }
 
     // 인박스용 독립 복사본 (status/arrivedAt 새로 설정)

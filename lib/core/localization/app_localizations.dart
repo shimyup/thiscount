@@ -6460,21 +6460,24 @@ class AppL10n {
     'th': '1 ต่อผู้รับ',
   });
 
+  // Build 324: desc 명확화. 이전 "중복 발송되지 않습니다" 는 발송 자체가 안
+  //   되는 인상 — 실제 동작은 letter 발송은 되지만 한 사용자는 그중 1개만 줍기
+  //   가능. "줍기" 동작이 핵심임을 명시.
   String get composeBrandUniquePerUserDesc => _t({
-    'ko': '같은 사용자에게 중복 발송되지 않습니다',
-    'en': 'Same user won\'t receive duplicate rewards',
-    'ja': '同じユーザーに重複送信されません',
-    'zh': '同一用户不会收到重复优惠券',
-    'fr': 'L\'utilisateur ne recevra pas de doublons',
-    'de': 'Benutzer erhält keine Duplikate',
-    'es': 'El usuario no recibirá duplicados',
-    'pt': 'Usuário não receberá duplicatas',
-    'ru': 'Пользователь не получит дублей',
-    'tr': 'Kullanıcı mükerrer almaz',
-    'ar': 'لن يتلقى المستخدم نسخاً مكررة',
-    'it': 'L\'utente non riceverà duplicati',
-    'hi': 'उपयोगकर्ता को डुप्लिकेट नहीं मिलेगा',
-    'th': 'ผู้ใช้จะไม่ได้รับซ้ำ',
+    'ko': '한 사용자는 이 발송에서 1개만 받을 수 있어요',
+    'en': 'Each user can pick up only 1 letter from this send',
+    'ja': '1人のユーザーがこの発送から受け取れるのは1通だけです',
+    'zh': '每个用户在本次发送中只能领取1封',
+    'fr': 'Chaque utilisateur ne peut récupérer qu\'1 lettre de cet envoi',
+    'de': 'Jeder Nutzer kann nur 1 Brief aus diesem Versand abholen',
+    'es': 'Cada usuario puede recibir solo 1 carta de este envío',
+    'pt': 'Cada usuário pode receber apenas 1 carta deste envio',
+    'ru': 'Каждый пользователь может получить только 1 письмо из этой рассылки',
+    'tr': 'Her kullanıcı bu gönderimden yalnızca 1 mektup alabilir',
+    'ar': 'يمكن لكل مستخدم استلام رسالة واحدة فقط من هذا الإرسال',
+    'it': 'Ogni utente può ricevere solo 1 lettera da questo invio',
+    'hi': 'प्रत्येक उपयोगकर्ता इस भेजने से केवल 1 पत्र प्राप्त कर सकता है',
+    'th': 'ผู้ใช้แต่ละคนรับได้เพียง 1 ฉบับจากการส่งครั้งนี้',
   });
 
   String get composeBrandAutoExpire => _t({
@@ -14075,22 +14078,22 @@ class AppL10n {
 
   // Build 324: brandUniquePerUser 캠페인의 dedup 알림 — 같은 캠페인의 다른
   //   letter 를 이미 픽업했을 때 노출. 같은 브랜드가 대량으로 랜덤 발송한 letter
-  //   여러 개 중 1개만 받을 수 있다는 안내.
+  //   여러 개 중 1개만 받을 수 있다는 안내. ko 는 "캠페인" 마케팅 용어 회피.
   String get statePickupCampaignDup => _t({
-    'ko': '이 캠페인의 혜택은 이미 받았어요 🎁',
-    'en': 'You already received a reward from this campaign 🎁',
-    'ja': 'このキャンペーンの特典はすでに受け取り済みです 🎁',
-    'zh': '您已领取过此活动的优惠 🎁',
-    'fr': 'Vous avez déjà reçu une récompense de cette campagne 🎁',
-    'de': 'Sie haben bereits eine Belohnung aus dieser Kampagne erhalten 🎁',
-    'es': 'Ya recibiste una recompensa de esta campaña 🎁',
-    'pt': 'Você já recebeu uma recompensa desta campanha 🎁',
-    'ru': 'Вы уже получили награду из этой кампании 🎁',
-    'tr': 'Bu kampanyadan zaten bir ödül aldınız 🎁',
-    'ar': 'لقد تلقيت بالفعل مكافأة من هذه الحملة 🎁',
-    'it': 'Hai già ricevuto una ricompensa da questa campagna 🎁',
-    'hi': 'आपने इस अभियान से पहले ही पुरस्कार प्राप्त किया है 🎁',
-    'th': 'คุณได้รับรางวัลจากแคมเปญนี้แล้ว 🎁',
+    'ko': '이 혜택은 한 번만 받을 수 있어요 🎁',
+    'en': 'You can only receive this reward once 🎁',
+    'ja': 'この特典は1回だけ受け取れます 🎁',
+    'zh': '此优惠每人仅可领取一次 🎁',
+    'fr': 'Vous ne pouvez recevoir cette récompense qu\'une seule fois 🎁',
+    'de': 'Sie können diese Belohnung nur einmal erhalten 🎁',
+    'es': 'Solo puedes recibir esta recompensa una vez 🎁',
+    'pt': 'Você só pode receber esta recompensa uma vez 🎁',
+    'ru': 'Эту награду можно получить только один раз 🎁',
+    'tr': 'Bu ödülü yalnızca bir kez alabilirsiniz 🎁',
+    'ar': 'يمكنك تلقي هذه المكافأة مرة واحدة فقط 🎁',
+    'it': 'Puoi ricevere questa ricompensa solo una volta 🎁',
+    'hi': 'आप यह पुरस्कार केवल एक बार प्राप्त कर सकते हैं 🎁',
+    'th': 'คุณรับรางวัลนี้ได้เพียงครั้งเดียว 🎁',
   });
 
   String stateMaxReadersReached(int maxReaders) => _t({
