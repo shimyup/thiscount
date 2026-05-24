@@ -8,6 +8,7 @@ import '../../core/config/app_keys.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/services/feedback_service.dart';
 import '../../core/services/purchase_service.dart';
+import '../../core/utils/secure_clipboard.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../core/config/app_links.dart';
 import '../../state/app_state.dart';
@@ -1453,7 +1454,7 @@ class _GiftCardSuccessDialog extends StatelessWidget {
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: () async {
-                await Clipboard.setData(ClipboardData(text: code));
+                await SecureClipboard.copyEphemeral(code);
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -1645,9 +1646,7 @@ class _InviteRewardTileState extends State<_InviteRewardTile> {
                     const SizedBox(width: 8),
                     OutlinedButton(
                       onPressed: () async {
-                        await Clipboard.setData(
-                          ClipboardData(text: inviteCode),
-                        );
+                        await SecureClipboard.copyEphemeral(inviteCode);
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(

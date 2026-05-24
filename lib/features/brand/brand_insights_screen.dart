@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/redemption_code.dart';
+import '../../core/utils/secure_clipboard.dart';
 import '../../models/brand_insights.dart';
 import '../../state/app_state.dart';
 
@@ -361,7 +362,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
                 onTap: expired
                     ? null
                     : () async {
-                        await Clipboard.setData(ClipboardData(text: formatted));
+                        await SecureClipboard.copyEphemeral(formatted);
                         if (!mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(

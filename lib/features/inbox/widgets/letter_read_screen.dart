@@ -15,6 +15,7 @@ import 'package:screen_protector/screen_protector.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/redemption_code.dart';
+import '../../../core/utils/secure_clipboard.dart';
 import '../../../core/theme/letter_style.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/localization/country_names.dart';
@@ -2731,7 +2732,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
           onTap: redeemed
               ? null
               : () async {
-                  await Clipboard.setData(ClipboardData(text: code.trim()));
+                  await SecureClipboard.copyEphemeral(code.trim());
                   if (!inner.mounted) return;
                   ScaffoldMessenger.of(inner).showSnackBar(
                     SnackBar(
@@ -3539,7 +3540,7 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
             onLongPress: disabled
                 ? null
                 : () async {
-                    await Clipboard.setData(ClipboardData(text: formatted));
+                    await SecureClipboard.copyEphemeral(formatted);
                     if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(

@@ -18,6 +18,7 @@ import '../../../core/data/country_cities.dart';
 import '../../../core/services/geocoding_service.dart';
 import '../../../core/services/brand_zone_service.dart';
 import '../../../core/utils/redemption_code.dart';
+import '../../../core/utils/secure_clipboard.dart';
 import '../../../models/letter.dart';
 import '../../../state/app_state.dart';
 import '../../../core/services/purchase_service.dart';
@@ -1983,7 +1984,7 @@ class _ComposeScreenState extends State<ComposeScreen>
           ),
           ElevatedButton.icon(
             onPressed: () async {
-              await Clipboard.setData(ClipboardData(text: formatted));
+              await SecureClipboard.copyEphemeral(formatted);
               if (!dCtx.mounted) return;
               ScaffoldMessenger.of(dCtx).showSnackBar(
                 SnackBar(
