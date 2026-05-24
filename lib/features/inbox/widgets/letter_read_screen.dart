@@ -73,12 +73,12 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   @override
   void initState() {
     super.initState();
-    // Build 183: 교환권 편지 화면 전체도 스크린샷/recording 차단. 본문 보기
-    // 단계에서 먼저 활성 → 풀스크린 뷰어도 자체적으로 재-활성 (중첩 안전).
+    // Build 183: 교환권 편지 화면 전체도 스크린샷/recording 차단.
+    // Build 358 (PR-Z2): 공통 ref counter (_ScreenProtectionGuard) 사용 — 다른
+    //   panel/viewer 와 중첩 시 race 차단.
     if (widget.letter.category == LetterCategory.voucher) {
       _voucherProtectOn = true;
-      ScreenProtector.preventScreenshotOn();
-      ScreenProtector.protectDataLeakageWithBlur();
+      _ScreenProtectionGuard.acquire();
     }
     // Build 182: content 가 비어 있으면 Firestore 에서 재조회 (백그라운드).
     // 성공 시 AppState notifyListeners → Consumer 가 본문을 다시 렌더한다.
@@ -179,8 +179,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   @override
   void dispose() {
     if (_voucherProtectOn) {
-      ScreenProtector.preventScreenshotOff();
-      ScreenProtector.protectDataLeakageWithBlurOff();
+      _ScreenProtectionGuard.release();
     }
     _scrollCtl.dispose();
     _openController.dispose();
@@ -3141,16 +3140,16 @@ class _FullscreenImageViewerState extends State<_FullscreenImageViewer> {
     if (widget.isVoucher) {
       // Android: FLAG_SECURE — 시스템 레벨 스크린샷/recording 차단.
       // iOS: capture 감지 시 내부 blur overlay (플러그인 제공).
-      ScreenProtector.preventScreenshotOn();
-      ScreenProtector.protectDataLeakageWithBlur();
+      // Build 358 (PR-Z2): 공통 _ScreenProtectionGuard ref counter — 다른 보호
+      //   객체와 race 차단.
+      _ScreenProtectionGuard.acquire();
     }
   }
 
   @override
   void dispose() {
     if (widget.isVoucher) {
-      ScreenProtector.preventScreenshotOff();
-      ScreenProtector.protectDataLeakageWithBlurOff();
+      _ScreenProtectionGuard.release();
     }
     super.dispose();
   }
@@ -3398,10 +3397,9 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
 
   bool _registered = false;
   // Build 356 (PR-Y1 Y 시뮬레이션 P2): redemption code reveal 시 screenshot 차단.
-  // Build 357 (PR-Z1 Z 시뮬레이션 P0): static reference counter — 다중 panel
-  //   중첩 시 한 panel dispose 가 다른 panel 의 보호도 해제하던 race 차단.
-  //   voucher fullscreen viewer 와 정확히 같은 패턴.
-  static int _screenProtectCount = 0;
+  // Build 358 (PR-Z2 Z 시뮬레이션 P0): voucher viewer + voucher letter 와 공통
+  //   _ScreenProtectionGuard ref counter 통합. 한 객체 dispose 가 다른 보호도
+  //   해제하던 race 차단.
   bool _screenProtectOn = false;
 
   @override
@@ -3410,27 +3408,14 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
     if (!widget.redeemed && !widget.expired) {
       _maxBrightness();
       _screenProtectOn = true;
-      try {
-        if (_screenProtectCount == 0) {
-          ScreenProtector.preventScreenshotOn();
-          ScreenProtector.protectDataLeakageWithBlur();
-        }
-        _screenProtectCount++;
-      } catch (_) {/* 일부 플랫폼 미지원 — 무시 */}
+      _ScreenProtectionGuard.acquire();
     }
   }
 
   @override
   void dispose() {
     if (_screenProtectOn) {
-      try {
-        _screenProtectCount--;
-        if (_screenProtectCount <= 0) {
-          _screenProtectCount = 0;
-          ScreenProtector.preventScreenshotOff();
-          ScreenProtector.protectDataLeakageWithBlurOff();
-        }
-      } catch (_) {/* swallow */}
+      _ScreenProtectionGuard.release();
     }
     if (_registered) {
       _activeCount--;
@@ -3606,5 +3591,36 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
         ],
       ),
     );
+  }
+}
+
+/// Build 358 (PR-Z2 Z 시뮬레이션 P0): ScreenProtector 공통 reference counter.
+///   다중 보호 객체 (voucher letter + voucher fullscreen + redemption panel)
+///   가 동시 활성될 때 한 객체 dispose 가 다른 객체 보호도 해제하던 race 차단.
+///   첫 acquire 시 ON, 마지막 release 시 OFF.
+class _ScreenProtectionGuard {
+  static int _count = 0;
+
+  /// 화면 보호 acquire. 첫 acquire 시 시스템 ScreenProtector ON.
+  static void acquire() {
+    try {
+      if (_count == 0) {
+        ScreenProtector.preventScreenshotOn();
+        ScreenProtector.protectDataLeakageWithBlur();
+      }
+      _count++;
+    } catch (_) {/* 일부 플랫폼 미지원 — 무시 */}
+  }
+
+  /// 화면 보호 release. 마지막 release 시 시스템 ScreenProtector OFF.
+  static void release() {
+    try {
+      _count--;
+      if (_count <= 0) {
+        _count = 0;
+        ScreenProtector.preventScreenshotOff();
+        ScreenProtector.protectDataLeakageWithBlurOff();
+      }
+    } catch (_) {/* swallow */}
   }
 }
