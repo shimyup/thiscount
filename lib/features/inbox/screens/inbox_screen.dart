@@ -363,6 +363,43 @@ LetterFilterType? _filterTypeFromName(String name) {
   return null;
 }
 
+/// Build 324 (Q2): letter content + redemptionInfo 에서 "혜택 강도" 텍스트
+///   추출 — 카드 leading 영역의 big text 용. 사용자가 0.5초에 "얼마 이득"
+///   인지 → 픽업/사용 결정 가속.
+///
+/// 패턴 우선순위:
+///   1. `(\d+)%` — 퍼센트 할인 (예: "30%" — 가장 흔한 패턴)
+///   2. `1\+1` — 1+1 / 2+1
+///   3. `-?\d[\d,]*원` — 원 단위 (예: "3,000원 할인")
+///   4. `무료` — 무료 라벨
+///   5. fallback — null (호출 측이 이모지 사용)
+String? _extractBenefitBigText(Letter letter) {
+  final hay = '${letter.content} ${letter.redemptionInfo ?? ''}';
+  // 1) 퍼센트
+  final pct = RegExp(r'(\d{1,2})\s*%').firstMatch(hay);
+  if (pct != null) {
+    final n = int.tryParse(pct.group(1) ?? '');
+    if (n != null && n > 0 && n <= 99) return '$n%';
+  }
+  // 2) 1+1 / 2+1
+  final plus = RegExp(r'([123])\s*\+\s*([123])').firstMatch(hay);
+  if (plus != null) return '${plus.group(1)}+${plus.group(2)}';
+  // 3) N원 (할인)
+  final won = RegExp(r'(\d[\d,]+)\s*원').firstMatch(hay);
+  if (won != null) {
+    final raw = won.group(1)!.replaceAll(',', '');
+    final n = int.tryParse(raw);
+    if (n != null && n >= 1000) {
+      // 1k 단위로 줄임: 3000 → 3K
+      if (n >= 10000) return '${(n / 1000).round()}K';
+      return '${(n / 1000).toStringAsFixed(0)}K';
+    }
+  }
+  // 4) 무료 / FREE
+  if (RegExp(r'무료|FREE|free').hasMatch(hay)) return 'FREE';
+  return null;
+}
+
 /// Build 324: AI 추천 모드 letter 카드 칩용 — RecommendationService.topReason
 ///   결과를 i18n 라벨 + emoji 조합 문자열로 반환. null 이면 칩 미노출.
 String? _resolveAiReasonChip(BuildContext ctx, Letter letter) {
@@ -2160,6 +2197,49 @@ class _LetterCard extends StatelessWidget {
 
   bool get _isUnread => isInbox && letter.status == DeliveryStatus.delivered;
 
+  /// Build 324 (Q2): leading 영역 위젯 — Brand letter + 혜택 강도 추출 성공
+  ///   시 big text. 그 외 인물+국기 stack 또는 destination 국기.
+  Widget _buildLetterLeading(Letter letter, bool isInbox) {
+    if (isInbox && letter.senderIsBrand) {
+      final benefit = _extractBenefitBigText(letter);
+      if (benefit != null) {
+        return Text(
+          benefit,
+          style: TextStyle(
+            color: AppColors.coupon,
+            fontSize: benefit.length >= 4 ? 16 : 22,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.5,
+            height: 1.0,
+          ),
+        );
+      }
+    }
+    // fallback: 인물+국기 stack
+    if (isInbox) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            letter.senderIsBrand
+                ? '🏢'
+                : personEmojiForId(letter.senderId),
+            style: const TextStyle(fontSize: 16),
+          ),
+          Text(
+            letter.senderCountryFlag,
+            style: const TextStyle(fontSize: 14),
+          ),
+        ],
+      );
+    }
+    return Text(
+      letter.destinationCountryFlag,
+      style: const TextStyle(fontSize: 26),
+    );
+  }
+
   /// Build 261: letter 종류별 시각 구분 색상.
   /// 메시지 (일반 user 발송) → teal: 사람 간 letter
   /// 쿠폰 (LetterCategory.coupon/voucher) → coupon (#FF4D6D 핑크/레드): 할인권/교환권
@@ -2312,38 +2392,39 @@ class _LetterCard extends StatelessWidget {
               Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Build 252: leading 영역 — 마커와 동일한 인물 이모지 + 국기 stack.
-                // 받는편지: senderId 해시로 인물 이모지 (= 지도 마커와 일치).
-                // 보낸편지: 수신 국가 플래그만 (sender 가 본인이라 인물 표시 의미 적음).
+                // Build 324 (Q2): leading 영역 — Brand letter 면 할인율 big text
+                //   (사용자가 0.5초에 "얼마 이득" 인지 → 픽업/사용 결정 가속).
+                //   추출 실패 또는 일반 letter 면 이전 인물+국기 stack 유지.
                 Container(
-                  width: 48,
-                  height: 48,
+                  width: 56,
+                  height: 56,
                   decoration: BoxDecoration(
-                    color: AppColors.bgSurface,
+                    gradient: (isInbox && letter.senderIsBrand &&
+                            _extractBenefitBigText(letter) != null)
+                        ? LinearGradient(
+                            colors: [
+                              AppColors.coupon.withValues(alpha: 0.25),
+                              AppColors.coupon.withValues(alpha: 0.10),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          )
+                        : null,
+                    color: (isInbox && letter.senderIsBrand &&
+                            _extractBenefitBigText(letter) != null)
+                        ? null
+                        : AppColors.bgSurface,
                     borderRadius: BorderRadius.circular(12),
+                    border: (isInbox && letter.senderIsBrand &&
+                            _extractBenefitBigText(letter) != null)
+                        ? Border.all(
+                            color: AppColors.coupon.withValues(alpha: 0.5),
+                            width: 1,
+                          )
+                        : null,
                   ),
                   child: Center(
-                    child: isInbox
-                        ? Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                letter.senderIsBrand
-                                    ? '🏢'
-                                    : personEmojiForId(letter.senderId),
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                              Text(
-                                letter.senderCountryFlag,
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                            ],
-                          )
-                        : Text(
-                            letter.destinationCountryFlag,
-                            style: const TextStyle(fontSize: 26),
-                          ),
+                    child: _buildLetterLeading(letter, isInbox),
                   ),
                 ),
                 const SizedBox(width: 12),
