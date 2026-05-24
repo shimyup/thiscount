@@ -39,6 +39,12 @@ enum LetterFilterType {
   it,
   event,
   other,
+  // Build 324 (positioning): 카테고리 단순화 — 7개 → 3개 그룹.
+  //   eat = food + cafe / shop = beauty + fashion / etc = it + event + other.
+  //   데이터 categoryTag 는 7-way 그대로 유지 (호환성), UI 필터만 통합.
+  eat,
+  shop,
+  etc,
 }
 
 /// 필터 바에 노출되는 타입.
@@ -53,15 +59,22 @@ const List<LetterFilterType> _mainFilters = [
 ];
 
 // Build 315: 7개 카테고리 (식당/카페/뷰티/패션/IT/행사/기타).
+// Build 324 (positioning): UI 노출은 3개 그룹으로 단순화. 7개 칩 가로 스크롤
+//   선택 마비 해소 — 먹기 / 쇼핑 / 기타 한눈에. 데이터 categoryTag (7-way)
+//   는 인박스 그룹 헤더 / 추천 알고리즘 등에서 그대로 활용.
 const List<LetterFilterType> _industryFilters = [
-  LetterFilterType.food,
-  LetterFilterType.cafe,
-  LetterFilterType.beauty,
-  LetterFilterType.fashion,
-  LetterFilterType.it,
-  LetterFilterType.event,
-  LetterFilterType.other,
+  LetterFilterType.eat,
+  LetterFilterType.shop,
+  LetterFilterType.etc,
 ];
+
+/// Build 324: 3개 그룹 → 7-way categoryTag 의 mapping. _applyFilter 의
+/// _matchesIndustry 에서 사용. group=eat 면 categoryTag in {food, cafe}.
+const Map<LetterFilterType, Set<String>> _groupToCategoryTags = {
+  LetterFilterType.eat: {'food', 'cafe'},
+  LetterFilterType.shop: {'beauty', 'fashion'},
+  LetterFilterType.etc: {'it', 'event', 'other'},
+};
 
 const List<LetterFilterType> _visibleFilters = [
   ..._mainFilters,
@@ -284,6 +297,22 @@ const Map<LetterFilterType, List<String>> _industryKeywords = {
 /// 된 카테고리). 없으면 키워드 heuristic. "other" 는 다른 카테고리 매칭 안 됐을
 /// 때 fallback.
 bool _matchesIndustry(LetterFilterType industry, dynamic letter) {
+  // Build 324: 새 3-그룹 (eat/shop/etc) 필터 — 7-way categoryTag mapping.
+  //   eat = food + cafe / shop = beauty + fashion / etc = it + event + other.
+  final groupTags = _groupToCategoryTags[industry];
+  if (groupTags != null) {
+    final saved = (letter.categoryTag as String?)?.toLowerCase();
+    if (saved != null && saved.isNotEmpty) {
+      return groupTags.contains(saved);
+    }
+    // categoryTag 없으면 키워드 추론으로 그룹 7-way 매칭 일부라도 trigger.
+    for (final tag in groupTags) {
+      final subFilter = _filterTypeFromName(tag);
+      if (subFilter != null && _matchesIndustry(subFilter, letter)) return true;
+    }
+    return false;
+  }
+
   // 1) Letter 의 명시적 categoryTag 우선
   final saved = (letter.categoryTag as String?)?.toLowerCase();
   if (saved != null && saved.isNotEmpty) {
@@ -326,6 +355,14 @@ bool _matchesIndustry(LetterFilterType industry, dynamic letter) {
   return false;
 }
 
+// Build 324: name 문자열 → LetterFilterType 역매핑 (그룹 → 7-way 추론용).
+LetterFilterType? _filterTypeFromName(String name) {
+  for (final f in LetterFilterType.values) {
+    if (f.name == name) return f;
+  }
+  return null;
+}
+
 // Build 315: 카테고리 추론은 `lib/features/inbox/utils/category_inference.dart` 의
 // inferCategoryTagFromText 사용 (app_state pickUpLetter 와 공유).
 
@@ -364,6 +401,13 @@ String _emptyEmojiForFilter(LetterFilterType f) {
       return '🎉'; // 행사
     case LetterFilterType.other:
       return '📌'; // 기타
+    // Build 324: 3-그룹 단순화
+    case LetterFilterType.eat:
+      return '🍴';
+    case LetterFilterType.shop:
+      return '🛍️';
+    case LetterFilterType.etc:
+      return '🎁';
   }
 }
 
@@ -411,6 +455,13 @@ String _filterName(LetterFilterType f, AppL10n l10n) {
       return l10n.inboxFilterEvent;
     case LetterFilterType.other:
       return l10n.inboxFilterOther;
+    // Build 324: 3-그룹 단순화
+    case LetterFilterType.eat:
+      return l10n.inboxFilterEat;
+    case LetterFilterType.shop:
+      return l10n.inboxFilterShop;
+    case LetterFilterType.etc:
+      return l10n.inboxFilterEtc;
   }
 }
 
@@ -601,6 +652,12 @@ class _InboxScreenState extends State<InboxScreen>
         case LetterFilterType.event:
         case LetterFilterType.other:
           // Build 315: 카테고리 필터 — categoryTag 우선, keyword fallback.
+          return _matchesIndustry(filter, letter);
+        // Build 324: 3-그룹 단순화 (eat/shop/etc) — _matchesIndustry 가 자동
+        //   으로 _groupToCategoryTags 매핑으로 dispatch.
+        case LetterFilterType.eat:
+        case LetterFilterType.shop:
+        case LetterFilterType.etc:
           return _matchesIndustry(filter, letter);
         case LetterFilterType.all:
           return true;
@@ -3206,6 +3263,13 @@ class _LetterFilterBar extends StatelessWidget {
         return l10n.inboxFilterEvent;
       case LetterFilterType.other:
         return l10n.inboxFilterOther;
+      // Build 324: 3-그룹 단순화
+      case LetterFilterType.eat:
+        return l10n.inboxFilterEat;
+      case LetterFilterType.shop:
+        return l10n.inboxFilterShop;
+      case LetterFilterType.etc:
+        return l10n.inboxFilterEtc;
     }
   }
 

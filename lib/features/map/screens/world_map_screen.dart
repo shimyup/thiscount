@@ -1060,7 +1060,10 @@ class _WorldMapScreenState extends State<WorldMapScreen>
           child: GestureDetector(
             onTap: () => _onLetterTap(context, letter, state, l10n, langCode),
             child: showAsArrived && letter.status == DeliveryStatus.inTransit
-                ? _ArrivedWaitingMarker(pulseController: _pulseController)
+                ? _ArrivedWaitingMarker(
+                    letter: letter,
+                    pulseController: _pulseController,
+                  )
                 : _TransportMarker(
                     letter: letter,
                     pulseController: _pulseController,
@@ -2685,11 +2688,33 @@ class _MyLocationButtonState extends State<_MyLocationButton> {
 /// 도착 대기 중 마커 (inTransit → 실제 도착했지만 아직 상태 전환 전)
 /// 비행기 대신 📬로 표시
 class _ArrivedWaitingMarker extends StatelessWidget {
+  final Letter letter;
   final AnimationController pulseController;
-  const _ArrivedWaitingMarker({required this.pulseController});
+  const _ArrivedWaitingMarker({
+    required this.letter,
+    required this.pulseController,
+  });
+
+  // Build 324 (positioning): 카테고리별 핀 색상 + 이모지 분기.
+  //   eat (food+cafe) = red 🍴 / shop (beauty+fashion) = pink 🛍️ /
+  //   etc (it+event+other) = teal 🎁 / categoryTag null = gold 📬 (기본).
+  ({Color color, String emoji}) get _categoryStyle {
+    final tag = letter.categoryTag;
+    if (tag == 'food' || tag == 'cafe') {
+      return (color: const Color(0xFFE74C3C), emoji: '🍴');
+    }
+    if (tag == 'beauty' || tag == 'fashion') {
+      return (color: const Color(0xFFE91E63), emoji: '🛍️');
+    }
+    if (tag == 'it' || tag == 'event' || tag == 'other') {
+      return (color: AppColors.teal, emoji: '🎁');
+    }
+    return (color: AppColors.gold, emoji: '📬');
+  }
 
   @override
   Widget build(BuildContext context) {
+    final style = _categoryStyle;
     return AnimatedBuilder(
       animation: pulseController,
       builder: (_, __) {
@@ -2704,18 +2729,18 @@ class _ArrivedWaitingMarker extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: AppColors.gold.withValues(alpha: 0.25 + pulse * 0.35),
+                  color: style.color.withValues(alpha: 0.25 + pulse * 0.35),
                   width: 1.5,
                 ),
               ),
             ),
             Text(
-              '📬',
+              style.emoji,
               style: TextStyle(
                 fontSize: 22,
                 shadows: [
                   Shadow(
-                    color: AppColors.gold.withValues(alpha: 0.6 + pulse * 0.3),
+                    color: style.color.withValues(alpha: 0.6 + pulse * 0.3),
                     blurRadius: 10,
                   ),
                   const Shadow(

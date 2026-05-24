@@ -8805,6 +8805,60 @@ class AppL10n {
     'th': 'อื่นๆ',
   });
 
+  // Build 324 (positioning): 카테고리 7 → 3 그룹 단순화 라벨.
+  //   eat (food+cafe) / shop (beauty+fashion) / etc (it+event+other).
+  //   기존 7-way 키워드/categoryTag 는 그대로 유지 (호환성).
+  String get inboxFilterEat => _t({
+    'ko': '먹기',
+    'en': 'Eat',
+    'ja': '食',
+    'zh': '吃',
+    'fr': 'Manger',
+    'de': 'Essen',
+    'es': 'Comer',
+    'pt': 'Comer',
+    'ru': 'Еда',
+    'tr': 'Yeme',
+    'ar': 'الطعام',
+    'it': 'Cibo',
+    'hi': 'खाना',
+    'th': 'กิน',
+  });
+
+  String get inboxFilterShop => _t({
+    'ko': '쇼핑',
+    'en': 'Shop',
+    'ja': '買い物',
+    'zh': '购物',
+    'fr': 'Shopping',
+    'de': 'Shopping',
+    'es': 'Compras',
+    'pt': 'Compras',
+    'ru': 'Шоппинг',
+    'tr': 'Alışveriş',
+    'ar': 'تسوق',
+    'it': 'Shopping',
+    'hi': 'खरीदारी',
+    'th': 'ช้อปปิ้ง',
+  });
+
+  String get inboxFilterEtc => _t({
+    'ko': '기타',
+    'en': 'More',
+    'ja': 'その他',
+    'zh': '更多',
+    'fr': 'Plus',
+    'de': 'Mehr',
+    'es': 'Más',
+    'pt': 'Mais',
+    'ru': 'Ещё',
+    'tr': 'Diğer',
+    'ar': 'المزيد',
+    'it': 'Altro',
+    'hi': 'और',
+    'th': 'อื่นๆ',
+  });
+
   // Build 321: compose 통합 자동 발송 zone — 4 키.
   String get composeNoLocation => _t({
     'ko': '현재 위치를 확인할 수 없어요. 위치 권한을 허용해주세요.',
