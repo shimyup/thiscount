@@ -760,7 +760,12 @@ class _InboxScreenState extends State<InboxScreen>
           }
           final ta = a.arrivedAt ?? a.sentAt;
           final tb = b.arrivedAt ?? b.sentAt;
-          return tb.compareTo(ta); // DESC: 최신 먼저
+          final cmp = tb.compareTo(ta); // DESC: 최신 먼저
+          // Build 352 (PR-V3 시뮬레이션 P1): tied timestamp tiebreaker —
+          //   같은 ms 에 도착한 letter 의 sort 순서가 매 호출마다 바뀌어 UI
+          //   flicker. letter.id 사전순으로 stable.
+          if (cmp != 0) return cmp;
+          return a.id.compareTo(b.id);
         });
         break;
       case InboxSortMode.expiry:
@@ -768,10 +773,12 @@ class _InboxScreenState extends State<InboxScreen>
         sorted.sort((a, b) {
           final ea = a.expiresAt;
           final eb = b.expiresAt;
-          if (ea == null && eb == null) return 0;
+          if (ea == null && eb == null) return a.id.compareTo(b.id);
           if (ea == null) return 1;
           if (eb == null) return -1;
-          return ea.compareTo(eb); // ASC: 빨리 만료되는 것 먼저
+          final cmp = ea.compareTo(eb); // ASC: 빨리 만료되는 것 먼저
+          if (cmp != 0) return cmp;
+          return a.id.compareTo(b.id);
         });
         break;
       case InboxSortMode.importance:
@@ -790,7 +797,10 @@ class _InboxScreenState extends State<InboxScreen>
           if (wa != wb) return wb.compareTo(wa); // 가중치 DESC
           final ta = a.arrivedAt ?? a.sentAt;
           final tb = b.arrivedAt ?? b.sentAt;
-          return tb.compareTo(ta); // tiebreaker = 최신
+          final cmp = tb.compareTo(ta); // tiebreaker = 최신
+          if (cmp != 0) return cmp;
+          // Build 352 (PR-V3): final tiebreaker — letter.id 사전순 stable.
+          return a.id.compareTo(b.id);
         });
         break;
       case InboxSortMode.aiRecommend:

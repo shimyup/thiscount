@@ -124,9 +124,24 @@ class FeedbackService {
     });
   }
 
+  // Build 352 (PR-V3 시뮬레이션 P1): 빠른 연속 픽업 시 햅틱 stack 차단 throttle.
+  //   사용자가 1초 안에 5 letter 픽업 → 5 chain 햅틱 (각 ~200ms) overlap 5초+
+  //   진동. throttle 으로 200ms 안 중복 호출 skip — 두 번째 픽업 햅틱 무시.
+  static DateTime? _lastPickupHapticAt;
+  static const Duration _pickupHapticThrottle = Duration(milliseconds: 200);
+
   /// Fired when the user successfully picks up a scattered letter from the
   /// map. Brand-sent letters get an extra heavy tap for weight.
   static Future<void> onLetterPickUp({bool isBrand = false}) async {
+    final now = DateTime.now();
+    final last = _lastPickupHapticAt;
+    if (last != null &&
+        now.difference(last) < _pickupHapticThrottle) {
+      // 직전 픽업과 200ms 이내 — 사운드만 재생, 햅틱 skip.
+      unawaited(_play(_Sfx.pickup));
+      return;
+    }
+    _lastPickupHapticAt = now;
     unawaited(_play(_Sfx.pickup));
     await _haptic(() async {
       await HapticFeedback.lightImpact();
