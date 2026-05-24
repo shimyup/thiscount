@@ -8054,21 +8054,22 @@ class AppL10n {
   });
 
   // Build 324: AI 추천 Premium upsell 시트의 설명 본문.
+  //   카피에서 "letter / 편지" 메타포 제거 — "혜택 / reward" 로 통일 (PR-D).
   String get aiRecommendUpsellDesc => _t({
-    'ko': '내 선호 카테고리 · 팔로우한 브랜드 · 만료 임박 쿠폰을 종합해 가장 도움이 될 편지를 위로 올려요.',
-    'en': 'Combines your category preferences, followed brands, and expiring coupons to surface the most useful letters first.',
-    'ja': '好きなカテゴリ・フォロー中ブランド・期限切れ間近のクーポンを総合して最も役立つ手紙を上に表示します。',
-    'zh': '综合您的偏好类别、关注品牌和即将过期的优惠券，将最有用的信件排到最前。',
-    'fr': 'Combine vos catégories préférées, marques suivies et coupons expirant bientôt pour faire remonter les lettres les plus utiles.',
-    'de': 'Kombiniert Ihre bevorzugten Kategorien, gefolgten Marken und bald ablaufenden Coupons, um die nützlichsten Briefe oben anzuzeigen.',
-    'es': 'Combina tus categorías favoritas, marcas seguidas y cupones por vencer para mostrar primero las cartas más útiles.',
-    'pt': 'Combina suas categorias preferidas, marcas seguidas e cupons a vencer para destacar as cartas mais úteis primeiro.',
-    'ru': 'Сочетает ваши любимые категории, отслеживаемые бренды и истекающие купоны, чтобы поднять наиболее полезные письма наверх.',
-    'tr': 'Tercih ettiğiniz kategorileri, takip ettiğiniz markaları ve süresi yakında dolan kuponları birleştirerek en faydalı mektupları yukarı çıkarır.',
-    'ar': 'يجمع بين فئاتك المفضلة والعلامات التجارية التي تتابعها والقسائم التي تنتهي قريبًا لإظهار أكثر الرسائل فائدة في الأعلى.',
-    'it': 'Combina le tue categorie preferite, i brand seguiti e i coupon in scadenza per mettere in alto le lettere più utili.',
-    'hi': 'आपकी पसंदीदा श्रेणियों, फॉलो किए गए ब्रांड और जल्द समाप्त होने वाले कूपन को मिलाकर सबसे उपयोगी पत्र शीर्ष पर लाता है।',
-    'th': 'รวมหมวดที่คุณชอบ แบรนด์ที่ติดตาม และคูปองที่ใกล้หมดอายุ เพื่อยกจดหมายที่มีประโยชน์ที่สุดขึ้นด้านบน',
+    'ko': '내 선호 카테고리 · 팔로우한 브랜드 · 만료 임박 쿠폰을 종합해 가장 도움이 될 혜택을 위로 올려요.',
+    'en': 'Combines your category preferences, followed brands, and expiring coupons to surface the most useful rewards first.',
+    'ja': '好きなカテゴリ・フォロー中ブランド・期限切れ間近のクーポンを総合して最も役立つ特典を上に表示します。',
+    'zh': '综合您的偏好类别、关注品牌和即将过期的优惠券，将最有用的优惠排到最前。',
+    'fr': 'Combine vos catégories préférées, marques suivies et coupons expirant bientôt pour faire remonter les meilleures récompenses.',
+    'de': 'Kombiniert Ihre bevorzugten Kategorien, gefolgten Marken und bald ablaufenden Coupons, um die nützlichsten Belohnungen oben anzuzeigen.',
+    'es': 'Combina tus categorías favoritas, marcas seguidas y cupones por vencer para mostrar primero las recompensas más útiles.',
+    'pt': 'Combina suas categorias preferidas, marcas seguidas e cupons a vencer para destacar as recompensas mais úteis primeiro.',
+    'ru': 'Сочетает ваши любимые категории, отслеживаемые бренды и истекающие купоны, чтобы поднять наиболее полезные награды наверх.',
+    'tr': 'Tercih ettiğiniz kategorileri, takip ettiğiniz markaları ve süresi yakında dolan kuponları birleştirerek en faydalı ödülleri yukarı çıkarır.',
+    'ar': 'يجمع بين فئاتك المفضلة والعلامات التجارية التي تتابعها والقسائم التي تنتهي قريبًا لإظهار أكثر المكافآت فائدة في الأعلى.',
+    'it': 'Combina le tue categorie preferite, i brand seguiti e i coupon in scadenza per mettere in alto le ricompense più utili.',
+    'hi': 'आपकी पसंदीदा श्रेणियों, फॉलो किए गए ब्रांड और जल्द समाप्त होने वाले कूपन को मिलाकर सबसे उपयोगी पुरस्कारों को शीर्ष पर लाता है।',
+    'th': 'รวมหมวดที่คุณชอบ แบรนด์ที่ติดตาม และคูปองที่ใกล้หมดอายุ เพื่อยกรางวัลที่มีประโยชน์ที่สุดขึ้นด้านบน',
   });
 
   // Build 297 (P0 i18n): 빈-필터 토스트 — 이전 `$title 가 없어요` 한국어 조사 가정.
