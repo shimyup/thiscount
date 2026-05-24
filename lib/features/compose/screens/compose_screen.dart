@@ -1609,119 +1609,10 @@ class _ComposeScreenState extends State<ComposeScreen>
 
     // 크레딧 체크 — 0 이면 유료 안내 다이얼로그로 이탈.
     if (!state.canUseExactDrop) {
-      await showDialog(
-        context: context,
-        builder: (dCtx) => AlertDialog(
-          backgroundColor: AppColors.bgCard,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Row(
-            children: [
-              const Text('🎯', style: TextStyle(fontSize: 20)),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  l.composeExactDropPaywallTitle,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                l.composeExactDropPaywallBody,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 13,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 14),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                decoration: BoxDecoration(
-                  color: AppColors.gold.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: AppColors.gold.withValues(alpha: 0.4),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Text('💰', style: TextStyle(fontSize: 18)),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        l.composeExactDropPaywallPricing,
-                        style: const TextStyle(
-                          color: AppColors.gold,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dCtx).pop(),
-              child: Text(
-                l.authClose,
-                style: const TextStyle(color: AppColors.textMuted),
-              ),
-            ),
-            // Build 324: ExactDrop IAP 즉시 구매 버튼 — "관리자 문의" 흐름 제거.
-            //   구매 성공 시 100 크레딧 자동 grant + 다이얼로그 닫음.
-            ElevatedButton.icon(
-              onPressed: () async {
-                final purchase = context.read<PurchaseService>();
-                Navigator.of(dCtx).pop();
-                final ok = await purchase.buyExactDrop100(state);
-                if (!mounted) return;
-                if (ok) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('🎯 ExactDrop +100 (${state.brandExactDropCredits})'),
-                      backgroundColor: AppColors.bgCard,
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                  // 구매 직후 즉시 ExactDrop 진입.
-                  unawaited(_selectExactDrop());
-                } else if (purchase.errorMessage != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(purchase.errorMessage!),
-                      backgroundColor: AppColors.error,
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.gold,
-                foregroundColor: const Color(0xFF1A0008),
-              ),
-              icon: const Icon(Icons.shopping_cart_rounded, size: 16),
-              label: Text(
-                l.composeExactDropBuyBtn,
-                style: const TextStyle(fontWeight: FontWeight.w700),
-              ),
-            ),
-          ],
-        ),
-      );
+      // Build 325 (T4): 50 / 100 / 500 통 3 티어 선택 paywall. 시범 운영 사장
+      //   (50, ₩6,000) / 정착 사장 (100, ₩10,000) / 대량 (500, ₩40,000) 양극화.
+      //   100통 가운데 BEST 배지 강조.
+      await _showExactDropPaywall(context, state, l);
       return;
     }
 
@@ -1963,6 +1854,118 @@ class _ComposeScreenState extends State<ComposeScreen>
         );
       },
     );
+  }
+
+  /// Build 325 (T4): ExactDrop 50 / 100 / 500 통 3 티어 paywall.
+  ///   시범 운영 사장 (50, ₩6,000 / unit ₩120) / 정착 사장 (100, ₩10,000 /
+  ///   unit ₩100, BEST) / 대량 (500, ₩40,000 / unit ₩80) 양극화 대응.
+  ///   100 이 unit price 중간 + BEST 강조 → 대다수가 자연 선택 (anchoring).
+  Future<void> _showExactDropPaywall(
+    BuildContext ctx,
+    AppState state,
+    AppL10n l,
+  ) async {
+    await showDialog<void>(
+      context: ctx,
+      builder: (dCtx) => AlertDialog(
+        backgroundColor: AppColors.bgCard,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            const Text('🎯', style: TextStyle(fontSize: 20)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                l.composeExactDropPaywallTitle,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l.composeExactDropPaywallBody,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 13,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 14),
+            _ExactDropTierButton(
+              qty: 50,
+              priceLabel: '₩6,000',
+              unitLabel: '통당 ₩120',
+              best: false,
+              onTap: () => _purchaseExactDropTier(dCtx, 50),
+            ),
+            const SizedBox(height: 8),
+            _ExactDropTierButton(
+              qty: 100,
+              priceLabel: '₩10,000',
+              unitLabel: '통당 ₩100',
+              best: true,
+              onTap: () => _purchaseExactDropTier(dCtx, 100),
+            ),
+            const SizedBox(height: 8),
+            _ExactDropTierButton(
+              qty: 500,
+              priceLabel: '₩40,000',
+              unitLabel: '통당 ₩80',
+              best: false,
+              onTap: () => _purchaseExactDropTier(dCtx, 500),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dCtx).pop(),
+            child: Text(
+              l.authClose,
+              style: const TextStyle(color: AppColors.textMuted),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Tier 버튼 onTap — 다이얼로그 닫고 RC 구매 호출.
+  Future<void> _purchaseExactDropTier(BuildContext dCtx, int qty) async {
+    final state = context.read<AppState>();
+    final purchase = context.read<PurchaseService>();
+    Navigator.of(dCtx).pop();
+    final ok = await purchase.buyExactDrop(state, qty: qty);
+    if (!mounted) return;
+    if (ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '🎯 ExactDrop +$qty (${state.brandExactDropCredits})',
+          ),
+          backgroundColor: AppColors.bgCard,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      unawaited(_selectExactDrop());
+    } else if (purchase.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(purchase.errorMessage!),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   /// Build 189.1: 닫기 버튼 안전장치. 본문/모드 상태 있을 때만 확인. 있으면
@@ -6960,6 +6963,123 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Build 325 (T4): ExactDrop 가격 티어 선택 버튼.
+///   qty / 총 가격 / 통당 단가 + (BEST 배지 100통 전용).
+///   gold 배경은 BEST 만 — 나머지는 surface + gold 외곽선.
+class _ExactDropTierButton extends StatelessWidget {
+  final int qty;
+  final String priceLabel;
+  final String unitLabel;
+  final bool best;
+  final VoidCallback onTap;
+
+  const _ExactDropTierButton({
+    required this.qty,
+    required this.priceLabel,
+    required this.unitLabel,
+    required this.best,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: best
+              ? AppColors.gold.withValues(alpha: 0.12)
+              : AppColors.bgSurface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: best
+                ? AppColors.gold
+                : AppColors.gold.withValues(alpha: 0.35),
+            width: best ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: AppColors.gold.withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '$qty',
+                style: const TextStyle(
+                  color: AppColors.gold,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        priceLabel,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      if (best) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.gold,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'BEST',
+                            style: TextStyle(
+                              color: Color(0xFF1A0008),
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    unitLabel,
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: AppColors.textMuted,
+            ),
+          ],
+        ),
       ),
     );
   }
