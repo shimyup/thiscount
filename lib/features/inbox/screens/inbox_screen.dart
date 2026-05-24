@@ -686,7 +686,18 @@ class _InboxScreenState extends State<InboxScreen>
         : _sortMode;
     switch (effectiveMode) {
       case InboxSortMode.latest:
+        // Build 324 (audit fix): 만료된 letter 는 정렬 후 자동 하단.
+        //   3개월 묵은 인박스 복귀 시 만료 letter 가 상단 점령해 "다 지난 거잖아"
+        //   좌절하던 버그 (복귀 사용자 시뮬레이션). 사용/만료 letter 는
+        //   chronological 우선순위를 잃고 별도 그룹으로 하단 배치.
         sorted.sort((a, b) {
+          final aExpired = a.isExpired || a.isRedemptionExpired ||
+              a.redeemedAt != null;
+          final bExpired = b.isExpired || b.isRedemptionExpired ||
+              b.redeemedAt != null;
+          if (aExpired != bExpired) {
+            return aExpired ? 1 : -1; // expired → 하단
+          }
           final ta = a.arrivedAt ?? a.sentAt;
           final tb = b.arrivedAt ?? b.sentAt;
           return tb.compareTo(ta); // DESC: 최신 먼저
