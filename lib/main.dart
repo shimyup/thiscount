@@ -181,7 +181,12 @@ class _GlobalDriftAppState extends State<GlobalDriftApp> {
       try {
         if (payload != null && payload.isNotEmpty) {
           // 가장 단순한 파싱 — 'letter=xxx' 또는 'letterId=xxx' 추출.
-          final m = RegExp(r'letter(?:Id)?[=:]([^&\s]+)').firstMatch(payload);
+          // Build 355 (PR-X1 X 시뮬레이션 P2): 정규식을 [A-Za-z0-9_-]{1,128}
+          //   로 제한 — traversal/특수문자 차단. 이전엔 `[^&\s]+` 로 '../',
+          //   특수문자도 캡처 → letterId 위조 위험.
+          final m = RegExp(
+            r'letter(?:Id)?[=:]([A-Za-z0-9_\-]{1,128})',
+          ).firstMatch(payload);
           if (m != null) {
             _appState.pendingDeepLinkLetterId = m.group(1);
           }
