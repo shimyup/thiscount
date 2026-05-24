@@ -6983,6 +6983,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // 호출자가 안 주면 letter.id 자체가 campaignId 역할 (자동 생성).
     String? campaignId,
   }) async {
+    // Build 324 (positioning): Free 사용자는 "줍기 전용". 발송 기능은
+    //   Premium/Brand 만 가능. UI 측 가드 (main_scaffold compose 진입,
+    //   letter_read_screen 답장 버튼) 외에 defense-in-depth 로 sendLetter
+    //   진입 자체를 차단 — 모든 발송 경로 (reply 포함) 가 이 함수로 합류하므로
+    //   여기서 한 번에 막힘.
+    if (!_currentUser.isPremium && !_currentUser.isBrand) {
+      return false;
+    }
     if (!_canSendLetterByDailyLimit()) {
       return false;
     }

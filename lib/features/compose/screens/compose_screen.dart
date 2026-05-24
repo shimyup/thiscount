@@ -492,6 +492,24 @@ class _ComposeScreenState extends State<ComposeScreen>
       vsync: this,
     );
     _sendAnim = CurvedAnimation(parent: _sendController, curve: Curves.easeOut);
+    // Build 324 (positioning): Free 사용자는 "줍기 전용" — compose 진입 자체를
+    //   차단. main_scaffold / inbox_screen / letter_read_screen 등 모든 진입점
+    //   에 가드를 흩뿌리는 대신 ComposeScreen 자체에서 한 번에 처리 (defense-
+    //   in-depth). 진입 시 즉시 pop + PremiumGateSheet 노출.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final state = context.read<AppState>();
+      if (!state.currentUser.isPremium && !state.currentUser.isBrand) {
+        final l = AppL10n.of(state.currentUser.languageCode);
+        Navigator.of(context).pop();
+        PremiumGateSheet.show(
+          context,
+          featureName: l.composeGateFeatureName,
+          featureEmoji: '📣',
+          description: l.composeGateDesc,
+        );
+      }
+    });
     _contentController.addListener(() {
       var text = _contentController.text;
       // Build 254: 본문 5KB (5000 chars) cap — 서버 보안 cap (Build 207) 과 정합.
