@@ -1557,13 +1557,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // ── Build 324 (Q1): "사용 진행" 상태 ─────────────────────────────────────
   // 사용자가 코드/QR 을 보려면 명시적으로 "사용 진행" 버튼을 탭해야 함 →
   // 코드/QR 가 픽업 즉시 노출되지 않음 (실수 노출 방지 + 의도적 사용 동의).
-  // 사용 진행 시각으로부터 1시간 경과 시 자동 markLetterRedeemed.
-  //   letterId → startedAt (ISO ms). null 또는 1h 경과 = 사용 완료 처리.
+  // 사용 진행 시각으로부터 N시간 경과 시 자동 markLetterRedeemed.
+  //   letterId → startedAt (ISO ms). null 또는 TTL 경과 = 사용 완료 처리.
   /// 사용 진행 시작 시각 — `Map<letterId, ms epoch>`.
   final Map<String, int> _pendingRedemptionStartedAt = {};
 
-  /// 사용 진행 자동 완료 만료 (1시간).
-  static const Duration _pendingRedemptionTtl = Duration(hours: 1);
+  /// 사용 진행 자동 완료 만료.
+  /// Build 337 (PR-S8 시뮬레이션 P1 #10): 1h → 2h 확장. 한국 점심·저녁 매장
+  ///   줄 + 매장 도착 시간 합쳐 1h 초과하는 케이스 시뮬레이션 발견. "사용 진행"
+  ///   탭 후 매장 도착 전 자동 redeem 되어 코드 회수 못 하는 회귀 해소.
+  ///   2h 가 길지만 reveal 자체는 매장 도착 직전에 하는 흐름이라 보안 위협 ↓.
+  static const Duration _pendingRedemptionTtl = Duration(hours: 2);
 
   /// 현재 letterId 가 "사용 진행" 상태 (1h 미경과) 인지.
   /// 1h 경과 시 false 반환 + 자동 redeemed 처리 (lazy consume).
