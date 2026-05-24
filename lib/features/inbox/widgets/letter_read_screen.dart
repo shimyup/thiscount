@@ -2405,11 +2405,13 @@ class _LetterReadScreenState extends State<LetterReadScreen>
               // Build 331 (PR-S2): Brand 발행 redemptionCode 가 있으면 최상단에
               //   Code128 바코드 + 큰 코드 텍스트 panel 노출. 매장 POS 1D 스캔
               //   또는 코드 수동 입력 둘 다 가능.
-              // Build 342 (PR-S13 3차 시뮬레이션): pending 만 panel 노출.
-              //   redeemed / expired 면 코드 hide — 매장이 이미 사용된 코드로
-              //   다시 스캔 시도해 POS 가 거절하는 혼란 차단. 상태는 box 헤더의
-              //   "사용됨"/"만료됨" 뱃지가 알려줌.
-              if (pending && letter.redemptionCode != null)
+              // Build 344 (PR-S15 4차 시뮬레이션 revert): pending 외에도 redeemed
+              //   / expired 상태에서 panel 노출 (disabled 스타일 + line-through
+              //   + "이미 사용됨" 헤더). 사용자가 "내가 본 코드 뭐였지?" 재조회
+              //   가능 — pending only 였을 땐 일반 사용자가 코드 재조회 경로 0
+              //   (BrandInsights 는 Brand 전용). 매장 측 혼란은 disabled 표기로
+              //   해소 (POS 가 거절해도 화면에 "사용 완료" 명시).
+              if (letter.redemptionCode != null)
                 _RedemptionCodePanel(
                   code: letter.redemptionCode!,
                   redeemed: redeemed,
@@ -2419,7 +2421,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
               // Build 335 (PR-S7 시뮬레이션 P1 #7): redemptionCode 와 redemptionInfo
               //   둘 다 있는 경우 시각 구분 헤더 추가 — 매장이 "어떤 코드 ?"
               //   헷갈리지 않도록.
-              if (pending && letter.redemptionCode != null
+              if (letter.redemptionCode != null
                   && letter.redemptionInfo != null
                   && (letter.redemptionInfo?.trim().isNotEmpty ?? false)) ...[
                 const SizedBox(height: 12),
@@ -3436,6 +3438,12 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
 
   @override
   Widget build(BuildContext context) {
+    // Build 344 (PR-S15 4차 시뮬레이션 P0): _sanitizeRedemptionCode 가 invalid
+    //   코드도 보존 → panel 단계에서 형식 검증 후 BarcodeWidget crash 차단.
+    if (!RedemptionCode.verify(widget.code)) {
+      // 코드는 보존하되 panel 안 보임 — letter_read 의 다른 안내가 표시됨.
+      return const SizedBox.shrink();
+    }
     final disabled = widget.redeemed || widget.expired;
     final formatted = RedemptionCode.formatForDisplay(widget.code);
     return Container(
