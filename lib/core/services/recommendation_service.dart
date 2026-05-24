@@ -149,6 +149,78 @@ class RecommendationService {
     return s > _maxBoost ? _maxBoost : s;
   }
 
+  /// Build 324: AI 추천 모드에서 letter 카드에 노출할 "추천 이유" 1줄 산출.
+  ///   가장 강한 single signal 을 emoji + 라벨 키로 반환 (null = 이유 없음).
+  ///   호출 측에서 i18n 으로 라벨 매핑 (`aiReason*` 키).
+  ///
+  /// 우선순위:
+  ///   1) 팔로우 브랜드  → ('🏷', 'aiReasonFollowed')
+  ///   2) 만료 임박 24h  → ('⏰', 'aiReasonExpiring')
+  ///   3) 선호 카테고리 매치 → ('🎯', 'aiReasonCategoryMatch')
+  ///   4) 사회 신호 강함 (likeCount ≥ 30 또는 avgRating ≥ 4.5)
+  ///                    → ('⭐', 'aiReasonPopular')
+  ///   5) 근거리 (≤500m) → ('📍', 'aiReasonNearby')
+  static ({String emoji, String labelKey})? topReason(
+    Letter letter,
+    UserProfile user, {
+    required Set<String> followedBrandIds,
+    DateTime? now,
+  }) {
+    final t = now ?? DateTime.now();
+
+    // 만료된 letter 는 이유 표시 안 함.
+    final couponExp = letter.redemptionExpiresAt;
+    final autoExp = letter.expiresAt;
+    final isAnyExpired =
+        (couponExp != null && !t.isBefore(couponExp)) ||
+        (autoExp != null && !t.isBefore(autoExp));
+    if (isAnyExpired || letter.redeemedAt != null) return null;
+
+    // 1) 팔로우 브랜드
+    if (letter.senderIsBrand &&
+        followedBrandIds.contains(letter.senderId)) {
+      return (emoji: '🏷', labelKey: 'aiReasonFollowed');
+    }
+
+    // 2) 만료 임박 24h (둘 중 더 빠른 시각 기준)
+    DateTime? earliest;
+    if (couponExp != null && autoExp != null) {
+      earliest = couponExp.isBefore(autoExp) ? couponExp : autoExp;
+    } else {
+      earliest = couponExp ?? autoExp;
+    }
+    if (earliest != null) {
+      final remainMin = earliest.difference(t).inMinutes;
+      if (remainMin > 0 && remainMin <= 1440) {
+        return (emoji: '⏰', labelKey: 'aiReasonExpiring');
+      }
+    }
+
+    // 3) 선호 카테고리 매치
+    final tag = letter.categoryTag;
+    final pref = user.preferredCategoryKey;
+    if (tag != null && pref != null && pref.isNotEmpty && tag == pref) {
+      return (emoji: '🎯', labelKey: 'aiReasonCategoryMatch');
+    }
+
+    // 4) 사회 신호 강함
+    if (letter.likeCount >= 30 ||
+        (letter.ratingCount > 0 && letter.avgRating >= 4.5)) {
+      return (emoji: '⭐', labelKey: 'aiReasonPopular');
+    }
+
+    // 5) 근거리 — user GPS 유효한 경우만
+    if (user.latitude != 0 || user.longitude != 0) {
+      final distM = LatLng(user.latitude, user.longitude)
+          .distanceTo(letter.destinationLocation);
+      if (distM <= 500) {
+        return (emoji: '📍', labelKey: 'aiReasonNearby');
+      }
+    }
+
+    return null;
+  }
+
   /// letters 전체를 score DESC 로 정렬한 새 리스트 반환. 동점 시 최신 sentAt 우선.
   static List<Letter> rank(
     List<Letter> letters,

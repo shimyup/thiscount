@@ -363,6 +363,20 @@ LetterFilterType? _filterTypeFromName(String name) {
   return null;
 }
 
+/// Build 324: AI 추천 모드 letter 카드 칩용 — RecommendationService.topReason
+///   결과를 i18n 라벨 + emoji 조합 문자열로 반환. null 이면 칩 미노출.
+String? _resolveAiReasonChip(BuildContext ctx, Letter letter) {
+  final state = ctx.read<AppState>();
+  final reason = RecommendationService.topReason(
+    letter,
+    state.currentUser,
+    followedBrandIds: state.followedBrandIds,
+  );
+  if (reason == null) return null;
+  final l10n = AppL10n.of(state.currentUser.languageCode);
+  return '${reason.emoji} ${l10n.aiReasonLabel(reason.labelKey)}';
+}
+
 // Build 315: 카테고리 추론은 `lib/features/inbox/utils/category_inference.dart` 의
 // inferCategoryTagFromText 사용 (app_state pickUpLetter 와 공유).
 
@@ -991,6 +1005,8 @@ class _InboxScreenState extends State<InboxScreen>
                               sentSinceLastUnlock: state.sentSinceLastUnlock,
                               canViewNext: state.canViewNextLetter,
                               scrollController: _inboxScrollController,
+                              aiRecommendActive:
+                                  _sortMode == InboxSortMode.aiRecommend,
                             ),
                           ]
                         : [
@@ -1024,6 +1040,8 @@ class _InboxScreenState extends State<InboxScreen>
                               sentSinceLastUnlock: state.sentSinceLastUnlock,
                               canViewNext: state.canViewNextLetter,
                               scrollController: _inboxScrollController,
+                              aiRecommendActive:
+                                  _sortMode == InboxSortMode.aiRecommend,
                             ),
                             _SentTab(
                               letters: _applyFilter(
@@ -1586,6 +1604,9 @@ class _InboxTab extends StatelessWidget {
   final int sentSinceLastUnlock;
   final bool canViewNext;
   final ScrollController? scrollController;
+  // Build 324: AI 추천 모드 활성 시 letter 카드에 "왜 이 순서?" 칩 노출.
+  //   false 면 칩 미노출 (latest/expiry/importance 모드).
+  final bool aiRecommendActive;
 
   const _InboxTab({
     required this.letters,
@@ -1595,6 +1616,7 @@ class _InboxTab extends StatelessWidget {
     required this.sentSinceLastUnlock,
     required this.canViewNext,
     this.scrollController,
+    this.aiRecommendActive = false,
   });
 
   /// Build 204: 필터=전체일 때 카테고리별 그룹 + 헤더 삽입. 특정 필터일 때는
@@ -1901,6 +1923,10 @@ class _InboxTab extends StatelessWidget {
                       letter: letter,
                       isInbox: true,
                       isLocked: isLocked,
+                      // Build 324: AI 추천 모드 활성 시 letter 별 추천 이유 칩 계산.
+                      aiReasonChip: aiRecommendActive
+                          ? _resolveAiReasonChip(ctx, letter)
+                          : null,
                       onTap: () => onTap(letter),
                       onDelete: () => _confirmDelete(
                         ctx,
@@ -2119,6 +2145,9 @@ class _LetterCard extends StatelessWidget {
   final bool isLocked;
   final VoidCallback onTap;
   final VoidCallback? onDelete;
+  // Build 324: AI 추천 모드 시 "왜 이 순서?" 1줄 이유 칩. null 이면 미노출.
+  //   형식 예: "🏷 팔로우한 브랜드" / "⏰ 곧 만료" / "🎯 내 선호 카테고리".
+  final String? aiReasonChip;
 
   const _LetterCard({
     required this.letter,
@@ -2126,6 +2155,7 @@ class _LetterCard extends StatelessWidget {
     this.isLocked = false,
     required this.onTap,
     this.onDelete,
+    this.aiReasonChip,
   });
 
   bool get _isUnread => isInbox && letter.status == DeliveryStatus.delivered;
@@ -2240,7 +2270,46 @@ class _LetterCard extends StatelessWidget {
                       ),
                     ],
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+              // Build 324: AI 추천 모드 시 "왜 이 순서?" 이유 칩 노출 — 사용자
+              //   신뢰 확보 + 추천 알고리즘 투명성. aiReasonChip null 이면 미노출.
+              if (aiReasonChip != null) ...[
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.gold.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: AppColors.gold.withValues(alpha: 0.35),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('✨', style: TextStyle(fontSize: 11)),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            aiReasonChip!,
+                            style: const TextStyle(
+                              color: AppColors.gold,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              height: 1.2,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Build 252: leading 영역 — 마커와 동일한 인물 이모지 + 국기 stack.
@@ -2533,6 +2602,8 @@ class _LetterCard extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+              ], // Column.children close (Build 324: AI 추천 칩 + Row 카드 본문)
             ),
           ),
           // 잠금 오버레이 (chain rule)

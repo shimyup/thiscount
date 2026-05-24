@@ -8074,6 +8074,111 @@ class AppL10n {
     'th': 'จัดเรียงด้วย AI',
   });
 
+  // Build 324: AI 추천 letter 카드의 "왜 이 순서?" 이유 칩 5개 (14언어).
+  //   상위 letter 에 1줄 표시 — 사용자 신뢰 확보 + 추천 알고리즘 투명성.
+  String get aiReasonFollowed => _t({
+    'ko': '팔로우한 브랜드',
+    'en': 'Followed brand',
+    'ja': 'フォロー中のブランド',
+    'zh': '关注的品牌',
+    'fr': 'Marque suivie',
+    'de': 'Gefolgte Marke',
+    'es': 'Marca seguida',
+    'pt': 'Marca seguida',
+    'ru': 'Отслеживаемый бренд',
+    'tr': 'Takip edilen marka',
+    'ar': 'علامة تجارية متابعة',
+    'it': 'Brand seguito',
+    'hi': 'फॉलो की गई ब्रांड',
+    'th': 'แบรนด์ที่ติดตาม',
+  });
+
+  String get aiReasonExpiring => _t({
+    'ko': '곧 만료',
+    'en': 'Expiring soon',
+    'ja': 'まもなく期限切れ',
+    'zh': '即将过期',
+    'fr': 'Expire bientôt',
+    'de': 'Läuft bald ab',
+    'es': 'Por vencer',
+    'pt': 'Vencendo em breve',
+    'ru': 'Скоро истекает',
+    'tr': 'Yakında doluyor',
+    'ar': 'ينتهي قريبًا',
+    'it': 'In scadenza',
+    'hi': 'जल्द समाप्त',
+    'th': 'ใกล้หมดอายุ',
+  });
+
+  String get aiReasonCategoryMatch => _t({
+    'ko': '내 선호 카테고리',
+    'en': 'Matches your category',
+    'ja': '好きなカテゴリ',
+    'zh': '匹配您的偏好',
+    'fr': 'Votre catégorie',
+    'de': 'Ihre Kategorie',
+    'es': 'Tu categoría',
+    'pt': 'Sua categoria',
+    'ru': 'Ваша категория',
+    'tr': 'Tercih ettiğin kategori',
+    'ar': 'فئتك المفضلة',
+    'it': 'La tua categoria',
+    'hi': 'आपकी पसंदीदा श्रेणी',
+    'th': 'หมวดที่คุณชอบ',
+  });
+
+  String get aiReasonPopular => _t({
+    'ko': '인기 혜택',
+    'en': 'Popular reward',
+    'ja': '人気の特典',
+    'zh': '热门优惠',
+    'fr': 'Récompense populaire',
+    'de': 'Beliebte Belohnung',
+    'es': 'Recompensa popular',
+    'pt': 'Recompensa popular',
+    'ru': 'Популярная награда',
+    'tr': 'Popüler ödül',
+    'ar': 'مكافأة شائعة',
+    'it': 'Ricompensa popolare',
+    'hi': 'लोकप्रिय पुरस्कार',
+    'th': 'รางวัลยอดนิยม',
+  });
+
+  String get aiReasonNearby => _t({
+    'ko': '가까운 매장',
+    'en': 'Nearby',
+    'ja': '近くの店舗',
+    'zh': '附近门店',
+    'fr': 'À proximité',
+    'de': 'In der Nähe',
+    'es': 'Cerca',
+    'pt': 'Perto',
+    'ru': 'Рядом',
+    'tr': 'Yakında',
+    'ar': 'قريب',
+    'it': 'Vicino',
+    'hi': 'पास में',
+    'th': 'ใกล้คุณ',
+  });
+
+  /// Build 324: aiReasonLabel — labelKey → 14언어 텍스트 매핑.
+  String aiReasonLabel(String key) {
+    switch (key) {
+      case 'aiReasonFollowed':
+        return aiReasonFollowed;
+      case 'aiReasonExpiring':
+        return aiReasonExpiring;
+      case 'aiReasonCategoryMatch':
+        return aiReasonCategoryMatch;
+      case 'aiReasonPopular':
+        return aiReasonPopular;
+      case 'aiReasonNearby':
+        return aiReasonNearby;
+      default:
+        return '';
+    }
+  }
+
   // Build 324: AI 추천 Premium upsell 시트의 설명 본문.
   //   카피에서 "letter / 편지" 메타포 제거 — "혜택 / reward" 로 통일 (PR-D).
   String get aiRecommendUpsellDesc => _t({
