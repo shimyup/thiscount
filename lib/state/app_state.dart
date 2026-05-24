@@ -7874,11 +7874,44 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> _clearUserScopedPrefs() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('myPickedUpLetterIds');
-      await prefs.remove('pickedUpCampaignIds');
-      // Build 340 (PR-S11 시뮬레이션): 사용자 A 의 코드 reveal 진행 상태가
-      //   사용자 B 세션에 누출되던 user-scoped prefs 누락 fix.
-      await prefs.remove('pendingRedemptionStartedAt');
+      // Build 347 (PR-U1 회원변경 시뮬레이션 P1): 누락된 user-scoped prefs
+      //   전체 정리. 이전엔 픽업 history + redemption 만 지워서 dailySentCount /
+      //   streak / tower / invite 등이 사용자 A → B 전환 시 누출되던 회귀.
+      const userScopedKeys = <String>[
+        'myPickedUpLetterIds',
+        'pickedUpCampaignIds',
+        'pendingRedemptionStartedAt',
+        // 일일 / 월간 발송 한도 카운터
+        'dailySentCount',
+        'dailySentDateKey',
+        'dailyImageSentCount',
+        'dailyImageDateKey',
+        'monthlySentCount',
+        'monthlyDateKey',
+        // streak (연속 출석)
+        'streak_current',
+        'streak_longest',
+        'streak_last_checkin',
+        'streak_freeze_tokens',
+        'streak_freeze_last_refill',
+        // 챌린지 / 친구 초대 보상
+        'challenge_reward_balance',
+        'inviteRewardCredits',
+        'inviteAppliedCode',
+        'inviteRewardAtEpochMs',
+        'inviteCode',
+        // tower customization
+        'towerColor',
+        'towerAccentEmoji',
+        // brand-specific (정식 brand 사용자 데이터)
+        'brandExtraMonthlyQuota',
+        // premium 특급 배송 (premium 사용자 전용)
+        'dailyPremiumExpressSentCount',
+        'dailyPremiumExpressDateKey',
+      ];
+      for (final key in userScopedKeys) {
+        await prefs.remove(key);
+      }
       _pendingRedemptionStartedAt.clear();
     } catch (e) {
       if (kDebugMode) debugPrint('[setUser] clear prefs 실패: $e');
@@ -8118,6 +8151,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
     // ⑤ 거리 재검증: 편지 목적지와 현재 유저 위치 간 Haversine 거리
     if (distanceCheck) {
+      // Build 347 (PR-U1 위치 시뮬레이션 P1): GPS 0,0 (권한 거부 / 시동 직후)
+      //   인 사용자가 모든 letter 픽업 통과하던 회귀 차단. 위도+경도 둘 다
+      //   0 이면 GPS 미가용 — 픽업 거리 검증 불가 → 거절.
+      if (_currentUser.latitude == 0 && _currentUser.longitude == 0) {
+        return _l10n.stateDistanceTooFar;
+      }
       final dist = letter.destinationLocation.distanceTo(
         LatLng(_currentUser.latitude, _currentUser.longitude),
       );
@@ -8217,14 +8256,18 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     return null; // 성공
   }
 
-  /// Firestore에 편지 클레임을 등록 (선착순 기록용, 비동기 fire-and-forget)
+  /// Firestore에 편지 클레임을 등록 (선착순 기록용).
+  /// Build 347 (PR-U1 시뮬레이션 P0): currentDocument.exists=false 의 atomic
+  ///   precondition 이 server-side race winner 결정. 412 응답 = 패배 →
+  ///   maxReaders=1 letter 의 local 픽업 rollback. 이전엔 fire-and-forget 이라
+  ///   100 명 동시 픽업 시 모두 inbox 에 letter 추가됐던 회귀.
   Future<void> _claimLetterOnFirestore(String letterId) async {
     try {
       final url = Uri.parse(
         '${FirebaseConfig.firestoreBase}/claimedLetters/$letterId'
         '?currentDocument.exists=false',
       );
-      await http
+      final response = await http
           .patch(
             url,
             headers: {'Content-Type': 'application/json'},
@@ -8238,9 +8281,38 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             }),
           )
           .timeout(const Duration(seconds: 5));
+      if (response.statusCode == 412 || response.statusCode == 409) {
+        // 다른 사용자가 먼저 클레임 → 본인 local 픽업 rollback.
+        _rollbackPickedUpLetter(letterId);
+      }
     } catch (e) {
       debugPrint('[pickUp] _claimLetterOnFirestore error: $e');
+      // network error 는 rollback 안 함 (재시도 시 catch-up 가능).
     }
+  }
+
+  /// Build 347 (PR-U1): Firestore claim 패배 시 local 픽업 상태 rollback.
+  ///   사용자 UI 에서는 letter 가 잠깐 inbox 에 나타났다가 사라지고 snackbar
+  ///   "다른 사용자가 먼저 가져갔어요" 안내.
+  void _rollbackPickedUpLetter(String letterId) {
+    final before = _inbox.length;
+    _inbox.removeWhere((l) => l.id == letterId);
+    if (_inbox.length == before) return; // 이미 없음 (사용자가 삭제 등) — no-op
+    _myPickedUpLetterIds.remove(letterId);
+    _pickupRolledBackLetterId = letterId;
+    if (kDebugMode) {
+      debugPrint('[pickUp] rollback — Firestore claim lost: $letterId');
+    }
+    notifyListeners();
+    _saveToPrefs();
+  }
+
+  /// Build 347 (PR-U1): UI 측이 listen 해서 사용자에게 "다른 사용자가 먼저
+  ///   가져갔어요" snackbar 표시 후 clear 호출.
+  String? _pickupRolledBackLetterId;
+  String? get pickupRolledBackLetterId => _pickupRolledBackLetterId;
+  void clearPickupRollback() {
+    _pickupRolledBackLetterId = null;
   }
 
   // ── 편지 삭제 ─────────────────────────────────────────────────────────────
