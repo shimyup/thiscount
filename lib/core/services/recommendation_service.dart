@@ -221,6 +221,72 @@ class RecommendationService {
     return null;
   }
 
+  /// Build 325 (T2): topReason 외에 *몇 개의 다른 신호*가 동시 만족하는지 카운트.
+  ///   반환값은 top 1 외 추가 매칭 신호 수 (0 = 단일 신호 / 1+ = 다신호).
+  ///   호출 측에서 "+N" 보조 뱃지 노출로 "더 강한 추천" 시각 강조에 사용.
+  ///
+  /// topReason 의 5 신호 (팔로우 / 만료 24h / 카테고리 매치 / 사회 / 근거리) 중
+  /// top 으로 채택된 것 제외 몇 개가 추가 만족하는지 계산.
+  static int extraSignalCount(
+    Letter letter,
+    UserProfile user, {
+    required Set<String> followedBrandIds,
+    DateTime? now,
+  }) {
+    final t = now ?? DateTime.now();
+
+    final couponExp = letter.redemptionExpiresAt;
+    final autoExp = letter.expiresAt;
+    final isAnyExpired =
+        (couponExp != null && !t.isBefore(couponExp)) ||
+        (autoExp != null && !t.isBefore(autoExp));
+    if (isAnyExpired || letter.redeemedAt != null) return 0;
+
+    var matched = 0;
+
+    // 1) 팔로우 브랜드
+    if (letter.senderIsBrand &&
+        followedBrandIds.contains(letter.senderId)) {
+      matched++;
+    }
+
+    // 2) 만료 임박 24h
+    DateTime? earliest;
+    if (couponExp != null && autoExp != null) {
+      earliest = couponExp.isBefore(autoExp) ? couponExp : autoExp;
+    } else {
+      earliest = couponExp ?? autoExp;
+    }
+    if (earliest != null) {
+      final remainMin = earliest.difference(t).inMinutes;
+      if (remainMin > 0 && remainMin <= 1440) matched++;
+    }
+
+    // 3) 선호 카테고리 매치
+    final tag = letter.categoryTag;
+    final pref = user.preferredCategoryKey;
+    if (tag != null && pref != null && pref.isNotEmpty && tag == pref) {
+      matched++;
+    }
+
+    // 4) 사회 신호
+    if (letter.likeCount >= 30 ||
+        (letter.ratingCount > 0 && letter.avgRating >= 4.5)) {
+      matched++;
+    }
+
+    // 5) 근거리
+    if (user.latitude != 0 || user.longitude != 0) {
+      final distM = LatLng(user.latitude, user.longitude)
+          .distanceTo(letter.destinationLocation);
+      if (distM <= 500) matched++;
+    }
+
+    // top 으로 1개가 채택되므로 -1 (음수 방지)
+    final extra = matched - 1;
+    return extra < 0 ? 0 : extra;
+  }
+
   /// letters 전체를 score DESC 로 정렬한 새 리스트 반환. 동점 시 최신 sentAt 우선.
   static List<Letter> rank(
     List<Letter> letters,
