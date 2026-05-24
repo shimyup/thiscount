@@ -11,12 +11,10 @@ import '../features/premium/premium_gate_sheet.dart';
 import '../features/premium/premium_screen.dart';
 import '../features/premium/brand_comparison_sheet.dart';
 import '../features/inbox/screens/inbox_screen.dart';
-import '../features/tower/screens/tower_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/streak/streak_badge.dart';
 import '../features/progression/level_up_banner.dart';
 import '../features/brand/brand_ad_modal.dart';
-import '../features/tower/widgets/tower_benefits_popup.dart';
 import 'offline_banner.dart';
 
 class MainScaffold extends StatefulWidget {
@@ -33,10 +31,13 @@ class _MainScaffoldState extends State<MainScaffold> {
   // id 가 다시 build 되면 무시 — id 가 바뀌면(새 광고 도착) 다시 trigger.
   String? _lastTriggeredAdId;
 
+  // Build 324 (positioning): 4탭 → 3탭. 타워 탭 격리 — TowerScreen 은 별도
+  //   /tower 라우트로 ProfileScreen 안의 진입 카드를 통해 접근. 첫 화면의
+  //   인지 부하 -25% (4개 nav → 3개 + 중앙 보내기).
+  //   인덱스 매핑: 0=지도, 1=인박스, 2=프로필 (이전 3 → 2 reindex).
   late final List<Widget> _pages = [
     WorldMapScreen(onGoToInbox: () => setState(() => _currentIndex = 1)),
     const InboxScreen(),
-    const TowerScreen(),
     const ProfileScreen(),
   ];
 
@@ -46,34 +47,70 @@ class _MainScaffoldState extends State<MainScaffold> {
     // 스트릭·레벨업 축하 스낵바 — 첫 프레임 이후 1회 표시
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      // Build 324: 신규 가입자 trial 부여 직후 1회 모달 — "결제한 적 없는데 왜
+      //   Premium?" 혼란 해소 (Free 신규 시뮬레이션 발견). 다른 banner 보다 우선.
+      _maybeShowWelcomeTrialModal();
       StreakCelebrationBar.showIfIncreased(context);
       // 레벨업은 스트릭보다 우선 (더 큰 이벤트) — 살짝 딜레이로 연달아 표시
       Future.delayed(const Duration(milliseconds: 400), () {
         if (mounted) LevelUpBanner.showIfLevelUp(context);
       });
       // Build 205: 첫 번째 광고 trigger 는 build() 의 reactive 경로에서 처리.
-      // (이전 build 202 의 1.2s 단발 호출은 새 광고 도착 시 재발사 안 됐음.)
-      // initialIndex 가 Tower 탭이면 혜택 팝업도 즉시 노출.
-      if (_currentIndex == 2) {
-        Future.delayed(const Duration(milliseconds: 600), () {
-          if (mounted) TowerBenefitsPopup.showIfDue(context);
-        });
-      }
+      // Build 324: TowerScreen 탭 격리 — initialIndex 기반 popup auto-show 도
+      //   더 이상 필요 없음 (TowerScreen 진입은 명시적 /tower 라우트로만).
     });
   }
 
-  /// Build 205.1: 레터(타워) 탭으로 전환할 때마다 호출. 다시보지않기가 켜져
-  /// 있으면 popup 내부에서 noop. IndexedStack 으로 항상 build 되어 있는
-  /// TowerScreen 의 initState 에서 호출하면 Map 에 머물러 있는 사용자에게도
-  /// 팝업이 떠 버리는 문제 회피.
-  void _switchToTab(int next) {
-    final wasOnTower = _currentIndex == 2;
-    setState(() => _currentIndex = next);
-    if (next == 2 && !wasOnTower) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) TowerBenefitsPopup.showIfDue(context);
-      });
-    }
+  /// Build 324: trial 첫 부여 직후 home 화면에서 1회 모달.
+  ///   AppState.pendingWelcomeTrialNotice 가 true 면 노출 + consume.
+  Future<void> _maybeShowWelcomeTrialModal() async {
+    final state = context.read<AppState>();
+    if (!state.pendingWelcomeTrialNotice) return;
+    state.consumeWelcomeTrialNotice();
+    final l = AppL10n.of(state.currentUser.languageCode);
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dCtx) => AlertDialog(
+        backgroundColor: AppColors.bgCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        icon: const Text('🎁', style: TextStyle(fontSize: 38)),
+        title: Text(
+          l.welcomeTrialTitle,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: AppColors.gold,
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        content: Text(
+          l.welcomeTrialBody,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 13,
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          Center(
+            child: ElevatedButton(
+              onPressed: () => Navigator.of(dCtx).pop(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.gold,
+                foregroundColor: const Color(0xFF1A0008),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+              ),
+              child: Text(
+                l.welcomeTrialCta,
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _openCompose(BuildContext ctx) async {
@@ -287,25 +324,16 @@ class _MainScaffoldState extends State<MainScaffold> {
                       onTap: () => _openCompose(ctx),
                     ),
                   ),
-                  Expanded(
-                    // Build 163: 티어별 탭 라벨·아이콘 — Brand 는 타워 (건물
-                    // 아이콘) 유지, Free/Premium 은 "레터" 캐릭터 (emoji_events
-                    // 대신 person 계열) 로 성장 내러티브 전달.
-                    child: _NavItem(
-                      icon: isBrand
-                          ? Icons.apartment_rounded
-                          : Icons.catching_pokemon_rounded,
-                      label: isBrand ? l.navTower : l.navLetter,
-                      isSelected: _currentIndex == 2,
-                      onTap: () => _switchToTab(2),
-                    ),
-                  ),
+                  // Build 324 (positioning): 4탭 → 3탭. 타워 탭 격리 →
+                  //   ProfileScreen 의 "내 등급" 진입 카드로 통합. 첫 화면의
+                  //   nav 인지 부하 -25% + 등급/타워 시스템은 진성 사용자만
+                  //   발견하는 "숨겨진 깊이" (포켓몬 GO 의 메달 패턴).
                   Expanded(
                     child: _NavItem(
                       icon: Icons.person_rounded,
                       label: l.profile,
-                      isSelected: _currentIndex == 3,
-                      onTap: () => setState(() => _currentIndex = 3),
+                      isSelected: _currentIndex == 2,
+                      onTap: () => setState(() => _currentIndex = 2),
                     ),
                   ),
                 ],

@@ -492,6 +492,24 @@ class _ComposeScreenState extends State<ComposeScreen>
       vsync: this,
     );
     _sendAnim = CurvedAnimation(parent: _sendController, curve: Curves.easeOut);
+    // Build 324 (positioning): Free 사용자는 "줍기 전용" — compose 진입 자체를
+    //   차단. main_scaffold / inbox_screen / letter_read_screen 등 모든 진입점
+    //   에 가드를 흩뿌리는 대신 ComposeScreen 자체에서 한 번에 처리 (defense-
+    //   in-depth). 진입 시 즉시 pop + PremiumGateSheet 노출.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final state = context.read<AppState>();
+      if (!state.currentUser.isPremium && !state.currentUser.isBrand) {
+        final l = AppL10n.of(state.currentUser.languageCode);
+        Navigator.of(context).pop();
+        PremiumGateSheet.show(
+          context,
+          featureName: l.composeGateFeatureName,
+          featureEmoji: '📣',
+          description: l.composeGateDesc,
+        );
+      }
+    });
     _contentController.addListener(() {
       var text = _contentController.text;
       // Build 254: 본문 5KB (5000 chars) cap — 서버 보안 cap (Build 207) 과 정합.
@@ -1661,6 +1679,44 @@ class _ComposeScreenState extends State<ComposeScreen>
               child: Text(
                 l.authClose,
                 style: const TextStyle(color: AppColors.textMuted),
+              ),
+            ),
+            // Build 324: ExactDrop IAP 즉시 구매 버튼 — "관리자 문의" 흐름 제거.
+            //   구매 성공 시 100 크레딧 자동 grant + 다이얼로그 닫음.
+            ElevatedButton.icon(
+              onPressed: () async {
+                final purchase = context.read<PurchaseService>();
+                Navigator.of(dCtx).pop();
+                final ok = await purchase.buyExactDrop100(state);
+                if (!mounted) return;
+                if (ok) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('🎯 ExactDrop +100 (${state.brandExactDropCredits})'),
+                      backgroundColor: AppColors.bgCard,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                  // 구매 직후 즉시 ExactDrop 진입.
+                  unawaited(_selectExactDrop());
+                } else if (purchase.errorMessage != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(purchase.errorMessage!),
+                      backgroundColor: AppColors.error,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.gold,
+                foregroundColor: const Color(0xFF1A0008),
+              ),
+              icon: const Icon(Icons.shopping_cart_rounded, size: 16),
+              label: Text(
+                l.composeExactDropBuyBtn,
+                style: const TextStyle(fontWeight: FontWeight.w700),
               ),
             ),
           ],
@@ -4427,6 +4483,90 @@ class _ComposeScreenState extends State<ComposeScreen>
 
   // Build 321: 자동 발송 zone 토글 + 옵션. compose 통합 — 작성 본문 + 옵션
   // 동시 입력 후 한 번에 등록. inbox FAB 진입점 제거됨.
+  /// Build 324: compose 시나리오 칩 — Brand 사장이 "어떤 캠페인?" 한 번에 선택.
+  Widget _scenarioChip({
+    required String emoji,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: AppColors.bgSurface,
+      borderRadius: BorderRadius.circular(999),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(emoji, style: const TextStyle(fontSize: 13)),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 시나리오 1 — 매장 반경 (자동 zone ON / 1인1회 ON / 단건 모드)
+  void _applyScenarioNearby() {
+    setState(() {
+      _isAutoZoneMode = true;
+      _isBulkMode = false;
+      _isExpressMode = false;
+      _isExactDropped = false;
+      _brandUniquePerUser = true;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('📍 매장 반경 모드 — 자동 zone + 1인1회 ON'),
+        backgroundColor: AppColors.bgCard,
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  /// 시나리오 2 — 단건 정확 좌표 (ExactDrop ON / 1인1회 ON)
+  void _applyScenarioExactDrop() {
+    setState(() {
+      _isAutoZoneMode = false;
+      _isBulkMode = false;
+      _isExpressMode = false;
+      _brandUniquePerUser = true;
+    });
+    // ExactDrop 진입은 별도 호출 (paywall 검사 포함).
+    _selectExactDrop();
+  }
+
+  /// 시나리오 3 — 글로벌 대량 (Bulk ON / 1인1회 ON)
+  void _applyScenarioBulk() {
+    setState(() {
+      _isBulkMode = true;
+      _isAutoZoneMode = false;
+      _isExactDropped = false;
+      _isExpressMode = false;
+      _brandUniquePerUser = true;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('🌍 글로벌 대량 모드 — 선택 국가 N건 발송'),
+        backgroundColor: AppColors.bgCard,
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   Widget _buildAutoZoneSection(AppL10n l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -4595,7 +4735,41 @@ class _ComposeScreenState extends State<ComposeScreen>
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
+          // Build 324: "어떤 캠페인?" 시나리오 칩 3개 — Brand 시뮬레이션의
+          //   "토글 4개 (대량/특송/zone/ExactDrop/1인1회) 중 어느 조합?" 인지
+          //   부하 해소. 칩 1개 탭으로 4개 토글 자동 세팅.
+          Text(
+            l10n.composeScenarioLabel,
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              _scenarioChip(
+                emoji: '📍',
+                label: l10n.composeScenarioNearbyStore,
+                onTap: _applyScenarioNearby,
+              ),
+              _scenarioChip(
+                emoji: '🎯',
+                label: l10n.composeScenarioExactDrop,
+                onTap: _applyScenarioExactDrop,
+              ),
+              _scenarioChip(
+                emoji: '🌍',
+                label: l10n.composeScenarioBulk,
+                onTap: _applyScenarioBulk,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
           // Build 321: 자동 발송 zone 토글 + 옵션 ─ compose 통합
           _buildAutoZoneSection(l10n),
           const SizedBox(height: 10),
@@ -4622,8 +4796,12 @@ class _ComposeScreenState extends State<ComposeScreen>
                           fontWeight: FontWeight.w600,
                         ),
                       ),
+                      // Build 324: ON/OFF 상태별 desc 분기 — Brand 사장이
+                      //   토글 의미를 즉시 이해 (시뮬레이션 발견).
                       Text(
-                        l10n.composeBrandUniquePerUserDesc,
+                        _brandUniquePerUser
+                            ? l10n.composeBrandUniquePerUserDesc
+                            : l10n.composeBrandUniquePerUserOffDesc,
                         style: const TextStyle(
                           color: AppColors.textMuted,
                           fontSize: 10,

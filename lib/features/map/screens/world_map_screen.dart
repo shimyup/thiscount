@@ -1055,12 +1055,17 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       markers.add(
         Marker(
           point: ll.LatLng(pos.latitude, pos.longitude),
-          width: showAsArrived ? 48 : 36,
-          height: showAsArrived ? 48 : 36,
+          // Build 324: marker bounds 확대 — _ArrivedWaitingMarker 가 +35% 키워졌
+          //   고 FOMO outer ring 까지 포함하려면 78px 필요. transport 도 일관성 위해 키움.
+          width: showAsArrived ? 78 : 44,
+          height: showAsArrived ? 78 : 44,
           child: GestureDetector(
             onTap: () => _onLetterTap(context, letter, state, l10n, langCode),
             child: showAsArrived && letter.status == DeliveryStatus.inTransit
-                ? _ArrivedWaitingMarker(pulseController: _pulseController)
+                ? _ArrivedWaitingMarker(
+                    letter: letter,
+                    pulseController: _pulseController,
+                  )
                 : _TransportMarker(
                     letter: letter,
                     pulseController: _pulseController,
@@ -2151,9 +2156,34 @@ class _WorldMapScreenState extends State<WorldMapScreen>
         langCode: langCode,
         letter: letter,
         onPickup: () {
+          // Build 324: 픽업 전 같은 캠페인의 다른 letter 수 미리 카운트.
+          //   픽업 직후 nearbyLetters 필터로 사라지기 전에 차이로 hidden 카운트 계산.
+          final preCampaignSiblings = (letter.brandUniquePerUser &&
+                  letter.campaignId != null)
+              ? state.worldLetters
+                  .where((l) =>
+                      l.id != letter.id &&
+                      l.brandUniquePerUser &&
+                      l.campaignId == letter.campaignId)
+                  .length
+              : 0;
           final error = state.pickUpLetter(letter.id);
           Navigator.pop(ctx);
           if (error == null) {
+            // Build 324: brandUniquePerUser 캠페인 픽업 시 hidden 안내 스낵바.
+            //   "왜 다른 letter 가 사라지지?" 의문 해소 (Premium 시뮬레이션 발견).
+            if (preCampaignSiblings > 0) {
+              ScaffoldMessenger.of(ctx).showSnackBar(
+                SnackBar(
+                  content: Text(l10n.pickupCampaignDedupNotice(
+                    preCampaignSiblings,
+                  )),
+                  backgroundColor: AppColors.bgCard,
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 4),
+                ),
+              );
+            }
             // Build 261: 픽업 직후 LetterReadScreen 즉시 push.
             // 이전: snackbar 만 → 사용자가 인박스로 이동해 다시 탭해야 했음.
             // 변경: 즉시 detail 화면 → 그 후 인박스/수집첩에서도 다시 확인 가능.
@@ -2685,38 +2715,115 @@ class _MyLocationButtonState extends State<_MyLocationButton> {
 /// 도착 대기 중 마커 (inTransit → 실제 도착했지만 아직 상태 전환 전)
 /// 비행기 대신 📬로 표시
 class _ArrivedWaitingMarker extends StatelessWidget {
+  final Letter letter;
   final AnimationController pulseController;
-  const _ArrivedWaitingMarker({required this.pulseController});
+  const _ArrivedWaitingMarker({
+    required this.letter,
+    required this.pulseController,
+  });
+
+  // Build 324 (positioning): 카테고리별 이모지 분기.
+  //   사용자 피드백 — 색깔 분기보다 이모지가 즉시 인식 가능. 색은 gold 로
+  //   통일해 시각 노이즈 감소 + 이모지가 카테고리 시그널의 단일 채널이 됨.
+  //   eat (food+cafe) = 🍴 / shop (beauty+fashion) = 🛍️ /
+  //   etc (it+event+other) = 🎁 / categoryTag null = 📬 (기본).
+  //   FOMO 시 빨강 ring 은 별개 — 긴급성 시각화는 유지.
+  String get _categoryEmoji {
+    final tag = letter.categoryTag;
+    if (tag == 'food' || tag == 'cafe') return '🍴';
+    if (tag == 'beauty' || tag == 'fashion') return '🛍️';
+    if (tag == 'it' || tag == 'event' || tag == 'other') return '🎁';
+    return '📬';
+  }
+
+  /// Build 324 (FOMO): 만료 임박 (≤24h) 여부.
+  ///   redemptionExpiresAt (쿠폰 사용 기한) 또는 expiresAt (편지 자동 삭제)
+  ///   중 더 빠른 시각 기준. 24h 이내면 핀이 깜빡임 강화 + 빨간 ring 으로 시각화.
+  bool get _isExpiringSoon {
+    final coupon = letter.redemptionExpiresAt;
+    final auto = letter.expiresAt;
+    DateTime? earliest;
+    if (coupon != null && auto != null) {
+      earliest = coupon.isBefore(auto) ? coupon : auto;
+    } else {
+      earliest = coupon ?? auto;
+    }
+    if (earliest == null) return false;
+    final remain = earliest.difference(DateTime.now());
+    return !remain.isNegative && remain.inHours <= 24;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final emoji = _categoryEmoji;
+    final expiringSoon = _isExpiringSoon;
+    // Build 324: 핀 색상은 gold 로 통일. 카테고리 구분은 이모지 단일 채널.
+    //   FOMO 모드 (≤24h) 시에만 빨강 outer ring + pulse 2배로 긴급성 시각화.
+    //   사이즈 +35% (22→30 emoji, 40→54 container) — 시뮬레이션에서 줌아웃 시
+    //   카테고리 이모지가 안 보이던 문제 해소. 줌인 시도 비례 자연스러움 유지.
+    //   본인 sender letter 는 청록 dashed border 로 구분 — Brand 사장이 자기
+    //   캠페인 letter 를 지도에서 즉시 식별 가능 (시뮬레이션 발견).
+    final state = context.read<AppState>();
+    final isMine = letter.senderId == state.currentUser.id;
+    final fomoColor = expiringSoon ? const Color(0xFFE53935) : null;
+    final baseColor = AppColors.gold;
     return AnimatedBuilder(
       animation: pulseController,
       builder: (_, __) {
-        final phase = (pulseController.value * 2 * pi) % (2 * pi);
+        final speed = expiringSoon ? 2.0 : 1.0;
+        final phase = (pulseController.value * 2 * pi * speed) % (2 * pi);
         final pulse = (sin(phase) * 0.5 + 0.5);
         return Stack(
           alignment: Alignment.center,
           children: [
+            // Build 324: 본인 sender ring — Brand 사장이 자기 캠페인 식별 용이.
+            //   FOMO ring 보다 한 단계 더 크게 + 청록색 강조 outline.
+            if (isMine)
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.teal.withValues(alpha: 0.85),
+                    width: 2.5,
+                  ),
+                ),
+              ),
+            // FOMO outer ring (빨강) — 만료 임박일 때만 노출.
+            if (fomoColor != null)
+              Container(
+                width: 64 + pulse * 14,
+                height: 64 + pulse * 14,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: fomoColor.withValues(alpha: 0.4 + pulse * 0.5),
+                    width: 2.0,
+                  ),
+                ),
+              ),
             Container(
-              width: 40 + pulse * 8,
-              height: 40 + pulse * 8,
+              width: 54 + pulse * 10,
+              height: 54 + pulse * 10,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: AppColors.gold.withValues(alpha: 0.25 + pulse * 0.35),
+                  color: (fomoColor ?? baseColor)
+                      .withValues(alpha: 0.25 + pulse * 0.35),
                   width: 1.5,
                 ),
               ),
             ),
             Text(
-              '📬',
+              emoji,
               style: TextStyle(
-                fontSize: 22,
+                fontSize: 30,
                 shadows: [
                   Shadow(
-                    color: AppColors.gold.withValues(alpha: 0.6 + pulse * 0.3),
-                    blurRadius: 10,
+                    color: (fomoColor ?? baseColor)
+                        .withValues(alpha: 0.6 + pulse * 0.3),
+                    blurRadius: 12,
                   ),
                   const Shadow(
                     color: Color(0x88000000),

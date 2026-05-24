@@ -19,6 +19,7 @@ import '../../../core/localization/language_config.dart';
 import '../../../models/letter.dart';
 import '../../../state/app_state.dart';
 import '../../compose/screens/compose_screen.dart';
+import '../../premium/premium_gate_sheet.dart';
 import '../../../models/direct_message.dart';
 import '../../dm/dm_conversation_screen.dart';
 import '../../share/share_card_service.dart';
@@ -1847,6 +1848,10 @@ class _LetterReadScreenState extends State<LetterReadScreen>
     // Build 303 (MED audit): banned 사용자의 reply 경로도 차단 (Build 291 의
     // compose entry 가드 보완). letter 작성자가 acceptsReplies 라도 banned
     // 사용자는 reply 송신 불가.
+    // Build 324 (positioning): Free 사용자는 "줍기 전용" — 답장도 발송이라 차단.
+    //   버튼은 visible 하되 탭 시 PremiumGateSheet 노출 (가치 어필 + 업그레이드 유도).
+    final isPremiumOrBrand =
+        state.currentUser.isPremium || state.currentUser.isBrand;
     final canReply = letter.acceptsReplies && !state.currentUser.isBanned;
 
     Widget btn({
@@ -1914,7 +1919,18 @@ class _LetterReadScreenState extends State<LetterReadScreen>
           label: l10n.letterReadReply,
           primary: true,
           onTap: canReply
-              ? () => Navigator.push(
+              ? () {
+                  // Build 324: Free 면 답장도 발송이라 차단 — upsell sheet.
+                  if (!isPremiumOrBrand) {
+                    PremiumGateSheet.show(
+                      ctx,
+                      featureName: l10n.composeGateFeatureName,
+                      featureEmoji: '✉️',
+                      description: l10n.composeGateDesc,
+                    );
+                    return;
+                  }
+                  Navigator.push(
                     ctx,
                     MaterialPageRoute(
                       builder: (_) => ComposeScreen(
@@ -1924,7 +1940,8 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                             : letter.senderName,
                       ),
                     ),
-                  )
+                  );
+                }
               : null,
         ),
         const SizedBox(width: 8),
@@ -2642,7 +2659,11 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   }
 
   Widget _buildReplyButton(BuildContext ctx, Letter letter) {
-    final l10n = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
+    final state = ctx.read<AppState>();
+    final l10n = AppL10n.of(state.currentUser.languageCode);
+    // Build 324 (positioning): Free 사용자는 답장 차단 — 발송 = Premium/Brand.
+    final isPremiumOrBrand =
+        state.currentUser.isPremium || state.currentUser.isBrand;
     // 답장 1회 제한을 제거 — 유저는 같은 편지에 여러 번 답장 가능.
     // `hasReplied` 플래그는 UI 상에서 "최근 답장함" 힌트로만 쓰고, 버튼 자체는
     // 항상 활성 상태로 둔다.
@@ -2651,17 +2672,28 @@ class _LetterReadScreenState extends State<LetterReadScreen>
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         GestureDetector(
-          onTap: () => Navigator.push(
-            ctx,
-            MaterialPageRoute(
-              builder: (_) => ComposeScreen(
-                replyToId: letter.id,
-                replyToName: letter.isAnonymous
-                    ? l10n.letterReadAnonymous
-                    : letter.senderName,
+          onTap: () {
+            if (!isPremiumOrBrand) {
+              PremiumGateSheet.show(
+                ctx,
+                featureName: l10n.composeGateFeatureName,
+                featureEmoji: '✉️',
+                description: l10n.composeGateDesc,
+              );
+              return;
+            }
+            Navigator.push(
+              ctx,
+              MaterialPageRoute(
+                builder: (_) => ComposeScreen(
+                  replyToId: letter.id,
+                  replyToName: letter.isAnonymous
+                      ? l10n.letterReadAnonymous
+                      : letter.senderName,
+                ),
               ),
-            ),
-          ),
+            );
+          },
           child: Container(
             width: double.infinity,
             height: 56,

@@ -1116,6 +1116,10 @@ class _SignupTabState extends State<_SignupTab> {
   final _usernameCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   final _socialCtrl = TextEditingController();
+  // Build 324: 친구 추천 invite code 입력 (optional). signUp 직후 자동 적용.
+  //   복귀+신규 시뮬레이션 발견 — 코드 입력 채널이 premium 화면에만 있어
+  //   viral loop 동작 안 함. signUp 흐름에 노출 → 친구가 코드 주면 즉시 사용.
+  final _inviteCodeCtrl = TextEditingController();
 
   bool _obscurePass = true;
   bool _isLoading = false;
@@ -1290,6 +1294,7 @@ class _SignupTabState extends State<_SignupTab> {
     _usernameCtrl.dispose();
     _passCtrl.dispose();
     _socialCtrl.dispose();
+    _inviteCodeCtrl.dispose();
     _phoneCtrl.dispose();
     _otpCtrl.dispose();
     _otpTimer?.cancel();
@@ -1481,6 +1486,13 @@ class _SignupTabState extends State<_SignupTab> {
         email: _emailCtrl.text.trim().toLowerCase(),
         grant: () => purchase.grantWelcomeTrial(days: 3),
       );
+      // Build 324: 친구 invite code 자동 적용 — viral loop 작동.
+      //   양쪽 (가입자 + 추천인) 모두 +5 invite reward credits.
+      //   premium 화면에서도 입력 가능하지만 signUp 시점 입력이 가장 효과적.
+      final code = _inviteCodeCtrl.text.trim();
+      if (code.isNotEmpty) {
+        unawaited(state.applyInviteCode(code));
+      }
     } catch (_) {}
   }
 
@@ -1827,6 +1839,19 @@ class _SignupTabState extends State<_SignupTab> {
             hint: 'https://instagram.com/...',
             icon: Icons.link_rounded,
             keyboardType: TextInputType.url,
+          ),
+          const SizedBox(height: 12),
+
+          // ── 5.5 친구 추천 코드 (선택) — Build 324 ──────────────────────────
+          // 가입 직후 자동 applyInviteCode 호출 → 양쪽 보상. signUp 시점이
+          // viral loop 의 conversion peak — premium 화면에서만 가능하던 기존
+          // 흐름의 친구 추천 트래킹 부재 해소 (복귀+신규 시뮬레이션 발견).
+          _InputField(
+            controller: _inviteCodeCtrl,
+            label: l10n.authInviteCodeOptional,
+            hint: l10n.authInviteCodeHint,
+            icon: Icons.card_giftcard_rounded,
+            keyboardType: TextInputType.text,
           ),
           const SizedBox(height: 12),
 

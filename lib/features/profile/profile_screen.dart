@@ -28,6 +28,7 @@ import '../../../models/user_profile.dart';
 import '../../../widgets/shared_profile_dialogs.dart';
 import '../premium/premium_gate_sheet.dart';
 import '../premium/premium_screen.dart';
+import '../tower/screens/tower_screen.dart';
 import 'stamp_album_screen.dart';
 
 // Premium Screen을 간단히 라우팅하기 위한 프록시
@@ -933,6 +934,75 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           // ① 4열 스탯 (A+C)
                           _buildFourStatRow(ctx, state, user),
+                          const SizedBox(height: 12),
+                          // Build 324 (positioning): 메인 nav 의 "타워" 탭 격리
+                          //   후 진입 카드. 모든 사용자에게 노출 — 등급/레벨/명성
+                          //   시스템은 진성 사용자만 발견하는 "숨겨진 깊이" 로
+                          //   격하 (인박스/지도 첫 화면 인지 부하 -25%).
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: InkWell(
+                              onTap: () => Navigator.of(ctx).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const TowerScreen(),
+                                ),
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.bgCard,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: AppColors.gold.withValues(alpha: 0.3),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      user.activityScore.tier.emoji,
+                                      style: const TextStyle(fontSize: 22),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            user.activityScore.tier
+                                                .labelL(_lc),
+                                            style: const TextStyle(
+                                              color: AppColors.textPrimary,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            user.activityScore
+                                                .reputationTitleL(_lc),
+                                            style: const TextStyle(
+                                              color: AppColors.textSecondary,
+                                              fontSize: 11,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const Icon(
+                                      Icons.chevron_right_rounded,
+                                      color: AppColors.textMuted,
+                                      size: 22,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
                           const SizedBox(height: 12),
                           // ①-1 나의 헌트 기록 — Build 115 신규. "이번 달
                           // 얼마나 벌었나?" 감각을 만드는 메인 지표 카드.

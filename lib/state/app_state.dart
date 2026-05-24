@@ -228,6 +228,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   List<Letter> get nearbyLetters {
     final list = _worldLetters
         .where((l) => l.status == DeliveryStatus.nearYou)
+        // Build 324: brandUniquePerUser 캠페인의 다른 letter 를 이미 픽업했다면
+        //   같은 캠페인의 잔여 letter 는 지도/리스트에서 숨김. 노출 후 탭 시점
+        //   "이미 받았어요" 차단보다 사전 차단이 UX 자연스럽다.
+        .where((l) => !(l.brandUniquePerUser &&
+            l.campaignId != null &&
+            _pickedUpCampaignIds.contains(l.campaignId)))
         .toList();
     final pref = preferredCategory;
     if (pref != null && _currentUser.isPremium && currentLevel >= 11) {
@@ -318,6 +324,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   /// 현재 유저가 이미 줍기한 편지 ID 집합 (동일 편지 중복 줍기 방지)
   final Set<String> _myPickedUpLetterIds = {};
+
+  /// Build 324: brandUniquePerUser 캠페인의 dedup 키. 같은 campaignId 의 letter 를
+  /// 한 사용자가 픽업하면 이 set 에 campaignId 추가 → 같은 캠페인의 다른 letter
+  /// 픽업 시도 차단. SharedPreferences `pickedUpCampaignIds` 에 영구 저장.
+  final Set<String> _pickedUpCampaignIds = {};
 
   /// 다음 줍기 가능까지 남은 시간 (null = 바로 가능)
   Duration? get nearbyPickupRemainingCooldown {
@@ -1075,9 +1086,23 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     }
     await grant();
     _welcomeTrialClaimedAt = claimedAtNow;
+    // Build 324: 신규 가입자에게 "3일 무료 체험 시작" 모달을 다음 home 진입
+    //   시점에 1회 노출 — "결제한 적 없는데 왜 Premium?" 혼란 해소 (Free 신규
+    //   시뮬레이션 발견).
+    _pendingWelcomeTrialNotice = true;
     await _saveUserToFirestore();
     notifyListeners();
     return true;
+  }
+
+  /// Build 324: trial 첫 부여 직후 home 화면에서 1회 안내 모달 trigger.
+  ///   `consume...` 호출 시 false 로 reset — 다음 가입까지 다시 false.
+  bool _pendingWelcomeTrialNotice = false;
+  bool get pendingWelcomeTrialNotice => _pendingWelcomeTrialNotice;
+  void consumeWelcomeTrialNotice() {
+    if (!_pendingWelcomeTrialNotice) return;
+    _pendingWelcomeTrialNotice = false;
+    notifyListeners();
   }
 
   Future<void> adminGrantExactDropCredits(int amount) async {
@@ -1583,8 +1608,43 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     return _sent.where((l) => _redeemedLetterIds.contains(l.id)).length;
   }
 
+  /// Build 324 (audit fix): Firestore atomic counter 캐시.
+  ///   letter.id → (pickupCount, redeemedCount) 의 서버 집계값.
+  ///   `refreshBrandInsightsFromServer()` 가 fetch 해서 채움. `brandInsights`
+  ///   getter 가 이 캐시를 우선 사용 — local _inbox 만 보던 이전 bug 해소
+  ///   (다른 회원의 픽업/사용이 카운트 안 돼 ROI 항상 0% 였음).
+  final Map<String, ({int pickup, int redeemed})> _serverInsightsCache = {};
+
+  /// Build 324 (audit fix): Brand insights 정확도 보강. 본인 sent letter 들의
+  ///   Firestore 집계 (pickupCount + redeemedCount atomic increment) 를 fetch
+  ///   해 캐시. brand_insights_screen 진입 시 호출.
+  ///   주의: N letters → N HTTP requests. 최근 30일 sent 만 대상 (현실적 cap).
+  Future<void> refreshBrandInsightsFromServer() async {
+    if (!_currentUser.isBrand) return;
+    if (!FirebaseConfig.kFirebaseEnabled) return;
+    final cutoff = SecureClock.now().subtract(const Duration(days: 30));
+    final recent = _sent.where((l) => l.sentAt.isAfter(cutoff)).toList();
+    if (recent.isEmpty) return;
+    for (final letter in recent) {
+      try {
+        final doc = await FirestoreService.getDocument('letters/${letter.id}');
+        if (doc == null) continue;
+        final map = FirestoreService.fromFirestoreDoc(doc);
+        final pickup = (map['pickupCount'] as num?)?.toInt() ?? 0;
+        final redeemed = (map['redeemedCount'] as num?)?.toInt() ?? 0;
+        _serverInsightsCache[letter.id] =
+            (pickup: pickup, redeemed: redeemed);
+      } catch (e) {
+        if (kDebugMode) debugPrint('[BrandInsights] fetch 실패: ${letter.id} $e');
+      }
+    }
+    notifyListeners();
+  }
+
   /// Build 323: Brand 인사이트 — 발송 / 픽업 / 사용 단계별 funnel 집계.
-  /// 최근 30일 기준으로 _sent + letter object 의 readCount/redeemedAt 사용.
+  /// 최근 30일 기준 _sent letter 의 Firestore 집계 우선 (있으면), local fallback.
+  /// Build 324 (audit fix): server 집계 캐시를 우선 사용해 다른 회원의 픽업/사용
+  /// 도 정확히 반영. 캐시는 `refreshBrandInsightsFromServer()` 가 채움.
   /// Brand 만 의미 있음 (Free/Premium 은 빈 결과).
   BrandInsights get brandInsights {
     if (!_currentUser.isBrand) {
@@ -1593,26 +1653,30 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final cutoff = SecureClock.now().subtract(const Duration(days: 30));
     final recent = _sent.where((l) => l.sentAt.isAfter(cutoff)).toList();
     final totalSent = recent.length;
-    final totalPickup =
-        recent.fold<int>(0, (acc, l) => acc + l.readCount);
-    final totalRedeemed = recent.where((l) => l.redeemedAt != null).length;
-    final pickupRate = totalSent == 0 ? 0.0 : totalPickup / totalSent;
-    final redeemRate = totalPickup == 0 ? 0.0 : totalRedeemed / totalPickup;
-    // 캠페인별 conversion — 픽업 1+ 인 것만 (사용률 의미 있음).
-    final campaigns = recent.map((l) {
-      final p = l.readCount;
-      final r = l.redeemedAt != null ? 1 : 0; // 디바이스 local 기준
+    int totalPickup = 0;
+    int totalRedeemed = 0;
+    final campaigns = <CampaignInsight>[];
+    for (final l in recent) {
+      // Build 324 fix: 서버 집계 캐시 우선. 다른 회원의 픽업/사용은 server 만
+      //   알 수 있음 (local _inbox 엔 본인이 픽업한 letter 만 존재).
+      final cached = _serverInsightsCache[l.id];
+      final p = cached?.pickup ?? l.readCount;
+      final r = cached?.redeemed ?? (l.redeemedAt != null ? 1 : 0);
+      totalPickup += p;
+      totalRedeemed += r;
       final rate = p == 0 ? 0.0 : r / p;
-      return CampaignInsight(
+      campaigns.add(CampaignInsight(
         letterId: l.id,
         title: l.content.length > 40 ? '${l.content.substring(0, 40)}…' : l.content,
         sent: 1,
         pickup: p,
         redeemed: r,
         redeemRate: rate,
-      );
-    }).toList()
-      ..sort((a, b) => b.pickup.compareTo(a.pickup));
+      ));
+    }
+    campaigns.sort((a, b) => b.pickup.compareTo(a.pickup));
+    final pickupRate = totalSent == 0 ? 0.0 : totalPickup / totalSent;
+    final redeemRate = totalPickup == 0 ? 0.0 : totalRedeemed / totalPickup;
     return BrandInsights(
       totalSent: totalSent,
       totalPickup: totalPickup,
@@ -2440,6 +2504,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       );
       // 줍기 완료 편지 ID 목록 저장
       prefs.setStringList('myPickedUpLetterIds', _myPickedUpLetterIds.toList());
+      // Build 324: brandUniquePerUser 캠페인 dedup 키 영구 저장. cap 은 in-memory
+      //   추가 시 이미 enforce 됐으므로 그대로 직렬화 — prefs 도 자연 cap.
+      prefs.setStringList(
+        'pickedUpCampaignIds',
+        _pickedUpCampaignIds.toList(),
+      );
     } catch (e) {
       assert(() {
         debugPrint('[_flushPrefs] 실패: $e');
@@ -2793,6 +2863,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // 이미 줍기한 편지 ID 목록 복원
     final pickedIds = prefs.getStringList('myPickedUpLetterIds') ?? [];
     _myPickedUpLetterIds.addAll(pickedIds);
+
+    // Build 324: brandUniquePerUser 캠페인 dedup 키 복원.
+    final pickedCampaigns =
+        prefs.getStringList('pickedUpCampaignIds') ?? const [];
+    _pickedUpCampaignIds.addAll(pickedCampaigns);
 
     // 서버 동기화 중복 방지용 ID 캐시 초기화 (로컬 편지 모두 등록)
     _seenLetterIds
@@ -3197,6 +3272,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         senderIsBrand: data['senderIsBrand'] as bool? ?? (tier == LetterSenderTier.brand),
         senderTier: tier,
         brandUniquePerUser: data['brandUniquePerUser'] as bool? ?? false,
+        // Build 324: brandUniquePerUser 캠페인의 묶음 식별자. legacy letter 는 null.
+        campaignId: data['campaignId'] as String?,
         expiresAt: expAt,
       );
     } catch (e, st) {
@@ -3259,6 +3336,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'acceptsReplies': letter.acceptsReplies,
         'senderIsBrand': letter.senderIsBrand,
         'brandUniquePerUser': letter.brandUniquePerUser,
+        // Build 324: 캠페인 dedup 식별자. 픽업 시 같은 campaignId 이미 받은 경우 차단.
+        if (letter.campaignId != null) 'campaignId': letter.campaignId,
         if (letter.expiresAt != null)
           'expiresAt': letter.expiresAt!.toIso8601String(),
         'isAnonymous': letter.isAnonymous,
@@ -3370,6 +3449,26 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       if (serverLike > _currentUser.activityScore.likeCount) {
         _currentUser.activityScore.likeCount = serverLike;
         updated = true;
+      }
+
+      // Build 324: brandUniquePerUser 캠페인 dedup 기록 복원.
+      //   다른 디바이스에서 픽업한 캠페인 ID 들이 서버에만 있고 이 기기엔 없을
+      //   수 있음 → addAll 로 merge. 이미 있는 entry 는 중복 차단.
+      final serverPicked = map['pickedUpCampaignIds'];
+      if (serverPicked is List) {
+        final before = _pickedUpCampaignIds.length;
+        for (final v in serverPicked) {
+          if (v is String && v.isNotEmpty) {
+            _pickedUpCampaignIds.add(v);
+          }
+        }
+        if (_pickedUpCampaignIds.length != before) {
+          // cap 적용 — server 가 5000 entry 이상 갖고 있을 수 있음.
+          while (_pickedUpCampaignIds.length > _pickedCampaignIdsCap) {
+            _pickedUpCampaignIds.remove(_pickedUpCampaignIds.first);
+          }
+          updated = true;
+        }
       }
 
       if (updated) {
@@ -4001,6 +4100,19 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     String? phoneNumber,
     String? verifyMethod,
   }) {
+    // Build 324: 다른 uid 로 전환 시 (logout → 다른 계정 login) 캠페인 dedup
+    //   기록이 새 사용자에게 leakage 되지 않도록 in-memory + prefs 동시 clear.
+    //   restoreFromServerIfMissing 가 새 사용자의 서버 기록을 별도로 복원.
+    final isNewUser = id.isNotEmpty &&
+        _currentUser.id.isNotEmpty &&
+        _currentUser.id != 'guest' &&
+        _currentUser.id != id;
+    if (isNewUser) {
+      _pickedUpCampaignIds.clear();
+      _myPickedUpLetterIds.clear();
+      unawaited(_clearUserScopedPrefs());
+    }
+
     final resolvedLanguageCode =
         (languageCode != null && languageCode.isNotEmpty)
         ? languageCode
@@ -4055,6 +4167,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   // 웰컴 편지: 유저별 1회만 시딩. 이미 존재하면 no-op.
+  // Build 324 (cold-start): welcome 1통 + demo letter 5통 시드.
+  //   시뮬레이션에서 Day 7 삭제의 결정적 이유 = "welcome 1통 + 빈 인박스".
+  //   다양한 카테고리 (먹기/쇼핑/기타) demo letter 5개로 첫 인상 풍성화 →
+  //   사용자가 즉시 인박스 / 카테고리 필터 / 만료 카운트다운 체험 가능.
   Future<void> _seedWelcomeLetterIfNeeded() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -4075,12 +4191,98 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             : 'en',
       );
       _inbox.insert(0, letter);
+      // Build 324: 5 demo letter 자동 시드 — 다양한 카테고리.
+      _seedDemoLetters();
       await prefs.setBool(seedKey, true);
       _saveToPrefs();
       notifyListeners();
     } catch (_) {
       // 실패해도 유저 흐름을 막지 않음
     }
+  }
+
+  /// Build 324 (cold-start): 신규 사용자 인박스에 5 demo letter 추가.
+  ///   첫 인상 빈곤 해소 — 다양한 카테고리 (먹기/쇼핑/기타) 가상 brand letter.
+  ///   만료 시점도 다양 (12h / 3d / 7d) → FOMO 카운트다운 핀 체험 가능.
+  ///   사용자 위치 ±500m 내 destination — "내 동네 혜택" 인상.
+  ///   _myDemoLetters() 가 5개 letter 반환, _inbox 와 _worldLetters 양쪽에 추가.
+  void _seedDemoLetters() {
+    final demos = _myDemoLetters();
+    for (final letter in demos) {
+      _inbox.add(letter);
+      // worldLetters 에는 status=nearYou 클론 추가 → 지도 픽업 체험.
+      final worldClone = letter.clone()
+        ..status = DeliveryStatus.nearYou
+        ..arrivedAt = null;
+      _worldLetters.add(worldClone);
+    }
+  }
+
+  /// Build 324: cold-start 시드용 demo letter 5개. 카테고리 다양 + 만료 시점
+  ///   다양 + 가상 브랜드 ID (실제 사용자 letter 와 충돌 차단 prefix 'demo_').
+  List<Letter> _myDemoLetters() {
+    final now = DateTime.now();
+    final lat = _currentUser.latitude != 0 ? _currentUser.latitude : 37.5665;
+    final lng = _currentUser.longitude != 0 ? _currentUser.longitude : 126.978;
+    final origin = LatLng(lat, lng);
+    // demo letter 의 사용 안내는 i18n 안내 — 한국어 'ko' 만 specific, 나머지는 EN.
+    final lang = _currentUser.languageCode.isNotEmpty
+        ? _currentUser.languageCode
+        : 'en';
+    final demoRedemption = lang == 'ko'
+        ? '동네 매장에서 사용 가능 (체험용 예시 혜택)'
+        : 'Try this near your location (demo reward)';
+    // 사용자 위치 기준 ±500m 4-방향 demo destination.
+    LatLng nearby(double dLat, double dLng) =>
+        LatLng(lat + dLat, lng + dLng);
+    // 카테고리 다양 + brand name + categoryTag + 만료 시점 시드.
+    final seeds = [
+      (id: 'demo_cafe', name: '동네 카페', tag: 'cafe', content: '☕ 아메리카노 1+1', expireH: 12),
+      (id: 'demo_food', name: '동네 식당', tag: 'food', content: '🍴 점심 정식 30% 할인', expireH: 72),
+      (id: 'demo_beauty', name: '동네 뷰티샵', tag: 'beauty', content: '💄 마스크팩 1+1', expireH: 168),
+      (id: 'demo_fashion', name: '동네 패션샵', tag: 'fashion', content: '👗 신상품 20% 할인', expireH: 48),
+      (id: 'demo_event', name: '동네 이벤트', tag: 'event', content: '🎉 주말 팝업 무료 입장', expireH: 96),
+    ];
+    final offsets = [
+      (0.003, 0.0),
+      (0.0, 0.003),
+      (-0.003, 0.0),
+      (0.0, -0.003),
+      (0.002, 0.002),
+    ];
+    final result = <Letter>[];
+    for (var i = 0; i < seeds.length; i++) {
+      final s = seeds[i];
+      final o = offsets[i];
+      final dest = nearby(o.$1, o.$2);
+      result.add(Letter(
+        id: '${s.id}_${_currentUser.id}',
+        senderId: s.id,
+        senderName: s.name,
+        senderCountry: _currentUser.country,
+        senderCountryFlag: _currentUser.countryFlag,
+        content: s.content,
+        originLocation: origin,
+        destinationLocation: dest,
+        destinationCountry: _currentUser.country,
+        destinationCountryFlag: _currentUser.countryFlag,
+        segments: const [],
+        sentAt: now,
+        arrivedAt: now,
+        estimatedTotalMinutes: 0,
+        status: DeliveryStatus.delivered,
+        isAnonymous: false,
+        senderIsBrand: true,
+        senderTier: LetterSenderTier.brand,
+        category: LetterCategory.coupon,
+        categoryTag: s.tag,
+        acceptsReplies: false,
+        redemptionInfo: demoRedemption,
+        redemptionExpiresAt: now.add(Duration(hours: s.expireH)),
+        expiresAt: now.add(Duration(hours: s.expireH)),
+      ));
+    }
+    return result;
   }
 
   // Build 309: letter id collision 차단용 4바이트 (8 hex) random suffix.
@@ -4547,6 +4749,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         if (_currentUser.preferredCategoryKey != null)
           'preferredCategoryKey': {
             'stringValue': _currentUser.preferredCategoryKey!,
+          },
+        // Build 324: brandUniquePerUser 캠페인 dedup 동기화. 같은 계정이 다른
+        //   기기에서 로그인해도 _restoreProfileFromServer 가 이 array 를 받아
+        //   로컬 set 에 merge → 멀티 디바이스/재설치 우회 차단.
+        if (_pickedUpCampaignIds.isNotEmpty)
+          'pickedUpCampaignIds': {
+            'arrayValue': {
+              'values': _pickedUpCampaignIds
+                  .map((id) => {'stringValue': id})
+                  .toList(),
+            },
           },
       };
       // updateMask 를 명시해야 PATCH 가 다른 필드(예: 병렬로 쓰는 invite 정보)를
@@ -6908,7 +7121,19 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // Build 317: ExactDrop 으로 정확한 핀 좌표 발송임을 명시. true 면 destCityName
     // 미정시에도 destLat/destLng 그대로 사용 (랜덤 분기 우회).
     bool useExactCoordinates = false,
+    // Build 324: brandUniquePerUser 캠페인의 묶음 식별자. bulk/blast 호출자가
+    // 모든 letter 에 같은 값을 전달해 사용자당 1회 픽업을 강제. 단건 발송에서
+    // 호출자가 안 주면 letter.id 자체가 campaignId 역할 (자동 생성).
+    String? campaignId,
   }) async {
+    // Build 324 (positioning): Free 사용자는 "줍기 전용". 발송 기능은
+    //   Premium/Brand 만 가능. UI 측 가드 (main_scaffold compose 진입,
+    //   letter_read_screen 답장 버튼) 외에 defense-in-depth 로 sendLetter
+    //   진입 자체를 차단 — 모든 발송 경로 (reply 포함) 가 이 함수로 합류하므로
+    //   여기서 한 번에 막힘.
+    if (!_currentUser.isPremium && !_currentUser.isBrand) {
+      return false;
+    }
     if (!_canSendLetterByDailyLimit()) {
       return false;
     }
@@ -7119,6 +7344,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           ? LetterSenderTier.premium
           : LetterSenderTier.free,
       brandUniquePerUser: _currentUser.isBrand && brandUniquePerUser,
+      // Build 324: bulk/blast 호출자가 campaignId 를 명시한 경우만 부여. 단건
+      //   발송 (compose 1건) 은 letter 자체가 이미 readCount/maxReaders 로 1회
+      //   픽업 제한이라 campaignId fallback 불필요 → null 유지해 prefs 오염
+      //   (letter.id 가 dedup set 에 쌓이는 의미 없는 entry) 차단.
+      campaignId:
+          (_currentUser.isBrand && brandUniquePerUser) ? campaignId : null,
       expiresAt: (_currentUser.isBrand && brandAutoExpireHours != null)
           ? now.add(Duration(minutes: totalMin) + Duration(hours: brandAutoExpireHours))
           : null,
@@ -7201,6 +7432,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (!_currentUser.isBrand) return 0;
     int sent = 0;
 
+    // Build 324: brandUniquePerUser=true 면 이번 bulk 호출 전체에 공통 캠페인
+    //   ID 부여 → 사용자당 1 letter 만 픽업. false 면 null (dedup 미적용).
+    final campaignId = brandUniquePerUser ? _newCampaignId() : null;
+
     if (randomMode) {
       // 랜덤 모드: 매 편지마다 198개국 중 랜덤 국가 선택
       final totalToSend = sendCount;
@@ -7224,6 +7459,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           acceptsReplies: acceptsReplies,
           redemptionInfo: redemptionInfo,
           redemptionExpiresAt: redemptionExpiresAt,
+          campaignId: campaignId,
         );
         if (ok) sent++;
       }
@@ -7249,6 +7485,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             acceptsReplies: acceptsReplies,
             redemptionInfo: redemptionInfo,
             redemptionExpiresAt: redemptionExpiresAt,
+            campaignId: campaignId,
           );
           if (ok) sent++;
         }
@@ -7256,6 +7493,29 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     }
     return sent;
   }
+
+  /// Build 324: brandUniquePerUser 캠페인 ID 생성. ms 타임스탬프 + 8자 hex.
+  /// 같은 ms 안에서 두 캠페인이 시작돼도 hex suffix 로 collision 방지.
+  String _newCampaignId() =>
+      'cmp_${DateTime.now().millisecondsSinceEpoch}_${_shortRandHex()}';
+
+  /// Build 324: 계정 전환 시 호출 — 이전 사용자의 user-scoped prefs 삭제.
+  /// 같은 디바이스에서 user A → user B 전환했을 때 A 의 dedup 이력이 B 세션에
+  /// 새지 않게. logout 자체는 외부 (AuthService.logout) 에서 처리하지만, 그
+  /// 흐름이 _myPickedUpLetterIds / _pickedUpCampaignIds prefs 까지 안 지움.
+  Future<void> _clearUserScopedPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('myPickedUpLetterIds');
+      await prefs.remove('pickedUpCampaignIds');
+    } catch (e) {
+      if (kDebugMode) debugPrint('[setUser] clear prefs 실패: $e');
+    }
+  }
+
+  /// Build 324: `_pickedUpCampaignIds` 의 in-memory cap. 활성 사용자가 수년
+  /// 사용 시 무한 증가하지 않도록 FIFO 5000 entry 제한 (보존 우선).
+  static const int _pickedCampaignIdsCap = 5000;
 
   // ── 브랜드 특송 (즉시 다중 주소 발송) ─────────────────────────────────────
   /// 브랜드 계정 전용: 선택한 나라의 랜덤 주소 [count]개에 즉시(5분) 발송
@@ -7283,6 +7543,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
     const expressTotalMin = 5; // 특송: 5분 즉시 배송
     final now = DateTime.now();
+    // Build 324: brandUniquePerUser=true 면 이 blast 전체에 공통 campaignId.
+    final blastCampaignId = brandUniquePerUser ? _newCampaignId() : null;
     final fromCity = LatLng(_currentUser.latitude, _currentUser.longitude);
     // 실제 위치 기반 발신국 (호주 여행 중인 한국 회원도 호주 발송으로 표시)
     final geoSvc = GeocodingService.instance;
@@ -7375,6 +7637,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         senderTier: LetterSenderTier.brand,
         isAnonymous: false,
         brandUniquePerUser: brandUniquePerUser,
+        // Build 324: 캠페인 dedup — 같은 blast 의 모든 letter 가 동일 campaignId.
+        campaignId: blastCampaignId,
         expiresAt: brandAutoExpireHours != null
             ? now.add(Duration(minutes: expressTotalMin) + Duration(hours: brandAutoExpireHours))
             : null,
@@ -7449,6 +7713,22 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
     final letter = _worldLetters[idx];
 
+    // Build 324: worldLetters 정리가 lag 일 때 만료된 letter 픽업 시도 차단.
+    //   캠페인 dedup 보다 먼저 — "만료" 메시지가 "이미 받았어요" 보다 정확.
+    if (letter.isExpired) {
+      return _l10n.stateAlreadyTaken;
+    }
+
+    // Build 324: brandUniquePerUser=true 캠페인의 사용자당 1회 픽업 enforcement.
+    //   같은 campaignId 의 letter 를 이미 픽업했다면 다른 letter 라도 차단.
+    //   기존엔 letter.brandUniquePerUser 필드만 있고 enforcement 누락 → 대량
+    //   랜덤 발송 시 같은 사용자가 여러 letter 픽업 가능했던 버그 수정.
+    if (letter.brandUniquePerUser &&
+        letter.campaignId != null &&
+        _pickedUpCampaignIds.contains(letter.campaignId)) {
+      return _l10n.statePickupCampaignDup;
+    }
+
     // Build 309 (safety): 차단된 발송자 또는 자기 자신 letter 픽업 차단.
     // blockLetterSender 가 _worldLetters 를 정리하지만 sync 사이에 race 가능.
     if (_blockedSenderIds.contains(letter.senderId) ||
@@ -7475,6 +7755,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // ⑥ 수령 처리: readCount 증가 후 inbox에 복사본 추가
     letter.readCount++;
     _myPickedUpLetterIds.add(letterId);
+    // Build 324: 캠페인 dedup — 같은 campaignId 의 다른 letter 픽업 차단을 위해 기록.
+    //   _pickedCampaignIdsCap 초과 시 가장 오래된 entry 부터 drop (LinkedHashSet 의
+    //   insertion order 보존 — first 가 가장 오래된 것).
+    if (letter.brandUniquePerUser && letter.campaignId != null) {
+      _pickedUpCampaignIds.add(letter.campaignId!);
+      while (_pickedUpCampaignIds.length > _pickedCampaignIdsCap) {
+        _pickedUpCampaignIds.remove(_pickedUpCampaignIds.first);
+      }
+    }
 
     // 인박스용 독립 복사본 (status/arrivedAt 새로 설정)
     // Build 315: 픽업 시점에 카테고리 태그를 자동 분류해서 저장 →
@@ -7700,6 +7989,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         senderIsBrand: letter.senderIsBrand,
         senderTier: letter.senderTier,
         brandUniquePerUser: letter.brandUniquePerUser,
+        // Build 324: refetch 시 campaignId / 기타 누락 필드도 보존.
+        campaignId: letter.campaignId,
+        brandZoneId: letter.brandZoneId,
+        categoryTag: letter.categoryTag,
+        redeemedAt: letter.redeemedAt,
         expiresAt: letter.expiresAt,
         category: letter.category,
         acceptsReplies: letter.acceptsReplies,

@@ -5831,30 +5831,32 @@ class AppL10n {
     'th': 'การวางจุดพิกัดเป็นฟีเจอร์เสียเงิน',
   });
 
+  // Build 324: "관리자 문의" 흐름 retire — ExactDrop 100 패키지 IAP 즉시 구매.
   String get composeExactDropPaywallBody => _t({
-    'ko': '원하는 매장·좌표에 혜택을 정확히 뿌릴 수 있어요. 사용을 원하시면 관리자에게 문의해주세요.',
+    'ko': '원하는 매장·좌표에 혜택을 정확히 뿌릴 수 있어요. 아래 버튼으로 100통 패키지를 바로 구매하세요.',
     'en':
-        'Drop promos on exact store locations or coordinates. Contact the admin to enable this feature.',
-    'ja': '特定の店舗・座標に特典を正確に配置できます。利用希望は管理者にお問い合わせください。',
-    'zh': '将优惠券精确投放到指定地点或坐标。如需使用请联系管理员。',
+        'Drop promos on exact store locations or coordinates. Tap below to buy the 100-promo package instantly.',
+    'ja': '特定の店舗・座標に特典を正確に配置できます。下のボタンで100通パッケージを今すぐ購入。',
+    'zh': '将优惠券精确投放到指定地点或坐标。点击下方按钮立即购买 100 封套餐。',
     'fr':
-        'Déposez des lettres à des points de vente ou coordonnées précis. Contactez l\'admin pour activer.',
+        "Déposez des récompenses à des points précis. Achetez le pack de 100 maintenant via le bouton ci-dessous.",
     'de':
-        'Briefe an exakte Standorte oder Koordinaten ablegen. Admin für Freischaltung kontaktieren.',
+        'Belohnungen an exakte Standorte ablegen. Mit der Schaltfläche unten das 100er-Paket sofort kaufen.',
     'es':
-        'Deja cartas en ubicaciones o coordenadas exactas. Contacta al admin para activarlo.',
+        'Deja recompensas en ubicaciones o coordenadas exactas. Compra el paquete de 100 al instante con el botón de abajo.',
     'pt':
-        'Deixe cartas em locais exatos ou coordenadas. Contacte o admin para ativar.',
+        'Deixe recompensas em locais exatos. Compre o pacote de 100 agora pelo botão abaixo.',
     'ru':
-        'Размещайте письма в точных местах или координатах. Обратитесь к админу.',
+        'Размещайте награды в точных местах или координатах. Купите пакет из 100 наград прямо сейчас.',
     'tr':
-        'Belirli mağaza veya koordinatlara mektup bırakın. Aktifleştirmek için yöneticiye ulaşın.',
-    'ar': 'وزّع المكافآت على مواقع أو إحداثيات دقيقة. تواصل مع المشرف لتفعيلها.',
+        'Ödülleri belirli mağaza veya koordinatlara bırakın. Aşağıdaki düğmeyle 100 ödülü hemen satın alın.',
+    'ar':
+        'وزّع المكافآت على مواقع دقيقة. اشترِ باقة 100 مكافأة الآن من الزر بالأسفل.',
     'it':
-        'Rilascia lettere in luoghi o coordinate esatte. Contatta l\'admin per abilitarla.',
+        'Rilascia ricompense in luoghi precisi. Acquista il pacchetto da 100 con il pulsante qui sotto.',
     'hi':
-        'सटीक स्थानों या निर्देशांक पर पत्र छोड़ें. सुविधा सक्षम करने के लिए व्यवस्थापक से संपर्क करें.',
-    'th': 'วางรางวัลที่ร้านค้าหรือพิกัดที่ต้องการ ติดต่อผู้ดูแลเพื่อเปิดใช้',
+        'सटीक स्थानों पर पुरस्कार छोड़ें। नीचे के बटन से 100 पुरस्कार पैकेज तुरंत खरीदें।',
+    'th': 'วางรางวัลที่ร้านค้าหรือพิกัดที่ต้องการ กดปุ่มด้านล่างเพื่อซื้อแพ็ก 100 ฉบับทันที',
   });
 
   String get composeExactDropPaywallPricing => _t({
@@ -5874,21 +5876,148 @@ class AppL10n {
     'th': 'แพ็คเกจ 100 ฉบับ · 10,000 วอน',
   });
 
+  // Build 324: "관리자 문의" 흐름 retire — 100통 패키지 즉시 구매 안내.
   String get composeExactDropOutOfCredits => _t({
-    'ko': 'ExactDrop 크레딧이 부족해요. 관리자에게 문의하세요.',
-    'en': 'Not enough ExactDrop credits. Contact the admin.',
-    'ja': 'ExactDrop クレジットが不足しています。管理者にお問い合わせください。',
-    'zh': 'ExactDrop 额度不足，请联系管理员。',
-    'fr': 'Crédits ExactDrop insuffisants. Contactez l\'admin.',
-    'de': 'Nicht genug ExactDrop-Credits. Admin kontaktieren.',
-    'es': 'Créditos de ExactDrop insuficientes. Contacta al admin.',
-    'pt': 'Créditos ExactDrop insuficientes. Contacte o admin.',
-    'ru': 'Недостаточно кредитов ExactDrop. Свяжитесь с админом.',
-    'tr': 'ExactDrop kredisi yetersiz. Yöneticiye ulaşın.',
-    'ar': 'رصيد ExactDrop غير كافٍ. تواصل مع المشرف.',
-    'it': 'Crediti ExactDrop insufficienti. Contatta l\'admin.',
-    'hi': 'ExactDrop क्रेडिट अपर्याप्त. व्यवस्थापक से संपर्क करें.',
-    'th': 'เครดิต ExactDrop ไม่พอ ติดต่อผู้ดูแล',
+    'ko': 'ExactDrop 크레딧이 부족해요. 100통 패키지를 구매해서 바로 채우세요.',
+    'en': 'Not enough ExactDrop credits. Buy the 100-promo package to refill instantly.',
+    'ja': 'ExactDrop クレジットが不足しています。100通パッケージで今すぐ補充。',
+    'zh': 'ExactDrop 额度不足，购买 100 封套餐立即补充。',
+    'fr': 'Crédits ExactDrop insuffisants. Achetez le pack de 100 pour recharger.',
+    'de': 'Nicht genug ExactDrop-Credits. Mit dem 100er-Paket sofort auffüllen.',
+    'es': 'Créditos de ExactDrop insuficientes. Compra el paquete de 100 para recargar.',
+    'pt': 'Créditos ExactDrop insuficientes. Compre o pacote de 100 para recarregar.',
+    'ru': 'Недостаточно кредитов ExactDrop. Купите пакет из 100 для пополнения.',
+    'tr': 'ExactDrop kredisi yetersiz. 100 ödülü paketle anında doldurun.',
+    'ar': 'رصيد ExactDrop غير كافٍ. اشترِ باقة 100 لإعادة الشحن فورًا.',
+    'it': 'Crediti ExactDrop insufficienti. Acquista il pacchetto da 100 per ricaricare.',
+    'hi': 'ExactDrop क्रेडिट अपर्याप्त। 100 पैकेज खरीदकर तुरंत भरें।',
+    'th': 'เครดิต ExactDrop ไม่พอ ซื้อแพ็ก 100 ฉบับเพื่อเติมทันที',
+  });
+
+  // Build 324: signUp 친구 추천 코드 입력 (optional) — viral loop.
+  //   양쪽 (가입자 + 추천인) +5 invite reward credit. premium 화면에서만 가능
+  //   하던 채널을 signUp 시점에 노출 — conversion peak 활용.
+  String get authInviteCodeOptional => _t({
+    'ko': '친구 추천 코드 (선택)',
+    'en': 'Friend invite code (optional)',
+    'ja': '友達招待コード (任意)',
+    'zh': '好友邀请码（可选）',
+    'fr': 'Code ami (facultatif)',
+    'de': 'Freund-Einladungscode (optional)',
+    'es': 'Código de invitación (opcional)',
+    'pt': 'Código de convite (opcional)',
+    'ru': 'Код приглашения (необязательно)',
+    'tr': 'Davet kodu (isteğe bağlı)',
+    'ar': 'رمز دعوة الصديق (اختياري)',
+    'it': 'Codice invito amico (facoltativo)',
+    'hi': 'मित्र आमंत्रण कोड (वैकल्पिक)',
+    'th': 'รหัสเชิญเพื่อน (ไม่บังคับ)',
+  });
+
+  String get authInviteCodeHint => _t({
+    'ko': '코드 입력 시 양쪽 모두 +5 크레딧',
+    'en': 'Both get +5 credits when entered',
+    'ja': 'コード入力で双方 +5 クレジット',
+    'zh': '输入后双方 +5 积分',
+    'fr': '+5 crédits pour les deux',
+    'de': 'Beide bekommen +5 Credits',
+    'es': 'Ambos reciben +5 créditos',
+    'pt': 'Ambos ganham +5 créditos',
+    'ru': 'Оба получат +5 кредитов',
+    'tr': 'İki taraf da +5 kredi alır',
+    'ar': 'كلاهما يحصل على +5 رصيد',
+    'it': 'Entrambi ricevono +5 crediti',
+    'hi': 'दोनों को +5 क्रेडिट मिलेंगे',
+    'th': 'ทั้งสองได้รับ +5 เครดิต',
+  });
+
+  // Build 324: Brand compose 시나리오 칩 — "어떤 캠페인?" 가이드.
+  //   Brand 사장이 토글 4-5개 (대량/특송/zone/ExactDrop/1인1회) 중 어느 조합인지
+  //   판단 어려운 문제 (Brand 시뮬레이션 발견) 해소 — 칩 1탭으로 자동 세팅.
+  String get composeScenarioLabel => _t({
+    'ko': '어떤 캠페인이에요?',
+    'en': 'What kind of campaign?',
+    'ja': 'どんなキャンペーン？',
+    'zh': '什么类型的活动？',
+    'fr': 'Quel type de campagne ?',
+    'de': 'Welche Art von Kampagne?',
+    'es': '¿Qué tipo de campaña?',
+    'pt': 'Que tipo de campanha?',
+    'ru': 'Какая кампания?',
+    'tr': 'Ne tür bir kampanya?',
+    'ar': 'ما نوع الحملة؟',
+    'it': 'Che tipo di campagna?',
+    'hi': 'किस तरह का अभियान?',
+    'th': 'แคมเปญแบบไหน?',
+  });
+
+  String get composeScenarioNearbyStore => _t({
+    'ko': '매장 반경 살포',
+    'en': 'Around my store',
+    'ja': '店舗周辺',
+    'zh': '门店周边',
+    'fr': 'Autour du magasin',
+    'de': 'Umkreis meines Geschäfts',
+    'es': 'Cerca de mi tienda',
+    'pt': 'Perto da minha loja',
+    'ru': 'Вокруг моего магазина',
+    'tr': 'Mağazamın çevresi',
+    'ar': 'حول متجري',
+    'it': 'Intorno al negozio',
+    'hi': 'मेरी दुकान के पास',
+    'th': 'รอบร้านของฉัน',
+  });
+
+  String get composeScenarioExactDrop => _t({
+    'ko': '정확 좌표 단건',
+    'en': 'Exact location',
+    'ja': '正確な座標',
+    'zh': '精确坐标',
+    'fr': 'Position exacte',
+    'de': 'Genauer Ort',
+    'es': 'Ubicación exacta',
+    'pt': 'Local exato',
+    'ru': 'Точное место',
+    'tr': 'Tam konum',
+    'ar': 'موقع دقيق',
+    'it': 'Posizione esatta',
+    'hi': 'सटीक स्थान',
+    'th': 'พิกัดแน่นอน',
+  });
+
+  String get composeScenarioBulk => _t({
+    'ko': '글로벌 대량',
+    'en': 'Global bulk',
+    'ja': 'グローバル一括',
+    'zh': '全球批量',
+    'fr': 'Envoi global',
+    'de': 'Globaler Massenversand',
+    'es': 'Envío global',
+    'pt': 'Envio global',
+    'ru': 'Глобальная рассылка',
+    'tr': 'Küresel toplu',
+    'ar': 'إرسال عالمي',
+    'it': 'Invio globale',
+    'hi': 'वैश्विक भेजना',
+    'th': 'ส่งทั่วโลก',
+  });
+
+  // Build 324: ExactDrop IAP CTA 버튼 라벨.
+  String get composeExactDropBuyBtn => _t({
+    'ko': '100통 구매 (₩10,000)',
+    'en': 'Buy 100 promos (₩10,000)',
+    'ja': '100通購入 (₩10,000)',
+    'zh': '购买 100 封 (₩10,000)',
+    'fr': 'Acheter 100 (₩10 000)',
+    'de': '100 kaufen (₩10.000)',
+    'es': 'Comprar 100 (₩10.000)',
+    'pt': 'Comprar 100 (₩10.000)',
+    'ru': 'Купить 100 (₩10 000)',
+    'tr': '100 satın al (₩10.000)',
+    'ar': 'اشترِ 100 (₩10,000)',
+    'it': 'Compra 100 (₩10.000)',
+    'hi': '100 खरीदें (₩10,000)',
+    'th': 'ซื้อ 100 ฉบับ (₩10,000)',
   });
 
   String get composeExactDropHint => _t({
@@ -6460,21 +6589,43 @@ class AppL10n {
     'th': '1 ต่อผู้รับ',
   });
 
+  // Build 324: desc 명확화. 이전 "중복 발송되지 않습니다" 는 발송 자체가 안
+  //   되는 인상 — 실제 동작은 letter 발송은 되지만 한 사용자는 그중 1개만 줍기
+  //   가능. "줍기" 동작이 핵심임을 명시.
   String get composeBrandUniquePerUserDesc => _t({
-    'ko': '같은 사용자에게 중복 발송되지 않습니다',
-    'en': 'Same user won\'t receive duplicate rewards',
-    'ja': '同じユーザーに重複送信されません',
-    'zh': '同一用户不会收到重复优惠券',
-    'fr': 'L\'utilisateur ne recevra pas de doublons',
-    'de': 'Benutzer erhält keine Duplikate',
-    'es': 'El usuario no recibirá duplicados',
-    'pt': 'Usuário não receberá duplicatas',
-    'ru': 'Пользователь не получит дублей',
-    'tr': 'Kullanıcı mükerrer almaz',
-    'ar': 'لن يتلقى المستخدم نسخاً مكررة',
-    'it': 'L\'utente non riceverà duplicati',
-    'hi': 'उपयोगकर्ता को डुप्लिकेट नहीं मिलेगा',
-    'th': 'ผู้ใช้จะไม่ได้รับซ้ำ',
+    'ko': '한 사용자는 이 발송에서 1개만 받을 수 있어요',
+    'en': 'Each user can pick up only 1 letter from this send',
+    'ja': '1人のユーザーがこの発送から受け取れるのは1通だけです',
+    'zh': '每个用户在本次发送中只能领取1封',
+    'fr': 'Chaque utilisateur ne peut récupérer qu\'1 lettre de cet envoi',
+    'de': 'Jeder Nutzer kann nur 1 Brief aus diesem Versand abholen',
+    'es': 'Cada usuario puede recibir solo 1 carta de este envío',
+    'pt': 'Cada usuário pode receber apenas 1 carta deste envio',
+    'ru': 'Каждый пользователь может получить только 1 письмо из этой рассылки',
+    'tr': 'Her kullanıcı bu gönderimden yalnızca 1 mektup alabilir',
+    'ar': 'يمكن لكل مستخدم استلام رسالة واحدة فقط من هذا الإرسال',
+    'it': 'Ogni utente può ricevere solo 1 lettera da questo invio',
+    'hi': 'प्रत्येक उपयोगकर्ता इस भेजने से केवल 1 पत्र प्राप्त कर सकता है',
+    'th': 'ผู้ใช้แต่ละคนรับได้เพียง 1 ฉบับจากการส่งครั้งนี้',
+  });
+
+  // Build 324 (Brand 시뮬레이션 발견): 토글 OFF 상태 보조 카피.
+  //   사장 입장 — "OFF면 한 명이 다 가져가? 진짜?" 혼란 해소.
+  String get composeBrandUniquePerUserOffDesc => _t({
+    'ko': '같은 사람도 여러 번 픽업 가능 (이벤트/방문 유도용)',
+    'en': 'Same user can pick up multiple (for events/repeat visits)',
+    'ja': '同じユーザーが複数回受け取り可能 (イベント・再訪促進)',
+    'zh': '同一用户可多次领取（用于活动 / 复购引导）',
+    'fr': 'Le même utilisateur peut récupérer plusieurs fois (événements/réguliers)',
+    'de': 'Gleicher Nutzer kann mehrfach abholen (Events/Stammkunden)',
+    'es': 'El mismo usuario puede recoger varias veces (eventos/recurrentes)',
+    'pt': 'Mesmo usuário pode pegar várias vezes (eventos/recorrentes)',
+    'ru': 'Один пользователь может получить несколько (события/повторные)',
+    'tr': 'Aynı kullanıcı birden fazla alabilir (etkinlik/sadakat)',
+    'ar': 'يمكن للمستخدم نفسه الالتقاط عدة مرات (للفعاليات / الزيارات المتكررة)',
+    'it': 'Lo stesso utente può prendere più volte (eventi/clienti abituali)',
+    'hi': 'एक उपयोगकर्ता कई बार उठा सकता है (इवेंट/नियमित ग्राहक)',
+    'th': 'ผู้ใช้คนเดียวสามารถรับหลายครั้งได้ (สำหรับอีเวนต์/ลูกค้าประจำ)',
   });
 
   String get composeBrandAutoExpire => _t({
@@ -8013,6 +8164,167 @@ class AppL10n {
     'th': 'ความสำคัญ',
   });
 
+  // Build 324: AI 추천 정렬 모드 (Premium 전용). 카테고리 선호 + 만료 임박 +
+  // 사회 신호 + 거리 + 팔로우 브랜드 + 미사용 letter 가산점 등 다신호 가중치.
+  String get inboxSortAiRecommend => _t({
+    'ko': '✨ AI 추천',
+    'en': '✨ AI Picks',
+    'ja': '✨ AIおすすめ',
+    'zh': '✨ AI推荐',
+    'fr': '✨ Sélection IA',
+    'de': '✨ KI-Empfehlung',
+    'es': '✨ Selección IA',
+    'pt': '✨ Seleção da IA',
+    'ru': '✨ Выбор ИИ',
+    'tr': '✨ AI Önerisi',
+    'ar': '✨ توصية الذكاء الاصطناعي',
+    'it': '✨ Scelta IA',
+    'hi': '✨ AI सुझाव',
+    'th': '✨ AI แนะนำ',
+  });
+
+  // Build 324: AI 추천 Premium upsell 시트의 헤더 (PremiumGateSheet.featureName).
+  String get aiRecommendSortName => _t({
+    'ko': 'AI 추천 정렬',
+    'en': 'AI-Powered Sort',
+    'ja': 'AIおすすめ並び替え',
+    'zh': 'AI智能排序',
+    'fr': 'Tri par IA',
+    'de': 'KI-Sortierung',
+    'es': 'Orden con IA',
+    'pt': 'Ordenação por IA',
+    'ru': 'ИИ-сортировка',
+    'tr': 'AI Sıralama',
+    'ar': 'فرز بالذكاء الاصطناعي',
+    'it': 'Ordina con IA',
+    'hi': 'AI द्वारा क्रम',
+    'th': 'จัดเรียงด้วย AI',
+  });
+
+  // Build 324: AI 추천 letter 카드의 "왜 이 순서?" 이유 칩 5개 (14언어).
+  //   상위 letter 에 1줄 표시 — 사용자 신뢰 확보 + 추천 알고리즘 투명성.
+  String get aiReasonFollowed => _t({
+    'ko': '팔로우한 브랜드',
+    'en': 'Followed brand',
+    'ja': 'フォロー中のブランド',
+    'zh': '关注的品牌',
+    'fr': 'Marque suivie',
+    'de': 'Gefolgte Marke',
+    'es': 'Marca seguida',
+    'pt': 'Marca seguida',
+    'ru': 'Отслеживаемый бренд',
+    'tr': 'Takip edilen marka',
+    'ar': 'علامة تجارية متابعة',
+    'it': 'Brand seguito',
+    'hi': 'फॉलो की गई ब्रांड',
+    'th': 'แบรนด์ที่ติดตาม',
+  });
+
+  String get aiReasonExpiring => _t({
+    'ko': '곧 만료',
+    'en': 'Expiring soon',
+    'ja': 'まもなく期限切れ',
+    'zh': '即将过期',
+    'fr': 'Expire bientôt',
+    'de': 'Läuft bald ab',
+    'es': 'Por vencer',
+    'pt': 'Vencendo em breve',
+    'ru': 'Скоро истекает',
+    'tr': 'Yakında doluyor',
+    'ar': 'ينتهي قريبًا',
+    'it': 'In scadenza',
+    'hi': 'जल्द समाप्त',
+    'th': 'ใกล้หมดอายุ',
+  });
+
+  String get aiReasonCategoryMatch => _t({
+    'ko': '내 선호 카테고리',
+    'en': 'Matches your category',
+    'ja': '好きなカテゴリ',
+    'zh': '匹配您的偏好',
+    'fr': 'Votre catégorie',
+    'de': 'Ihre Kategorie',
+    'es': 'Tu categoría',
+    'pt': 'Sua categoria',
+    'ru': 'Ваша категория',
+    'tr': 'Tercih ettiğin kategori',
+    'ar': 'فئتك المفضلة',
+    'it': 'La tua categoria',
+    'hi': 'आपकी पसंदीदा श्रेणी',
+    'th': 'หมวดที่คุณชอบ',
+  });
+
+  String get aiReasonPopular => _t({
+    'ko': '인기 혜택',
+    'en': 'Popular reward',
+    'ja': '人気の特典',
+    'zh': '热门优惠',
+    'fr': 'Récompense populaire',
+    'de': 'Beliebte Belohnung',
+    'es': 'Recompensa popular',
+    'pt': 'Recompensa popular',
+    'ru': 'Популярная награда',
+    'tr': 'Popüler ödül',
+    'ar': 'مكافأة شائعة',
+    'it': 'Ricompensa popolare',
+    'hi': 'लोकप्रिय पुरस्कार',
+    'th': 'รางวัลยอดนิยม',
+  });
+
+  String get aiReasonNearby => _t({
+    'ko': '가까운 매장',
+    'en': 'Nearby',
+    'ja': '近くの店舗',
+    'zh': '附近门店',
+    'fr': 'À proximité',
+    'de': 'In der Nähe',
+    'es': 'Cerca',
+    'pt': 'Perto',
+    'ru': 'Рядом',
+    'tr': 'Yakında',
+    'ar': 'قريب',
+    'it': 'Vicino',
+    'hi': 'पास में',
+    'th': 'ใกล้คุณ',
+  });
+
+  /// Build 324: aiReasonLabel — labelKey → 14언어 텍스트 매핑.
+  String aiReasonLabel(String key) {
+    switch (key) {
+      case 'aiReasonFollowed':
+        return aiReasonFollowed;
+      case 'aiReasonExpiring':
+        return aiReasonExpiring;
+      case 'aiReasonCategoryMatch':
+        return aiReasonCategoryMatch;
+      case 'aiReasonPopular':
+        return aiReasonPopular;
+      case 'aiReasonNearby':
+        return aiReasonNearby;
+      default:
+        return '';
+    }
+  }
+
+  // Build 324: AI 추천 Premium upsell 시트의 설명 본문.
+  //   카피에서 "letter / 편지" 메타포 제거 — "혜택 / reward" 로 통일 (PR-D).
+  String get aiRecommendUpsellDesc => _t({
+    'ko': '내 선호 카테고리 · 팔로우한 브랜드 · 만료 임박 쿠폰을 종합해 가장 도움이 될 혜택을 위로 올려요.',
+    'en': 'Combines your category preferences, followed brands, and expiring coupons to surface the most useful rewards first.',
+    'ja': '好きなカテゴリ・フォロー中ブランド・期限切れ間近のクーポンを総合して最も役立つ特典を上に表示します。',
+    'zh': '综合您的偏好类别、关注品牌和即将过期的优惠券，将最有用的优惠排到最前。',
+    'fr': 'Combine vos catégories préférées, marques suivies et coupons expirant bientôt pour faire remonter les meilleures récompenses.',
+    'de': 'Kombiniert Ihre bevorzugten Kategorien, gefolgten Marken und bald ablaufenden Coupons, um die nützlichsten Belohnungen oben anzuzeigen.',
+    'es': 'Combina tus categorías favoritas, marcas seguidas y cupones por vencer para mostrar primero las recompensas más útiles.',
+    'pt': 'Combina suas categorias preferidas, marcas seguidas e cupons a vencer para destacar as recompensas mais úteis primeiro.',
+    'ru': 'Сочетает ваши любимые категории, отслеживаемые бренды и истекающие купоны, чтобы поднять наиболее полезные награды наверх.',
+    'tr': 'Tercih ettiğiniz kategorileri, takip ettiğiniz markaları ve süresi yakında dolan kuponları birleştirerek en faydalı ödülleri yukarı çıkarır.',
+    'ar': 'يجمع بين فئاتك المفضلة والعلامات التجارية التي تتابعها والقسائم التي تنتهي قريبًا لإظهار أكثر المكافآت فائدة في الأعلى.',
+    'it': 'Combina le tue categorie preferite, i brand seguiti e i coupon in scadenza per mettere in alto le ricompense più utili.',
+    'hi': 'आपकी पसंदीदा श्रेणियों, फॉलो किए गए ब्रांड और जल्द समाप्त होने वाले कूपन को मिलाकर सबसे उपयोगी पुरस्कारों को शीर्ष पर लाता है।',
+    'th': 'รวมหมวดที่คุณชอบ แบรนด์ที่ติดตาม และคูปองที่ใกล้หมดอายุ เพื่อยกรางวัลที่มีประโยชน์ที่สุดขึ้นด้านบน',
+  });
+
   // Build 297 (P0 i18n): 빈-필터 토스트 — 이전 `$title 가 없어요` 한국어 조사 가정.
   String inboxNothingForFilter(String title) => _t({
     'ko': '$title 가 없어요',
@@ -8744,6 +9056,60 @@ class AppL10n {
     'ar': 'أخرى',
     'it': 'Altri',
     'hi': 'अन्य',
+    'th': 'อื่นๆ',
+  });
+
+  // Build 324 (positioning): 카테고리 7 → 3 그룹 단순화 라벨.
+  //   eat (food+cafe) / shop (beauty+fashion) / etc (it+event+other).
+  //   기존 7-way 키워드/categoryTag 는 그대로 유지 (호환성).
+  String get inboxFilterEat => _t({
+    'ko': '먹기',
+    'en': 'Eat',
+    'ja': '食',
+    'zh': '吃',
+    'fr': 'Manger',
+    'de': 'Essen',
+    'es': 'Comer',
+    'pt': 'Comer',
+    'ru': 'Еда',
+    'tr': 'Yeme',
+    'ar': 'الطعام',
+    'it': 'Cibo',
+    'hi': 'खाना',
+    'th': 'กิน',
+  });
+
+  String get inboxFilterShop => _t({
+    'ko': '쇼핑',
+    'en': 'Shop',
+    'ja': '買い物',
+    'zh': '购物',
+    'fr': 'Shopping',
+    'de': 'Shopping',
+    'es': 'Compras',
+    'pt': 'Compras',
+    'ru': 'Шоппинг',
+    'tr': 'Alışveriş',
+    'ar': 'تسوق',
+    'it': 'Shopping',
+    'hi': 'खरीदारी',
+    'th': 'ช้อปปิ้ง',
+  });
+
+  String get inboxFilterEtc => _t({
+    'ko': '기타',
+    'en': 'More',
+    'ja': 'その他',
+    'zh': '更多',
+    'fr': 'Plus',
+    'de': 'Mehr',
+    'es': 'Más',
+    'pt': 'Mais',
+    'ru': 'Ещё',
+    'tr': 'Diğer',
+    'ar': 'المزيد',
+    'it': 'Altro',
+    'hi': 'और',
     'th': 'อื่นๆ',
   });
 
@@ -14016,6 +14382,99 @@ class AppL10n {
     'it': 'Qualcuno ha già preso questa ricompensa 😢',
     'hi': 'किसी ने पहले ही यह पुरस्कार ले लिया 😢',
     'th': 'มีคนเก็บรางวัลนี้ไปแล้ว 😢',
+  });
+
+  // Build 324: 신규 가입자 Welcome trial 첫 부여 직후 1회 안내 모달.
+  //   "결제한 적 없는데 왜 Premium?" 혼란 해소 (Free 신규 시뮬레이션 발견).
+  String get welcomeTrialTitle => _t({
+    'ko': '3일 무료 체험 시작!',
+    'en': '3-day free trial started!',
+    'ja': '3日間無料体験スタート！',
+    'zh': '3 天免费体验开始！',
+    'fr': 'Essai gratuit de 3 jours commencé !',
+    'de': '3-Tage kostenlose Testversion gestartet!',
+    'es': '¡Prueba gratuita de 3 días iniciada!',
+    'pt': 'Teste grátis de 3 dias começou!',
+    'ru': '3-дневная бесплатная пробная версия!',
+    'tr': '3 günlük ücretsiz deneme başladı!',
+    'ar': 'بدأت تجربة مجانية لمدة 3 أيام!',
+    'it': 'Prova gratuita di 3 giorni iniziata!',
+    'hi': '3-दिन का मुफ़्त ट्रायल शुरू!',
+    'th': 'เริ่มทดลองใช้ฟรี 3 วัน!',
+  });
+
+  String get welcomeTrialBody => _t({
+    'ko': '카드 등록 없이 3일 동안 Premium 기능을 모두 써볼 수 있어요. AI 추천 정렬 · 자기 홍보 발송 · 무제한 답장 — 만료되면 자동으로 Free 로 돌아가요.',
+    'en': 'Try all Premium features for 3 days — no card required. AI Picks sort, promo sending, unlimited replies. Auto-returns to Free when it ends.',
+    'ja': 'カード登録不要で3日間プレミアム機能を体験。AIおすすめ並び替え・宣伝送信・無制限返信 — 終了後は自動で無料に戻ります。',
+    'zh': '无需绑卡，3 天免费体验所有 Premium 功能。AI 推荐排序、推广发送、无限回复 — 到期自动回到免费版。',
+    'fr': 'Essayez toutes les fonctions Premium pendant 3 jours — sans carte. Tri par IA, envoi promo, réponses illimitées. Retour auto au gratuit.',
+    'de': 'Alle Premium-Funktionen 3 Tage testen — ohne Karte. KI-Sortierung, Promo-Versand, unbegrenzte Antworten. Endet automatisch.',
+    'es': 'Prueba todas las funciones Premium por 3 días — sin tarjeta. Orden con IA, envío promo, respuestas ilimitadas. Vuelve auto a gratis.',
+    'pt': 'Teste todos os recursos Premium por 3 dias — sem cartão. Ordenação por IA, envio promo, respostas ilimitadas. Volta auto ao grátis.',
+    'ru': 'Все функции Premium 3 дня — без карты. ИИ-сортировка, отправка промо, безлимитные ответы. Авто-возврат на Free.',
+    'tr': 'Kart gerekmez — Premium\'u 3 gün dene. AI sıralama, promo gönderim, sınırsız yanıt. Süre sonunda otomatik Free.',
+    'ar': 'جرّب جميع ميزات Premium لمدة 3 أيام — بدون بطاقة. فرز AI، إرسال ترويجي، ردود غير محدودة. عودة تلقائية للمجاني.',
+    'it': 'Prova tutte le funzioni Premium per 3 giorni — senza carta. Ordina con IA, invio promo, risposte illimitate. Torna auto al gratuito.',
+    'hi': '3 दिन तक Premium सुविधाएँ — कार्ड के बिना। AI सुझाव, प्रचार भेजना, असीमित जवाब। बाद में Free पर वापस।',
+    'th': 'ทดลอง Premium ฟรี 3 วัน — ไม่ต้องผูกบัตร AI แนะนำ · ส่งโปร · ตอบกลับไม่จำกัด หมดเวลาแล้วกลับเป็น Free อัตโนมัติ',
+  });
+
+  String get welcomeTrialCta => _t({
+    'ko': '시작하기',
+    'en': 'Get started',
+    'ja': '始める',
+    'zh': '开始',
+    'fr': 'Commencer',
+    'de': 'Loslegen',
+    'es': 'Comenzar',
+    'pt': 'Começar',
+    'ru': 'Начать',
+    'tr': 'Başla',
+    'ar': 'ابدأ',
+    'it': 'Inizia',
+    'hi': 'शुरू करें',
+    'th': 'เริ่ม',
+  });
+
+  // Build 324: brandUniquePerUser 캠페인 픽업 직후 안내 스낵바.
+  //   "왜 같은 캠페인의 다른 핀이 사라지지?" 의문 해소 (Premium 시뮬레이션 발견).
+  //   count = 픽업 전 같은 캠페인의 다른 letter 수 (사라진 핀 수).
+  String pickupCampaignDedupNotice(int count) => _t({
+    'ko': '🎁 받았어요! 같은 혜택 ${count}개는 다른 분께 양보됐어요',
+    'en': '🎁 Picked up! $count other copies left for others',
+    'ja': '🎁 受け取り完了！同じ特典 $count 個は他の方へ',
+    'zh': '🎁 已领取！同款优惠 $count 个留给其他人',
+    'fr': '🎁 Récupéré ! $count autres copies pour d\'autres',
+    'de': '🎁 Erhalten! $count weitere bleiben für andere',
+    'es': '🎁 ¡Recogido! $count copias quedan para otros',
+    'pt': '🎁 Pego! $count cópias restantes para outros',
+    'ru': '🎁 Получено! Ещё $count копий для других',
+    'tr': '🎁 Alındı! $count kopya başkalarına kaldı',
+    'ar': '🎁 تم الالتقاط! $count نسخ متبقية للآخرين',
+    'it': '🎁 Preso! $count copie rimaste per altri',
+    'hi': '🎁 उठा लिया! $count और दूसरों के लिए',
+    'th': '🎁 รับแล้ว! เหลือ $count ฉบับสำหรับคนอื่น',
+  });
+
+  // Build 324: brandUniquePerUser 캠페인의 dedup 알림 — 같은 캠페인의 다른
+  //   letter 를 이미 픽업했을 때 노출. 같은 브랜드가 대량으로 랜덤 발송한 letter
+  //   여러 개 중 1개만 받을 수 있다는 안내. ko 는 "캠페인" 마케팅 용어 회피.
+  String get statePickupCampaignDup => _t({
+    'ko': '이 혜택은 한 번만 받을 수 있어요 🎁',
+    'en': 'You can only receive this reward once 🎁',
+    'ja': 'この特典は1回だけ受け取れます 🎁',
+    'zh': '此优惠每人仅可领取一次 🎁',
+    'fr': 'Vous ne pouvez recevoir cette récompense qu\'une seule fois 🎁',
+    'de': 'Sie können diese Belohnung nur einmal erhalten 🎁',
+    'es': 'Solo puedes recibir esta recompensa una vez 🎁',
+    'pt': 'Você só pode receber esta recompensa uma vez 🎁',
+    'ru': 'Эту награду можно получить только один раз 🎁',
+    'tr': 'Bu ödülü yalnızca bir kez alabilirsiniz 🎁',
+    'ar': 'يمكنك تلقي هذه المكافأة مرة واحدة فقط 🎁',
+    'it': 'Puoi ricevere questa ricompensa solo una volta 🎁',
+    'hi': 'आप यह पुरस्कार केवल एक बार प्राप्त कर सकते हैं 🎁',
+    'th': 'คุณรับรางวัลนี้ได้เพียงครั้งเดียว 🎁',
   });
 
   String stateMaxReadersReached(int maxReaders) => _t({

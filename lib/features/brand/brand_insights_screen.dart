@@ -13,9 +13,40 @@ import '../../state/app_state.dart';
 ///   3. 캠페인 list — 각각 conversion + 코칭 메시지
 ///
 /// 진입점은 profile_screen 의 Brand 전용 카드.
-class BrandInsightsScreen extends StatelessWidget {
+///
+/// Build 324 (audit fix): StatefulWidget 으로 변경 — initState 에서
+///   `refreshBrandInsightsFromServer()` 호출해 Firestore 의 atomic 집계
+///   (pickupCount + redeemedCount) 를 fetch. 이전엔 local _inbox 만 봐서
+///   다른 회원의 픽업/사용이 카운트 안 돼 ROI 항상 0% 표시되던 critical bug.
+class BrandInsightsScreen extends StatefulWidget {
   static const String routeName = '/brand_insights';
   const BrandInsightsScreen({super.key});
+
+  @override
+  State<BrandInsightsScreen> createState() => _BrandInsightsScreenState();
+}
+
+class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
+  bool _refreshing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _refresh();
+    });
+  }
+
+  Future<void> _refresh() async {
+    if (_refreshing) return;
+    setState(() => _refreshing = true);
+    try {
+      await context.read<AppState>().refreshBrandInsightsFromServer();
+    } finally {
+      if (mounted) setState(() => _refreshing = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

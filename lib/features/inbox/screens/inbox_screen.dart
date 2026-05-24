@@ -4,6 +4,7 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../core/localization/country_names.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/person_emoji.dart';
+import '../../../core/services/recommendation_service.dart';
 import '../../../models/letter.dart';
 import '../../../models/direct_message.dart';
 import '../../../state/app_state.dart';
@@ -11,6 +12,7 @@ import '../widgets/letter_read_screen.dart';
 import '../../map/screens/letter_detail_map_screen.dart';
 import '../../dm/dm_conversation_screen.dart';
 import '../../merchant/merchant_interest_sheet.dart';
+import '../../premium/premium_gate_sheet.dart';
 
 // 포지셔닝 변경 + Build 183 에서 brand 제거, general 추가.
 //   all · general · coupon · voucher
@@ -37,6 +39,12 @@ enum LetterFilterType {
   it,
   event,
   other,
+  // Build 324 (positioning): 카테고리 단순화 — 7개 → 3개 그룹.
+  //   eat = food + cafe / shop = beauty + fashion / etc = it + event + other.
+  //   데이터 categoryTag 는 7-way 그대로 유지 (호환성), UI 필터만 통합.
+  eat,
+  shop,
+  etc,
 }
 
 /// 필터 바에 노출되는 타입.
@@ -51,15 +59,22 @@ const List<LetterFilterType> _mainFilters = [
 ];
 
 // Build 315: 7개 카테고리 (식당/카페/뷰티/패션/IT/행사/기타).
+// Build 324 (positioning): UI 노출은 3개 그룹으로 단순화. 7개 칩 가로 스크롤
+//   선택 마비 해소 — 먹기 / 쇼핑 / 기타 한눈에. 데이터 categoryTag (7-way)
+//   는 인박스 그룹 헤더 / 추천 알고리즘 등에서 그대로 활용.
 const List<LetterFilterType> _industryFilters = [
-  LetterFilterType.food,
-  LetterFilterType.cafe,
-  LetterFilterType.beauty,
-  LetterFilterType.fashion,
-  LetterFilterType.it,
-  LetterFilterType.event,
-  LetterFilterType.other,
+  LetterFilterType.eat,
+  LetterFilterType.shop,
+  LetterFilterType.etc,
 ];
+
+/// Build 324: 3개 그룹 → 7-way categoryTag 의 mapping. _applyFilter 의
+/// _matchesIndustry 에서 사용. group=eat 면 categoryTag in {food, cafe}.
+const Map<LetterFilterType, Set<String>> _groupToCategoryTags = {
+  LetterFilterType.eat: {'food', 'cafe'},
+  LetterFilterType.shop: {'beauty', 'fashion'},
+  LetterFilterType.etc: {'it', 'event', 'other'},
+};
 
 const List<LetterFilterType> _visibleFilters = [
   ..._mainFilters,
@@ -282,6 +297,22 @@ const Map<LetterFilterType, List<String>> _industryKeywords = {
 /// 된 카테고리). 없으면 키워드 heuristic. "other" 는 다른 카테고리 매칭 안 됐을
 /// 때 fallback.
 bool _matchesIndustry(LetterFilterType industry, dynamic letter) {
+  // Build 324: 새 3-그룹 (eat/shop/etc) 필터 — 7-way categoryTag mapping.
+  //   eat = food + cafe / shop = beauty + fashion / etc = it + event + other.
+  final groupTags = _groupToCategoryTags[industry];
+  if (groupTags != null) {
+    final saved = (letter.categoryTag as String?)?.toLowerCase();
+    if (saved != null && saved.isNotEmpty) {
+      return groupTags.contains(saved);
+    }
+    // categoryTag 없으면 키워드 추론으로 그룹 7-way 매칭 일부라도 trigger.
+    for (final tag in groupTags) {
+      final subFilter = _filterTypeFromName(tag);
+      if (subFilter != null && _matchesIndustry(subFilter, letter)) return true;
+    }
+    return false;
+  }
+
   // 1) Letter 의 명시적 categoryTag 우선
   final saved = (letter.categoryTag as String?)?.toLowerCase();
   if (saved != null && saved.isNotEmpty) {
@@ -324,6 +355,28 @@ bool _matchesIndustry(LetterFilterType industry, dynamic letter) {
   return false;
 }
 
+// Build 324: name 문자열 → LetterFilterType 역매핑 (그룹 → 7-way 추론용).
+LetterFilterType? _filterTypeFromName(String name) {
+  for (final f in LetterFilterType.values) {
+    if (f.name == name) return f;
+  }
+  return null;
+}
+
+/// Build 324: AI 추천 모드 letter 카드 칩용 — RecommendationService.topReason
+///   결과를 i18n 라벨 + emoji 조합 문자열로 반환. null 이면 칩 미노출.
+String? _resolveAiReasonChip(BuildContext ctx, Letter letter) {
+  final state = ctx.read<AppState>();
+  final reason = RecommendationService.topReason(
+    letter,
+    state.currentUser,
+    followedBrandIds: state.followedBrandIds,
+  );
+  if (reason == null) return null;
+  final l10n = AppL10n.of(state.currentUser.languageCode);
+  return '${reason.emoji} ${l10n.aiReasonLabel(reason.labelKey)}';
+}
+
 // Build 315: 카테고리 추론은 `lib/features/inbox/utils/category_inference.dart` 의
 // inferCategoryTagFromText 사용 (app_state pickUpLetter 와 공유).
 
@@ -362,6 +415,13 @@ String _emptyEmojiForFilter(LetterFilterType f) {
       return '🎉'; // 행사
     case LetterFilterType.other:
       return '📌'; // 기타
+    // Build 324: 3-그룹 단순화
+    case LetterFilterType.eat:
+      return '🍴';
+    case LetterFilterType.shop:
+      return '🛍️';
+    case LetterFilterType.etc:
+      return '🎁';
   }
 }
 
@@ -409,6 +469,13 @@ String _filterName(LetterFilterType f, AppL10n l10n) {
       return l10n.inboxFilterEvent;
     case LetterFilterType.other:
       return l10n.inboxFilterOther;
+    // Build 324: 3-그룹 단순화
+    case LetterFilterType.eat:
+      return l10n.inboxFilterEat;
+    case LetterFilterType.shop:
+      return l10n.inboxFilterShop;
+    case LetterFilterType.etc:
+      return l10n.inboxFilterEtc;
   }
 }
 
@@ -420,7 +487,9 @@ class InboxScreen extends StatefulWidget {
 }
 
 // Build 295: 수집첩 정렬 모드. 사용자 요청 — 유효기간 / 최신 / 중요도.
-enum InboxSortMode { latest, expiry, importance }
+// Build 324: AI 추천 정렬 모드 추가 (Premium 전용). 카테고리 선호 / 만료 임박 /
+// 사회 신호 / 거리 / 팔로우 브랜드 등 다신호 heuristic 으로 score 산출.
+enum InboxSortMode { latest, expiry, importance, aiRecommend }
 
 class _InboxScreenState extends State<InboxScreen>
     with SingleTickerProviderStateMixin {
@@ -598,6 +667,12 @@ class _InboxScreenState extends State<InboxScreen>
         case LetterFilterType.other:
           // Build 315: 카테고리 필터 — categoryTag 우선, keyword fallback.
           return _matchesIndustry(filter, letter);
+        // Build 324: 3-그룹 단순화 (eat/shop/etc) — _matchesIndustry 가 자동
+        //   으로 _groupToCategoryTags 매핑으로 dispatch.
+        case LetterFilterType.eat:
+        case LetterFilterType.shop:
+        case LetterFilterType.etc:
+          return _matchesIndustry(filter, letter);
         case LetterFilterType.all:
           return true;
       }
@@ -608,11 +683,35 @@ class _InboxScreenState extends State<InboxScreen>
   // 이전엔 `.reversed.toList()` 만 사용 → 원본 list 가 ASC 정렬됐다는 전제
   // 가 깨지면 무작위 순서. arrivedAt 이 null 이면 sentAt 으로 fallback.
   // Build 295: 정렬 모드 분기. _sortMode 기반.
-  List<Letter> _sortByArrivedDesc(List<Letter> letters) {
+  // Build 324: aiRecommend 모드 — RecommendationService 로 score 산출 후 DESC.
+  //   currentUser / followedBrandIds 가 필요해 AppState 인자를 받도록 확장.
+  //   Free 사용자가 aiRecommend 선택 시 호출 측에서 PremiumGateSheet 노출 후
+  //   latest 로 fallback — 이 메서드는 가드 없이 그대로 score 함수만 호출.
+  //   isInbox=false (Sent 탭) 면 aiRecommend 는 받은 letter 신호 (followed brand /
+  //   preferredCategory / 미사용 등) 가 의미 없으므로 latest 로 자동 fallback.
+  List<Letter> _sortByArrivedDesc(
+    AppState state,
+    List<Letter> letters, {
+    bool isInbox = true,
+  }) {
     final sorted = List<Letter>.from(letters);
-    switch (_sortMode) {
+    final effectiveMode = (!isInbox && _sortMode == InboxSortMode.aiRecommend)
+        ? InboxSortMode.latest
+        : _sortMode;
+    switch (effectiveMode) {
       case InboxSortMode.latest:
+        // Build 324 (audit fix): 만료된 letter 는 정렬 후 자동 하단.
+        //   3개월 묵은 인박스 복귀 시 만료 letter 가 상단 점령해 "다 지난 거잖아"
+        //   좌절하던 버그 (복귀 사용자 시뮬레이션). 사용/만료 letter 는
+        //   chronological 우선순위를 잃고 별도 그룹으로 하단 배치.
         sorted.sort((a, b) {
+          final aExpired = a.isExpired || a.isRedemptionExpired ||
+              a.redeemedAt != null;
+          final bExpired = b.isExpired || b.isRedemptionExpired ||
+              b.redeemedAt != null;
+          if (aExpired != bExpired) {
+            return aExpired ? 1 : -1; // expired → 하단
+          }
           final ta = a.arrivedAt ?? a.sentAt;
           final tb = b.arrivedAt ?? b.sentAt;
           return tb.compareTo(ta); // DESC: 최신 먼저
@@ -648,13 +747,24 @@ class _InboxScreenState extends State<InboxScreen>
           return tb.compareTo(ta); // tiebreaker = 최신
         });
         break;
+      case InboxSortMode.aiRecommend:
+        return RecommendationService.rank(
+          sorted,
+          state.currentUser,
+          followedBrandIds: state.followedBrandIds,
+        );
     }
     return sorted;
   }
 
   // Build 115: 팔로우한 브랜드의 편지는 인박스 상단에 고정. stable sort 라
   // 같은 follow/non-follow 그룹 내부의 시간 역순은 보존된다.
+  // Build 324: aiRecommend 모드에서는 score 자체에 followed brand +20 이 이미
+  //   포함되어 있고, 추가로 redeemed/만료 letter 도 큰 음수 패널티로 하단으로
+  //   밀려야 한다. 여기서 followed 그룹을 통째로 상단 고정하면 만료된 followed
+  //   쿠폰이 score 패널티를 무시하고 최상단에 노출되는 버그. AI 모드 시 skip.
   List<Letter> _sortFollowedFirst(AppState state, List<Letter> letters) {
+    if (_sortMode == InboxSortMode.aiRecommend) return letters;
     if (state.followedBrandIds.isEmpty) return letters;
     final followed = <Letter>[];
     final rest = <Letter>[];
@@ -856,7 +966,11 @@ class _InboxScreenState extends State<InboxScreen>
                         ? [
                             _SentTab(
                               letters: _applyFilter(
-                                _sortByArrivedDesc(state.sent.toList()),
+                                _sortByArrivedDesc(
+                                  state,
+                                  state.sent.toList(),
+                                  isInbox: false,
+                                ),
                                 filter: _sentFilter,
                                 isInbox: false,
                               ),
@@ -870,6 +984,7 @@ class _InboxScreenState extends State<InboxScreen>
                                 _sortFollowedFirst(
                                   state,
                                   _sortByArrivedDesc(
+                                    state,
                                     state.inbox
                                         .where(
                                           (l) => !(l.senderIsBrand &&
@@ -890,6 +1005,8 @@ class _InboxScreenState extends State<InboxScreen>
                               sentSinceLastUnlock: state.sentSinceLastUnlock,
                               canViewNext: state.canViewNextLetter,
                               scrollController: _inboxScrollController,
+                              aiRecommendActive:
+                                  _sortMode == InboxSortMode.aiRecommend,
                             ),
                           ]
                         : [
@@ -897,15 +1014,19 @@ class _InboxScreenState extends State<InboxScreen>
                               letters: _applyFilter(
                                 _sortFollowedFirst(
                                   state,
-                                  state.inbox
-                                      .where(
-                                        (l) =>
-                                            !(l.senderIsBrand &&
-                                                state.isBrandMuted(l.senderId)),
-                                      )
-                                      .toList()
-                                      .reversed
-                                      .toList(),
+                                  // Build 324: 정렬 모드 (Build 295 의 sort 필터)
+                                  //   를 비-Brand 인박스에도 적용. 이전엔
+                                  //   `.reversed.toList()` 만 사용 → sort 메뉴 무력화.
+                                  _sortByArrivedDesc(
+                                    state,
+                                    state.inbox
+                                        .where(
+                                          (l) =>
+                                              !(l.senderIsBrand &&
+                                                  state.isBrandMuted(l.senderId)),
+                                        )
+                                        .toList(),
+                                  ),
                                 ),
                                 filter: _inboxFilter,
                                 isInbox: true,
@@ -919,10 +1040,16 @@ class _InboxScreenState extends State<InboxScreen>
                               sentSinceLastUnlock: state.sentSinceLastUnlock,
                               canViewNext: state.canViewNextLetter,
                               scrollController: _inboxScrollController,
+                              aiRecommendActive:
+                                  _sortMode == InboxSortMode.aiRecommend,
                             ),
                             _SentTab(
                               letters: _applyFilter(
-                                _sortByArrivedDesc(state.sent.toList()),
+                                _sortByArrivedDesc(
+                                  state,
+                                  state.sent.toList(),
+                                  isInbox: false,
+                                ),
                                 filter: _sentFilter,
                                 isInbox: false,
                               ),
@@ -1031,10 +1158,24 @@ class _InboxScreenState extends State<InboxScreen>
               // Build 295: 정렬 모드 선택 (유효기간 / 최신 / 중요도).
               // Build 315: 아이콘만 → 현재 모드 텍스트+icon 칩으로 가시성 강화.
               //   "🕐 최신순 ▾" 같이 사용자가 어떤 정렬인지 즉시 인지.
+              // Build 324: aiRecommend 옵션 추가 (Premium 전용). Free 사용자가
+              //   선택 시 PremiumGateSheet 노출 + 모드는 변경하지 않음.
               PopupMenuButton<InboxSortMode>(
                 tooltip: l10n.inboxSortTooltip,
                 color: AppColors.bgCard,
-                onSelected: (mode) => setState(() => _sortMode = mode),
+                onSelected: (mode) {
+                  if (mode == InboxSortMode.aiRecommend &&
+                      !state.currentUser.isPremium) {
+                    PremiumGateSheet.show(
+                      context,
+                      featureName: l10n.aiRecommendSortName,
+                      featureEmoji: '✨',
+                      description: l10n.aiRecommendUpsellDesc,
+                    );
+                    return;
+                  }
+                  setState(() => _sortMode = mode);
+                },
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   padding: const EdgeInsets.symmetric(
@@ -1066,6 +1207,8 @@ class _InboxScreenState extends State<InboxScreen>
                               return l10n.inboxSortExpiry;
                             case InboxSortMode.importance:
                               return l10n.inboxSortImportance;
+                            case InboxSortMode.aiRecommend:
+                              return l10n.inboxSortAiRecommend;
                           }
                         }(),
                         style: const TextStyle(
@@ -1101,6 +1244,26 @@ class _InboxScreenState extends State<InboxScreen>
                     child: Text(l10n.inboxSortImportance,
                         style: const TextStyle(color: AppColors.textPrimary)),
                   ),
+                  // Build 324: AI 추천 (Premium 전용). 잠긴 상태는 트레일링 🔒
+                  //   배지로 명시 — Free 사용자가 탭하면 PremiumGateSheet 으로
+                  //   넘어가고 모드는 변경되지 않음.
+                  CheckedPopupMenuItem(
+                    value: InboxSortMode.aiRecommend,
+                    checked: _sortMode == InboxSortMode.aiRecommend,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(l10n.inboxSortAiRecommend,
+                            style: const TextStyle(
+                                color: AppColors.textPrimary)),
+                        if (!state.currentUser.isPremium) ...[
+                          const SizedBox(width: 6),
+                          const Text('🔒',
+                              style: TextStyle(fontSize: 11)),
+                        ],
+                      ],
+                    ),
+                  ),
                 ],
               ),
               // 검색 버튼
@@ -1117,7 +1280,7 @@ class _InboxScreenState extends State<InboxScreen>
                   onTap: () {
                     _tabController.animateTo(0);
                     final letters = _applyFilter(
-                      _sortByArrivedDesc(state.inbox.toList()),
+                      _sortByArrivedDesc(state, state.inbox.toList()),
                       filter: _inboxFilter,
                       isInbox: true,
                     );
@@ -1441,6 +1604,9 @@ class _InboxTab extends StatelessWidget {
   final int sentSinceLastUnlock;
   final bool canViewNext;
   final ScrollController? scrollController;
+  // Build 324: AI 추천 모드 활성 시 letter 카드에 "왜 이 순서?" 칩 노출.
+  //   false 면 칩 미노출 (latest/expiry/importance 모드).
+  final bool aiRecommendActive;
 
   const _InboxTab({
     required this.letters,
@@ -1450,6 +1616,7 @@ class _InboxTab extends StatelessWidget {
     required this.sentSinceLastUnlock,
     required this.canViewNext,
     this.scrollController,
+    this.aiRecommendActive = false,
   });
 
   /// Build 204: 필터=전체일 때 카테고리별 그룹 + 헤더 삽입. 특정 필터일 때는
@@ -1756,6 +1923,10 @@ class _InboxTab extends StatelessWidget {
                       letter: letter,
                       isInbox: true,
                       isLocked: isLocked,
+                      // Build 324: AI 추천 모드 활성 시 letter 별 추천 이유 칩 계산.
+                      aiReasonChip: aiRecommendActive
+                          ? _resolveAiReasonChip(ctx, letter)
+                          : null,
                       onTap: () => onTap(letter),
                       onDelete: () => _confirmDelete(
                         ctx,
@@ -1974,6 +2145,9 @@ class _LetterCard extends StatelessWidget {
   final bool isLocked;
   final VoidCallback onTap;
   final VoidCallback? onDelete;
+  // Build 324: AI 추천 모드 시 "왜 이 순서?" 1줄 이유 칩. null 이면 미노출.
+  //   형식 예: "🏷 팔로우한 브랜드" / "⏰ 곧 만료" / "🎯 내 선호 카테고리".
+  final String? aiReasonChip;
 
   const _LetterCard({
     required this.letter,
@@ -1981,6 +2155,7 @@ class _LetterCard extends StatelessWidget {
     this.isLocked = false,
     required this.onTap,
     this.onDelete,
+    this.aiReasonChip,
   });
 
   bool get _isUnread => isInbox && letter.status == DeliveryStatus.delivered;
@@ -2095,7 +2270,46 @@ class _LetterCard extends StatelessWidget {
                       ),
                     ],
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+              // Build 324: AI 추천 모드 시 "왜 이 순서?" 이유 칩 노출 — 사용자
+              //   신뢰 확보 + 추천 알고리즘 투명성. aiReasonChip null 이면 미노출.
+              if (aiReasonChip != null) ...[
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.gold.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: AppColors.gold.withValues(alpha: 0.35),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('✨', style: TextStyle(fontSize: 11)),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            aiReasonChip!,
+                            style: const TextStyle(
+                              color: AppColors.gold,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              height: 1.2,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Build 252: leading 영역 — 마커와 동일한 인물 이모지 + 국기 stack.
@@ -2388,6 +2602,8 @@ class _LetterCard extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+              ], // Column.children close (Build 324: AI 추천 칩 + Row 카드 본문)
             ),
           ),
           // 잠금 오버레이 (chain rule)
@@ -3097,6 +3313,74 @@ class _LetterFilterBar extends StatelessWidget {
 
   const _LetterFilterBar({required this.activeFilter, required this.onChanged});
 
+  /// Build 324: 그룹 칩 long-press 시 7-way sub-filter 시트.
+  ///   eat → food/cafe / shop → beauty/fashion / etc → it/event/other 칩으로 펼침.
+  ///   세분 의도 사용자 (예: "패션만") 마찰 해소 (Premium 시뮬레이션 발견).
+  void _showSubfilterSheet(
+    BuildContext context,
+    LetterFilterType group,
+    AppL10n l10n,
+  ) {
+    final subTags = _groupToCategoryTags[group];
+    if (subTags == null || subTags.isEmpty) return;
+    final subFilters = subTags
+        .map(_filterTypeFromName)
+        .whereType<LetterFilterType>()
+        .toList();
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sCtx) => Container(
+        decoration: const BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              alignment: Alignment.center,
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.textMuted.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Text(
+              _textLabel(group, l10n),
+              style: const TextStyle(
+                color: AppColors.gold,
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: subFilters.map((f) {
+                return _FilterChipInline(
+                  label: '${_emptyEmojiForFilter(f)} ${_textLabel(f, l10n)}',
+                  selected: false,
+                  onTap: () {
+                    Navigator.of(sCtx).pop();
+                    onChanged(f);
+                  },
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   String _textLabel(LetterFilterType type, AppL10n l10n) {
     switch (type) {
       case LetterFilterType.all:
@@ -3129,6 +3413,13 @@ class _LetterFilterBar extends StatelessWidget {
         return l10n.inboxFilterEvent;
       case LetterFilterType.other:
         return l10n.inboxFilterOther;
+      // Build 324: 3-그룹 단순화
+      case LetterFilterType.eat:
+        return l10n.inboxFilterEat;
+      case LetterFilterType.shop:
+        return l10n.inboxFilterShop;
+      case LetterFilterType.etc:
+        return l10n.inboxFilterEtc;
     }
   }
 
@@ -3238,10 +3529,17 @@ class _LetterFilterBar extends StatelessWidget {
             children: [
               ..._visibleFilters.map((type) {
                 final selected = type == activeFilter;
+                // Build 324: 그룹 칩 (eat/shop/etc) 만 long-press 활성 → 7-way
+                //   sub-filter 시트로 세분 의도 사용자 마찰 해소.
+                final isGroup = _groupToCategoryTags.containsKey(type);
                 return _FilterChipInline(
                   label: _textLabel(type, l10n),
                   selected: selected,
+                  showSubfilterHint: isGroup,
                   onTap: () => onChanged(type),
+                  onLongPress: isGroup
+                      ? () => _showSubfilterSheet(context, type, l10n)
+                      : null,
                 );
               }),
             ],
@@ -3256,11 +3554,19 @@ class _FilterChipInline extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  // Build 324: 그룹 칩 (eat/shop/etc) long-press 시 7-way sub-filter 시트.
+  //   null 이면 long-press 무효 (단일 카테고리/메인 필터).
+  final VoidCallback? onLongPress;
+  // Build 324: long-press 가능한 칩에 ⋯ trailing 점 노출 — 사용자에게 long-press
+  //   힌트 (모든 사용자가 long-press 알아채는 건 아님 — 작은 시각 어포던스).
+  final bool showSubfilterHint;
 
   const _FilterChipInline({
     required this.label,
     required this.selected,
     required this.onTap,
+    this.onLongPress,
+    this.showSubfilterHint = false,
   });
 
   @override
@@ -3273,6 +3579,7 @@ class _FilterChipInline extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
+          onLongPress: onLongPress,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
             child: Row(
@@ -3289,7 +3596,20 @@ class _FilterChipInline extends StatelessWidget {
                     letterSpacing: -0.1,
                   ),
                 ),
-                // Build 318: trailing 옵션 제거 (BottomSheet 화살표 미사용).
+                // Build 324: long-press 어포던스 (⋯).
+                if (showSubfilterHint) ...[
+                  const SizedBox(width: 4),
+                  Text(
+                    '⋯',
+                    style: TextStyle(
+                      color: selected
+                          ? const Color(0xFF1A1300).withValues(alpha: 0.6)
+                          : AppColors.textMuted,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>Thiscount — 디자인 추천 미리보기</title>
+<style>
+  /* ───────────── Tokens (dark + light) ───────────── */
+  :root[data-theme="dark"] {
+    --bg-deep: #000000;   --bg-canvas: #0A0A0C;
+    --bg-card: #141417;   --bg-elev: #2A2A2E;
+    --tx: #FFFFFF; --tx2: #8E8E93; --tx3: #5A5A5F; --tx4: #3A3A3E;
+    --coupon: #FF4D6D; --reward: #B8FF5C; --premium: #FFD60A;
+    --map: #5BA4F6;    --streak: #C77DFF;
+    --coupon-ink: #1A0008; --reward-ink: #0A1A00; --premium-ink: #1A1300;
+    --hairline: rgba(255,255,255,.1);
+  }
+  :root[data-theme="light"] {
+    --bg-deep: #F1ECE3;   --bg-canvas: #FAF7F2;
+    --bg-card: #FFFFFF;   --bg-elev: #FFFEFB;
+    --tx: #1A1A1C; --tx2: #5F5F66; --tx3: #8E8E96; --tx4: #C0C0C8;
+    --coupon: #E64463; --reward: #8BD13A; --premium: #E6B800;
+    --map: #3D8DDB;    --streak: #A85FD9;
+    --coupon-ink: #FFFFFF; --reward-ink: #0A1A00; --premium-ink: #1A1300;
+    --hairline: rgba(0,0,0,.1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+                 "Apple SD Gothic Neo", "Pretendard Variable", sans-serif;
+    background: var(--bg-canvas);
+    color: var(--tx);
+    transition: background .3s ease, color .3s ease;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ───── Header ───── */
+  header {
+    padding: 32px 24px 16px;
+    display: flex; justify-content: space-between; align-items: baseline;
+    border-bottom: 1px solid var(--hairline);
+  }
+  header h1 {
+    font-size: 24px; font-weight: 800; letter-spacing: -0.6px;
+  }
+  header .sub {
+    color: var(--tx2); font-size: 13px; font-weight: 600;
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  .theme-toggle {
+    background: var(--bg-elev); color: var(--tx); border: none;
+    padding: 10px 18px; border-radius: 999px; font-weight: 700;
+    cursor: pointer; font-size: 13px; letter-spacing: 0.3px;
+    transition: transform .2s, background .3s;
+  }
+  .theme-toggle:hover { transform: scale(1.05); }
+
+  /* ───── Sections ───── */
+  main { padding: 32px 24px 80px; display: grid; gap: 56px; max-width: 1280px; margin: 0 auto; }
+  section h2 {
+    font-size: 12px; font-weight: 700; color: var(--tx3);
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px;
+  }
+  section .desc { color: var(--tx2); font-size: 14px; margin-bottom: 24px; max-width: 720px; line-height: 1.5; }
+
+  /* ───── 1) WalletCard Stack ───── */
+  .stack-frame {
+    width: 380px;
+    margin: 0 auto;
+    position: relative;
+    padding: 24px;
+    border-radius: 36px;
+    background: var(--bg-deep);
+    border: 1px solid var(--hairline);
+    box-shadow: 0 24px 60px rgba(0,0,0,.5);
+  }
+  .stack {
+    position: relative;
+    height: 260px;
+  }
+  .wallet-card {
+    position: absolute; left: 0; right: 0;
+    height: 220px;
+    background: var(--bg-card);
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow:
+      0 12px 32px rgba(0,0,0,.4),
+      0 4px 8px rgba(0,0,0,.25);
+    transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s;
+    cursor: pointer;
+  }
+  .wallet-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 24px 48px rgba(0,0,0,.55), 0 8px 12px rgba(0,0,0,.3);
+  }
+  .wallet-card.expiring { border: 1.5px solid var(--premium); }
+  .wallet-card .band {
+    height: 44px;
+    padding: 8px 18px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .wallet-card .band .title {
+    font-size: 22px; font-weight: 800; letter-spacing: -0.5px;
+  }
+  .wallet-card .band .deadline {
+    font-size: 13px; font-weight: 700; letter-spacing: 0.5px;
+  }
+  .wallet-card .body {
+    padding: 14px 18px;
+    height: calc(100% - 44px);
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .wallet-card .brand-name {
+    color: var(--tx); font-size: 17px; font-weight: 700; letter-spacing: -0.2px;
+  }
+  .wallet-card .code {
+    font-family: "Menlo", monospace; font-size: 12px;
+    color: var(--tx2); letter-spacing: 1.5px; font-weight: 600;
+  }
+  /* category variants */
+  .cat-coupon  .band { background: var(--coupon); }
+  .cat-coupon  .band .title, .cat-coupon .band .deadline { color: var(--coupon-ink); }
+  .cat-reward  .band { background: var(--reward); }
+  .cat-reward  .band .title, .cat-reward .band .deadline { color: var(--reward-ink); }
+  .cat-premium .band { background: var(--premium); }
+  .cat-premium .band .title, .cat-premium .band .deadline { color: var(--premium-ink); }
+  /* stacked positions */
+  .wallet-card.s0 { top: 0;  z-index: 3; }
+  .wallet-card.s1 { top: 12px; z-index: 2; transform: scale(.97); }
+  .wallet-card.s2 { top: 24px; z-index: 1; transform: scale(.94); }
+
+  /* ───── 2) BreathingPin ───── */
+  .map-frame {
+    width: 380px;
+    height: 380px;
+    margin: 0 auto;
+    border-radius: 36px;
+    background: var(--bg-deep);
+    border: 1px solid var(--hairline);
+    position: relative; overflow: hidden;
+    background-image:
+      radial-gradient(circle at 30% 40%, rgba(91,164,246,.06), transparent 60%),
+      linear-gradient(135deg, var(--bg-canvas) 0%, var(--bg-deep) 100%);
+  }
+  /* fake city grid */
+  .map-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  :root[data-theme="light"] .map-grid {
+    background-image:
+      linear-gradient(rgba(0,0,0,.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,.06) 1px, transparent 1px);
+  }
+
+  /* breathing pin */
+  .pin {
+    position: absolute; top: 50%; left: 50%;
+    width: 24px; height: 24px;
+    margin: -12px 0 0 -12px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+  }
+  .pin.you {
+    background: var(--premium);
+    box-shadow: 0 0 0 0 var(--premium);
+    animation: breathe 1.6s ease-in-out infinite alternate;
+  }
+  @keyframes breathe {
+    0%   { box-shadow: 0 0 16px 1px rgba(255,214,10,.25); transform: scale(1); }
+    100% { box-shadow: 0 0 28px 1px rgba(255,214,10,.45); transform: scale(1.05); }
+  }
+  /* ripple on active */
+  .ripple {
+    position: absolute; top: 50%; left: 50%;
+    width: 24px; height: 24px; margin: -12px 0 0 -12px;
+    border-radius: 50%; border: 2px solid var(--premium);
+    opacity: 0; pointer-events: none;
+    animation: ripple-out 1.6s ease-out infinite;
+  }
+  @keyframes ripple-out {
+    0%   { opacity: .7; transform: scale(1); }
+    100% { opacity: 0;  transform: scale(7); }
+  }
+  /* nearby coupon pins (categories) */
+  .pin.coupon  { background: var(--coupon);  top: 30%; left: 35%; }
+  .pin.reward  { background: var(--reward);  top: 65%; left: 70%; }
+  .pin.map-c   { background: var(--map);     top: 45%; left: 80%; }
+  .pin.streak  { background: var(--streak);  top: 75%; left: 25%; }
+
+  .map-caption {
+    position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+    color: var(--tx2); font-size: 11px; font-weight: 600;
+    letter-spacing: 0.8px; text-transform: uppercase;
+  }
+
+  /* ───── 3) Light/Dark side-by-side ───── */
+  .palette {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px; max-width: 720px;
+  }
+  .swatch {
+    aspect-ratio: 1;
+    border-radius: 18px;
+    padding: 14px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    font-weight: 700;
+  }
+  .swatch .hex { font-family: "Menlo", monospace; font-size: 10px; letter-spacing: 1px; }
+  .swatch .name { font-size: 14px; letter-spacing: -0.2px; }
+  .swatch.coupon  { background: var(--coupon);  color: var(--coupon-ink); }
+  .swatch.reward  { background: var(--reward);  color: var(--reward-ink); }
+  .swatch.premium { background: var(--premium); color: var(--premium-ink); }
+  .swatch.map     { background: var(--map);     color: #fff; }
+  .swatch.streak  { background: var(--streak);  color: #fff; }
+
+  /* ───── Section grid ───── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+  @media (max-width: 880px) { .two-col { grid-template-columns: 1fr; } }
+
+  footer {
+    text-align: center; padding: 32px;
+    color: var(--tx3); font-size: 11px; letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body data-theme="dark">
+<header>
+  <div>
+    <h1>Thiscount — UI/UX 추천 미리보기</h1>
+    <div class="sub">Build 282 · v5 tokens · 3 widget mockup</div>
+  </div>
+  <button class="theme-toggle" id="themeBtn">🌙 다크 → 라이트</button>
+</header>
+
+<main>
+  <!-- 1) WalletCard stack -->
+  <section>
+    <h2>① 인박스 — WalletCard Stack</h2>
+    <div class="desc">
+      카드가 종이처럼 살짝 겹쳐 떠있는 느낌. 카테고리 색의 띠 한 면 +
+      검정 본문 비율 1:4 (Apple Wallet 패스 카드 비율). 만료 임박 카드는
+      골드 띠 + 카운트다운. 카드에 마우스 hover → spring 모션으로 위로 살짝.
+    </div>
+    <div class="stack-frame">
+      <div class="stack">
+        <div class="wallet-card cat-coupon s0 expiring">
+          <div class="band">
+            <div class="title">20% OFF</div>
+            <div class="deadline">⏱ 23:59</div>
+          </div>
+          <div class="body">
+            <div class="brand-name">Starbucks 강남역점</div>
+            <div class="code">BR-001-2026</div>
+          </div>
+        </div>
+        <div class="wallet-card cat-reward s1">
+          <div class="band">
+            <div class="title">1+1</div>
+            <div class="deadline">주말까지</div>
+          </div>
+          <div class="body">
+            <div class="brand-name">올리브영 홍대</div>
+            <div class="code">BR-002-2026</div>
+          </div>
+        </div>
+        <div class="wallet-card cat-premium s2">
+          <div class="band">
+            <div class="title">Premium</div>
+            <div class="deadline">∞</div>
+          </div>
+          <div class="body">
+            <div class="brand-name">Thiscount</div>
+            <div class="code">PR-0421</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2) BreathingPin -->
+  <section>
+    <h2>② 지도 — 호흡하는 핀</h2>
+    <div class="desc">
+      골드 중심 핀이 1.6초 사이클로 호흡 (scale + blur). 픽업 가능 100m
+      진입 시 ripple ring 발산 + 햅틱. 주변 카테고리 핀 4개 (raspberry /
+      lime / sky / orchid) 는 정적, 거리 멀어질수록 fade.
+    </div>
+    <div class="map-frame">
+      <div class="map-grid"></div>
+      <div class="ripple"></div>
+      <div class="pin you"></div>
+      <div class="pin coupon"></div>
+      <div class="pin reward"></div>
+      <div class="pin map-c"></div>
+      <div class="pin streak"></div>
+      <div class="map-caption">100m radius · 4 nearby drops</div>
+    </div>
+  </section>
+
+  <!-- 3) Palette -->
+  <section>
+    <h2>③ 디자인 토큰 — 5 카테고리 컬러</h2>
+    <div class="desc">
+      위의 테마 토글 (우상단 버튼) 누르면 dark ↔ light 전환. light 는
+      "카페에서 펼친 종이 지갑" 컨셉 — saturation 살짝 낮춤. 카테고리
+      이름은 사용자 노출 X (내부 token 만), Build 263 의 카피 정리와 일관.
+    </div>
+    <div class="palette">
+      <div class="swatch coupon"><span class="name">Coupon</span><span class="hex" id="hex-coupon">#FF4D6D</span></div>
+      <div class="swatch reward"><span class="name">Reward</span><span class="hex" id="hex-reward">#B8FF5C</span></div>
+      <div class="swatch premium"><span class="name">Premium</span><span class="hex" id="hex-premium">#FFD60A</span></div>
+      <div class="swatch map"><span class="name">Map</span><span class="hex" id="hex-map">#5BA4F6</span></div>
+      <div class="swatch streak"><span class="name">Streak</span><span class="hex" id="hex-streak">#C77DFF</span></div>
+    </div>
+  </section>
+</main>
+
+<footer>io.thiscount · design recommendations preview · v1</footer>
+
+<script>
+  const root = document.documentElement;
+  const btn = document.getElementById('themeBtn');
+  const darkHex = { coupon:'#FF4D6D', reward:'#B8FF5C', premium:'#FFD60A', map:'#5BA4F6', streak:'#C77DFF' };
+  const lightHex = { coupon:'#E64463', reward:'#8BD13A', premium:'#E6B800', map:'#3D8DDB', streak:'#A85FD9' };
+  function updateHex(theme) {
+    const set = theme === 'dark' ? darkHex : lightHex;
+    for (const k in set) document.getElementById('hex-' + k).textContent = set[k];
+  }
+  btn.addEventListener('click', () => {
+    const cur = root.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    btn.textContent = next === 'dark' ? '🌙 다크 → 라이트' : '☀️ 라이트 → 다크';
+    updateHex(next);
+  });
+  updateHex('dark');
+</script>
+</body>
+</html>

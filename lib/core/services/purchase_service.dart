@@ -12,7 +12,15 @@ import 'secure_clock.dart';
 
 enum ScheduledPlanTarget { free, brand }
 
-enum PurchaseOperation { premium, brand, giftCard, brandExtra, restore }
+enum PurchaseOperation {
+  premium,
+  brand,
+  giftCard,
+  brandExtra,
+  // Build 324: ExactDrop 100통 패키지 IAP — 이전 "관리자에게 문의" 흐름 제거.
+  exactDrop100,
+  restore,
+}
 
 // ── RevenueCat API Keys ─────────────────────────────────────────────────────
 // 빌드 시 dart-define 으로 주입:
@@ -41,12 +49,15 @@ class PurchaseProductIds {
   static const String _brandMonthlyLegacy = 'letter_go_brand_monthly';
   static const String _giftCardLegacy = 'letter_go_gift_1month';
   static const String _brandExtra1000Legacy = 'letter_go_brand_extra_1000';
+  // Build 324: ExactDrop 100통 패키지 (₩10,000) — Legacy 형태 ID.
+  static const String _exactDrop100Legacy = 'letter_go_exact_drop_100';
 
   // iOS (App Store Connect)
   static const String _premiumMonthlyIos = 'thiscount_premium_monthly_ios';
   static const String _brandMonthlyIos = 'thiscount_brand_monthly_ios';
   static const String _giftCardIos = 'thiscount_gift_1month_ios';
   static const String _brandExtra1000Ios = 'thiscount_brand_extra_1000_ios';
+  static const String _exactDrop100Ios = 'thiscount_exact_drop_100_ios';
 
   // Android (Google Play Billing / RevenueCat import 결과)
   static const String _premiumMonthlyAndroid =
@@ -54,6 +65,7 @@ class PurchaseProductIds {
   static const String _brandMonthlyAndroid = 'letter_go_brand_monthly:monthly';
   static const String _giftCardAndroid = _giftCardLegacy;
   static const String _brandExtra1000Android = _brandExtra1000Legacy;
+  static const String _exactDrop100Android = _exactDrop100Legacy;
 
   static String _forPlatform({
     required String ios,
@@ -94,6 +106,11 @@ class PurchaseProductIds {
     android: _brandExtra1000Android,
     fallback: _brandExtra1000Legacy,
   );
+  static String get exactDrop100 => _forPlatform(
+    ios: _exactDrop100Ios,
+    android: _exactDrop100Android,
+    fallback: _exactDrop100Legacy,
+  );
 
   static List<String> premiumMonthlyCandidates() => _orderedUnique([
     premiumMonthly,
@@ -121,6 +138,13 @@ class PurchaseProductIds {
     _brandExtra1000Ios,
     _brandExtra1000Android,
     _brandExtra1000Legacy,
+  ]);
+
+  static List<String> exactDrop100Candidates() => _orderedUnique([
+    exactDrop100,
+    _exactDrop100Ios,
+    _exactDrop100Android,
+    _exactDrop100Legacy,
   ]);
 }
 
@@ -998,6 +1022,56 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
 
       _setError('결제는 완료됐지만 서버 검증을 완료하지 못했습니다. 고객센터에 문의해주세요.');
       return false;
+    } on PlatformException catch (e) {
+      _handlePlatformException(e);
+      return false;
+    }
+  }
+
+  /// Build 324: ExactDrop 100통 패키지 IAP. 이전에 "관리자에게 문의" 만 있어
+  /// 자영업자가 토요일 오후 100통 소진 시 ceo@airony.xyz 메일 후 답 기다리는
+  /// UX 였음 (Brand 사장 시뮬레이션 핵심 발견). RevenueCat 비구독 (one-time)
+  /// 상품으로 등록 — 즉시 구매 + AppState.adminGrantExactDropCredits 호출.
+  ///
+  /// 단순화: brandExtra 의 서버 verification 흐름 없이 RevenueCat 구매 성공만
+  /// 검증 (one-time consumable, replay 차단은 RC + 상점 측에서).
+  Future<bool> buyExactDrop100(AppState appState) async {
+    final canBuyAsBrand = appState.isBrandMember || _isBrand;
+    if (!canBuyAsBrand) {
+      _setError('브랜드 계정에서만 ExactDrop 크레딧을 구매할 수 있어요.');
+      return false;
+    }
+    _startLoading(PurchaseOperation.exactDrop100);
+    if (!_isTestMode && !_isRcKeyConfiguredForCurrentPlatform) {
+      _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
+      return false;
+    }
+
+    // 디버그 / RC 미연동 → 테스트 모드 (즉시 100 grant).
+    if (_isTestMode) {
+      return await _fakePurchase(() async {
+        await appState.adminGrantExactDropCredits(100);
+      });
+    }
+
+    try {
+      final ready = await _ensureRevenueCatConfigured();
+      if (!ready) {
+        _setError('결제 서비스 연결 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
+        return false;
+      }
+      final purchaseInfo = await _purchaseByPackageOrStoreProduct(
+        PurchaseProductIds.exactDrop100Candidates(),
+        preferNonSubscription: true,
+      );
+      if (purchaseInfo == null) {
+        _setProductResolveError(PurchaseProductIds.exactDrop100);
+        return false;
+      }
+      // 구매 성공 → 100 크레딧 즉시 grant (Firestore sync 포함).
+      await appState.adminGrantExactDropCredits(100);
+      _stopLoading();
+      return true;
     } on PlatformException catch (e) {
       _handlePlatformException(e);
       return false;
