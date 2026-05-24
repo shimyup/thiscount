@@ -62,6 +62,11 @@ class BrandZone {
   /// Zone 생성 시각.
   final DateTime createdAt;
 
+  /// Build 343 (PR-S14 3차 시뮬레이션): zone 자동 발급 letter 에 매장 POS 코드
+  ///   동봉 여부. true 면 zone 자체에 고정 코드 1개 부여 (zone = campaign 1:1).
+  ///   null 또는 false 면 코드 없는 일반 letter — 기존 behavior.
+  final String? redemptionCode;
+
   const BrandZone({
     required this.id,
     required this.brandId,
@@ -75,6 +80,7 @@ class BrandZone {
     this.maxRedeems = 0,
     this.redeemedCount = 0,
     required this.createdAt,
+    this.redemptionCode,
   });
 
   /// 현재 활성 상태인지 — 시간 + 수량 모두 통과해야 true.
@@ -107,6 +113,7 @@ class BrandZone {
         'maxRedeems': maxRedeems,
         'redeemedCount': redeemedCount,
         'createdAt': createdAt.toUtc().toIso8601String(),
+        if (redemptionCode != null) 'redemptionCode': redemptionCode,
       };
 
   factory BrandZone.fromJson(Map<String, dynamic> j) => BrandZone(
@@ -122,6 +129,7 @@ class BrandZone {
         maxRedeems: (j['maxRedeems'] as num?)?.toInt() ?? 0,
         redeemedCount: (j['redeemedCount'] as num?)?.toInt() ?? 0,
         createdAt: DateTime.parse(j['createdAt'] as String).toLocal(),
+        redemptionCode: j['redemptionCode'] as String?,
       );
 
   BrandZone copyWith({int? redeemedCount}) => BrandZone(
