@@ -1682,9 +1682,9 @@ class AppL10n {
       case 'ko':
         return '$label $hour시에 쓴 홍보';
       case 'ja':
-        return '$label $hour時に書かれた手紙';
+        return '$label $hour時に書かれたクーポン';
       case 'zh':
-        return '在$label $hour点写下的信';
+        return '在$label $hour点写下的优惠券';
       case 'fr':
         return "Lettre écrite $label à ${hour}h";
       case 'de':
@@ -2150,29 +2150,31 @@ class AppL10n {
       case 'ko':
         return '이번 주 당신의 홍보 $letters통이 $countries개 나라·$continents개 대륙으로 떠났어요 🌍';
       case 'ja':
-        return '今週、あなたの手紙$letters通が$countriesヶ国・$continents大陸へと旅立ちました 🌍';
+        return '今週、あなたのクーポン$letters通が$countriesヶ国・$continents大陸へと旅立ちました 🌍';
       case 'zh':
-        return '本周你的 $letters 封信飞往了 $countries 个国家 · $continents 个大洲 🌍';
+        return '本周你的 $letters 张优惠券飞往了 $countries 个国家 · $continents 个大洲 🌍';
+      // Build 348 (PR-U4 letter→쿠폰 14언어): weeklyReflectionSummary 의
+      //   letter/Brief/carta 등 잔존 letter 단어를 coupon 으로 통일.
       case 'fr':
-        return 'Cette semaine, $letters de vos lettres sont parties vers $countries pays et $continents continents 🌍';
+        return 'Cette semaine, $letters de vos coupons sont partis vers $countries pays et $continents continents 🌍';
       case 'de':
-        return 'Diese Woche reisten $letters Briefe in $countries Länder auf $continents Kontinenten 🌍';
+        return 'Diese Woche reisten $letters Coupons in $countries Länder auf $continents Kontinenten 🌍';
       case 'es':
-        return 'Esta semana, $letters cartas tuyas partieron a $countries países · $continents continentes 🌍';
+        return 'Esta semana, $letters cupones tuyos partieron a $countries países · $continents continentes 🌍';
       case 'pt':
-        return 'Esta semana, $letters cartas suas partiram para $countries países · $continents continentes 🌍';
+        return 'Esta semana, $letters cupões seus partiram para $countries países · $continents continentes 🌍';
       case 'ru':
-        return 'На этой неделе $letters ваших писем ушли в $countries стран · $continents континентов 🌍';
+        return 'На этой неделе $letters ваших купонов отправились в $countries стран · $continents континентов 🌍';
       case 'tr':
-        return 'Bu hafta $letters mektubunuz $countries ülkeye · $continents kıtaya gitti 🌍';
+        return 'Bu hafta $letters kuponunuz $countries ülkeye · $continents kıtaya gitti 🌍';
       case 'ar':
-        return 'هذا الأسبوع، $letters من رسائلك سافرت إلى $countries دولة · $continents قارة 🌍';
+        return 'هذا الأسبوع، $letters من كوبوناتك سافرت إلى $countries دولة · $continents قارة 🌍';
       case 'it':
-        return 'Questa settimana $letters tue lettere sono partite verso $countries paesi · $continents continenti 🌍';
+        return 'Questa settimana $letters tuoi coupon sono partiti verso $countries paesi · $continents continenti 🌍';
       case 'hi':
-        return 'इस हफ़्ते आपके $letters पत्र $countries देशों · $continents महाद्वीपों को गए 🌍';
+        return 'इस हफ़्ते आपके $letters कूपन $countries देशों · $continents महाद्वीपों को गए 🌍';
       case 'th':
-        return 'สัปดาห์นี้ จดหมาย $letters ฉบับของคุณเดินทางไปยัง $countries ประเทศ · $continents ทวีป 🌍';
+        return 'สัปดาห์นี้ คูปอง $letters ใบของคุณเดินทางไปยัง $countries ประเทศ · $continents ทวีป 🌍';
       case 'en':
       default:
         return 'This week, $letters of your letters traveled to $countries countries across $continents continents 🌍';
@@ -2184,32 +2186,33 @@ class AppL10n {
       case 'ko':
         return '가장 멀리 떠난 혜택은 ${km}km를 여행했어요 ✈️';
       case 'ja':
-        return '最も遠く旅した手紙は${km}kmを旅しました ✈️';
+        return '最も遠く旅したクーポンは${km}kmを旅しました ✈️';
       case 'zh':
-        return '最远的那封信旅行了 ${km} 公里 ✈️';
+        return '最远的那张优惠券旅行了 ${km} 公里 ✈️';
+      // Build 348 (PR-U4): "farthest letter" 도 14언어 일괄 coupon 화.
       case 'fr':
-        return 'Votre lettre la plus lointaine a parcouru ${km} km ✈️';
+        return 'Votre coupon le plus lointain a parcouru ${km} km ✈️';
       case 'de':
-        return 'Der weiteste Brief reiste ${km} km ✈️';
+        return 'Der weiteste Coupon reiste ${km} km ✈️';
       case 'es':
-        return 'La carta más lejana viajó ${km} km ✈️';
+        return 'El cupón más lejano viajó ${km} km ✈️';
       case 'pt':
-        return 'A carta mais distante viajou ${km} km ✈️';
+        return 'O cupão mais distante viajou ${km} km ✈️';
       case 'ru':
-        return 'Самое дальнее письмо преодолело ${km} км ✈️';
+        return 'Самый дальний купон преодолел ${km} км ✈️';
       case 'tr':
-        return 'En uzun yolculuk ${km} km oldu ✈️';
+        return 'En uzun yolculuk yapan kupon ${km} km ✈️';
       case 'ar':
-        return 'أبعد رسالة سافرت ${km} كم ✈️';
+        return 'أبعد كوبون سافر ${km} كم ✈️';
       case 'it':
-        return 'La lettera più lontana ha percorso ${km} km ✈️';
+        return 'Il coupon più lontano ha percorso ${km} km ✈️';
       case 'hi':
-        return 'सबसे दूर गया पत्र ${km} किमी चला ✈️';
+        return 'सबसे दूर गया कूपन ${km} किमी चला ✈️';
       case 'th':
-        return 'จดหมายที่ไปไกลที่สุดเดินทาง ${km} กม. ✈️';
+        return 'คูปองที่ไปไกลที่สุดเดินทาง ${km} กม. ✈️';
       case 'en':
       default:
-        return 'Your farthest letter traveled ${km} km ✈️';
+        return 'Your farthest coupon traveled ${km} km ✈️';
     }
   }
 
@@ -2217,10 +2220,10 @@ class AppL10n {
     'ko': '이 이미 답장을 보냈어요 · 한 한 번만 답장할 수 있어요',
     'en': 'You\'ve already replied to this reward — one reply per reward',
     'ja': 'この特典にはすでに返信済みです — 1通につき1回のみ',
-    'zh': '你已经回复过这封信 · 每封优惠券只能回复一次',
+    'zh': '你已经回复过这张优惠券 · 每张只能回复一次',
     'fr': 'Vous avez déjà répondu à cette récompense — une réponse par récompense',
     'de':
-        'Du hast auf diesen Brief bereits geantwortet — eine Antwort pro Brief',
+        'Du hast auf diesen Coupon bereits geantwortet — eine Antwort pro Coupon',
     'es': 'Ya respondiste a esta recompensa — una respuesta por recompensa',
     'pt': 'Você já respondeu a esta recompensa — uma resposta por recompensa',
     'ru': 'Вы уже ответили на эту награду — один ответ на награду',
@@ -2285,17 +2288,17 @@ class AppL10n {
     'ja': '文学Botが書いた特典なので、返信は届きません。他の特典に返信してみてください。',
     'zh': '这封优惠券由文学机器人撰写，回复不会被送达。可以回复其他优惠券。',
     'fr':
-        'Cette lettre vient d\'un bot littéraire — les réponses n\'atteindront personne. Répondez plutôt à une vraie lettre.',
+        'Ce coupon vient d\'un bot littéraire — les réponses n\'atteindront personne. Répondez plutôt à un vrai coupon.',
     'de':
-        'Dieser Brief kommt von einem Literatur-Bot — Antworten erreichen niemanden. Beantworte lieber einen echten Brief.',
+        'Dieser Coupon kommt von einem Literatur-Bot — Antworten erreichen niemanden. Beantworte lieber einen echten Coupon.',
     'es':
-        'Esta carta la escribió un bot literario, así que las respuestas no llegan a nadie. Responde a una carta real.',
+        'Este cupón lo escribió un bot literario, así que las respuestas no llegan a nadie. Responde a un cupón real.',
     'pt':
-        'Esta carta veio de um bot literário — respostas não chegam a ninguém. Responda a uma carta real.',
+        'Este cupão veio de um bot literário — respostas não chegam a ninguém. Responda a um cupão real.',
     'ru':
-        'Это письмо написал литературный бот, поэтому ответы никуда не дойдут. Ответьте на реальное письмо.',
+        'Этот купон написал литературный бот, поэтому ответы никуда не дойдут. Ответьте на реальный купон.',
     'tr':
-        'Bu mektup bir edebiyat botundan — cevaplar kimseye ulaşmaz. Gerçek bir mektuba cevap verin.',
+        'Bu kupon bir edebiyat botundan — cevaplar kimseye ulaşmaz. Gerçek bir kupona cevap verin.',
     'ar':
         'كُتبت هذه الرسالة بواسطة بوت أدبي، لذا لن تصل الردود. جرب الرد على رسالة حقيقية.',
     'it':
@@ -5498,9 +5501,9 @@ class AppL10n {
     'en':
         'Welcome to Thiscount! ✨\n\nPick up this reward to try the hunt experience. Walk close and tap it.\n\nThe 📍 Nearby counter on the map will light up as soon as you\'re in range.\n\nBrands from around the world drop coupons and event rewards — happy hunting!',
     'ja':
-        'Thiscount へようこそ！✨\n\nこの手紙を拾って体験を始めましょう。近づいてタップしてください。\n\n範囲に入ると地図の 📍 近くのカウンターが反応します。\n\n世界中のブランドが落とす割引・イベント手紙をお楽しみください！',
+        'Thiscount へようこそ！✨\n\nこのクーポンを拾って体験を始めましょう。近づいてタップしてください。\n\n範囲に入ると地図の 📍 近くのカウンターが反応します。\n\n世界中のブランドが落とす割引・イベントクーポンをお楽しみください！',
     'zh':
-        '欢迎来到 Thiscount！✨\n\n拾起这封信体验"拾取"玩法。靠近并点击它即可。\n\n进入范围后地图上的 📍 附近计数器会亮起。\n\n来自世界各地的品牌在此投放优惠与活动信件——祝你好运！',
+        '欢迎来到 Thiscount！✨\n\n拾起这张优惠券体验"拾取"玩法。靠近并点击它即可。\n\n进入范围后地图上的 📍 附近计数器会亮起。\n\n来自世界各地的品牌在此投放优惠与活动券——祝你好运！',
     'fr':
         'Bienvenue dans Thiscount ! ✨\n\nRamasse cette lettre pour découvrir l\'expérience. Approche-toi et appuie dessus.\n\nLe compteur 📍 À proximité s\'allumera dès que tu seras à portée.\n\nDes marques du monde entier déposent coupons et lettres promo — bonne chasse !',
     'de':
@@ -6597,15 +6600,15 @@ class AppL10n {
     'en': 'Each user can pick up only 1 letter from this send',
     'ja': '1人のユーザーがこの発送から受け取れるのは1通だけです',
     'zh': '每个用户在本次发送中只能领取1封',
-    'fr': 'Chaque utilisateur ne peut récupérer qu\'1 lettre de cet envoi',
-    'de': 'Jeder Nutzer kann nur 1 Brief aus diesem Versand abholen',
-    'es': 'Cada usuario puede recibir solo 1 carta de este envío',
-    'pt': 'Cada usuário pode receber apenas 1 carta deste envio',
-    'ru': 'Каждый пользователь может получить только 1 письмо из этой рассылки',
-    'tr': 'Her kullanıcı bu gönderimden yalnızca 1 mektup alabilir',
-    'ar': 'يمكن لكل مستخدم استلام رسالة واحدة فقط من هذا الإرسال',
-    'it': 'Ogni utente può ricevere solo 1 lettera da questo invio',
-    'hi': 'प्रत्येक उपयोगकर्ता इस भेजने से केवल 1 पत्र प्राप्त कर सकता है',
+    'fr': 'Chaque utilisateur ne peut récupérer qu\'1 coupon de cet envoi',
+    'de': 'Jeder Nutzer kann nur 1 Coupon aus diesem Versand abholen',
+    'es': 'Cada usuario puede recibir solo 1 cupón de este envío',
+    'pt': 'Cada usuário pode receber apenas 1 cupão deste envio',
+    'ru': 'Каждый пользователь может получить только 1 купон из этой рассылки',
+    'tr': 'Her kullanıcı bu gönderimden yalnızca 1 kupon alabilir',
+    'ar': 'يمكن لكل مستخدم استلام كوبون واحد فقط من هذا الإرسال',
+    'it': 'Ogni utente può ricevere solo 1 coupon da questo invio',
+    'hi': 'प्रत्येक उपयोगकर्ता इस भेजने से केवल 1 कूपन प्राप्त कर सकता है',
     'th': 'ผู้ใช้แต่ละคนรับได้เพียง 1 ฉบับจากการส่งครั้งนี้',
   });
 
@@ -8388,9 +8391,9 @@ class AppL10n {
       case 'en':
         return 'No $filterName rewards yet';
       case 'ja':
-        return 'まだ$filterNameの手紙がありません';
+        return 'まだ$filterNameのクーポンがありません';
       case 'zh':
-        return '暂无$filterName信件';
+        return '暂无$filterName优惠券';
       case 'fr':
         return 'Pas encore de lettres $filterName';
       case 'de':
@@ -15268,9 +15271,9 @@ class AppL10n {
     'en':
         'Without GPS consent the following are disabled:\n\n• 📍 Pick up nearby rewards\n• 📣 Send promos (Premium/Brand)\n• 🗺 Show your location marker\n\nYou can enable it later in Settings, but we strongly recommend consenting now.',
     'ja':
-        'GPS 同意なしでは次の機能が使えません:\n\n• 📍 周辺の手紙を拾う\n• ✉️ 手紙を送る (Premium/Brand)\n• 🗺 自分の位置マーカー\n\n設定から後で許可できますが、今すぐ同意することを強くお勧めします。',
+        'GPS 同意なしでは次の機能が使えません:\n\n• 📍 周辺のクーポンを拾う\n• ✉️ クーポンを送る (Premium/Brand)\n• 🗺 自分の位置マーカー\n\n設定から後で許可できますが、今すぐ同意することを強くお勧めします。',
     'zh':
-        '没有 GPS 同意将无法使用:\n\n• 📍 拾起附近信件\n• ✉️ 发送信件 (Premium/Brand)\n• 🗺 显示我的位置\n\n可在设置中重新允许，但强烈建议现在同意。',
+        '没有 GPS 同意将无法使用:\n\n• 📍 拾起附近优惠券\n• ✉️ 发送优惠券 (Premium/Brand)\n• 🗺 显示我的位置\n\n可在设置中重新允许，但强烈建议现在同意。',
     'fr':
         'Sans consentement GPS, désactivé:\n\n• 📍 Ramasser des lettres\n• ✉️ Envoyer (Premium/Brand)\n• 🗺 Marqueur de position\n\nActivable plus tard dans Paramètres, mais nous recommandons fortement maintenant.',
     'de':
@@ -19776,7 +19779,7 @@ class AppL10n {
     'th': 'ส่งรางวัลโปรโมต',
   });
 
-  // Build 240: 14개 언어 letter/편지/手紙 잔존 → promos/rewards 통일
+  // Build 240: 14개 언어 letter/편지/クーポン 잔존 → promos/rewards 통일
   String get composeGateDesc => _t({
     'ko':
         '혜택을 세계에 뿌리고 싶다면 Premium 으로 업그레이드하세요.\n📸 사진 첨부 · 🔗 채널/SNS 링크로 나를 홍보할 수 있어요.\n무료 회원은 지도에서 혜택을 주워 사용할 수 있어요.',
@@ -23912,21 +23915,23 @@ class AppL10n {
     'th': 'แบรนด์',
   });
 
+  // Build 348 (PR-U4): "BRAND LETTER" 라벨 — 모든 언어 "브랜드 쿠폰" 통일.
+  //   기존 LETTRE / BRIEF / CARTA / PISMO / MEKTUP 잔존 letter 단어 일괄 정리.
   String get labelBrandLetter => _t({
-    'ko': '브랜드 레터',
-    'en': 'BRAND LETTER',
-    'ja': 'ブランドレター',
+    'ko': '브랜드 쿠폰',
+    'en': 'BRAND COUPON',
+    'ja': 'ブランドクーポン',
     'zh': '品牌优惠券',
-    'fr': 'LETTRE DE MARQUE',
-    'de': 'MARKENBRIEF',
-    'es': 'CARTA DE MARCA',
-    'pt': 'CARTA DA MARCA',
-    'ru': 'ПИСЬМО БРЕНДА',
-    'tr': 'MARKA MEKTUP',
-    'ar': 'مكافأة العلامة التجارية',
-    'it': 'LETTERA BRAND',
-    'hi': 'ब्रांड पुरस्कार',
-    'th': 'รางวัลแบรนด์',
+    'fr': 'COUPON DE MARQUE',
+    'de': 'MARKEN-COUPON',
+    'es': 'CUPÓN DE MARCA',
+    'pt': 'CUPÃO DE MARCA',
+    'ru': 'КУПОН БРЕНДА',
+    'tr': 'MARKA KUPONU',
+    'ar': 'كوبون العلامة التجارية',
+    'it': 'COUPON BRAND',
+    'hi': 'ब्रांड कूपन',
+    'th': 'คูปองแบรนด์',
   });
 
   String get labelAdmin => _t({
@@ -24044,13 +24049,13 @@ class AppL10n {
         'Reviews are conducted solely to determine violations of community guidelines. '
         'If a violation is confirmed, content may be blocked and account restrictions may apply.',
     'ja':
-        '管理者は日常的にあなたの手紙の内容を閲覧しません。'
-        '手紙の内容は、他のユーザーから報告があった場合にのみ確認されます。'
+        '管理者は日常的にあなたのクーポンの内容を閲覧しません。'
+        'クーポンの内容は、他のユーザーから報告があった場合にのみ確認されます。'
         '確認はコミュニティガイドライン違反の判断のためにのみ行われ、'
         '違反が確認された場合、コンテンツのブロックやアカウント制限が行われることがあります。',
     'zh':
-        '管理员不会日常访问您的信件内容。'
-        '仅在其他用户提交举报时才会审查信件。'
+        '管理员不会日常访问您的优惠券内容。'
+        '仅在其他用户提交举报时才会审查优惠券。'
         '审查仅用于判断是否违反社区准则。'
         '如确认违规，相关内容可能被屏蔽，账号可能受到限制。',
     'fr':
@@ -24521,13 +24526,13 @@ class AppL10n {
     'ja':
         'Thiscountはあなたのプライバシーを尊重します。\n\n'
         '📋 基本原則\n'
-        '管理者はあなたの手紙の内容を日常的に閲覧しません。\n\n'
+        '管理者はあなたのクーポンの内容を日常的に閲覧しません。\n\n'
         '🔍 閲覧が行われる場合\n'
-        '• 他のユーザーがその手紙を報告した場合\n'
+        '• 他のユーザーがそのクーポンを報告した場合\n'
         '• 法的要請がある場合\n'
         '• サービスの安全に重大な脅威がある場合\n\n'
         '⚖️ 閲覧手順\n'
-        '1. 報告受理後、該当の手紙のみ確認\n'
+        '1. 報告受理後、該当のクーポンのみ確認\n'
         '2. コミュニティガイドライン違反の判断\n'
         '3. 違反の場合：コンテンツブロック＋送信者への警告\n'
         '4. 3回以上の違反：アカウント永久停止\n\n'
@@ -24536,13 +24541,13 @@ class AppL10n {
     'zh':
         'Thiscount 尊重您的隐私。\n\n'
         '📋 核心原则\n'
-        '管理员不会日常访问您的信件内容。\n\n'
+        '管理员不会日常访问您的优惠券内容。\n\n'
         '🔍 审查发生的情况\n'
-        '• 当其他用户举报该信件时\n'
+        '• 当其他用户举报该优惠券时\n'
         '• 当法律要求时\n'
         '• 当服务安全面临严重威胁时\n\n'
         '⚖️ 审查流程\n'
-        '1. 收到举报后，仅审查被举报的信件\n'
+        '1. 收到举报后，仅审查被举报的优惠券\n'
         '2. 判断是否违反社区准则\n'
         '3. 如确认违规：屏蔽内容 + 警告发件人\n'
         '4. 违规3次以上：永久封禁账号\n\n'
@@ -24757,10 +24762,10 @@ class AppL10n {
         '• 3+ offenses: Permanent account suspension\n\n'
         'If you receive an inappropriate reward, please report it using the 🚩 button on the reward screen.',
     'ja':
-        'Thiscountは世界中のユーザーが手紙でつながる場所です。\n'
+        'Thiscountは世界中のユーザーがクーポンでつながる場所です。\n'
         '安全で楽しい体験のために、以下のルールを守ってください。\n\n'
         '✅ 推奨事項\n'
-        '• 丁寧で親しみやすいトーンで手紙を書いてください\n'
+        '• 丁寧で親しみやすいトーンでクーポンを書いてください\n'
         '• 多様な文化と言語を尊重してください\n'
         '• ポジティブで建設的な内容を共有してください\n\n'
         '❌ 禁止事項\n'
@@ -24774,9 +24779,9 @@ class AppL10n {
         '• 1回目：コンテンツブロック＋警告\n'
         '• 2回目：一時的なサービス制限\n'
         '• 3回以上：アカウント永久停止\n\n'
-        '不適切な手紙を受け取った場合は、手紙画面の🚩ボタンで報告してください。',
+        '不適切なクーポンを受け取った場合は、クーポン画面の🚩ボタンで報告してください。',
     'zh':
-        'Thiscount 是全球用户通过信件连接的空间。\n'
+        'Thiscount 是全球用户通过优惠券连接的空间。\n'
         '请遵守以下规则，让每个人都能有安全、愉快的体验。\n\n'
         '✅ 鼓励的行为\n'
         '• 用礼貌、友好的语气写信\n'
@@ -24793,7 +24798,7 @@ class AppL10n {
         '• 第1次：屏蔽内容 + 警告\n'
         '• 第2次：暂时限制服务\n'
         '• 3次以上：永久封禁账号\n\n'
-        '如收到不当信件，请在信件页面点击🚩按钮举报。',
+        '如收到不当优惠券，请在优惠券页面点击🚩按钮举报。',
     'fr':
         'Thiscount est un espace où les utilisateurs du monde entier communiquent par lettres.\n'
         'Suivez ces règles pour que chacun puisse vivre une expérience sûre et agréable.\n\n'
@@ -28422,12 +28427,12 @@ class AppL10n {
     'ja': '1キャンペーン = 1コード。100人に送っても店舗登録は1回。',
     'zh': '一个活动 = 一个代码。发给 100 人，门店只需登记 1 次。',
     'fr': 'Une campagne = un code. 100 envois = 1 enregistrement au POS.',
-    'de': 'Eine Kampagne = ein Code. 100 Briefe = 1 POS-Eintrag.',
+    'de': 'Eine Kampagne = ein Code. 100 Coupons = 1 POS-Eintrag.',
     'es': 'Una campaña = un código. 100 envíos = 1 registro en POS.',
     'pt': 'Uma campanha = um código. 100 envios = 1 registo no POS.',
     'ru': 'Одна кампания = один код. 100 писем = 1 запись в POS.',
     'tr': 'Bir kampanya = bir kod. 100 gönderi = POS\'a 1 kayıt.',
-    'ar': 'حملة واحدة = رمز واحد. 100 رسالة = تسجيل واحد في POS.',
+    'ar': 'حملة واحدة = رمز واحد. 100 كوبون = تسجيل واحد في POS.',
     'it': 'Una campagna = un codice. 100 invii = 1 registrazione POS.',
     'hi': 'एक अभियान = एक कोड। 100 भेजें, POS में बस 1 बार रजिस्टर।',
     'th': '1 แคมเปญ = 1 รหัส. ส่ง 100 คน ลงทะเบียนที่ POS แค่ 1 ครั้ง',
