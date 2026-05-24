@@ -739,7 +739,7 @@ class AppL10n {
     'tr':
         'Marka kuponları, çekleri ve promo mesajları dünya haritasına düşer. Etrafındaki 200 m içindeki ödülleri topla ve hemen kullan. Küresel mekânsal kupon platformu.',
     'ar':
-        'قسائم العلامات التجارية وكوبوناتها ورسائلها الترويجية تسقط على خريطة العالم. التقط المكافآت ضمن 200 م حولك واستخدمها فورًا. منصة عالمية للقسائم المكانية.',
+        'قسائم العلامات التجارية وكوبوناتها وقسائمها الترويجية تسقط على خريطة العالم. التقط المكافآت ضمن 200 م حولك واستخدمها فورًا. منصة عالمية للقسائم المكانية.',
     'it':
         'Coupon, buoni e messaggi promo dei brand cadono sulla mappa mondiale. Raccogli le ricompense entro 200 m e usale subito. Piattaforma globale di coupon spaziali.',
     'hi':
@@ -1686,25 +1686,25 @@ class AppL10n {
       case 'zh':
         return '在$label $hour点写下的优惠券';
       case 'fr':
-        return "Lettre écrite $label à ${hour}h";
+        return "Coupon écrit $label à ${hour}h";
       case 'de':
-        return 'Brief geschrieben $label um $hour Uhr';
+        return 'Coupon geschrieben $label um $hour Uhr';
       case 'es':
-        return "Carta escrita $label a las $hour";
+        return "Cupón escrito $label a las $hour";
       case 'pt':
-        return "Carta escrita $label às $hour";
+        return "Cupom escrito $label às $hour";
       case 'ru':
-        return 'Письмо написано $label в $hour:00';
+        return 'Купон написано $label в $hour:00';
       case 'tr':
         return '$label saat $hour\'da yazıldı';
       case 'ar':
-        return 'رسالة كُتبت $label عند الساعة $hour';
+        return 'قسيمة كُتبت $label عند الساعة $hour';
       case 'it':
-        return "Lettera scritta $label alle $hour";
+        return "Coupon scritto $label alle $hour";
       case 'hi':
-        return '$label $hour बजे लिखा पत्र';
+        return '$label $hour बजे लिखा कूपन';
       case 'th':
-        return 'จดหมายที่เขียนใน$labelเวลา $hour นาฬิกา';
+        return 'คูปองที่เขียนใน$labelเวลา $hour นาฬิกา';
       case 'en':
       default:
         return 'Written $label at $hour:00';
@@ -1795,17 +1795,17 @@ class AppL10n {
       case 'fr':
         return '${n}e échange';
       case 'de':
-        return '$n. Brief';
+        return '$n. Coupon';
       case 'es':
         return '${n}º intercambio';
       case 'pt':
         return '${n}º intercâmbio';
       case 'ru':
-        return '$n-е письмо';
+        return '$n-е купон';
       case 'tr':
-        return '$n. mektup';
+        return '$n. kupon';
       case 'ar':
-        return 'الرسالة ${n}';
+        return 'القسيمة ${n}';
       case 'it':
         return '${n}º scambio';
       case 'hi':
@@ -2300,11 +2300,11 @@ class AppL10n {
     'tr':
         'Bu kupon bir edebiyat botundan — cevaplar kimseye ulaşmaz. Gerçek bir kupona cevap verin.',
     'ar':
-        'كُتبت هذه الرسالة بواسطة بوت أدبي، لذا لن تصل الردود. جرب الرد على رسالة حقيقية.',
+        'كُتبت هذه القسيمة بواسطة بوت أدبي، لذا لن تصل الردود. جرب الرد على قسيمة حقيقية.',
     'it':
-        'Questa lettera viene da un bot letterario — le risposte non arrivano a nessuno. Rispondi a una lettera reale.',
+        'Questo coupon viene da un bot letterario — le risposte non arrivano a nessuno. Rispondi a un coupon reale.',
     'hi':
-        'यह पत्र एक साहित्यिक बॉट ने लिखा है, जवाब किसी तक नहीं पहुँचेंगे। असली पत्र का जवाब दें।',
+        'यह कूपन एक साहित्यिक बॉट ने लिखा है, जवाब किसी तक नहीं पहुँचेंगे। असली कूपन का जवाब दें।',
     'th': 'รางวัลนี้เขียนโดยบอตวรรณกรรม คำตอบจะไม่ถึงใคร ลองตอบรางวัลจริงแทน',
   });
   String get replyFomoHint => _t({
@@ -2346,25 +2346,25 @@ class AppL10n {
     'ja': '「今日、特典は届いたかな？」\n毎朝8時に、そっと特典箱を開くようお知らせします。',
     'zh': '"今天有我的优惠券吗？"\n每天早上 8 点轻轻提醒你打开信箱——不喧哗。',
     'fr':
-        '"Ai-je reçu une lettre aujourd\'hui ?"\nUn rappel doux à 8h pour ouvrir votre boîte.',
+        '"Ai-je reçu un coupon aujourd\'hui ?"\nUn rappel doux à 8h pour ouvrir votre boîte.',
     'de':
-        '"Ist heute ein Brief für mich da?"\nEin leiser 8-Uhr-Hinweis, den Briefkasten zu öffnen.',
+        '"Ist heute ein Coupon für mich da?"\nEin leiser 8-Uhr-Hinweis, den Briefkasten zu öffnen.',
     'es':
-        '"¿Hoy me ha llegado una carta?"\nUn aviso suave a las 8 para abrir tu buzón.',
+        '"¿Hoy me ha llegado un cupón?"\nUn aviso suave a las 8 para abrir tu buzón.',
     'pt':
-        '"Chegou uma carta pra mim hoje?"\nUm lembrete sutil às 8h para abrir sua caixa.',
+        '"Chegou um cupom pra mim hoje?"\nUm lembrete sutil às 8h para abrir sua caixa.',
     'ru':
-        '"Пришло ли мне сегодня письмо?"\nЛёгкое напоминание в 8 утра открыть почтовый ящик.',
+        '"Пришло ли мне сегодня купон?"\nЛёгкое напоминание в 8 утра открыть почтовый ящик.',
     'tr':
-        '"Bugün bana mektup geldi mi?"\nSabah 8\'de posta kutunu açman için sakin bir hatırlatma.',
+        '"Bugün bana kupon geldi mi?"\nSabah 8\'de posta kutunu açman için sakin bir hatırlatma.',
     'ar':
-        '"هل وصلتني رسالة اليوم؟"\nتذكير هادئ الساعة 8 صباحاً لتفتح صندوق رسائلك.',
+        '"هل وصلتني قسيمة اليوم؟"\nتذكير هادئ الساعة 8 صباحاً لتفتح صندوق قسائمك.',
     'it':
-        '"Mi è arrivata una lettera oggi?"\nUn promemoria gentile alle 8 per aprire la tua buca.',
+        '"Mi è arrivato un coupon oggi?"\nUn promemoria gentile alle 8 per aprire la tua buca.',
     'hi':
-        '"क्या आज मेरे लिए पत्र आया?"\nसुबह 8 बजे मेलबॉक्स खोलने की शांत याद।',
+        '"क्या आज मेरे लिए कूपन आया?"\nसुबह 8 बजे मेलबॉक्स खोलने की शांत याद।',
     'th':
-        '"วันนี้มีจดหมายถึงฉันไหม?"\nการเตือนเบา ๆ เวลา 8 โมงให้เปิดกล่องจดหมาย',
+        '"วันนี้มีคูปองถึงฉันไหม?"\nการเตือนเบา ๆ เวลา 8 โมงให้เปิดกล่องคูปอง',
   });
   String get reminderPrepromptYes => _t({
     'ko': '좋아요',
@@ -3564,23 +3564,23 @@ class AppL10n {
     'fr':
         'La permission de localisation peut aussi être demandée lors de l\'envoi.\nAcceptez maintenant pour utiliser les fonctions de localisation immédiatement.',
     'de':
-        'Die Standortberechtigung kann auch beim Versenden von Briefen angefragt werden.\nStimmen Sie jetzt zu, um standortbasierte Funktionen sofort zu nutzen.',
+        'Die Standortberechtigung kann auch beim Versenden von Coupons angefragt werden.\nStimmen Sie jetzt zu, um standortbasierte Funktionen sofort zu nutzen.',
     'es':
-        'El permiso de ubicación también se puede solicitar al enviar cartas.\nAcepte ahora para usar funciones basadas en ubicación de inmediato.',
+        'El permiso de ubicación también se puede solicitar al enviar cupones.\nAcepte ahora para usar funciones basadas en ubicación de inmediato.',
     'pt':
-        'A permissão de localização também pode ser solicitada ao enviar cartas.\nConcorde agora para usar recursos baseados em localização imediatamente.',
+        'A permissão de localização também pode ser solicitada ao enviar cupons.\nConcorde agora para usar recursos baseados em localização imediatamente.',
     'ru':
-        'Разрешение на геолокацию может запрашиваться при отправке писем.\nСогласитесь сейчас, чтобы сразу использовать функции геолокации.',
+        'Разрешение на геолокацию может запрашиваться при отправке купонов.\nСогласитесь сейчас, чтобы сразу использовать функции геолокации.',
     'tr':
-        'Mektup gönderirken de konum izni istenebilir.\nŞimdi kabul ederek konum tabanlı özellikleri hemen kullanabilirsiniz.',
+        'Kupon gönderirken de konum izni istenebilir.\nŞimdi kabul ederek konum tabanlı özellikleri hemen kullanabilirsiniz.',
     'ar':
-        'يمكن طلب إذن الموقع أيضاً عند إرسال الرسائل.\nوافق الآن لاستخدام ميزات الموقع فوراً.',
+        'يمكن طلب إذن الموقع أيضاً عند إرسال القسائم.\nوافق الآن لاستخدام ميزات الموقع فوراً.',
     'it':
         'Il permesso di localizzazione può essere richiesto anche durante l\'invio.\nAccetta ora per usare subito le funzioni basate sulla posizione.',
     'hi':
-        'पत्र भेजते समय भी स्थान अनुमति मांगी जा सकती है।\nअभी सहमत होकर स्थान-आधारित सुविधाओं का उपयोग करें।',
+        'कूपन भेजते समय भी स्थान अनुमति मांगी जा सकती है।\nअभी सहमत होकर स्थान-आधारित सुविधाओं का उपयोग करें।',
     'th':
-        'การอนุญาตตำแหน่งสามารถขอได้เมื่อส่งจดหมาย\nยินยอมตอนนี้เพื่อใช้ฟีเจอร์ตำแหน่งทันที',
+        'การอนุญาตตำแหน่งสามารถขอได้เมื่อส่งคูปอง\nยินยอมตอนนี้เพื่อใช้ฟีเจอร์ตำแหน่งทันที',
   });
 
   String get authGranted => _t({
@@ -3828,14 +3828,14 @@ class AppL10n {
     'ja': 'サービス提供、特典の送受信、アカウント管理',
     'zh': '服务提供、优惠券发送和接收、账号管理',
     'fr':
-        'Fourniture du service, envoi et réception de lettres, gestion du compte',
+        'Fourniture du service, envoi et réception de coupons, gestion du compte',
     'de': 'Dienstleistung, Senden und Empfangen von Belohnungen, Kontoverwaltung',
     'es':
-        'Prestación del servicio, envío y recepción de cartas, gestión de cuenta',
+        'Prestación del servicio, envío y recepción de cupones, gestión de cuenta',
     'pt':
-        'Prestação de serviço, envio e recebimento de cartas, gestão de conta',
+        'Prestação de serviço, envio e recebimento de cupons, gestão de conta',
     'ru':
-        'Предоставление услуг, отправка и получение писем, управление аккаунтом',
+        'Предоставление услуг, отправка и получение купонов, управление аккаунтом',
     'tr': 'Hizmet sunumu, ödül gönderme ve alma, hesap yönetimi',
     'ar': 'تقديم الخدمة، إرسال واستقبال المكافآت، إدارة الحساب',
     'it': 'Erogazione servizio, invio e ricezione ricompense, gestione account',
@@ -4153,25 +4153,25 @@ class AppL10n {
     'ja': '特典に写真を1枚添付できます。\nプレミアム会員は1日20通まで画像付き特典を送れます。',
     'zh': '可以给信附上1张照片。\n高级会员每天最多可发送20封带图片的优惠券。',
     'fr':
-        'Joignez 1 photo à votre lettre.\nLes membres Premium peuvent envoyer jusqu\'à 20 lettres avec image par jour.',
+        'Joignez 1 photo à votre coupon.\nLes membres Premium peuvent envoyer jusqu\'à 20 coupons avec image par jour.',
     'de':
-        'Fügen Sie 1 Foto an Ihren Brief an.\nPremium-Mitglieder können bis zu 20 Bildbriefe pro Tag senden.',
+        'Fügen Sie 1 Foto an Ihren Coupon an.\nPremium-Mitglieder können bis zu 20 Bildcoupons pro Tag senden.',
     'es':
-        'Adjunta 1 foto a tu carta.\nLos miembros Premium pueden enviar hasta 20 cartas con imagen al día.',
+        'Adjunta 1 foto a tu cupón.\nLos miembros Premium pueden enviar hasta 20 cupones con imagen al día.',
     'pt':
-        'Anexe 1 foto à sua carta.\nMembros Premium podem enviar até 20 cartas com imagem por dia.',
+        'Anexe 1 foto ao seu cupom.\nMembros Premium podem enviar até 20 cupons com imagem por dia.',
     'ru':
-        'Прикрепите 1 фото к письму.\nПремиум-участники могут отправлять до 20 писем с изображениями в день.',
+        'Прикрепите 1 фото к купону.\nПремиум-участники могут отправлять до 20 купонов с изображениями в день.',
     'tr':
-        'Mektubunuza 1 fotoğraf ekleyin.\nPremium üyeler günde 20 resimli mektup gönderebilir.',
+        'Kuponunuza 1 fotoğraf ekleyin.\nPremium üyeler günde 20 resimli kupon gönderebilir.',
     'ar':
-        'أرفق صورة واحدة برسالتك.\nيمكن للأعضاء المميزين إرسال حتى 20 رسالة مصورة يوميًا.',
+        'أرفق صورة واحدة برسالتك.\nيمكن للأعضاء المميزين إرسال حتى 20 قسيمة مصورة يوميًا.',
     'it':
-        'Allega 1 foto alla tua lettera.\nI membri Premium possono inviare fino a 20 lettere con immagine al giorno.',
+        'Allega 1 foto al tuo coupon.\nI membri Premium possono inviare fino a 20 coupon con immagine al giorno.',
     'hi':
-        'अपने पत्र में 1 फोटो संलग्न करें।\nप्रीमियम सदस्य प्रतिदिन 20 छवि पत्र भेज सकते हैं।',
+        'अपने कूपन में 1 फोटो संलग्न करें।\nप्रीमियम सदस्य प्रतिदिन 20 छवि कूपन भेज सकते हैं।',
     'th':
-        'แนบรูปภาพ 1 รูปกับจดหมาย\nสมาชิก Premium ส่งจดหมายพร้อมรูปได้วันละ 20 ฉบับ',
+        'แนบรูปภาพ 1 รูปกับคูปอง\nสมาชิก Premium ส่งคูปองพร้อมรูปได้วันละ 20 ฉบับ',
   });
 
   String get composeImageLimitReached => _t({
@@ -4181,20 +4181,20 @@ class AppL10n {
     'ja': '本日の画像特典の上限（20通）に達しました。明日また試してください。',
     'zh': '今天的图片优惠券配额（20封）已用完。请明天再试。',
     'fr':
-        'Vous avez atteint la limite de lettres avec image (20). Réessayez demain.',
+        'Vous avez atteint la limite de coupons avec image (20). Réessayez demain.',
     'de':
-        'Sie haben das Tageslimit für Bildbriefe (20) erreicht. Versuchen Sie es morgen erneut.',
+        'Sie haben das Tageslimit für Bildcoupons (20) erreicht. Versuchen Sie es morgen erneut.',
     'es':
-        'Has alcanzado el límite de cartas con imagen (20). Inténtalo mañana.',
+        'Has alcanzado el límite de cupones con imagen (20). Inténtalo mañana.',
     'pt':
-        'Você atingiu o limite de cartas com imagem (20). Tente novamente amanhã.',
+        'Você atingiu o limite de cupons com imagem (20). Tente novamente amanhã.',
     'ru':
-        'Вы достигли дневного лимита писем с изображениями (20). Попробуйте завтра.',
+        'Вы достигли дневного лимита купонов с изображениями (20). Попробуйте завтра.',
     'tr':
-        'Bugünkü resimli mektup limitine (20) ulaştınız. Yarın tekrar deneyin.',
+        'Bugünkü resimli kupon limitine (20) ulaştınız. Yarın tekrar deneyin.',
     'ar': 'لقد وصلت إلى حد مكافآت الصور اليومي (20). حاول مرة أخرى غدًا.',
     'it':
-        'Hai raggiunto il limite giornaliero di lettere con immagine (20). Riprova domani.',
+        'Hai raggiunto il limite giornaliero di coupon con immagine (20). Riprova domani.',
     'hi': 'आज की छवि पुरस्कार सीमा (20) पूरी हो गई। कल फिर प्रयास करें।',
     'th': 'ถึงขีดจำกัดรางวัลพร้อมรูป (20 ฉบับ) แล้ว ลองอีกครั้งพรุ่งนี้',
   });
@@ -4209,7 +4209,7 @@ class AppL10n {
     'es': 'Por favor escribe tu recompensa ✍️',
     'pt': 'Por favor escreva sua recompensa ✍️',
     'ru': 'Пожалуйста, напишите награда ✍️',
-    'tr': 'Lütfen mektubunuzu yazın ✍️',
+    'tr': 'Lütfen kuponunuzu yazın ✍️',
     'ar': 'يرجى كتابة مكافأتك ✍️',
     'it': 'Scrivi la tua ricompensa ✍️',
     'hi': 'कृपया अपना पुरस्कार लिखें ✍️',
@@ -4274,23 +4274,23 @@ class AppL10n {
     'ja': '⚡🌍 特送+大量！${countries}か国 × $addressesアドレス = 合計${total}通即時発送！',
     'zh': '⚡🌍 特快+批量！$countries个国家 × $addresses个地址 = 共${total}封即时发送！',
     'fr':
-        '⚡🌍 Express+Masse ! $countries pays × $addresses adresses = $total lettres envoyées !',
+        '⚡🌍 Express+Masse ! $countries pays × $addresses adresses = $total coupons envoyés !',
     'de':
-        '⚡🌍 Express+Masse! $countries Länder × $addresses Adressen = $total Briefe gesendet!',
+        '⚡🌍 Express+Masse! $countries Länder × $addresses Adressen = $total Coupons gesendet!',
     'es':
-        '⚡🌍 ¡Exprés+Masivo! $countries países × $addresses direcciones = ¡$total cartas enviadas!',
+        '⚡🌍 ¡Exprés+Masivo! $countries países × $addresses direcciones = ¡$total cupones enviados!',
     'pt':
-        '⚡🌍 Expresso+Massa! $countries países × $addresses endereços = $total cartas enviadas!',
+        '⚡🌍 Expresso+Massa! $countries países × $addresses endereços = $total cupons enviados!',
     'ru':
-        '⚡🌍 Экспресс+Массовая! $countries стран × $addresses адресов = $total писем отправлено!',
+        '⚡🌍 Экспресс+Массовая! $countries стран × $addresses адресов = $total купонов отправлено!',
     'tr':
-        '⚡🌍 Hızlı+Toplu! $countries ülke × $addresses adres = toplam $total mektup gönderildi!',
+        '⚡🌍 Hızlı+Toplu! $countries ülke × $addresses adres = toplam $total kupon gönderildi!',
     'ar':
-        '⚡🌍 سريع+جماعي! $countries دول × $addresses عناوين = إجمالي $total رسالة!',
+        '⚡🌍 سريع+جماعي! $countries دول × $addresses عناوين = إجمالي $total قسيمة!',
     'it':
-        '⚡🌍 Express+Massa! $countries paesi × $addresses indirizzi = $total lettere inviate!',
+        '⚡🌍 Express+Massa! $countries paesi × $addresses indirizzi = $total coupon inviati!',
     'hi':
-        '⚡🌍 एक्सप्रेस+बल्क! $countries देश × $addresses पते = कुल $total पत्र भेजे!',
+        '⚡🌍 एक्सप्रेस+बल्क! $countries देश × $addresses पते = कुल $total कूपन भेजे!',
     'th':
         '⚡🌍 ด่วน+จำนวนมาก! $countries ประเทศ × $addresses ที่อยู่ = รวม $total ฉบับส่งแล้ว!',
   });
@@ -4441,7 +4441,7 @@ class AppL10n {
     'es': '✈️  ¡Tu recompensa partió a algún lugar del mundo! 🌍',
     'pt': '✈️  Sua recompensa partiu para algum lugar do mundo! 🌍',
     'ru': '✈️  Ваша награда отправилась куда-то в мир! 🌍',
-    'tr': '✈️  Mektubunuz dünyada bir yere yola çıktı! 🌍',
+    'tr': '✈️  Kuponunuz dünyada bir yere yola çıktı! 🌍',
     'ar': '✈️  مكافأتك انطلقت إلى مكان ما في العالم! 🌍',
     'it': '✈️  La tua ricompensa è partita da qualche parte nel mondo! 🌍',
     'hi': '✈️  आपका पुरस्कार दुनिया में कहीं भेज दिया गया! 🌍',
@@ -4458,7 +4458,7 @@ class AppL10n {
     'es': '✈️  ¡Tu recompensa partió a $flag $country!',
     'pt': '✈️  Sua recompensa partiu para $flag $country!',
     'ru': '✈️  Ваша награда отправилась в $flag $country!',
-    'tr': '✈️  Mektubunuz $flag $country\'ya yola çıktı!',
+    'tr': '✈️  Kuponunuz $flag $country\'ya yola çıktı!',
     'ar': '✈️  مكافأتك انطلقت إلى $flag $country!',
     'it': '✈️  La tua ricompensa è partita per $flag $country!',
     'hi': '✈️  आपका पुरस्कार $flag $country को भेजा गया!',
@@ -4751,7 +4751,7 @@ class AppL10n {
     'es': 'Recompensa del día aplicada · Toca para otra frase',
     'pt': 'Recompensa do dia aplicada · Toque para outra frase',
     'ru': 'Награда дня применено · Нажмите для другой цитаты',
-    'tr': 'Günün mektubu uygulandı · Başka alıntı için dokun',
+    'tr': 'Günün kuponu uygulandı · Başka alıntı için dokun',
     'ar': 'تم تطبيق مكافأة اليوم · انقر لعبارة أخرى',
     'it': 'Ricompensa del giorno applicata · Tocca per un\'altra citazione',
     'hi': 'आज का पुरस्कार लागू · दूसरे उद्धरण के लिए टैप करें',
@@ -4768,7 +4768,7 @@ class AppL10n {
     'es': 'Enviar como recompensa del día',
     'pt': 'Enviar como recompensa do dia',
     'ru': 'Отправить как награда дня',
-    'tr': 'Günün mektubu olarak gönder',
+    'tr': 'Günün kuponu olarak gönder',
     'ar': 'أرسل كمكافأة اليوم',
     'it': 'Invia come ricompensa del giorno',
     'hi': 'आज के पुरस्कार के रूप में भेजें',
@@ -4973,7 +4973,7 @@ class AppL10n {
     'es': '📣 Mi recompensa promo',
     'pt': '📣 Minha recompensa promo',
     'ru': '📣 Моё промо-награда',
-    'tr': '📣 Promo Mektubum',
+    'tr': '📣 Promo Kuponum',
     'ar': '📣 مكافأتي الترويجية',
     'it': '📣 La mia ricompensa promo',
     'hi': '📣 मेरा प्रोमो लेटर',
@@ -5325,18 +5325,18 @@ class AppL10n {
     'ja': '🌈 週末はブランドが多くの特典を届けます — 今日はたくさん拾おう！',
     'zh': '🌈 周末品牌投放更多优惠券 — 今天多拾取一些吧！',
     'fr':
-        '🌈 Les marques larguent plus de lettres le week-end — ramasse plus aujourd\'hui !',
+        '🌈 Les marques larguent plus de coupons le week-end — ramasse plus aujourd\'hui !',
     'de':
-        '🌈 Marken lassen am Wochenende mehr Briefe fallen — heute extra sammeln!',
+        '🌈 Marken lassen am Wochenende mehr Coupons fallen — heute extra sammeln!',
     'es':
-        '🌈 Las marcas sueltan más cartas los fines de semana — recoge más hoy!',
+        '🌈 Las marcas sueltan más cupones los fines de semana — recoge más hoy!',
     'pt': '🌈 Marcas largam mais recompensas ao fim-de-semana — apanha mais hoje!',
     'ru':
-        '🌈 По выходным бренды разбрасывают больше писем — собирайте сегодня!',
+        '🌈 По выходным бренды разбрасывают больше купонов — собирайте сегодня!',
     'tr':
-        '🌈 Markalar hafta sonu daha fazla mektup bırakıyor — bugün ekstra topla!',
+        '🌈 Markalar hafta sonu daha fazla kupon bırakıyor — bugün ekstra topla!',
     'ar':
-        '🌈 العلامات التجارية تسقط المزيد من الرسائل في عطلة نهاية الأسبوع — التقط المزيد اليوم!',
+        '🌈 العلامات التجارية تسقط المزيد من القسائم في عطلة نهاية الأسبوع — التقط المزيد اليوم!',
     'it': '🌈 I brand lasciano più ricompense nei weekend — raccogli di più oggi!',
     'hi': '🌈 वीकेंड पर ब्रांड अधिक पुरस्कार गिराते हैं — आज अधिक उठाएँ!',
     'th': '🌈 แบรนด์ทิ้งรางวัลมากขึ้นในสุดสัปดาห์ — เก็บเพิ่มวันนี้!',
@@ -5452,7 +5452,7 @@ class AppL10n {
       case 'zh':
         return '$greeting · 附近 $count 封待拾';
       case 'fr':
-        return '$greeting · $count lettres à proximité';
+        return '$greeting · $count coupons à proximité';
       case 'de':
         return '$greeting · $count in der Nähe';
       case 'es':
@@ -5505,25 +5505,25 @@ class AppL10n {
     'zh':
         '欢迎来到 Thiscount！✨\n\n拾起这张优惠券体验"拾取"玩法。靠近并点击它即可。\n\n进入范围后地图上的 📍 附近计数器会亮起。\n\n来自世界各地的品牌在此投放优惠与活动券——祝你好运！',
     'fr':
-        'Bienvenue dans Thiscount ! ✨\n\nRamasse cette lettre pour découvrir l\'expérience. Approche-toi et appuie dessus.\n\nLe compteur 📍 À proximité s\'allumera dès que tu seras à portée.\n\nDes marques du monde entier déposent coupons et lettres promo — bonne chasse !',
+        'Bienvenue dans Thiscount ! ✨\n\nRamasse ce coupon pour découvrir l\'expérience. Approche-toi et appuie dessus.\n\nLe compteur 📍 À proximité s\'allumera dès que tu seras à portée.\n\nDes marques du monde entier déposent coupons promo — bonne chasse !',
     'de':
-        'Willkommen bei Thiscount! ✨\n\nHeb diesen Brief auf und probiere die Hunt-Erfahrung. Geh nah ran und tippe ihn an.\n\nDer 📍 In-der-Nähe-Zähler leuchtet auf, sobald du in Reichweite bist.\n\nMarken weltweit verteilen Rabatte und Event-Briefe — viel Spaß beim Sammeln!',
+        'Willkommen bei Thiscount! ✨\n\nHeb diesen Coupon auf und probiere die Hunt-Erfahrung. Geh nah ran und tippe ihn an.\n\nDer 📍 In-der-Nähe-Zähler leuchtet auf, sobald du in Reichweite bist.\n\nMarken weltweit verteilen Rabatte und Event-Coupons — viel Spaß beim Sammeln!',
     'es':
-        '¡Bienvenido a Thiscount! ✨\n\nRecoge esta carta para probar la experiencia. Acércate y tócala.\n\nEl contador 📍 Cerca se iluminará en cuanto estés a tiro.\n\nMarcas de todo el mundo sueltan cupones y cartas de eventos — ¡buena caza!',
+        '¡Bienvenido a Thiscount! ✨\n\nRecoge este cupón para probar la experiencia. Acércate y tócala.\n\nEl contador 📍 Cerca se iluminará en cuanto estés a tiro.\n\nMarcas de todo el mundo sueltan cupones de eventos — ¡buena caza!',
     'pt':
-        'Bem-vindo ao Thiscount! ✨\n\nApanha esta carta para experimentar. Aproxima-te e toca.\n\nO contador 📍 Perto vai acender assim que estiveres no alcance.\n\nMarcas do mundo inteiro largam cupões e cartas de eventos — boa caça!',
+        'Bem-vindo ao Thiscount! ✨\n\nApanha este cupom para experimentar. Aproxima-te e toca.\n\nO contador 📍 Perto vai acender assim que estiveres no alcance.\n\nMarcas do mundo inteiro largam cupões de eventos — boa caça!',
     'ru':
-        'Добро пожаловать в Thiscount! ✨\n\nПодберите это письмо, чтобы попробовать охоту. Подойдите и нажмите.\n\nСчётчик 📍 Рядом подсветится, как только вы окажетесь в зоне.\n\nБренды со всего мира разбрасывают купоны — удачной охоты!',
+        'Добро пожаловать в Thiscount! ✨\n\nПодберите это купон, чтобы попробовать охоту. Подойдите и нажмите.\n\nСчётчик 📍 Рядом подсветится, как только вы окажетесь в зоне.\n\nБренды со всего мира разбрасывают купоны — удачной охоты!',
     'tr':
-        'Thiscount\'ya hoş geldin! ✨\n\nBu mektubu toplayarak deneyimi başlat. Yaklaş ve dokun.\n\nMenzile girdiğin an 📍 Yakın sayacı parlayacak.\n\nDünya çapında markalar kuponlar bırakıyor — iyi avlanmalar!',
+        'Thiscount\'ya hoş geldin! ✨\n\nBu kuponu toplayarak deneyimi başlat. Yaklaş ve dokun.\n\nMenzile girdiğin an 📍 Yakın sayacı parlayacak.\n\nDünya çapında markalar kuponlar bırakıyor — iyi avlanmalar!',
     'ar':
-        'مرحبًا بك في Thiscount! ✨\n\nالتقط هذه الرسالة لتجربة اللعبة. اقترب واضغط عليها.\n\nعدّاد 📍 قريب سيضيء فور دخولك النطاق.\n\nعلامات تجارية من حول العالم تسقط القسائم — صيدًا موفقًا!',
+        'مرحبًا بك في Thiscount! ✨\n\nالتقط هذه القسيمة لتجربة اللعبة. اقترب واضغط عليها.\n\nعدّاد 📍 قريب سيضيء فور دخولك النطاق.\n\nعلامات تجارية من حول العالم تسقط القسائم — صيدًا موفقًا!',
     'it':
-        'Benvenuto in Thiscount! ✨\n\nRaccogli questa lettera per provare l\'esperienza. Avvicinati e tocca.\n\nIl contatore 📍 Vicino si illuminerà appena sarai a portata.\n\nBrand di tutto il mondo lasciano coupon — buona caccia!',
+        'Benvenuto in Thiscount! ✨\n\nRaccogli questo coupon per provare l\'esperienza. Avvicinati e tocca.\n\nIl contatore 📍 Vicino si illuminerà appena sarai a portata.\n\nBrand di tutto il mondo lasciano coupon — buona caccia!',
     'hi':
-        'Thiscount में आपका स्वागत है! ✨\n\nइस पत्र को उठाकर अनुभव शुरू करें. पास जाएँ और टैप करें.\n\nदायरे में आते ही नक्शे का 📍 पास काउंटर जलेगा.\n\nदुनिया भर के ब्रांड कूपन गिराते हैं — शुभ शिकार!',
+        'Thiscount में आपका स्वागत है! ✨\n\nइस कूपन को उठाकर अनुभव शुरू करें. पास जाएँ और टैप करें.\n\nदायरे में आते ही नक्शे का 📍 पास काउंटर जलेगा.\n\nदुनिया भर के ब्रांड कूपन गिराते हैं — शुभ शिकार!',
     'th':
-        'ยินดีต้อนรับสู่ Thiscount! ✨\n\nเก็บจดหมายฉบับนี้เพื่อทดลองใช้งาน เดินเข้าใกล้แล้วแตะ\n\nตัวนับ 📍 ใกล้ ๆ บนแผนที่จะสว่างเมื่อคุณอยู่ในรัศมี\n\nแบรนด์ทั่วโลกทิ้งคูปองไว้ — สนุกกับการค้นหา!',
+        'ยินดีต้อนรับสู่ Thiscount! ✨\n\nเก็บคูปองฉบับนี้เพื่อทดลองใช้งาน เดินเข้าใกล้แล้วแตะ\n\nตัวนับ 📍 ใกล้ ๆ บนแผนที่จะสว่างเมื่อคุณอยู่ในรัศมี\n\nแบรนด์ทั่วโลกทิ้งคูปองไว้ — สนุกกับการค้นหา!',
   });
 
   String get brandTicketDefaultBrand => _t({
@@ -5743,25 +5743,25 @@ class AppL10n {
     'ja': '地図上で特典に近づいて拾うと、すぐ使える割引券や引換券がもらえます。コレクションで新着をチェック！',
     'zh': '走近地图上的优惠券即可获得可立即使用的优惠券和兑换券。请到收藏查看。',
     'fr':
-        'Rapprochez-vous des lettres sur la carte pour recevoir coupons et bons immédiatement utilisables. Consultez votre Collection !',
+        'Rapprochez-vous des coupons sur la carte pour recevoir coupons et bons immédiatement utilisables. Consultez votre Collection !',
     'de':
-        'Geh nah an Briefe auf der Karte, um sofort einlösbare Coupons und Gutscheine zu bekommen. Sieh in deiner Sammlung nach!',
+        'Geh nah an Coupons auf der Karte, um sofort einlösbare Coupons und Gutscheine zu bekommen. Sieh in deiner Sammlung nach!',
     'es':
-        'Acércate a las cartas en el mapa para recibir cupones y vales listos para usar. ¡Revisa tu Colección!',
+        'Acércate a los cupones en el mapa para recibir cupones y vales listos para usar. ¡Revisa tu Colección!',
     'pt':
-        'Aproxima-te das cartas no mapa para receber cupões e vales prontos a usar. Vê a tua Coleção!',
+        'Aproxima-te dos cupons no mapa para receber cupões e vales prontos a usar. Vê a tua Coleção!',
     'ru':
-        'Подойдите ближе к письмам на карте, чтобы получить готовые к использованию купоны и ваучеры. Проверьте Коллекцию!',
+        'Подойдите ближе к купоным на карте, чтобы получить готовые к использованию купоны и ваучеры. Проверьте Коллекцию!',
     'tr':
-        'Haritadaki mektuplara yaklaşarak hazır kupon ve çek alın. Koleksiyonunuza göz atın!',
+        'Haritadaki kuponlara yaklaşarak hazır kupon ve çek alın. Koleksiyonunuza göz atın!',
     'ar':
-        'اقترب من الرسائل على الخريطة لاستلام قسائم وقسائم جاهزة للاستخدام. راجع مجموعتك!',
+        'اقترب من القسائم على الخريطة لاستلام قسائم وقسائم جاهزة للاستخدام. راجع مجموعتك!',
     'it':
-        'Avvicinati alle lettere sulla mappa per ricevere coupon e buoni pronti all\'uso. Controlla la Collezione!',
+        'Avvicinati ai coupon sulla mappa per ricevere coupon e buoni pronti all\'uso. Controlla la Collezione!',
     'hi':
-        'मानचित्र पर पत्रों के पास जाकर तुरंत उपयोगी कूपन और वाउचर प्राप्त करें. कलेक्शन देखें!',
+        'मानचित्र पर कूपनों के पास जाकर तुरंत उपयोगी कूपन और वाउचर प्राप्त करें. कलेक्शन देखें!',
     'th':
-        'เข้าใกล้จดหมายบนแผนที่เพื่อรับคูปองและบัตรกำนัลพร้อมใช้ ดูในคอลเลคชัน',
+        'เข้าใกล้คูปองบนแผนที่เพื่อรับคูปองและบัตรกำนัลพร้อมใช้ ดูในคอลเลคชัน',
   });
 
   String get brandPromoContactHint => _t({
@@ -6316,23 +6316,23 @@ class AppL10n {
     'ja': 'SNSやブログのリンクを特典に添付できます。\nプレミアム・ブランド会員限定機能です。',
     'zh': '可以在优惠券中附加SNS或博客链接。\n仅限高级和品牌会员。',
     'fr':
-        'Joignez des liens SNS ou blog à votre lettre.\nRéservé aux membres Premium et Brand.',
+        'Joignez des liens SNS ou blog à votre coupon.\nRéservé aux membres Premium et Brand.',
     'de':
-        'Fügen Sie SNS- oder Blog-Links an Ihren Brief an.\nNur für Premium- und Brand-Mitglieder.',
+        'Fügen Sie SNS- oder Blog-Links an Ihren Coupon an.\nNur für Premium- und Brand-Mitglieder.',
     'es':
-        'Adjunta enlaces de SNS o blog a tu carta.\nSolo miembros Premium y Brand.',
+        'Adjunta enlaces de SNS o blog a tu cupón.\nSolo miembros Premium y Brand.',
     'pt':
-        'Anexe links de SNS ou blog à sua carta.\nApenas membros Premium e Brand.',
+        'Anexe links de SNS ou blog ao seu cupom.\nApenas membros Premium e Brand.',
     'ru':
-        'Прикрепите ссылки SNS или блога к письму.\nТолько для Premium и Brand участников.',
+        'Прикрепите ссылки SNS или блога к купону.\nТолько для Premium и Brand участников.',
     'tr':
-        'SNS veya blog bağlantılarını mektubunuza ekleyin.\nSadece Premium ve Brand üyeler.',
+        'SNS veya blog bağlantılarını kuponunuza ekleyin.\nSadece Premium ve Brand üyeler.',
     'ar':
         'أرفق روابط SNS أو المدونة برسالتك.\nللأعضاء المميزين والعلامات التجارية فقط.',
     'it':
-        'Allega link SNS o blog alla tua lettera.\nSolo per membri Premium e Brand.',
+        'Allega link SNS o blog al tuo coupon.\nSolo per membri Premium e Brand.',
     'hi':
-        'अपने पत्र में SNS या ब्लॉग लिंक संलग्न करें।\nकेवल Premium और Brand सदस्य।',
+        'अपने कूपन में SNS या ब्लॉग लिंक संलग्न करें।\nकेवल Premium और Brand सदस्य।',
     'th': 'แนบลิงก์ SNS หรือบล็อกในรางวัล\nเฉพาะสมาชิก Premium และ Brand',
   });
 
@@ -7098,18 +7098,18 @@ class AppL10n {
     'ja': '⚡ 合計${total}通即時発送 · ${countries}か国 × ${addresses}アドレスずつ',
     'zh': '⚡ 共${total}封即时发送 · $countries个国家 × 每国${addresses}个地址',
     'fr':
-        '⚡ $total lettres instantanées · $countries pays × $addresses adresses chacun',
+        '⚡ $total coupons instantanés · $countries pays × $addresses adresses chacun',
     'de': '⚡ $total Belohnungen sofort · $countries Länder × $addresses Adressen je',
     'es':
-        '⚡ $total cartas instantáneas · $countries países × $addresses direcciones cada uno',
+        '⚡ $total cupones instantáneos · $countries países × $addresses direcciones cada uno',
     'pt':
-        '⚡ $total cartas instantâneas · $countries países × $addresses endereços cada',
+        '⚡ $total cupons instantâneos · $countries países × $addresses endereços cada',
     'ru':
-        '⚡ $total писем мгновенно · $countries стран × $addresses адресов каждая',
+        '⚡ $total купонов мгновенно · $countries стран × $addresses адресов каждая',
     'tr': '⚡ Toplam $total ödül anında · $countries ülke × $addresses adres',
     'ar': '⚡ $total مكافأة فورية · $countries دول × $addresses عنوان لكل دولة',
     'it':
-        '⚡ $total lettere istantanee · $countries paesi × $addresses indirizzi ciascuno',
+        '⚡ $total coupon istantanei · $countries paesi × $addresses indirizzi ciascuno',
     'hi': '⚡ कुल $total पुरस्कार तुरंत · $countries देश × $addresses पते प्रत्येक',
     'th':
         '⚡ รวม $total ฉบับทันที · $countries ประเทศ × $addresses ที่อยู่ต่อประเทศ',
@@ -7127,16 +7127,16 @@ class AppL10n {
     'fr': '📬 $total récompenses à envoyer · $countries pays × $perCountry chacun',
     'de': '📬 $total Belohnungen zu senden · $countries Länder × $perCountry je',
     'es':
-        '📬 $total cartas a enviar · $countries países × $perCountry cada uno',
+        '📬 $total cupones a enviar · $countries países × $perCountry cada uno',
     'pt': '📬 $total recompensas para enviar · $countries países × $perCountry cada',
     'ru': '📬 $total наград к отправке · $countries стран × $perCountry каждая',
     'tr':
-        '📬 Toplam $total mektup gönderilecek · $countries ülke × $perCountry',
+        '📬 Toplam $total kupon gönderilecek · $countries ülke × $perCountry',
     'ar': '📬 $total مكافأة للإرسال · $countries دول × $perCountry لكل دولة',
     'it':
-        '📬 $total lettere da inviare · $countries paesi × $perCountry ciascuno',
+        '📬 $total coupon da inviare · $countries paesi × $perCountry ciascuno',
     'hi':
-        '📬 कुल $total पत्र भेजने हैं · $countries देश × $perCountry प्रत्येक',
+        '📬 कुल $total कूपन भेजने हैं · $countries देश × $perCountry प्रत्येक',
     'th':
         '📬 รวม $total ฉบับที่จะส่ง · $countries ประเทศ × $perCountry ต่อประเทศ',
   });
@@ -7646,7 +7646,7 @@ class AppL10n {
     'es': 'Tu recompensa está partiendo...',
     'pt': 'Sua recompensa está partindo...',
     'ru': 'Ваша награда отправляется...',
-    'tr': 'Mektubunuz yola çıkıyor...',
+    'tr': 'Kuponunuz yola çıkıyor...',
     'ar': 'مكافأتك في طريقها...',
     'it': 'La tua ricompensa sta partendo...',
     'hi': 'आपका पुरस्कार रवाना हो रहा है...',
@@ -7871,13 +7871,13 @@ class AppL10n {
     'ja': '次の特典を読むにはあと${remaining}通送ってください。',
     'zh': '再发送${remaining}封优惠券即可阅读下一封。',
     'fr':
-        'Envoyez encore $remaining lettre${remaining == 1 ? "" : "s"} pour lire la suivante.',
+        'Envoyez encore $remaining coupon${remaining == 1 ? "" : "s"} pour lire la suivante.',
     'de':
-        'Sende noch $remaining Brief${remaining == 1 ? "" : "e"}, um den nächsten zu lesen.',
+        'Sende noch $remaining Coupon${remaining == 1 ? "" : "s"}, um den nächsten zu lesen.',
     'es':
-        'Envía $remaining carta${remaining == 1 ? "" : "s"} más para leer la siguiente.',
+        'Envía $remaining cupón${remaining == 1 ? "" : "es"} más para leer la siguiente.',
     'pt':
-        'Envie mais $remaining carta${remaining == 1 ? "" : "s"} para ler a próxima.',
+        'Envie mais $remaining cupom${remaining == 1 ? "" : "s"} para ler a próxima.',
     'ru': 'Отправьте ещё $remaining, чтобы прочитать следующее.',
     'tr': 'Sonrakini okumak için $remaining ödül daha gönderin.',
     'ar': 'أرسل $remaining مكافأة أخرى لقراءة التالية.',
@@ -7931,7 +7931,7 @@ class AppL10n {
     'es': 'Eliminar recompensa',
     'pt': 'Excluir recompensa',
     'ru': 'Удалить награда',
-    'tr': 'Mektubu sil',
+    'tr': 'Kuponu sil',
     'ar': 'حذف المكافأة',
     'it': 'Elimina ricompensa',
     'hi': 'पुरस्कार हटाएं',
@@ -7944,18 +7944,18 @@ class AppL10n {
     'ja': 'この特典を削除しますか？\n削除した特典は復元できません。',
     'zh': '确定删除这封优惠券？\n删除后无法恢复。',
     'fr':
-        'Supprimer cette lettre ?\nLes lettres supprimées ne peuvent pas être récupérées.',
+        'Supprimer ce coupon ?\nLes coupons supprimés ne peuvent pas être récupérées.',
     'de':
-        'Diesen Brief löschen?\nGelöschte Briefe können nicht wiederhergestellt werden.',
+        'Diesen Coupon löschen?\nGelöschte Coupons können nicht wiederhergestellt werden.',
     'es':
-        '¿Eliminar esta carta?\nLas cartas eliminadas no se pueden recuperar.',
+        '¿Eliminar este cupón?\nLos cupones eliminados no se pueden recuperar.',
     'pt': 'Excluir esta recompensa?\nRecompensas excluídas não podem ser recuperadas.',
     'ru': 'Удалить эту награду?\nУдалённые награды нельзя восстановить.',
     'tr':
-        'Bu mektubu silmek istiyor musunuz?\nSilinen mektuplar geri alınamaz.',
+        'Bu kuponu silmek istiyor musunuz?\nSilinen kuponlar geri alınamaz.',
     'ar': 'هل تريد حذف هذه المكافأة؟\nلا يمكن استعادة المكافآت المحذوفة.',
     'it':
-        'Eliminare questa lettera?\nLe lettere eliminate non possono essere recuperate.',
+        'Eliminare questo coupon?\nI coupon eliminati non possono essere recuperati.',
     'hi': 'यह पुरस्कार हटाएं?\nहटाए गए पुरस्कार पुनर्प्राप्त नहीं किए जा सकते।',
     'th': 'ลบรางวัลนี้?\nรางวัลที่ลบแล้วไม่สามารถกู้คืนได้',
   });
@@ -7967,7 +7967,7 @@ class AppL10n {
     'zh': '此优惠券删除后无法恢复。\n确定删除吗？',
     'fr': 'Cette récompense ne pourra pas être récupérée.\nÊtes-vous sûr ?',
     'de':
-        'Dieser Brief kann nicht wiederhergestellt werden.\nWirklich löschen?',
+        'Dieser Coupon kann nicht wiederhergestellt werden.\nWirklich löschen?',
     'es': 'Esta recompensa no se puede recuperar.\n¿Estás seguro?',
     'pt': 'Esta recompensa não pode ser recuperada.\nTem certeza?',
     'ru': 'Эту награду нельзя будет восстановить.\nВы уверены?',
@@ -8395,25 +8395,25 @@ class AppL10n {
       case 'zh':
         return '暂无$filterName优惠券';
       case 'fr':
-        return 'Pas encore de lettres $filterName';
+        return 'Pas encore de coupons $filterName';
       case 'de':
-        return 'Noch keine $filterName-Briefe';
+        return 'Noch keine $filterName-Coupons';
       case 'es':
-        return 'Aún no hay cartas de $filterName';
+        return 'Aún no hay cupones de $filterName';
       case 'pt':
-        return 'Ainda não há cartas de $filterName';
+        return 'Ainda não há cupons de $filterName';
       case 'ru':
         return 'Писем категории «$filterName» пока нет';
       case 'tr':
-        return 'Henüz $filterName mektubu yok';
+        return 'Henüz $filterName kuponu yok';
       case 'ar':
-        return 'لا توجد رسائل $filterName بعد';
+        return 'لا توجد قسائم $filterName بعد';
       case 'it':
-        return 'Ancora nessuna lettera $filterName';
+        return 'Ancora nessun coupon $filterName';
       case 'hi':
-        return 'अभी कोई $filterName पत्र नहीं';
+        return 'अभी कोई $filterName कूपन नहीं';
       case 'th':
-        return 'ยังไม่มีจดหมาย$filterName';
+        return 'ยังไม่มีคูปอง$filterName';
       default:
         return 'No $filterName rewards yet';
     }
@@ -8444,25 +8444,25 @@ class AppL10n {
     'ja': '• すべての特典とDM履歴\n• タワーとアクティビティスコア\n• スタンプアルバム\n• アカウント情報',
     'zh': '• 所有优惠券和私信记录\n• 塔和活跃度分数\n• 邮票收集册\n• 账号信息',
     'fr':
-        '• Toutes les lettres et DM\n• Tour et score d’activité\n• Album de timbres\n• Info du compte',
+        '• Toutes les coupons et DM\n• Tour et score d’activité\n• Album de timbres\n• Info du compte',
     'de':
-        '• Alle Briefe und DMs\n• Turm und Aktivitätsscore\n• Briefmarkenalbum\n• Kontodaten',
+        '• Alle Coupons und DMs\n• Turm und Aktivitätsscore\n• Briefmarkenalbum\n• Kontodaten',
     'es':
-        '• Todas las cartas y DMs\n• Torre y puntuación\n• Álbum de sellos\n• Datos de cuenta',
+        '• Todos los cupones y DMs\n• Torre y puntuación\n• Álbum de sellos\n• Datos de cuenta',
     'pt':
-        '• Todas as cartas e DMs\n• Torre e pontuação\n• Álbum de selos\n• Dados da conta',
+        '• Todos os cupons e DMs\n• Torre e pontuação\n• Álbum de selos\n• Dados da conta',
     'ru':
-        '• Все письма и ЛС\n• Башня и очки активности\n• Альбом марок\n• Данные аккаунта',
+        '• Все купоны и ЛС\n• Башня и очки активности\n• Альбом марок\n• Данные аккаунта',
     'tr':
-        '• Tüm mektuplar ve DM\n• Kule ve etkinlik puanı\n• Pul albümü\n• Hesap bilgileri',
+        '• Tüm kuponlar ve DM\n• Kule ve etkinlik puanı\n• Pul albümü\n• Hesap bilgileri',
     'ar':
-        '• كل الرسائل والمحادثات الخاصة\n• البرج ونقاط النشاط\n• ألبوم الطوابع\n• بيانات الحساب',
+        '• كل القسائم والمحادثات الخاصة\n• البرج ونقاط النشاط\n• ألبوم الطوابع\n• بيانات الحساب',
     'it':
-        '• Tutte le lettere e DM\n• Torre e punteggio\n• Album dei francobolli\n• Dati account',
+        '• Tutti i coupon e DM\n• Torre e punteggio\n• Album dei francobolli\n• Dati account',
     'hi':
-        '• सभी पत्र और DM\n• टावर और गतिविधि स्कोर\n• स्टैम्प एल्बम\n• खाता जानकारी',
+        '• सभी कूपन और DM\n• टावर और गतिविधि स्कोर\n• स्टैम्प एल्बम\n• खाता जानकारी',
     'th':
-        '• จดหมายและ DM ทั้งหมด\n• หอและคะแนนกิจกรรม\n• อัลบั้มแสตมป์\n• ข้อมูลบัญชี',
+        '• คูปองและ DM ทั้งหมด\n• หอและคะแนนกิจกรรม\n• อัลบั้มแสตมป์\n• ข้อมูลบัญชี',
   });
 
   String settingsWithdrawTypeUsernameToConfirm(String username) {
@@ -10022,19 +10022,19 @@ class AppL10n {
     'ja': '1日30通 · 画像+リンク特典\nタワーカスタム · 特急配送',
     'zh': '每日30封 · 图片+链接优惠券\n自定义塔楼 · 特快配送',
     'fr':
-        '30 lettres/jour · lettres image+lien\nTour personnalisée · livraison express',
+        '30 coupons/jour · coupons image+lien\nTour personnalisée · livraison express',
     'de':
-        '30 Briefe/Tag · Bild+Link-Briefe\nBenutzerdefinierter Turm · Express-Zustellung',
+        '30 Coupons/Tag · Bild+Link-Coupons\nBenutzerdefinierter Turm · Express-Zustellung',
     'es':
-        '30 cartas/día · cartas imagen+enlace\nTorre personalizada · entrega exprés',
+        '30 cupones/día · cupones imagen+enlace\nTorre personalizada · entrega exprés',
     'pt':
-        '30 cartas/dia · cartas imagem+link\nTorre personalizada · entrega expressa',
+        '30 cupons/dia · cupons imagem+link\nTorre personalizada · entrega expressa',
     'ru':
-        '30 писем/день · письма с фото+ссылкой\nКастомная башня · экспресс-доставка',
+        '30 купонов/день · купоны с фото+ссылкой\nКастомная башня · экспресс-доставка',
     'tr': 'Günde 30 · resim+link ödüller\nÖzel kule + ekspres teslimat',
     'ar': '30 مكافأة/يوم · مكافآت صور+روابط\nبرج مخصص · توصيل سريع',
     'it':
-        '30 lettere/giorno · lettere immagine+link\nTorre personalizzata · consegna espressa',
+        '30 coupon/giorno · coupon immagine+link\nTorre personalizzata · consegna espressa',
     'hi': '30 पुरस्कार/दिन · छवि+लिंक पुरस्कार\nकस्टम टावर · एक्सप्रेस डिलीवरी',
     'th': '30 ฉบับ/วัน · รางวัลภาพ+ลิงก์\nหอคอยกำหนดเอง · จัดส่งด่วน',
   });
@@ -10788,25 +10788,25 @@ class AppL10n {
     'ja': 'アプリでコードを入力すると1ヶ月プレミアムが有効に！\n✉️ 世界中の人と特典でつながろう。',
     'zh': '在应用中输入代码即可激活1个月高级版！\n✉️ 通过优惠券与全世界建立联系。',
     'fr':
-        'Entrez le code dans l\'appli pour activer 1 mois de Premium !\n✉️ Connectez-vous avec le monde entier par lettres.',
+        'Entrez le code dans l\'appli pour activer 1 mois de Premium !\n✉️ Connectez-vous avec le monde entier par coupons.',
     'de':
-        'Geben Sie den Code in der App ein, um 1 Monat Premium zu aktivieren!\n✉️ Verbinden Sie sich weltweit durch Briefe.',
+        'Geben Sie den Code in der App ein, um 1 Monat Premium zu aktivieren!\n✉️ Verbinden Sie sich weltweit durch Coupons.',
     'es':
-        '¡Ingresa el código en la app para activar 1 mes de Premium!\n✉️ Conéctate con personas de todo el mundo a través de cartas.',
+        '¡Ingresa el código en la app para activar 1 mes de Premium!\n✉️ Conéctate con personas de todo el mundo a través de cupones.',
     'pt':
-        'Insira o código no app para ativar 1 mês de Premium!\n✉️ Conecte-se com pessoas do mundo inteiro por cartas.',
+        'Insira o código no app para ativar 1 mês de Premium!\n✉️ Conecte-se com pessoas do mundo inteiro por cupons.',
     'ru':
-        'Введите код в приложении, чтобы активировать 1 месяц Премиума!\n✉️ Общайтесь с людьми по всему миру через письма.',
+        'Введите код в приложении, чтобы активировать 1 месяц Премиума!\n✉️ Общайтесь с людьми по всему миру через купоны.',
     'tr':
-        'Uygulamada kodu girerek 1 aylık Premium aktif edin!\n✉️ Mektuplarla dünya genelinde bağlantı kurun.',
+        'Uygulamada kodu girerek 1 aylık Premium aktif edin!\n✉️ Kuponlarla dünya genelinde bağlantı kurun.',
     'ar':
-        'أدخل الكود في التطبيق لتفعيل شهر بريميوم!\n✉️ تواصل مع أشخاص حول العالم عبر الرسائل.',
+        'أدخل الكود في التطبيق لتفعيل شهر بريميوم!\n✉️ تواصل مع أشخاص حول العالم عبر القسائم.',
     'it':
         'Inserisci il codice nell\'app per attivare 1 mese di Premium!\n✉️ Connettiti con persone in tutto il mondo tramite ricompense.',
     'hi':
-        'ऐप में कोड दर्ज करके 1 महीने का Premium सक्रिय करें!\n✉️ पत्रों के माध्यम से दुनिया भर के लोगों से जुड़ें।',
+        'ऐप में कोड दर्ज करके 1 महीने का Premium सक्रिय करें!\n✉️ कूपनों के माध्यम से दुनिया भर के लोगों से जुड़ें।',
     'th':
-        'กรอกโค้ดในแอปเพื่อเปิดใช้งาน Premium 1 เดือน!\n✉️ เชื่อมต่อกับผู้คนทั่วโลกผ่านจดหมาย',
+        'กรอกโค้ดในแอปเพื่อเปิดใช้งาน Premium 1 เดือน!\n✉️ เชื่อมต่อกับผู้คนทั่วโลกผ่านคูปอง',
   });
 
   String get premiumShareToFriend => _t({
@@ -11133,25 +11133,25 @@ class AppL10n {
     'ja': 'コードを入力してボーナス送信権をゲット！\n地図上を特典がリアルタイムで旅し、\n見知らぬ人に届く特別な体験を 🌍',
     'zh': '输入代码获取奖励额度！\n观看优惠券在地图上实时旅行\n到达陌生人的特别体验 🌍',
     'fr':
-        'Entrez le code pour obtenir des crédits bonus !\nRegardez les lettres voyager sur la carte en temps réel\net atteindre quelqu\'un de spécial 🌍',
+        'Entrez le code pour obtenir des crédits bonus !\nRegardez les coupons voyager sur la carte en temps réel\net atteindre quelqu\'un de spécial 🌍',
     'de':
-        'Geben Sie den Code ein, um Bonuskredite zu erhalten!\nSehen Sie Briefe in Echtzeit über die Karte reisen\nund jemand Besonderen erreichen 🌍',
+        'Geben Sie den Code ein, um Bonuskredite zu erhalten!\nSehen Sie Coupons in Echtzeit über die Karte reisen\nund jemand Besonderen erreichen 🌍',
     'es':
-        '¡Ingresa el código para obtener créditos bonus!\nMira las cartas viajar por el mapa en tiempo real\ny llegar a alguien especial 🌍',
+        '¡Ingresa el código para obtener créditos bonus!\nMira los cupones viajar por el mapa en tiempo real\ny llegar a alguien especial 🌍',
     'pt':
-        'Insira o código para ganhar créditos bônus!\nVeja cartas viajando pelo mapa em tempo real\ne alcançando alguém especial 🌍',
+        'Insira o código para ganhar créditos bônus!\nVeja cupons viajando pelo mapa em tempo real\ne alcançando alguém especial 🌍',
     'ru':
-        'Введите код и получите бонусные кредиты!\nСмотрите, как письма путешествуют по карте в реальном времени\nи достигают кого-то особенного 🌍',
+        'Введите код и получите бонусные кредиты!\nСмотрите, как купоны путешествуют по карте в реальном времени\nи достигают кого-то особенного 🌍',
     'tr':
-        'Kodu girerek bonus kredi kazan!\nMektupların haritada gerçek zamanlı yolculuğunu izle\nve özel birine ulaş 🌍',
+        'Kodu girerek bonus kredi kazan!\nKuponların haritada gerçek zamanlı yolculuğunu izle\nve özel birine ulaş 🌍',
     'ar':
-        'أدخل الكود للحصول على رصيد إضافي!\nشاهد الرسائل تسافر عبر الخريطة في الوقت الحقيقي\nوتصل لشخص مميز 🌍',
+        'أدخل الكود للحصول على رصيد إضافي!\nشاهد القسائم تسافر عبر الخريطة في الوقت الحقيقي\nوتصل لشخص مميز 🌍',
     'it':
-        'Inserisci il codice per ottenere crediti bonus!\nGuarda le lettere viaggiare sulla mappa in tempo reale\ne raggiungere qualcuno di speciale 🌍',
+        'Inserisci il codice per ottenere crediti bonus!\nGuarda i coupon viaggiare sulla mappa in tempo reale\ne raggiungere qualcuno di speciale 🌍',
     'hi':
-        'बोनस क्रेडिट पाने के लिए कोड दर्ज करें!\nमानचित्र पर पत्रों की वास्तविक समय यात्रा देखें\nऔर किसी विशेष व्यक्ति तक पहुंचें 🌍',
+        'बोनस क्रेडिट पाने के लिए कोड दर्ज करें!\nमानचित्र पर कूपनों की वास्तविक समय यात्रा देखें\nऔर किसी विशेष व्यक्ति तक पहुंचें 🌍',
     'th':
-        'กรอกโค้ดเพื่อรับเครดิตโบนัส!\nดูจดหมายเดินทางบนแผนที่แบบเรียลไทม์\nและไปถึงคนพิเศษ 🌍',
+        'กรอกโค้ดเพื่อรับเครดิตโบนัส!\nดูคูปองเดินทางบนแผนที่แบบเรียลไทม์\nและไปถึงคนพิเศษ 🌍',
   });
 
   String get premiumInviteShareSubject => _t({
@@ -12861,7 +12861,7 @@ class AppL10n {
     'zh': '优惠券已到达！\n请亲自前往此地点才能打开。',
     'fr': 'Une récompense est arrivée !\nRendez-vous sur place pour l\'ouvrir.',
     'de':
-        'Ein Brief ist angekommen!\nBesuchen Sie diesen Ort, um ihn zu öffnen.',
+        'Ein Coupon ist angekommen!\nBesuchen Sie diesen Ort, um ihn zu öffnen.',
     'es': '¡Ha llegado una recompensa!\nVisita este lugar para abrirla.',
     'pt': 'Uma recompensa chegou!\nVisite este local para abri-la.',
     'ru': 'Награда прибыло!\nПосетите это место, чтобы открыть его.',
@@ -12899,7 +12899,7 @@ class AppL10n {
     'es': 'Recoger recompensa',
     'pt': 'Recolher recompensa',
     'ru': 'Забрать награда',
-    'tr': 'Mektubu Al',
+    'tr': 'Kuponu Al',
     'ar': 'استلام المكافأة',
     'it': 'Ritira la ricompensa',
     'hi': 'पुरस्कार लें',
@@ -12931,25 +12931,25 @@ class AppL10n {
     'ja': 'Thiscountは特典の送受信に位置情報の許可が必要です。\n設定アプリで位置情報を「アプリ使用中のみ許可」に変更してください。',
     'zh': 'Thiscount需要位置权限来发送和接收优惠券。\n请在设置中将位置权限更改为"使用App时允许"。',
     'fr':
-        'Thiscount a besoin de la localisation pour envoyer et recevoir des lettres.\nVeuillez activer « En cours d\'utilisation » dans les paramètres.',
+        'Thiscount a besoin de la localisation pour envoyer et recevoir des coupons.\nVeuillez activer « En cours d\'utilisation » dans les paramètres.',
     'de':
-        'Thiscount benötigt den Standortzugriff zum Senden und Empfangen von Briefen.\nBitte ändern Sie die Standortberechtigung in den Einstellungen auf „Während der Nutzung".',
+        'Thiscount benötigt den Standortzugriff zum Senden und Empfangen von Coupons.\nBitte ändern Sie die Standortberechtigung in den Einstellungen auf „Während der Nutzung".',
     'es':
-        'Thiscount necesita permisos de ubicación para enviar y recibir cartas.\nPor favor, cambia el permiso a "Mientras se usa la app" en Ajustes.',
+        'Thiscount necesita permisos de ubicación para enviar y recibir cupones.\nPor favor, cambia el permiso a "Mientras se usa la app" en Ajustes.',
     'pt':
-        'O Thiscount precisa de permissão de localização para enviar e receber cartas.\nAltere a permissão para "Durante o uso do app" nas Configurações.',
+        'O Thiscount precisa de permissão de localização para enviar e receber cupons.\nAltere a permissão para "Durante o uso do app" nas Configurações.',
     'ru':
-        'Thiscount нужен доступ к геолокации для отправки и получения писем.\nИзмените разрешение на «При использовании приложения» в Настройках.',
+        'Thiscount нужен доступ к геолокации для отправки и получения купонов.\nИзмените разрешение на «При использовании приложения» в Настройках.',
     'tr':
-        'Thiscount mektup gönderip almak için konum iznine ihtiyaç duyar.\nLütfen Ayarlar\'dan konum iznini "Uygulama Kullanılırken" olarak değiştirin.',
+        'Thiscount kupon gönderip almak için konum iznine ihtiyaç duyar.\nLütfen Ayarlar\'dan konum iznini "Uygulama Kullanılırken" olarak değiştirin.',
     'ar':
-        'يحتاج Thiscount إلى إذن الموقع لإرسال واستلام الرسائل.\nيرجى تغيير إذن الموقع إلى "أثناء استخدام التطبيق" في الإعدادات.',
+        'يحتاج Thiscount إلى إذن الموقع لإرسال واستلام القسائم.\nيرجى تغيير إذن الموقع إلى "أثناء استخدام التطبيق" في الإعدادات.',
     'it':
-        'Thiscount ha bisogno del permesso di localizzazione per inviare e ricevere lettere.\nModifica il permesso su "Durante l\'uso dell\'app" nelle Impostazioni.',
+        'Thiscount ha bisogno del permesso di localizzazione per inviare e ricevere coupon.\nModifica il permesso su "Durante l\'uso dell\'app" nelle Impostazioni.',
     'hi':
-        'Thiscount को पत्र भेजने और प्राप्त करने के लिए स्थान अनुमति चाहिए।\nकृपया सेटिंग्स में स्थान अनुमति को "ऐप उपयोग के दौरान" में बदलें।',
+        'Thiscount को कूपन भेजने और प्राप्त करने के लिए स्थान अनुमति चाहिए।\nकृपया सेटिंग्स में स्थान अनुमति को "ऐप उपयोग के दौरान" में बदलें।',
     'th':
-        'Thiscount ต้องการสิทธิ์ตำแหน่งเพื่อส่งและรับจดหมาย\nกรุณาเปลี่ยนสิทธิ์ตำแหน่งเป็น "ขณะใช้แอป" ในการตั้งค่า',
+        'Thiscount ต้องการสิทธิ์ตำแหน่งเพื่อส่งและรับคูปอง\nกรุณาเปลี่ยนสิทธิ์ตำแหน่งเป็น "ขณะใช้แอป" ในการตั้งค่า',
   });
 
   String get mapLater => _t({
@@ -13598,23 +13598,23 @@ class AppL10n {
     'ja': 'ブランドアカウントはDMを使用できません。\n特典の送信で受信者とコミュニケーションしてください。',
     'zh': '品牌账号无法使用私信功能。\n请通过发送优惠券与收件人沟通。',
     'fr':
-        'Les comptes de marque ne peuvent pas utiliser les MP.\nCommuniquez avec les destinataires via les lettres.',
+        'Les comptes de marque ne peuvent pas utiliser les MP.\nCommuniquez avec les destinataires via les coupons.',
     'de':
-        'Markenkonten können keine DMs nutzen.\nKommunizieren Sie mit Empfängern über Briefe.',
+        'Markenkonten können keine DMs nutzen.\nKommunizieren Sie mit Empfängern über Coupons.',
     'es':
-        'Las cuentas de marca no pueden usar MD.\nComunícate con los destinatarios a través de cartas.',
+        'Las cuentas de marca no pueden usar MD.\nComunícate con los destinatarios a través de cupones.',
     'pt':
-        'Contas de marca não podem usar MD.\nComunique-se com os destinatários por cartas.',
+        'Contas de marca não podem usar MD.\nComunique-se com os destinatários por cupons.',
     'ru':
-        'Бренд-аккаунты не могут использовать ЛС.\nОбщайтесь с получателями через письма.',
+        'Бренд-аккаунты не могут использовать ЛС.\nОбщайтесь с получателями через купоны.',
     'tr':
-        'Marka hesapları DM kullanamaz.\nAlıcılarla mektup yoluyla iletişim kurun.',
+        'Marka hesapları DM kullanamaz.\nAlıcılarla kupon yoluyla iletişim kurun.',
     'ar':
-        'حسابات العلامة التجارية لا يمكنها استخدام الرسائل المباشرة.\nتواصل مع المستلمين عبر الرسائل.',
+        'حسابات العلامة التجارية لا يمكنها استخدام القسائم المباشرة.\nتواصل مع المستلمين عبر القسائم.',
     'it':
         'Gli account brand non possono usare i MD.\nComunica con i destinatari tramite ricompense.',
     'hi':
-        'ब्रांड अकाउंट DM का उपयोग नहीं कर सकते।\nकृपया पत्र भेजकर संवाद करें।',
+        'ब्रांड अकाउंट DM का उपयोग नहीं कर सकते।\nकृपया कूपन भेजकर संवाद करें।',
     'th': 'บัญชีแบรนด์ไม่สามารถใช้ DM ได้\nกรุณาสื่อสารกับผู้รับผ่านรางวัล',
   });
 
@@ -13627,25 +13627,25 @@ class AppL10n {
         'クイックレター（DM）はプレミアム会員限定です。\nプレミアムにアップグレードするとDMと1日${premiumLimit}通の送信が可能です。',
     'zh': '快速发送（私信）仅限高级会员使用。\n升级高级版即可使用私信功能，每日发送$premiumLimit封。',
     'fr':
-        'La lettre rapide (MP) est réservée aux membres premium.\nPassez au Premium pour les MP et $premiumLimit lettres/jour.',
+        'Le coupon express (MP) est réservée aux membres premium.\nPassez au Premium pour les MP et $premiumLimit coupons/jour.',
     'de':
-        'Schnellbrief (DM) ist nur für Premium-Mitglieder.\nUpgrade auf Premium für DMs und $premiumLimit Briefe/Tag.',
+        'Express-Coupon (DM) ist nur für Premium-Mitglieder.\nUpgrade auf Premium für DMs und $premiumLimit Coupons/Tag.',
     'es':
-        'Carta rápida (MD) es solo para miembros premium.\nActualiza a Premium para MD y $premiumLimit cartas/día.',
+        'Cupón express (MD) es solo para miembros premium.\nActualiza a Premium para MD y $premiumLimit cupones/día.',
     'pt':
-        'Carta rápida (MD) é exclusiva para membros premium.\nAtualize para Premium para MD e $premiumLimit cartas/dia.',
+        'Cupom express (MD) é exclusivo para membros premium.\nAtualize para Premium para MD e $premiumLimit cupons/dia.',
     'ru':
-        'Быстрое письмо (ЛС) — только для премиум-участников.\nОформите подписку Premium для ЛС и $premiumLimit писем/день.',
+        'Быстрое купон (ЛС) — только для премиум-участников.\nОформите подписку Premium для ЛС и $premiumLimit купонов/день.',
     'tr':
-        'Hızlı mektup (DM) yalnızca premium üyelere özeldir.\nPremium\'a yükselterek DM ve günde $premiumLimit mektup gönderebilirsiniz.',
+        'Hızlı kupon (DM) yalnızca premium üyelere özeldir.\nPremium\'a yükselterek DM ve günde $premiumLimit kupon gönderebilirsiniz.',
     'ar':
-        'الرسالة السريعة (DM) مخصصة للأعضاء المميزين فقط.\nقم بالترقية إلى Premium للوصول إلى DM و$premiumLimit رسالة/يوم.',
+        'القسيمة السريعة (DM) مخصصة للأعضاء المميزين فقط.\nقم بالترقية إلى Premium للوصول إلى DM و$premiumLimit قسيمة/يوم.',
     'it':
-        'Lettera rapida (MD) è solo per membri premium.\nPassa a Premium per MD e $premiumLimit lettere/giorno.',
+        'Coupon express (MD) è solo per membri premium.\nPassa a Premium per MD e $premiumLimit coupon/giorno.',
     'hi':
-        'क्विक लेटर (DM) केवल प्रीमियम सदस्यों के लिए है।\nDM और प्रतिदिन $premiumLimit पत्र भेजने के लिए प्रीमियम में अपग्रेड करें।',
+        'क्विक लेटर (DM) केवल प्रीमियम सदस्यों के लिए है।\nDM और प्रतिदिन $premiumLimit कूपन भेजने के लिए प्रीमियम में अपग्रेड करें।',
     'th':
-        'จดหมายด่วน (DM) สำหรับสมาชิกพรีเมียมเท่านั้น\nอัปเกรดเป็น Premium เพื่อใช้ DM และส่งวันละ $premiumLimit ฉบับ',
+        'คูปองด่วน (DM) สำหรับสมาชิกพรีเมียมเท่านั้น\nอัปเกรดเป็น Premium เพื่อใช้ DM และส่งวันละ $premiumLimit ฉบับ',
   });
 
   String statePremiumExpressLimitExceeded(int limit) => _t({
@@ -13672,24 +13672,24 @@ class AppL10n {
     'ja': '本日の画像レター上限（${limit}通）に達しました。明日もう一度お試しください。',
     'zh': '已达到今日图片优惠券上限（$limit封）。请明天再试。',
     'fr':
-        'Vous avez atteint la limite de lettres image ($limit). Réessayez demain.',
+        'Vous avez atteint la limite de coupons image ($limit). Réessayez demain.',
     'de':
-        'Sie haben das heutige Bildbrief-Limit ($limit) erreicht. Versuchen Sie es morgen erneut.',
+        'Sie haben das heutige Bildcoupon-Limit ($limit) erreicht. Versuchen Sie es morgen erneut.',
     'es':
-        'Has alcanzado el límite de cartas con imagen ($limit). Inténtalo mañana.',
+        'Has alcanzado el límite de cupones con imagen ($limit). Inténtalo mañana.',
     'pt':
-        'Você atingiu o limite de cartas com imagem ($limit). Tente novamente amanhã.',
+        'Você atingiu o limite de cupons com imagem ($limit). Tente novamente amanhã.',
     'ru':
-        'Достигнут дневной лимит писем с изображениями ($limit). Попробуйте завтра.',
+        'Достигнут дневной лимит купонов с изображениями ($limit). Попробуйте завтра.',
     'tr':
-        'Bugünkü resimli mektup limitine ($limit) ulaştınız. Yarın tekrar deneyin.',
+        'Bugünkü resimli kupon limitine ($limit) ulaştınız. Yarın tekrar deneyin.',
     'ar': 'لقد وصلت إلى حد مكافآت الصور اليومي ($limit). يرجى المحاولة غداً.',
     'it':
-        'Hai raggiunto il limite giornaliero di lettere con immagine ($limit). Riprova domani.',
+        'Hai raggiunto il limite giornaliero di coupon con immagine ($limit). Riprova domani.',
     'hi':
-        'आज का इमेज पत्र सीमा ($limit) पूरी हो गई। कृपया कल पुनः प्रयास करें।',
+        'आज का इमेज कूपन सीमा ($limit) पूरी हो गई। कृपया कल पुनः प्रयास करें।',
     'th':
-        'ถึงขีดจำกัดจดหมายรูปภาพวันนี้แล้ว ($limit ฉบับ) กรุณาลองใหม่พรุ่งนี้',
+        'ถึงขีดจำกัดคูปองรูปภาพวันนี้แล้ว ($limit ฉบับ) กรุณาลองใหม่พรุ่งนี้',
   });
 
   String get stateBrandExtraVerificationUnavailable => _t({
@@ -13729,25 +13729,25 @@ class AppL10n {
         '本日の無料枠（${freeLimit}通）を使い切りました。\nプレミアムにアップグレードすると1日${premiumLimit}通まで送信でき、返信チャンスが最大10倍に。',
     'zh': '今日免费额度（$freeLimit封）已用完。\n升级Premium每日可发$premiumLimit封，回信机会增加10倍。',
     'fr':
-        'Vous avez utilisé vos $freeLimit lettres gratuites aujourd\'hui.\nPassez au Premium pour envoyer jusqu\'à $premiumLimit/jour et multiplier vos chances de réponse par 10.',
+        'Vous avez utilisé vos $freeLimit coupons gratuits aujourd\'hui.\nPassez au Premium pour envoyer jusqu\'à $premiumLimit/jour et multiplier vos chances de réponse par 10.',
     'de':
-        'Sie haben heute alle $freeLimit kostenlosen Briefe verbraucht.\nUpgraden Sie auf Premium für bis zu $premiumLimit/Tag und verzehnfachen Sie Ihre Antwortchancen.',
+        'Sie haben heute alle $freeLimit kostenlosen Coupons verbraucht.\nUpgraden Sie auf Premium für bis zu $premiumLimit/Tag und verzehnfachen Sie Ihre Antwortchancen.',
     'es':
-        'Has usado todas las $freeLimit cartas gratis hoy.\nActualiza a Premium para enviar hasta $premiumLimit/día y multiplicar tus oportunidades de respuesta por 10.',
+        'Has usado todos los $freeLimit cupones gratis hoy.\nActualiza a Premium para enviar hasta $premiumLimit/día y multiplicar tus oportunidades de respuesta por 10.',
     'pt':
-        'Você usou todas as $freeLimit cartas grátis hoje.\nAtualize para Premium para enviar até $premiumLimit/dia e multiplicar suas chances de resposta por 10x.',
+        'Você usou todos os $freeLimit cupons grátis hoje.\nAtualize para Premium para enviar até $premiumLimit/dia e multiplicar suas chances de resposta por 10x.',
     'ru':
-        'Вы использовали все $freeLimit бесплатных писем сегодня.\nПодпишитесь на Premium — до $premiumLimit писем/день и в 10 раз больше шансов на ответ.',
+        'Вы использовали все $freeLimit бесплатных купонов сегодня.\nПодпишитесь на Premium — до $premiumLimit купонов/день и в 10 раз больше шансов на ответ.',
     'tr':
-        'Bugünkü ücretsiz $freeLimit mektup hakkınızı kullandınız.\nPremium\'a yükselerek günde $premiumLimit mektup gönderebilir ve yanıt şansınızı 10 katına çıkarabilirsiniz.',
+        'Bugünkü ücretsiz $freeLimit kupon hakkınızı kullandınız.\nPremium\'a yükselerek günde $premiumLimit kupon gönderebilir ve yanıt şansınızı 10 katına çıkarabilirsiniz.',
     'ar':
-        'لقد استخدمت جميع الرسائل المجانية ($freeLimit) اليوم.\nقم بالترقية إلى Premium لإرسال حتى $premiumLimit/يوم ومضاعفة فرص الرد 10 أضعاف.',
+        'لقد استخدمت جميع القسائم المجانية ($freeLimit) اليوم.\nقم بالترقية إلى Premium لإرسال حتى $premiumLimit/يوم ومضاعفة فرص الرد 10 أضعاف.',
     'it':
-        'Hai usato tutte le $freeLimit lettere gratuite oggi.\nPassa a Premium per inviare fino a $premiumLimit/giorno e moltiplicare le possibilità di risposta per 10.',
+        'Hai usato tutti i $freeLimit coupon gratuiti oggi.\nPassa a Premium per inviare fino a $premiumLimit/giorno e moltiplicare le possibilità di risposta per 10.',
     'hi':
-        'आज की $freeLimit मुफ्त पत्र सीमा समाप्त हो गई।\nPremium में अपग्रेड करें - प्रतिदिन $premiumLimit पत्र भेजें और जवाब की संभावना 10 गुना बढ़ाएं।',
+        'आज की $freeLimit मुफ्त कूपन सीमा समाप्त हो गई।\nPremium में अपग्रेड करें - प्रतिदिन $premiumLimit कूपन भेजें और जवाब की संभावना 10 गुना बढ़ाएं।',
     'th':
-        'คุณใช้จดหมายฟรี $freeLimit ฉบับหมดแล้ววันนี้\nอัปเกรดเป็น Premium ส่งได้ถึง $premiumLimit ฉบับ/วัน เพิ่มโอกาสได้รับตอบกลับ 10 เท่า',
+        'คุณใช้คูปองฟรี $freeLimit ฉบับหมดแล้ววันนี้\nอัปเกรดเป็น Premium ส่งได้ถึง $premiumLimit ฉบับ/วัน เพิ่มโอกาสได้รับตอบกลับ 10 เท่า',
   });
 
   String stateDailyLimitFree(int freeLimit, int premiumLimit) => _t({
@@ -13759,23 +13759,23 @@ class AppL10n {
         '無料会員は1日${freeLimit}通まで送信できます。\nプレミアムにアップグレードすると1日${premiumLimit}通送信可能！',
     'zh': '免费会员每日可发送$freeLimit封优惠券。\n升级Premium每日可发$premiumLimit封！',
     'fr':
-        'Les membres gratuits peuvent envoyer $freeLimit lettres/jour.\nPassez au Premium pour $premiumLimit lettres/jour !',
+        'Les membres gratuits peuvent envoyer $freeLimit coupons/jour.\nPassez au Premium pour $premiumLimit coupons/jour !',
     'de':
-        'Kostenlose Mitglieder können $freeLimit Briefe/Tag senden.\nUpgraden Sie auf Premium für $premiumLimit Briefe/Tag!',
+        'Kostenlose Mitglieder können $freeLimit Coupons/Tag senden.\nUpgraden Sie auf Premium für $premiumLimit Coupons/Tag!',
     'es':
-        'Los miembros gratis pueden enviar $freeLimit cartas/día.\n¡Actualiza a Premium para $premiumLimit cartas/día!',
+        'Los miembros gratis pueden enviar $freeLimit cupones/día.\n¡Actualiza a Premium para $premiumLimit cupones/día!',
     'pt':
-        'Membros gratuitos podem enviar $freeLimit cartas/dia.\nAtualize para Premium para $premiumLimit cartas/dia!',
+        'Membros gratuitos podem enviar $freeLimit cupons/dia.\nAtualize para Premium para $premiumLimit cupons/dia!',
     'ru':
-        'Бесплатные участники могут отправлять $freeLimit писем/день.\nОформите Premium — $premiumLimit писем/день!',
+        'Бесплатные участники могут отправлять $freeLimit купонов/день.\nОформите Premium — $premiumLimit купонов/день!',
     'tr':
-        'Ücretsiz üyeler günde $freeLimit mektup gönderebilir.\nPremium\'a yükselerek günde $premiumLimit mektup gönderin!',
+        'Ücretsiz üyeler günde $freeLimit kupon gönderebilir.\nPremium\'a yükselerek günde $premiumLimit kupon gönderin!',
     'ar':
-        'يمكن للأعضاء المجانيين إرسال $freeLimit رسائل/يوم.\nقم بالترقية إلى Premium لإرسال $premiumLimit رسالة/يوم!',
+        'يمكن للأعضاء المجانيين إرسال $freeLimit قسائم/يوم.\nقم بالترقية إلى Premium لإرسال $premiumLimit قسيمة/يوم!',
     'it':
-        'I membri gratuiti possono inviare $freeLimit lettere/giorno.\nPassa a Premium per $premiumLimit lettere/giorno!',
+        'I membri gratuiti possono inviare $freeLimit coupon/giorno.\nPassa a Premium per $premiumLimit coupon/giorno!',
     'hi':
-        'मुफ्त सदस्य प्रतिदिन $freeLimit पत्र भेज सकते हैं।\nPremium में अपग्रेड करें - प्रतिदिन $premiumLimit पत्र!',
+        'मुफ्त सदस्य प्रतिदिन $freeLimit कूपन भेज सकते हैं।\nPremium में अपग्रेड करें - प्रतिदिन $premiumLimit कूपन!',
     'th':
         'สมาชิกฟรีส่งได้ $freeLimit ฉบับ/วัน\nอัปเกรดเป็น Premium ส่งได้ $premiumLimit ฉบับ/วัน!',
   });
@@ -13788,23 +13788,23 @@ class AppL10n {
     'ja': '本日のブランド送信上限（${brandLimit}通）に達しました。追加送信権（1,000通）を購入するか、明日再度お試しください。',
     'zh': '已达今日品牌发送上限（$brandLimit封）。请购买额外配额（1,000封）或明天再试。',
     'fr':
-        'Vous avez atteint la limite de marque ($brandLimit). Achetez un quota supplémentaire (1 000 lettres) ou réessayez demain.',
+        'Vous avez atteint la limite de marque ($brandLimit). Achetez un quota supplémentaire (1 000 coupons) ou réessayez demain.',
     'de':
-        'Sie haben das heutige Markenlimit ($brandLimit) erreicht. Kaufen Sie zusätzliches Kontingent (1.000 Briefe) oder versuchen Sie es morgen erneut.',
+        'Sie haben das heutige Markenlimit ($brandLimit) erreicht. Kaufen Sie zusätzliches Kontingent (1.000 Coupons) oder versuchen Sie es morgen erneut.',
     'es':
-        'Has alcanzado el límite de marca ($brandLimit). Compra cuota extra (1.000 cartas) o inténtalo mañana.',
+        'Has alcanzado el límite de marca ($brandLimit). Compra cuota extra (1.000 cupones) o inténtalo mañana.',
     'pt':
-        'Você atingiu o limite de marca ($brandLimit). Compre cota extra (1.000 cartas) ou tente amanhã.',
+        'Você atingiu o limite de marca ($brandLimit). Compre cota extra (1.000 cupons) ou tente amanhã.',
     'ru':
-        'Достигнут лимит бренда ($brandLimit). Купите дополнительную квоту (1 000 писем) или попробуйте завтра.',
+        'Достигнут лимит бренда ($brandLimit). Купите дополнительную квоту (1 000 купонов) или попробуйте завтра.',
     'tr':
-        'Bugünkü marka limitine ($brandLimit) ulaştınız. Ek gönderim hakkı (1.000 mektup) satın alın veya yarın deneyin.',
+        'Bugünkü marka limitine ($brandLimit) ulaştınız. Ek gönderim hakkı (1.000 kupon) satın alın veya yarın deneyin.',
     'ar':
-        'لقد وصلت إلى حد العلامة التجارية ($brandLimit). اشترِ حصة إضافية (1,000 رسالة) أو حاول غداً.',
+        'لقد وصلت إلى حد العلامة التجارية ($brandLimit). اشترِ حصة إضافية (1,000 قسيمة) أو حاول غداً.',
     'it':
-        'Hai raggiunto il limite brand ($brandLimit). Acquista quota aggiuntiva (1.000 lettere) o riprova domani.',
+        'Hai raggiunto il limite brand ($brandLimit). Acquista quota aggiuntiva (1.000 coupon) o riprova domani.',
     'hi':
-        'आज का ब्रांड सीमा ($brandLimit) पूरी हो गई। अतिरिक्त कोटा (1,000 पत्र) खरीदें या कल पुनः प्रयास करें।',
+        'आज का ब्रांड सीमा ($brandLimit) पूरी हो गई। अतिरिक्त कोटा (1,000 कूपन) खरीदें या कल पुनः प्रयास करें।',
     'th':
         'ถึงขีดจำกัดแบรนด์วันนี้แล้ว ($brandLimit ฉบับ) ซื้อโควต้าเพิ่ม (1,000 ฉบับ) หรือลองใหม่พรุ่งนี้',
   });
@@ -13842,25 +13842,25 @@ class AppL10n {
         '今月の無料枠（${freeLimit}通）を使い切りました。\nプレミアムに切り替えると月${premiumLimit}通まで送信でき、もっと多くの国とつながれます。',
     'zh': '本月免费额度（$freeLimit封）已用完。\n升级Premium月发$premiumLimit封，连接更多国家。',
     'fr':
-        'Vous avez utilisé vos $freeLimit lettres gratuites ce mois.\nPassez au Premium pour $premiumLimit/mois et connectez-vous avec plus de pays.',
+        'Vous avez utilisé vos $freeLimit coupons gratuits ce mois.\nPassez au Premium pour $premiumLimit/mois et connectez-vous avec plus de pays.',
     'de':
-        'Sie haben alle $freeLimit kostenlosen Briefe diesen Monat verbraucht.\nWechseln Sie zu Premium für $premiumLimit/Monat und verbinden Sie sich mit mehr Ländern.',
+        'Sie haben alle $freeLimit kostenlosen Coupons diesen Monat verbraucht.\nWechseln Sie zu Premium für $premiumLimit/Monat und verbinden Sie sich mit mehr Ländern.',
     'es':
-        'Has usado todas las $freeLimit cartas gratis este mes.\nCambia a Premium para $premiumLimit/mes y conecta con más países.',
+        'Has usado todos los $freeLimit cupones gratis este mes.\nCambia a Premium para $premiumLimit/mes y conecta con más países.',
     'pt':
-        'Você usou todas as $freeLimit cartas grátis este mês.\nMude para Premium para $premiumLimit/mês e conecte-se com mais países.',
+        'Você usou todos os $freeLimit cupons grátis este mês.\nMude para Premium para $premiumLimit/mês e conecte-se com mais países.',
     'ru':
-        'Вы использовали все $freeLimit бесплатных писем в этом месяце.\nПодпишитесь на Premium — $premiumLimit писем/месяц и связь с большим числом стран.',
+        'Вы использовали все $freeLimit бесплатных купонов в этом месяце.\nПодпишитесь на Premium — $premiumLimit купонов/месяц и связь с большим числом стран.',
     'tr':
-        'Bu ayki ücretsiz $freeLimit mektup hakkınızı kullandınız.\nPremium\'a geçerek ayda $premiumLimit mektup gönderebilir ve daha fazla ülkeyle bağlantı kurabilirsiniz.',
+        'Bu ayki ücretsiz $freeLimit kupon hakkınızı kullandınız.\nPremium\'a geçerek ayda $premiumLimit kupon gönderebilir ve daha fazla ülkeyle bağlantı kurabilirsiniz.',
     'ar':
-        'لقد استخدمت جميع الرسائل المجانية ($freeLimit) هذا الشهر.\nانتقل إلى Premium لإرسال $premiumLimit/شهر والتواصل مع المزيد من البلدان.',
+        'لقد استخدمت جميع القسائم المجانية ($freeLimit) هذا الشهر.\nانتقل إلى Premium لإرسال $premiumLimit/شهر والتواصل مع المزيد من البلدان.',
     'it':
-        'Hai usato tutte le $freeLimit lettere gratuite questo mese.\nPassa a Premium per $premiumLimit/mese e connettiti con più paesi.',
+        'Hai usato tutti i $freeLimit coupon gratuiti questo mese.\nPassa a Premium per $premiumLimit/mese e connettiti con più paesi.',
     'hi':
-        'इस महीने की $freeLimit मुफ्त पत्र सीमा समाप्त हो गई।\nPremium में बदलें - $premiumLimit पत्र/माह और अधिक देशों से जुड़ें।',
+        'इस महीने की $freeLimit मुफ्त कूपन सीमा समाप्त हो गई।\nPremium में बदलें - $premiumLimit कूपन/माह और अधिक देशों से जुड़ें।',
     'th':
-        'คุณใช้จดหมายฟรี $freeLimit ฉบับหมดแล้วเดือนนี้\nเปลี่ยนเป็น Premium ส่งได้ $premiumLimit ฉบับ/เดือน เชื่อมต่อกับประเทศต่างๆ มากขึ้น',
+        'คุณใช้คูปองฟรี $freeLimit ฉบับหมดแล้วเดือนนี้\nเปลี่ยนเป็น Premium ส่งได้ $premiumLimit ฉบับ/เดือน เชื่อมต่อกับประเทศต่างๆ มากขึ้น',
   });
 
   String stateMonthlyLimitFree(int freeLimit, int premiumLimit) => _t({
@@ -13872,23 +13872,23 @@ class AppL10n {
         '今月の送信上限（${freeLimit}通）に達しました。\nプレミアムにアップグレードすると月${premiumLimit}通送信可能！',
     'zh': '已达本月发送上限（$freeLimit封）。\n升级Premium月发$premiumLimit封！',
     'fr':
-        'Vous avez atteint la limite mensuelle ($freeLimit).\nPassez au Premium pour $premiumLimit lettres/mois !',
+        'Vous avez atteint la limite mensuelle ($freeLimit).\nPassez au Premium pour $premiumLimit coupons/mois !',
     'de':
-        'Sie haben das Monatslimit ($freeLimit) erreicht.\nUpgraden Sie auf Premium für $premiumLimit Briefe/Monat!',
+        'Sie haben das Monatslimit ($freeLimit) erreicht.\nUpgraden Sie auf Premium für $premiumLimit Coupons/Monat!',
     'es':
-        'Has alcanzado el límite mensual ($freeLimit).\n¡Actualiza a Premium para $premiumLimit cartas/mes!',
+        'Has alcanzado el límite mensual ($freeLimit).\n¡Actualiza a Premium para $premiumLimit cupones/mes!',
     'pt':
-        'Você atingiu o limite mensal ($freeLimit).\nAtualize para Premium para $premiumLimit cartas/mês!',
+        'Você atingiu o limite mensal ($freeLimit).\nAtualize para Premium para $premiumLimit cupons/mês!',
     'ru':
-        'Достигнут месячный лимит ($freeLimit).\nОформите Premium — $premiumLimit писем/месяц!',
+        'Достигнут месячный лимит ($freeLimit).\nОформите Premium — $premiumLimit купонов/месяц!',
     'tr':
-        'Bu ayın limitine ($freeLimit) ulaştınız.\nPremium\'a yükselerek ayda $premiumLimit mektup gönderin!',
+        'Bu ayın limitine ($freeLimit) ulaştınız.\nPremium\'a yükselerek ayda $premiumLimit kupon gönderin!',
     'ar':
-        'لقد وصلت إلى الحد الشهري ($freeLimit).\nقم بالترقية إلى Premium لإرسال $premiumLimit رسالة/شهر!',
+        'لقد وصلت إلى الحد الشهري ($freeLimit).\nقم بالترقية إلى Premium لإرسال $premiumLimit قسيمة/شهر!',
     'it':
-        'Hai raggiunto il limite mensile ($freeLimit).\nPassa a Premium per $premiumLimit lettere/mese!',
+        'Hai raggiunto il limite mensile ($freeLimit).\nPassa a Premium per $premiumLimit coupon/mese!',
     'hi':
-        'इस महीने की सीमा ($freeLimit) पूरी हो गई।\nPremium में अपग्रेड करें - $premiumLimit पत्र/माह!',
+        'इस महीने की सीमा ($freeLimit) पूरी हो गई।\nPremium में अपग्रेड करें - $premiumLimit कूपन/माह!',
     'th':
         'ถึงขีดจำกัดเดือนนี้แล้ว ($freeLimit ฉบับ)\nอัปเกรดเป็น Premium ส่งได้ $premiumLimit ฉบับ/เดือน!',
   });
@@ -13900,23 +13900,23 @@ class AppL10n {
     'ja': '今月のブランド送信上限（${total}通）に達しました。\n追加送信権（1,000通）を購入してください。',
     'zh': '已达本月品牌发送上限（$total封）。\n请购买额外配额（1,000封）。',
     'fr':
-        'Vous avez atteint la limite mensuelle de marque ($total).\nAchetez un quota supplémentaire (1 000 lettres).',
+        'Vous avez atteint la limite mensuelle de marque ($total).\nAchetez un quota supplémentaire (1 000 coupons).',
     'de':
-        'Sie haben das monatliche Markenlimit ($total) erreicht.\nKaufen Sie zusätzliches Kontingent (1.000 Briefe).',
+        'Sie haben das monatliche Markenlimit ($total) erreicht.\nKaufen Sie zusätzliches Kontingent (1.000 Coupons).',
     'es':
-        'Has alcanzado el límite mensual de marca ($total).\nCompra cuota extra (1.000 cartas).',
+        'Has alcanzado el límite mensual de marca ($total).\nCompra cuota extra (1.000 cupones).',
     'pt':
-        'Você atingiu o limite mensal de marca ($total).\nCompre cota extra (1.000 cartas).',
+        'Você atingiu o limite mensal de marca ($total).\nCompre cota extra (1.000 cupons).',
     'ru':
-        'Достигнут месячный лимит бренда ($total).\nКупите дополнительную квоту (1 000 писем).',
+        'Достигнут месячный лимит бренда ($total).\nКупите дополнительную квоту (1 000 купонов).',
     'tr':
-        'Bu ayın marka limitine ($total) ulaştınız.\nEk gönderim hakkı (1.000 mektup) satın alın.',
+        'Bu ayın marka limitine ($total) ulaştınız.\nEk gönderim hakkı (1.000 kupon) satın alın.',
     'ar':
-        'لقد وصلت إلى الحد الشهري للعلامة التجارية ($total).\nاشترِ حصة إضافية (1,000 رسالة).',
+        'لقد وصلت إلى الحد الشهري للعلامة التجارية ($total).\nاشترِ حصة إضافية (1,000 قسيمة).',
     'it':
-        'Hai raggiunto il limite mensile brand ($total).\nAcquista quota aggiuntiva (1.000 lettere).',
+        'Hai raggiunto il limite mensile brand ($total).\nAcquista quota aggiuntiva (1.000 coupon).',
     'hi':
-        'इस महीने का ब्रांड सीमा ($total) पूरी हो गई।\nअतिरिक्त कोटा (1,000 पत्र) खरीदें।',
+        'इस महीने का ब्रांड सीमा ($total) पूरी हो गई।\nअतिरिक्त कोटा (1,000 कूपन) खरीदें।',
     'th':
         'ถึงขีดจำกัดแบรนด์เดือนนี้แล้ว ($total ฉบับ)\nซื้อโควต้าเพิ่ม (1,000 ฉบับ)',
   });
@@ -13939,7 +13939,7 @@ class AppL10n {
     'tr':
         'Bu ayın premium limitine ($premiumLimit) ulaştınız. DM kotası dahildir.',
     'ar':
-        'لقد وصلت إلى الحد الشهري المميز ($premiumLimit)، شاملاً حصة الرسائل المباشرة.',
+        'لقد وصلت إلى الحد الشهري المميز ($premiumLimit)، شاملاً حصة القسائم المباشرة.',
     'it':
         'Hai raggiunto il limite mensile premium ($premiumLimit), inclusa la quota MD.',
     'hi': 'इस महीने का प्रीमियम सीमा ($premiumLimit) पूरी हो गई। DM कोटा सहित।',
@@ -14214,7 +14214,7 @@ class AppL10n {
     'pt': 'Uma recompensa de $flag $country está por perto, colete em $timeStr',
     'ru': 'Награда из $flag $country рядом, можно забрать через $timeStr',
     'tr':
-        '$flag $country\'den bir mektup yakınında, $timeStr sonra alabilirsiniz',
+        '$flag $country\'den bir kupon yakınında, $timeStr sonra alabilirsiniz',
     'ar': 'مكافأة من $flag $country بالقرب منك، يمكنك استلامها بعد $timeStr',
     'it': 'Una ricompensa da $flag $country è vicina, ritiro tra $timeStr',
     'hi': '$flag $country से एक पुरस्कार पास में है, $timeStr बाद उठा सकते हैं',
@@ -14232,7 +14232,7 @@ class AppL10n {
     'es': '⚠️ Tu recompensa ha sido reportada',
     'pt': '⚠️ Sua recompensa foi denunciada',
     'ru': '⚠️ На ваше награда пожаловались',
-    'tr': '⚠️ Mektubunuz bildirildi',
+    'tr': '⚠️ Kuponunuz bildirildi',
     'ar': '⚠️ تم الإبلاغ عن مكافأتك',
     'it': '⚠️ La tua ricompensa è stata segnalata',
     'hi': '⚠️ आपका पुरस्कार रिपोर्ट किया गया',
@@ -14246,23 +14246,23 @@ class AppL10n {
     'ja': '通報により特典の送信が一時制限されています。管理者が確認後、対応します。',
     'zh': '由于举报，您的优惠券发送已暂时限制。管理员将尽快审核。',
     'fr':
-        'L\'envoi de lettres est temporairement restreint suite à un signalement. Un administrateur examinera sous peu.',
+        'L\'envoi de coupons est temporairement restreint suite à un signalement. Un administrateur examinera sous peu.',
     'de':
-        'Ihr Briefversand ist vorübergehend eingeschränkt. Ein Administrator wird dies überprüfen.',
+        'Ihr Couponversand ist vorübergehend eingeschränkt. Ein Administrator wird dies überprüfen.',
     'es':
-        'El envío de cartas está temporalmente restringido por un reporte. Un administrador lo revisará pronto.',
+        'El envío de cupones está temporalmente restringido por un reporte. Un administrador lo revisará pronto.',
     'pt':
-        'O envio de cartas está temporariamente restrito. Um administrador revisará em breve.',
+        'O envio de cupons está temporariamente restrito. Um administrador revisará em breve.',
     'ru':
-        'Отправка писем временно ограничена из-за жалобы. Администратор скоро проверит.',
+        'Отправка купонов временно ограничена из-за жалобы. Администратор скоро проверит.',
     'tr':
-        'Bir bildirim nedeniyle mektup gönderimi geçici olarak kısıtlandı. Yönetici yakında inceleyecek.',
+        'Bir bildirim nedeniyle kupon gönderimi geçici olarak kısıtlandı. Yönetici yakında inceleyecek.',
     'ar':
-        'تم تقييد إرسال الرسائل مؤقتاً بسبب بلاغ. سيقوم المسؤول بالمراجعة قريباً.',
+        'تم تقييد إرسال القسائم مؤقتاً بسبب بلاغ. سيقوم المسؤول بالمراجعة قريباً.',
     'it':
-        'L\'invio di lettere è temporaneamente limitato. Un amministratore esaminerà a breve.',
+        'L\'invio di coupon è temporaneamente limitato. Un amministratore esaminerà a breve.',
     'hi':
-        'रिपोर्ट के कारण पत्र भेजना अस्थायी रूप से प्रतिबंधित है। व्यवस्थापक जल्द समीक्षा करेगा।',
+        'रिपोर्ट के कारण कूपन भेजना अस्थायी रूप से प्रतिबंधित है। व्यवस्थापक जल्द समीक्षा करेगा।',
     'th': 'การส่งรางวัลถูกจำกัดชั่วคราว ผู้ดูแลระบบจะตรวจสอบเร็วๆ นี้',
   });
 
@@ -14276,7 +14276,7 @@ class AppL10n {
     'es': 'Ya leíste esta recompensa 📖',
     'pt': 'Você já leu esta recompensa 📖',
     'ru': 'Вы уже читали это награда 📖',
-    'tr': 'Bu mektubu zaten okudunuz 📖',
+    'tr': 'Bu kuponu zaten okudunuz 📖',
     'ar': 'لقد قرأت هذه المكافأة بالفعل 📖',
     'it': 'Hai già letto questa ricompensa 📖',
     'hi': 'यह पुरस्कार पहले ही पढ़ लिया गया 📖',
@@ -14333,13 +14333,13 @@ class AppL10n {
     'ru':
         'Рассыпайте акции, события и скидки по миру. Подбирать могут только Free/Premium.',
     'tr':
-        'Promosyon, etkinlik ve indirim mektuplarını dünyaya yayın. Toplamak Free/Premium ayrıcalığı.',
+        'Promosyon, etkinlik ve indirim kuponlarını dünyaya yayın. Toplamak Free/Premium ayrıcalığı.',
     'ar':
         'انشر العروض والفعاليات والخصومات حول العالم. الالتقاط ميزة Free/Premium.',
     'it':
         'Distribuisci promo, eventi e sconti nel mondo. Il ritiro è vantaggio Free/Premium.',
     'hi':
-        'प्रचार/इवेंट/छूट पत्र दुनिया में बिखेरें। उठाना Free/Premium सदस्यों का लाभ है।',
+        'प्रचार/इवेंट/छूट कूपन दुनिया में बिखेरें। उठाना Free/Premium सदस्यों का लाभ है।',
     'th':
         'กระจายโปร, กิจกรรม, ส่วนลดไปทั่วโลก การเก็บเป็นสิทธิ์ของสมาชิก Free/Premium',
   });
@@ -14380,7 +14380,7 @@ class AppL10n {
     'es': 'Alguien ya tomó esta recompensa 😢',
     'pt': 'Alguém já pegou esta recompensa 😢',
     'ru': 'Кто-то уже забрал это награда 😢',
-    'tr': 'Birisi bu mektubu çoktan aldı 😢',
+    'tr': 'Birisi bu kuponu çoktan aldı 😢',
     'ar': 'شخص ما أخذ هذه المكافأة بالفعل 😢',
     'it': 'Qualcuno ha già preso questa ricompensa 😢',
     'hi': 'किसी ने पहले ही यह पुरस्कार ले लिया 😢',
@@ -14504,16 +14504,16 @@ class AppL10n {
     'ja': '📍 特典の受取地点から2km以内にいる必要があります',
     'zh': '📍 您需要在优惠券目的地2km范围内才能领取',
     'fr':
-        '📍 Vous devez être à moins de 2 km de la destination pour récupérer la lettre',
+        '📍 Vous devez être à moins de 2 km de la destination pour récupérer le coupon',
     'de':
-        '📍 Sie müssen innerhalb von 2 km vom Briefziel sein, um ihn abzuholen',
+        '📍 Sie müssen innerhalb von 2 km vom Couponziel sein, um ihn abzuholen',
     'es': '📍 Debes estar a menos de 2 km del destino para recoger la recompensa',
     'pt': '📍 Você precisa estar a menos de 2 km do destino para pegar a recompensa',
     'ru': '📍 Вы должны быть в пределах 2 км от адресата, чтобы забрать награда',
-    'tr': '📍 Mektubu almak için 2 km içinde olmalısınız',
+    'tr': '📍 Kuponu almak için 2 km içinde olmalısınız',
     'ar': '📍 يجب أن تكون على بعد 2 كم من وجهة المكافأة لاستلامها',
     'it':
-        '📍 Devi essere entro 2 km dalla destinazione per ritirare la lettera',
+        '📍 Devi essere entro 2 km dalla destinazione per ritirare il coupon',
     'hi': '📍 पुरस्कार लेने के लिए गंतव्य के 2km के भीतर होना आवश्यक है',
     'th': '📍 ต้องอยู่ภายในระยะ 2 กม. จากจุดหมายรางวัลจึงจะเก็บได้',
   });
@@ -15275,25 +15275,25 @@ class AppL10n {
     'zh':
         '没有 GPS 同意将无法使用:\n\n• 📍 拾起附近优惠券\n• ✉️ 发送优惠券 (Premium/Brand)\n• 🗺 显示我的位置\n\n可在设置中重新允许，但强烈建议现在同意。',
     'fr':
-        'Sans consentement GPS, désactivé:\n\n• 📍 Ramasser des lettres\n• ✉️ Envoyer (Premium/Brand)\n• 🗺 Marqueur de position\n\nActivable plus tard dans Paramètres, mais nous recommandons fortement maintenant.',
+        'Sans consentement GPS, désactivé:\n\n• 📍 Ramasser des coupons\n• ✉️ Envoyer (Premium/Brand)\n• 🗺 Marqueur de position\n\nActivable plus tard dans Paramètres, mais nous recommandons fortement maintenant.',
     'de':
-        'Ohne GPS deaktiviert:\n\n• 📍 Briefe aufsammeln\n• ✉️ Briefe senden (Premium/Brand)\n• 🗺 Eigene Position\n\nSpäter in Einstellungen aktivierbar, jetzt empfohlen.',
+        'Ohne GPS deaktiviert:\n\n• 📍 Coupons aufsammeln\n• ✉️ Coupons senden (Premium/Brand)\n• 🗺 Eigene Position\n\nSpäter in Einstellungen aktivierbar, jetzt empfohlen.',
     'es':
-        'Sin GPS estará deshabilitado:\n\n• 📍 Recoger cartas\n• ✉️ Enviar (Premium/Brand)\n• 🗺 Tu marcador\n\nActívalo luego en Ajustes, pero ahora es recomendable.',
+        'Sin GPS estará deshabilitado:\n\n• 📍 Recoger cupones\n• ✉️ Enviar (Premium/Brand)\n• 🗺 Tu marcador\n\nActívalo luego en Ajustes, pero ahora es recomendable.',
     'pt':
-        'Sem GPS fica desativado:\n\n• 📍 Apanhar cartas\n• ✉️ Enviar (Premium/Brand)\n• 🗺 Teu marcador\n\nPodes ativar depois, mas recomendamos agora.',
+        'Sem GPS fica desativado:\n\n• 📍 Apanhar cupons\n• ✉️ Enviar (Premium/Brand)\n• 🗺 Teu marcador\n\nPodes ativar depois, mas recomendamos agora.',
     'ru':
-        'Без GPS недоступно:\n\n• 📍 Подбор писем\n• ✉️ Отправка (Premium/Brand)\n• 🗺 Ваш маркер\n\nМожно включить позже в настройках, но рекомендуем сейчас.',
+        'Без GPS недоступно:\n\n• 📍 Подбор купонов\n• ✉️ Отправка (Premium/Brand)\n• 🗺 Ваш маркер\n\nМожно включить позже в настройках, но рекомендуем сейчас.',
     'tr':
-        'GPS onayı olmadan kapalı:\n\n• 📍 Mektup toplama\n• ✉️ Gönderme (Premium/Brand)\n• 🗺 Konumun\n\nSonra ayarlardan açabilirsin, şimdi öneriyoruz.',
+        'GPS onayı olmadan kapalı:\n\n• 📍 Kupon toplama\n• ✉️ Gönderme (Premium/Brand)\n• 🗺 Konumun\n\nSonra ayarlardan açabilirsin, şimdi öneriyoruz.',
     'ar':
-        'دون GPS معطل:\n\n• 📍 التقاط الرسائل\n• ✉️ الإرسال (Premium/Brand)\n• 🗺 موقعك\n\nيمكن تفعيله لاحقًا من الإعدادات، ولكن يُنصح الآن.',
+        'دون GPS معطل:\n\n• 📍 التقاط القسائم\n• ✉️ الإرسال (Premium/Brand)\n• 🗺 موقعك\n\nيمكن تفعيله لاحقًا من الإعدادات، ولكن يُنصح الآن.',
     'it':
-        'Senza GPS disabilitato:\n\n• 📍 Raccogli lettere\n• ✉️ Invia (Premium/Brand)\n• 🗺 Tuo marcatore\n\nAttivabile poi in Impostazioni, ma consigliato ora.',
+        'Senza GPS disabilitato:\n\n• 📍 Raccogli coupon\n• ✉️ Invia (Premium/Brand)\n• 🗺 Tuo marcatore\n\nAttivabile poi in Impostazioni, ma consigliato ora.',
     'hi':
-        'GPS बिना अक्षम:\n\n• 📍 पत्र उठाना\n• ✉️ भेजना (Premium/Brand)\n• 🗺 आपका मार्कर\n\nसेटिंग्स में बाद में चालू करें, अभी सुझावित.',
+        'GPS बिना अक्षम:\n\n• 📍 कूपन उठाना\n• ✉️ भेजना (Premium/Brand)\n• 🗺 आपका मार्कर\n\nसेटिंग्स में बाद में चालू करें, अभी सुझावित.',
     'th':
-        'ไม่มี GPS จะปิดใช้:\n\n• 📍 เก็บจดหมาย\n• ✉️ ส่ง (Premium/Brand)\n• 🗺 ตำแหน่งของคุณ\n\nเปิดภายหลังในตั้งค่าได้ แต่แนะนำตอนนี้',
+        'ไม่มี GPS จะปิดใช้:\n\n• 📍 เก็บคูปอง\n• ✉️ ส่ง (Premium/Brand)\n• 🗺 ตำแหน่งของคุณ\n\nเปิดภายหลังในตั้งค่าได้ แต่แนะนำตอนนี้',
   });
 
   String get gpsSkipBack => _t({
@@ -16019,21 +16019,21 @@ class AppL10n {
     'ja': '特典を受け取ると、送信国の切手が\n自動的に収集されます',
     'zh': '收到优惠券后，发件国邮票\n会自动收集',
     'fr':
-        'Quand vous recevez une lettre,\nle timbre du pays est collecté automatiquement',
+        'Quand vous recevez un coupon,\nle timbre du pays est collecté automatiquement',
     'de':
-        'Wenn Sie einen Brief erhalten, wird die\nBriefmarke des Absenderlandes automatisch gesammelt',
+        'Wenn Sie einen Coupon erhalten, wird die\nBriefmarke des Absenderlandes automatisch gesammelt',
     'es':
-        'Cuando recibas una carta,\nel sello del país se coleccionará automáticamente',
+        'Cuando recibas un cupón,\nel sello del país se coleccionará automáticamente',
     'pt': 'Ao receber uma recompensa,\no selo do país é coletado automaticamente',
     'ru':
-        'Когда вы получите письмо,\nмарка страны отправителя будет собрана автоматически',
+        'Когда вы получите купон,\nмарка страны отправителя будет собрана автоматически',
     'tr':
-        'Bir mektup aldığınızda gönderen\nülkenin pulu otomatik olarak toplanır',
+        'Bir kupon aldığınızda gönderen\nülkenin pulu otomatik olarak toplanır',
     'ar': 'عند استلام مكافأة، يتم جمع\nطابع بلد المرسل تلقائيًا',
     'it':
-        'Quando ricevi una lettera,\nil francobollo del paese viene raccolto automaticamente',
+        'Quando ricevi un coupon,\nil francobollo del paese viene raccolto automaticamente',
     'hi':
-        'जब आपको पत्र मिलेगा,\nप्रेषक के देश का स्टैम्प स्वचालित रूप से एकत्र होगा',
+        'जब आपको कूपन मिलेगा,\nप्रेषक के देश का स्टैम्प स्वचालित रूप से एकत्र होगा',
     'th': 'เมื่อได้รับรางวัล แสตมป์ของประเทศ\nผู้ส่งจะถูกสะสมโดยอัตโนมัติ',
   });
 
@@ -16452,14 +16452,14 @@ class AppL10n {
     'ja': '"ブランドレターは普通の広告よりずっと温かみがあります。"',
     'zh': '"品牌优惠券比普通广告感觉温暖得多。"',
     'fr':
-        '"Les lettres de marque semblent bien plus chaleureuses que les publicités."',
+        '"Les coupons de marque semblent bien plus chaleureuses que les publicités."',
     'de': '"Marken-Belohnungen fühlen sich viel wärmer an als normale Werbung."',
     'es':
-        '"Las cartas de marca se sienten mucho más cálidas que los anuncios."',
+        '"Los cupones de marca se sienten mucho más cálidas que los anuncios."',
     'pt': '"As recompensas de marca parecem muito mais acolhedoras que anúncios."',
     'ru': '"Брендовые награды ощущаются гораздо теплее обычной рекламы."',
     'tr':
-        '"Marka mektupları normal reklamlardan çok daha sıcak hissettiriyor."',
+        '"Marka kuponları normal reklamlardan çok daha sıcak hissettiriyor."',
     'ar': '"مكافآت العلامة التجارية تبدو أكثر دفئًا من الإعلانات العادية."',
     'it': '"Le ricompense di marca sembrano molto più calde della pubblicità."',
     'hi': '"ब्रांड पुरस्कार सामान्य विज्ञापनों से बहुत गर्म महसूस होते हैं।"',
@@ -16473,17 +16473,17 @@ class AppL10n {
     'ja': '"プレミアムにしたら特典無制限＋優先配達で大満足！"',
     'zh': '"升级到高级版后，优惠券无限+优先配送，超级满意！"',
     'fr':
-        '"Passer en Premium m\'a donné des lettres illimitées et la livraison prioritaire !"',
+        '"Passer en Premium m\'a donné des coupons illimitées et la livraison prioritaire !"',
     'de': '"Premium-Upgrade: unbegrenzte Belohnungen und Prioritätszustellung!"',
     'es':
-        '"Al pasar a Premium obtuve cartas ilimitadas y entrega prioritaria."',
+        '"Al pasar a Premium obtuve cupones ilimitados y entrega prioritaria."',
     'pt':
-        '"Ao atualizar para Premium, ganhei cartas ilimitadas e entrega prioritária!"',
+        '"Ao atualizar para Premium, ganhei cupons ilimitados e entrega prioritária!"',
     'ru': '"Премиум дал безлимитные награды и приоритетную доставку!"',
     'tr': '"Premium\'a geçince sınırsız ödül ve öncelikli teslimat!"',
     'ar': '"الترقية إلى المميز أعطتني مكافآت غير محدودة وتسليم أولوي!"',
     'it':
-        '"Passando a Premium ho ottenuto lettere illimitate e consegna prioritaria!"',
+        '"Passando a Premium ho ottenuto coupon illimitati e consegna prioritaria!"',
     'hi': '"प्रीमियम में अपग्रेड से असीमित पुरस्कार और प्राथमिकता डिलीवरी मिली!"',
     'th': '"อัปเกรดเป็นพรีเมียมได้รางวัลไม่จำกัดและจัดส่งลำดับแรก!"',
   });
@@ -16826,7 +16826,7 @@ class AppL10n {
     'es': 'Reportar recompensa',
     'pt': 'Denunciar recompensa',
     'ru': 'Пожаловаться на награду',
-    'tr': 'Mektubu şikayet et',
+    'tr': 'Kuponu şikayet et',
     'ar': 'الإبلاغ عن المكافأة',
     'it': 'Segnala ricompensa',
     'hi': 'पुरस्कार की रिपोर्ट करें',
@@ -16956,7 +16956,7 @@ class AppL10n {
     'es': 'Califica esta recompensa',
     'pt': 'Avalie esta recompensa',
     'ru': 'Оцените это награда',
-    'tr': 'Bu mektubu değerlendirin',
+    'tr': 'Bu kuponu değerlendirin',
     'ar': 'قيّم هذه المكافأة',
     'it': 'Valuta questa ricompensa',
     'hi': 'इस पुरस्कार को रेट करें',
@@ -18005,20 +18005,20 @@ class AppL10n {
     'ja': '正確な座標に特典を配るには ExactDrop クレジットが必要。100通単位で購入。',
     'zh': '向精确坐标投放优惠券需要 ExactDrop 额度。以 100 封为单位购买。',
     'fr':
-        'Crédits requis pour lancer des lettres à des coordonnées précises. Packs de 100.',
+        'Crédits requis pour lancer des coupons à des coordonnées précises. Packs de 100.',
     'de':
-        'Guthaben nötig, um Briefe an exakten Koordinaten abzulegen. 100er-Pakete.',
+        'Guthaben nötig, um Coupons an exakten Koordinaten abzulegen. 100er-Pakete.',
     'es':
-        'Se necesitan créditos para lanzar cartas en coordenadas exactas. Paquetes de 100.',
+        'Se necesitan créditos para lanzar cupones en coordenadas exactas. Paquetes de 100.',
     'pt':
-        'Créditos necessários para lançar cartas em coordenadas exatas. Pacotes de 100.',
+        'Créditos necessários para lançar cupons em coordenadas exatas. Pacotes de 100.',
     'ru':
-        'Нужны кредиты для сброса писем по точным координатам. Пакеты по 100.',
+        'Нужны кредиты для сброса купонов по точным координатам. Пакеты по 100.',
     'tr':
-        'Tam koordinatlara mektup bırakmak için kredi gerekli. 100\'lü paketler.',
+        'Tam koordinatlara kupon bırakmak için kredi gerekli. 100\'lü paketler.',
     'ar': 'الأرصدة مطلوبة لإسقاط المكافآت في إحداثيات دقيقة. عبوات من 100.',
     'it':
-        'Servono crediti per lanciare lettere in coordinate esatte. Pacchetti da 100.',
+        'Servono crediti per lanciare coupon in coordinate esatte. Pacchetti da 100.',
     'hi': 'सटीक निर्देशांक पर पुरस्कार गिराने के लिए क्रेडिट चाहिए। 100 के पैक।',
     'th': 'ต้องใช้เครดิตเพื่อปล่อยรางวัลที่พิกัดแม่นยำ แพ็ก 100 ฉบับ',
   });
@@ -18731,7 +18731,7 @@ class AppL10n {
     'es': '🎉 ¡Primera recompensa recogida!',
     'pt': '🎉 Primeira recompensa apanhada!',
     'ru': '🎉 Первое награда поднято!',
-    'tr': '🎉 İlk mektubunu topladın!',
+    'tr': '🎉 İlk kuponunu topladın!',
     'ar': '🎉 التقطت أول مكافأة!',
     'it': '🎉 Prima ricompensa raccolta!',
     'hi': '🎉 पहला पुरस्कार उठाया!',
@@ -18744,22 +18744,22 @@ class AppL10n {
     'ja': 'この街に散らばる特典を探し続けましょう。レベルが上がるほど拾える範囲が広がります。',
     'zh': '继续探索——优惠券遍布你的周围。等级提升会扩大拾取范围。',
     'fr':
-        "Continue d'explorer — des lettres tombent autour de toi. Chaque niveau élargit ton rayon.",
+        "Continue d'explorer — des coupons tombent autour de toi. Chaque niveau élargit ton rayon.",
     'de':
-        'Erkunde weiter — überall in deiner Nähe fallen Briefe. Jedes Level vergrößert deinen Radius.',
+        'Erkunde weiter — überall in deiner Nähe fallen Coupons. Jedes Level vergrößert deinen Radius.',
     'es':
-        'Sigue explorando: hay cartas por todas partes. Cada nivel amplía tu radio.',
+        'Sigue explorando: hay cupones por todas partes. Cada nivel amplía tu radio.',
     'pt':
-        'Continua a explorar — caem cartas à tua volta. Cada nível amplia o teu raio.',
+        'Continua a explorar — caem cupons à tua volta. Cada nível amplia o teu raio.',
     'ru':
-        'Продолжайте исследовать — письма падают вокруг вас. Каждый уровень расширяет радиус.',
+        'Продолжайте исследовать — купоны падают вокруг вас. Каждый уровень расширяет радиус.',
     'tr':
-        'Keşfetmeye devam et — etrafına mektuplar düşüyor. Her seviyede yarıçap artıyor.',
+        'Keşfetmeye devam et — etrafına kuponlar düşüyor. Her seviyede yarıçap artıyor.',
     'ar': 'واصل الاستكشاف — المكافآت تتساقط حولك. كل مستوى يوسّع نطاقك.',
     'it':
-        'Continua a esplorare — le lettere cadono ovunque. Ogni livello allarga il tuo raggio.',
+        'Continua a esplorare — i coupon cadono ovunque. Ogni livello allarga il tuo raggio.',
     'hi':
-        'खोजते रहो — तुम्हारे आसपास पत्र गिर रहे हैं। हर स्तर तुम्हारी रेंज बढ़ाता है।',
+        'खोजते रहो — तुम्हारे आसपास कूपन गिर रहे हैं। हर स्तर तुम्हारी रेंज बढ़ाता है।',
     'th': 'สำรวจต่อไป — รางวัลตกอยู่รอบตัวคุณ ระดับยิ่งสูง รัศมียิ่งกว้าง',
   });
   String get firstPickupCelebrationCta => _t({
@@ -19548,7 +19548,7 @@ class AppL10n {
     'ja': '近くの特典を確認。圏外の特典は上部の方位で方向を確認。',
     'zh': '查看附近的优惠券件。范围外的优惠券可在顶部方向指示查看。',
     'fr':
-        'Voir les lettres près de toi. Hors portée, la boussole montre la direction.',
+        'Voir les coupons près de toi. Hors portée, la boussole montre la direction.',
     'de': 'Belohnungen in der Nähe sehen. Außerhalb — oben am Kompass.',
     'es': 'Recompensas cerca de ti. Fuera del radio, brújula superior.',
     'pt': 'Recompensas perto. Fora do raio, bússola superior.',
@@ -22407,7 +22407,7 @@ class AppL10n {
     'es': 'Envía tu primera recompensa',
     'pt': 'Envie sua primeira recompensa',
     'ru': 'Отправьте первое награда',
-    'tr': 'İlk mektubunu gönder',
+    'tr': 'İlk kuponunu gönder',
     'ar': 'أرسل مكافأتك الأولى',
     'it': 'Invia la tua prima ricompensa',
     'hi': 'अपना पहला पुरस्कार भेजें',
@@ -23615,7 +23615,7 @@ class AppL10n {
     'es': 'Tu recompensa está ahora en tránsito 🚚✈️🚢',
     'pt': 'Sua recompensa está em trânsito 🚚✈️🚢',
     'ru': 'Ваша награда в пути 🚚✈️🚢',
-    'tr': 'Mektubunuz şimdi yolda 🚚✈️🚢',
+    'tr': 'Kuponunuz şimdi yolda 🚚✈️🚢',
     'ar': 'مكافأتك الآن في الطريق 🚚✈️🚢',
     'it': 'La tua ricompensa è in consegna 🚚✈️🚢',
     'hi': 'आपका पुरस्कार रास्ते में है 🚚✈️🚢',
@@ -23997,25 +23997,25 @@ class AppL10n {
     'ja': '特典の内容は、報告を受けた場合にのみ管理者が確認できます。\n不適切なコンテンツの投稿はサービス制限の対象となります。',
     'zh': '优惠券内容仅在收到举报时由管理员审查。\n发布不当内容可能导致服务限制。',
     'fr':
-        'Le contenu des lettres ne peut être examiné par les administrateurs que sur signalement.\nLa publication de contenu inapproprié peut entraîner des restrictions de service.',
+        'Le contenu des coupons ne peut être examiné par les administrateurs que sur signalement.\nLa publication de contenu inapproprié peut entraîner des restrictions de service.',
     'de':
-        'Briefinhalte werden nur bei einer Meldung von Administratoren überprüft.\nDas Veröffentlichen unangemessener Inhalte kann zu Diensteinschränkungen führen.',
+        'Couponinhalte werden nur bei einer Meldung von Administratoren überprüft.\nDas Veröffentlichen unangemessener Inhalte kann zu Diensteinschränkungen führen.',
     'es':
-        'El contenido de las cartas solo puede ser revisado por administradores al recibir un reporte.\nPublicar contenido inapropiado puede resultar en restricciones del servicio.',
+        'El contenido de los cupones solo puede ser revisado por administradores al recibir un reporte.\nPublicar contenido inapropiado puede resultar en restricciones del servicio.',
     'pt':
-        'O conteúdo das cartas só pode ser revisado por administradores mediante denúncia.\nA publicação de conteúdo inadequado pode resultar em restrições de serviço.',
+        'O conteúdo dos cupons só pode ser revisado por administradores mediante denúncia.\nA publicação de conteúdo inadequado pode resultar em restrições de serviço.',
     'ru':
-        'Содержание писем проверяется администраторами только при получении жалобы.\nПубликация неприемлемого контента может привести к ограничению сервиса.',
+        'Содержание купонов проверяется администраторами только при получении жалобы.\nПубликация неприемлемого контента может привести к ограничению сервиса.',
     'tr':
-        'Mektup içeriği yalnızca şikayet alındığında yöneticiler tarafından incelenebilir.\nUygunsuz içerik yayınlamak hizmet kısıtlamalarına yol açabilir.',
+        'Kupon içeriği yalnızca şikayet alındığında yöneticiler tarafından incelenebilir.\nUygunsuz içerik yayınlamak hizmet kısıtlamalarına yol açabilir.',
     'ar':
-        'يمكن مراجعة محتوى الرسائل من قبل المسؤولين فقط عند تلقي بلاغ.\nنشر محتوى غير لائق قد يؤدي إلى تقييد الخدمة.',
+        'يمكن مراجعة محتوى القسائم من قبل المسؤولين فقط عند تلقي بلاغ.\nنشر محتوى غير لائق قد يؤدي إلى تقييد الخدمة.',
     'it':
-        'Il contenuto delle lettere può essere esaminato dagli amministratori solo in caso di segnalazione.\nLa pubblicazione di contenuti inappropriati può comportare restrizioni del servizio.',
+        'Il contenuto dei coupon può essere esaminato dagli amministratori solo in caso di segnalazione.\nLa pubblicazione di contenuti inappropriati può comportare restrizioni del servizio.',
     'hi':
-        'पत्र सामग्री की समीक्षा प्रशासकों द्वारा केवल शिकायत प्राप्त होने पर की जा सकती है।\nअनुचित सामग्री पोस्ट करने पर सेवा प्रतिबंध हो सकते हैं।',
+        'कूपन सामग्री की समीक्षा प्रशासकों द्वारा केवल शिकायत प्राप्त होने पर की जा सकती है।\nअनुचित सामग्री पोस्ट करने पर सेवा प्रतिबंध हो सकते हैं।',
     'th':
-        'เนื้อหาจดหมายจะถูกตรวจสอบโดยผู้ดูแลเฉพาะเมื่อได้รับการรายงานเท่านั้น\nการโพสต์เนื้อหาที่ไม่เหมาะสมอาจส่งผลให้ถูกจำกัดการใช้บริการ',
+        'เนื้อหาคูปองจะถูกตรวจสอบโดยผู้ดูแลเฉพาะเมื่อได้รับการรายงานเท่านั้น\nการโพสต์เนื้อหาที่ไม่เหมาะสมอาจส่งผลให้ถูกจำกัดการใช้บริการ',
   });
 
   // ── Privacy Policy expanded sections (5-7) ──────────────────────────────
@@ -24059,53 +24059,53 @@ class AppL10n {
         '审查仅用于判断是否违反社区准则。'
         '如确认违规，相关内容可能被屏蔽，账号可能受到限制。',
     'fr':
-        'Les administrateurs n\'accèdent pas régulièrement au contenu de vos lettres. '
-        'Les lettres ne sont examinées que lorsqu\'un signalement est déposé par un autre utilisateur. '
+        'Les administrateurs n\'accèdent pas régulièrement au contenu de vos coupons. '
+        'Les coupons ne sont examinés que lorsqu\'un signalement est déposé par un autre utilisateur. '
         'Les examens sont effectués uniquement pour déterminer les violations des règles communautaires. '
         'Si une violation est confirmée, le contenu peut être bloqué et des restrictions de compte peuvent s\'appliquer.',
     'de':
-        'Administratoren greifen nicht routinemäßig auf Ihre Briefinhalte zu. '
-        'Briefe werden nur überprüft, wenn eine Meldung von einem anderen Benutzer eingeht. '
+        'Administratoren greifen nicht routinemäßig auf Ihre Couponinhalte zu. '
+        'Coupons werden nur überprüft, wenn eine Meldung von einem anderen Benutzer eingeht. '
         'Überprüfungen dienen ausschließlich der Feststellung von Verstößen gegen Community-Richtlinien. '
         'Bei bestätigten Verstößen können Inhalte gesperrt und Kontoeinschränkungen verhängt werden.',
     'es':
-        'Los administradores no acceden rutinariamente al contenido de sus cartas. '
-        'Las cartas se revisan solo cuando otro usuario presenta un reporte. '
+        'Los administradores no acceden rutinariamente al contenido de sus cupones. '
+        'Los cupones se revisan solo cuando otro usuario presenta un reporte. '
         'Las revisiones se realizan únicamente para determinar violaciones de las normas de la comunidad. '
         'Si se confirma una violación, el contenido puede ser bloqueado y se pueden aplicar restricciones de cuenta.',
     'pt':
-        'Os administradores não acessam rotineiramente o conteúdo de suas cartas. '
-        'As cartas são revisadas apenas quando uma denúncia é feita por outro usuário. '
+        'Os administradores não acessam rotineiramente o conteúdo de seus cupons. '
+        'Os cupons são revisados apenas quando uma denúncia é feita por outro usuário. '
         'As revisões são realizadas exclusivamente para determinar violações das diretrizes da comunidade. '
         'Se uma violação for confirmada, o conteúdo pode ser bloqueado e restrições de conta podem ser aplicadas.',
     'ru':
-        'Администраторы не просматривают содержание ваших писем на регулярной основе. '
-        'Письма проверяются только при поступлении жалобы от другого пользователя. '
+        'Администраторы не просматривают содержание ваших купонов на регулярной основе. '
+        'Купоны проверяются только при поступлении жалобы от другого пользователя. '
         'Проверки проводятся исключительно для выявления нарушений правил сообщества. '
         'При подтверждении нарушения контент может быть заблокирован, а на аккаунт наложены ограничения.',
     'tr':
-        'Yöneticiler mektup içeriğinize rutin olarak erişmez. '
-        'Mektuplar yalnızca başka bir kullanıcı tarafından şikayet edildiğinde incelenir. '
+        'Yöneticiler kupon içeriğinize rutin olarak erişmez. '
+        'Kuponlar yalnızca başka bir kullanıcı tarafından şikayet edildiğinde incelenir. '
         'İncelemeler yalnızca topluluk kurallarının ihlal edilip edilmediğini belirlemek için yapılır. '
         'İhlal tespit edilirse içerik engellenebilir ve hesap kısıtlamaları uygulanabilir.',
     'ar':
-        'لا يصل المسؤولون بشكل روتيني إلى محتوى رسائلك. '
-        'تتم مراجعة الرسائل فقط عند تقديم بلاغ من مستخدم آخر. '
+        'لا يصل المسؤولون بشكل روتيني إلى محتوى قسائمك. '
+        'تتم مراجعة القسائم فقط عند تقديم بلاغ من مستخدم آخر. '
         'تُجرى المراجعات فقط لتحديد انتهاكات إرشادات المجتمع. '
         'إذا تم تأكيد الانتهاك، قد يتم حظر المحتوى وتطبيق قيود على الحساب.',
     'it':
-        'Gli amministratori non accedono regolarmente al contenuto delle tue lettere. '
-        'Le lettere vengono esaminate solo quando viene presentata una segnalazione da un altro utente. '
+        'Gli amministratori non accedono regolarmente al contenuto dei tuoi coupon. '
+        'I coupon vengono esaminati solo quando viene presentata una segnalazione da un altro utente. '
         'Le revisioni vengono effettuate esclusivamente per determinare violazioni delle linee guida della comunità. '
         'Se viene confermata una violazione, il contenuto può essere bloccato e possono essere applicate restrizioni all\'account.',
     'hi':
-        'प्रशासक आपके पत्र सामग्री को नियमित रूप से नहीं देखते। '
-        'पत्रों की समीक्षा केवल तब की जाती है जब किसी अन्य उपयोगकर्ता द्वारा शिकायत दर्ज की जाती है। '
+        'प्रशासक आपके कूपन सामग्री को नियमित रूप से नहीं देखते। '
+        'कूपनों की समीक्षा केवल तब की जाती है जब किसी अन्य उपयोगकर्ता द्वारा शिकायत दर्ज की जाती है। '
         'समीक्षा केवल सामुदायिक दिशानिर्देशों के उल्लंघन का पता लगाने के लिए की जाती है। '
         'यदि उल्लंघन की पुष्टि होती है, तो सामग्री को अवरुद्ध किया जा सकता है और खाता प्रतिबंध लागू हो सकते हैं।',
     'th':
-        'ผู้ดูแลระบบไม่เข้าถึงเนื้อหาจดหมายของคุณเป็นประจำ '
-        'จดหมายจะถูกตรวจสอบเฉพาะเมื่อมีการรายงานจากผู้ใช้รายอื่นเท่านั้น '
+        'ผู้ดูแลระบบไม่เข้าถึงเนื้อหาคูปองของคุณเป็นประจำ '
+        'คูปองจะถูกตรวจสอบเฉพาะเมื่อมีการรายงานจากผู้ใช้รายอื่นเท่านั้น '
         'การตรวจสอบดำเนินการเพื่อตรวจสอบการละเมิดแนวทางชุมชนเท่านั้น '
         'หากยืนยันการละเมิด เนื้อหาอาจถูกบล็อกและอาจมีการจำกัดบัญชี',
   });
@@ -24556,13 +24556,13 @@ class AppL10n {
     'fr':
         'Thiscount respecte votre vie privée.\n\n'
         '📋 Principe fondamental\n'
-        'Les administrateurs n\'accèdent pas régulièrement au contenu de vos lettres.\n\n'
+        'Les administrateurs n\'accèdent pas régulièrement au contenu de vos coupons.\n\n'
         '🔍 Quand un examen a lieu\n'
-        '• Lorsqu\'un autre utilisateur signale la lettre\n'
+        '• Lorsqu\'un autre utilisateur signale le coupon\n'
         '• Lorsque la loi l\'exige\n'
         '• Lorsqu\'il y a une menace grave pour la sécurité du service\n\n'
         '⚖️ Processus d\'examen\n'
-        '1. Après signalement, seule la lettre signalée est examinée\n'
+        '1. Après signalement, seule le coupon signalée est examinée\n'
         '2. Détermination de la violation des règles\n'
         '3. Si violation : contenu bloqué + avertissement\n'
         '4. 3+ violations : suspension permanente du compte\n\n'
@@ -24571,13 +24571,13 @@ class AppL10n {
     'de':
         'Thiscount respektiert Ihre Privatsphäre.\n\n'
         '📋 Grundprinzip\n'
-        'Administratoren greifen nicht routinemäßig auf Ihre Briefinhalte zu.\n\n'
+        'Administratoren greifen nicht routinemäßig auf Ihre Couponinhalte zu.\n\n'
         '🔍 Wann eine Überprüfung stattfindet\n'
-        '• Wenn ein anderer Benutzer den Brief meldet\n'
+        '• Wenn ein anderer Benutzer den Coupon meldet\n'
         '• Wenn gesetzlich vorgeschrieben\n'
         '• Bei ernsthafter Bedrohung der Dienstsicherheit\n\n'
         '⚖️ Überprüfungsprozess\n'
-        '1. Nach Meldung wird nur der gemeldete Brief geprüft\n'
+        '1. Nach Meldung wird nur der gemeldete Coupon geprüft\n'
         '2. Feststellung eines Richtlinienverstoßes\n'
         '3. Bei Verstoß: Inhalt gesperrt + Warnung\n'
         '4. 3+ Verstöße: dauerhafte Kontosperrung\n\n'
@@ -24586,13 +24586,13 @@ class AppL10n {
     'es':
         'Thiscount respeta su privacidad.\n\n'
         '📋 Principio fundamental\n'
-        'Los administradores no acceden rutinariamente al contenido de sus cartas.\n\n'
+        'Los administradores no acceden rutinariamente al contenido de sus cupones.\n\n'
         '🔍 Cuándo se realiza una revisión\n'
-        '• Cuando otro usuario reporta la carta\n'
+        '• Cuando otro usuario reporta el cupón\n'
         '• Cuando la ley lo requiere\n'
         '• Cuando hay una amenaza grave para la seguridad del servicio\n\n'
         '⚖️ Proceso de revisión\n'
-        '1. Tras un reporte, solo se revisa la carta reportada\n'
+        '1. Tras un reporte, solo se revisa el cupón reportado\n'
         '2. Determinación de violación de normas\n'
         '3. Si hay violación: contenido bloqueado + advertencia\n'
         '4. 3+ violaciones: suspensión permanente\n\n'
@@ -24601,13 +24601,13 @@ class AppL10n {
     'pt':
         'Thiscount respeita sua privacidade.\n\n'
         '📋 Princípio fundamental\n'
-        'Administradores não acessam rotineiramente o conteúdo de suas cartas.\n\n'
+        'Administradores não acessam rotineiramente o conteúdo de seus cupons.\n\n'
         '🔍 Quando ocorre revisão\n'
-        '• Quando outro usuário denuncia a carta\n'
+        '• Quando outro usuário denuncia o cupom\n'
         '• Quando exigido por lei\n'
         '• Quando há ameaça grave à segurança do serviço\n\n'
         '⚖️ Processo de revisão\n'
-        '1. Após denúncia, apenas a carta denunciada é revisada\n'
+        '1. Após denúncia, apenas o cupom denunciado é revisado\n'
         '2. Determinação de violação das diretrizes\n'
         '3. Se violação confirmada: conteúdo bloqueado + aviso\n'
         '4. 3+ violações: suspensão permanente\n\n'
@@ -24616,13 +24616,13 @@ class AppL10n {
     'ru':
         'Thiscount уважает вашу конфиденциальность.\n\n'
         '📋 Основной принцип\n'
-        'Администраторы не просматривают содержание ваших писем на регулярной основе.\n\n'
+        'Администраторы не просматривают содержание ваших купонов на регулярной основе.\n\n'
         '🔍 Когда проводится проверка\n'
         '• Когда другой пользователь подаёт жалобу\n'
         '• Когда этого требует закон\n'
         '• При серьёзной угрозе безопасности сервиса\n\n'
         '⚖️ Процесс проверки\n'
-        '1. После жалобы проверяется только обжалованное письмо\n'
+        '1. После жалобы проверяется только обжалованное купон\n'
         '2. Определение нарушения правил\n'
         '3. При нарушении: блокировка контента + предупреждение\n'
         '4. 3+ нарушений: постоянная блокировка аккаунта\n\n'
@@ -24631,13 +24631,13 @@ class AppL10n {
     'tr':
         'Thiscount gizliliğinize saygı duyar.\n\n'
         '📋 Temel İlke\n'
-        'Yöneticiler mektup içeriğinize rutin olarak erişmez.\n\n'
+        'Yöneticiler kupon içeriğinize rutin olarak erişmez.\n\n'
         '🔍 İnceleme Ne Zaman Yapılır\n'
-        '• Başka bir kullanıcı mektubu şikayet ettiğinde\n'
+        '• Başka bir kullanıcı kuponu şikayet ettiğinde\n'
         '• Yasal gereklilik olduğunda\n'
         '• Hizmet güvenliğine ciddi tehdit olduğunda\n\n'
         '⚖️ İnceleme Süreci\n'
-        '1. Şikayet sonrası yalnızca ilgili mektup incelenir\n'
+        '1. Şikayet sonrası yalnızca ilgili kupon incelenir\n'
         '2. Kural ihlali tespiti\n'
         '3. İhlal varsa: içerik engellenir + uyarı\n'
         '4. 3+ ihlal: kalıcı hesap askıya alma\n\n'
@@ -24646,13 +24646,13 @@ class AppL10n {
     'ar':
         'Thiscount يحترم خصوصيتك.\n\n'
         '📋 المبدأ الأساسي\n'
-        'لا يصل المسؤولون بشكل روتيني إلى محتوى رسائلك.\n\n'
+        'لا يصل المسؤولون بشكل روتيني إلى محتوى قسائمك.\n\n'
         '🔍 متى تتم المراجعة\n'
-        '• عندما يبلغ مستخدم آخر عن الرسالة\n'
+        '• عندما يبلغ مستخدم آخر عن القسيمة\n'
         '• عندما يتطلب القانون ذلك\n'
         '• عند وجود تهديد خطير لأمان الخدمة\n\n'
         '⚖️ عملية المراجعة\n'
-        '1. بعد البلاغ، يتم مراجعة الرسالة المبلغ عنها فقط\n'
+        '1. بعد البلاغ، يتم مراجعة القسيمة المبلغ عنها فقط\n'
         '2. تحديد مخالفة الإرشادات\n'
         '3. في حالة المخالفة: حظر المحتوى + تحذير\n'
         '4. 3+ مخالفات: تعليق دائم للحساب\n\n'
@@ -24661,13 +24661,13 @@ class AppL10n {
     'it':
         'Thiscount rispetta la tua privacy.\n\n'
         '📋 Principio fondamentale\n'
-        'Gli amministratori non accedono regolarmente al contenuto delle tue lettere.\n\n'
+        'Gli amministratori non accedono regolarmente al contenuto dei tuoi coupon.\n\n'
         '🔍 Quando avviene la revisione\n'
-        '• Quando un altro utente segnala la lettera\n'
+        '• Quando un altro utente segnala il coupon\n'
         '• Quando richiesto dalla legge\n'
         '• Quando c\'è una grave minaccia alla sicurezza del servizio\n\n'
         '⚖️ Processo di revisione\n'
-        '1. Dopo la segnalazione, viene esaminata solo la lettera segnalata\n'
+        '1. Dopo la segnalazione, viene esaminato solo il coupon segnalato\n'
         '2. Determinazione della violazione delle linee guida\n'
         '3. Se violazione confermata: contenuto bloccato + avvertimento\n'
         '4. 3+ violazioni: sospensione permanente dell\'account\n\n'
@@ -24676,13 +24676,13 @@ class AppL10n {
     'hi':
         'Thiscount आपकी गोपनीयता का सम्मान करता है।\n\n'
         '📋 मूल सिद्धांत\n'
-        'प्रशासक आपके पत्र सामग्री को नियमित रूप से नहीं देखते।\n\n'
+        'प्रशासक आपके कूपन सामग्री को नियमित रूप से नहीं देखते।\n\n'
         '🔍 समीक्षा कब होती है\n'
-        '• जब कोई अन्य उपयोगकर्ता पत्र की शिकायत करता है\n'
+        '• जब कोई अन्य उपयोगकर्ता कूपन की शिकायत करता है\n'
         '• जब कानून द्वारा आवश्यक हो\n'
         '• जब सेवा सुरक्षा को गंभीर खतरा हो\n\n'
         '⚖️ समीक्षा प्रक्रिया\n'
-        '1. शिकायत के बाद, केवल शिकायत किए गए पत्र की समीक्षा\n'
+        '1. शिकायत के बाद, केवल शिकायत किए गए कूपन की समीक्षा\n'
         '2. दिशानिर्देश उल्लंघन का निर्धारण\n'
         '3. उल्लंघन पर: सामग्री अवरुद्ध + चेतावनी\n'
         '4. 3+ उल्लंघन: स्थायी खाता निलंबन\n\n'
@@ -24691,13 +24691,13 @@ class AppL10n {
     'th':
         'Thiscount เคารพความเป็นส่วนตัวของคุณ\n\n'
         '📋 หลักการพื้นฐาน\n'
-        'ผู้ดูแลระบบไม่เข้าถึงเนื้อหาจดหมายของคุณเป็นประจำ\n\n'
+        'ผู้ดูแลระบบไม่เข้าถึงเนื้อหาคูปองของคุณเป็นประจำ\n\n'
         '🔍 เมื่อใดที่มีการตรวจสอบ\n'
-        '• เมื่อผู้ใช้รายอื่นรายงานจดหมาย\n'
+        '• เมื่อผู้ใช้รายอื่นรายงานคูปอง\n'
         '• เมื่อกฎหมายกำหนด\n'
         '• เมื่อมีภัยคุกคามร้ายแรงต่อความปลอดภัยของบริการ\n\n'
         '⚖️ กระบวนการตรวจสอบ\n'
-        '1. หลังรับรายงาน ตรวจสอบเฉพาะจดหมายที่ถูกรายงาน\n'
+        '1. หลังรับรายงาน ตรวจสอบเฉพาะคูปองที่ถูกรายงาน\n'
         '2. พิจารณาว่าละเมิดแนวทางชุมชนหรือไม่\n'
         '3. หากละเมิด: บล็อกเนื้อหา + แจ้งเตือน\n'
         '4. ละเมิด 3+ ครั้ง: ระงับบัญชีถาวร\n\n'
@@ -24800,7 +24800,7 @@ class AppL10n {
         '• 3次以上：永久封禁账号\n\n'
         '如收到不当优惠券，请在优惠券页面点击🚩按钮举报。',
     'fr':
-        'Thiscount est un espace où les utilisateurs du monde entier communiquent par lettres.\n'
+        'Thiscount est un espace où les utilisateurs du monde entier communiquent par coupons.\n'
         'Suivez ces règles pour que chacun puisse vivre une expérience sûre et agréable.\n\n'
         '✅ Recommandé\n'
         '• Écrivez avec un ton poli et amical\n'
@@ -24817,9 +24817,9 @@ class AppL10n {
         '• 1ère infraction : Contenu bloqué + avertissement\n'
         '• 2e infraction : Restriction temporaire\n'
         '• 3+ infractions : Suspension permanente\n\n'
-        'Si vous recevez une lettre inappropriée, signalez-la avec le bouton 🚩.',
+        'Si vous recevez un coupon inappropriée, signalez-la avec le bouton 🚩.',
     'de':
-        'Thiscount ist ein Raum, in dem Benutzer weltweit durch Briefe verbunden sind.\n'
+        'Thiscount ist ein Raum, in dem Benutzer weltweit durch Coupons verbunden sind.\n'
         'Bitte befolgen Sie diese Regeln für eine sichere, angenehme Erfahrung.\n\n'
         '✅ Empfohlen\n'
         '• Schreiben Sie höflich und freundlich\n'
@@ -24836,9 +24836,9 @@ class AppL10n {
         '• 1. Verstoß: Inhalt gesperrt + Warnung\n'
         '• 2. Verstoß: Vorübergehende Einschränkung\n'
         '• 3+ Verstöße: Dauerhafte Kontosperrung\n\n'
-        'Melden Sie unangemessene Briefe mit der 🚩-Taste.',
+        'Melden Sie unangemessene Coupons mit der 🚩-Taste.',
     'es':
-        'Thiscount es un espacio donde usuarios de todo el mundo se conectan a través de cartas.\n'
+        'Thiscount es un espacio donde usuarios de todo el mundo se conectan a través de cupones.\n'
         'Siga estas reglas para que todos tengan una experiencia segura y agradable.\n\n'
         '✅ Recomendado\n'
         '• Escriba con un tono educado y amigable\n'
@@ -24855,9 +24855,9 @@ class AppL10n {
         '• 1ª infracción: Contenido bloqueado + advertencia\n'
         '• 2ª infracción: Restricción temporal\n'
         '• 3+ infracciones: Suspensión permanente\n\n'
-        'Si recibe una carta inapropiada, repórtela con el botón 🚩.',
+        'Si recibe un cupón inapropiado, repórtela con el botón 🚩.',
     'pt':
-        'Thiscount é um espaço onde usuários do mundo todo se conectam por cartas.\n'
+        'Thiscount é um espaço onde usuários do mundo todo se conectam por cupons.\n'
         'Siga estas regras para que todos tenham uma experiência segura e agradável.\n\n'
         '✅ Recomendado\n'
         '• Escreva com um tom educado e amigável\n'
@@ -24874,9 +24874,9 @@ class AppL10n {
         '• 1ª infração: Conteúdo bloqueado + aviso\n'
         '• 2ª infração: Restrição temporária\n'
         '• 3+ infrações: Suspensão permanente\n\n'
-        'Se receber uma carta inadequada, denuncie com o botão 🚩.',
+        'Se receber um cupom inadequado, denuncie com o botão 🚩.',
     'ru':
-        'Thiscount — пространство, где пользователи со всего мира общаются через письма.\n'
+        'Thiscount — пространство, где пользователи со всего мира общаются через купоны.\n'
         'Соблюдайте эти правила для безопасного и приятного опыта.\n\n'
         '✅ Рекомендуется\n'
         '• Пишите вежливым и дружелюбным тоном\n'
@@ -24893,9 +24893,9 @@ class AppL10n {
         '• 1-е нарушение: Блокировка контента + предупреждение\n'
         '• 2-е нарушение: Временное ограничение\n'
         '• 3+ нарушений: Постоянная блокировка аккаунта\n\n'
-        'Если получите неприемлемое письмо, пожалуйтесь через кнопку 🚩.',
+        'Если получите неприемлемое купон, пожалуйтесь через кнопку 🚩.',
     'tr':
-        'Thiscount, dünya genelinde kullanıcıların mektuplarla bağlandığı bir alandır.\n'
+        'Thiscount, dünya genelinde kullanıcıların kuponlarla bağlandığı bir alandır.\n'
         'Herkesin güvenli ve keyifli bir deneyim yaşaması için bu kurallara uyun.\n\n'
         '✅ Önerilen\n'
         '• Kibar ve samimi bir tonla yazın\n'
@@ -24912,9 +24912,9 @@ class AppL10n {
         '• 1. ihlal: İçerik engelleme + uyarı\n'
         '• 2. ihlal: Geçici kısıtlama\n'
         '• 3+ ihlal: Kalıcı hesap askıya alma\n\n'
-        'Uygunsuz bir mektup alırsanız 🚩 düğmesiyle bildirin.',
+        'Uygunsuz bir kupon alırsanız 🚩 düğmesiyle bildirin.',
     'ar':
-        'Thiscount مساحة يتواصل فيها المستخدمون حول العالم عبر الرسائل.\n'
+        'Thiscount مساحة يتواصل فيها المستخدمون حول العالم عبر القسائم.\n'
         'يرجى اتباع هذه القواعد ليحظى الجميع بتجربة آمنة وممتعة.\n\n'
         '✅ مُشجع\n'
         '• اكتب بنبرة مهذبة وودية\n'
@@ -24931,7 +24931,7 @@ class AppL10n {
         '• المخالفة الأولى: حظر المحتوى + تحذير\n'
         '• المخالفة الثانية: تقييد مؤقت\n'
         '• 3+ مخالفات: تعليق دائم للحساب\n\n'
-        'إذا تلقيت رسالة غير لائقة، أبلغ عنها باستخدام زر 🚩.',
+        'إذا تلقيت قسيمة غير لائقة، أبلغ عنها باستخدام زر 🚩.',
     'it':
         'Thiscount è uno spazio dove utenti di tutto il mondo si connettono tramite ricompense.\n'
         'Segui queste regole per un\'esperienza sicura e piacevole per tutti.\n\n'
@@ -24950,9 +24950,9 @@ class AppL10n {
         '• 1ª violazione: Contenuto bloccato + avvertimento\n'
         '• 2ª violazione: Restrizione temporanea\n'
         '• 3+ violazioni: Sospensione permanente\n\n'
-        'Se ricevi una lettera inappropriata, segnalala con il pulsante 🚩.',
+        'Se ricevi un coupon inappropriato, segnalala con il pulsante 🚩.',
     'hi':
-        'Thiscount एक ऐसा स्थान है जहां दुनिया भर के उपयोगकर्ता पत्रों के माध्यम से जुड़ते हैं।\n'
+        'Thiscount एक ऐसा स्थान है जहां दुनिया भर के उपयोगकर्ता कूपनों के माध्यम से जुड़ते हैं।\n'
         'कृपया इन नियमों का पालन करें ताकि सभी को सुरक्षित, आनंददायक अनुभव मिले।\n\n'
         '✅ प्रोत्साहित\n'
         '• विनम्र, मैत्रीपूर्ण स्वर में लिखें\n'
@@ -24969,9 +24969,9 @@ class AppL10n {
         '• पहला उल्लंघन: सामग्री अवरुद्ध + चेतावनी\n'
         '• दूसरा उल्लंघन: अस्थायी प्रतिबंध\n'
         '• 3+ उल्लंघन: स्थायी खाता निलंबन\n\n'
-        'अनुचित पत्र मिलने पर 🚩 बटन से रिपोर्ट करें।',
+        'अनुचित कूपन मिलने पर 🚩 बटन से रिपोर्ट करें।',
     'th':
-        'Thiscount เป็นพื้นที่ที่ผู้ใช้ทั่วโลกเชื่อมต่อกันผ่านจดหมาย\n'
+        'Thiscount เป็นพื้นที่ที่ผู้ใช้ทั่วโลกเชื่อมต่อกันผ่านคูปอง\n'
         'กรุณาปฏิบัติตามกฎเหล่านี้เพื่อให้ทุกคนมีประสบการณ์ที่ปลอดภัยและสนุกสนาน\n\n'
         '✅ แนะนำ\n'
         '• เขียนด้วยน้ำเสียงที่สุภาพและเป็นมิตร\n'
@@ -24988,7 +24988,7 @@ class AppL10n {
         '• ครั้งที่ 1: บล็อกเนื้อหา + แจ้งเตือน\n'
         '• ครั้งที่ 2: จำกัดบริการชั่วคราว\n'
         '• 3+ ครั้ง: ระงับบัญชีถาวร\n\n'
-        'หากได้รับจดหมายที่ไม่เหมาะสม กรุณารายงานด้วยปุ่ม 🚩',
+        'หากได้รับคูปองที่ไม่เหมาะสม กรุณารายงานด้วยปุ่ม 🚩',
   });
 
   String get authMustAgreeTerms => _t({
@@ -25918,7 +25918,7 @@ class AppL10n {
     'es': 'Otros también leen esta recompensa',
     'pt': 'Outros também estão lendo esta recompensa',
     'ru': 'Другие тоже читают это награда',
-    'tr': 'Başkaları da aynı mektubu okuyor',
+    'tr': 'Başkaları da aynı kuponu okuyor',
     'ar': 'يقرأ الآخرون هذه المكافأة أيضاً',
     'it': 'Altri stanno leggendo questa ricompensa',
     'hi': 'और लोग भी यही पुरस्कार पढ़ रहे हैं',
@@ -25955,7 +25955,7 @@ class AppL10n {
     'es': '¿Listo para enviar tu primera recompensa?',
     'pt': 'Pronto para enviar sua primeira recompensa?',
     'ru': 'Готовы отправить первое награда?',
-    'tr': 'İlk mektubunu göndermeye hazır mısın?',
+    'tr': 'İlk kuponunu göndermeye hazır mısın?',
     'ar': 'مستعد لإرسال أول مكافأة؟',
     'it': 'Pronto a inviare la tua prima ricompensa?',
     'hi': 'पहला पुरस्कार भेजने को तैयार?',
@@ -25990,7 +25990,7 @@ class AppL10n {
     'es': '✉️ La Recompensa del día está disponible',
     'pt': '✉️ A Recompensa do dia está disponível',
     'ru': '✉️ Награда дня теперь доступно',
-    'tr': '✉️ Günün Mektubu artık kullanılabilir',
+    'tr': '✉️ Günün Kuponu artık kullanılabilir',
     'ar': '✉️ مكافأة اليوم متاحة الآن',
     'it': '✉️ La Ricompensa del giorno è disponibile',
     'hi': '✉️ आज का पुरस्कार अब उपलब्ध है',
@@ -26321,7 +26321,7 @@ class AppL10n {
     'es': 'Escribir tu primera recompensa',
     'pt': 'Escrever sua primeira recompensa',
     'ru': 'Написать первое награда',
-    'tr': 'İlk mektubunuzu yazın',
+    'tr': 'İlk kuponunuzu yazın',
     'ar': 'اكتب مكافأتك الأولى',
     'it': 'Scrivi la tua prima ricompensa',
     'hi': 'पहला पुरस्कार लिखें',
@@ -27001,13 +27001,13 @@ class AppL10n {
     'fr':
         'Le contenu est public.\nMieux vaut retirer $label.\nEnvoyer quand même ?',
     'de':
-        'Briefinhalt ist öffentlich.\nBitte $label entfernen.\nTrotzdem senden?',
+        'Couponinhalt ist öffentlich.\nBitte $label entfernen.\nTrotzdem senden?',
     'es':
         'El contenido es público.\nQuita $label antes de enviar.\n¿Enviar igualmente?',
     'pt': 'O conteúdo é público.\nRemova $label antes.\nEnviar mesmo assim?',
     'ru': 'Текст награды публичен.\nЛучше убрать $label.\nОтправить всё равно?',
     'tr':
-        'Mektup içeriği herkese açık.\n$label kaldırın.\nYine de gönderilsin mi?',
+        'Kupon içeriği herkese açık.\n$label kaldırın.\nYine de gönderilsin mi?',
     'ar': 'محتوى المكافأة عام.\nاحذف $label.\nأرسل على أي حال؟',
     'it': 'Il contenuto è pubblico.\nRimuovi $label prima.\nInvio comunque?',
     'hi': 'पुरस्कार सार्वजनिक है।\n$label हटाएं।\nफिर भी भेजें?',
@@ -28430,7 +28430,7 @@ class AppL10n {
     'de': 'Eine Kampagne = ein Code. 100 Coupons = 1 POS-Eintrag.',
     'es': 'Una campaña = un código. 100 envíos = 1 registro en POS.',
     'pt': 'Uma campanha = um código. 100 envios = 1 registo no POS.',
-    'ru': 'Одна кампания = один код. 100 писем = 1 запись в POS.',
+    'ru': 'Одна кампания = один код. 100 купонов = 1 запись в POS.',
     'tr': 'Bir kampanya = bir kod. 100 gönderi = POS\'a 1 kayıt.',
     'ar': 'حملة واحدة = رمز واحد. 100 كوبون = تسجيل واحد في POS.',
     'it': 'Una campagna = un codice. 100 invii = 1 registrazione POS.',
@@ -28505,24 +28505,24 @@ class AppL10n {
           ? '1 envoi terminé. Enregistrez ce code une fois dans le champ "Coupon/Remise" du POS. Détection automatique.'
           : '$n envois terminés. Enregistrez ce code une fois dans le champ "Coupon/Remise" du POS. Détection automatique.',
       'de': isSingular
-          ? '1 Brief versendet. Code einmal im POS-Feld "Gutschein/Rabatt" eintragen. Wird automatisch erkannt.'
-          : '$n Briefe versendet. Code einmal im POS-Feld "Gutschein/Rabatt" eintragen. Wird automatisch erkannt.',
+          ? '1 Coupon versendet. Code einmal im POS-Feld "Gutschein/Rabatt" eintragen. Wird automatisch erkannt.'
+          : '$n Coupons versendet. Code einmal im POS-Feld "Gutschein/Rabatt" eintragen. Wird automatisch erkannt.',
       'es': isSingular
-          ? '1 carta enviada. Registra este código una vez en el campo "Cupón/Descuento" del POS. Detección automática.'
-          : '$n cartas enviadas. Registra este código una vez en el campo "Cupón/Descuento" del POS. Detección automática.',
+          ? '1 cupón enviado. Registra este código una vez en el campo "Cupón/Descuento" del POS. Detección automática.'
+          : '$n cupones enviados. Registra este código una vez en el campo "Cupón/Descuento" del POS. Detección automática.',
       'pt': isSingular
-          ? '1 carta enviada. Registe este código uma vez no campo "Cupão/Desconto" do POS. Deteção automática.'
-          : '$n cartas enviadas. Registe este código uma vez no campo "Cupão/Desconto" do POS. Deteção automática.',
+          ? '1 cupom enviado. Registe este código uma vez no campo "Cupão/Desconto" do POS. Deteção automática.'
+          : '$n cupons enviados. Registe este código uma vez no campo "Cupão/Desconto" do POS. Deteção automática.',
       'ru': isSingular
-          ? 'Отправлено 1 письмо. Запишите код один раз в поле POS "Купон/Скидка". Распознаётся автоматически.'
-          : 'Отправлено $n писем. Запишите код один раз в поле POS "Купон/Скидка". Распознаётся автоматически.',
+          ? 'Отправлено 1 купон. Запишите код один раз в поле POS "Купон/Скидка". Распознаётся автоматически.'
+          : 'Отправлено $n купонов. Запишите код один раз в поле POS "Купон/Скидка". Распознаётся автоматически.',
       'tr': isSingular
-          ? '1 mektup gönderildi. Kodu POS\'taki "Kupon/İndirim" alanına bir kez kaydedin. Otomatik algılanır.'
-          : '$n mektup gönderildi. Kodu POS\'taki "Kupon/İndirim" alanına bir kez kaydedin. Otomatik algılanır.',
+          ? '1 kupon gönderildi. Kodu POS\'taki "Kupon/İndirim" alanına bir kez kaydedin. Otomatik algılanır.'
+          : '$n kupon gönderildi. Kodu POS\'taki "Kupon/İndirim" alanına bir kez kaydedin. Otomatik algılanır.',
       'ar': 'تم إرسال $n. سجل الرمز مرة واحدة في حقل POS "كوبون/خصم". يتم التعرف تلقائياً.',
       'it': isSingular
-          ? '1 lettera inviata. Registra il codice una volta nel campo POS "Coupon/Sconto". Riconoscimento automatico.'
-          : '$n lettere inviate. Registra il codice una volta nel campo POS "Coupon/Sconto". Riconoscimento automatico.',
+          ? '1 coupon inviato. Registra il codice una volta nel campo POS "Coupon/Sconto". Riconoscimento automatico.'
+          : '$n coupon inviati. Registra il codice una volta nel campo POS "Coupon/Sconto". Riconoscimento automatico.',
       'hi': '$n भेजी गईं। POS के "कूपन/छूट" में यह कोड 1 बार रजिस्टर करें। ऑटो-डिटेक्ट।',
       'th': 'ส่งแล้ว $n ฉบับ. ลงทะเบียนรหัสนี้ในช่อง POS "คูปอง/ส่วนลด" 1 ครั้ง. ระบบจะตรวจจับอัตโนมัติ',
     });
