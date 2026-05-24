@@ -60,6 +60,13 @@ class _LetterReadScreenState extends State<LetterReadScreen>
 
   bool _voucherProtectOn = false;
 
+  // Build 337 (PR-S8 시뮬레이션 P1 #6): redemption box 로 auto-scroll 위함.
+  //   redemptionCode 있는 letter 첫 진입 시 본문 아래로 스크롤 → "사용 진행"
+  //   버튼이 즉시 보임. 사용자 수동 스크롤 후엔 다시 자동 스크롤 안 함.
+  final ScrollController _scrollCtl = ScrollController();
+  final GlobalKey _redemptionBoxKey = GlobalKey();
+  bool _didAutoScroll = false;
+
   @override
   void initState() {
     super.initState();
@@ -135,7 +142,35 @@ class _LetterReadScreenState extends State<LetterReadScreen>
           _openController.value = 1.0;
         }
       }
+      // Build 337 (PR-S8): 개봉 애니메이션 끝난 직후 redemption box 로 auto-scroll.
+      //   redemptionCode 있는 letter 만 — 일반 letter 는 그대로.
+      _maybeAutoScrollToRedemption();
     });
+  }
+
+  /// Build 337 (PR-S8 시뮬레이션 P1 #6): 코드 letter 진입 후 "사용 진행" 버튼
+  ///   까지 자동 스크롤. 본문 긴 letter 에서 사용자가 직접 스크롤 다운하지
+  ///   않으면 버튼 못 찾던 UX 회귀 해소.
+  void _maybeAutoScrollToRedemption() {
+    if (_didAutoScroll) return;
+    if (widget.letter.redemptionCode == null) return;
+    _didAutoScroll = true;
+    final ctx = _redemptionBoxKey.currentContext;
+    if (ctx != null) {
+      Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeOutCubic,
+        alignment: 0.1, // 화면 위쪽 살짝 떨어진 위치 (헤더 가림 방지)
+      );
+    } else if (_scrollCtl.hasClients) {
+      // box key context 가 아직 마운트 안 됐으면 (rare) — 본문 끝까지 스크롤.
+      _scrollCtl.animateTo(
+        _scrollCtl.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeOutCubic,
+      );
+    }
   }
 
   @override
@@ -144,6 +179,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
       ScreenProtector.preventScreenshotOff();
       ScreenProtector.protectDataLeakageWithBlurOff();
     }
+    _scrollCtl.dispose();
     _openController.dispose();
     super.dispose();
   }
@@ -260,6 +296,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                     animation: _openAnimation,
                     builder: (_, __) {
                       return SingleChildScrollView(
+                        controller: _scrollCtl,
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Column(
                           children: [
@@ -326,11 +363,17 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                             // 배송 여정
                             if (_isOpened) _buildJourneyCard(letter),
                             const SizedBox(height: 24),
-                            // 🎁 쿠폰/교환권 사용 안내 — 브랜드 발송 + redemptionInfo 존재 시만
+                            // 🎁 쿠폰/교환권 사용 안내 — 브랜드 발송 + redemptionInfo
+                            //   존재 OR Build 331 (PR-S1) 발급된 redemptionCode 보유.
+                            //   둘 중 하나라도 있으면 box 노출 (PR-S8: code-only 경우도).
                             if (_isOpened &&
                                 letter.senderIsBrand &&
-                                (letter.redemptionInfo ?? '').trim().isNotEmpty)
-                              _buildRedemptionBox(context, letter),
+                                ((letter.redemptionInfo ?? '').trim().isNotEmpty ||
+                                    letter.redemptionCode != null))
+                              KeyedSubtree(
+                                key: _redemptionBoxKey,
+                                child: _buildRedemptionBox(context, letter),
+                              ),
                             // 답장 버튼 (AI 편지는 "닿지 않음" 카드로 대체)
                             if (_isOpened) _buildAiLetterNotice(context, letter),
                             // 브랜드 발송인이 답장 미수락으로 설정한 편지는 답장
@@ -3000,7 +3043,9 @@ class _RedemptionCountdownState extends State<_RedemptionCountdown> {
 
   Duration get _remaining {
     final elapsed = DateTime.now().difference(widget.startedAt);
-    const ttl = Duration(hours: 1);
+    // Build 337 (PR-S8): TTL 1h → 2h (AppState._pendingRedemptionTtl 와 일치).
+    //   한국 매장 점심·저녁 줄 + 도착 시간 합쳐 1h 초과 케이스 대응.
+    const ttl = Duration(hours: 2);
     return ttl - elapsed;
   }
 
@@ -3323,12 +3368,21 @@ class _RedemptionCodePanel extends StatefulWidget {
 }
 
 class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
-  double? _restoreBrightness;
+  // Build 337 (PR-S8 시뮬레이션 P1 #8): 다중 panel reference counter.
+  //   panel A initState → save orig + boost to 1.0
+  //   panel A 위에 panel B initState → counter++ (밝기는 이미 1.0)
+  //   panel B dispose → counter-- (아직 A 가 있으면 그대로 1.0 유지)
+  //   panel A dispose → counter == 0 → 진짜 복원
+  //   이전엔 각 panel 이 자기 saved 밝기로 복원 → panel B 가 panel A 의
+  //   "최초 잘못된 saved" 인 1.0 으로 복원하던 버그.
+  static int _activeCount = 0;
+  static double? _originalBrightness;
+
+  bool _registered = false;
 
   @override
   void initState() {
     super.initState();
-    // 사용 완료 / 만료 상태에선 밝기 max 불필요 — reveal active 시만 끌어올림.
     if (!widget.redeemed && !widget.expired) {
       _maxBrightness();
     }
@@ -3336,27 +3390,39 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
 
   @override
   void dispose() {
-    // Build 335 (PR-S7 시뮬레이션 P2 #18): 원래 밝기 복원도 try-catch — 일부
-    //   기기 / 플랫폼 미지원 시 throw 가 dispose chain 깨면 메모리 leak.
-    if (_restoreBrightness != null) {
-      try {
-        unawaited(
-          ScreenBrightness.instance
-              .setApplicationScreenBrightness(_restoreBrightness!),
-        );
-      } catch (_) {/* swallow — OS 알아서 정리 */}
+    if (_registered) {
+      _activeCount--;
+      if (_activeCount <= 0) {
+        _activeCount = 0;
+        final orig = _originalBrightness;
+        _originalBrightness = null;
+        if (orig != null) {
+          try {
+            unawaited(
+              ScreenBrightness.instance
+                  .setApplicationScreenBrightness(orig),
+            );
+          } catch (_) {/* swallow */}
+        }
+      }
     }
     super.dispose();
   }
 
   Future<void> _maxBrightness() async {
     try {
-      _restoreBrightness =
-          await ScreenBrightness.instance.application;
+      // 첫 panel 만 원래 밝기 캡처 — 이미 1.0 이면 캡처해도 1.0 (다시 1.0 으로
+      //   복원해도 무관). 이후 panel 들은 단순 counter increment.
+      if (_activeCount == 0) {
+        _originalBrightness =
+            await ScreenBrightness.instance.application;
+      }
+      _activeCount++;
+      _registered = true;
       await ScreenBrightness.instance.setApplicationScreenBrightness(1.0);
     } catch (_) {
-      // 일부 기기/플랫폼 미지원 → 무시 (코드/바코드 자체는 보임).
-      //   _restoreBrightness null 유지 → dispose 시 복원 시도 안 함.
+      // 일부 기기/플랫폼 미지원 → 무시. counter 는 register 안 되어 dispose
+      //   시점에 복원 시도도 안 함.
     }
   }
 

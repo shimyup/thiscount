@@ -5105,7 +5105,17 @@ class _ComposeScreenState extends State<ComposeScreen>
                 final ok = await _showRedemptionCodeGuide();
                 if (ok != true) return;
               }
-              setState(() => _attachRedemptionCode = !_attachRedemptionCode);
+              setState(() {
+                _attachRedemptionCode = !_attachRedemptionCode;
+                // Build 337 (PR-S8 시뮬레이션 P1 #13): general letter 에 코드 발급
+                //   은 매장 POS 흐름과 어울리지 않음. 토글 ON 시 category 가
+                //   general 이면 coupon 으로 자동 전환 → 가이드 dialog 메시지
+                //   ("쿠폰/할인") 와 일관성 + 손님 카테고리 필터 정확도 ↑.
+                if (_attachRedemptionCode &&
+                    _brandCategory == LetterCategory.general) {
+                  _brandCategory = LetterCategory.coupon;
+                }
+              });
             },
             child: Row(
               children: [
