@@ -1836,9 +1836,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       ));
     }
     campaigns.sort((a, b) => b.pickup.compareTo(a.pickup));
-    final pickupRate = totalSent == 0 ? 0.0 : totalPickup / totalSent;
-    final revealRate = totalPickup == 0 ? 0.0 : totalRevealed / totalPickup;
-    final redeemRate = totalPickup == 0 ? 0.0 : totalRedeemed / totalPickup;
+    // Build 335 (PR-S7 시뮬레이션 P2 #20): revealedCount > pickup (한 사용자가
+    //   여러 디바이스 / 재시도) 케이스 → rate > 100% 표시 방지. clamp 1.0.
+    final pickupRate =
+        (totalSent == 0 ? 0.0 : totalPickup / totalSent).clamp(0.0, 1.0);
+    final revealRate =
+        (totalPickup == 0 ? 0.0 : totalRevealed / totalPickup).clamp(0.0, 1.0);
+    final redeemRate =
+        (totalPickup == 0 ? 0.0 : totalRedeemed / totalPickup).clamp(0.0, 1.0);
     return BrandInsights(
       totalSent: totalSent,
       totalPickup: totalPickup,

@@ -2365,9 +2365,31 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                   redeemed: redeemed,
                   expired: expired,
                 ),
+              // Build 335 (PR-S7 시뮬레이션 P1 #7): redemptionCode 와 redemptionInfo
+              //   둘 다 있는 경우 시각 구분 헤더 추가 — 매장이 "어떤 코드 ?"
+              //   헷갈리지 않도록.
               if (letter.redemptionCode != null && letter.redemptionInfo != null
-                  && (letter.redemptionInfo?.trim().isNotEmpty ?? false))
-                const SizedBox(height: 10),
+                  && (letter.redemptionInfo?.trim().isNotEmpty ?? false)) ...[
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.only(left: 2, bottom: 4),
+                  child: Row(
+                    children: [
+                      const Text('📝', style: TextStyle(fontSize: 12)),
+                      const SizedBox(width: 4),
+                      Text(
+                        '추가 사용 안내',
+                        style: TextStyle(
+                          color: AppColors.textMuted.withValues(alpha: 0.9),
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               if (letter.redemptionInfo != null
                   && (letter.redemptionInfo?.trim().isNotEmpty ?? false))
                 _buildRedemptionContent(ctx, inner, letter, l10n, disabled),
@@ -3316,12 +3338,15 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
 
   @override
   void dispose() {
+    // Build 335 (PR-S7 시뮬레이션 P2 #18): 원래 밝기 복원도 try-catch — 일부
+    //   기기 / 플랫폼 미지원 시 throw 가 dispose chain 깨면 메모리 leak.
     if (_restoreBrightness != null) {
-      // 원래 밝기로 복원. 실패해도 OS 가 alocation 해제 시 알아서.
-      unawaited(
-        ScreenBrightness.instance
-            .setApplicationScreenBrightness(_restoreBrightness!),
-      );
+      try {
+        unawaited(
+          ScreenBrightness.instance
+              .setApplicationScreenBrightness(_restoreBrightness!),
+        );
+      } catch (_) {/* swallow — OS 알아서 정리 */}
     }
     super.dispose();
   }
@@ -3333,6 +3358,7 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
       await ScreenBrightness.instance.setApplicationScreenBrightness(1.0);
     } catch (_) {
       // 일부 기기/플랫폼 미지원 → 무시 (코드/바코드 자체는 보임).
+      //   _restoreBrightness null 유지 → dispose 시 복원 시도 안 함.
     }
   }
 
@@ -3341,7 +3367,10 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
     final disabled = widget.redeemed || widget.expired;
     final formatted = RedemptionCode.formatForDisplay(widget.code);
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+      // Build 335 (PR-S7 시뮬레이션 P1 #9): 좌우 padding 14 → 6 으로 줄여
+      //   barcode 폭 확장. iPhone 12 mini 기준 290px → 330px 로 ↑.
+      //   POS 스캐너 인식률 향상. 높이도 72 → 88 로 증가 (1D 권장 ≥ 80px).
+      padding: const EdgeInsets.fromLTRB(6, 14, 6, 12),
       decoration: BoxDecoration(
         color: disabled
             ? AppColors.bgSurface
@@ -3358,8 +3387,30 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // 1D Code128 바코드 — 흰 배경 + 검은 바 강제 (POS 스캐너 호환).
+          // Build 335 (PR-S7): 헤더 라벨 추가 — "이게 진짜 코드" 시각 강조.
+          //   redemptionInfo 와 시각 혼동 차단 (P1 #7).
+          if (!disabled) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 0, 8, 6),
+              child: Row(
+                children: [
+                  const Text('🛒', style: TextStyle(fontSize: 13)),
+                  const SizedBox(width: 4),
+                  Text(
+                    '매장 POS 코드',
+                    style: TextStyle(
+                      color: AppColors.teal.withValues(alpha: 0.95),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           SizedBox(
-            height: 72,
+            height: 88,
             child: Opacity(
               opacity: disabled ? 0.4 : 1.0,
               child: BarcodeWidget(
