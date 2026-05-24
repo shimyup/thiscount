@@ -14276,6 +14276,79 @@ class AppL10n {
     'th': 'มีคนเก็บรางวัลนี้ไปแล้ว 😢',
   });
 
+  // Build 324: 신규 가입자 Welcome trial 첫 부여 직후 1회 안내 모달.
+  //   "결제한 적 없는데 왜 Premium?" 혼란 해소 (Free 신규 시뮬레이션 발견).
+  String get welcomeTrialTitle => _t({
+    'ko': '3일 무료 체험 시작!',
+    'en': '3-day free trial started!',
+    'ja': '3日間無料体験スタート！',
+    'zh': '3 天免费体验开始！',
+    'fr': 'Essai gratuit de 3 jours commencé !',
+    'de': '3-Tage kostenlose Testversion gestartet!',
+    'es': '¡Prueba gratuita de 3 días iniciada!',
+    'pt': 'Teste grátis de 3 dias começou!',
+    'ru': '3-дневная бесплатная пробная версия!',
+    'tr': '3 günlük ücretsiz deneme başladı!',
+    'ar': 'بدأت تجربة مجانية لمدة 3 أيام!',
+    'it': 'Prova gratuita di 3 giorni iniziata!',
+    'hi': '3-दिन का मुफ़्त ट्रायल शुरू!',
+    'th': 'เริ่มทดลองใช้ฟรี 3 วัน!',
+  });
+
+  String get welcomeTrialBody => _t({
+    'ko': '카드 등록 없이 3일 동안 Premium 기능을 모두 써볼 수 있어요. AI 추천 정렬 · 자기 홍보 발송 · 무제한 답장 — 만료되면 자동으로 Free 로 돌아가요.',
+    'en': 'Try all Premium features for 3 days — no card required. AI Picks sort, promo sending, unlimited replies. Auto-returns to Free when it ends.',
+    'ja': 'カード登録不要で3日間プレミアム機能を体験。AIおすすめ並び替え・宣伝送信・無制限返信 — 終了後は自動で無料に戻ります。',
+    'zh': '无需绑卡，3 天免费体验所有 Premium 功能。AI 推荐排序、推广发送、无限回复 — 到期自动回到免费版。',
+    'fr': 'Essayez toutes les fonctions Premium pendant 3 jours — sans carte. Tri par IA, envoi promo, réponses illimitées. Retour auto au gratuit.',
+    'de': 'Alle Premium-Funktionen 3 Tage testen — ohne Karte. KI-Sortierung, Promo-Versand, unbegrenzte Antworten. Endet automatisch.',
+    'es': 'Prueba todas las funciones Premium por 3 días — sin tarjeta. Orden con IA, envío promo, respuestas ilimitadas. Vuelve auto a gratis.',
+    'pt': 'Teste todos os recursos Premium por 3 dias — sem cartão. Ordenação por IA, envio promo, respostas ilimitadas. Volta auto ao grátis.',
+    'ru': 'Все функции Premium 3 дня — без карты. ИИ-сортировка, отправка промо, безлимитные ответы. Авто-возврат на Free.',
+    'tr': 'Kart gerekmez — Premium\'u 3 gün dene. AI sıralama, promo gönderim, sınırsız yanıt. Süre sonunda otomatik Free.',
+    'ar': 'جرّب جميع ميزات Premium لمدة 3 أيام — بدون بطاقة. فرز AI، إرسال ترويجي، ردود غير محدودة. عودة تلقائية للمجاني.',
+    'it': 'Prova tutte le funzioni Premium per 3 giorni — senza carta. Ordina con IA, invio promo, risposte illimitate. Torna auto al gratuito.',
+    'hi': '3 दिन तक Premium सुविधाएँ — कार्ड के बिना। AI सुझाव, प्रचार भेजना, असीमित जवाब। बाद में Free पर वापस।',
+    'th': 'ทดลอง Premium ฟรี 3 วัน — ไม่ต้องผูกบัตร AI แนะนำ · ส่งโปร · ตอบกลับไม่จำกัด หมดเวลาแล้วกลับเป็น Free อัตโนมัติ',
+  });
+
+  String get welcomeTrialCta => _t({
+    'ko': '시작하기',
+    'en': 'Get started',
+    'ja': '始める',
+    'zh': '开始',
+    'fr': 'Commencer',
+    'de': 'Loslegen',
+    'es': 'Comenzar',
+    'pt': 'Começar',
+    'ru': 'Начать',
+    'tr': 'Başla',
+    'ar': 'ابدأ',
+    'it': 'Inizia',
+    'hi': 'शुरू करें',
+    'th': 'เริ่ม',
+  });
+
+  // Build 324: brandUniquePerUser 캠페인 픽업 직후 안내 스낵바.
+  //   "왜 같은 캠페인의 다른 핀이 사라지지?" 의문 해소 (Premium 시뮬레이션 발견).
+  //   count = 픽업 전 같은 캠페인의 다른 letter 수 (사라진 핀 수).
+  String pickupCampaignDedupNotice(int count) => _t({
+    'ko': '🎁 받았어요! 같은 혜택 ${count}개는 다른 분께 양보됐어요',
+    'en': '🎁 Picked up! $count other copies left for others',
+    'ja': '🎁 受け取り完了！同じ特典 $count 個は他の方へ',
+    'zh': '🎁 已领取！同款优惠 $count 个留给其他人',
+    'fr': '🎁 Récupéré ! $count autres copies pour d\'autres',
+    'de': '🎁 Erhalten! $count weitere bleiben für andere',
+    'es': '🎁 ¡Recogido! $count copias quedan para otros',
+    'pt': '🎁 Pego! $count cópias restantes para outros',
+    'ru': '🎁 Получено! Ещё $count копий для других',
+    'tr': '🎁 Alındı! $count kopya başkalarına kaldı',
+    'ar': '🎁 تم الالتقاط! $count نسخ متبقية للآخرين',
+    'it': '🎁 Preso! $count copie rimaste per altri',
+    'hi': '🎁 उठा लिया! $count और दूसरों के लिए',
+    'th': '🎁 รับแล้ว! เหลือ $count ฉบับสำหรับคนอื่น',
+  });
+
   // Build 324: brandUniquePerUser 캠페인의 dedup 알림 — 같은 캠페인의 다른
   //   letter 를 이미 픽업했을 때 노출. 같은 브랜드가 대량으로 랜덤 발송한 letter
   //   여러 개 중 1개만 받을 수 있다는 안내. ko 는 "캠페인" 마케팅 용어 회피.

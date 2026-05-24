@@ -2156,9 +2156,34 @@ class _WorldMapScreenState extends State<WorldMapScreen>
         langCode: langCode,
         letter: letter,
         onPickup: () {
+          // Build 324: 픽업 전 같은 캠페인의 다른 letter 수 미리 카운트.
+          //   픽업 직후 nearbyLetters 필터로 사라지기 전에 차이로 hidden 카운트 계산.
+          final preCampaignSiblings = (letter.brandUniquePerUser &&
+                  letter.campaignId != null)
+              ? state.worldLetters
+                  .where((l) =>
+                      l.id != letter.id &&
+                      l.brandUniquePerUser &&
+                      l.campaignId == letter.campaignId)
+                  .length
+              : 0;
           final error = state.pickUpLetter(letter.id);
           Navigator.pop(ctx);
           if (error == null) {
+            // Build 324: brandUniquePerUser 캠페인 픽업 시 hidden 안내 스낵바.
+            //   "왜 다른 letter 가 사라지지?" 의문 해소 (Premium 시뮬레이션 발견).
+            if (preCampaignSiblings > 0) {
+              ScaffoldMessenger.of(ctx).showSnackBar(
+                SnackBar(
+                  content: Text(l10n.pickupCampaignDedupNotice(
+                    preCampaignSiblings,
+                  )),
+                  backgroundColor: AppColors.bgCard,
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 4),
+                ),
+              );
+            }
             // Build 261: 픽업 직후 LetterReadScreen 즉시 push.
             // 이전: snackbar 만 → 사용자가 인박스로 이동해 다시 탭해야 했음.
             // 변경: 즉시 detail 화면 → 그 후 인박스/수집첩에서도 다시 확인 가능.

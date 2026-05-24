@@ -47,6 +47,9 @@ class _MainScaffoldState extends State<MainScaffold> {
     // 스트릭·레벨업 축하 스낵바 — 첫 프레임 이후 1회 표시
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      // Build 324: 신규 가입자 trial 부여 직후 1회 모달 — "결제한 적 없는데 왜
+      //   Premium?" 혼란 해소 (Free 신규 시뮬레이션 발견). 다른 banner 보다 우선.
+      _maybeShowWelcomeTrialModal();
       StreakCelebrationBar.showIfIncreased(context);
       // 레벨업은 스트릭보다 우선 (더 큰 이벤트) — 살짝 딜레이로 연달아 표시
       Future.delayed(const Duration(milliseconds: 400), () {
@@ -56,6 +59,58 @@ class _MainScaffoldState extends State<MainScaffold> {
       // Build 324: TowerScreen 탭 격리 — initialIndex 기반 popup auto-show 도
       //   더 이상 필요 없음 (TowerScreen 진입은 명시적 /tower 라우트로만).
     });
+  }
+
+  /// Build 324: trial 첫 부여 직후 home 화면에서 1회 모달.
+  ///   AppState.pendingWelcomeTrialNotice 가 true 면 노출 + consume.
+  Future<void> _maybeShowWelcomeTrialModal() async {
+    final state = context.read<AppState>();
+    if (!state.pendingWelcomeTrialNotice) return;
+    state.consumeWelcomeTrialNotice();
+    final l = AppL10n.of(state.currentUser.languageCode);
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dCtx) => AlertDialog(
+        backgroundColor: AppColors.bgCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        icon: const Text('🎁', style: TextStyle(fontSize: 38)),
+        title: Text(
+          l.welcomeTrialTitle,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: AppColors.gold,
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        content: Text(
+          l.welcomeTrialBody,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 13,
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          Center(
+            child: ElevatedButton(
+              onPressed: () => Navigator.of(dCtx).pop(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.gold,
+                foregroundColor: const Color(0xFF1A0008),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+              ),
+              child: Text(
+                l.welcomeTrialCta,
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _openCompose(BuildContext ctx) async {

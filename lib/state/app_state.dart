@@ -1086,9 +1086,23 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     }
     await grant();
     _welcomeTrialClaimedAt = claimedAtNow;
+    // Build 324: 신규 가입자에게 "3일 무료 체험 시작" 모달을 다음 home 진입
+    //   시점에 1회 노출 — "결제한 적 없는데 왜 Premium?" 혼란 해소 (Free 신규
+    //   시뮬레이션 발견).
+    _pendingWelcomeTrialNotice = true;
     await _saveUserToFirestore();
     notifyListeners();
     return true;
+  }
+
+  /// Build 324: trial 첫 부여 직후 home 화면에서 1회 안내 모달 trigger.
+  ///   `consume...` 호출 시 false 로 reset — 다음 가입까지 다시 false.
+  bool _pendingWelcomeTrialNotice = false;
+  bool get pendingWelcomeTrialNotice => _pendingWelcomeTrialNotice;
+  void consumeWelcomeTrialNotice() {
+    if (!_pendingWelcomeTrialNotice) return;
+    _pendingWelcomeTrialNotice = false;
+    notifyListeners();
   }
 
   Future<void> adminGrantExactDropCredits(int amount) async {
