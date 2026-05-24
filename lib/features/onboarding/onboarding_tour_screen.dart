@@ -55,8 +55,11 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
   final PageController _ctrl = PageController();
   int _page = 0;
 
-  // 5 페이지 + 마지막 CTA — 사용자 swipe 자유, 자동 timer 없음.
-  static const int _totalPages = 6;
+  // Build 325 (T3): 6 → 3 페이지로 축소. Welcome / PickupHowTo / Ready 만 유지.
+  //   Tier 비교 (_TierComparePage) / Game (_GameGrowthPage) / Brand ROI
+  //   (_BrandRoiPage) 는 신규 첫 인상에서 정보 과다 → 첫 픽업 후 발견에 위임.
+  //   "걷다 보면 쿠폰이 떨어져요" 한 줄 메시지 집중.
+  static const int _totalPages = 3;
 
   // Build 301: 베타 테스트 모드 — 사용자가 명시적으로 체크하기 전까지 매
   // launch 에 다시 노출. 체크 시에만 markSeen 호출 → 다음번 skip.
@@ -136,12 +139,12 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                   parent: AlwaysScrollableScrollPhysics(),
                 ),
                 onPageChanged: (i) => setState(() => _page = i),
+                // Build 325 (T3): 6 → 3 페이지. Premium tier / 게임 / Brand ROI
+                //   페이지 제거 — 첫 인상 정보 과다 해소. 잔여 페이지는 코드
+                //   잔존 (재활성 시 import 한 줄로 복원 가능).
                 children: const [
                   _WelcomePage(),
                   _PickupHowToPage(),
-                  _TierComparePage(),
-                  _GameGrowthPage(),
-                  _BrandRoiPage(),
                   _ReadyPage(),
                 ],
               ),
