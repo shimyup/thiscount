@@ -1736,11 +1736,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   /// Build 324 (audit fix): Firestore atomic counter 캐시.
-  ///   letter.id → (pickupCount, redeemedCount) 의 서버 집계값.
+  ///   letter.id → (pickupCount, revealedCount, redeemedCount) 의 서버 집계값.
   ///   `refreshBrandInsightsFromServer()` 가 fetch 해서 채움. `brandInsights`
   ///   getter 가 이 캐시를 우선 사용 — local _inbox 만 보던 이전 bug 해소
   ///   (다른 회원의 픽업/사용이 카운트 안 돼 ROI 항상 0% 였음).
-  final Map<String, ({int pickup, int redeemed})> _serverInsightsCache = {};
+  /// Build 331 (PR-S3): revealedCount 추가 — 4단계 funnel (코드 노출).
+  final Map<String, ({int pickup, int revealed, int redeemed})>
+      _serverInsightsCache = {};
 
   /// Build 324 (audit fix): Brand insights 정확도 보강. 본인 sent letter 들의
   ///   Firestore 집계 (pickupCount + redeemedCount atomic increment) 를 fetch
@@ -1758,9 +1760,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         if (doc == null) continue;
         final map = FirestoreService.fromFirestoreDoc(doc);
         final pickup = (map['pickupCount'] as num?)?.toInt() ?? 0;
+        // Build 331 (PR-S3): revealedCount — startRedemption 시 atomic increment.
+        final revealed = (map['revealedCount'] as num?)?.toInt() ?? 0;
         final redeemed = (map['redeemedCount'] as num?)?.toInt() ?? 0;
         _serverInsightsCache[letter.id] =
-            (pickup: pickup, redeemed: redeemed);
+            (pickup: pickup, revealed: revealed, redeemed: redeemed);
       } catch (e) {
         if (kDebugMode) debugPrint('[BrandInsights] fetch 실패: ${letter.id} $e');
       }
@@ -1781,15 +1785,19 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final recent = _sent.where((l) => l.sentAt.isAfter(cutoff)).toList();
     final totalSent = recent.length;
     int totalPickup = 0;
+    int totalRevealed = 0;
     int totalRedeemed = 0;
     final campaigns = <CampaignInsight>[];
     for (final l in recent) {
       // Build 324 fix: 서버 집계 캐시 우선. 다른 회원의 픽업/사용은 server 만
       //   알 수 있음 (local _inbox 엔 본인이 픽업한 letter 만 존재).
+      // Build 331 (PR-S3): revealedCount 도 동일 패턴.
       final cached = _serverInsightsCache[l.id];
       final p = cached?.pickup ?? l.readCount;
+      final v = cached?.revealed ?? (l.codeRevealedAt != null ? 1 : 0);
       final r = cached?.redeemed ?? (l.redeemedAt != null ? 1 : 0);
       totalPickup += p;
+      totalRevealed += v;
       totalRedeemed += r;
       final rate = p == 0 ? 0.0 : r / p;
       campaigns.add(CampaignInsight(
@@ -1797,18 +1805,22 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         title: l.content.length > 40 ? '${l.content.substring(0, 40)}…' : l.content,
         sent: 1,
         pickup: p,
+        revealed: v,
         redeemed: r,
         redeemRate: rate,
       ));
     }
     campaigns.sort((a, b) => b.pickup.compareTo(a.pickup));
     final pickupRate = totalSent == 0 ? 0.0 : totalPickup / totalSent;
+    final revealRate = totalPickup == 0 ? 0.0 : totalRevealed / totalPickup;
     final redeemRate = totalPickup == 0 ? 0.0 : totalRedeemed / totalPickup;
     return BrandInsights(
       totalSent: totalSent,
       totalPickup: totalPickup,
+      totalRevealed: totalRevealed,
       totalRedeemed: totalRedeemed,
       pickupRate: pickupRate,
+      revealRate: revealRate,
       redeemRate: redeemRate,
       campaigns: campaigns,
     );

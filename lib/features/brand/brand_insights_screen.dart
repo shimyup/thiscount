@@ -154,21 +154,32 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
   }
 
   Widget _buildFunnel(BrandInsights i) {
+    // Build 331 (PR-S3): 4단계 funnel — 발송 → 픽업 → 코드 노출 → 사용.
+    //   코드 노출 (revealedCount) = 매장 도착 의도 신호. 노출→사용 drop 큰
+    //   캠페인은 POS 등록 누락 가능성 → 코칭 메시지로 알림.
     return Row(
       children: [
-        Expanded(child: _kpiCard('발송', i.totalSent.toString(), null)),
-        const SizedBox(width: 8),
+        Expanded(child: _kpiCard('📮', i.totalSent.toString(), null)),
+        const SizedBox(width: 6),
         Expanded(
           child: _kpiCard(
-            '픽업',
+            '🎯',
             i.totalPickup.toString(),
             '${(i.pickupRate * 100).toStringAsFixed(0)}%',
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 6),
         Expanded(
           child: _kpiCard(
-            '사용',
+            '🛒',
+            i.totalRevealed.toString(),
+            '${(i.revealRate * 100).toStringAsFixed(0)}%',
+          ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: _kpiCard(
+            '✅',
             i.totalRedeemed.toString(),
             '${(i.redeemRate * 100).toStringAsFixed(0)}%',
           ),
@@ -264,7 +275,8 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            '발송 ${c.sent} · 픽업 ${c.pickup} · 사용 ${c.redeemed}',
+            // Build 331 (PR-S3): 4단계 표시 — 노출 (🛒) 추가.
+            '📮 ${c.sent} · 🎯 ${c.pickup} · 🛒 ${c.revealed} · ✅ ${c.redeemed}',
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 11,

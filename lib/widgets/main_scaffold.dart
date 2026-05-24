@@ -799,6 +799,7 @@ class _BrandInsightsHomeBanner extends StatelessWidget {
     );
     final totalSent = insights.totalSent;
     final totalPickup = insights.totalPickup;
+    final totalRevealed = insights.totalRevealed;
     final redeemRate = insights.redeemRate;
     final healthEmoji = insights.healthEmoji;
     // 데이터 0 이면 노출 X (신규 Brand 가 의미 없는 0% 보면 혼란).
@@ -844,7 +845,10 @@ class _BrandInsightsHomeBanner extends StatelessWidget {
                         ),
                       ),
                       TextSpan(
-                        text: '  ·  📮 $totalSent → 🎯 $totalPickup',
+                        // Build 331 (PR-S3): 4단계 funnel 미니뷰 — 📮 → 🎯 → 🛒.
+                        //   ✅ (사용) 은 pct 가 이미 표현하므로 trail 생략.
+                        text:
+                            '  ·  📮 $totalSent → 🎯 $totalPickup → 🛒 $totalRevealed',
                         style: const TextStyle(
                           color: AppColors.textMuted,
                           fontWeight: FontWeight.w600,
