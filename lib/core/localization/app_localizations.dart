@@ -18917,6 +18917,76 @@ class AppL10n {
     'th': 'ทำเครื่องหมายแล้ว',
   });
 
+  // Build 324 (Q1): redemption "사용 진행" 흐름 14언어. 매장에서 코드/QR
+  //   노출 직전에 사용자 명시적 탭 → 1h 카운트다운 → 자동 사용 완료.
+  String get letterReadRedemptionHiddenHint => _t({
+    'ko': '코드는 매장에서 사용 직전에 보여드려요. 아래 버튼으로 시작하세요.',
+    'en': 'Code revealed only when you redeem at the store. Tap below to start.',
+    'ja': 'コードは店舗で使う直前に表示されます。下のボタンで開始。',
+    'zh': '兑换码仅在门店使用前显示。点击下方按钮开始。',
+    'fr': 'Le code apparaît au moment de l\'utiliser en magasin. Appuyez ci-dessous.',
+    'de': 'Code wird nur beim Einlösen im Geschäft angezeigt. Unten zum Starten tippen.',
+    'es': 'El código aparece al usarlo en la tienda. Pulsa para iniciar.',
+    'pt': 'O código aparece ao usar na loja. Toque abaixo para iniciar.',
+    'ru': 'Код появится при использовании в магазине. Нажмите, чтобы начать.',
+    'tr': 'Kod, mağazada kullanırken görünür. Başlamak için aşağıya dokunun.',
+    'ar': 'يظهر الرمز عند الاستخدام في المتجر. اضغط للبدء.',
+    'it': 'Il codice appare al momento dell\'uso in negozio. Tocca per iniziare.',
+    'hi': 'कोड दुकान पर उपयोग करते समय दिखेगा। शुरू करने के लिए नीचे टैप करें।',
+    'th': 'รหัสจะแสดงเมื่อใช้ที่ร้าน กดเริ่มด้านล่าง',
+  });
+
+  String get letterReadRedemptionStartCta => _t({
+    'ko': '🎁 사용 진행',
+    'en': '🎁 Use now',
+    'ja': '🎁 今すぐ使う',
+    'zh': '🎁 立即使用',
+    'fr': '🎁 Utiliser maintenant',
+    'de': '🎁 Jetzt nutzen',
+    'es': '🎁 Usar ahora',
+    'pt': '🎁 Usar agora',
+    'ru': '🎁 Использовать',
+    'tr': '🎁 Şimdi kullan',
+    'ar': '🎁 استخدم الآن',
+    'it': '🎁 Usa ora',
+    'hi': '🎁 अभी उपयोग करें',
+    'th': '🎁 ใช้เลย',
+  });
+
+  String get letterReadRedemptionStartedToast => _t({
+    'ko': '사용 진행 시작 — 1시간 안에 매장에서 사용하세요',
+    'en': 'Started — use at the store within 1 hour',
+    'ja': '使用開始 — 1時間以内に店舗でご利用ください',
+    'zh': '已开始 — 请在 1 小时内到店使用',
+    'fr': 'Démarré — utilisez en magasin dans l\'heure',
+    'de': 'Gestartet — innerhalb 1 Stunde im Geschäft einlösen',
+    'es': 'Iniciado — úsalo en la tienda dentro de 1 hora',
+    'pt': 'Iniciado — use na loja em 1 hora',
+    'ru': 'Начато — используйте в магазине в течение 1 часа',
+    'tr': 'Başladı — 1 saat içinde mağazada kullanın',
+    'ar': 'بدأ — استخدمه في المتجر خلال ساعة',
+    'it': 'Avviato — usa in negozio entro 1 ora',
+    'hi': 'शुरू — 1 घंटे में दुकान पर उपयोग करें',
+    'th': 'เริ่ม — ใช้ที่ร้านภายใน 1 ชั่วโมง',
+  });
+
+  String letterReadRedemptionCountdown(int mins) => _t({
+    'ko': '⏱ $mins분 후 자동 완료',
+    'en': '⏱ Auto-completes in $mins min',
+    'ja': '⏱ $mins分後に自動完了',
+    'zh': '⏱ $mins 分钟后自动完成',
+    'fr': '⏱ Termine auto dans $mins min',
+    'de': '⏱ Auto-Abschluss in $mins Min',
+    'es': '⏱ Auto-completa en $mins min',
+    'pt': '⏱ Conclui auto em $mins min',
+    'ru': '⏱ Авто-завершение через $mins мин',
+    'tr': '⏱ $mins dk sonra otomatik',
+    'ar': '⏱ تكتمل تلقائيًا خلال $mins د',
+    'it': '⏱ Completa auto fra $mins min',
+    'hi': '⏱ $mins मिन में स्वतः पूर्ण',
+    'th': '⏱ เสร็จอัตโนมัติใน $mins นาที',
+  });
+
   // 수신자 측 혜택 읽기 화면 쿠폰 박스
   String get letterReadRedemptionHeader => _t({
     'ko': '🎁 사용 방법',

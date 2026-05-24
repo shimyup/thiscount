@@ -75,6 +75,9 @@ class _LetterReadScreenState extends State<LetterReadScreen>
       if (widget.letter.content.trim().isEmpty) {
         unawaited(state.refetchLetterContentIfEmpty(widget.letter.id));
       }
+      // Build 324 (Q1): 화면 진입 시 만료된 pending redemption 자동 정리
+      //   → redeemed 처리 + UI 즉시 반영 (dim + 사용됨 라벨).
+      unawaited(state.consumeElapsedPendingRedemptions());
     });
     // 3단계 개봉 시퀀스 — 총 1500ms
     //   Phase 1 (0 → 0.3, ~400ms) : 봉투가 살짝 나타남 + light haptic
@@ -2258,6 +2261,12 @@ class _LetterReadScreenState extends State<LetterReadScreen>
       // 비활성 + 취소선. Mark-used 버튼도 숨긴다 (이미 쓸 수 없으므로).
       final expired = letter.isRedemptionExpired;
       final disabled = redeemed || expired;
+      // Build 324 (Q1): "사용 진행" 흐름. 픽업 직후 코드/QR 자동 노출 차단.
+      //   pending=true (1h 이내) 면 코드 노출 + 카운트다운, 만료 시 자동 redeemed.
+      //   호출자가 entry 시점에 consumeElapsedPendingRedemptions 호출 → 이미
+      //   만료된 pending 은 redeemed 로 처리됨.
+      final pending = state.isPendingRedemption(letter.id);
+      final pendingStartedAt = state.pendingRedemptionStartedAt(letter.id);
       // 만료 임박(3일 이내) — 노란 경고 톤으로 카운트다운 강조.
       final expiresAt = letter.redemptionExpiresAt;
       final daysLeft = expiresAt?.difference(DateTime.now()).inDays;
@@ -2340,23 +2349,83 @@ class _LetterReadScreenState extends State<LetterReadScreen>
               _buildExpiryCountdown(expiresAt, expired, expiringSoon, l10n),
             ],
             const SizedBox(height: 8),
-            // Build 131: 카테고리별 분기 렌더링.
-            //   voucher → URL/로컬 경로 감지 → 이미지 인라인 (탭 시 풀스크린)
-            //   coupon  → 코드 텍스트 + 📋 복사 버튼
-            //   그 외   → 기존 SelectableText (하위 호환)
-            _buildRedemptionContent(ctx, inner, letter, l10n, disabled),
-            if (!disabled) ...[
+            // Build 324 (Q1): 코드/QR 노출은 pending=true (사용 진행) 또는
+            //   redeemed=true (이미 사용) 일 때만. 픽업 직후 (둘 다 false) 면
+            //   "🎁 사용 진행" 버튼만 노출 → 실수 노출 차단 + 의도적 사용 동의.
+            if (pending || redeemed || expired) ...[
+              _buildRedemptionContent(ctx, inner, letter, l10n, disabled),
+            ] else ...[
+              // 코드/QR 가려진 상태 안내 + 사용 진행 hint.
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                decoration: BoxDecoration(
+                  color: AppColors.bgSurface.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.textMuted.withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Text('🔒', style: TextStyle(fontSize: 22)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        l10n.letterReadRedemptionHiddenHint,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            // 사용 진행 카운트다운 + "지금 사용 완료" 옵션 (pending 일 때만).
+            if (pending && pendingStartedAt != null) ...[
+              const SizedBox(height: 10),
+              _RedemptionCountdown(startedAt: pendingStartedAt, l10n: l10n),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    await ctx.read<AppState>().markLetterRedeemed(letter.id);
+                  },
+                  icon: const Icon(Icons.check_circle_outline_rounded, size: 16),
+                  label: Text(
+                    l10n.letterReadRedemptionMarkUsed,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.teal,
+                    side: const BorderSide(color: AppColors.teal, width: 1.2),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ),
+            ] else if (!disabled && !pending) ...[
               const SizedBox(height: 12),
+              // "사용 진행" 거대 CTA — 탭 시 코드/QR 노출 + 1h 카운트다운 시작.
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () async {
-                    await ctx.read<AppState>().markLetterRedeemed(letter.id);
+                    await ctx.read<AppState>().startRedemption(letter.id);
                     if (!inner.mounted) return;
                     ScaffoldMessenger.of(inner).showSnackBar(
                       SnackBar(
                         content: Text(
-                          l10n.letterReadRedemptionMarkedToast,
+                          l10n.letterReadRedemptionStartedToast,
                           style: const TextStyle(color: Colors.white),
                         ),
                         backgroundColor: AppColors.teal,
@@ -2367,20 +2436,21 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                       ),
                     );
                   },
-                  icon: const Icon(Icons.check_circle_outline_rounded, size: 16),
+                  icon: const Icon(Icons.qr_code_2_rounded, size: 22),
                   label: Text(
-                    l10n.letterReadRedemptionMarkUsed,
+                    l10n.letterReadRedemptionStartCta,
                     style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.2,
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.teal,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                   ),
                 ),
@@ -2391,6 +2461,9 @@ class _LetterReadScreenState extends State<LetterReadScreen>
       );
     });
   }
+
+  /// Build 324 (Q1): 1h 카운트다운 위젯 — 사용 진행 시작 ~ 1h 자동 완료.
+  ///   매 30s 자동 rebuild (남은 시간 표시 정확성).
 
   /// 브랜드 발송인이 "답장 받지 않음" 으로 설정한 편지에 표시되는 안내.
   /// Build 133: redemption box 우상단 뱃지 (used / expired 공통 템플릿).
@@ -2860,6 +2933,80 @@ String _langLabel(String code) {
     'pt': 'Português',
   };
   return labels[code] ?? code;
+}
+
+/// Build 324 (Q1): redemption "사용 진행" → 1h auto-complete 카운트다운.
+///   30s 주기 rebuild 로 남은 시간 표시. 0 도달 시 부모 ChangeNotifier 의
+///   consumeElapsedPendingRedemptions 가 markLetterRedeemed 호출 → 자동 사용 완료.
+class _RedemptionCountdown extends StatefulWidget {
+  final DateTime startedAt;
+  final AppL10n l10n;
+  const _RedemptionCountdown({required this.startedAt, required this.l10n});
+
+  @override
+  State<_RedemptionCountdown> createState() => _RedemptionCountdownState();
+}
+
+class _RedemptionCountdownState extends State<_RedemptionCountdown> {
+  Timer? _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    _ticker = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) setState(() {});
+      // 1h 경과 시 AppState 에서 자동 redeemed 처리 — 다음 rebuild 에 반영.
+      final remaining = _remaining;
+      if (remaining.isNegative || remaining == Duration.zero) {
+        context.read<AppState>().consumeElapsedPendingRedemptions();
+        _ticker?.cancel();
+      }
+    });
+  }
+
+  Duration get _remaining {
+    final elapsed = DateTime.now().difference(widget.startedAt);
+    const ttl = Duration(hours: 1);
+    return ttl - elapsed;
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final r = _remaining;
+    final mins = r.inMinutes.clamp(0, 60);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.teal.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: AppColors.teal.withValues(alpha: 0.35),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.timer_rounded, size: 14, color: AppColors.teal),
+          const SizedBox(width: 6),
+          Text(
+            widget.l10n.letterReadRedemptionCountdown(mins),
+            style: const TextStyle(
+              color: AppColors.teal,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _LetterBgPainter extends CustomPainter {

@@ -1552,6 +1552,103 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // 자기 편지들 중 얼마나 사용됐는지 집계해 편지 카드에 배지 노출 가능.
   // 서버 동기화·브랜드 대시보드 대용량 집계는 후속 작업 — 현재는 로컬 추적만.
   final Set<String> _redeemedLetterIds = {};
+
+  // ── Build 324 (Q1): "사용 진행" 상태 ─────────────────────────────────────
+  // 사용자가 코드/QR 을 보려면 명시적으로 "사용 진행" 버튼을 탭해야 함 →
+  // 코드/QR 가 픽업 즉시 노출되지 않음 (실수 노출 방지 + 의도적 사용 동의).
+  // 사용 진행 시각으로부터 1시간 경과 시 자동 markLetterRedeemed.
+  //   letterId → startedAt (ISO ms). null 또는 1h 경과 = 사용 완료 처리.
+  /// 사용 진행 시작 시각 — `Map<letterId, ms epoch>`.
+  final Map<String, int> _pendingRedemptionStartedAt = {};
+
+  /// 사용 진행 자동 완료 만료 (1시간).
+  static const Duration _pendingRedemptionTtl = Duration(hours: 1);
+
+  /// 현재 letterId 가 "사용 진행" 상태 (1h 미경과) 인지.
+  /// 1h 경과 시 false 반환 + 자동 redeemed 처리 (lazy consume).
+  bool isPendingRedemption(String letterId) {
+    final startedMs = _pendingRedemptionStartedAt[letterId];
+    if (startedMs == null) return false;
+    if (_redeemedLetterIds.contains(letterId)) return false;
+    final elapsed = DateTime.now().millisecondsSinceEpoch - startedMs;
+    if (elapsed >= _pendingRedemptionTtl.inMilliseconds) {
+      // 1h 경과 — 자동 사용 완료. side-effect 안 좋으므로 호출 측에서
+      // consumeElapsedPendingRedemptions 명시 호출 시 처리.
+      return false;
+    }
+    return true;
+  }
+
+  /// 사용 진행 시작 시각 (UI 카운트다운용). null 이면 진행 X.
+  DateTime? pendingRedemptionStartedAt(String letterId) {
+    final ms = _pendingRedemptionStartedAt[letterId];
+    if (ms == null) return null;
+    return DateTime.fromMillisecondsSinceEpoch(ms);
+  }
+
+  /// 사용 진행 — 사용자가 "사용 진행" 버튼 탭 시 호출.
+  ///   이전엔 markLetterRedeemed 가 코드 노출과 함께 호출 → 코드 본 직후 자동
+  ///   redeemed. 이제 "사용 진행" = 1h 카운트다운 시작, 그 안에 매장 직원에게
+  ///   코드/QR 노출. 만료 시 자동 사용 완료 처리.
+  Future<void> startRedemption(String letterId) async {
+    if (letterId.isEmpty) return;
+    if (_redeemedLetterIds.contains(letterId)) return;
+    if (_pendingRedemptionStartedAt.containsKey(letterId)) return;
+    _pendingRedemptionStartedAt[letterId] =
+        DateTime.now().millisecondsSinceEpoch;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        'pendingRedemptionStartedAt',
+        _pendingRedemptionStartedAt.entries
+            .map((e) => '${e.key}|${e.value}')
+            .join(';'),
+      );
+    } catch (e) {
+      if (kDebugMode) debugPrint('[startRedemption] prefs 실패: $e');
+    }
+  }
+
+  /// 1h 경과한 pending 들을 자동 markLetterRedeemed 호출 + map 에서 제거.
+  ///   화면 진입 시 / app resume 시 / pickUp 시 호출.
+  Future<void> consumeElapsedPendingRedemptions() async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final ttlMs = _pendingRedemptionTtl.inMilliseconds;
+    final expired = <String>[];
+    for (final entry in _pendingRedemptionStartedAt.entries) {
+      if (now - entry.value >= ttlMs) expired.add(entry.key);
+    }
+    if (expired.isEmpty) return;
+    for (final letterId in expired) {
+      _pendingRedemptionStartedAt.remove(letterId);
+      await markLetterRedeemed(letterId);
+    }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        'pendingRedemptionStartedAt',
+        _pendingRedemptionStartedAt.entries
+            .map((e) => '${e.key}|${e.value}')
+            .join(';'),
+      );
+    } catch (_) {/* prefs 실패는 다음 cold start 에서 다시 시도 */}
+  }
+
+  Future<void> _loadPendingRedemptions() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString('pendingRedemptionStartedAt') ?? '';
+      if (raw.isEmpty) return;
+      for (final entry in raw.split(';')) {
+        final parts = entry.split('|');
+        if (parts.length != 2) continue;
+        final ms = int.tryParse(parts[1]);
+        if (ms == null) continue;
+        _pendingRedemptionStartedAt[parts[0]] = ms;
+      }
+    } catch (_) {/* corruption — skip */}
+  }
   bool isLetterRedeemed(String letterId) =>
       _redeemedLetterIds.contains(letterId);
 
@@ -2701,6 +2798,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // 쿠폰 사용 완료 복원
     _redeemedLetterIds.clear();
     _redeemedLetterIds.addAll(prefs.getStringList('redeemedLetterIds') ?? []);
+    // Build 324 (Q1): pending redemption 복원 + 1h 경과한 것 자동 정리.
+    await _loadPendingRedemptions();
+    unawaited(consumeElapsedPendingRedemptions());
 
     // 브랜드 팔로우 복원
     _followedBrandIds.clear();
