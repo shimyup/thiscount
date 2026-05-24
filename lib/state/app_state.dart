@@ -1707,14 +1707,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final ttlMs = _pendingRedemptionTtl.inMilliseconds;
     final expired = <String>[];
     // Build 342 (PR-S13 3차 시뮬레이션 P0): stale sentinel (-now) cleanup —
-    //   abs(value) > 1분 차이면 진행 중이던 startRedemption 이 hang 또는 crash
+    //   abs(value) > N분 차이면 진행 중이던 startRedemption 이 hang 또는 crash
     //   한 것 → 그냥 remove. markLetterRedeemed 호출 X (실제 reveal 안 됨).
-    //   1분 이내 sentinel 은 정상 진행 중 — 건드리지 않음.
+    // Build 344 (PR-S15 4차 시뮬레이션 P1): 1분 → 5분 — Firestore increment 가
+    //   네트워크 느린 환경에서 1분 넘게 걸려 정상 진행 중인 entry 가 stale 로
+    //   오판되던 회귀. 5분 이상 lock 잔존은 진짜 hang 으로 간주.
+    const staleLockTtlMs = 5 * 60 * 1000;
     final staleSentinels = <String>[];
     for (final entry in _pendingRedemptionStartedAt.entries) {
       if (entry.value < 0) {
         final lockMs = -entry.value;
-        if (now - lockMs > 60 * 1000) {
+        if (now - lockMs > staleLockTtlMs) {
           staleSentinels.add(entry.key);
         }
         continue;
@@ -1733,6 +1736,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     }
     for (final letterId in expired) {
       _pendingRedemptionStartedAt.remove(letterId);
+      // Build 344 (PR-S15 4차 시뮬레이션 P2): inbox 에 letter 없으면 markRedeemed
+      //   호출해도 redeemedAt 미설정 (storage 만 비효율 increment). Skip.
+      final exists = _inbox.any((l) => l.id == letterId);
+      if (!exists) {
+        if (kDebugMode) {
+          debugPrint(
+            '[redemption] expired entry $letterId — inbox 에 없음, skip',
+          );
+        }
+        continue;
+      }
       await markLetterRedeemed(letterId);
     }
     await _savePendingRedemptionPrefs();
@@ -6909,8 +6923,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       // 마지막 라인의 안전망. 시계 우회로 만료 회피도 차단.
       final secureNow = SecureClock.now();
       if (!zone.isActive(secureNow)) return;
+      // Build 344 (PR-S15 4차 시뮬레이션 P1): Brand 본인이 자기 zone 들어와
+      //   pickup 하면 revealedCount / redeemedCount 인플레이션. 본인 zone 은
+      //   skip — 매장에서 사장이 자기 캠페인 self-redeem 차단.
+      if (zone.brandId == _currentUser.id) return;
       final now = DateTime.now();
-      final id = 'brand_zone_${zone.id}_${now.millisecondsSinceEpoch}';
+      // Build 344 (PR-S15 4차 시뮬레이션 P2): zone letter ID 에 random suffix
+      //   추가 — 같은 ms 안 두 사용자 진입 시 id collision 차단.
+      final id =
+          'brand_zone_${zone.id}_${now.millisecondsSinceEpoch}_${_shortRandHex()}';
 
       // 사용자가 zone 안에 있고 destination 이 user pos ± 30m → 즉시 nearYou.
       final letter = Letter(

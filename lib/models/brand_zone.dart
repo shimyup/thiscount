@@ -145,5 +145,9 @@ class BrandZone {
         maxRedeems: maxRedeems,
         redeemedCount: redeemedCount ?? this.redeemedCount,
         createdAt: createdAt,
+        // Build 344 (PR-S15 4차 시뮬레이션 P1): redeemedCount 업데이트 시
+        //   redemptionCode 가 null 로 덮어써져 zone 자동 letter 가 코드 없이
+        //   생성되던 회귀 차단.
+        redemptionCode: redemptionCode,
       );
 }

@@ -680,14 +680,13 @@ class Letter {
   /// Build 343 (PR-S14): redemptionCode 형식 검증 — 8자 Crockford 알파벳만.
   ///   Firestore corrupt / admin 수동 수정으로 비형식 코드 들어오면 null 반환
   ///   → BarcodeWidget 의 invalid data crash 차단.
+  /// Build 344 (PR-S15 4차 시뮬레이션 P0): null 반환 후 toJson 라운드트립 시
+  ///   redemptionCode 영구 손실 회귀. invalid 코드도 원본 보존 — UI 측 (panel)
+  ///   에서 형식 검증 후 noop. dynamic 검사 + null 만 차단해 본래 데이터 유지.
   static String? _sanitizeRedemptionCode(dynamic v) {
+    if (v == null) return null;
     if (v is! String) return null;
-    if (v.length != 8) return null;
-    const alphabet = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
-    for (var i = 0; i < v.length; i++) {
-      if (!alphabet.contains(v[i])) return null;
-    }
-    return v;
+    return v; // 형식 검사는 panel render 시점 (BarcodeWidget 호출 직전).
   }
 
   static DateTime? _parseDateTime(dynamic v) {
