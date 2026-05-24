@@ -1595,16 +1595,29 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (letterId.isEmpty) return;
     if (_redeemedLetterIds.contains(letterId)) return;
     if (_pendingRedemptionStartedAt.containsKey(letterId)) return;
-    final now = DateTime.now();
-    _pendingRedemptionStartedAt[letterId] = now.millisecondsSinceEpoch;
-    // Build 331 (PR-S1): inbox letter 의 codeRevealedAt 도 set → UI 변별 +
-    //   Brand 4단계 funnel (코드 노출 카운트) Firestore 동기화.
+    // Build 334 (PR-S6 시뮬레이션 P0 #4): IDOR 가드 — letter 가 본인 _inbox 에
+    //   실제 픽업되어 있어야 reveal 진행. 이전엔 letterId 추측만으로 Firestore
+    //   `revealedCount` increment 호출 가능 → 남의 캠페인 카운트 조작.
+    Letter? target;
     for (final l in _inbox) {
       if (l.id == letterId) {
-        l.codeRevealedAt = now;
+        target = l;
         break;
       }
     }
+    if (target == null) {
+      if (kDebugMode) {
+        debugPrint(
+          '[startRedemption] inbox 에 없는 letter ($letterId) — guard reject',
+        );
+      }
+      return;
+    }
+    final now = DateTime.now();
+    _pendingRedemptionStartedAt[letterId] = now.millisecondsSinceEpoch;
+    // Build 331 (PR-S1): inbox letter 의 codeRevealedAt set → UI 변별 +
+    //   Brand 4단계 funnel (코드 노출 카운트) Firestore 동기화.
+    target.codeRevealedAt = now;
     notifyListeners();
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -1619,14 +1632,22 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     }
     // Build 331 (PR-S1): Firestore atomic increment + timestamp → Brand 가
     //   "코드 노출" 메트릭을 다른 디바이스 / 다른 사용자 픽업도 합산해서 정확.
-    //   markLetterRedeemed 의 redeemedCount 패턴 그대로 따름.
+    // Build 334 (PR-S6 시뮬레이션 P0 #5): increment 만 await — 오프라인 / 앱
+    //   종료 직전에도 카운트 보존. timestamp 는 보조라 unawaited 유지 (둘 다
+    //   await 면 사용자 reveal 까지 느려짐).
     if (FirebaseConfig.kFirebaseEnabled) {
-      unawaited(
-        FirestoreService.incrementField(
+      try {
+        await FirestoreService.incrementField(
           path: 'letters/$letterId',
           field: 'revealedCount',
-        ),
-      );
+        );
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('[startRedemption] revealedCount 실패: $e');
+        }
+        // 실패 시 pending 유지 — 사용자는 코드 reveal 가능 + 다음 진입 시
+        // consumeElapsedPendingRedemptions 또는 명시적 mark 가 다시 patch 시도.
+      }
       unawaited(
         FirestoreService.patchFields(
           path: 'letters/$letterId',
