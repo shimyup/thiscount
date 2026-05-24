@@ -1883,7 +1883,10 @@ class _ComposeScreenState extends State<ComposeScreen>
   ///   등록하세요" + 복사 버튼 + BrandInsights 진입 (나중에 다시 확인) 옵션.
   // Build 340 (PR-S11 2차 시뮬레이션 P1): _showSentCodeReveal 동시 중첩 차단.
   //   sender 가 rapid send 시 dialog 가 두 개 stack 되어 UX/스크린리더 혼란.
+  // Build 345 (PR-S17 6차 시뮬레이션 P2): _showRedemptionCodeGuide 도 동일 패턴 —
+  //   사용자가 토글 빠르게 이중 탭 시 guide dialog 2개 stack 차단.
   bool _sentCodeRevealShowing = false;
+  bool _redemptionCodeGuideShowing = false;
 
   Future<void> _showSentCodeReveal(
     BuildContext ctx,
@@ -2017,8 +2020,11 @@ class _ComposeScreenState extends State<ComposeScreen>
   ///   사용자가 [확인] 누르면 토글 ON. [취소] 면 토글 그대로 OFF 유지.
   ///   "다시 보지 않기" 는 false 만 반환해 같은 dialog 재노출 차단.
   Future<bool?> _showRedemptionCodeGuide() async {
+    if (_redemptionCodeGuideShowing) return false;
+    _redemptionCodeGuideShowing = true;
     final l = AppL10n.of(context.read<AppState>().currentUser.languageCode);
-    return showDialog<bool>(
+    try {
+      return await showDialog<bool>(
       context: context,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.bgCard,
@@ -2111,6 +2117,9 @@ class _ComposeScreenState extends State<ComposeScreen>
         ],
       ),
     );
+    } finally {
+      _redemptionCodeGuideShowing = false;
+    }
   }
 
   /// Build 325 (T4): ExactDrop 50 / 100 / 500 통 3 티어 paywall.
