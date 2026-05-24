@@ -2712,24 +2712,59 @@ class _ArrivedWaitingMarker extends StatelessWidget {
     return (color: AppColors.gold, emoji: '📬');
   }
 
+  /// Build 324 (FOMO): 만료 임박 (≤24h) 여부.
+  ///   redemptionExpiresAt (쿠폰 사용 기한) 또는 expiresAt (편지 자동 삭제)
+  ///   중 더 빠른 시각 기준. 24h 이내면 핀이 깜빡임 강화 + 빨간 ring 으로 시각화.
+  bool get _isExpiringSoon {
+    final coupon = letter.redemptionExpiresAt;
+    final auto = letter.expiresAt;
+    DateTime? earliest;
+    if (coupon != null && auto != null) {
+      earliest = coupon.isBefore(auto) ? coupon : auto;
+    } else {
+      earliest = coupon ?? auto;
+    }
+    if (earliest == null) return false;
+    final remain = earliest.difference(DateTime.now());
+    return !remain.isNegative && remain.inHours <= 24;
+  }
+
   @override
   Widget build(BuildContext context) {
     final style = _categoryStyle;
+    final expiringSoon = _isExpiringSoon;
+    // FOMO 모드 시 pulse 속도 2배 + 빨간 outer ring 으로 긴급성 강화.
+    final fomoColor = expiringSoon ? const Color(0xFFE53935) : null;
     return AnimatedBuilder(
       animation: pulseController,
       builder: (_, __) {
-        final phase = (pulseController.value * 2 * pi) % (2 * pi);
+        final speed = expiringSoon ? 2.0 : 1.0;
+        final phase = (pulseController.value * 2 * pi * speed) % (2 * pi);
         final pulse = (sin(phase) * 0.5 + 0.5);
         return Stack(
           alignment: Alignment.center,
           children: [
+            // FOMO outer ring (빨강) — 카테고리 ring 보다 한 단계 크게.
+            if (fomoColor != null)
+              Container(
+                width: 48 + pulse * 12,
+                height: 48 + pulse * 12,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: fomoColor.withValues(alpha: 0.4 + pulse * 0.5),
+                    width: 2.0,
+                  ),
+                ),
+              ),
             Container(
               width: 40 + pulse * 8,
               height: 40 + pulse * 8,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: style.color.withValues(alpha: 0.25 + pulse * 0.35),
+                  color: (fomoColor ?? style.color)
+                      .withValues(alpha: 0.25 + pulse * 0.35),
                   width: 1.5,
                 ),
               ),
@@ -2740,7 +2775,8 @@ class _ArrivedWaitingMarker extends StatelessWidget {
                 fontSize: 22,
                 shadows: [
                   Shadow(
-                    color: style.color.withValues(alpha: 0.6 + pulse * 0.3),
+                    color: (fomoColor ?? style.color)
+                        .withValues(alpha: 0.6 + pulse * 0.3),
                     blurRadius: 10,
                   ),
                   const Shadow(
