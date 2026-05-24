@@ -3501,6 +3501,8 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
           ),
           const SizedBox(height: 10),
           // 큰 코드 텍스트 — 매장이 수동 입력 시 읽음. monospace 로 0/O 혼동 방지.
+          // Build 341 (PR-S12 2차 시뮬레이션 P1): textScaler ↑ 사용자 overflow
+          //   방지 — 큰 코드 텍스트는 FittedBox 로 자동 축소.
           GestureDetector(
             onLongPress: disabled
                 ? null
@@ -3522,18 +3524,21 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
                       ),
                     );
                   },
-            child: Text(
-              formatted,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: disabled ? AppColors.textMuted : const Color(0xFF0A1F1A),
-                fontSize: 26,
-                fontWeight: FontWeight.w900,
-                fontFamily: 'monospace',
-                letterSpacing: 2.0,
-                decoration: disabled
-                    ? TextDecoration.lineThrough
-                    : TextDecoration.none,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                formatted,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: disabled ? AppColors.textMuted : const Color(0xFF0A1F1A),
+                  fontSize: 26,
+                  fontWeight: FontWeight.w900,
+                  fontFamily: 'monospace',
+                  letterSpacing: 2.0,
+                  decoration: disabled
+                      ? TextDecoration.lineThrough
+                      : TextDecoration.none,
+                ),
               ),
             ),
           ),
