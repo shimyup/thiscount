@@ -9,9 +9,12 @@ import 'package:gal/gal.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:barcode_widget/barcode_widget.dart';
+import 'package:screen_brightness/screen_brightness.dart';
 import 'package:screen_protector/screen_protector.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/redemption_code.dart';
 import '../../../core/theme/letter_style.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/localization/country_names.dart';
@@ -2353,7 +2356,21 @@ class _LetterReadScreenState extends State<LetterReadScreen>
             //   redeemed=true (이미 사용) 일 때만. 픽업 직후 (둘 다 false) 면
             //   "🎁 사용 진행" 버튼만 노출 → 실수 노출 차단 + 의도적 사용 동의.
             if (pending || redeemed || expired) ...[
-              _buildRedemptionContent(ctx, inner, letter, l10n, disabled),
+              // Build 331 (PR-S2): Brand 발행 redemptionCode 가 있으면 최상단에
+              //   Code128 바코드 + 큰 코드 텍스트 panel 노출. 매장 POS 1D 스캔
+              //   또는 코드 수동 입력 둘 다 가능.
+              if (letter.redemptionCode != null)
+                _RedemptionCodePanel(
+                  code: letter.redemptionCode!,
+                  redeemed: redeemed,
+                  expired: expired,
+                ),
+              if (letter.redemptionCode != null && letter.redemptionInfo != null
+                  && (letter.redemptionInfo?.trim().isNotEmpty ?? false))
+                const SizedBox(height: 10),
+              if (letter.redemptionInfo != null
+                  && (letter.redemptionInfo?.trim().isNotEmpty ?? false))
+                _buildRedemptionContent(ctx, inner, letter, l10n, disabled),
             ] else ...[
               // 코드/QR 가려진 상태 안내 + 사용 진행 hint.
               Container(
@@ -3252,6 +3269,157 @@ class _FullscreenImageViewerState extends State<_FullscreenImageViewer> {
                   ),
                 ),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Build 331 (PR-S2): 매장 POS 스캔용 코드 panel.
+///
+/// 구성:
+///   1) Code128 1D 바코드 (가로 길게, 흰 배경 + 검정 바) — POS 스캐너 인식률 ↑
+///   2) TC-XXXX-XXXX 큰 텍스트 (매장이 수동 입력 시 직접 읽음)
+///   3) 클립보드 복사 버튼
+///   4) "매장에 이 화면을 보여주세요" 안내
+///
+/// 화면 밝기 자동 max — POS 스캐너가 어두운 LCD 에서 인식률 떨어지는 문제 차단.
+/// dispose 시 원래 밝기로 복원.
+class _RedemptionCodePanel extends StatefulWidget {
+  final String code; // raw 8자
+  final bool redeemed;
+  final bool expired;
+
+  const _RedemptionCodePanel({
+    required this.code,
+    required this.redeemed,
+    required this.expired,
+  });
+
+  @override
+  State<_RedemptionCodePanel> createState() => _RedemptionCodePanelState();
+}
+
+class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
+  double? _restoreBrightness;
+
+  @override
+  void initState() {
+    super.initState();
+    // 사용 완료 / 만료 상태에선 밝기 max 불필요 — reveal active 시만 끌어올림.
+    if (!widget.redeemed && !widget.expired) {
+      _maxBrightness();
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_restoreBrightness != null) {
+      // 원래 밝기로 복원. 실패해도 OS 가 alocation 해제 시 알아서.
+      unawaited(
+        ScreenBrightness.instance
+            .setApplicationScreenBrightness(_restoreBrightness!),
+      );
+    }
+    super.dispose();
+  }
+
+  Future<void> _maxBrightness() async {
+    try {
+      _restoreBrightness =
+          await ScreenBrightness.instance.application;
+      await ScreenBrightness.instance.setApplicationScreenBrightness(1.0);
+    } catch (_) {
+      // 일부 기기/플랫폼 미지원 → 무시 (코드/바코드 자체는 보임).
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final disabled = widget.redeemed || widget.expired;
+    final formatted = RedemptionCode.formatForDisplay(widget.code);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+      decoration: BoxDecoration(
+        color: disabled
+            ? AppColors.bgSurface
+            : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: disabled
+              ? AppColors.textMuted.withValues(alpha: 0.3)
+              : AppColors.teal.withValues(alpha: 0.5),
+          width: 1.4,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 1D Code128 바코드 — 흰 배경 + 검은 바 강제 (POS 스캐너 호환).
+          SizedBox(
+            height: 72,
+            child: Opacity(
+              opacity: disabled ? 0.4 : 1.0,
+              child: BarcodeWidget(
+                barcode: Barcode.code128(),
+                data: widget.code,
+                drawText: false,
+                color: Colors.black,
+                backgroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          // 큰 코드 텍스트 — 매장이 수동 입력 시 읽음. monospace 로 0/O 혼동 방지.
+          GestureDetector(
+            onLongPress: disabled
+                ? null
+                : () async {
+                    await Clipboard.setData(ClipboardData(text: formatted));
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text(
+                          '코드 복사됨',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        backgroundColor: AppColors.teal,
+                        behavior: SnackBarBehavior.floating,
+                        duration: const Duration(seconds: 2),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    );
+                  },
+            child: Text(
+              formatted,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: disabled ? AppColors.textMuted : const Color(0xFF0A1F1A),
+                fontSize: 26,
+                fontWeight: FontWeight.w900,
+                fontFamily: 'monospace',
+                letterSpacing: 2.0,
+                decoration: disabled
+                    ? TextDecoration.lineThrough
+                    : TextDecoration.none,
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            disabled
+                ? (widget.redeemed ? '✓ 이미 사용됨' : '만료된 코드')
+                : '🛒 매장에 이 화면을 보여주세요 (POS 스캔 또는 코드 입력)',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: disabled ? AppColors.textMuted : AppColors.teal,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
