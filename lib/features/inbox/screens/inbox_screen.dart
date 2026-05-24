@@ -3313,6 +3313,74 @@ class _LetterFilterBar extends StatelessWidget {
 
   const _LetterFilterBar({required this.activeFilter, required this.onChanged});
 
+  /// Build 324: 그룹 칩 long-press 시 7-way sub-filter 시트.
+  ///   eat → food/cafe / shop → beauty/fashion / etc → it/event/other 칩으로 펼침.
+  ///   세분 의도 사용자 (예: "패션만") 마찰 해소 (Premium 시뮬레이션 발견).
+  void _showSubfilterSheet(
+    BuildContext context,
+    LetterFilterType group,
+    AppL10n l10n,
+  ) {
+    final subTags = _groupToCategoryTags[group];
+    if (subTags == null || subTags.isEmpty) return;
+    final subFilters = subTags
+        .map(_filterTypeFromName)
+        .whereType<LetterFilterType>()
+        .toList();
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sCtx) => Container(
+        decoration: const BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              alignment: Alignment.center,
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.textMuted.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Text(
+              _textLabel(group, l10n),
+              style: const TextStyle(
+                color: AppColors.gold,
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: subFilters.map((f) {
+                return _FilterChipInline(
+                  label: '${_emptyEmojiForFilter(f)} ${_textLabel(f, l10n)}',
+                  selected: false,
+                  onTap: () {
+                    Navigator.of(sCtx).pop();
+                    onChanged(f);
+                  },
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   String _textLabel(LetterFilterType type, AppL10n l10n) {
     switch (type) {
       case LetterFilterType.all:
@@ -3461,10 +3529,17 @@ class _LetterFilterBar extends StatelessWidget {
             children: [
               ..._visibleFilters.map((type) {
                 final selected = type == activeFilter;
+                // Build 324: 그룹 칩 (eat/shop/etc) 만 long-press 활성 → 7-way
+                //   sub-filter 시트로 세분 의도 사용자 마찰 해소.
+                final isGroup = _groupToCategoryTags.containsKey(type);
                 return _FilterChipInline(
                   label: _textLabel(type, l10n),
                   selected: selected,
+                  showSubfilterHint: isGroup,
                   onTap: () => onChanged(type),
+                  onLongPress: isGroup
+                      ? () => _showSubfilterSheet(context, type, l10n)
+                      : null,
                 );
               }),
             ],
@@ -3479,11 +3554,19 @@ class _FilterChipInline extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  // Build 324: 그룹 칩 (eat/shop/etc) long-press 시 7-way sub-filter 시트.
+  //   null 이면 long-press 무효 (단일 카테고리/메인 필터).
+  final VoidCallback? onLongPress;
+  // Build 324: long-press 가능한 칩에 ⋯ trailing 점 노출 — 사용자에게 long-press
+  //   힌트 (모든 사용자가 long-press 알아채는 건 아님 — 작은 시각 어포던스).
+  final bool showSubfilterHint;
 
   const _FilterChipInline({
     required this.label,
     required this.selected,
     required this.onTap,
+    this.onLongPress,
+    this.showSubfilterHint = false,
   });
 
   @override
@@ -3496,6 +3579,7 @@ class _FilterChipInline extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
+          onLongPress: onLongPress,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
             child: Row(
@@ -3512,7 +3596,20 @@ class _FilterChipInline extends StatelessWidget {
                     letterSpacing: -0.1,
                   ),
                 ),
-                // Build 318: trailing 옵션 제거 (BottomSheet 화살표 미사용).
+                // Build 324: long-press 어포던스 (⋯).
+                if (showSubfilterHint) ...[
+                  const SizedBox(width: 4),
+                  Text(
+                    '⋯',
+                    style: TextStyle(
+                      color: selected
+                          ? const Color(0xFF1A1300).withValues(alpha: 0.6)
+                          : AppColors.textMuted,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
