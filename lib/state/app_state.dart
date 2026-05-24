@@ -1724,6 +1724,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   bool get shouldCelebrateFirstPickup =>
       !_hasCelebratedFirstPickup && _myPickedUpLetterIds.isNotEmpty;
 
+  /// Build 324 (5차 audit): trial 모달 노출 조건용 — 픽업 1회 이상 했는지.
+  ///   첫 액션 전 모달 = "또 다른 구독 앱" 오염 → 첫 픽업 후로 옮김.
+  bool get hasAtLeastOnePickup => _myPickedUpLetterIds.isNotEmpty;
+
   Future<void> acknowledgeFirstPickup() async {
     if (_hasCelebratedFirstPickup) return;
     _hasCelebratedFirstPickup = true;
@@ -4235,13 +4239,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // 사용자 위치 기준 ±500m 4-방향 demo destination.
     LatLng nearby(double dLat, double dLng) =>
         LatLng(lat + dLat, lng + dLng);
-    // 카테고리 다양 + brand name + categoryTag + 만료 시점 시드.
+    // Build 324 (5차 audit): demo letter 이름에 "(체험)" prefix — 사용자가 핀/카드
+    //   첫 인상부터 demo letter 임을 인지 → "낚시성" 신뢰 손상 차단. 클릭 후
+    //   "체험용" 라벨 보고 실망하던 흐름 fix.
     final seeds = [
-      (id: 'demo_cafe', name: '동네 카페', tag: 'cafe', content: '☕ 아메리카노 1+1', expireH: 12),
-      (id: 'demo_food', name: '동네 식당', tag: 'food', content: '🍴 점심 정식 30% 할인', expireH: 72),
-      (id: 'demo_beauty', name: '동네 뷰티샵', tag: 'beauty', content: '💄 마스크팩 1+1', expireH: 168),
-      (id: 'demo_fashion', name: '동네 패션샵', tag: 'fashion', content: '👗 신상품 20% 할인', expireH: 48),
-      (id: 'demo_event', name: '동네 이벤트', tag: 'event', content: '🎉 주말 팝업 무료 입장', expireH: 96),
+      (id: 'demo_cafe', name: '체험 · 동네 카페', tag: 'cafe', content: '☕ 아메리카노 1+1 (체험용 예시)', expireH: 12),
+      (id: 'demo_food', name: '체험 · 동네 식당', tag: 'food', content: '🍴 점심 정식 30% 할인 (체험용 예시)', expireH: 72),
+      (id: 'demo_beauty', name: '체험 · 동네 뷰티샵', tag: 'beauty', content: '💄 마스크팩 1+1 (체험용 예시)', expireH: 168),
+      (id: 'demo_fashion', name: '체험 · 동네 패션샵', tag: 'fashion', content: '👗 신상품 20% 할인 (체험용 예시)', expireH: 48),
+      (id: 'demo_event', name: '체험 · 동네 이벤트', tag: 'event', content: '🎉 주말 팝업 무료 입장 (체험용 예시)', expireH: 96),
     ];
     final offsets = [
       (0.003, 0.0),

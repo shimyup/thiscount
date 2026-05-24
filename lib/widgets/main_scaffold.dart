@@ -63,9 +63,13 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   /// Build 324: trial 첫 부여 직후 home 화면에서 1회 모달.
   ///   AppState.pendingWelcomeTrialNotice 가 true 면 노출 + consume.
+  /// Build 324 (5차 audit): 첫 액션 (픽업 1회) 후에만 노출 — 가입 직후 noi
+  ///   "또 다른 구독 앱" 오염 차단. 사용자가 가치를 1회 체험한 후 trial 안내.
   Future<void> _maybeShowWelcomeTrialModal() async {
     final state = context.read<AppState>();
     if (!state.pendingWelcomeTrialNotice) return;
+    // 첫 픽업 전이면 보류 — 픽업 후 _maybeShowDeferredTrialModal 가 다시 시도.
+    if (!state.hasAtLeastOnePickup) return;
     state.consumeWelcomeTrialNotice();
     final l = AppL10n.of(state.currentUser.languageCode);
     await showDialog<void>(
@@ -197,6 +201,17 @@ class _MainScaffoldState extends State<MainScaffold> {
       _lastTriggeredAdId = currentAdId;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) BrandAdModal.showIfDue(context);
+      });
+    }
+    // Build 324 (5차 audit): trial 모달 노출 보류된 경우 (가입 직후 첫 픽업
+    //   전), 픽업 1회 후 build rebuild 트리거에서 다시 시도. context.select 로
+    //   hasAtLeastOnePickup + pendingWelcomeTrialNotice 변화만 listen.
+    final pendingTrial = context.select<AppState, bool>(
+      (s) => s.pendingWelcomeTrialNotice && s.hasAtLeastOnePickup,
+    );
+    if (pendingTrial) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _maybeShowWelcomeTrialModal();
       });
     }
     final l = AppL10n.of(langCode);
