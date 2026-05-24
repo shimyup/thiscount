@@ -673,9 +673,20 @@ class Letter {
 
   /// Build 340 (PR-S11 시뮬레이션): Firestore PATCH 결과는 ISO string ("2026-
   ///   05-25T08:30:00Z"), 로컬 toJson 은 ms epoch (int). 양쪽 모두 안전 파싱.
+  /// Build 342 (PR-S13 3차 시뮬레이션): seconds epoch (Unix time) 으로 잘못
+  ///   저장된 int 도 휴리스틱으로 보정 — 9999999999 (≈ 2286 ms / 2286-09-09
+  ///   sec) 미만이면 seconds, 이상이면 ms. 잘못된 1970 근처 시각으로 보이는
+  ///   회귀 차단.
   static DateTime? _parseDateTime(dynamic v) {
     if (v == null) return null;
-    if (v is int) return DateTime.fromMillisecondsSinceEpoch(v);
+    if (v is int) {
+      if (v <= 0) return null;
+      if (v < 9999999999) {
+        // seconds epoch
+        return DateTime.fromMillisecondsSinceEpoch(v * 1000);
+      }
+      return DateTime.fromMillisecondsSinceEpoch(v);
+    }
     if (v is String) {
       try {
         return DateTime.parse(v);

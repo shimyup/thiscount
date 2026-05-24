@@ -805,6 +805,10 @@ class _BrandInsightsHomeBanner extends StatelessWidget {
     // 데이터 0 이면 노출 X (신규 Brand 가 의미 없는 0% 보면 혼란).
     if (totalSent == 0 && totalPickup == 0) return const SizedBox.shrink();
     final pct = (redeemRate * 100).toStringAsFixed(redeemRate >= 0.10 ? 0 : 1);
+    // Build 342 (PR-S13 3차 시뮬레이션 P2): 배너 prefix 14언어 i18n.
+    final l = AppL10n.of(
+      context.read<AppState>().currentUser.languageCode,
+    );
     return Material(
       color: AppColors.gold.withValues(alpha: 0.10),
       child: InkWell(
@@ -835,7 +839,7 @@ class _BrandInsightsHomeBanner extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                     children: [
-                      const TextSpan(text: '📊 30일 사용률 '),
+                      TextSpan(text: l.brandHomeBannerPrefix),
                       TextSpan(
                         text: '$pct%',
                         style: const TextStyle(

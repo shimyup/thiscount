@@ -2405,7 +2405,11 @@ class _LetterReadScreenState extends State<LetterReadScreen>
               // Build 331 (PR-S2): Brand 발행 redemptionCode 가 있으면 최상단에
               //   Code128 바코드 + 큰 코드 텍스트 panel 노출. 매장 POS 1D 스캔
               //   또는 코드 수동 입력 둘 다 가능.
-              if (letter.redemptionCode != null)
+              // Build 342 (PR-S13 3차 시뮬레이션): pending 만 panel 노출.
+              //   redeemed / expired 면 코드 hide — 매장이 이미 사용된 코드로
+              //   다시 스캔 시도해 POS 가 거절하는 혼란 차단. 상태는 box 헤더의
+              //   "사용됨"/"만료됨" 뱃지가 알려줌.
+              if (pending && letter.redemptionCode != null)
                 _RedemptionCodePanel(
                   code: letter.redemptionCode!,
                   redeemed: redeemed,
@@ -2415,7 +2419,8 @@ class _LetterReadScreenState extends State<LetterReadScreen>
               // Build 335 (PR-S7 시뮬레이션 P1 #7): redemptionCode 와 redemptionInfo
               //   둘 다 있는 경우 시각 구분 헤더 추가 — 매장이 "어떤 코드 ?"
               //   헷갈리지 않도록.
-              if (letter.redemptionCode != null && letter.redemptionInfo != null
+              if (pending && letter.redemptionCode != null
+                  && letter.redemptionInfo != null
                   && (letter.redemptionInfo?.trim().isNotEmpty ?? false)) ...[
                 const SizedBox(height: 12),
                 Padding(

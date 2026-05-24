@@ -1599,18 +1599,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     return DateTime.fromMillisecondsSinceEpoch(ms);
   }
 
-  /// Build 339 (PR-S10 P1 #16): 로컬 prefs 우선 + Firestore (letter.codeRevealedAt)
-  ///   fallback. 둘 다 없으면 null.
+  /// Build 339 (PR-S10): 로컬 prefs 만 사용.
+  /// Build 342 (PR-S13 3차 시뮬레이션): 이전엔 letter.codeRevealedAt fallback 도
+  ///   사용 → PR-S11 의 clone() reset (per-user 분리) 과 모순. 같은 device 가
+  ///   다른 user 의 reveal 을 자기 카운트로 인식하던 회귀 차단. 다중 디바이스
+  ///   sync 는 Phase 2 (proper auth + per-user reveal ledger) 로 deferred.
   int? _effectiveRevealedStartMs(String letterId) {
     final local = _pendingRedemptionStartedAt[letterId];
-    // Build 340 (PR-S11): -1 sentinel (race lock 진행 중) 은 무시 — 호출자
-    //   (isPendingRedemption) 가 false 반환하도록.
     if (local != null && local > 0) return local;
-    for (final l in _inbox) {
-      if (l.id == letterId && l.codeRevealedAt != null) {
-        return l.codeRevealedAt!.millisecondsSinceEpoch;
-      }
-    }
     return null;
   }
 
@@ -1625,7 +1621,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // Build 340 (PR-S11 2차 시뮬레이션): race lock — async await 사이 다른
     //   microtask 가 동일 letterId 로 진입해 double increment 호출 차단.
     //   negative sentinel 로 즉시 lock 후 끝에서 실제 ms 로 덮어씀.
-    _pendingRedemptionStartedAt[letterId] = -1;
+    // Build 342 (PR-S13 3차 시뮬레이션 P0): sentinel = -now (negative timestamp)
+    //   — consumeElapsedPendingRedemptions 가 abs(value) > 1분 stale lock 을
+    //   자동 cleanup 가능. 이전 -1 fixed 는 stuck 시 영구 잔존.
+    _pendingRedemptionStartedAt[letterId] =
+        -DateTime.now().millisecondsSinceEpoch;
     // Build 334 (PR-S6 시뮬레이션 P0 #4): IDOR 가드 — letter 가 본인 _inbox 에
     //   실제 픽업되어 있어야 reveal 진행. 이전엔 letterId 추측만으로 Firestore
     //   `revealedCount` increment 호출 가능 → 남의 캠페인 카운트 조작.
@@ -1647,24 +1647,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       }
       return;
     }
-    // Build 339 (PR-S10 P1 #16): Firestore 에 이미 codeRevealedAt 가 있으면
-    //   다른 디바이스 / 이전 세션에서 사용 진행 시작한 letter — 로컬 prefs 만
-    //   restore 하고 Firestore increment 는 skip (중복 카운트 차단).
-    if (target.codeRevealedAt != null) {
-      _pendingRedemptionStartedAt[letterId] =
-          target.codeRevealedAt!.millisecondsSinceEpoch;
-      notifyListeners();
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(
-          'pendingRedemptionStartedAt',
-          _pendingRedemptionStartedAt.entries
-              .map((e) => '${e.key}|${e.value}')
-              .join(';'),
-        );
-      } catch (_) {/* prefs 실패는 비치명 */}
-      return;
-    }
+    // Build 342 (PR-S13 3차 시뮬레이션): PR-S11 의 clone() reset 이후 inbox
+    //   letter.codeRevealedAt 는 항상 null (per-user state 분리). 따라서 PR-S10
+    //   의 letter.codeRevealedAt restore 분기는 dead code → 제거.
+    //   다중 디바이스 sync 는 Phase 2 (proper auth + per-user reveal ledger) 로
+    //   deferred. 본인 디바이스는 _pendingRedemptionStartedAt prefs 만 신뢰.
     final now = DateTime.now();
     _pendingRedemptionStartedAt[letterId] = now.millisecondsSinceEpoch;
     // Build 331 (PR-S1): inbox letter 의 codeRevealedAt set → UI 변별 +
@@ -1719,14 +1706,31 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final now = DateTime.now().millisecondsSinceEpoch;
     final ttlMs = _pendingRedemptionTtl.inMilliseconds;
     final expired = <String>[];
-    // Build 340 (PR-S11): 음수 elapsed (시계 조작) / sentinel (-1 진행 중) entry
-    //   도 정리. 미래 timestamp 는 stale 로 간주 → markLetterRedeemed.
+    // Build 342 (PR-S13 3차 시뮬레이션 P0): stale sentinel (-now) cleanup —
+    //   abs(value) > 1분 차이면 진행 중이던 startRedemption 이 hang 또는 crash
+    //   한 것 → 그냥 remove. markLetterRedeemed 호출 X (실제 reveal 안 됨).
+    //   1분 이내 sentinel 은 정상 진행 중 — 건드리지 않음.
+    final staleSentinels = <String>[];
     for (final entry in _pendingRedemptionStartedAt.entries) {
-      if (entry.value <= 0) continue; // sentinel 은 진행 중 — 건드리지 않음
+      if (entry.value < 0) {
+        final lockMs = -entry.value;
+        if (now - lockMs > 60 * 1000) {
+          staleSentinels.add(entry.key);
+        }
+        continue;
+      }
       final elapsed = now - entry.value;
       if (elapsed < 0 || elapsed >= ttlMs) expired.add(entry.key);
     }
-    if (expired.isEmpty) return;
+    if (expired.isEmpty && staleSentinels.isEmpty) return;
+    for (final letterId in staleSentinels) {
+      _pendingRedemptionStartedAt.remove(letterId);
+      if (kDebugMode) {
+        debugPrint(
+          '[redemption] stale sentinel cleanup: $letterId',
+        );
+      }
+    }
     for (final letterId in expired) {
       _pendingRedemptionStartedAt.remove(letterId);
       await markLetterRedeemed(letterId);
@@ -7815,15 +7819,22 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     required LetterCategory category,
     required String? redemptionInfo,
   }) {
-    final cutoff =
-        DateTime.now().subtract(const Duration(hours: 24));
+    final now = DateTime.now();
+    final cutoff = now.subtract(const Duration(hours: 24));
+    // Build 342 (PR-S13 3차 시뮬레이션): _sent 정렬 invariant 가 깨질 수 있어
+    //   break 대신 continue + sentAt 명시 비교 — corrupt 정렬 시에도 매칭 letter
+    //   놓치지 않음. 단, expired redemptionExpiresAt letter 의 코드 재사용 차단
+    //   (POS 등록 이미 무용 → 새 코드 발급).
     for (var i = _sent.length - 1; i >= 0; i--) {
       final l = _sent[i];
-      if (l.sentAt.isBefore(cutoff)) break; // _sent 는 시간 정렬 — 더 옛것은 skip
+      if (l.sentAt.isBefore(cutoff)) continue;
       if (l.redemptionCode == null) continue;
       if (l.content != content) continue;
       if (l.category != category) continue;
       if ((l.redemptionInfo ?? '') != (redemptionInfo ?? '')) continue;
+      // 코드 만료 (redemptionExpiresAt 이미 지남) 시 재사용 X
+      final exp = l.redemptionExpiresAt;
+      if (exp != null && now.isAfter(exp)) continue;
       return l.redemptionCode;
     }
     return null;

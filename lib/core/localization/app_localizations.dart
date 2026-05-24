@@ -28879,6 +28879,23 @@ class AppL10n {
     'th': '📊 Campaign Insights',
   });
 
+  String get brandHomeBannerPrefix => _t({
+    'ko': '📊 30일 사용률 ',
+    'en': '📊 30-day usage rate ',
+    'ja': '📊 30日使用率 ',
+    'zh': '📊 30日使用率 ',
+    'fr': '📊 Taux 30j ',
+    'de': '📊 30-Tage-Nutzungsrate ',
+    'es': '📊 Tasa 30 días ',
+    'pt': '📊 Taxa 30d ',
+    'ru': '📊 За 30 дней ',
+    'tr': '📊 30 günlük kullanım ',
+    'ar': '📊 معدل 30 يوماً ',
+    'it': '📊 Uso 30 giorni ',
+    'hi': '📊 30 दिन उपयोग ',
+    'th': '📊 30 วันใช้ ',
+  });
+
   String get brandNoCodesYet => _t({
     'ko': '발급된 코드가 없어요',
     'en': 'No codes issued yet',
