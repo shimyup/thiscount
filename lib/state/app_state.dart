@@ -4153,6 +4153,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   // 웰컴 편지: 유저별 1회만 시딩. 이미 존재하면 no-op.
+  // Build 324 (cold-start): welcome 1통 + demo letter 5통 시드.
+  //   시뮬레이션에서 Day 7 삭제의 결정적 이유 = "welcome 1통 + 빈 인박스".
+  //   다양한 카테고리 (먹기/쇼핑/기타) demo letter 5개로 첫 인상 풍성화 →
+  //   사용자가 즉시 인박스 / 카테고리 필터 / 만료 카운트다운 체험 가능.
   Future<void> _seedWelcomeLetterIfNeeded() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -4173,12 +4177,98 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             : 'en',
       );
       _inbox.insert(0, letter);
+      // Build 324: 5 demo letter 자동 시드 — 다양한 카테고리.
+      _seedDemoLetters();
       await prefs.setBool(seedKey, true);
       _saveToPrefs();
       notifyListeners();
     } catch (_) {
       // 실패해도 유저 흐름을 막지 않음
     }
+  }
+
+  /// Build 324 (cold-start): 신규 사용자 인박스에 5 demo letter 추가.
+  ///   첫 인상 빈곤 해소 — 다양한 카테고리 (먹기/쇼핑/기타) 가상 brand letter.
+  ///   만료 시점도 다양 (12h / 3d / 7d) → FOMO 카운트다운 핀 체험 가능.
+  ///   사용자 위치 ±500m 내 destination — "내 동네 혜택" 인상.
+  ///   _myDemoLetters() 가 5개 letter 반환, _inbox 와 _worldLetters 양쪽에 추가.
+  void _seedDemoLetters() {
+    final demos = _myDemoLetters();
+    for (final letter in demos) {
+      _inbox.add(letter);
+      // worldLetters 에는 status=nearYou 클론 추가 → 지도 픽업 체험.
+      final worldClone = letter.clone()
+        ..status = DeliveryStatus.nearYou
+        ..arrivedAt = null;
+      _worldLetters.add(worldClone);
+    }
+  }
+
+  /// Build 324: cold-start 시드용 demo letter 5개. 카테고리 다양 + 만료 시점
+  ///   다양 + 가상 브랜드 ID (실제 사용자 letter 와 충돌 차단 prefix 'demo_').
+  List<Letter> _myDemoLetters() {
+    final now = DateTime.now();
+    final lat = _currentUser.latitude != 0 ? _currentUser.latitude : 37.5665;
+    final lng = _currentUser.longitude != 0 ? _currentUser.longitude : 126.978;
+    final origin = LatLng(lat, lng);
+    // demo letter 의 사용 안내는 i18n 안내 — 한국어 'ko' 만 specific, 나머지는 EN.
+    final lang = _currentUser.languageCode.isNotEmpty
+        ? _currentUser.languageCode
+        : 'en';
+    final demoRedemption = lang == 'ko'
+        ? '동네 매장에서 사용 가능 (체험용 예시 혜택)'
+        : 'Try this near your location (demo reward)';
+    // 사용자 위치 기준 ±500m 4-방향 demo destination.
+    LatLng nearby(double dLat, double dLng) =>
+        LatLng(lat + dLat, lng + dLng);
+    // 카테고리 다양 + brand name + categoryTag + 만료 시점 시드.
+    final seeds = [
+      (id: 'demo_cafe', name: '동네 카페', tag: 'cafe', content: '☕ 아메리카노 1+1', expireH: 12),
+      (id: 'demo_food', name: '동네 식당', tag: 'food', content: '🍴 점심 정식 30% 할인', expireH: 72),
+      (id: 'demo_beauty', name: '동네 뷰티샵', tag: 'beauty', content: '💄 마스크팩 1+1', expireH: 168),
+      (id: 'demo_fashion', name: '동네 패션샵', tag: 'fashion', content: '👗 신상품 20% 할인', expireH: 48),
+      (id: 'demo_event', name: '동네 이벤트', tag: 'event', content: '🎉 주말 팝업 무료 입장', expireH: 96),
+    ];
+    final offsets = [
+      (0.003, 0.0),
+      (0.0, 0.003),
+      (-0.003, 0.0),
+      (0.0, -0.003),
+      (0.002, 0.002),
+    ];
+    final result = <Letter>[];
+    for (var i = 0; i < seeds.length; i++) {
+      final s = seeds[i];
+      final o = offsets[i];
+      final dest = nearby(o.$1, o.$2);
+      result.add(Letter(
+        id: '${s.id}_${_currentUser.id}',
+        senderId: s.id,
+        senderName: s.name,
+        senderCountry: _currentUser.country,
+        senderCountryFlag: _currentUser.countryFlag,
+        content: s.content,
+        originLocation: origin,
+        destinationLocation: dest,
+        destinationCountry: _currentUser.country,
+        destinationCountryFlag: _currentUser.countryFlag,
+        segments: const [],
+        sentAt: now,
+        arrivedAt: now,
+        estimatedTotalMinutes: 0,
+        status: DeliveryStatus.delivered,
+        isAnonymous: false,
+        senderIsBrand: true,
+        senderTier: LetterSenderTier.brand,
+        category: LetterCategory.coupon,
+        categoryTag: s.tag,
+        acceptsReplies: false,
+        redemptionInfo: demoRedemption,
+        redemptionExpiresAt: now.add(Duration(hours: s.expireH)),
+        expiresAt: now.add(Duration(hours: s.expireH)),
+      ));
+    }
+    return result;
   }
 
   // Build 309: letter id collision 차단용 4바이트 (8 hex) random suffix.

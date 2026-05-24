@@ -1055,8 +1055,10 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       markers.add(
         Marker(
           point: ll.LatLng(pos.latitude, pos.longitude),
-          width: showAsArrived ? 48 : 36,
-          height: showAsArrived ? 48 : 36,
+          // Build 324: marker bounds 확대 — _ArrivedWaitingMarker 가 +35% 키워졌
+          //   고 FOMO outer ring 까지 포함하려면 78px 필요. transport 도 일관성 위해 키움.
+          width: showAsArrived ? 78 : 44,
+          height: showAsArrived ? 78 : 44,
           child: GestureDetector(
             onTap: () => _onLetterTap(context, letter, state, l10n, langCode),
             child: showAsArrived && letter.status == DeliveryStatus.inTransit
@@ -2732,6 +2734,8 @@ class _ArrivedWaitingMarker extends StatelessWidget {
     final expiringSoon = _isExpiringSoon;
     // Build 324: 핀 색상은 gold 로 통일. 카테고리 구분은 이모지 단일 채널.
     //   FOMO 모드 (≤24h) 시에만 빨강 outer ring + pulse 2배로 긴급성 시각화.
+    //   사이즈 +35% (22→30 emoji, 40→54 container) — 시뮬레이션에서 줌아웃 시
+    //   카테고리 이모지가 안 보이던 문제 해소. 줌인 시도 비례 자연스러움 유지.
     final fomoColor = expiringSoon ? const Color(0xFFE53935) : null;
     final baseColor = AppColors.gold;
     return AnimatedBuilder(
@@ -2746,8 +2750,8 @@ class _ArrivedWaitingMarker extends StatelessWidget {
             // FOMO outer ring (빨강) — 만료 임박일 때만 노출.
             if (fomoColor != null)
               Container(
-                width: 48 + pulse * 12,
-                height: 48 + pulse * 12,
+                width: 64 + pulse * 14,
+                height: 64 + pulse * 14,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
@@ -2757,8 +2761,8 @@ class _ArrivedWaitingMarker extends StatelessWidget {
                 ),
               ),
             Container(
-              width: 40 + pulse * 8,
-              height: 40 + pulse * 8,
+              width: 54 + pulse * 10,
+              height: 54 + pulse * 10,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
@@ -2771,12 +2775,12 @@ class _ArrivedWaitingMarker extends StatelessWidget {
             Text(
               emoji,
               style: TextStyle(
-                fontSize: 22,
+                fontSize: 30,
                 shadows: [
                   Shadow(
                     color: (fomoColor ?? baseColor)
                         .withValues(alpha: 0.6 + pulse * 0.3),
-                    blurRadius: 10,
+                    blurRadius: 12,
                   ),
                   const Shadow(
                     color: Color(0x88000000),
