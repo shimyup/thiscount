@@ -3397,17 +3397,33 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
   static double? _originalBrightness;
 
   bool _registered = false;
+  // Build 356 (PR-Y1 Y 시뮬레이션 P2): redemption code reveal 시 screenshot 차단
+  //   — 코드 + 바코드가 캡처되어 다른 앱이 추출하는 위험 차단. voucher 패턴 동일.
+  //   panel 이 pending (active) 상태일 때만 활성. dispose 시 off — 중첩 안전
+  //   하도록 _screenProtectOn flag 추가.
+  bool _screenProtectOn = false;
 
   @override
   void initState() {
     super.initState();
     if (!widget.redeemed && !widget.expired) {
       _maxBrightness();
+      _screenProtectOn = true;
+      try {
+        ScreenProtector.preventScreenshotOn();
+        ScreenProtector.protectDataLeakageWithBlur();
+      } catch (_) {/* 일부 플랫폼 미지원 — 무시 */}
     }
   }
 
   @override
   void dispose() {
+    if (_screenProtectOn) {
+      try {
+        ScreenProtector.preventScreenshotOff();
+        ScreenProtector.protectDataLeakageWithBlurOff();
+      } catch (_) {/* swallow */}
+    }
     if (_registered) {
       _activeCount--;
       if (_activeCount <= 0) {
