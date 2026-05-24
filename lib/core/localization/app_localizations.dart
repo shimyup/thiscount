@@ -28484,22 +28484,44 @@ class AppL10n {
     'th': 'รหัสที่ออก',
   });
 
-  String redemptionSentDialogBody(int n) => _t({
-    'ko': '$n 통 발송 완료. 이 코드를 매장 POS 의 "쿠폰/할인" 항목에 1회 등록하세요. 손님이 매장에서 바코드 또는 코드 입력 시 자동 인식됩니다.',
-    'en': '$n letters sent. Register this code once in your POS "Coupon/Discount" field. Auto-detected when customer shows barcode or enters code.',
-    'ja': '$n 通の発送完了。このコードを POS の「クーポン/割引」に1回登録してください。お客様がバーコードを見せるかコード入力すると自動認識。',
-    'zh': '已发送 $n 封。请将此代码在 POS "优惠券/折扣" 中登记 1 次。客户出示条码或输入时自动识别。',
-    'fr': '$n envois terminés. Enregistrez ce code une fois dans le champ "Coupon/Remise" du POS. Détection automatique.',
-    'de': '$n Briefe versendet. Code einmal im POS-Feld "Gutschein/Rabatt" eintragen. Wird automatisch erkannt.',
-    'es': '$n cartas enviadas. Registra este código una vez en el campo "Cupón/Descuento" del POS. Detección automática.',
-    'pt': '$n cartas enviadas. Registe este código uma vez no campo "Cupão/Desconto" do POS. Deteção automática.',
-    'ru': 'Отправлено $n писем. Запишите код один раз в поле POS "Купон/Скидка". Распознаётся автоматически.',
-    'tr': '$n mektup gönderildi. Kodu POS\'taki "Kupon/İndirim" alanına bir kez kaydedin. Otomatik algılanır.',
-    'ar': 'تم إرسال $n. سجل الرمز مرة واحدة في حقل POS "كوبون/خصم". يتم التعرف تلقائياً.',
-    'it': '$n lettere inviate. Registra il codice una volta nel campo POS "Coupon/Sconto". Riconoscimento automatico.',
-    'hi': '$n भेजी गईं। POS के "कूपन/छूट" में यह कोड 1 बार रजिस्टर करें। ऑटो-डिटेक्ट।',
-    'th': 'ส่งแล้ว $n ฉบับ. ลงทะเบียนรหัสนี้ในช่อง POS "คูปอง/ส่วนลด" 1 ครั้ง. ระบบจะตรวจจับอัตโนมัติ',
-  });
+  // Build 345 (PR-S16 5차 시뮬레이션 P1): 단복수 분기 — n=1 vs n>1.
+  //   영어 / 독일어 등은 "1 letter" vs "3 letters" 단수형 / 복수형 다름.
+  //   한국어 / 일본어 / 중국어는 분류사 그대로 ("1 통" / "3 통").
+  String redemptionSentDialogBody(int n) {
+    final isSingular = n == 1;
+    return _t({
+      'ko': '$n 통 발송 완료. 이 코드를 매장 POS 의 "쿠폰/할인" 항목에 1회 등록하세요. 손님이 매장에서 바코드 또는 코드 입력 시 자동 인식됩니다.',
+      'en': isSingular
+          ? '1 letter sent. Register this code once in your POS "Coupon/Discount" field. Auto-detected when customer shows barcode or enters code.'
+          : '$n letters sent. Register this code once in your POS "Coupon/Discount" field. Auto-detected when customer shows barcode or enters code.',
+      'ja': '$n 通の発送完了。このコードを POS の「クーポン/割引」に1回登録してください。お客様がバーコードを見せるかコード入力すると自動認識。',
+      'zh': '已发送 $n 封。请将此代码在 POS "优惠券/折扣" 中登记 1 次。客户出示条码或输入时自动识别。',
+      'fr': isSingular
+          ? '1 envoi terminé. Enregistrez ce code une fois dans le champ "Coupon/Remise" du POS. Détection automatique.'
+          : '$n envois terminés. Enregistrez ce code une fois dans le champ "Coupon/Remise" du POS. Détection automatique.',
+      'de': isSingular
+          ? '1 Brief versendet. Code einmal im POS-Feld "Gutschein/Rabatt" eintragen. Wird automatisch erkannt.'
+          : '$n Briefe versendet. Code einmal im POS-Feld "Gutschein/Rabatt" eintragen. Wird automatisch erkannt.',
+      'es': isSingular
+          ? '1 carta enviada. Registra este código una vez en el campo "Cupón/Descuento" del POS. Detección automática.'
+          : '$n cartas enviadas. Registra este código una vez en el campo "Cupón/Descuento" del POS. Detección automática.',
+      'pt': isSingular
+          ? '1 carta enviada. Registe este código uma vez no campo "Cupão/Desconto" do POS. Deteção automática.'
+          : '$n cartas enviadas. Registe este código uma vez no campo "Cupão/Desconto" do POS. Deteção automática.',
+      'ru': isSingular
+          ? 'Отправлено 1 письмо. Запишите код один раз в поле POS "Купон/Скидка". Распознаётся автоматически.'
+          : 'Отправлено $n писем. Запишите код один раз в поле POS "Купон/Скидка". Распознаётся автоматически.',
+      'tr': isSingular
+          ? '1 mektup gönderildi. Kodu POS\'taki "Kupon/İndirim" alanına bir kez kaydedin. Otomatik algılanır.'
+          : '$n mektup gönderildi. Kodu POS\'taki "Kupon/İndirim" alanına bir kez kaydedin. Otomatik algılanır.',
+      'ar': 'تم إرسال $n. سجل الرمز مرة واحدة في حقل POS "كوبون/خصم". يتم التعرف تلقائياً.',
+      'it': isSingular
+          ? '1 lettera inviata. Registra il codice una volta nel campo POS "Coupon/Sconto". Riconoscimento automatico.'
+          : '$n lettere inviate. Registra il codice una volta nel campo POS "Coupon/Sconto". Riconoscimento automatico.',
+      'hi': '$n भेजी गईं। POS के "कूपन/छूट" में यह कोड 1 बार रजिस्टर करें। ऑटो-डिटेक्ट।',
+      'th': 'ส่งแล้ว $n ฉบับ. ลงทะเบียนรหัสนี้ในช่อง POS "คูปอง/ส่วนลด" 1 ครั้ง. ระบบจะตรวจจับอัตโนมัติ',
+    });
+  }
 
   String get redemptionSentDialogFooter => _t({
     'ko': '💡 캠페인 인사이트에서 언제든 다시 확인 가능',
