@@ -402,7 +402,8 @@ String? _extractBenefitBigText(Letter letter) {
 
 /// Build 324: AI 추천 모드 letter 카드 칩용 — RecommendationService.topReason
 ///   결과를 i18n 라벨 + emoji 조합 문자열로 반환. null 이면 칩 미노출.
-String? _resolveAiReasonChip(BuildContext ctx, Letter letter) {
+/// Build 325 (T2): top 외 추가 매칭 신호 수도 함께 반환 (다신호 letter 가시화).
+({String text, int extra})? _resolveAiReasonChip(BuildContext ctx, Letter letter) {
   final state = ctx.read<AppState>();
   final reason = RecommendationService.topReason(
     letter,
@@ -411,7 +412,15 @@ String? _resolveAiReasonChip(BuildContext ctx, Letter letter) {
   );
   if (reason == null) return null;
   final l10n = AppL10n.of(state.currentUser.languageCode);
-  return '${reason.emoji} ${l10n.aiReasonLabel(reason.labelKey)}';
+  final extra = RecommendationService.extraSignalCount(
+    letter,
+    state.currentUser,
+    followedBrandIds: state.followedBrandIds,
+  );
+  return (
+    text: '${reason.emoji} ${l10n.aiReasonLabel(reason.labelKey)}',
+    extra: extra,
+  );
 }
 
 // Build 315: 카테고리 추론은 `lib/features/inbox/utils/category_inference.dart` 의
@@ -2184,7 +2193,9 @@ class _LetterCard extends StatelessWidget {
   final VoidCallback? onDelete;
   // Build 324: AI 추천 모드 시 "왜 이 순서?" 1줄 이유 칩. null 이면 미노출.
   //   형식 예: "🏷 팔로우한 브랜드" / "⏰ 곧 만료" / "🎯 내 선호 카테고리".
-  final String? aiReasonChip;
+  // Build 325 (T2): top 외 추가 매칭 신호 수 (extraSignals) — 1+ 이면 "+N"
+  //   보조 뱃지 표시 → 다신호 letter 강조 ("팔로우 브랜드 + 만료 임박 + 근거리").
+  final ({String text, int extra})? aiReasonChip;
 
   const _LetterCard({
     required this.letter,
@@ -2361,34 +2372,63 @@ class _LetterCard extends StatelessWidget {
               if (aiReasonChip != null) ...[
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.aiSignalBg,
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(
-                        color: AppColors.aiSignalBorder,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text('✨', style: TextStyle(fontSize: 11)),
-                        const SizedBox(width: 4),
-                        Flexible(
-                          child: Text(
-                            aiReasonChip!,
-                            style: const TextStyle(
-                              color: AppColors.aiSignal,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              height: 1.2,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.aiSignalBg,
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                              color: AppColors.aiSignalBorder,
                             ),
-                            overflow: TextOverflow.ellipsis,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text('✨', style: TextStyle(fontSize: 11)),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  aiReasonChip!.text,
+                                  style: const TextStyle(
+                                    color: AppColors.aiSignal,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    height: 1.2,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // Build 325 (T2): 추가 매칭 신호 수 > 0 이면 "+N" 보조 뱃지.
+                      //   다신호 letter (예: 팔로우 + 만료 + 근거리) 가시화.
+                      if (aiReasonChip!.extra > 0) ...[
+                        const SizedBox(width: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.aiSignal,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            '+${aiReasonChip!.extra}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              height: 1.0,
+                              letterSpacing: 0.2,
+                            ),
                           ),
                         ),
                       ],
-                    ),
+                    ],
                   ),
                 ),
               ],
