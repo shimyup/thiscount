@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/localization/app_localizations.dart';
@@ -548,6 +550,10 @@ class _InboxScreenState extends State<InboxScreen>
   String _searchQuery = '';
   bool _searchMode = false;
   final TextEditingController _searchController = TextEditingController();
+  // Build 353 (PR-V4 V 시뮬레이션 P1): keystroke 마다 즉시 setState → 1000+
+  //   letter 인박스에서 매 입력에 선형 검색 frame drop. 200ms debounce 로
+  //   "사용자 입력 끝" 인지 후 1회 setState.
+  Timer? _searchDebounce;
 
   AppL10n _l10n(BuildContext context) =>
       AppL10n.of(context.read<AppState>().currentUser.languageCode);
@@ -609,6 +615,7 @@ class _InboxScreenState extends State<InboxScreen>
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _tabController.dispose();
     _inboxScrollController.dispose();
     _searchController.dispose();
@@ -1398,7 +1405,16 @@ class _InboxScreenState extends State<InboxScreen>
                         color: AppColors.textPrimary,
                         fontSize: 14,
                       ),
-                      onChanged: (v) => setState(() => _searchQuery = v),
+                      onChanged: (v) {
+                        _searchDebounce?.cancel();
+                        _searchDebounce = Timer(
+                          const Duration(milliseconds: 200),
+                          () {
+                            if (!mounted) return;
+                            setState(() => _searchQuery = v);
+                          },
+                        );
+                      },
                       decoration: InputDecoration(
                         hintText: l10n.inboxSearchHint,
                         hintStyle: const TextStyle(

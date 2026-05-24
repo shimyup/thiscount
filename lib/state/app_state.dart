@@ -202,6 +202,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   final List<Letter> _inbox = [];
   List<Letter> get inbox => List.unmodifiable(_inbox);
 
+  /// Build 353 (PR-V4 V 시뮬레이션 P1): 최근 prefs load 에서 corruption 으로
+  ///   skip 된 letter 수. UI 측이 0 이상이면 "X 통 손상으로 복원 안 됨" 안내
+  ///   가능. 0 으로 reset 은 UI 가 acknowledgePrefsLoadSkipped() 호출.
+  int _lastInboxLoadSkipped = 0;
+  int get lastInboxLoadSkipped => _lastInboxLoadSkipped;
+  void acknowledgeInboxLoadSkipped() {
+    _lastInboxLoadSkipped = 0;
+    notifyListeners();
+  }
+
   // Build 304: inbox 무한 누적 차단 (저장 용량 / 직렬화 비용 / UI 렌더 폭주).
   // 한도 초과 시 도착 시각이 오래된 편지부터 trim. read/unread 무관 — 5백 통
   // 도달은 1년 이상 사용자에서만 발생하는 비정상 케이스이고, 오래된 광고/시스템
@@ -2824,14 +2834,29 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         final inboxJson = _decryptStr(inboxJsonRaw, encKey);
         final decoded = jsonDecode(inboxJson);
         _inbox.clear();
+        // Build 353 (PR-V4 V 시뮬레이션 P1): 개별 letter 손상 시 silent skip
+        //   → debug 로그 + skip count 누적. 사용자가 인박스 일부 손실 알도록
+        //   _lastPrefsLoadSkipped 노출 (UI 측 추후 인박스 진입 시 안내 가능).
+        var skipped = 0;
         if (decoded is List) {
           for (final j in decoded) {
             try {
               if (j is Map<String, dynamic>) {
                 _inbox.add(Letter.fromJson(j));
+              } else {
+                skipped++;
               }
-            } catch (_) {/* 개별 letter 손상 — 스킵 */}
+            } catch (e) {
+              skipped++;
+              if (kDebugMode) {
+                debugPrint('[loadFromPrefs] letter skip — $e');
+              }
+            }
           }
+        }
+        _lastInboxLoadSkipped = skipped;
+        if (skipped > 0 && kDebugMode) {
+          debugPrint('[loadFromPrefs] $skipped letter(s) skipped due to corruption');
         }
         _capInbox(); // Build 304: 복원 직후에도 cap 강제 (이전 저장이 컸을 수 있음).
       } catch (e) {
