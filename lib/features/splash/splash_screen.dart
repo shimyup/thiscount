@@ -59,25 +59,34 @@ class _SplashScreenState extends State<SplashScreen>
     }
     if (!onboardingDone) {
       // Build 284: 첫 방문 → 인포그래픽 투어 → 기존 onboarding 으로.
-      // SharedPreferences `seen_onboarding_tour` 가 true 면 투어 건너뜀.
       // Build 298 (P0 i18n audit): tour 콘텐츠가 한국어 only — 비-ko 단말은
-      // 자동 skip 처리 후 markSeen 까지 호출해 한글 화면 노출 차단.
-      var seenTour = prefs.getBool('seen_onboarding_tour') ?? false;
-      if (!seenTour) {
-        final locale = WidgetsBinding.instance.platformDispatcher.locale;
-        if (locale.languageCode.toLowerCase() != 'ko') {
-          await prefs.setBool('seen_onboarding_tour', true);
-          seenTour = true;
-        }
+      // 자동 skip.
+      // Build 324 (positioning): 온보딩 1액션화 — 한국어 사용자도 투어 자동 skip
+      //   으로 통일. splash → onboarding → home 직진. tour 의 인포그래픽 정보는
+      //   첫 픽업 후 contextual hint 로 대체. 베타 빌드는 매번 reset 유지 (위쪽)
+      //   해서 테스터는 여전히 투어 확인 가능 — 단 출시 빌드 첫 사용자엔 노출 X.
+      final seenTour = prefs.getBool('seen_onboarding_tour') ?? false;
+      if (!seenTour && !isBetaBuild) {
+        await prefs.setBool('seen_onboarding_tour', true);
       }
       if (!mounted) return;
-      Navigator.of(context).pushReplacementNamed(
-        seenTour ? '/onboarding' : '/onboarding_tour',
-      );
+      // 베타 빌드 + 한국어 단말 + 미시청 시에만 tour 진입.
+      final effectiveSeen = isBetaBuild
+          ? (prefs.getBool('seen_onboarding_tour') ?? false)
+          : true;
+      final locale = WidgetsBinding.instance.platformDispatcher.locale;
+      final routeAfterSplash =
+          (!effectiveSeen && locale.languageCode.toLowerCase() == 'ko')
+              ? '/onboarding_tour'
+              : '/onboarding';
+      Navigator.of(context).pushReplacementNamed(routeAfterSplash);
     } else if (widget.skipToAuth) {
       Navigator.of(context).pushReplacementNamed('/auth');
     } else {
-      Navigator.of(context).pushReplacementNamed('/delivery_intro');
+      // Build 324 (positioning): 4.2초 delivery_intro 인트로 제거 → 직접 /home
+      //   (지도 첫 화면) 으로 직진. 첫 5초에 "줍기 앱" 정체성 박힘 + onboarding
+      //   완료 후 신규 사용자가 즉시 가치 (지도 + 떨어진 혜택) 체험.
+      Navigator.of(context).pushReplacementNamed('/home');
     }
   }
 
