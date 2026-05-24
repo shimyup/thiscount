@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:math';
+import 'package:crypto/crypto.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -1000,10 +1002,18 @@ class NotificationService {
   }
 
   /// `letterId` 를 안정적인 양의 32-bit 정수로 매핑. 알림 시스템 ID 는 int
-  /// 제한이 있어 hashCode 를 절대값 + 오프셋 (1000 부터 시작) 으로 clamp.
+  /// 제한이 있어 SHA256 prefix → 30bit 양수로 clamp.
+  /// Build 352 (PR-V2 시뮬레이션 P1): hashCode % 1000000 는 1M 범위 collision
+  ///   확률 birthday paradox 기준 1000 활성 알림에서 ~50% — 두 letter 가
+  ///   같은 ID 갖으면 두 번째 reminder 가 첫 번째 덮어쓰던 회귀. SHA256 4 byte
+  ///   prefix → 2^30 (~10억) 범위 → collision 사실상 0 (10000 활성 시 0.005%).
   static int _couponExpiryNotificationId(String letterId) {
-    final h = letterId.hashCode.abs();
-    return 1000 + (h % 1000000); // 1000 ~ 1_000_999 범위
+    final bytes = sha256.convert(utf8.encode('coupon-expiry:$letterId')).bytes;
+    final v = ((bytes[0] & 0x3F) << 24) |
+        (bytes[1] << 16) |
+        (bytes[2] << 8) |
+        bytes[3];
+    return 1000 + v; // 1000 ~ 1_073_742_823 (30bit + offset)
   }
 
   static Future<void> cancelAll() async {
