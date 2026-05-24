@@ -4,6 +4,9 @@
 //   코드 노출 (revealedCount) 은 "지금 매장에 있다" 의도 신호 — 가장 강한
 //   상점 의도. 픽업 → 노출 drop 큰 letter = 본문 매력 OK 지만 매장 가는
 //   친화도 낮음 (예: 거리 멀음 / 시간대 어긋남).
+// Build 336 (PR-S5): coachingTip i18n 분리 — coachingTipL10n(AppL10n) 사용.
+
+import '../core/localization/app_localizations.dart';
 
 class BrandInsights {
   /// 최근 30일 누적 발송 수
@@ -111,25 +114,17 @@ class CampaignInsight {
   /// 코칭 메시지 — 사용자가 어떤 행동 할지 안내.
   /// Build 331 (PR-S3): 노출→사용 drop 패턴 추가 — 매장 도착했는데 사용 안 함.
   /// Build 334 (PR-S4): 코드 만료 케이스 추가.
-  String get coachingTip {
-    if (isCodeExpired) {
-      return '⏰ 코드 만료됨 — POS 에서 이 코드 삭제 후 신규 캠페인 발행';
-    }
-    if (pickup == 0 && sent > 0) {
-      return '아직 픽업 0 — 반경 좁히거나 본문 매력 ↑';
-    }
-    if (revealed == 0 && pickup >= 5) {
-      return '픽업 후 코드 노출 0 — 매장이 너무 멀거나 사용 시점 불명확';
-    }
+  /// Build 336 (PR-S5): i18n — coachingTip(AppL10n) 사용. 호출자가 사용자
+  ///   언어로 l10n 전달. 기존 한국어 직접 반환 getter 는 deprecated.
+  String coachingTip(AppL10n l) {
+    if (isCodeExpired) return l.coachingExpired;
+    if (pickup == 0 && sent > 0) return l.coachingNoPickup;
+    if (revealed == 0 && pickup >= 5) return l.coachingNoReveal;
     if (revealed > 0 && redeemed == 0 && pickup >= 3) {
-      return '코드 노출됐는데 사용 완료 0 — POS 등록 누락 가능. 점주 확인';
+      return l.coachingNoRedeem;
     }
-    if (redeemRate < 0.05 && pickup >= 3) {
-      return '사용률 낮음 — 본문 변경 또는 더 큰 할인 권장';
-    }
-    if (redeemRate >= 0.20) {
-      return '효과 좋아요! 동일 패턴으로 재집행';
-    }
+    if (redeemRate < 0.05 && pickup >= 3) return l.coachingLowRate;
+    if (redeemRate >= 0.20) return l.coachingGood;
     return ''; // 보통 — 코칭 없음
   }
 }

@@ -2364,6 +2364,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                   code: letter.redemptionCode!,
                   redeemed: redeemed,
                   expired: expired,
+                  l10n: l10n,
                 ),
               // Build 335 (PR-S7 시뮬레이션 P1 #7): redemptionCode 와 redemptionInfo
               //   둘 다 있는 경우 시각 구분 헤더 추가 — 매장이 "어떤 코드 ?"
@@ -2373,20 +2374,14 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                 const SizedBox(height: 12),
                 Padding(
                   padding: const EdgeInsets.only(left: 2, bottom: 4),
-                  child: Row(
-                    children: [
-                      const Text('📝', style: TextStyle(fontSize: 12)),
-                      const SizedBox(width: 4),
-                      Text(
-                        '추가 사용 안내',
-                        style: TextStyle(
-                          color: AppColors.textMuted.withValues(alpha: 0.9),
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    l10n.redemptionInfoSubheader,
+                    style: TextStyle(
+                      color: AppColors.textMuted.withValues(alpha: 0.9),
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.3,
+                    ),
                   ),
                 ),
               ],
@@ -3313,11 +3308,14 @@ class _RedemptionCodePanel extends StatefulWidget {
   final String code; // raw 8자
   final bool redeemed;
   final bool expired;
+  // Build 336 (PR-S5): i18n - 호출자가 사용자 언어 AppL10n 주입.
+  final AppL10n l10n;
 
   const _RedemptionCodePanel({
     required this.code,
     required this.redeemed,
     required this.expired,
+    required this.l10n,
   });
 
   @override
@@ -3397,7 +3395,7 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
                   const Text('🛒', style: TextStyle(fontSize: 13)),
                   const SizedBox(width: 4),
                   Text(
-                    '매장 POS 코드',
+                    widget.l10n.redemptionPanelHeader,
                     style: TextStyle(
                       color: AppColors.teal.withValues(alpha: 0.95),
                       fontSize: 11,
@@ -3433,9 +3431,9 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
                     if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: const Text(
-                          '코드 복사됨',
-                          style: TextStyle(color: Colors.white),
+                        content: Text(
+                          widget.l10n.redemptionCodeCopied,
+                          style: const TextStyle(color: Colors.white),
                         ),
                         backgroundColor: AppColors.teal,
                         behavior: SnackBarBehavior.floating,
@@ -3464,8 +3462,10 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
           const SizedBox(height: 6),
           Text(
             disabled
-                ? (widget.redeemed ? '✓ 이미 사용됨' : '만료된 코드')
-                : '🛒 매장에 이 화면을 보여주세요 (POS 스캔 또는 코드 입력)',
+                ? (widget.redeemed
+                    ? widget.l10n.redemptionPanelHintUsed
+                    : widget.l10n.redemptionPanelHintExpired)
+                : widget.l10n.redemptionPanelHintActive,
             textAlign: TextAlign.center,
             style: TextStyle(
               color: disabled ? AppColors.textMuted : AppColors.teal,
