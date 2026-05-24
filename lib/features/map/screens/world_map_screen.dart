@@ -2763,10 +2763,14 @@ class _ArrivedWaitingMarker extends StatelessWidget {
     //   카테고리 이모지가 안 보이던 문제 해소. 줌인 시도 비례 자연스러움 유지.
     //   본인 sender letter 는 청록 dashed border 로 구분 — Brand 사장이 자기
     //   캠페인 letter 를 지도에서 즉시 식별 가능 (시뮬레이션 발견).
+    // Build 324 (Q3 - UI/UX audit fix): ring 우선순위 단일화로 첫 인상 noise
+    //   감소. 3색 동시 발화 (본인 청록 + FOMO 빨강 + gold pulse) → 사용자 시야
+    //   noise. 우선순위 = FOMO > 본인 > 일반. 한 번에 1 ring 만 발화.
     final state = context.read<AppState>();
     final isMine = letter.senderId == state.currentUser.id;
     final fomoColor = expiringSoon ? const Color(0xFFE53935) : null;
     final baseColor = AppColors.gold;
+    final showMineRing = isMine && !expiringSoon; // FOMO 우선
     return AnimatedBuilder(
       animation: pulseController,
       builder: (_, __) {
@@ -2776,9 +2780,9 @@ class _ArrivedWaitingMarker extends StatelessWidget {
         return Stack(
           alignment: Alignment.center,
           children: [
-            // Build 324: 본인 sender ring — Brand 사장이 자기 캠페인 식별 용이.
-            //   FOMO ring 보다 한 단계 더 크게 + 청록색 강조 outline.
-            if (isMine)
+            // Build 324: 본인 sender ring — FOMO 가 아닐 때만 노출 (Q3 audit:
+            //   동시발화 차단). FOMO 가 더 강한 사용자 행동 신호 → 우선.
+            if (showMineRing)
               Container(
                 width: 72,
                 height: 72,
@@ -2791,10 +2795,11 @@ class _ArrivedWaitingMarker extends StatelessWidget {
                 ),
               ),
             // FOMO outer ring (빨강) — 만료 임박일 때만 노출.
+            //   Build 324 (Q3): pulse 진폭 14→6 으로 줄임 (UX audit).
             if (fomoColor != null)
               Container(
-                width: 64 + pulse * 14,
-                height: 64 + pulse * 14,
+                width: 64 + pulse * 6,
+                height: 64 + pulse * 6,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
@@ -2804,8 +2809,8 @@ class _ArrivedWaitingMarker extends StatelessWidget {
                 ),
               ),
             Container(
-              width: 54 + pulse * 10,
-              height: 54 + pulse * 10,
+              width: 54 + pulse * 4,
+              height: 54 + pulse * 4,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(

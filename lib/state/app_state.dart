@@ -1901,6 +1901,40 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         .toList();
   }
 
+  /// Build 324 (Q3): 만료 임박 letter 의 총 절약 가능 금액 (KRW).
+  ///   content / redemptionInfo 의 "N원" / "N%" 매칭 — fallback ₩3,000 평균.
+  ///   daily digest push 의 "₩XK 절약 가능" 표시용.
+  int get expiringSoonTotalSavedKrw {
+    var total = 0;
+    for (final letter in expiringSoonLetters) {
+      final hay = '${letter.content} ${letter.redemptionInfo ?? ''}';
+      final won = RegExp(r'(\d[\d,]+)\s*원').firstMatch(hay);
+      if (won != null) {
+        final n = int.tryParse(won.group(1)!.replaceAll(',', ''));
+        if (n != null && n >= 100 && n <= 1000000) {
+          total += n;
+          continue;
+        }
+      }
+      // fallback: ₩3,000 평균 (typical 쿠폰 절약가 추정)
+      total += 3000;
+    }
+    return total;
+  }
+
+  /// Build 324 (Q3): daily digest push schedule — 매일 아침 9시 만료 임박
+  ///   summary. 호출: loadFromPrefs 직후 / pickUpLetter 직후 / 사용 완료 직후.
+  Future<void> rescheduleDailyExpiryDigest() async {
+    final list = expiringSoonLetters;
+    await NotificationService.scheduleDailyExpiryDigest(
+      count: list.length,
+      totalSavedKrw: expiringSoonTotalSavedKrw,
+      langCode: _currentUser.languageCode.isNotEmpty
+          ? _currentUser.languageCode
+          : 'en',
+    );
+  }
+
   // ── 임시 차단 (신고 접수 → 관리자 검토 전까지) ──────────────────────────────
   final Set<String> _tempBlockedSenderIds = {};
   Set<String> get tempBlockedSenderIds =>
@@ -2801,6 +2835,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // Build 324 (Q1): pending redemption 복원 + 1h 경과한 것 자동 정리.
     await _loadPendingRedemptions();
     unawaited(consumeElapsedPendingRedemptions());
+    // Build 324 (Q3): daily expiry digest push 재예약 — cold-start 시점에
+    //   현재 만료 임박 letter 수 + 절약 금액 합계로 9AM schedule.
+    unawaited(rescheduleDailyExpiryDigest());
 
     // 브랜드 팔로우 복원
     _followedBrandIds.clear();

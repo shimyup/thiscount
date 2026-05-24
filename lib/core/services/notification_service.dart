@@ -905,6 +905,100 @@ class NotificationService {
     }
   }
 
+  /// Build 324 (Q3): 매일 아침 9시 만료 임박 daily digest push.
+  ///   "오늘 만료 N개 · 총 ₩XXX 절약 가능" — 일상 retention loop.
+  ///   호출 측 (AppState.loadFromPrefs 또는 daily hook) 이 expiringSoonLetters
+  ///   카운트 + 절약 합계 전달. 9AM 단일 알림 (id=999).
+  static const int _dailyExpiryDigestId = 999;
+
+  static Future<void> scheduleDailyExpiryDigest({
+    required int count,
+    required int totalSavedKrw,
+    String langCode = 'en',
+  }) async {
+    if (!_isAllowed(PushCategory.couponExpiry)) return;
+    try {
+      await _plugin.cancel(_dailyExpiryDigestId);
+      if (count <= 0) return; // 만료 임박 letter 없으면 알림 불필요.
+
+      final title = _dailyDigestTitle(langCode, count);
+      final body = _dailyDigestBody(langCode, totalSavedKrw);
+
+      const androidDetails = AndroidNotificationDetails(
+        'daily_expiry_digest',
+        'Daily expiry digest',
+        channelDescription: 'Daily morning summary of expiring rewards',
+        importance: Importance.high,
+        priority: Priority.high,
+        icon: '@mipmap/ic_launcher',
+      );
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
+      const details = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      final now = DateTime.now();
+      var fire = DateTime(now.year, now.month, now.day, 9);
+      if (fire.isBefore(now)) {
+        fire = fire.add(const Duration(days: 1));
+      }
+      final tzFire = tz.TZDateTime(
+        tz.local,
+        fire.year,
+        fire.month,
+        fire.day,
+        fire.hour,
+      );
+
+      await _plugin.zonedSchedule(
+        _dailyExpiryDigestId,
+        title,
+        body,
+        tzFire,
+        details,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+      );
+    } catch (e) {
+      if (kDebugMode) debugPrint('Daily digest schedule error: $e');
+    }
+  }
+
+  static String _dailyDigestTitle(String lang, int count) {
+    switch (lang) {
+      case 'ko':
+        return '⏰ 오늘 만료 ${count}개';
+      case 'ja':
+        return '⏰ 本日期限切れ $count件';
+      case 'zh':
+        return '⏰ 今日到期 $count 张';
+      default:
+        return '⏰ $count expiring today';
+    }
+  }
+
+  static String _dailyDigestBody(String lang, int krw) {
+    final formatted = krw > 0 ? ' · ₩${(krw ~/ 1000)}K 절약 가능' : '';
+    final formattedEn =
+        krw > 0 ? ' · save up to ₩${(krw ~/ 1000)}K' : '';
+    switch (lang) {
+      case 'ko':
+        return '오늘 안에 쓰지 않으면 사라져요$formatted';
+      case 'ja':
+        return '本日中に使わないと消えます';
+      case 'zh':
+        return '今日不用就过期';
+      default:
+        return 'Use today before they expire$formattedEn';
+    }
+  }
+
   /// `letterId` 를 안정적인 양의 32-bit 정수로 매핑. 알림 시스템 ID 는 int
   /// 제한이 있어 hashCode 를 절대값 + 오프셋 (1000 부터 시작) 으로 clamp.
   static int _couponExpiryNotificationId(String letterId) {
