@@ -322,6 +322,20 @@ class Letter {
   /// Brand zone auto-drop letter 는 자체 `brand_zones_seen_$userId` 로 dedup 처리.
   final String? campaignId;
 
+  /// Build 331 (PR-S1): 매장 POS 에서 스캔/입력하는 사용 코드.
+  /// Brand 발송 시 compose 토글 "사용 코드 발급" 켜면 자동 생성.
+  /// 형식: 6자 Crockford base32 + 2자 check digit = 8자 영숫자.
+  /// 표시: `TC-XXXX-XXXX` (letter_read 에서 사용 진행 후 reveal).
+  /// 한 letter 의 모든 픽업자가 동일 코드 공유 — 매장은 POS 에 1회만 등록.
+  /// null = 코드 미발급 (구식 letter 또는 일반 사용자 letter).
+  final String? redemptionCode;
+
+  /// Build 331 (PR-S1): 사용자가 "사용 진행" 탭한 시각 (Firestore sync).
+  /// 기존 `_pendingRedemptionStartedAt` (로컬) 의 서버 대응.
+  /// Brand 의 4단계 funnel (발송 → 픽업 → 코드 노출 → 사용 완료) 측정 핵심.
+  /// null = 사용 진행 미탭 / not null = 코드 reveal 됨.
+  DateTime? codeRevealedAt;
+
   Letter({
     required this.id,
     required this.senderId,
@@ -371,6 +385,8 @@ class Letter {
     this.categoryTag,
     this.redeemedAt,
     this.campaignId,
+    this.redemptionCode,
+    this.codeRevealedAt,
   }) : reportedBy = reportedBy ?? {};
 
   /// 인박스용 독립 복사본 (worldLetters에서 제거 전 inbox에 추가할 때 사용)
@@ -421,6 +437,8 @@ class Letter {
     categoryTag: categoryTag,
     redeemedAt: redeemedAt,
     campaignId: campaignId,
+    redemptionCode: redemptionCode,
+    codeRevealedAt: codeRevealedAt,
     readCount: readCount,
     maxReaders: maxReaders,
   );
@@ -641,6 +659,9 @@ class Letter {
     if (redeemedAt != null)
       'redeemedAt': redeemedAt!.millisecondsSinceEpoch,
     if (campaignId != null) 'campaignId': campaignId,
+    if (redemptionCode != null) 'redemptionCode': redemptionCode,
+    if (codeRevealedAt != null)
+      'codeRevealedAt': codeRevealedAt!.millisecondsSinceEpoch,
     'readCount': readCount,
     'maxReaders': maxReaders,
   };
@@ -709,6 +730,10 @@ class Letter {
         ? DateTime.fromMillisecondsSinceEpoch(j['redeemedAt'] as int)
         : null,
     campaignId: j['campaignId'] as String?,
+    redemptionCode: j['redemptionCode'] as String?,
+    codeRevealedAt: j['codeRevealedAt'] != null
+        ? DateTime.fromMillisecondsSinceEpoch(j['codeRevealedAt'] as int)
+        : null,
     expiresAt: j['expiresAt'] != null
         ? DateTime.fromMillisecondsSinceEpoch(j['expiresAt'] as int)
         : null,

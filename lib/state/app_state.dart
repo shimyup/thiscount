@@ -28,6 +28,7 @@ import '../core/services/brand_zone_service.dart';
 import '../core/services/purchase_service.dart';
 import '../core/services/secure_clock.dart';
 import '../features/inbox/utils/category_inference.dart';
+import '../core/utils/redemption_code.dart';
 import '../models/brand_insights.dart';
 import '../models/brand_zone.dart';
 import '../core/theme/time_theme.dart';
@@ -1594,8 +1595,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (letterId.isEmpty) return;
     if (_redeemedLetterIds.contains(letterId)) return;
     if (_pendingRedemptionStartedAt.containsKey(letterId)) return;
-    _pendingRedemptionStartedAt[letterId] =
-        DateTime.now().millisecondsSinceEpoch;
+    final now = DateTime.now();
+    _pendingRedemptionStartedAt[letterId] = now.millisecondsSinceEpoch;
+    // Build 331 (PR-S1): inbox letter 의 codeRevealedAt 도 set → UI 변별 +
+    //   Brand 4단계 funnel (코드 노출 카운트) Firestore 동기화.
+    for (final l in _inbox) {
+      if (l.id == letterId) {
+        l.codeRevealedAt = now;
+        break;
+      }
+    }
     notifyListeners();
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -1607,6 +1616,27 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       );
     } catch (e) {
       if (kDebugMode) debugPrint('[startRedemption] prefs 실패: $e');
+    }
+    // Build 331 (PR-S1): Firestore atomic increment + timestamp → Brand 가
+    //   "코드 노출" 메트릭을 다른 디바이스 / 다른 사용자 픽업도 합산해서 정확.
+    //   markLetterRedeemed 의 redeemedCount 패턴 그대로 따름.
+    if (FirebaseConfig.kFirebaseEnabled) {
+      unawaited(
+        FirestoreService.incrementField(
+          path: 'letters/$letterId',
+          field: 'revealedCount',
+        ),
+      );
+      unawaited(
+        FirestoreService.patchFields(
+          path: 'letters/$letterId',
+          fields: {
+            'codeRevealedAt': {
+              'timestampValue': now.toUtc().toIso8601String(),
+            },
+          },
+        ),
+      );
     }
   }
 
@@ -7268,6 +7298,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // 모든 letter 에 같은 값을 전달해 사용자당 1회 픽업을 강제. 단건 발송에서
     // 호출자가 안 주면 letter.id 자체가 campaignId 역할 (자동 생성).
     String? campaignId,
+    // Build 331 (PR-S1): 사용 코드 발급 옵션 — Brand 만 효과. true 시 8자
+    //   redemptionCode (TC-XXXX-XXXX) 자동 생성 → letter 에 저장. 손님이
+    //   "사용 진행" 탭 시 reveal → 매장 POS 가 바코드 / 코드 입력으로 할인 적용.
+    bool attachRedemptionCode = false,
+    // Build 331 (PR-S1): bulk send 가 동일 코드를 모든 letter 에 부여하기 위한
+    //   override. null + attachRedemptionCode=true 면 새 코드 자동 생성.
+    String? explicitRedemptionCode,
   }) async {
     // Build 324 (positioning): Free 사용자는 "줍기 전용". 발송 기능은
     //   Premium/Brand 만 가능. UI 측 가드 (main_scaffold compose 진입,
@@ -7508,6 +7545,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
               category != LetterCategory.general)
           ? redemptionExpiresAt
           : null,
+      // Build 331 (PR-S1): Brand 가 코드 발급 옵션 켰을 때만 발급.
+      //   explicit override (bulk 공통 코드) 우선, 아니면 자동 생성. 코드 자체
+      //   형식은 redemption_code.dart 참조.
+      redemptionCode: (_currentUser.isBrand && attachRedemptionCode)
+          ? (explicitRedemptionCode ?? RedemptionCode.generate())
+          : null,
     );
 
     _worldLetters.add(letter);
@@ -7571,6 +7614,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     bool acceptsReplies = true,
     String? redemptionInfo,
     DateTime? redemptionExpiresAt,
+    // Build 331 (PR-S1): bulk send 가 동일 redemptionCode 를 모든 letter 에
+    //   부여 — 매장 POS 는 한 캠페인당 1개 코드만 등록하면 끝.
+    bool attachRedemptionCode = false,
   }) async {
     if (!_currentUser.isBrand) return 0;
     int sent = 0;
@@ -7578,6 +7624,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // Build 324: brandUniquePerUser=true 면 이번 bulk 호출 전체에 공통 캠페인
     //   ID 부여 → 사용자당 1 letter 만 픽업. false 면 null (dedup 미적용).
     final campaignId = brandUniquePerUser ? _newCampaignId() : null;
+
+    // Build 331 (PR-S1): bulk 전체 공통 코드 — 1회 생성 후 sendLetter 마다
+    //   explicit override 로 전달. 100통 = 동일 코드 → 매장 1회 셋업.
+    final bulkRedemptionCode =
+        attachRedemptionCode ? RedemptionCode.generate() : null;
 
     if (randomMode) {
       // 랜덤 모드: 매 편지마다 198개국 중 랜덤 국가 선택
@@ -7603,6 +7654,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           redemptionInfo: redemptionInfo,
           redemptionExpiresAt: redemptionExpiresAt,
           campaignId: campaignId,
+          attachRedemptionCode: attachRedemptionCode,
+          explicitRedemptionCode: bulkRedemptionCode,
         );
         if (ok) sent++;
       }
@@ -7629,6 +7682,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             redemptionInfo: redemptionInfo,
             redemptionExpiresAt: redemptionExpiresAt,
             campaignId: campaignId,
+            attachRedemptionCode: attachRedemptionCode,
+            explicitRedemptionCode: bulkRedemptionCode,
           );
           if (ok) sent++;
         }

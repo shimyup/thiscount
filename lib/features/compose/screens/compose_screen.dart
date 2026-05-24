@@ -423,6 +423,11 @@ class _ComposeScreenState extends State<ComposeScreen>
   bool _brandAcceptsReplies = true; // 답장 수락 여부 (기본 on)
   bool _isExactDropped = false; // ExactDrop 로 좌표 선택됨 → 발송 시 크레딧 차감
   int? _brandAutoExpireHours; // 자동 삭제 시간 (null=없음)
+  // Build 331 (PR-S1): 사용 코드 발급 토글 — Brand 만 ON 가능. ON 시 발송
+  //   시점에 8자 영숫자 코드 (TC-XXXX-XXXX) 가 자동 생성되고 letter 의
+  //   redemptionCode 에 저장. 손님이 "사용 진행" 탭 시 reveal → 매장 POS 가
+  //   바코드 스캔 / 코드 수동 입력으로 할인 적용.
+  bool _attachRedemptionCode = false;
   // Brand 전용 편지 카테고리 — 일반 / 할인권 / 교환권. 수집첩에서 쿠폰함 섹션
   // 으로 분리 표시되므로 브랜드 운영자가 발송 의도를 명확히 지정한다.
   LetterCategory _brandCategory = LetterCategory.general;
@@ -1332,6 +1337,7 @@ class _ComposeScreenState extends State<ComposeScreen>
             ? null
             : _redemptionInfoController.text.trim(),
         redemptionExpiresAt: _computeRedemptionExpiresAt(),
+        attachRedemptionCode: _attachRedemptionCode,
       );
 
       if (mounted) {
@@ -1444,6 +1450,7 @@ class _ComposeScreenState extends State<ComposeScreen>
             ? null
             : _redemptionInfoController.text.trim(),
         redemptionExpiresAt: _computeRedemptionExpiresAt(),
+        attachRedemptionCode: _attachRedemptionCode,
       );
     }
 
@@ -1853,6 +1860,102 @@ class _ComposeScreenState extends State<ComposeScreen>
           ),
         );
       },
+    );
+  }
+
+  /// Build 331 (PR-S1): 사용 코드 발급 토글 활성 시 1회만 노출하는 가이드.
+  ///   매장 POS 셋업 절차 + 코드 발급 방식 설명 → 사장이 토글 의미 즉시 이해.
+  ///   사용자가 [확인] 누르면 토글 ON. [취소] 면 토글 그대로 OFF 유지.
+  ///   "다시 보지 않기" 는 false 만 반환해 같은 dialog 재노출 차단.
+  Future<bool?> _showRedemptionCodeGuide() async {
+    return showDialog<bool>(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        backgroundColor: AppColors.bgCard,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Row(
+          children: [
+            Text('🛒', style: TextStyle(fontSize: 22)),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '사용 코드 발급 안내',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '발송 시 8자 영숫자 코드를 자동 발급합니다.\n예) TC-K7M2-J9PH',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                height: 1.4,
+              ),
+            ),
+            SizedBox(height: 14),
+            Text(
+              '매장 셋업 (1회만)',
+              style: TextStyle(
+                color: AppColors.gold,
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.5,
+              ),
+            ),
+            SizedBox(height: 6),
+            Text(
+              '1. 매장 POS 의 "쿠폰" 또는 "직원 할인" 코드에 이 코드와 할인율을 등록\n2. 손님이 "사용 진행" 탭하면 화면에 코드 + 바코드 표시\n3. 매장이 바코드 스캔 / 코드 입력 → 할인 적용',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+                height: 1.5,
+              ),
+            ),
+            SizedBox(height: 14),
+            Text(
+              '한 캠페인 = 같은 코드. 100명에게 보내도 매장은 1번만 등록.',
+              style: TextStyle(
+                color: AppColors.teal,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dCtx).pop(false),
+            child: const Text(
+              '취소',
+              style: TextStyle(color: AppColors.textMuted),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(dCtx).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.teal,
+              foregroundColor: const Color(0xFF002218),
+            ),
+            child: const Text(
+              '확인',
+              style: TextStyle(fontWeight: FontWeight.w800),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -4845,6 +4948,58 @@ class _ComposeScreenState extends State<ComposeScreen>
                       Text(
                         l10n.composeBrandAcceptsRepliesDesc,
                         style: const TextStyle(
+                          color: AppColors.textMuted,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          // ── Build 331 (PR-S1): 사용 코드 발급 토글 ──
+          //   ON 시 letter 마다 (또는 bulk 캠페인마다) 8자 영숫자 코드 자동
+          //   발급. 손님이 "사용 진행" 탭 시 reveal → 매장 POS 가 바코드 스캔
+          //   또는 코드 수동 입력으로 할인 적용.
+          GestureDetector(
+            onTap: () async {
+              if (!_attachRedemptionCode) {
+                final ok = await _showRedemptionCodeGuide();
+                if (ok != true) return;
+              }
+              setState(() => _attachRedemptionCode = !_attachRedemptionCode);
+            },
+            child: Row(
+              children: [
+                Icon(
+                  _attachRedemptionCode
+                      ? Icons.check_circle
+                      : Icons.circle_outlined,
+                  color: _attachRedemptionCode
+                      ? AppColors.teal
+                      : AppColors.textMuted,
+                  size: 18,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '🛒 사용 코드 발급 (매장 POS 연동)',
+                        style: TextStyle(
+                          color: _attachRedemptionCode
+                              ? AppColors.teal
+                              : AppColors.textPrimary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const Text(
+                        '손님이 매장에서 바코드를 보여주거나 코드를 읽어주면 POS 가 할인 적용. 캠페인 1개당 코드 1개 자동 발급.',
+                        style: TextStyle(
                           color: AppColors.textMuted,
                           fontSize: 10,
                         ),
