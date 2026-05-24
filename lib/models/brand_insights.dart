@@ -77,6 +77,12 @@ class CampaignInsight {
   final int revealed; // Build 331 (PR-S3)
   final int redeemed;
   final double redeemRate;
+  // Build 334 (PR-S4, 시뮬레이션 P0 #1): redemptionCode + 유효기간 노출.
+  //   기존 PR-S1/S2/S3 가 코드 발급/사용 자체는 구현했지만 사장이 자기 코드를
+  //   다시 볼 화면이 없어 매장 POS 등록 자체 불가능했음. brandInsights 캠페인
+  //   카드에서 코드 + 만료 표시 → 사장이 POS 관리 가능.
+  final String? redemptionCode;
+  final DateTime? redemptionExpiresAt;
 
   const CampaignInsight({
     required this.letterId,
@@ -86,7 +92,14 @@ class CampaignInsight {
     required this.revealed,
     required this.redeemed,
     required this.redeemRate,
+    this.redemptionCode,
+    this.redemptionExpiresAt,
   });
+
+  /// Build 334 (PR-S4): 캠페인 코드가 매장에서 아직 유효한지.
+  bool get isCodeExpired =>
+      redemptionExpiresAt != null &&
+      DateTime.now().isAfter(redemptionExpiresAt!);
 
   String get healthEmoji {
     if (pickup == 0) return '⚪'; // 픽업 없음 — 측정 불가
@@ -97,7 +110,11 @@ class CampaignInsight {
 
   /// 코칭 메시지 — 사용자가 어떤 행동 할지 안내.
   /// Build 331 (PR-S3): 노출→사용 drop 패턴 추가 — 매장 도착했는데 사용 안 함.
+  /// Build 334 (PR-S4): 코드 만료 케이스 추가.
   String get coachingTip {
+    if (isCodeExpired) {
+      return '⏰ 코드 만료됨 — POS 에서 이 코드 삭제 후 신규 캠페인 발행';
+    }
     if (pickup == 0 && sent > 0) {
       return '아직 픽업 0 — 반경 좁히거나 본문 매력 ↑';
     }

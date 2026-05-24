@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/redemption_code.dart';
 import '../../models/brand_insights.dart';
 import '../../state/app_state.dart';
 
@@ -76,6 +78,10 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
           // 2) 단계별 funnel
           _buildFunnel(insights),
           const SizedBox(height: 20),
+          // Build 334 (PR-S4): "발급된 매장 코드" dedup 섹션 — 사장이 POS 에
+          //   등록할 코드를 한 화면에서 확인. campaigns 가 같은 코드를 공유하면
+          //   하나로 합쳐 letter 수 / 노출 / 사용 stat 합산.
+          ..._buildActiveCodesSection(insights),
           // 3) 캠페인 list
           if (insights.campaigns.isEmpty)
             _buildEmpty()
@@ -230,6 +236,185 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
     );
   }
 
+  /// Build 334 (PR-S4): "발급된 매장 코드" dedup 섹션 — 캠페인 list 위에 노출.
+  ///   campaigns 가 같은 redemptionCode 를 공유하면 (bulk send) 하나의 카드로
+  ///   묶어 letter 수 + 노출 + 사용 합산 표시. POS 등록 셋업 가이드를 같은
+  ///   화면에서 확인.
+  List<Widget> _buildActiveCodesSection(BrandInsights i) {
+    if (i.campaigns.isEmpty) return const [];
+    // dedup by code
+    final groups = <String, _CodeAggregate>{};
+    for (final c in i.campaigns) {
+      final code = c.redemptionCode;
+      if (code == null) continue;
+      final g = groups.putIfAbsent(code, () => _CodeAggregate(code: code));
+      g.letterCount += c.sent;
+      g.totalRevealed += c.revealed;
+      g.totalRedeemed += c.redeemed;
+      g.expiresAt ??= c.redemptionExpiresAt;
+    }
+    if (groups.isEmpty) return const [];
+    final list = groups.values.toList()
+      ..sort((a, b) => b.letterCount.compareTo(a.letterCount));
+    return [
+      Row(
+        children: [
+          const Text('🔑', style: TextStyle(fontSize: 14)),
+          const SizedBox(width: 6),
+          Text(
+            '발급된 매장 코드 (${list.length})',
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 6),
+      const Text(
+        '아래 코드를 매장 POS 의 "쿠폰/할인" 코드에 등록하세요. 같은 코드 = 한 캠페인.',
+        style: TextStyle(
+          color: AppColors.textMuted,
+          fontSize: 11,
+          height: 1.4,
+        ),
+      ),
+      const SizedBox(height: 10),
+      ...list.map(_buildCodeCard),
+      const SizedBox(height: 20),
+    ];
+  }
+
+  Widget _buildCodeCard(_CodeAggregate g) {
+    final formatted = RedemptionCode.formatForDisplay(g.code);
+    final expired = g.expiresAt != null &&
+        DateTime.now().isAfter(g.expiresAt!);
+    final accent = expired ? AppColors.textMuted : AppColors.teal;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: expired
+            ? AppColors.bgCard
+            : AppColors.teal.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: accent.withValues(alpha: expired ? 0.25 : 0.5),
+          width: 1.2,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  formatted,
+                  style: TextStyle(
+                    color: expired ? AppColors.textMuted : AppColors.textPrimary,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    fontFamily: 'monospace',
+                    letterSpacing: 1.5,
+                    decoration: expired
+                        ? TextDecoration.lineThrough
+                        : TextDecoration.none,
+                  ),
+                ),
+              ),
+              InkWell(
+                onTap: expired
+                    ? null
+                    : () async {
+                        await Clipboard.setData(ClipboardData(text: formatted));
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text(
+                              '🔑 코드 복사됨',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            backgroundColor: AppColors.teal,
+                            behavior: SnackBarBehavior.floating,
+                            duration: const Duration(seconds: 2),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        );
+                      },
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: accent.withValues(alpha: 0.5)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.copy_rounded, size: 13, color: accent),
+                      const SizedBox(width: 4),
+                      Text(
+                        '복사',
+                        style: TextStyle(
+                          color: accent,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '📮 ${g.letterCount} letter · 🛒 ${g.totalRevealed} 노출 · ✅ ${g.totalRedeemed} 사용',
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 11,
+            ),
+          ),
+          if (expired) ...[
+            const SizedBox(height: 4),
+            const Text(
+              '⏰ 만료된 코드 — POS 에서 삭제 후 신규 캠페인 발행 권장',
+              style: TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ] else if (g.expiresAt != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              '🕒 ${_formatExpiry(g.expiresAt!)}',
+              style: const TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _formatExpiry(DateTime exp) {
+    final d = exp.difference(DateTime.now());
+    if (d.inDays >= 1) return '${d.inDays}일 후 만료';
+    if (d.inHours >= 1) return '${d.inHours}시간 후 만료';
+    return '${d.inMinutes}분 후 만료';
+  }
+
   Widget _buildCampaignCard(CampaignInsight c) {
     final hasMetric = c.pickup > 0;
     final pct = (c.redeemRate * 100).toStringAsFixed(0);
@@ -361,4 +546,15 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
       ),
     );
   }
+}
+
+/// Build 334 (PR-S4): 같은 redemptionCode 를 공유하는 캠페인 letter 들의 합산.
+///   bulk send 100통이 코드 1개 공유 → 1 row 로 묶어 표시. POS 등록 단위 = 코드.
+class _CodeAggregate {
+  final String code;
+  int letterCount = 0;
+  int totalRevealed = 0;
+  int totalRedeemed = 0;
+  DateTime? expiresAt;
+  _CodeAggregate({required this.code});
 }

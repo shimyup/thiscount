@@ -17,6 +17,7 @@ import '../../../core/theme/letter_style.dart';
 import '../../../core/data/country_cities.dart';
 import '../../../core/services/geocoding_service.dart';
 import '../../../core/services/brand_zone_service.dart';
+import '../../../core/utils/redemption_code.dart';
 import '../../../models/letter.dart';
 import '../../../state/app_state.dart';
 import '../../../core/services/purchase_service.dart';
@@ -1344,22 +1345,29 @@ class _ComposeScreenState extends State<ComposeScreen>
         _clearDraft();
         FeedbackService.onLetterSend();
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _isBulkRandom
-                  ? '🎲 ${l10n.composeBulkSent(totalSent, totalSent)}'
-                  : l10n.composeBulkSent(totalSent, _bulkTargets.length),
-              style: const TextStyle(color: Colors.white),
+        // Build 334 (PR-S4): 코드 발급된 경우 발송 후 즉시 dialog 로 노출
+        //   → 사장이 POS 등록 곧바로 진행. snackbar 만으로는 사라져서 놓침.
+        final code = state.lastSentRedemptionCode;
+        if (code != null && context.mounted) {
+          unawaited(_showSentCodeReveal(context, code, totalSent));
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                _isBulkRandom
+                    ? '🎲 ${l10n.composeBulkSent(totalSent, totalSent)}'
+                    : l10n.composeBulkSent(totalSent, _bulkTargets.length),
+                style: const TextStyle(color: Colors.white),
+              ),
+              backgroundColor: AppColors.bgCard,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              duration: const Duration(seconds: 3),
             ),
-            backgroundColor: AppColors.bgCard,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            duration: const Duration(seconds: 3),
-          ),
-        );
+          );
+        }
       }
       return;
     }
@@ -1561,6 +1569,12 @@ class _ComposeScreenState extends State<ComposeScreen>
           duration: const Duration(seconds: 4),
         ),
       );
+      // Build 334 (PR-S4): 단건 발송도 코드 발급 시 dialog reveal.
+      //   bulk 패턴과 동일 — 사장이 코드 노치고 POS 등록할 수 있어야 함.
+      final justSentCode = state.lastSentRedemptionCode;
+      if (justSentCode != null && context.mounted) {
+        unawaited(_showSentCodeReveal(context, justSentCode, 1));
+      }
       // 특급 배송 한도 소진 알림
       if (useExpressSingle &&
           !state.currentUser.isBrand &&
@@ -1860,6 +1874,126 @@ class _ComposeScreenState extends State<ComposeScreen>
           ),
         );
       },
+    );
+  }
+
+  /// Build 334 (PR-S4): 발송 직후 발급된 코드를 1회 modal 로 reveal.
+  ///   기존엔 코드가 letter 안에만 저장돼서 사장이 다시 볼 화면이 없어 매장
+  ///   POS 등록 자체 불가능했음. 발송 직후 dialog 로 "이 코드를 POS 에
+  ///   등록하세요" + 복사 버튼 + BrandInsights 진입 (나중에 다시 확인) 옵션.
+  Future<void> _showSentCodeReveal(
+    BuildContext ctx,
+    String code,
+    int letterCount,
+  ) async {
+    final formatted = RedemptionCode.formatForDisplay(code);
+    await showDialog<void>(
+      context: ctx,
+      builder: (dCtx) => AlertDialog(
+        backgroundColor: AppColors.bgCard,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Row(
+          children: [
+            Text('🔑', style: TextStyle(fontSize: 22)),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '발급된 사용 코드',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              decoration: BoxDecoration(
+                color: AppColors.teal.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.teal),
+              ),
+              child: Text(
+                formatted,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  fontFamily: 'monospace',
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              '$letterCount 통 발송 완료. 이 코드를 매장 POS 의 "쿠폰/할인" 항목에 1회 등록하세요. 손님이 매장에서 바코드 또는 코드 입력 시 자동 인식됩니다.',
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              '💡 캠페인 인사이트에서 언제든 다시 확인 가능',
+              style: TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dCtx).pop(),
+            child: const Text(
+              '닫기',
+              style: TextStyle(color: AppColors.textMuted),
+            ),
+          ),
+          ElevatedButton.icon(
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: formatted));
+              if (!dCtx.mounted) return;
+              ScaffoldMessenger.of(dCtx).showSnackBar(
+                SnackBar(
+                  content: const Text(
+                    '🔑 코드 복사됨',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  backgroundColor: AppColors.teal,
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              );
+              if (dCtx.mounted) Navigator.of(dCtx).pop();
+            },
+            icon: const Icon(Icons.copy_rounded, size: 16),
+            label: const Text(
+              '코드 복사',
+              style: TextStyle(fontWeight: FontWeight.w800),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.teal,
+              foregroundColor: const Color(0xFF002218),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

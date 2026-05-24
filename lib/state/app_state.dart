@@ -1808,6 +1808,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         revealed: v,
         redeemed: r,
         redeemRate: rate,
+        // Build 334 (PR-S4): 코드 + 만료 전파 — Brand 가 자기 코드 매장 POS 에
+        //   등록·갱신 가능.
+        redemptionCode: l.redemptionCode,
+        redemptionExpiresAt: l.redemptionExpiresAt,
       ));
     }
     campaigns.sort((a, b) => b.pickup.compareTo(a.pickup));
@@ -7708,6 +7712,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// 같은 ms 안에서 두 캠페인이 시작돼도 hex suffix 로 collision 방지.
   String _newCampaignId() =>
       'cmp_${DateTime.now().millisecondsSinceEpoch}_${_shortRandHex()}';
+
+  /// Build 334 (PR-S4): 가장 최근 발송 letter 의 redemptionCode 반환. compose
+  /// 화면이 발송 직후 snackbar / dialog 에 코드 노출해 매장 POS 등록을 유도.
+  /// bulk send 의 경우 100통 모두 동일 코드라 last letter 만 봐도 OK.
+  /// 이번 send 에서 토글 OFF 였으면 null (스낵바 자동 미노출).
+  String? get lastSentRedemptionCode {
+    if (_sent.isEmpty) return null;
+    return _sent.last.redemptionCode;
+  }
 
   /// Build 324: 계정 전환 시 호출 — 이전 사용자의 user-scoped prefs 삭제.
   /// 같은 디바이스에서 user A → user B 전환했을 때 A 의 dedup 이력이 B 세션에
