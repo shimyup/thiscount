@@ -1881,14 +1881,21 @@ class _ComposeScreenState extends State<ComposeScreen>
   ///   기존엔 코드가 letter 안에만 저장돼서 사장이 다시 볼 화면이 없어 매장
   ///   POS 등록 자체 불가능했음. 발송 직후 dialog 로 "이 코드를 POS 에
   ///   등록하세요" + 복사 버튼 + BrandInsights 진입 (나중에 다시 확인) 옵션.
+  // Build 340 (PR-S11 2차 시뮬레이션 P1): _showSentCodeReveal 동시 중첩 차단.
+  //   sender 가 rapid send 시 dialog 가 두 개 stack 되어 UX/스크린리더 혼란.
+  bool _sentCodeRevealShowing = false;
+
   Future<void> _showSentCodeReveal(
     BuildContext ctx,
     String code,
     int letterCount,
   ) async {
+    if (_sentCodeRevealShowing) return;
+    _sentCodeRevealShowing = true;
     final formatted = RedemptionCode.formatForDisplay(code);
     final l = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
-    await showDialog<void>(
+    try {
+      await showDialog<void>(
       context: ctx,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.bgCard,
@@ -1996,6 +2003,9 @@ class _ComposeScreenState extends State<ComposeScreen>
         ],
       ),
     );
+    } finally {
+      _sentCodeRevealShowing = false;
+    }
   }
 
   /// Build 331 (PR-S1): 사용 코드 발급 토글 활성 시 1회만 노출하는 가이드.

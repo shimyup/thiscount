@@ -60,9 +60,9 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.bgDeep,
         elevation: 0,
-        title: const Text(
-          '📊 캠페인 인사이트',
-          style: TextStyle(
+        title: Text(
+          AppL10n.of(state.currentUser.languageCode).brandInsightsTitle,
+          style: const TextStyle(
             color: AppColors.textPrimary,
             fontSize: 16,
             fontWeight: FontWeight.w800,
@@ -250,6 +250,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
       if (code == null) continue;
       final g = groups.putIfAbsent(code, () => _CodeAggregate(code: code));
       g.letterCount += c.sent;
+      g.totalPickup += c.pickup;
       g.totalRevealed += c.revealed;
       g.totalRedeemed += c.redeemed;
       g.expiresAt ??= c.redemptionExpiresAt;
@@ -385,6 +386,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
           Text(
             l.brandCodeStats(
               g.letterCount,
+              g.totalPickup,
               g.totalRevealed,
               g.totalRedeemed,
             ),
@@ -568,9 +570,12 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
 
 /// Build 334 (PR-S4): 같은 redemptionCode 를 공유하는 캠페인 letter 들의 합산.
 ///   bulk send 100통이 코드 1개 공유 → 1 row 로 묶어 표시. POS 등록 단위 = 코드.
+/// Build 340 (PR-S11 시뮬레이션): totalPickup 추가 — 코드 카드 stat 이 4단계
+///   funnel (📮 → 🎯 → 🛒 → ✅) 와 일치하도록.
 class _CodeAggregate {
   final String code;
   int letterCount = 0;
+  int totalPickup = 0;
   int totalRevealed = 0;
   int totalRedeemed = 0;
   DateTime? expiresAt;

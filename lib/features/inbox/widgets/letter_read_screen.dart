@@ -62,10 +62,13 @@ class _LetterReadScreenState extends State<LetterReadScreen>
 
   // Build 337 (PR-S8 시뮬레이션 P1 #6): redemption box 로 auto-scroll 위함.
   //   redemptionCode 있는 letter 첫 진입 시 본문 아래로 스크롤 → "사용 진행"
-  //   버튼이 즉시 보임. 사용자 수동 스크롤 후엔 다시 자동 스크롤 안 함.
+  //   버튼이 즉시 보임.
+  // Build 340 (PR-S11 2차 시뮬레이션): static Set 으로 letter 별 1회만 자동
+  //   스크롤. 이전엔 인스턴스 변수 _didAutoScroll → 재진입 (회전, 뒤로가기)
+  //   마다 false 로 reset 되어 매번 스크롤 발생 (사용자 의도 무시).
   final ScrollController _scrollCtl = ScrollController();
   final GlobalKey _redemptionBoxKey = GlobalKey();
-  bool _didAutoScroll = false;
+  static final Set<String> _autoScrolledLetterIds = {};
 
   @override
   void initState() {
@@ -152,9 +155,9 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   ///   까지 자동 스크롤. 본문 긴 letter 에서 사용자가 직접 스크롤 다운하지
   ///   않으면 버튼 못 찾던 UX 회귀 해소.
   void _maybeAutoScrollToRedemption() {
-    if (_didAutoScroll) return;
     if (widget.letter.redemptionCode == null) return;
-    _didAutoScroll = true;
+    if (_autoScrolledLetterIds.contains(widget.letter.id)) return;
+    _autoScrolledLetterIds.add(widget.letter.id);
     final ctx = _redemptionBoxKey.currentContext;
     if (ctx != null) {
       Scrollable.ensureVisible(
@@ -3473,17 +3476,26 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
               ),
             ),
           ],
-          SizedBox(
-            height: 88,
-            child: Opacity(
-              opacity: disabled ? 0.4 : 1.0,
-              child: BarcodeWidget(
-                barcode: Barcode.code128(),
-                data: widget.code,
-                drawText: false,
-                color: Colors.black,
-                backgroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 4),
+          // Build 340 (PR-S11 2차 시뮬레이션 P1): 스크린리더용 Semantics 라벨.
+          //   바코드 위젯 자체는 시각 전용 → screen reader 가 "image" 라고만
+          //   읽음. 명시 label 로 "사용 코드 X" 알려줌. excludeSemantics 로 본
+          //   raw 안 텍스트 (없음 - drawText=false) 와 중복 차단.
+          Semantics(
+            label: widget.l10n.redemptionPanelHeader,
+            value: formatted,
+            excludeSemantics: true,
+            child: SizedBox(
+              height: 88,
+              child: Opacity(
+                opacity: disabled ? 0.4 : 1.0,
+                child: BarcodeWidget(
+                  barcode: Barcode.code128(),
+                  data: widget.code,
+                  drawText: false,
+                  color: Colors.black,
+                  backgroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                ),
               ),
             ),
           ),
