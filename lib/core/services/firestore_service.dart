@@ -39,18 +39,46 @@ class FirestoreService {
   static Future<Map<String, dynamic>?> getDocument(String path) async {
     if (!FirebaseConfig.kFirebaseEnabled) return null;
     await FirebaseAuthService.ensureValidToken();
-    try {
-      final res = await http
-          .get(
-            Uri.parse('${FirebaseConfig.firestoreBase}/$path'),
-            headers: _headers,
-          )
-          .timeout(const Duration(seconds: 10));
-      if (res.statusCode == 200) {
-        return jsonDecode(res.body) as Map<String, dynamic>;
+    // Build 356 (PR-X1 X 시뮬레이션 P1): exponential backoff retry — 5xx /
+    //   timeout 시 1초 / 2초 간격 2회 재시도. 401/403 (auth failure) 는
+    //   재시도 의미 없어 즉시 반환 (AppState 측 signOut 트리거 보조).
+    for (var attempt = 0; attempt < 3; attempt++) {
+      try {
+        final res = await http
+            .get(
+              Uri.parse('${FirebaseConfig.firestoreBase}/$path'),
+              headers: _headers,
+            )
+            .timeout(const Duration(seconds: 10));
+        if (res.statusCode == 200) {
+          return jsonDecode(res.body) as Map<String, dynamic>;
+        }
+        if (res.statusCode == 401 || res.statusCode == 403) {
+          if (kDebugMode) {
+            debugPrint(
+              '[FirestoreService] auth error ${res.statusCode} — token invalid for $path',
+            );
+          }
+          return null; // auth failure — 재시도 안 함
+        }
+        if (res.statusCode == 404) return null; // not found — 재시도 의미 X
+        // 5xx 또는 기타 → 재시도 candidates
+        if (attempt < 2) {
+          await Future<void>.delayed(Duration(seconds: 1 << attempt));
+          continue;
+        }
+        if (kDebugMode) {
+          debugPrint(
+            '[FirestoreService] 최종 실패 status=${res.statusCode} path=$path',
+          );
+        }
+      } catch (e, st) {
+        if (kDebugMode) debugPrint('[FirestoreService] 에러: $e\n$st');
+        if (attempt < 2) {
+          await Future<void>.delayed(Duration(seconds: 1 << attempt));
+          continue;
+        }
       }
-    } catch (e, st) {
-      if (kDebugMode) debugPrint('[FirestoreService] 에러: $e\n$st');
     }
     return null;
   }
