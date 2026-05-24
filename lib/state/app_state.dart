@@ -911,7 +911,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// - 그 외 공백: streak = 1
   /// - 오늘 이미 체크인: no-op
   void registerDailyStreakCheckin() {
-    final today = DateTime.now();
+    // Build 354 (PR-W1 W 시뮬레이션 P0): 디바이스 시계 조작 차단 — DateTime.now()
+    //   대신 SecureClock 사용. 시계 1일 앞으로 → checkin → 원복 → 재 checkin
+    //   으로 streak +2 조작 회귀 차단.
+    final today = SecureClock.now();
     final todayKey = _dateKey(today);
 
     if (_lastStreakCheckinDate == todayKey) {
