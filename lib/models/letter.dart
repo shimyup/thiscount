@@ -677,6 +677,19 @@ class Letter {
   ///   저장된 int 도 휴리스틱으로 보정 — 9999999999 (≈ 2286 ms / 2286-09-09
   ///   sec) 미만이면 seconds, 이상이면 ms. 잘못된 1970 근처 시각으로 보이는
   ///   회귀 차단.
+  /// Build 343 (PR-S14): redemptionCode 형식 검증 — 8자 Crockford 알파벳만.
+  ///   Firestore corrupt / admin 수동 수정으로 비형식 코드 들어오면 null 반환
+  ///   → BarcodeWidget 의 invalid data crash 차단.
+  static String? _sanitizeRedemptionCode(dynamic v) {
+    if (v is! String) return null;
+    if (v.length != 8) return null;
+    const alphabet = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+    for (var i = 0; i < v.length; i++) {
+      if (!alphabet.contains(v[i])) return null;
+    }
+    return v;
+  }
+
   static DateTime? _parseDateTime(dynamic v) {
     if (v == null) return null;
     if (v is int) {
@@ -763,7 +776,10 @@ class Letter {
     //   string 받으면 throw → fromJson 실패 → 캐시 letter 손실. 둘 다 안전 파싱.
     redeemedAt: _parseDateTime(j['redeemedAt']),
     campaignId: j['campaignId'] as String?,
-    redemptionCode: j['redemptionCode'] as String?,
+    // Build 343 (PR-S14 3차 시뮬레이션): Firestore corrupt / admin 수정으로
+    //   비-Crockford 문자 또는 7/9자 코드 들어오면 BarcodeWidget crash 가능.
+    //   _sanitizeRedemptionCode 가 형식 검사 → 불일치 시 null fallback.
+    redemptionCode: _sanitizeRedemptionCode(j['redemptionCode']),
     codeRevealedAt: _parseDateTime(j['codeRevealedAt']),
     expiresAt: j['expiresAt'] != null
         ? DateTime.fromMillisecondsSinceEpoch(j['expiresAt'] as int)

@@ -2358,6 +2358,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       // 상태 전환 + UI 알림까지 즉시 반영. 5s timer 첫 발화 대기 없이
       // 사용자가 "편지가 멈춰 있다" 고 느끼는 빈 frame 을 제거.
       _runDeliveryTick(triggerNotifications: false);
+      // Build 343 (PR-S14 3차 시뮬레이션): 백그라운드에서 timer 멈춤 → 2h 경과한
+      //   pending redemption 이 자동 처리 안 됨. resume 시 즉시 catch-up.
+      unawaited(consumeElapsedPendingRedemptions());
       // 포그라운드 복귀 → 타이머 재시작
       if (_deliveryTimer == null || !_deliveryTimer!.isActive) {
         _startDeliverySimulation();
@@ -6938,6 +6941,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         expiresAt: now.add(const Duration(hours: 72)),
         redemptionExpiresAt: zone.expiresAt,
         brandZoneId: zone.id,
+        // Build 343 (PR-S14 3차 시뮬레이션): zone 에 redemptionCode 설정돼 있으면
+        //   자동 발급 letter 도 코드 동봉. zone = campaign 1:1, 매장 POS 1회 등록.
+        redemptionCode: zone.redemptionCode,
       );
 
       _worldLetters.add(letter);
