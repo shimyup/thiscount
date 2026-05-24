@@ -435,10 +435,15 @@ class Letter {
     redemptionExpiresAt: redemptionExpiresAt,
     brandZoneId: brandZoneId,
     categoryTag: categoryTag,
-    redeemedAt: redeemedAt,
+    // Build 340 (PR-S11 2차 시뮬레이션 P0): clone 은 픽업 흐름 (world → inbox)
+    //   에서 사용. 다른 사용자가 이미 reveal/redeem 한 world letter 의 per-user
+    //   state 가 신규 픽업자에게 전이되어 "사용 진행" 안 한 letter 가 pending
+    //   상태로 잘못 보이던 회귀. redemptionCode (캠페인 1코드) 는 유지, 사용
+    //   action 시각 (redeemedAt, codeRevealedAt) 는 reset.
+    redeemedAt: null,
     campaignId: campaignId,
     redemptionCode: redemptionCode,
-    codeRevealedAt: codeRevealedAt,
+    codeRevealedAt: null,
     readCount: readCount,
     maxReaders: maxReaders,
   );
@@ -666,6 +671,21 @@ class Letter {
     'maxReaders': maxReaders,
   };
 
+  /// Build 340 (PR-S11 시뮬레이션): Firestore PATCH 결과는 ISO string ("2026-
+  ///   05-25T08:30:00Z"), 로컬 toJson 은 ms epoch (int). 양쪽 모두 안전 파싱.
+  static DateTime? _parseDateTime(dynamic v) {
+    if (v == null) return null;
+    if (v is int) return DateTime.fromMillisecondsSinceEpoch(v);
+    if (v is String) {
+      try {
+        return DateTime.parse(v);
+      } catch (_) {
+        return null;
+      }
+    }
+    return null;
+  }
+
   static Letter fromJson(Map<String, dynamic> j) => Letter(
     id: j['id'] as String,
     senderId: (j['senderId'] as String?) ?? '',
@@ -726,14 +746,14 @@ class Letter {
         : null,
     brandZoneId: j['brandZoneId'] as String?,
     categoryTag: j['categoryTag'] as String?,
-    redeemedAt: j['redeemedAt'] != null
-        ? DateTime.fromMillisecondsSinceEpoch(j['redeemedAt'] as int)
-        : null,
+    // Build 340 (PR-S11 시뮬레이션 P1 Firestore timestamp): redeemedAt /
+    //   codeRevealedAt 은 두 source 에서 옴 — 로컬 toJson 은 ms epoch (int),
+    //   Firestore REST PATCH 후 fetch 결과는 ISO string. 이전엔 `as int` cast 가
+    //   string 받으면 throw → fromJson 실패 → 캐시 letter 손실. 둘 다 안전 파싱.
+    redeemedAt: _parseDateTime(j['redeemedAt']),
     campaignId: j['campaignId'] as String?,
     redemptionCode: j['redemptionCode'] as String?,
-    codeRevealedAt: j['codeRevealedAt'] != null
-        ? DateTime.fromMillisecondsSinceEpoch(j['codeRevealedAt'] as int)
-        : null,
+    codeRevealedAt: _parseDateTime(j['codeRevealedAt']),
     expiresAt: j['expiresAt'] != null
         ? DateTime.fromMillisecondsSinceEpoch(j['expiresAt'] as int)
         : null,

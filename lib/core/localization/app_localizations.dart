@@ -28671,22 +28671,24 @@ class AppL10n {
     'th': 'ลงทะเบียนรหัสด้านล่างใน POS "คูปอง/ส่วนลด". รหัสเดียว = แคมเปญเดียว',
   });
 
-  String brandCodeStats(int letters, int revealed, int redeemed) => _t({
-    'ko': '📮 $letters letter · 🛒 $revealed 노출 · ✅ $redeemed 사용',
-    'en': '📮 $letters letters · 🛒 $revealed reveals · ✅ $redeemed used',
-    'ja': '📮 $letters 通 · 🛒 $revealed 表示 · ✅ $redeemed 使用',
-    'zh': '📮 $letters 封 · 🛒 $revealed 展示 · ✅ $redeemed 使用',
-    'fr': '📮 $letters · 🛒 $revealed · ✅ $redeemed',
-    'de': '📮 $letters · 🛒 $revealed · ✅ $redeemed',
-    'es': '📮 $letters · 🛒 $revealed · ✅ $redeemed',
-    'pt': '📮 $letters · 🛒 $revealed · ✅ $redeemed',
-    'ru': '📮 $letters · 🛒 $revealed · ✅ $redeemed',
-    'tr': '📮 $letters · 🛒 $revealed · ✅ $redeemed',
-    'ar': '📮 $letters · 🛒 $revealed · ✅ $redeemed',
-    'it': '📮 $letters · 🛒 $revealed · ✅ $redeemed',
-    'hi': '📮 $letters · 🛒 $revealed · ✅ $redeemed',
-    'th': '📮 $letters · 🛒 $revealed · ✅ $redeemed',
-  });
+  // Build 340 (PR-S11): pickup 추가 — 4단계 funnel 과 일치 (📮 → 🎯 → 🛒 → ✅).
+  String brandCodeStats(int letters, int pickup, int revealed, int redeemed) =>
+      _t({
+        'ko': '📮 $letters · 🎯 $pickup · 🛒 $revealed · ✅ $redeemed',
+        'en': '📮 $letters · 🎯 $pickup · 🛒 $revealed · ✅ $redeemed',
+        'ja': '📮 $letters · 🎯 $pickup · 🛒 $revealed · ✅ $redeemed',
+        'zh': '📮 $letters · 🎯 $pickup · 🛒 $revealed · ✅ $redeemed',
+        'fr': '📮 $letters · 🎯 $pickup · 🛒 $revealed · ✅ $redeemed',
+        'de': '📮 $letters · 🎯 $pickup · 🛒 $revealed · ✅ $redeemed',
+        'es': '📮 $letters · 🎯 $pickup · 🛒 $revealed · ✅ $redeemed',
+        'pt': '📮 $letters · 🎯 $pickup · 🛒 $revealed · ✅ $redeemed',
+        'ru': '📮 $letters · 🎯 $pickup · 🛒 $revealed · ✅ $redeemed',
+        'tr': '📮 $letters · 🎯 $pickup · 🛒 $revealed · ✅ $redeemed',
+        'ar': '📮 $letters · 🎯 $pickup · 🛒 $revealed · ✅ $redeemed',
+        'it': '📮 $letters · 🎯 $pickup · 🛒 $revealed · ✅ $redeemed',
+        'hi': '📮 $letters · 🎯 $pickup · 🛒 $revealed · ✅ $redeemed',
+        'th': '📮 $letters · 🎯 $pickup · 🛒 $revealed · ✅ $redeemed',
+      });
 
   String get brandCodeExpiredNote => _t({
     'ko': '⏰ 만료된 코드 — POS 에서 삭제 후 신규 캠페인 발행 권장',
@@ -28856,6 +28858,42 @@ class AppL10n {
     'it': 'Ottimi risultati! Ripeti lo stesso schema',
     'hi': 'अच्छे नतीजे! वही पैटर्न दोहराएं',
     'th': 'ผลดีมาก! ทำซ้ำในรูปแบบเดิม',
+  });
+
+  // Build 340 (PR-S11 2차 시뮬레이션): brand_insights_screen 잔존 한국어
+  //   header / empty / footer 도 14언어 i18n.
+  String get brandInsightsTitle => _t({
+    'ko': '📊 캠페인 인사이트',
+    'en': '📊 Campaign Insights',
+    'ja': '📊 キャンペーン分析',
+    'zh': '📊 活动洞察',
+    'fr': '📊 Insights campagne',
+    'de': '📊 Kampagnen-Insights',
+    'es': '📊 Insights de campaña',
+    'pt': '📊 Insights de campanha',
+    'ru': '📊 Аналитика кампаний',
+    'tr': '📊 Kampanya İçgörüleri',
+    'ar': '📊 رؤى الحملات',
+    'it': '📊 Insights campagna',
+    'hi': '📊 कैम्पेन इनसाइट्स',
+    'th': '📊 Campaign Insights',
+  });
+
+  String get brandNoCodesYet => _t({
+    'ko': '발급된 코드가 없어요',
+    'en': 'No codes issued yet',
+    'ja': '発行されたコードがありません',
+    'zh': '尚未发放代码',
+    'fr': 'Aucun code émis',
+    'de': 'Noch keine Codes',
+    'es': 'Sin códigos emitidos',
+    'pt': 'Sem códigos emitidos',
+    'ru': 'Коды не выданы',
+    'tr': 'Henüz kod yok',
+    'ar': 'لم تصدر رموز',
+    'it': 'Nessun codice emesso',
+    'hi': 'अभी कोई कोड जारी नहीं',
+    'th': 'ยังไม่มีรหัสที่ออก',
   });
 
   String get coachingExpired => _t({

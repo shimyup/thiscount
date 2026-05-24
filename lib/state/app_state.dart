@@ -1579,7 +1579,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (_redeemedLetterIds.contains(letterId)) return false;
     final startedMs = _effectiveRevealedStartMs(letterId);
     if (startedMs == null) return false;
+    // Build 340 (PR-S11 2차 시뮬레이션): race lock sentinel (-1) 또는 미래
+    //   timestamp (clock 조작) 일 때 elapsed 가 음수 / 비정상.
+    //     -1 (sentinel) → 현재 startRedemption 진행 중. UI 는 false 로 처리.
+    //     미래값       → 즉시 false (pending 아님). consumeElapsed 가 정리.
+    if (startedMs <= 0) return false;
     final elapsed = DateTime.now().millisecondsSinceEpoch - startedMs;
+    if (elapsed < 0) return false;
     if (elapsed >= _pendingRedemptionTtl.inMilliseconds) return false;
     return true;
   }
@@ -1597,7 +1603,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   ///   fallback. 둘 다 없으면 null.
   int? _effectiveRevealedStartMs(String letterId) {
     final local = _pendingRedemptionStartedAt[letterId];
-    if (local != null) return local;
+    // Build 340 (PR-S11): -1 sentinel (race lock 진행 중) 은 무시 — 호출자
+    //   (isPendingRedemption) 가 false 반환하도록.
+    if (local != null && local > 0) return local;
     for (final l in _inbox) {
       if (l.id == letterId && l.codeRevealedAt != null) {
         return l.codeRevealedAt!.millisecondsSinceEpoch;
@@ -1614,6 +1622,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (letterId.isEmpty) return;
     if (_redeemedLetterIds.contains(letterId)) return;
     if (_pendingRedemptionStartedAt.containsKey(letterId)) return;
+    // Build 340 (PR-S11 2차 시뮬레이션): race lock — async await 사이 다른
+    //   microtask 가 동일 letterId 로 진입해 double increment 호출 차단.
+    //   negative sentinel 로 즉시 lock 후 끝에서 실제 ms 로 덮어씀.
+    _pendingRedemptionStartedAt[letterId] = -1;
     // Build 334 (PR-S6 시뮬레이션 P0 #4): IDOR 가드 — letter 가 본인 _inbox 에
     //   실제 픽업되어 있어야 reveal 진행. 이전엔 letterId 추측만으로 Firestore
     //   `revealedCount` increment 호출 가능 → 남의 캠페인 카운트 조작.
@@ -1625,6 +1637,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       }
     }
     if (target == null) {
+      // Build 340 (PR-S11): IDOR 거절 시 race lock sentinel 해제 — 정상 letter
+      //   재시도 가능하도록.
+      _pendingRedemptionStartedAt.remove(letterId);
       if (kDebugMode) {
         debugPrint(
           '[startRedemption] inbox 에 없는 letter ($letterId) — guard reject',
@@ -1704,23 +1719,19 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final now = DateTime.now().millisecondsSinceEpoch;
     final ttlMs = _pendingRedemptionTtl.inMilliseconds;
     final expired = <String>[];
+    // Build 340 (PR-S11): 음수 elapsed (시계 조작) / sentinel (-1 진행 중) entry
+    //   도 정리. 미래 timestamp 는 stale 로 간주 → markLetterRedeemed.
     for (final entry in _pendingRedemptionStartedAt.entries) {
-      if (now - entry.value >= ttlMs) expired.add(entry.key);
+      if (entry.value <= 0) continue; // sentinel 은 진행 중 — 건드리지 않음
+      final elapsed = now - entry.value;
+      if (elapsed < 0 || elapsed >= ttlMs) expired.add(entry.key);
     }
     if (expired.isEmpty) return;
     for (final letterId in expired) {
       _pendingRedemptionStartedAt.remove(letterId);
       await markLetterRedeemed(letterId);
     }
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(
-        'pendingRedemptionStartedAt',
-        _pendingRedemptionStartedAt.entries
-            .map((e) => '${e.key}|${e.value}')
-            .join(';'),
-      );
-    } catch (_) {/* prefs 실패는 다음 cold start 에서 다시 시도 */}
+    await _savePendingRedemptionPrefs();
   }
 
   Future<void> _loadPendingRedemptions() async {
@@ -7827,6 +7838,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('myPickedUpLetterIds');
       await prefs.remove('pickedUpCampaignIds');
+      // Build 340 (PR-S11 시뮬레이션): 사용자 A 의 코드 reveal 진행 상태가
+      //   사용자 B 세션에 누출되던 user-scoped prefs 누락 fix.
+      await prefs.remove('pendingRedemptionStartedAt');
+      _pendingRedemptionStartedAt.clear();
     } catch (e) {
       if (kDebugMode) debugPrint('[setUser] clear prefs 실패: $e');
     }
@@ -8194,9 +8209,32 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   void deleteFromInbox(String letterId) {
     final before = _inbox.length;
     _inbox.removeWhere((l) => l.id == letterId);
+    // Build 340 (PR-S11 시뮬레이션): pending redemption 도 같이 정리. 이전엔
+    //   letter 삭제 후에도 _pendingRedemptionStartedAt 에 entry 남아 TTL 끝까지
+    //   stale 잔존 → consumeElapsedPendingRedemptions 가 nonexistent letter
+    //   markLetterRedeemed 호출. 같은 letter 재픽업 시 redeemed 상태 부정확.
+    if (_pendingRedemptionStartedAt.remove(letterId) != null) {
+      unawaited(_savePendingRedemptionPrefs());
+    }
     if (_inbox.length < before) {
       notifyListeners();
       _saveToPrefs();
+    }
+  }
+
+  /// Build 340 (PR-S11): _pendingRedemptionStartedAt prefs 저장 헬퍼.
+  ///   각 호출 site 에서 동일한 직렬화 코드 중복을 줄임 + 일관성 보장.
+  Future<void> _savePendingRedemptionPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        'pendingRedemptionStartedAt',
+        _pendingRedemptionStartedAt.entries
+            .map((e) => '${e.key}|${e.value}')
+            .join(';'),
+      );
+    } catch (e) {
+      if (kDebugMode) debugPrint('[redemption] prefs save 실패: $e');
     }
   }
 
