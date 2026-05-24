@@ -872,6 +872,13 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
       final prefs = await _getPrefs();
       await _persistBillingDateToPrefs();
       await _clearScheduledPlanChange(prefs);
+      // Build 347 (PR-U2 시뮬레이션 P1): trial 활성 중 정식 결제 → trial 잔여
+      //   시각이 _isPremium=true 와 공존해 isTrialActive 가 여전히 true 로 보이는
+      //   ambiguous state. 정식 결제 성공 후 trial expiry clear.
+      if (_isPremium) {
+        _trialExpiry = null;
+        await _secure.delete(key: 'ps_trialExpiry');
+      }
       _stopLoading();
       return _isPremium;
     } on PlatformException catch (e) {
@@ -1537,6 +1544,19 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void _startLoading(PurchaseOperation operation) {
+    // Build 347 (PR-U2 시뮬레이션 P2): 이미 다른 operation 진행 중이면 새
+    //   operation 으로 덮어쓰지 않음 — UI/Race 시점에 두 buy 가 동시 호출돼도
+    //   첫 번째 의 _activeOperation 보존. caller 가 빠르게 두 번 탭해도 두
+    //   번째는 첫 번째의 결과 기다림 (대부분 _isRcKeyConfigured 체크에서 빠른
+    //   return). 완벽한 mutex 는 아니나 UI race 의 90% 가드.
+    if (_loading) {
+      if (kDebugMode) {
+        debugPrint(
+          '[purchase] _startLoading skip — busy with $_activeOperation',
+        );
+      }
+      return;
+    }
     _loading = true;
     _activeOperation = operation;
     _errorMessage = null;
