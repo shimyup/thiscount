@@ -5831,30 +5831,32 @@ class AppL10n {
     'th': 'การวางจุดพิกัดเป็นฟีเจอร์เสียเงิน',
   });
 
+  // Build 324: "관리자 문의" 흐름 retire — ExactDrop 100 패키지 IAP 즉시 구매.
   String get composeExactDropPaywallBody => _t({
-    'ko': '원하는 매장·좌표에 혜택을 정확히 뿌릴 수 있어요. 사용을 원하시면 관리자에게 문의해주세요.',
+    'ko': '원하는 매장·좌표에 혜택을 정확히 뿌릴 수 있어요. 아래 버튼으로 100통 패키지를 바로 구매하세요.',
     'en':
-        'Drop promos on exact store locations or coordinates. Contact the admin to enable this feature.',
-    'ja': '特定の店舗・座標に特典を正確に配置できます。利用希望は管理者にお問い合わせください。',
-    'zh': '将优惠券精确投放到指定地点或坐标。如需使用请联系管理员。',
+        'Drop promos on exact store locations or coordinates. Tap below to buy the 100-promo package instantly.',
+    'ja': '特定の店舗・座標に特典を正確に配置できます。下のボタンで100通パッケージを今すぐ購入。',
+    'zh': '将优惠券精确投放到指定地点或坐标。点击下方按钮立即购买 100 封套餐。',
     'fr':
-        'Déposez des lettres à des points de vente ou coordonnées précis. Contactez l\'admin pour activer.',
+        "Déposez des récompenses à des points précis. Achetez le pack de 100 maintenant via le bouton ci-dessous.",
     'de':
-        'Briefe an exakte Standorte oder Koordinaten ablegen. Admin für Freischaltung kontaktieren.',
+        'Belohnungen an exakte Standorte ablegen. Mit der Schaltfläche unten das 100er-Paket sofort kaufen.',
     'es':
-        'Deja cartas en ubicaciones o coordenadas exactas. Contacta al admin para activarlo.',
+        'Deja recompensas en ubicaciones o coordenadas exactas. Compra el paquete de 100 al instante con el botón de abajo.',
     'pt':
-        'Deixe cartas em locais exatos ou coordenadas. Contacte o admin para ativar.',
+        'Deixe recompensas em locais exatos. Compre o pacote de 100 agora pelo botão abaixo.',
     'ru':
-        'Размещайте письма в точных местах или координатах. Обратитесь к админу.',
+        'Размещайте награды в точных местах или координатах. Купите пакет из 100 наград прямо сейчас.',
     'tr':
-        'Belirli mağaza veya koordinatlara mektup bırakın. Aktifleştirmek için yöneticiye ulaşın.',
-    'ar': 'وزّع المكافآت على مواقع أو إحداثيات دقيقة. تواصل مع المشرف لتفعيلها.',
+        'Ödülleri belirli mağaza veya koordinatlara bırakın. Aşağıdaki düğmeyle 100 ödülü hemen satın alın.',
+    'ar':
+        'وزّع المكافآت على مواقع دقيقة. اشترِ باقة 100 مكافأة الآن من الزر بالأسفل.',
     'it':
-        'Rilascia lettere in luoghi o coordinate esatte. Contatta l\'admin per abilitarla.',
+        'Rilascia ricompense in luoghi precisi. Acquista il pacchetto da 100 con il pulsante qui sotto.',
     'hi':
-        'सटीक स्थानों या निर्देशांक पर पत्र छोड़ें. सुविधा सक्षम करने के लिए व्यवस्थापक से संपर्क करें.',
-    'th': 'วางรางวัลที่ร้านค้าหรือพิกัดที่ต้องการ ติดต่อผู้ดูแลเพื่อเปิดใช้',
+        'सटीक स्थानों पर पुरस्कार छोड़ें। नीचे के बटन से 100 पुरस्कार पैकेज तुरंत खरीदें।',
+    'th': 'วางรางวัลที่ร้านค้าหรือพิกัดที่ต้องการ กดปุ่มด้านล่างเพื่อซื้อแพ็ก 100 ฉบับทันที',
   });
 
   String get composeExactDropPaywallPricing => _t({
@@ -5874,21 +5876,40 @@ class AppL10n {
     'th': 'แพ็คเกจ 100 ฉบับ · 10,000 วอน',
   });
 
+  // Build 324: "관리자 문의" 흐름 retire — 100통 패키지 즉시 구매 안내.
   String get composeExactDropOutOfCredits => _t({
-    'ko': 'ExactDrop 크레딧이 부족해요. 관리자에게 문의하세요.',
-    'en': 'Not enough ExactDrop credits. Contact the admin.',
-    'ja': 'ExactDrop クレジットが不足しています。管理者にお問い合わせください。',
-    'zh': 'ExactDrop 额度不足，请联系管理员。',
-    'fr': 'Crédits ExactDrop insuffisants. Contactez l\'admin.',
-    'de': 'Nicht genug ExactDrop-Credits. Admin kontaktieren.',
-    'es': 'Créditos de ExactDrop insuficientes. Contacta al admin.',
-    'pt': 'Créditos ExactDrop insuficientes. Contacte o admin.',
-    'ru': 'Недостаточно кредитов ExactDrop. Свяжитесь с админом.',
-    'tr': 'ExactDrop kredisi yetersiz. Yöneticiye ulaşın.',
-    'ar': 'رصيد ExactDrop غير كافٍ. تواصل مع المشرف.',
-    'it': 'Crediti ExactDrop insufficienti. Contatta l\'admin.',
-    'hi': 'ExactDrop क्रेडिट अपर्याप्त. व्यवस्थापक से संपर्क करें.',
-    'th': 'เครดิต ExactDrop ไม่พอ ติดต่อผู้ดูแล',
+    'ko': 'ExactDrop 크레딧이 부족해요. 100통 패키지를 구매해서 바로 채우세요.',
+    'en': 'Not enough ExactDrop credits. Buy the 100-promo package to refill instantly.',
+    'ja': 'ExactDrop クレジットが不足しています。100通パッケージで今すぐ補充。',
+    'zh': 'ExactDrop 额度不足，购买 100 封套餐立即补充。',
+    'fr': 'Crédits ExactDrop insuffisants. Achetez le pack de 100 pour recharger.',
+    'de': 'Nicht genug ExactDrop-Credits. Mit dem 100er-Paket sofort auffüllen.',
+    'es': 'Créditos de ExactDrop insuficientes. Compra el paquete de 100 para recargar.',
+    'pt': 'Créditos ExactDrop insuficientes. Compre o pacote de 100 para recarregar.',
+    'ru': 'Недостаточно кредитов ExactDrop. Купите пакет из 100 для пополнения.',
+    'tr': 'ExactDrop kredisi yetersiz. 100 ödülü paketle anında doldurun.',
+    'ar': 'رصيد ExactDrop غير كافٍ. اشترِ باقة 100 لإعادة الشحن فورًا.',
+    'it': 'Crediti ExactDrop insufficienti. Acquista il pacchetto da 100 per ricaricare.',
+    'hi': 'ExactDrop क्रेडिट अपर्याप्त। 100 पैकेज खरीदकर तुरंत भरें।',
+    'th': 'เครดิต ExactDrop ไม่พอ ซื้อแพ็ก 100 ฉบับเพื่อเติมทันที',
+  });
+
+  // Build 324: ExactDrop IAP CTA 버튼 라벨.
+  String get composeExactDropBuyBtn => _t({
+    'ko': '100통 구매 (₩10,000)',
+    'en': 'Buy 100 promos (₩10,000)',
+    'ja': '100通購入 (₩10,000)',
+    'zh': '购买 100 封 (₩10,000)',
+    'fr': 'Acheter 100 (₩10 000)',
+    'de': '100 kaufen (₩10.000)',
+    'es': 'Comprar 100 (₩10.000)',
+    'pt': 'Comprar 100 (₩10.000)',
+    'ru': 'Купить 100 (₩10 000)',
+    'tr': '100 satın al (₩10.000)',
+    'ar': 'اشترِ 100 (₩10,000)',
+    'it': 'Compra 100 (₩10.000)',
+    'hi': '100 खरीदें (₩10,000)',
+    'th': 'ซื้อ 100 ฉบับ (₩10,000)',
   });
 
   String get composeExactDropHint => _t({

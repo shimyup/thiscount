@@ -1681,6 +1681,44 @@ class _ComposeScreenState extends State<ComposeScreen>
                 style: const TextStyle(color: AppColors.textMuted),
               ),
             ),
+            // Build 324: ExactDrop IAP 즉시 구매 버튼 — "관리자 문의" 흐름 제거.
+            //   구매 성공 시 100 크레딧 자동 grant + 다이얼로그 닫음.
+            ElevatedButton.icon(
+              onPressed: () async {
+                final purchase = context.read<PurchaseService>();
+                Navigator.of(dCtx).pop();
+                final ok = await purchase.buyExactDrop100(state);
+                if (!mounted) return;
+                if (ok) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('🎯 ExactDrop +100 (${state.brandExactDropCredits})'),
+                      backgroundColor: AppColors.bgCard,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                  // 구매 직후 즉시 ExactDrop 진입.
+                  unawaited(_selectExactDrop());
+                } else if (purchase.errorMessage != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(purchase.errorMessage!),
+                      backgroundColor: AppColors.error,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.gold,
+                foregroundColor: const Color(0xFF1A0008),
+              ),
+              icon: const Icon(Icons.shopping_cart_rounded, size: 16),
+              label: Text(
+                l.composeExactDropBuyBtn,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
           ],
         ),
       );
