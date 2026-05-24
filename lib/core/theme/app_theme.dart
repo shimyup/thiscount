@@ -126,6 +126,14 @@ class AppColors {
   static const Color letter = Color(0xFFB8FF5C);
   static const Color map = Color(0xFF5BA4F6);
   static const Color streak = Color(0xFFC77DFF);
+
+  // Build 325 (T1): semantic 시그널 색 분리.
+  //   gold 가 AI 추천 / FOMO / Brand 강조 / Premium 등 다용도로 쓰여 변별 0.
+  //   AI 추천은 violet (streak 와 같은 톤) 으로 분리 — "왜 추천" 신호 명확.
+  //   gold 는 FOMO 만료·Brand 강조 단독 유지.
+  static const Color aiSignal = Color(0xFFC77DFF);
+  static const Color aiSignalBg = Color(0x26C77DFF); // 0.15 alpha 미리 계산
+  static const Color aiSignalBorder = Color(0x59C77DFF); // 0.35 alpha
 }
 
 /// Build 159: 앱 전역 타이포 스케일.

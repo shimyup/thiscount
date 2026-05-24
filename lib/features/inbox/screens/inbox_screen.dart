@@ -2355,16 +2355,19 @@ class _LetterCard extends StatelessWidget {
               children: [
               // Build 324: AI 추천 모드 시 "왜 이 순서?" 이유 칩 노출 — 사용자
               //   신뢰 확보 + 추천 알고리즘 투명성. aiReasonChip null 이면 미노출.
+              // Build 325 (T1): gold → violet (AppColors.aiSignal) — gold 가 FOMO
+              //   / Brand / Premium 와 충돌해 변별 0 이던 문제 해소. AI 추천은
+              //   violet 단독 시각 신호로 분리.
               if (aiReasonChip != null) ...[
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppColors.gold.withValues(alpha: 0.15),
+                      color: AppColors.aiSignalBg,
                       borderRadius: BorderRadius.circular(999),
                       border: Border.all(
-                        color: AppColors.gold.withValues(alpha: 0.35),
+                        color: AppColors.aiSignalBorder,
                       ),
                     ),
                     child: Row(
@@ -2376,7 +2379,7 @@ class _LetterCard extends StatelessWidget {
                           child: Text(
                             aiReasonChip!,
                             style: const TextStyle(
-                              color: AppColors.gold,
+                              color: AppColors.aiSignal,
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                               height: 1.2,
