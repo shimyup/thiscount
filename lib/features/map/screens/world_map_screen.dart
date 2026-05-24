@@ -2695,21 +2695,18 @@ class _ArrivedWaitingMarker extends StatelessWidget {
     required this.pulseController,
   });
 
-  // Build 324 (positioning): 카테고리별 핀 색상 + 이모지 분기.
-  //   eat (food+cafe) = red 🍴 / shop (beauty+fashion) = pink 🛍️ /
-  //   etc (it+event+other) = teal 🎁 / categoryTag null = gold 📬 (기본).
-  ({Color color, String emoji}) get _categoryStyle {
+  // Build 324 (positioning): 카테고리별 이모지 분기.
+  //   사용자 피드백 — 색깔 분기보다 이모지가 즉시 인식 가능. 색은 gold 로
+  //   통일해 시각 노이즈 감소 + 이모지가 카테고리 시그널의 단일 채널이 됨.
+  //   eat (food+cafe) = 🍴 / shop (beauty+fashion) = 🛍️ /
+  //   etc (it+event+other) = 🎁 / categoryTag null = 📬 (기본).
+  //   FOMO 시 빨강 ring 은 별개 — 긴급성 시각화는 유지.
+  String get _categoryEmoji {
     final tag = letter.categoryTag;
-    if (tag == 'food' || tag == 'cafe') {
-      return (color: const Color(0xFFE74C3C), emoji: '🍴');
-    }
-    if (tag == 'beauty' || tag == 'fashion') {
-      return (color: const Color(0xFFE91E63), emoji: '🛍️');
-    }
-    if (tag == 'it' || tag == 'event' || tag == 'other') {
-      return (color: AppColors.teal, emoji: '🎁');
-    }
-    return (color: AppColors.gold, emoji: '📬');
+    if (tag == 'food' || tag == 'cafe') return '🍴';
+    if (tag == 'beauty' || tag == 'fashion') return '🛍️';
+    if (tag == 'it' || tag == 'event' || tag == 'other') return '🎁';
+    return '📬';
   }
 
   /// Build 324 (FOMO): 만료 임박 (≤24h) 여부.
@@ -2731,10 +2728,12 @@ class _ArrivedWaitingMarker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = _categoryStyle;
+    final emoji = _categoryEmoji;
     final expiringSoon = _isExpiringSoon;
-    // FOMO 모드 시 pulse 속도 2배 + 빨간 outer ring 으로 긴급성 강화.
+    // Build 324: 핀 색상은 gold 로 통일. 카테고리 구분은 이모지 단일 채널.
+    //   FOMO 모드 (≤24h) 시에만 빨강 outer ring + pulse 2배로 긴급성 시각화.
     final fomoColor = expiringSoon ? const Color(0xFFE53935) : null;
+    final baseColor = AppColors.gold;
     return AnimatedBuilder(
       animation: pulseController,
       builder: (_, __) {
@@ -2744,7 +2743,7 @@ class _ArrivedWaitingMarker extends StatelessWidget {
         return Stack(
           alignment: Alignment.center,
           children: [
-            // FOMO outer ring (빨강) — 카테고리 ring 보다 한 단계 크게.
+            // FOMO outer ring (빨강) — 만료 임박일 때만 노출.
             if (fomoColor != null)
               Container(
                 width: 48 + pulse * 12,
@@ -2763,19 +2762,19 @@ class _ArrivedWaitingMarker extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: (fomoColor ?? style.color)
+                  color: (fomoColor ?? baseColor)
                       .withValues(alpha: 0.25 + pulse * 0.35),
                   width: 1.5,
                 ),
               ),
             ),
             Text(
-              style.emoji,
+              emoji,
               style: TextStyle(
                 fontSize: 22,
                 shadows: [
                   Shadow(
-                    color: (fomoColor ?? style.color)
+                    color: (fomoColor ?? baseColor)
                         .withValues(alpha: 0.6 + pulse * 0.3),
                     blurRadius: 10,
                   ),
