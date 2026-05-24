@@ -2208,6 +2208,163 @@ class _LetterCard extends StatelessWidget {
 
   bool get _isUnread => isInbox && letter.status == DeliveryStatus.delivered;
 
+  /// Build 325 (T5): 단일 뱃지 priority — Brand > Premium promo > AI curated.
+  ///   기존 3개 뱃지 동시 노출을 1개로 압축 (5요소 룰).
+  ///   반환 list 은 Row.children spread 가능한 [SizedBox + Container] (또는 빈 list).
+  List<Widget> _buildSingleContextBadge(Letter letter, AppL10n l10n) {
+    if (letter.senderIsBrand ||
+        letter.letterType == LetterType.brandExpress) {
+      return [
+        const SizedBox(width: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+          decoration: BoxDecoration(
+            gradient: (letter.category == LetterCategory.coupon ||
+                    letter.category == LetterCategory.voucher)
+                ? const LinearGradient(
+                    colors: [AppColors.teal, Color(0xFF4DD0E1)],
+                  )
+                : const LinearGradient(
+                    colors: [AppColors.coupon, Color(0xFFFFB347)],
+                  ),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                letter.category == LetterCategory.coupon
+                    ? '🎟'
+                    : letter.category == LetterCategory.voucher
+                        ? '🎁'
+                        : '🏢',
+                style: const TextStyle(fontSize: 9),
+              ),
+              const SizedBox(width: 2),
+              Text(
+                letter.category == LetterCategory.coupon
+                    ? l10n.inboxFilterCoupon
+                    : letter.category == LetterCategory.voucher
+                        ? l10n.inboxFilterVoucher
+                        : l10n.labelBrand,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 8,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              if (letter.letterType == LetterType.brandExpress) ...[
+                const SizedBox(width: 2),
+                const Text('⚡', style: TextStyle(fontSize: 9)),
+              ],
+            ],
+          ),
+        ),
+      ];
+    }
+    if (letter.senderTier == LetterSenderTier.premium) {
+      return [
+        const SizedBox(width: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [AppColors.gold, Color(0xFFFFD86B)],
+            ),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('📣', style: TextStyle(fontSize: 9)),
+              const SizedBox(width: 2),
+              Text(
+                l10n.inboxBadgePromo,
+                style: const TextStyle(
+                  color: Color(0xFF1A1300),
+                  fontSize: 8,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ];
+    }
+    if (letter.senderId.startsWith('ai_')) {
+      return [
+        const SizedBox(width: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+          decoration: BoxDecoration(
+            color: AppColors.textMuted.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('🤖', style: TextStyle(fontSize: 9)),
+              const SizedBox(width: 2),
+              Text(
+                l10n.labelAiCurated,
+                style: const TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 8,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ];
+    }
+    return const [];
+  }
+
+  /// Build 325 (T5): "거리 or 만료" smart indicator — 5요소 룰.
+  ///   우선순위:
+  ///   1) 만료 ≤ 24h 이면 "⏰ Nh" (가장 행동 자극)
+  ///   2) 사용자 GPS 유효 + 거리 측정 가능 → "📍 Nm" or "📍 N.Nkm"
+  ///   3) fallback: 발송지 (기존 동작 보존)
+  String _buildSmartContextLabel(
+    BuildContext ctx,
+    Letter letter,
+    AppL10n l10n,
+  ) {
+    final now = DateTime.now();
+    final couponExp = letter.redemptionExpiresAt;
+    final autoExp = letter.expiresAt;
+    DateTime? earliest;
+    if (couponExp != null && autoExp != null) {
+      earliest = couponExp.isBefore(autoExp) ? couponExp : autoExp;
+    } else {
+      earliest = couponExp ?? autoExp;
+    }
+    if (earliest != null && earliest.isAfter(now)) {
+      final remain = earliest.difference(now);
+      if (remain.inHours <= 24) {
+        if (remain.inHours >= 1) return '⏰ ${remain.inHours}h';
+        return '⏰ ${remain.inMinutes}m';
+      }
+    }
+
+    final user = ctx.read<AppState>().currentUser;
+    if (user.latitude != 0 || user.longitude != 0) {
+      final dest = letter.destinationLocation;
+      if (dest.latitude != 0 || dest.longitude != 0) {
+        final distM = LatLng(user.latitude, user.longitude)
+            .distanceTo(dest);
+        if (distM < 1000) return '📍 ${distM.round()}m';
+        return '📍 ${(distM / 1000).toStringAsFixed(1)}km';
+      }
+    }
+
+    return '${letter.senderCountryFlag} ${CountryL10n.localizedName(letter.senderCountry, l10n.languageCode)}';
+  }
+
   /// Build 324 (Q2): leading 영역 위젯 — Brand letter + 혜택 강도 추출 성공
   ///   시 big text. 그 외 인물+국기 stack 또는 destination 국기.
   Widget _buildLetterLeading(Letter letter, bool isInbox) {
@@ -2496,146 +2653,10 @@ class _LetterCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          // 브랜드 뱃지 — category 가 coupon/voucher 면 쿠폰
-                          // 색조(teal)로, 일반편지는 기존 오렌지 그라디언트로.
-                          if (letter.senderIsBrand ||
-                              letter.letterType == LetterType.brandExpress) ...[
-                            const SizedBox(width: 4),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 5,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                gradient:
-                                    letter.category == LetterCategory.coupon ||
-                                        letter.category ==
-                                            LetterCategory.voucher
-                                    ? const LinearGradient(
-                                        colors: [
-                                          AppColors.teal,
-                                          Color(0xFF4DD0E1),
-                                        ],
-                                      )
-                                    : const LinearGradient(
-                                        colors: [
-                                          AppColors.coupon,
-                                          Color(0xFFFFB347),
-                                        ],
-                                      ),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    letter.category == LetterCategory.coupon
-                                        ? '🎟'
-                                        : letter.category ==
-                                              LetterCategory.voucher
-                                        ? '🎁'
-                                        : '🏢',
-                                    style: const TextStyle(fontSize: 9),
-                                  ),
-                                  const SizedBox(width: 2),
-                                  Text(
-                                    letter.category == LetterCategory.coupon
-                                        ? l10n.inboxFilterCoupon
-                                        : letter.category ==
-                                              LetterCategory.voucher
-                                        ? l10n.inboxFilterVoucher
-                                        : l10n.labelBrand,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 8,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                  if (letter.letterType ==
-                                      LetterType.brandExpress) ...[
-                                    const SizedBox(width: 2),
-                                    const Text(
-                                      '⚡',
-                                      style: TextStyle(fontSize: 9),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ],
-                          // Build 251: Premium 발신자 (non-Brand) 의 홍보 메시지 배지.
-                          // 받은 혜택(Brand 쿠폰/교환권) vs 받은 홍보(Premium) 시각 구분.
-                          if (!letter.senderIsBrand &&
-                              letter.senderTier ==
-                                  LetterSenderTier.premium) ...[
-                            const SizedBox(width: 4),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 5,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [AppColors.gold, Color(0xFFFFD86B)],
-                                ),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Text(
-                                    '📣',
-                                    style: TextStyle(fontSize: 9),
-                                  ),
-                                  const SizedBox(width: 2),
-                                  Text(
-                                    l10n.inboxBadgePromo,
-                                    style: const TextStyle(
-                                      color: Color(0xFF1A1300),
-                                      fontSize: 8,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                          if (letter.senderId.startsWith('ai_')) ...[
-                            const SizedBox(width: 4),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 5,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.textMuted.withValues(
-                                  alpha: 0.15,
-                                ),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Text(
-                                    '🤖',
-                                    style: TextStyle(fontSize: 9),
-                                  ),
-                                  const SizedBox(width: 2),
-                                  Text(
-                                    l10n.labelAiCurated,
-                                    style: const TextStyle(
-                                      color: AppColors.textMuted,
-                                      fontSize: 8,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.4,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                          // Build 325 (T5): 5요소 룰 — Brand / Premium / AI 다중
+                          //   뱃지 중복 노출 (3) 을 **단일** 뱃지 priority 로직
+                          //   으로 통합. Brand > Premium promo > AI curated.
+                          ..._buildSingleContextBadge(letter, l10n),
                           if (_isUnread)
                             Container(
                               width: 8,
@@ -2664,9 +2685,12 @@ class _LetterCard extends StatelessWidget {
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          // 발송지
+                          // Build 325 (T5): 5요소 룰 — 발송지 (국기+국명) 대신
+                          //   "거리 or 만료" smart indicator. 만료 ≤ 24h 이면
+                          //   "⏰ Nh", 그 외 거리 가능 시 "📍 Nm/km", fallback
+                          //   원래 발송지.
                           Text(
-                            '${letter.senderCountryFlag} ${CountryL10n.localizedName(letter.senderCountry, l10n.languageCode)}',
+                            _buildSmartContextLabel(context, letter, l10n),
                             style: const TextStyle(
                               color: AppColors.textMuted,
                               fontSize: 11,
