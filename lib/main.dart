@@ -25,6 +25,7 @@ import 'features/admin/admin_special_message_screen.dart';
 import 'features/brand/brand_insights_screen.dart';
 // Build 321: BrandZoneSetupScreen 제거됨 — compose 화면에 통합 (자동 zone 토글).
 import 'features/premium/premium_screen.dart';
+import 'features/tower/screens/tower_screen.dart';
 import 'features/v5_preview/v5_preview_root.dart';
 import 'widgets/main_scaffold.dart';
 
@@ -411,8 +412,11 @@ class _GlobalDriftAppState extends State<GlobalDriftApp> {
               '/delivery_intro': (_) => const DeliveryIntroScreen(),
               '/home': (_) => const MainScaffold(),
               '/home_inbox': (_) => const MainScaffold(initialIndex: 1),
-              '/home_tower': (_) => const MainScaffold(initialIndex: 2),
-              '/home_profile': (_) => const MainScaffold(initialIndex: 3),
+              // Build 324 (positioning): 타워 탭 격리 — /home_tower 는 TowerScreen
+              //   직접 진입 (MaterialPageRoute 와 동일 효과). 메인 nav 인덱스 2 는
+              //   이제 프로필. /home_profile 도 인덱스 2 로 reindex.
+              '/home_tower': (_) => const TowerScreen(),
+              '/home_profile': (_) => const MainScaffold(initialIndex: 2),
               '/compose': (_) => const ComposeScreen(),
               '/premium_welcome': (_) =>
                   const PremiumScreen(isWelcomeMode: true),
