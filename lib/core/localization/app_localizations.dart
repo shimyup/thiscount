@@ -5894,6 +5894,43 @@ class AppL10n {
     'th': 'เครดิต ExactDrop ไม่พอ ซื้อแพ็ก 100 ฉบับเพื่อเติมทันที',
   });
 
+  // Build 324: signUp 친구 추천 코드 입력 (optional) — viral loop.
+  //   양쪽 (가입자 + 추천인) +5 invite reward credit. premium 화면에서만 가능
+  //   하던 채널을 signUp 시점에 노출 — conversion peak 활용.
+  String get authInviteCodeOptional => _t({
+    'ko': '친구 추천 코드 (선택)',
+    'en': 'Friend invite code (optional)',
+    'ja': '友達招待コード (任意)',
+    'zh': '好友邀请码（可选）',
+    'fr': 'Code ami (facultatif)',
+    'de': 'Freund-Einladungscode (optional)',
+    'es': 'Código de invitación (opcional)',
+    'pt': 'Código de convite (opcional)',
+    'ru': 'Код приглашения (необязательно)',
+    'tr': 'Davet kodu (isteğe bağlı)',
+    'ar': 'رمز دعوة الصديق (اختياري)',
+    'it': 'Codice invito amico (facoltativo)',
+    'hi': 'मित्र आमंत्रण कोड (वैकल्पिक)',
+    'th': 'รหัสเชิญเพื่อน (ไม่บังคับ)',
+  });
+
+  String get authInviteCodeHint => _t({
+    'ko': '코드 입력 시 양쪽 모두 +5 크레딧',
+    'en': 'Both get +5 credits when entered',
+    'ja': 'コード入力で双方 +5 クレジット',
+    'zh': '输入后双方 +5 积分',
+    'fr': '+5 crédits pour les deux',
+    'de': 'Beide bekommen +5 Credits',
+    'es': 'Ambos reciben +5 créditos',
+    'pt': 'Ambos ganham +5 créditos',
+    'ru': 'Оба получат +5 кредитов',
+    'tr': 'İki taraf da +5 kredi alır',
+    'ar': 'كلاهما يحصل على +5 رصيد',
+    'it': 'Entrambi ricevono +5 crediti',
+    'hi': 'दोनों को +5 क्रेडिट मिलेंगे',
+    'th': 'ทั้งสองได้รับ +5 เครดิต',
+  });
+
   // Build 324: Brand compose 시나리오 칩 — "어떤 캠페인?" 가이드.
   //   Brand 사장이 토글 4-5개 (대량/특송/zone/ExactDrop/1인1회) 중 어느 조합인지
   //   판단 어려운 문제 (Brand 시뮬레이션 발견) 해소 — 칩 1탭으로 자동 세팅.
