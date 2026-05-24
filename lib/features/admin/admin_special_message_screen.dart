@@ -20,6 +20,7 @@ import '../../core/config/firebase_config.dart';
 import '../../core/services/brand_zone_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/redemption_code.dart';
+import '../../core/utils/secure_clipboard.dart';
 import '../../models/brand_zone.dart';
 import '../../models/letter.dart' show LatLng;
 import '../../state/app_state.dart';
@@ -569,11 +570,9 @@ class _RecentZonesListState extends State<_RecentZonesList> {
                       ),
                       InkWell(
                         onTap: () async {
-                          await Clipboard.setData(ClipboardData(
-                            text: RedemptionCode.formatForDisplay(
-                              z.redemptionCode!,
-                            ),
-                          ));
+                          await SecureClipboard.copyEphemeral(
+                            RedemptionCode.formatForDisplay(z.redemptionCode!),
+                          );
                           if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
