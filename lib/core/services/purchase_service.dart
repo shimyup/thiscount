@@ -19,6 +19,10 @@ enum PurchaseOperation {
   brandExtra,
   // Build 324: ExactDrop 100통 패키지 IAP — 이전 "관리자에게 문의" 흐름 제거.
   exactDrop100,
+  // Build 325 (T4): 50통 / 500통 가격 티어 추가 — 시범 운영 vs 정착 사장 양극화
+  //   대응. 50 = ₩6,000 / 500 = ₩40,000 (100통 대비 unit 가 각 +20% / -20%).
+  exactDrop50,
+  exactDrop500,
   restore,
 }
 
@@ -51,6 +55,9 @@ class PurchaseProductIds {
   static const String _brandExtra1000Legacy = 'letter_go_brand_extra_1000';
   // Build 324: ExactDrop 100통 패키지 (₩10,000) — Legacy 형태 ID.
   static const String _exactDrop100Legacy = 'letter_go_exact_drop_100';
+  // Build 325 (T4): 50통 (₩6,000) / 500통 (₩40,000) 가격 티어.
+  static const String _exactDrop50Legacy = 'letter_go_exact_drop_50';
+  static const String _exactDrop500Legacy = 'letter_go_exact_drop_500';
 
   // iOS (App Store Connect)
   static const String _premiumMonthlyIos = 'thiscount_premium_monthly_ios';
@@ -58,6 +65,8 @@ class PurchaseProductIds {
   static const String _giftCardIos = 'thiscount_gift_1month_ios';
   static const String _brandExtra1000Ios = 'thiscount_brand_extra_1000_ios';
   static const String _exactDrop100Ios = 'thiscount_exact_drop_100_ios';
+  static const String _exactDrop50Ios = 'thiscount_exact_drop_50_ios';
+  static const String _exactDrop500Ios = 'thiscount_exact_drop_500_ios';
 
   // Android (Google Play Billing / RevenueCat import 결과)
   static const String _premiumMonthlyAndroid =
@@ -66,6 +75,8 @@ class PurchaseProductIds {
   static const String _giftCardAndroid = _giftCardLegacy;
   static const String _brandExtra1000Android = _brandExtra1000Legacy;
   static const String _exactDrop100Android = _exactDrop100Legacy;
+  static const String _exactDrop50Android = _exactDrop50Legacy;
+  static const String _exactDrop500Android = _exactDrop500Legacy;
 
   static String _forPlatform({
     required String ios,
@@ -111,6 +122,16 @@ class PurchaseProductIds {
     android: _exactDrop100Android,
     fallback: _exactDrop100Legacy,
   );
+  static String get exactDrop50 => _forPlatform(
+    ios: _exactDrop50Ios,
+    android: _exactDrop50Android,
+    fallback: _exactDrop50Legacy,
+  );
+  static String get exactDrop500 => _forPlatform(
+    ios: _exactDrop500Ios,
+    android: _exactDrop500Android,
+    fallback: _exactDrop500Legacy,
+  );
 
   static List<String> premiumMonthlyCandidates() => _orderedUnique([
     premiumMonthly,
@@ -146,6 +167,32 @@ class PurchaseProductIds {
     _exactDrop100Android,
     _exactDrop100Legacy,
   ]);
+  static List<String> exactDrop50Candidates() => _orderedUnique([
+    exactDrop50,
+    _exactDrop50Ios,
+    _exactDrop50Android,
+    _exactDrop50Legacy,
+  ]);
+  static List<String> exactDrop500Candidates() => _orderedUnique([
+    exactDrop500,
+    _exactDrop500Ios,
+    _exactDrop500Android,
+    _exactDrop500Legacy,
+  ]);
+
+  /// Build 325 (T4): 패키지 수량에 따른 candidates 조회 (50 / 100 / 500).
+  static List<String> exactDropCandidates(int qty) {
+    if (qty == 50) return exactDrop50Candidates();
+    if (qty == 500) return exactDrop500Candidates();
+    return exactDrop100Candidates();
+  }
+
+  /// Build 325 (T4): 로그/에러 메시지용 대표 ID.
+  static String exactDropProductId(int qty) {
+    if (qty == 50) return exactDrop50;
+    if (qty == 500) return exactDrop500;
+    return exactDrop100;
+  }
 }
 
 // ── RevenueCat Offering/Package 식별자 ─────────────────────────────────────
@@ -1035,22 +1082,33 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
   ///
   /// 단순화: brandExtra 의 서버 verification 흐름 없이 RevenueCat 구매 성공만
   /// 검증 (one-time consumable, replay 차단은 RC + 상점 측에서).
-  Future<bool> buyExactDrop100(AppState appState) async {
+  ///
+  /// Build 325 (T4): 50 / 100 / 500 통 가격 티어 지원. qty 만 50/100/500 중
+  /// 하나로 호출. 100 외 값은 fallback 으로 100 처리.
+  Future<bool> buyExactDrop100(AppState appState) =>
+      buyExactDrop(appState, qty: 100);
+
+  Future<bool> buyExactDrop(AppState appState, {required int qty}) async {
     final canBuyAsBrand = appState.isBrandMember || _isBrand;
     if (!canBuyAsBrand) {
       _setError('브랜드 계정에서만 ExactDrop 크레딧을 구매할 수 있어요.');
       return false;
     }
-    _startLoading(PurchaseOperation.exactDrop100);
+    final op = qty == 50
+        ? PurchaseOperation.exactDrop50
+        : qty == 500
+            ? PurchaseOperation.exactDrop500
+            : PurchaseOperation.exactDrop100;
+    _startLoading(op);
     if (!_isTestMode && !_isRcKeyConfiguredForCurrentPlatform) {
       _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
       return false;
     }
 
-    // 디버그 / RC 미연동 → 테스트 모드 (즉시 100 grant).
+    // 디버그 / RC 미연동 → 테스트 모드 (즉시 qty grant).
     if (_isTestMode) {
       return await _fakePurchase(() async {
-        await appState.adminGrantExactDropCredits(100);
+        await appState.adminGrantExactDropCredits(qty);
       });
     }
 
@@ -1061,15 +1119,15 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
         return false;
       }
       final purchaseInfo = await _purchaseByPackageOrStoreProduct(
-        PurchaseProductIds.exactDrop100Candidates(),
+        PurchaseProductIds.exactDropCandidates(qty),
         preferNonSubscription: true,
       );
       if (purchaseInfo == null) {
-        _setProductResolveError(PurchaseProductIds.exactDrop100);
+        _setProductResolveError(PurchaseProductIds.exactDropProductId(qty));
         return false;
       }
-      // 구매 성공 → 100 크레딧 즉시 grant (Firestore sync 포함).
-      await appState.adminGrantExactDropCredits(100);
+      // 구매 성공 → qty 크레딧 즉시 grant (Firestore sync 포함).
+      await appState.adminGrantExactDropCredits(qty);
       _stopLoading();
       return true;
     } on PlatformException catch (e) {
