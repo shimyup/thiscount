@@ -2652,13 +2652,28 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   // Build 307: fire-and-forget 호출자가 65곳 이상이지만 logout/snapshot 처럼
   // "완료 보장" 이 필요한 곳을 위해 awaitable 변형 노출.
-  /// 65개 호출처에서 호출. 즉시 반환 — 백그라운드에서 저장.
-  void _saveToPrefs() => unawaited(_flushPrefs());
+  // Build 351 (PR-V1 시뮬레이션 P1): _saveToPrefs 가 매 state 변경 마다 호출 →
+  //   500ms debounce 로 통합 → I/O 폭주 (편지 50개 동시 도착 시 50회 flush)
+  //   차단. logout 등 critical path 는 flushPrefsBlocking() 으로 즉시 flush.
+  Timer? _flushDebounce;
+  static const Duration _flushDebounceDelay = Duration(milliseconds: 500);
+
+  /// 65개 호출처에서 호출. debounce — 500ms 안 같은 호출 통합.
+  void _saveToPrefs() {
+    _flushDebounce?.cancel();
+    _flushDebounce = Timer(_flushDebounceDelay, () {
+      unawaited(_flushPrefs());
+    });
+  }
 
   /// 로그아웃 등 데이터 손실 위험이 큰 경로에서 await 가능.
   /// inbox / sent / 활동 점수 등 모든 critical state 가 SharedPreferences 에
-  /// 반영될 때까지 대기.
-  Future<void> flushPrefsBlocking() => _flushPrefs();
+  /// 반영될 때까지 대기. debounce 우회 + 즉시 flush.
+  Future<void> flushPrefsBlocking() async {
+    _flushDebounce?.cancel();
+    _flushDebounce = null;
+    await _flushPrefs();
+  }
 
   Future<void> _flushPrefs() async {
     try {

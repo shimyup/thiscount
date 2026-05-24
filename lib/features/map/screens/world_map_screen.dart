@@ -119,9 +119,14 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     WorldMapScreen.focusSentLetterNotifier.removeListener(_onFocusSentLetter);
+    // Build 351 (PR-V1 시뮬레이션 P2): cancel + null 명시 — lifecycle resumed
+    //   에서 재할당 시 이전 timer 가 GC 안 돼 callback chain leak 가능.
     _positionTimer?.cancel();
+    _positionTimer = null;
     _mapRefreshTimer?.cancel();
+    _mapRefreshTimer = null;
     _positionSaveDebounce?.cancel();
+    _positionSaveDebounce = null;
     _tickNotifier.dispose();
     _pulseController.dispose();
     _mapController.dispose();
@@ -141,8 +146,10 @@ class _WorldMapScreenState extends State<WorldMapScreen>
         _pulseController.repeat();
       }
       // position timer 가 OS 에 의해 멈춰 있으면 다시 등록
+      // Build 351 (PR-V1 시뮬레이션 P2): cancel + null 명시 — 이전 timer leak 방지.
       if (_positionTimer == null || !_positionTimer!.isActive) {
         _positionTimer?.cancel();
+        _positionTimer = null;
         _positionTimer = Timer.periodic(const Duration(seconds: 1), (_) {
           if (mounted) _tickNotifier.value++;
         });

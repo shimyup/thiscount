@@ -3061,7 +3061,10 @@ class _RedemptionCountdownState extends State<_RedemptionCountdown> {
 
   @override
   void dispose() {
+    // Build 351 (PR-V1 시뮬레이션 P2): cancel 후 null 명시 — 외부 reference 가
+    //   timer 객체에 남아 있어도 callback chain 끊기 + 메모리 해제 보장.
     _ticker?.cancel();
+    _ticker = null;
     super.dispose();
   }
 
