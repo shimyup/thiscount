@@ -3397,10 +3397,11 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
   static double? _originalBrightness;
 
   bool _registered = false;
-  // Build 356 (PR-Y1 Y 시뮬레이션 P2): redemption code reveal 시 screenshot 차단
-  //   — 코드 + 바코드가 캡처되어 다른 앱이 추출하는 위험 차단. voucher 패턴 동일.
-  //   panel 이 pending (active) 상태일 때만 활성. dispose 시 off — 중첩 안전
-  //   하도록 _screenProtectOn flag 추가.
+  // Build 356 (PR-Y1 Y 시뮬레이션 P2): redemption code reveal 시 screenshot 차단.
+  // Build 357 (PR-Z1 Z 시뮬레이션 P0): static reference counter — 다중 panel
+  //   중첩 시 한 panel dispose 가 다른 panel 의 보호도 해제하던 race 차단.
+  //   voucher fullscreen viewer 와 정확히 같은 패턴.
+  static int _screenProtectCount = 0;
   bool _screenProtectOn = false;
 
   @override
@@ -3410,8 +3411,11 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
       _maxBrightness();
       _screenProtectOn = true;
       try {
-        ScreenProtector.preventScreenshotOn();
-        ScreenProtector.protectDataLeakageWithBlur();
+        if (_screenProtectCount == 0) {
+          ScreenProtector.preventScreenshotOn();
+          ScreenProtector.protectDataLeakageWithBlur();
+        }
+        _screenProtectCount++;
       } catch (_) {/* 일부 플랫폼 미지원 — 무시 */}
     }
   }
@@ -3420,8 +3424,12 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
   void dispose() {
     if (_screenProtectOn) {
       try {
-        ScreenProtector.preventScreenshotOff();
-        ScreenProtector.protectDataLeakageWithBlurOff();
+        _screenProtectCount--;
+        if (_screenProtectCount <= 0) {
+          _screenProtectCount = 0;
+          ScreenProtector.preventScreenshotOff();
+          ScreenProtector.protectDataLeakageWithBlurOff();
+        }
       } catch (_) {/* swallow */}
     }
     if (_registered) {

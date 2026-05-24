@@ -2412,6 +2412,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       // 서버 동기화 일시정지 (Firestore 호출 중단 → 비용 절감)
       pauseServerSyncForBackground();
       unawaited(GeocodingService.instance.saveAllCache());
+      // Build 357 (PR-Z1 Z 시뮬레이션 P0): pending _flushDebounce 즉시 flush.
+      //   이전엔 사용자가 letter 발송 직후 (500ms 안) 앱 종료 시 in-flight 데이터
+      //   유실. detached 는 OS 가 곧 process kill → blocking flush 시도.
+      unawaited(flushPrefsBlocking());
     }
   }
 
@@ -9123,6 +9127,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _worldLetterSyncTimer?.cancel();
     _syncTimer?.cancel();
     _mapSyncTimer?.cancel();
+    // Build 357 (PR-Z1 Z 시뮬레이션 P1): pending _flushDebounce 마무리.
+    //   AppState 가 dispose 되는 흔치 않은 경우 (hot restart / 테스트) 에도
+    //   미저장 변경이 있다면 즉시 flush 시도.
+    _flushDebounce?.cancel();
+    _flushDebounce = null;
     super.dispose();
   }
 }
