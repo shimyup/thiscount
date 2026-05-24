@@ -12,12 +12,14 @@
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 import '../../core/config/firebase_config.dart';
 import '../../core/services/brand_zone_service.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/redemption_code.dart';
 import '../../models/brand_zone.dart';
 import '../../models/letter.dart' show LatLng;
 import '../../state/app_state.dart';
@@ -40,6 +42,9 @@ class _AdminSpecialMessageScreenState extends State<AdminSpecialMessageScreen> {
   bool _submitting = false;
   String? _error;
   String? _success;
+  // Build 360 (PR-AA1): zone 자체에 매장 POS 코드 자동 부여 토글.
+  //   ON 이면 zone 으로 발급되는 모든 letter 가 동일 코드 공유.
+  bool _attachCode = false;
 
   @override
   void dispose() {
@@ -83,6 +88,9 @@ class _AdminSpecialMessageScreenState extends State<AdminSpecialMessageScreen> {
     });
 
     final now = DateTime.now();
+    // Build 360 (PR-AA1): 토글 ON 이면 zone 1개 = 코드 1개 (zone 으로 발급되는
+    //   모든 letter 가 동일 코드 공유 → 매장 POS 1회 등록).
+    final code = _attachCode ? RedemptionCode.generate() : null;
     final zone = BrandZone(
       // id 는 Firestore POST 시점에 결정되지만 미리 생성해서 senderId 와 통일.
       id: 'admin_${now.millisecondsSinceEpoch}',
@@ -99,6 +107,7 @@ class _AdminSpecialMessageScreenState extends State<AdminSpecialMessageScreen> {
       maxRedeems: maxRedeems,
       redeemedCount: 0,
       createdAt: now,
+      redemptionCode: code,
     );
 
     final ok = await _postZoneToFirestore(zone);
@@ -163,6 +172,9 @@ class _AdminSpecialMessageScreenState extends State<AdminSpecialMessageScreen> {
       'maxRedeems': {'integerValue': z.maxRedeems.toString()},
       'redeemedCount': {'integerValue': z.redeemedCount.toString()},
       'createdAt': {'stringValue': z.createdAt.toUtc().toIso8601String()},
+      // Build 360 (PR-AA1): zone 매장 POS 코드 (옵션).
+      if (z.redemptionCode != null)
+        'redemptionCode': {'stringValue': s(z.redemptionCode!)},
     };
   }
 
@@ -259,6 +271,54 @@ class _AdminSpecialMessageScreenState extends State<AdminSpecialMessageScreen> {
                 controller: _maxRedeemsCtrl,
                 hint: '100',
                 keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16),
+              // Build 360 (PR-AA1): 매장 POS 코드 자동 부여 토글.
+              InkWell(
+                onTap: _submitting
+                    ? null
+                    : () => setState(() => _attachCode = !_attachCode),
+                borderRadius: BorderRadius.circular(10),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _attachCode
+                            ? Icons.check_circle
+                            : Icons.circle_outlined,
+                        color: _attachCode
+                            ? AppColors.premium
+                            : AppColors.textMuted,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '매장 POS 코드 자동 부여',
+                              style: TextStyle(
+                                color: AppColors.textPrimary,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'zone 1개 = 코드 1개. 발급되는 모든 letter 가 동일 코드 공유.',
+                              style: TextStyle(
+                                color: AppColors.textMuted,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: 24),
               if (_error != null)
@@ -488,6 +548,59 @@ class _RecentZonesListState extends State<_RecentZonesList> {
                     fontSize: 10.5,
                   ),
                 ),
+                // Build 360 (PR-AA1): zone 매장 POS 코드 (있으면).
+                if (z.redemptionCode != null && z.redemptionCode!.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Text('🎫', style: TextStyle(fontSize: 12)),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          RedemptionCode.formatForDisplay(z.redemptionCode!),
+                          style: const TextStyle(
+                            color: AppColors.premium,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                      ),
+                      InkWell(
+                        onTap: () async {
+                          await Clipboard.setData(ClipboardData(
+                            text: RedemptionCode.formatForDisplay(
+                              z.redemptionCode!,
+                            ),
+                          ));
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('코드 복사됨 — POS 등록 시 사용'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(6),
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          child: Text(
+                            '복사',
+                            style: TextStyle(
+                              color: AppColors.premium,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),

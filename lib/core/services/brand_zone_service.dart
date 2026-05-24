@@ -190,6 +190,14 @@ class BrandZoneService {
 
   /// Build 317: Brand 자동 발송 캠페인 zone 등록 (Firestore POST).
   /// 옵션: radiusM (300 or 2000), maxRedeems (0 = 상시 / 양수 = 한정).
+  ///
+  /// Build 360 (PR-AA1): 두 변경.
+  ///   1. `center` 필드를 admin 흐름과 동일한 `mapValue {lat, lng}` 로 통일.
+  ///      이전 평면 `centerLat`/`centerLng` 스키마는 `BrandZone.fromJson`
+  ///      이 `j['center'] as Map` 으로 읽어서 silent parse-skip 됐었음
+  ///      → compose 로 생성한 zone 이 cache 에 들어가지 못해 trigger 안 됨.
+  ///   2. [redemptionCode] 매장 코드 자동 부여 (zone 1개 = 코드 1개, bulk
+  ///      letter 들 동일 코드 공유). null 이면 코드 없는 일반 zone.
   Future<String?> createZone({
     required String brandId,
     required String brandName,
@@ -199,6 +207,7 @@ class BrandZoneService {
     String? redemptionInfo,
     int maxRedeems = 0,
     int durationDays = 30,
+    String? redemptionCode,
   }) async {
     if (!FirebaseConfig.kFirebaseEnabled) return null;
     if (brandId.isEmpty || content.isEmpty) return null;
@@ -208,12 +217,20 @@ class BrandZoneService {
       final fields = <String, dynamic>{
         'brandId': {'stringValue': brandId},
         'brandName': {'stringValue': brandName},
-        'centerLat': {'doubleValue': center.latitude},
-        'centerLng': {'doubleValue': center.longitude},
+        'center': {
+          'mapValue': {
+            'fields': {
+              'lat': {'doubleValue': center.latitude},
+              'lng': {'doubleValue': center.longitude},
+            },
+          },
+        },
         'radiusM': {'doubleValue': radiusM},
         'content': {'stringValue': content},
         if (redemptionInfo != null && redemptionInfo.isNotEmpty)
           'redemptionInfo': {'stringValue': redemptionInfo},
+        if (redemptionCode != null && redemptionCode.isNotEmpty)
+          'redemptionCode': {'stringValue': redemptionCode},
         'startsAt': {'timestampValue': now.toIso8601String()},
         'expiresAt': {'timestampValue': expires.toIso8601String()},
         'maxRedeems': {'integerValue': '$maxRedeems'},
