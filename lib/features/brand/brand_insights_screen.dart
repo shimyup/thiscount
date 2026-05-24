@@ -255,12 +255,36 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
       g.totalRedeemed += c.redeemed;
       g.expiresAt ??= c.redemptionExpiresAt;
     }
-    if (groups.isEmpty) return const [];
-    final list = groups.values.toList()
-      ..sort((a, b) => b.letterCount.compareTo(a.letterCount));
     final l = AppL10n.of(
       context.read<AppState>().currentUser.languageCode,
     );
+    if (groups.isEmpty) {
+      // Build 341 (PR-S12 2차 시뮬레이션 P2): 캠페인은 있지만 코드 발급된
+      //   letter 가 없는 경우 안내 1줄 — 사용자가 "왜 코드 섹션 없지?" 혼란 해소.
+      return [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Row(
+            children: [
+              const Text('🔑', style: TextStyle(fontSize: 14)),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  l.brandNoCodesYet,
+                  style: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ];
+    }
+    final list = groups.values.toList()
+      ..sort((a, b) => b.letterCount.compareTo(a.letterCount));
     return [
       Row(
         children: [

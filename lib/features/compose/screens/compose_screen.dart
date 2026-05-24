@@ -1963,8 +1963,12 @@ class _ComposeScreenState extends State<ComposeScreen>
           ],
         ),
         actions: [
+          // Build 341 (PR-S12 시뮬레이션 P2): Material a11y 권장 ≥ 48dp hit area.
           TextButton(
             onPressed: () => Navigator.of(dCtx).pop(),
+            style: TextButton.styleFrom(
+              minimumSize: const Size(72, 48),
+            ),
             child: Text(
               l.authClose,
               style: const TextStyle(color: AppColors.textMuted),
@@ -2084,6 +2088,9 @@ class _ComposeScreenState extends State<ComposeScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dCtx).pop(false),
+            style: TextButton.styleFrom(
+              minimumSize: const Size(72, 48),
+            ),
             child: Text(
               l.authClose,
               style: const TextStyle(color: AppColors.textMuted),
@@ -2094,6 +2101,7 @@ class _ComposeScreenState extends State<ComposeScreen>
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.teal,
               foregroundColor: const Color(0xFF002218),
+              minimumSize: const Size(72, 48),
             ),
             child: Text(
               l.authConfirm,
