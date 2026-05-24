@@ -55,6 +55,13 @@ class RedemptionCode {
   }
 
   /// check digit 일치 확인. invalid 형식 → false.
+  ///
+  /// ⚠️ 보안 한계 (Build 339, PR-S10 시뮬레이션 P1 #14):
+  ///   check digit = 32^2 = 1024 조합. brute-force 시 평균 512 시도로 통과.
+  ///   클라이언트 SALT 도 APK 디컴파일로 추출 가능 → 누구나 위조 가능.
+  ///   **이 함수는 typo 자동 보정 + 명백한 가짜 거절 목적만**. 진짜 인증은
+  ///   Phase 2 의 서버 측 verify (HMAC secret 서버 보관) 가 필요.
+  ///   클라이언트는 throttle 의미 없음 (공격자는 verify 를 로컬 무한 호출).
   static bool verify(String code) {
     final n = normalize(code);
     if (n == null) return false;

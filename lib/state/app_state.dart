@@ -1569,26 +1569,41 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   ///   2h 가 길지만 reveal 자체는 매장 도착 직전에 하는 흐름이라 보안 위협 ↓.
   static const Duration _pendingRedemptionTtl = Duration(hours: 2);
 
-  /// 현재 letterId 가 "사용 진행" 상태 (1h 미경과) 인지.
-  /// 1h 경과 시 false 반환 + 자동 redeemed 처리 (lazy consume).
+  /// 현재 letterId 가 "사용 진행" 상태 (TTL 미경과) 인지.
+  /// TTL 경과 시 false 반환 + 자동 redeemed 처리 (lazy consume).
+  /// Build 339 (PR-S10 시뮬레이션 P1 #16): 로컬 `_pendingRedemptionStartedAt`
+  ///   외에 inbox letter.codeRevealedAt 도 fallback. 다른 디바이스 / 새 로그인
+  ///   에서 Firestore 만 codeRevealedAt 가진 케이스 — 이전엔 pending false 로
+  ///   잘못 판정해 사용자가 코드 다시 reveal 가능 (중복 노출 카운트).
   bool isPendingRedemption(String letterId) {
-    final startedMs = _pendingRedemptionStartedAt[letterId];
-    if (startedMs == null) return false;
     if (_redeemedLetterIds.contains(letterId)) return false;
+    final startedMs = _effectiveRevealedStartMs(letterId);
+    if (startedMs == null) return false;
     final elapsed = DateTime.now().millisecondsSinceEpoch - startedMs;
-    if (elapsed >= _pendingRedemptionTtl.inMilliseconds) {
-      // 1h 경과 — 자동 사용 완료. side-effect 안 좋으므로 호출 측에서
-      // consumeElapsedPendingRedemptions 명시 호출 시 처리.
-      return false;
-    }
+    if (elapsed >= _pendingRedemptionTtl.inMilliseconds) return false;
     return true;
   }
 
   /// 사용 진행 시작 시각 (UI 카운트다운용). null 이면 진행 X.
+  /// Build 339 (PR-S10 P1 #16): isPendingRedemption 과 동일하게 inbox letter
+  ///   의 codeRevealedAt fallback.
   DateTime? pendingRedemptionStartedAt(String letterId) {
-    final ms = _pendingRedemptionStartedAt[letterId];
+    final ms = _effectiveRevealedStartMs(letterId);
     if (ms == null) return null;
     return DateTime.fromMillisecondsSinceEpoch(ms);
+  }
+
+  /// Build 339 (PR-S10 P1 #16): 로컬 prefs 우선 + Firestore (letter.codeRevealedAt)
+  ///   fallback. 둘 다 없으면 null.
+  int? _effectiveRevealedStartMs(String letterId) {
+    final local = _pendingRedemptionStartedAt[letterId];
+    if (local != null) return local;
+    for (final l in _inbox) {
+      if (l.id == letterId && l.codeRevealedAt != null) {
+        return l.codeRevealedAt!.millisecondsSinceEpoch;
+      }
+    }
+    return null;
   }
 
   /// 사용 진행 — 사용자가 "사용 진행" 버튼 탭 시 호출.
@@ -1615,6 +1630,24 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           '[startRedemption] inbox 에 없는 letter ($letterId) — guard reject',
         );
       }
+      return;
+    }
+    // Build 339 (PR-S10 P1 #16): Firestore 에 이미 codeRevealedAt 가 있으면
+    //   다른 디바이스 / 이전 세션에서 사용 진행 시작한 letter — 로컬 prefs 만
+    //   restore 하고 Firestore increment 는 skip (중복 카운트 차단).
+    if (target.codeRevealedAt != null) {
+      _pendingRedemptionStartedAt[letterId] =
+          target.codeRevealedAt!.millisecondsSinceEpoch;
+      notifyListeners();
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(
+          'pendingRedemptionStartedAt',
+          _pendingRedemptionStartedAt.entries
+              .map((e) => '${e.key}|${e.value}')
+              .join(';'),
+        );
+      } catch (_) {/* prefs 실패는 비치명 */}
       return;
     }
     final now = DateTime.now();
