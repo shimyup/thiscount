@@ -7594,8 +7594,18 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       // Build 331 (PR-S1): Brand 가 코드 발급 옵션 켰을 때만 발급.
       //   explicit override (bulk 공통 코드) 우선, 아니면 자동 생성. 코드 자체
       //   형식은 redemption_code.dart 참조.
+      // Build 338 (PR-S9 시뮬레이션 P1 #12): 단건 sendLetter 도 같은 캠페인
+      //   묶음 코드 공유 — 같은 본문 + 같은 카테고리 + 같은 redemptionInfo
+      //   조합으로 최근 24h 안 발송된 letter 있으면 그 코드 재사용. 사장이
+      //   같은 캠페인 letter 를 며칠 나눠 발송할 때 매장 POS 재등록 부담 ↓.
       redemptionCode: (_currentUser.isBrand && attachRedemptionCode)
-          ? (explicitRedemptionCode ?? RedemptionCode.generate())
+          ? (explicitRedemptionCode ??
+              _findRecentMatchingCode(
+                content: content,
+                category: category,
+                redemptionInfo: redemptionInfo,
+              ) ??
+              RedemptionCode.generate())
           : null,
     );
 
@@ -7750,6 +7760,29 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   String? get lastSentRedemptionCode {
     if (_sent.isEmpty) return null;
     return _sent.last.redemptionCode;
+  }
+
+  /// Build 338 (PR-S9): 최근 24h 안 발송된 letter 중 같은 본문 + category +
+  ///   redemptionInfo 인 letter 의 코드 재사용 — 사장이 같은 캠페인을 며칠
+  ///   나눠 발송해도 매장 POS 등록 1회로 충분. 일치 letter 없으면 null
+  ///   (sendLetter 가 새 코드 생성).
+  String? _findRecentMatchingCode({
+    required String content,
+    required LetterCategory category,
+    required String? redemptionInfo,
+  }) {
+    final cutoff =
+        DateTime.now().subtract(const Duration(hours: 24));
+    for (var i = _sent.length - 1; i >= 0; i--) {
+      final l = _sent[i];
+      if (l.sentAt.isBefore(cutoff)) break; // _sent 는 시간 정렬 — 더 옛것은 skip
+      if (l.redemptionCode == null) continue;
+      if (l.content != content) continue;
+      if (l.category != category) continue;
+      if ((l.redemptionInfo ?? '') != (redemptionInfo ?? '')) continue;
+      return l.redemptionCode;
+    }
+    return null;
   }
 
   /// Build 324: 계정 전환 시 호출 — 이전 사용자의 user-scoped prefs 삭제.
