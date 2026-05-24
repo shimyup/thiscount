@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/localization/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/redemption_code.dart';
 import '../../models/brand_insights.dart';
@@ -256,13 +257,16 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
     if (groups.isEmpty) return const [];
     final list = groups.values.toList()
       ..sort((a, b) => b.letterCount.compareTo(a.letterCount));
+    final l = AppL10n.of(
+      context.read<AppState>().currentUser.languageCode,
+    );
     return [
       Row(
         children: [
           const Text('🔑', style: TextStyle(fontSize: 14)),
           const SizedBox(width: 6),
           Text(
-            '발급된 매장 코드 (${list.length})',
+            l.brandActiveCodesHeader(list.length),
             style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 13,
@@ -273,9 +277,9 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
         ],
       ),
       const SizedBox(height: 6),
-      const Text(
-        '아래 코드를 매장 POS 의 "쿠폰/할인" 코드에 등록하세요. 같은 코드 = 한 캠페인.',
-        style: TextStyle(
+      Text(
+        l.brandActiveCodesIntro,
+        style: const TextStyle(
           color: AppColors.textMuted,
           fontSize: 11,
           height: 1.4,
@@ -292,6 +296,9 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
     final expired = g.expiresAt != null &&
         DateTime.now().isAfter(g.expiresAt!);
     final accent = expired ? AppColors.textMuted : AppColors.teal;
+    final l = AppL10n.of(
+      context.read<AppState>().currentUser.languageCode,
+    );
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
@@ -333,9 +340,9 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
                         if (!mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: const Text(
-                              '🔑 코드 복사됨',
-                              style: TextStyle(color: Colors.white),
+                            content: Text(
+                              l.redemptionCodeCopied,
+                              style: const TextStyle(color: Colors.white),
                             ),
                             backgroundColor: AppColors.teal,
                             behavior: SnackBarBehavior.floating,
@@ -361,7 +368,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
                       Icon(Icons.copy_rounded, size: 13, color: accent),
                       const SizedBox(width: 4),
                       Text(
-                        '복사',
+                        l.redemptionCodeCopy,
                         style: TextStyle(
                           color: accent,
                           fontSize: 11,
@@ -376,7 +383,11 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            '📮 ${g.letterCount} letter · 🛒 ${g.totalRevealed} 노출 · ✅ ${g.totalRedeemed} 사용',
+            l.brandCodeStats(
+              g.letterCount,
+              g.totalRevealed,
+              g.totalRedeemed,
+            ),
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 11,
@@ -384,9 +395,9 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
           ),
           if (expired) ...[
             const SizedBox(height: 4),
-            const Text(
-              '⏰ 만료된 코드 — POS 에서 삭제 후 신규 캠페인 발행 권장',
-              style: TextStyle(
+            Text(
+              l.brandCodeExpiredNote,
+              style: const TextStyle(
                 color: AppColors.textMuted,
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
@@ -395,7 +406,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
           ] else if (g.expiresAt != null) ...[
             const SizedBox(height: 4),
             Text(
-              '🕒 ${_formatExpiry(g.expiresAt!)}',
+              l.brandCodeExpiresIn(_formatExpiry(g.expiresAt!, l)),
               style: const TextStyle(
                 color: AppColors.textMuted,
                 fontSize: 10,
@@ -408,11 +419,11 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
     );
   }
 
-  String _formatExpiry(DateTime exp) {
+  String _formatExpiry(DateTime exp, AppL10n l) {
     final d = exp.difference(DateTime.now());
-    if (d.inDays >= 1) return '${d.inDays}일 후 만료';
-    if (d.inHours >= 1) return '${d.inHours}시간 후 만료';
-    return '${d.inMinutes}분 후 만료';
+    if (d.inDays >= 1) return l.expiresDaysShort(d.inDays);
+    if (d.inHours >= 1) return l.expiresHoursShort(d.inHours);
+    return l.expiresMinutesShort(d.inMinutes);
   }
 
   Widget _buildCampaignCard(CampaignInsight c) {
@@ -467,17 +478,24 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
               fontSize: 11,
             ),
           ),
-          if (c.coachingTip.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              '💡 ${c.coachingTip}',
-              style: const TextStyle(
-                color: AppColors.coupon,
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
+          Builder(builder: (ctx) {
+            final l = AppL10n.of(
+              ctx.read<AppState>().currentUser.languageCode,
+            );
+            final tip = c.coachingTip(l);
+            if (tip.isEmpty) return const SizedBox.shrink();
+            return Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                '💡 $tip',
+                style: const TextStyle(
+                  color: AppColors.coupon,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-          ],
+            );
+          }),
         ],
       ),
     );

@@ -1887,6 +1887,7 @@ class _ComposeScreenState extends State<ComposeScreen>
     int letterCount,
   ) async {
     final formatted = RedemptionCode.formatForDisplay(code);
+    final l = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
     await showDialog<void>(
       context: ctx,
       builder: (dCtx) => AlertDialog(
@@ -1894,14 +1895,14 @@ class _ComposeScreenState extends State<ComposeScreen>
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        title: const Row(
+        title: Row(
           children: [
-            Text('🔑', style: TextStyle(fontSize: 22)),
-            SizedBox(width: 8),
+            const Text('🔑', style: TextStyle(fontSize: 22)),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
-                '발급된 사용 코드',
-                style: TextStyle(
+                l.redemptionSentDialogTitle,
+                style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
@@ -1936,7 +1937,7 @@ class _ComposeScreenState extends State<ComposeScreen>
             ),
             const SizedBox(height: 12),
             Text(
-              '$letterCount 통 발송 완료. 이 코드를 매장 POS 의 "쿠폰/할인" 항목에 1회 등록하세요. 손님이 매장에서 바코드 또는 코드 입력 시 자동 인식됩니다.',
+              l.redemptionSentDialogBody(letterCount),
               style: const TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 12,
@@ -1944,9 +1945,9 @@ class _ComposeScreenState extends State<ComposeScreen>
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              '💡 캠페인 인사이트에서 언제든 다시 확인 가능',
-              style: TextStyle(
+            Text(
+              l.redemptionSentDialogFooter,
+              style: const TextStyle(
                 color: AppColors.textMuted,
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
@@ -1957,9 +1958,9 @@ class _ComposeScreenState extends State<ComposeScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dCtx).pop(),
-            child: const Text(
-              '닫기',
-              style: TextStyle(color: AppColors.textMuted),
+            child: Text(
+              l.authClose,
+              style: const TextStyle(color: AppColors.textMuted),
             ),
           ),
           ElevatedButton.icon(
@@ -1968,9 +1969,9 @@ class _ComposeScreenState extends State<ComposeScreen>
               if (!dCtx.mounted) return;
               ScaffoldMessenger.of(dCtx).showSnackBar(
                 SnackBar(
-                  content: const Text(
-                    '🔑 코드 복사됨',
-                    style: TextStyle(color: Colors.white),
+                  content: Text(
+                    l.redemptionCodeCopied,
+                    style: const TextStyle(color: Colors.white),
                   ),
                   backgroundColor: AppColors.teal,
                   behavior: SnackBarBehavior.floating,
@@ -1983,9 +1984,9 @@ class _ComposeScreenState extends State<ComposeScreen>
               if (dCtx.mounted) Navigator.of(dCtx).pop();
             },
             icon: const Icon(Icons.copy_rounded, size: 16),
-            label: const Text(
-              '코드 복사',
-              style: TextStyle(fontWeight: FontWeight.w800),
+            label: Text(
+              l.redemptionCodeCopy,
+              style: const TextStyle(fontWeight: FontWeight.w800),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.teal,
@@ -2002,6 +2003,7 @@ class _ComposeScreenState extends State<ComposeScreen>
   ///   사용자가 [확인] 누르면 토글 ON. [취소] 면 토글 그대로 OFF 유지.
   ///   "다시 보지 않기" 는 false 만 반환해 같은 dialog 재노출 차단.
   Future<bool?> _showRedemptionCodeGuide() async {
+    final l = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     return showDialog<bool>(
       context: context,
       builder: (dCtx) => AlertDialog(
@@ -2009,14 +2011,14 @@ class _ComposeScreenState extends State<ComposeScreen>
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        title: const Row(
+        title: Row(
           children: [
-            Text('🛒', style: TextStyle(fontSize: 22)),
-            SizedBox(width: 8),
+            const Text('🛒', style: TextStyle(fontSize: 22)),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
-                '사용 코드 발급 안내',
-                style: TextStyle(
+                l.redemptionGuideTitle,
+                style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
@@ -2025,42 +2027,42 @@ class _ComposeScreenState extends State<ComposeScreen>
             ),
           ],
         ),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '발송 시 8자 영숫자 코드를 자동 발급합니다.\n예) TC-K7M2-J9PH',
-              style: TextStyle(
+              l.redemptionGuideIntro,
+              style: const TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 height: 1.4,
               ),
             ),
-            SizedBox(height: 14),
+            const SizedBox(height: 14),
             Text(
-              '매장 셋업 (1회만)',
-              style: TextStyle(
+              l.redemptionGuideStoreSetupHeader,
+              style: const TextStyle(
                 color: AppColors.gold,
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.5,
               ),
             ),
-            SizedBox(height: 6),
+            const SizedBox(height: 6),
             Text(
-              '1. 매장 POS 의 "쿠폰" 또는 "직원 할인" 코드에 이 코드와 할인율을 등록\n2. 손님이 "사용 진행" 탭하면 화면에 코드 + 바코드 표시\n3. 매장이 바코드 스캔 / 코드 입력 → 할인 적용',
-              style: TextStyle(
+              l.redemptionGuideStoreSetupBody,
+              style: const TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 12,
                 height: 1.5,
               ),
             ),
-            SizedBox(height: 14),
+            const SizedBox(height: 14),
             Text(
-              '한 캠페인 = 같은 코드. 100명에게 보내도 매장은 1번만 등록.',
-              style: TextStyle(
+              l.redemptionGuideCampaignNote,
+              style: const TextStyle(
                 color: AppColors.teal,
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
@@ -2072,9 +2074,9 @@ class _ComposeScreenState extends State<ComposeScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dCtx).pop(false),
-            child: const Text(
-              '취소',
-              style: TextStyle(color: AppColors.textMuted),
+            child: Text(
+              l.authClose,
+              style: const TextStyle(color: AppColors.textMuted),
             ),
           ),
           ElevatedButton(
@@ -2083,9 +2085,9 @@ class _ComposeScreenState extends State<ComposeScreen>
               backgroundColor: AppColors.teal,
               foregroundColor: const Color(0xFF002218),
             ),
-            child: const Text(
-              '확인',
-              style: TextStyle(fontWeight: FontWeight.w800),
+            child: Text(
+              l.authConfirm,
+              style: const TextStyle(fontWeight: FontWeight.w800),
             ),
           ),
         ],
@@ -5122,7 +5124,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '🛒 사용 코드 발급 (매장 POS 연동)',
+                        l10n.redemptionToggleLabel,
                         style: TextStyle(
                           color: _attachRedemptionCode
                               ? AppColors.teal
@@ -5131,9 +5133,9 @@ class _ComposeScreenState extends State<ComposeScreen>
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const Text(
-                        '손님이 매장에서 바코드를 보여주거나 코드를 읽어주면 POS 가 할인 적용. 캠페인 1개당 코드 1개 자동 발급.',
-                        style: TextStyle(
+                      Text(
+                        l10n.redemptionToggleDesc,
+                        style: const TextStyle(
                           color: AppColors.textMuted,
                           fontSize: 10,
                         ),
