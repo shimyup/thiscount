@@ -3378,6 +3378,11 @@ class _RedemptionCodePanel extends StatefulWidget {
 }
 
 class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
+  // Build 345 (PR-S16 5차 시뮬레이션 P1): RedemptionCode.verify SHA256 결과
+  //   캐싱 — 매 rebuild 마다 재계산하던 성능 오버헤드 차단. 코드 자체는
+  //   StatefulWidget lifecycle 동안 불변.
+  late final bool _codeValid = RedemptionCode.verify(widget.code);
+
   // Build 337 (PR-S8 시뮬레이션 P1 #8): 다중 panel reference counter.
   //   panel A initState → save orig + boost to 1.0
   //   panel A 위에 panel B initState → counter++ (밝기는 이미 1.0)
@@ -3440,7 +3445,7 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
   Widget build(BuildContext context) {
     // Build 344 (PR-S15 4차 시뮬레이션 P0): _sanitizeRedemptionCode 가 invalid
     //   코드도 보존 → panel 단계에서 형식 검증 후 BarcodeWidget crash 차단.
-    if (!RedemptionCode.verify(widget.code)) {
+    if (!_codeValid) {
       // 코드는 보존하되 panel 안 보임 — letter_read 의 다른 안내가 표시됨.
       return const SizedBox.shrink();
     }
@@ -3469,26 +3474,28 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
           // 1D Code128 바코드 — 흰 배경 + 검은 바 강제 (POS 스캐너 호환).
           // Build 335 (PR-S7): 헤더 라벨 추가 — "이게 진짜 코드" 시각 강조.
           //   redemptionInfo 와 시각 혼동 차단 (P1 #7).
-          if (!disabled) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 0, 8, 6),
-              child: Row(
-                children: [
-                  const Text('🛒', style: TextStyle(fontSize: 13)),
-                  const SizedBox(width: 4),
-                  Text(
-                    widget.l10n.redemptionPanelHeader,
-                    style: TextStyle(
-                      color: AppColors.teal.withValues(alpha: 0.95),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.4,
-                    ),
+          // Build 345 (PR-S16 5차 시뮬레이션 P1): disabled 헤더 일관성 — 항상
+          //   표시하되 disabled 시 회색 톤 → 접근성 정보 손실 차단.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 0, 8, 6),
+            child: Row(
+              children: [
+                const Text('🛒', style: TextStyle(fontSize: 13)),
+                const SizedBox(width: 4),
+                Text(
+                  widget.l10n.redemptionPanelHeader,
+                  style: TextStyle(
+                    color: disabled
+                        ? AppColors.textMuted
+                        : AppColors.teal.withValues(alpha: 0.95),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.4,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
           // Build 340 (PR-S11 2차 시뮬레이션 P1): 스크린리더용 Semantics 라벨.
           //   바코드 위젯 자체는 시각 전용 → screen reader 가 "image" 라고만
           //   읽음. 명시 label 로 "사용 코드 X" 알려줌. excludeSemantics 로 본
