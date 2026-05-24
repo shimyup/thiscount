@@ -2736,6 +2736,10 @@ class _ArrivedWaitingMarker extends StatelessWidget {
     //   FOMO 모드 (≤24h) 시에만 빨강 outer ring + pulse 2배로 긴급성 시각화.
     //   사이즈 +35% (22→30 emoji, 40→54 container) — 시뮬레이션에서 줌아웃 시
     //   카테고리 이모지가 안 보이던 문제 해소. 줌인 시도 비례 자연스러움 유지.
+    //   본인 sender letter 는 청록 dashed border 로 구분 — Brand 사장이 자기
+    //   캠페인 letter 를 지도에서 즉시 식별 가능 (시뮬레이션 발견).
+    final state = context.read<AppState>();
+    final isMine = letter.senderId == state.currentUser.id;
     final fomoColor = expiringSoon ? const Color(0xFFE53935) : null;
     final baseColor = AppColors.gold;
     return AnimatedBuilder(
@@ -2747,6 +2751,20 @@ class _ArrivedWaitingMarker extends StatelessWidget {
         return Stack(
           alignment: Alignment.center,
           children: [
+            // Build 324: 본인 sender ring — Brand 사장이 자기 캠페인 식별 용이.
+            //   FOMO ring 보다 한 단계 더 크게 + 청록색 강조 outline.
+            if (isMine)
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.teal.withValues(alpha: 0.85),
+                    width: 2.5,
+                  ),
+                ),
+              ),
             // FOMO outer ring (빨강) — 만료 임박일 때만 노출.
             if (fomoColor != null)
               Container(

@@ -4678,8 +4678,12 @@ class _ComposeScreenState extends State<ComposeScreen>
                           fontWeight: FontWeight.w600,
                         ),
                       ),
+                      // Build 324: ON/OFF 상태별 desc 분기 — Brand 사장이
+                      //   토글 의미를 즉시 이해 (시뮬레이션 발견).
                       Text(
-                        l10n.composeBrandUniquePerUserDesc,
+                        _brandUniquePerUser
+                            ? l10n.composeBrandUniquePerUserDesc
+                            : l10n.composeBrandUniquePerUserOffDesc,
                         style: const TextStyle(
                           color: AppColors.textMuted,
                           fontSize: 10,

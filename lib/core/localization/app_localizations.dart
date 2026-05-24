@@ -6501,6 +6501,25 @@ class AppL10n {
     'th': 'ผู้ใช้แต่ละคนรับได้เพียง 1 ฉบับจากการส่งครั้งนี้',
   });
 
+  // Build 324 (Brand 시뮬레이션 발견): 토글 OFF 상태 보조 카피.
+  //   사장 입장 — "OFF면 한 명이 다 가져가? 진짜?" 혼란 해소.
+  String get composeBrandUniquePerUserOffDesc => _t({
+    'ko': '같은 사람도 여러 번 픽업 가능 (이벤트/방문 유도용)',
+    'en': 'Same user can pick up multiple (for events/repeat visits)',
+    'ja': '同じユーザーが複数回受け取り可能 (イベント・再訪促進)',
+    'zh': '同一用户可多次领取（用于活动 / 复购引导）',
+    'fr': 'Le même utilisateur peut récupérer plusieurs fois (événements/réguliers)',
+    'de': 'Gleicher Nutzer kann mehrfach abholen (Events/Stammkunden)',
+    'es': 'El mismo usuario puede recoger varias veces (eventos/recurrentes)',
+    'pt': 'Mesmo usuário pode pegar várias vezes (eventos/recorrentes)',
+    'ru': 'Один пользователь может получить несколько (события/повторные)',
+    'tr': 'Aynı kullanıcı birden fazla alabilir (etkinlik/sadakat)',
+    'ar': 'يمكن للمستخدم نفسه الالتقاط عدة مرات (للفعاليات / الزيارات المتكررة)',
+    'it': 'Lo stesso utente può prendere più volte (eventi/clienti abituali)',
+    'hi': 'एक उपयोगकर्ता कई बार उठा सकता है (इवेंट/नियमित ग्राहक)',
+    'th': 'ผู้ใช้คนเดียวสามารถรับหลายครั้งได้ (สำหรับอีเวนต์/ลูกค้าประจำ)',
+  });
+
   String get composeBrandAutoExpire => _t({
     'ko': '자동 삭제 기간',
     'en': 'Auto-delete after',
