@@ -64,19 +64,25 @@ service cloud.firestore {
 
     // update 로 변경 가능한 필드 화이트리스트 — 카운터 + 도착 상태만.
     // 본문 / 발신자 / 좌표 / 카테고리 / 쿠폰 정보는 create 후 immutable.
+    // Build 335 (PR-S7): redemption 코드 흐름 — revealedCount + codeRevealedAt
+    //   화이트리스트 추가. startRedemption 의 atomic increment + timestamp 가
+    //   기존 rule 에선 silent reject 되어 Brand 4단계 funnel 측정 불가했음.
+    //   redeemedAt 타임스탬프도 markLetterRedeemed 에서 PATCH 하므로 같이.
     function isAllowedLetterUpdate() {
       return request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly([
-            'pickupCount', 'redeemedCount', 'readCount', 'likeCount',
-            'ratingTotal', 'ratingCount',
+            'pickupCount', 'redeemedCount', 'revealedCount', 'readCount',
+            'likeCount', 'ratingTotal', 'ratingCount',
             'status', 'arrivedAt', 'readAt', 'isReadByRecipient',
             'reportCount',
+            'codeRevealedAt', 'redeemedAt',
           ]);
     }
 
     // Build 297 (HIGH security audit): 카운터 변경 폭 검증.
     // 화이트리스트만으로는 누구나 likeCount 를 +999 시키는 review-bombing
     // 가능했음. 단일 호출에서 +1/-1/0 만 허용 (카운터 자연 증가) + 음수 차단.
+    // Build 335 (PR-S7): revealedCount 도 동일 패턴.
     function _delta(field) {
       return (field in request.resource.data ? request.resource.data[field] : 0)
            - (field in resource.data ? resource.data[field] : 0);
@@ -84,6 +90,7 @@ service cloud.firestore {
     function isReasonableLetterCounterDelta() {
       return _delta('pickupCount') >= 0 && _delta('pickupCount') <= 1
           && _delta('redeemedCount') >= 0 && _delta('redeemedCount') <= 1
+          && _delta('revealedCount') >= 0 && _delta('revealedCount') <= 1
           && _delta('readCount') >= 0 && _delta('readCount') <= 1
           && _delta('likeCount') >= -1 && _delta('likeCount') <= 1
           && _delta('ratingTotal') >= 0 && _delta('ratingTotal') <= 5
@@ -181,6 +188,12 @@ service cloud.firestore {
       // map 동기화·픽업을 위해 누구나 read/list. (본문은 사용자가 공개를
       // 전제로 작성한다는 정책.)
       // Build 303: list pageSize ≤ 100 (cost protection).
+      // Build 335 (PR-S7 TODO Phase 2): redemptionCode 가 본 doc 에 평문 저장됨
+      //   → public read 시 누구나 읽기 가능. anonymous Firebase Auth 환경에선
+      //   owner-check 가 불가능해 Phase 1 에선 수용. Phase 2 (proper auth)
+      //   에서 redemptionCode 를 subcollection 분리 후 sender_only read 룰로
+      //   제한 예정. 현 단계 mitigation: 픽업 안한 사용자가 코드 알아도 매장
+      //   에서 사용 시 IDOR 가드 (PR-S6) 가 자기 디바이스 reveal 차단.
       allow read: if true;
       allow list: if reasonableListLimit();
 

@@ -1,6 +1,6 @@
 // Build 284: 새 onboarding_tour_screen 의 핵심 invariant 단위 테스트.
 //
-// - PageView 가 6 페이지 모두 렌더링되는가
+// - PageView 가 3 페이지 (Build 327, PR-T3 ) 모두 렌더링되는가
 // - 자동 timer 없음 — 초기 page=0 에서 5초 대기 후에도 동일
 // - markSeen / nextRouteAfterSplash dedup 로직
 
@@ -17,8 +17,9 @@ void main() {
       SharedPreferences.setMockInitialValues({});
     });
 
-    testWidgets('초기 렌더 — 6 페이지 PageView + indicator + Skip + CTA',
+    testWidgets('초기 렌더 — 3 페이지 PageView + indicator + Skip + CTA',
         (tester) async {
+      // Build 327 (PR-T3): 6 → 3 페이지 축소. Welcome / PickupHowTo / Ready 만.
       await tester.pumpWidget(const MaterialApp(home: OnboardingTourScreen()));
       // 첫 페이지 (Welcome) 콘텐츠 확인
       expect(find.text('걸어가다\n줍는 디스카운트'), findsOneWidget);
