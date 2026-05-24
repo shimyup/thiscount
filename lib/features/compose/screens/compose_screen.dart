@@ -896,6 +896,9 @@ class _ComposeScreenState extends State<ComposeScreen>
     }
     setState(() => _isSending = true);
     try {
+      // Build 360 (PR-AA1): zone 1개 = 코드 1개 (zone 으로 발급되는 모든 letter
+      //   가 동일 코드 공유 → 매장 POS 1회 등록). 코드 토글이 ON 이면 생성.
+      final zoneCode = _attachRedemptionCode ? RedemptionCode.generate() : null;
       final id = await BrandZoneService.instance.createZone(
         brandId: user.id,
         brandName: user.username,
@@ -906,6 +909,7 @@ class _ComposeScreenState extends State<ComposeScreen>
             ? null
             : _redemptionInfoController.text.trim(),
         maxRedeems: maxR,
+        redemptionCode: zoneCode,
       );
       if (!mounted) return;
       if (id == null) {
