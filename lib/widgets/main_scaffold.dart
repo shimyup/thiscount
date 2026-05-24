@@ -15,6 +15,8 @@ import '../features/profile/profile_screen.dart';
 import '../features/streak/streak_badge.dart';
 import '../features/progression/level_up_banner.dart';
 import '../features/brand/brand_ad_modal.dart';
+import '../features/brand/brand_insights_screen.dart';
+import '../models/brand_insights.dart';
 import 'offline_banner.dart';
 
 class MainScaffold extends StatefulWidget {
@@ -228,6 +230,10 @@ class _MainScaffoldState extends State<MainScaffold> {
             // point 1 (trial 만료 surprise) 해소. trial 활성 중 + 미결제 상태
             // 일 때만 노출. 탭하면 premium_screen 진입.
             const _TrialCountdownBanner(),
+            // Build 325 (T6): Brand 사용자 홈 배너 — brandInsights 사용 전환률 +
+            //   상태 emoji 한 줄. 기존엔 profile → Brand 카드 (2뎁스) 진입.
+            //   이제 모든 탭 상단에서 1뎁스로 ROI 가시화 + 1 탭으로 상세 진입.
+            const _BrandInsightsHomeBanner(),
             Expanded(
               child: IndexedStack(index: _currentIndex, children: _pages),
             ),
@@ -772,6 +778,95 @@ class _TrialCountdownBanner extends StatelessWidget {
     if (hours < 24) return l.trialBannerHoursLeft(hours);
     final days = (hours / 24).floor();
     return l.trialBannerDaysLeft(days);
+  }
+}
+
+/// Build 325 (T6): Brand 사용자 전용 ROI 요약 홈 배너.
+///   기존: profile → Brand 카드 (2뎁스) 진입해야 redeemRate / healthEmoji 확인.
+///   현재: 앱 진입 즉시 사용 전환률 + 상태 노출. 탭 → BrandInsightsScreen 풀상세.
+///   Brand 비-회원이면 미노출.
+class _BrandInsightsHomeBanner extends StatelessWidget {
+  const _BrandInsightsHomeBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final isBrand = context.select<AppState, bool>(
+      (s) => s.currentUser.isBrand,
+    );
+    if (!isBrand) return const SizedBox.shrink();
+    final insights = context.select<AppState, BrandInsights>(
+      (s) => s.brandInsights,
+    );
+    final totalSent = insights.totalSent;
+    final totalPickup = insights.totalPickup;
+    final redeemRate = insights.redeemRate;
+    final healthEmoji = insights.healthEmoji;
+    // 데이터 0 이면 노출 X (신규 Brand 가 의미 없는 0% 보면 혼란).
+    if (totalSent == 0 && totalPickup == 0) return const SizedBox.shrink();
+    final pct = (redeemRate * 100).toStringAsFixed(redeemRate >= 0.10 ? 0 : 1);
+    return Material(
+      color: AppColors.gold.withValues(alpha: 0.10),
+      child: InkWell(
+        onTap: () => Navigator.of(context).pushNamed(
+          BrandInsightsScreen.routeName,
+        ),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: AppColors.gold.withValues(alpha: 0.28),
+                width: 0.6,
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              Text(healthEmoji, style: const TextStyle(fontSize: 14)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text.rich(
+                  TextSpan(
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    children: [
+                      const TextSpan(text: '📊 30일 사용률 '),
+                      TextSpan(
+                        text: '$pct%',
+                        style: const TextStyle(
+                          color: AppColors.gold,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13,
+                        ),
+                      ),
+                      TextSpan(
+                        text: '  ·  📮 $totalSent → 🎯 $totalPickup',
+                        style: const TextStyle(
+                          color: AppColors.textMuted,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 11.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.gold,
+                size: 16,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
