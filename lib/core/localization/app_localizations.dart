@@ -5894,6 +5894,77 @@ class AppL10n {
     'th': 'เครดิต ExactDrop ไม่พอ ซื้อแพ็ก 100 ฉบับเพื่อเติมทันที',
   });
 
+  // Build 324: Brand compose 시나리오 칩 — "어떤 캠페인?" 가이드.
+  //   Brand 사장이 토글 4-5개 (대량/특송/zone/ExactDrop/1인1회) 중 어느 조합인지
+  //   판단 어려운 문제 (Brand 시뮬레이션 발견) 해소 — 칩 1탭으로 자동 세팅.
+  String get composeScenarioLabel => _t({
+    'ko': '어떤 캠페인이에요?',
+    'en': 'What kind of campaign?',
+    'ja': 'どんなキャンペーン？',
+    'zh': '什么类型的活动？',
+    'fr': 'Quel type de campagne ?',
+    'de': 'Welche Art von Kampagne?',
+    'es': '¿Qué tipo de campaña?',
+    'pt': 'Que tipo de campanha?',
+    'ru': 'Какая кампания?',
+    'tr': 'Ne tür bir kampanya?',
+    'ar': 'ما نوع الحملة؟',
+    'it': 'Che tipo di campagna?',
+    'hi': 'किस तरह का अभियान?',
+    'th': 'แคมเปญแบบไหน?',
+  });
+
+  String get composeScenarioNearbyStore => _t({
+    'ko': '매장 반경 살포',
+    'en': 'Around my store',
+    'ja': '店舗周辺',
+    'zh': '门店周边',
+    'fr': 'Autour du magasin',
+    'de': 'Umkreis meines Geschäfts',
+    'es': 'Cerca de mi tienda',
+    'pt': 'Perto da minha loja',
+    'ru': 'Вокруг моего магазина',
+    'tr': 'Mağazamın çevresi',
+    'ar': 'حول متجري',
+    'it': 'Intorno al negozio',
+    'hi': 'मेरी दुकान के पास',
+    'th': 'รอบร้านของฉัน',
+  });
+
+  String get composeScenarioExactDrop => _t({
+    'ko': '정확 좌표 단건',
+    'en': 'Exact location',
+    'ja': '正確な座標',
+    'zh': '精确坐标',
+    'fr': 'Position exacte',
+    'de': 'Genauer Ort',
+    'es': 'Ubicación exacta',
+    'pt': 'Local exato',
+    'ru': 'Точное место',
+    'tr': 'Tam konum',
+    'ar': 'موقع دقيق',
+    'it': 'Posizione esatta',
+    'hi': 'सटीक स्थान',
+    'th': 'พิกัดแน่นอน',
+  });
+
+  String get composeScenarioBulk => _t({
+    'ko': '글로벌 대량',
+    'en': 'Global bulk',
+    'ja': 'グローバル一括',
+    'zh': '全球批量',
+    'fr': 'Envoi global',
+    'de': 'Globaler Massenversand',
+    'es': 'Envío global',
+    'pt': 'Envio global',
+    'ru': 'Глобальная рассылка',
+    'tr': 'Küresel toplu',
+    'ar': 'إرسال عالمي',
+    'it': 'Invio globale',
+    'hi': 'वैश्विक भेजना',
+    'th': 'ส่งทั่วโลก',
+  });
+
   // Build 324: ExactDrop IAP CTA 버튼 라벨.
   String get composeExactDropBuyBtn => _t({
     'ko': '100통 구매 (₩10,000)',

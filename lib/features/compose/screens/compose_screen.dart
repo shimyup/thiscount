@@ -4483,6 +4483,90 @@ class _ComposeScreenState extends State<ComposeScreen>
 
   // Build 321: 자동 발송 zone 토글 + 옵션. compose 통합 — 작성 본문 + 옵션
   // 동시 입력 후 한 번에 등록. inbox FAB 진입점 제거됨.
+  /// Build 324: compose 시나리오 칩 — Brand 사장이 "어떤 캠페인?" 한 번에 선택.
+  Widget _scenarioChip({
+    required String emoji,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: AppColors.bgSurface,
+      borderRadius: BorderRadius.circular(999),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(emoji, style: const TextStyle(fontSize: 13)),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 시나리오 1 — 매장 반경 (자동 zone ON / 1인1회 ON / 단건 모드)
+  void _applyScenarioNearby() {
+    setState(() {
+      _isAutoZoneMode = true;
+      _isBulkMode = false;
+      _isExpressMode = false;
+      _isExactDropped = false;
+      _brandUniquePerUser = true;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('📍 매장 반경 모드 — 자동 zone + 1인1회 ON'),
+        backgroundColor: AppColors.bgCard,
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  /// 시나리오 2 — 단건 정확 좌표 (ExactDrop ON / 1인1회 ON)
+  void _applyScenarioExactDrop() {
+    setState(() {
+      _isAutoZoneMode = false;
+      _isBulkMode = false;
+      _isExpressMode = false;
+      _brandUniquePerUser = true;
+    });
+    // ExactDrop 진입은 별도 호출 (paywall 검사 포함).
+    _selectExactDrop();
+  }
+
+  /// 시나리오 3 — 글로벌 대량 (Bulk ON / 1인1회 ON)
+  void _applyScenarioBulk() {
+    setState(() {
+      _isBulkMode = true;
+      _isAutoZoneMode = false;
+      _isExactDropped = false;
+      _isExpressMode = false;
+      _brandUniquePerUser = true;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('🌍 글로벌 대량 모드 — 선택 국가 N건 발송'),
+        backgroundColor: AppColors.bgCard,
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   Widget _buildAutoZoneSection(AppL10n l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -4651,7 +4735,41 @@ class _ComposeScreenState extends State<ComposeScreen>
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
+          // Build 324: "어떤 캠페인?" 시나리오 칩 3개 — Brand 시뮬레이션의
+          //   "토글 4개 (대량/특송/zone/ExactDrop/1인1회) 중 어느 조합?" 인지
+          //   부하 해소. 칩 1개 탭으로 4개 토글 자동 세팅.
+          Text(
+            l10n.composeScenarioLabel,
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              _scenarioChip(
+                emoji: '📍',
+                label: l10n.composeScenarioNearbyStore,
+                onTap: _applyScenarioNearby,
+              ),
+              _scenarioChip(
+                emoji: '🎯',
+                label: l10n.composeScenarioExactDrop,
+                onTap: _applyScenarioExactDrop,
+              ),
+              _scenarioChip(
+                emoji: '🌍',
+                label: l10n.composeScenarioBulk,
+                onTap: _applyScenarioBulk,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
           // Build 321: 자동 발송 zone 토글 + 옵션 ─ compose 통합
           _buildAutoZoneSection(l10n),
           const SizedBox(height: 10),
