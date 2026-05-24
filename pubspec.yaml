@@ -3,7 +3,7 @@ description: "Thiscount - Pick up coupons and discounts around you"
 publish_to: 'none'
 homepage: 'https://thiscount.io'
 issue_tracker: 'https://thiscount.io/support'
-version: 1.0.0+331
+version: 1.0.0+332
 
 environment:
   # Build 272 (P2): Flutter SDK 최소 버전 명시 — withValues(alpha:) API 호환성.
@@ -41,6 +41,10 @@ dependencies:
   audioplayers: ^6.1.0
   # Android FLAG_SECURE + iOS screen-capture detection. 교환권 뷰어에서 호출.
   screen_protector: ^1.4.5+1
+  # Build 331 (PR-S2): Code128 1D 바코드 렌더 — 매장 POS 스캐너 99% 호환.
+  barcode_widget: ^2.0.4
+  # Build 331 (PR-S2): redemption reveal 시 화면 밝기 max — POS 스캐너 인식률.
+  screen_brightness: ^2.1.4
 
 dependency_overrides:
   # objective_c 9.x (native assets)가 iOS 시뮬레이터에서 SdkRoot 미설정으로
