@@ -296,6 +296,23 @@ class BrandZoneService {
     _cachedAt = DateTime.now();
   }
 
+  /// Build 368 (PR-CC3 P0 #14): in-memory cache 의 zone redeemedCount +1.
+  /// AppState._handleAutoBrandDrop 가 Firestore PATCH 와 동시 호출.
+  /// 다음 isActive 검증이 정확 — `redeemedCount >= maxRedeems` 가드 작동.
+  void bumpRedeemedCount(String zoneId) {
+    final updated = <BrandZone>[];
+    var changed = false;
+    for (final z in _cache) {
+      if (z.id == zoneId) {
+        updated.add(z.copyWith(redeemedCount: z.redeemedCount + 1));
+        changed = true;
+      } else {
+        updated.add(z);
+      }
+    }
+    if (changed) _cache = List<BrandZone>.unmodifiable(updated);
+  }
+
   /// Firestore REST 응답의 `fields` 객체를 일반 JSON map 으로 변환.
   /// (Firebase REST 의 typed value 표현 ↔ 우리 모델의 plain JSON)
   Map<String, dynamic> _firestoreFieldsToJson(Map<String, dynamic> fields) {

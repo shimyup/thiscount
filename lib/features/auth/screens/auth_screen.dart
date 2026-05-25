@@ -1476,24 +1476,33 @@ class _SignupTabState extends State<_SignupTab> {
     // Build 311: 신규 가입은 무조건 온보딩 표시 — 같은 디바이스에 다른 사람이
     // 가입할 때도 동작. 이전 사용자의 markSeen 잔존 무시.
     await AuthService.resetOnboardingFlags();
-    if (user != null) await widget.onSignupSuccess(user);
 
+    // Build 368 (PR-CC3 P0 #13): tryClaimWelcomeTrial + invite code 적용을
+    //   onSignupSuccess **앞**으로 이동. 이전엔 onSignupSuccess 가 Navigator
+    //   .pushReplacementNamed('/onboarding') 으로 SignupTab dispose →
+    //   직후 try 블록의 `if (!mounted) return` early-return → trial 부여
+    //   0% 성공. Build 299 fix 의도였으나 onSignupSuccess 순서 잘못으로 회귀.
+    //   cold-start retry 가 다음 launch 에 메우지만 첫 세션 Free 권한 회귀.
     try {
-      if (!mounted) return;
-      final purchase = context.read<PurchaseService>();
-      final state = context.read<AppState>();
-      await state.tryClaimWelcomeTrial(
-        email: _emailCtrl.text.trim().toLowerCase(),
-        grant: () => purchase.grantWelcomeTrial(days: 3),
-      );
-      // Build 324: 친구 invite code 자동 적용 — viral loop 작동.
-      //   양쪽 (가입자 + 추천인) 모두 +5 invite reward credits.
-      //   premium 화면에서도 입력 가능하지만 signUp 시점 입력이 가장 효과적.
-      final code = _inviteCodeCtrl.text.trim();
-      if (code.isNotEmpty) {
-        unawaited(state.applyInviteCode(code));
+      if (mounted) {
+        final purchase = context.read<PurchaseService>();
+        final state = context.read<AppState>();
+        await state.tryClaimWelcomeTrial(
+          email: _emailCtrl.text.trim().toLowerCase(),
+          grant: () => purchase.grantWelcomeTrial(days: 3),
+        );
+        // Build 324: 친구 invite code 자동 적용 — viral loop 작동.
+        //   양쪽 (가입자 + 추천인) 모두 +5 invite reward credits.
+        //   premium 화면에서도 입력 가능하지만 signUp 시점 입력이 가장 효과적.
+        final code = _inviteCodeCtrl.text.trim();
+        if (code.isNotEmpty) {
+          unawaited(state.applyInviteCode(code));
+        }
       }
     } catch (_) {}
+
+    // onSignupSuccess 가 SignupTab 을 dispose 할 수 있으므로 마지막에 호출.
+    if (user != null) await widget.onSignupSuccess(user);
   }
 
   /// OTP 재발송 (이메일)

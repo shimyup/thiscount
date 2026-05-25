@@ -937,9 +937,12 @@ class _ComposeScreenState extends State<ComposeScreen>
     _autoSaveTimer?.cancel();
     // Build 189: dispose 시 항상 저장 (text 비어도 bulk/express/나라 상태 유지).
     // 이전엔 text 가 empty 면 save 안 해서 "작성 중간 화면 나가면 모드가 날아감".
-    if (!_isSending) {
-      _saveDraft();
-    }
+    // Build 368 (PR-CC3 P0 #17): _isSending=true 인 채로 dispose 면 draft 도
+    //   save 안 됐었음 → 발송 중 강제 종료 시 본문/redemption/코드 전부 손실
+    //   회귀. 송신 중이라도 draft 저장 (success 후 pop 흐름은 _isSuccessful
+    //   flag 가 없으므로 conservative — 항상 저장). 약간의 storage 비용만
+    //   부담, 데이터 손실 차단 우선.
+    _saveDraft();
     _contentController.dispose();
     _socialLinkController.dispose();
     _redemptionInfoController.dispose();
