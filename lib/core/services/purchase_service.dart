@@ -445,8 +445,11 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
     defaultValue: false,
   );
   static bool get _isBetaFreePremium {
+    // Build 368 (PR-CC1 P0 #5): production 빌드 강제 차단 — 빌드 스크립트
+    //   실수로 BETA_TESTFLIGHT_BUILD/BETA_FREE_PREMIUM 가 새어 들어가도
+    //   PRODUCTION_BUILD=true 면 어떤 beta flag 도 무력화.
+    if (BetaConstants.isProductionBuild) return false;
     // Build 319 (단순화): BETA_TESTFLIGHT_BUILD=true 면 무조건 활성.
-    // 이전 3중 분기 (disableInRelease / kReleaseMode / Raw) 를 1개로 통합.
     // BETA_FREE_PREMIUM dart-define 은 deprecate — TestFlight flag 만 사용.
     if (BetaConstants.isTestFlightBetaBuild) return true;
     if (BetaConstants.disableInRelease && kReleaseMode) return false;
@@ -468,6 +471,8 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
   );
 
   static bool get _isBetaUpgradeSimulator {
+    // Build 368 (PR-CC1 P0 #5): production 빌드 강제 차단.
+    if (BetaConstants.isProductionBuild) return false;
     // Build 319 (단순화): BETA_TESTFLIGHT_BUILD=true 면 무조건 활성.
     // 가짜 결제 흐름은 TestFlight 베타 빌드에서 항상 동작 (ASC IAP 미등록 대비).
     if (BetaConstants.isTestFlightBetaBuild) return true;
@@ -633,11 +638,22 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
       _isPremium = false;
       _isBrand = false;
       unawaited(_saveSecurePremiumState(isPremium: false, isBrand: false));
-    } else if (_scheduledPlanTarget == ScheduledPlanTarget.brand &&
-        _isPremium &&
-        !_isBrand) {
-      _isBrand = true;
-      unawaited(_saveSecurePremiumState(isPremium: true, isBrand: true));
+    }
+    // Build 368 (PR-CC1 P0 #1): scheduled Brand 자동 flip 제거.
+    //   이전엔 schedule date 도달만으로 _isBrand=true → 사용자가 ₩99,000 IAP
+    //   없이 Brand 권한 부여되던 critical 회귀. Brand 전환은 반드시 RC IAP 를
+    //   통해서만 — buyBrand() / _applyCustomerInfo(entitlement) 경로만 허용.
+    //   schedule.brand 호출 자체는 noop (deprecate). UI 호출처 (premium_screen
+    //   2922) 도 buyBrand 로 교체.
+    // 만약 _scheduledPlanTarget == brand 인 잔존 schedule 이 있으면 clear.
+    if (_scheduledPlanTarget == ScheduledPlanTarget.brand) {
+      _scheduledPlanTarget = null;
+      _scheduledPlanChangeDate = null;
+      unawaited(() async {
+        final prefs = await _getPrefs();
+        await prefs.remove(PrefKeys.purchaseScheduledPlanChangeDate);
+        await prefs.remove(PrefKeys.purchaseScheduledPlanChangeTarget);
+      }());
     }
   }
 
@@ -877,7 +893,11 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
       //   ambiguous state. 정식 결제 성공 후 trial expiry clear.
       if (_isPremium) {
         _trialExpiry = null;
-        await _secure.delete(key: 'ps_trialExpiry');
+        // Build 368 (PR-CC1 P0 #4): trial expiry 는 secure storage 가 아닌
+        //   prefs(`purchase_giftExpiry`) 에 저장됨. _secure.delete 는 no-op 였음
+        //   → 다음 cold-start _evaluateGiftExpiryFromPrefs 가 만료 시점 진입
+        //   → 실 결제 사용자 Premium 박탈 회귀. 올바른 key 로 prefs.remove.
+        await prefs.remove(PrefKeys.purchaseGiftExpiry);
       }
       _stopLoading();
       return _isPremium;
@@ -945,48 +965,18 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
   // 실제 결제는 구매자가 처리하고, 코드를 받아서 수신자가 사용하는 형태
   // 테스트 모드에서는 구매자 자신의 계정에 영향 없이 코드만 생성
   Future<bool> buyGiftCard() async {
-    _startLoading(PurchaseOperation.giftCard);
-
-    // 베타 무료 프리미엄 모드에서는 선물권 구매도 로컬 시뮬레이션
-    if (_isBetaFreePremium) {
-      await _fakePurchase(() async {});
-      return true;
-    }
-
-    if (!_isTestMode && !_isRcKeyConfiguredForCurrentPlatform) {
-      _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
-      return false;
-    }
-
-    if (_isTestMode) {
-      // 테스트 모드: 구매자 프리미엄 활성화 없이 결제 흐름만 시뮬레이션
-      await _fakePurchase(() async {});
-      return true;
-    }
-
-    try {
-      final ready = await _ensureRevenueCatConfigured();
-      if (!ready) {
-        _setError('결제 서비스 연결 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
-        return false;
-      }
-      final result = await _purchaseByPackageOrStoreProduct(
-        PurchaseProductIds.giftCardCandidates(),
-        preferNonSubscription: true,
-      );
-      if (result == null) {
-        _setProductResolveError(PurchaseProductIds.giftCard);
-        return false;
-      }
-      // 선물권은 구매자 자신의 entitlement를 활성화하지 않음
-      // RevenueCat에서 선물권 상품이 non-consumable 또는 소모성으로 설정되어 있어야 함
-      _applyCustomerInfo(result);
-      _stopLoading();
-      return true;
-    } on PlatformException catch (e) {
-      _handlePlatformException(e);
-      return false;
-    }
+    // Build 368 (PR-CC1 P0 #2 #3): gift card 출시 차단.
+    //   1. 클라이언트가 로컬 코드만 생성 (`LTGO-xxx-PREM`) — 서버 등록 / redeem
+    //      흐름 0건 → 구매자 ₩8,910 지불 후 친구가 코드 입력해도 사용 불가
+    //      (코드 입력 화면 자체 없음). 결제 자산 환상.
+    //   2. _applyCustomerInfo(result) 호출이 RC entitlement mapping 에 따라
+    //      buyer 까지 Premium flip 가능 — 주석의 의도("구매자 entitlement
+    //      활성화 안함") 와 정반대.
+    // 출시 차단 — 서버 redemption 흐름 (Firestore gift_codes/{code} +
+    //   redeem UI) 완성될 때까지 기능 비활성. UI 호출처는 false 받고 자동
+    //   에러 메시지 표시. 베타/테스트 모드도 차단 (UI 가 우회 노출되지 않도록).
+    _setError('선물권 기능은 준비 중이에요. 다음 업데이트를 기다려주세요.');
+    return false;
   }
 
   // ── 브랜드 추가 발송권 구매 (소모성 상품 1,000통 ₩15,000) ──────────────────
@@ -1225,12 +1215,18 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
-  // ── Premium -> Brand 변경 예약 (다음 결제일부터 반영) ───────────────────────
+  // ── Premium -> Brand 변경 (Build 368 PR-CC1 P0 #1: schedule deprecated) ───
+  // 이전엔 다음 결제일까지 'schedule' 후 자동 _isBrand flip → IAP 없이 Brand
+  // 권한 부여되던 critical 회귀. 이제 schedule 자체를 noop — Brand 전환은
+  // 반드시 buyBrand() (실제 RC IAP) 통해서만. UI 가 이 메서드 호출 시 자동
+  // buyBrand 로 fall-through 또는 안내.
+  @Deprecated('Use buyBrand() — scheduling 은 P0 회귀로 제거됨')
   Future<void> scheduleUpgradeToBrand({String? userEmail}) async {
-    if (!_isPremium || _isBrand) return;
-
-    // 테스트 모드: 즉시 브랜드로 업그레이드 (발송 한도는 AppState에서 계정별로 제한)
-    if (_isTestMode) {
+    if (kDebugMode) {
+      debugPrint('[PurchaseService] scheduleUpgradeToBrand deprecated — buyBrand 로 fall-through');
+    }
+    // Test/beta 모드에서만 시뮬레이션 — production 은 fall-through.
+    if (_isTestMode || _isBetaUpgradeSimulator) {
       _startLoading(PurchaseOperation.brand);
       await _fakePurchase(() async {
         final prefs = await _getPrefs();
@@ -1241,19 +1237,8 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
       });
       return;
     }
-
-    final prefs = await _getPrefs();
-    final effectiveDate =
-        _nextBillingDate ?? DateTime.now().add(const Duration(days: 30));
-    _scheduledPlanChangeDate = effectiveDate;
-    _scheduledPlanTarget = ScheduledPlanTarget.brand;
-    await prefs.setInt(
-      PrefKeys.purchaseScheduledPlanChangeDate,
-      effectiveDate.millisecondsSinceEpoch,
-    );
-    await prefs.setString(PrefKeys.purchaseScheduledPlanChangeTarget, 'brand');
-    await prefs.remove(PrefKeys.purchaseScheduledDowngradeLegacy);
-    notifyListeners();
+    // Production: 실제 IAP 강제.
+    await buyBrand();
   }
 
   // ── 테스트 이메일 자동 브랜드 설정 (DEBUG + BETA_ADMIN_EMAIL) ──────────────

@@ -88,6 +88,18 @@ abstract class BetaConstants {
     defaultValue: false,
   );
 
+  /// Build 368 (PR-CC1 P0 #5): 출시 production 빌드 명시 opt-in.
+  /// release_to_appstore.sh 가 `--dart-define=PRODUCTION_BUILD=true` 주입.
+  /// 이 flag 가 true 면 BETA_TESTFLIGHT_BUILD/BETA_FREE_PREMIUM/
+  /// BETA_UPGRADE_SIMULATOR 모두 강제 차단 — 빌드 스크립트 실수로 dart-define
+  /// 이 새어 들어가도 production 사용자 무료 Premium 우회 차단.
+  /// 두 flag 충돌 시 (PRODUCTION_BUILD=true && BETA_TESTFLIGHT_BUILD=true)
+  /// PRODUCTION_BUILD 가 우선.
+  static const bool isProductionBuild = bool.fromEnvironment(
+    'PRODUCTION_BUILD',
+    defaultValue: false,
+  );
+
   static bool get isAdminEmailConfigured =>
       permanentAdminEmail.isNotEmpty || adminEmail.isNotEmpty;
 
