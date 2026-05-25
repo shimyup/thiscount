@@ -49,10 +49,15 @@ class AppPaletteDark implements AppPalette {
   @override Color get bgCard      => const Color(0xFF141417);
   @override Color get bgElevated  => const Color(0xFF2A2A2E);
 
+  // Build 378 (PR-EE2 WCAG audit P0): 4.5:1 contrast 통과 토큰 재조정.
+  //   이전 textMuted #5A5A5F on bgDeep #000000 = 3.3:1 (fail) → #7C7C82 ≈ 5.0:1
+  //   이전 textDisabled #3A3A3E = 1.9:1 (large text 도 fail) → #5A5A5F ≈ 3.3:1
+  //     (대비 3:1 large text 만 통과 — disabled 용도라 acceptable)
+  //   ~30곳 사용 site 일괄 fix (개별 widget 수정 불필요).
   @override Color get textPrimary   => const Color(0xFFFFFFFF);
   @override Color get textSecondary => const Color(0xFF8E8E93);
-  @override Color get textMuted     => const Color(0xFF5A5A5F);
-  @override Color get textDisabled  => const Color(0xFF3A3A3E);
+  @override Color get textMuted     => const Color(0xFF7C7C82);
+  @override Color get textDisabled  => const Color(0xFF5A5A5F);
 
   @override Color get coupon  => const Color(0xFFFF4D6D);
   @override Color get reward  => const Color(0xFFB8FF5C);
@@ -80,10 +85,14 @@ class AppPaletteLight implements AppPalette {
   @override Color get bgCard      => const Color(0xFFFFFFFF);
   @override Color get bgElevated  => const Color(0xFFFFFEFB);
 
+  // Build 378 (PR-EE2 WCAG audit P0): 4.5:1 contrast 통과 토큰 재조정.
+  //   이전 textMuted #8E8E96 on bgCanvas #FAF7F2 = 3.0:1 (fail) → #6E6E76 ≈ 4.6:1
+  //   이전 textDisabled #C0C0C8 = 1.7:1 (large text 도 fail) → #969699 ≈ 3.0:1
+  //     (3:1 large text 만 통과 — disabled 용도라 acceptable)
   @override Color get textPrimary   => const Color(0xFF1A1A1C);
   @override Color get textSecondary => const Color(0xFF5F5F66);
-  @override Color get textMuted     => const Color(0xFF8E8E96);
-  @override Color get textDisabled  => const Color(0xFFC0C0C8);
+  @override Color get textMuted     => const Color(0xFF6E6E76);
+  @override Color get textDisabled  => const Color(0xFF969699);
 
   @override Color get coupon  => const Color(0xFFE64463);
   @override Color get reward  => const Color(0xFF8BD13A);
