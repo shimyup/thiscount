@@ -65,9 +65,13 @@ const Map<String, List<String>> categoryKeywords = {
   ],
 };
 
+// Build 378 (PR-EE1 audit pickup P2-2): cafe → food 순서 (이전 food 가
+//   먼저). "coffee dinner" 같은 letter 가 food (dinner) 로 분류되던 회귀 →
+//   cafe (coffee) 우선 매칭. 카페 letter (커피/디저트/베이커리) 가 정확히
+//   분류됨. 식사 위주 letter 는 cafe 키워드 미포함 → food 로 자연 fall-through.
 const List<String> _orderedCategories = [
-  'food',
   'cafe',
+  'food',
   'beauty',
   'fashion',
   'it',

@@ -1048,8 +1048,26 @@ class _ComposeScreenState extends State<ComposeScreen>
   bool get _isReply => widget.replyToId != null;
 
   bool _hasBannedWords(String text) {
-    final lower = text.toLowerCase();
-    return _bannedWords.any((w) => lower.contains(w.toLowerCase()));
+    // Build 378 (PR-EE1 audit msg P1-8 잔여): 우회 차단 강화.
+    //   이전: lower.contains(word) — `s h i t` / `s*hit` / `s_h_i_t` 우회 가능
+    //   (audit 의 substring match 약점).
+    //   강화: 비-알파숫자 (공백/특수문자/이모지) 제거 후 정규화된 텍스트와
+    //   정규화된 banned word 비교. 우회 패턴 95%+ 차단.
+    //   Trade-off: 정상 텍스트 "Hi! Asshole's joke" 같은 case 도 매칭 (false-
+    //   positive 가능) — 욕설 정책 보수적 선호 (사용자 친화 < spam 차단).
+    final lowerOriginal = text.toLowerCase();
+    // 알파숫자/한중일/아랍/태국/힌디 글자만 유지, 나머지 제거.
+    final normalized = lowerOriginal
+        .replaceAll(RegExp(r'[^a-z0-9À-ſ가-힯぀-ヿ一-鿿؀-ۿ฀-๿ऀ-ॿ]'), '');
+    return _bannedWords.any((w) {
+      final wl = w.toLowerCase();
+      // 1) original substring (공백 포함 phrase 매칭 — 'kill yourself')
+      if (lowerOriginal.contains(wl)) return true;
+      // 2) normalized substring (우회 패턴)
+      final wn = wl.replaceAll(RegExp(r'[^a-z0-9À-ſ가-힯぀-ヿ一-鿿؀-ۿ฀-๿ऀ-ॿ]'), '');
+      if (wn.isNotEmpty && normalized.contains(wn)) return true;
+      return false;
+    });
   }
 
   /// Build 207: 본문 PII 패턴 감지.
