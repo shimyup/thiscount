@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
+import '../../../core/services/secure_location.dart';
 import 'package:latlong2/latlong.dart' as ll;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -2629,11 +2630,21 @@ class _MyLocationButtonState extends State<_MyLocationButton> {
         }
         return;
       }
-      final pos = await Geolocator.getCurrentPosition(
+      final rawPos = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
         ),
       ).timeout(const Duration(seconds: 8));
+      // Build 370 (PR-CC4 P0 #9): GPS spoofing 가드.
+      final pos = SecureLocation.guard(rawPos);
+      if (pos == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.gpsAccuracyLow)),
+          );
+        }
+        return;
+      }
       widget.onLocationUpdated(pos.latitude, pos.longitude);
       widget.mapController.move(ll.LatLng(pos.latitude, pos.longitude), 14.0);
       // Build 253: iOS Approximate Location 감지 — accuracy 가 500m 초과면

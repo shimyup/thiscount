@@ -300,11 +300,17 @@ service cloud.firestore {
     match /trial_claims/{emailHash} {
       allow get: if true;
       allow list: if false;
+      // Build 370 (PR-CC4 P0 #10 stop-gap): createdBy 필드 추적 추가.
+      //   victim email hash 를 attacker 가 pre-create 한 griefing 케이스를
+      //   admin REST 로 사후 식별 가능. anonymous Firebase Auth 한계로 client
+      //   create 자체는 막을 수 없음 — Cloud Function 마이그레이션까지의 stop-gap.
       allow create: if isSignedIn()
                   && emailHash.matches('^[a-f0-9]{64}$')
-                  && request.resource.data.keys().hasOnly(['claimedAt'])
+                  && request.resource.data.keys().hasOnly(['claimedAt', 'createdBy'])
                   && request.resource.data.claimedAt is string
-                  && request.resource.data.claimedAt.size() < 64;
+                  && request.resource.data.claimedAt.size() < 64
+                  && request.resource.data.createdBy is string
+                  && request.resource.data.createdBy == request.auth.uid;
       allow update, delete: if false;
     }
 

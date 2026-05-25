@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
+import '../../../core/services/secure_location.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:latlong2/latlong.dart' as ll;
@@ -1117,11 +1118,15 @@ class _ComposeScreenState extends State<ComposeScreen>
           permission == LocationPermission.always ||
           permission == LocationPermission.whileInUse;
       if (!allowed) return;
-      final pos = await Geolocator.getCurrentPosition(
+      final rawPos = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.low,
         ),
       ).timeout(const Duration(seconds: 4));
+      // Build 370 (PR-CC4 P0 #9): GPS spoofing 가드 — release 빌드에서 mocked
+      //   position skip. Brand zone 자동 발급 위조 차단.
+      final pos = SecureLocation.guard(rawPos);
+      if (pos == null) return;
       state.updateUserLocation(pos.latitude, pos.longitude);
     } catch (_) {
       // 위치 획득 실패 시 마지막 저장 좌표 사용

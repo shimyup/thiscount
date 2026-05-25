@@ -1081,12 +1081,11 @@ class AuthService {
     final normalizedEmail = email?.trim() ?? '';
     final usernameErr = validateUsername(username, langCode: langCode);
     if (usernameErr != null) return usernameErr;
-    // 영구 어드민 계정 (BetaConstants.permanentAdminEmail) 은 비번 형식 검증
-    // 우회 — 초기 비번 0000 등 짧은 값 허용. 일반 사용자는 8~20자 영문+숫자.
-    if (!BetaConstants.isAdmin(normalizedEmail)) {
-      final passwordErr = validatePassword(password, langCode: langCode);
-      if (passwordErr != null) return passwordErr;
-    }
+    // Build 370 (PR-CC4 P0 #12): admin password validation 우회 제거.
+    //   이전엔 admin 이메일이면 validatePassword skip → admin 데이터 삭제 후
+    //   weak password (예: "1") 로 재가입 가능. 모든 사용자 password rule 강제.
+    final passwordErr = validatePassword(password, langCode: langCode);
+    if (passwordErr != null) return passwordErr;
     if (normalizedEmail.isEmpty) return _authMsg('email_required', langCode);
     if (!_emailRe.hasMatch(normalizedEmail)) return _authMsg('email_invalid', langCode);
 
