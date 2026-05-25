@@ -8085,6 +8085,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final usePrecise = preciseLat != null && preciseLng != null;
     for (int i = 0; i < count; i++) {
       if (!_canSendLetterByDailyLimit()) break;
+      // Build 373 (PR-DD2 P1 audit msg #2): ExactDrop credit 차감 — bulk +
+      //   정확좌표 발송 분기에서 이전엔 차감 누락 → 베타 무료 분기 우회 외에도
+      //   출시 빌드에서 무료 발송 가능 (비즈니스 손실). 단건 path 의
+      //   consumeExactDropCredit (compose 1427-1442) 과 동일 정책 — letter 1통당
+      //   1 credit.
+      if (usePrecise) {
+        final ok = await consumeExactDropCredit();
+        if (!ok) break;
+      }
 
       String cityName;
       double cityLat;
