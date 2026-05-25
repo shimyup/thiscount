@@ -1644,7 +1644,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
           color: AppColors.bgCard,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+        padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 20, 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1713,8 +1713,8 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       isScrollControlled: true,
       useSafeArea: true,
       builder: (_) => Container(
-        margin: const EdgeInsets.fromLTRB(12, 12, 12, 16),
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+        margin: const EdgeInsetsDirectional.fromSTEB(12, 12, 12, 16),
+        padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 16),
         decoration: BoxDecoration(
           color: AppColors.bgCard,
           borderRadius: BorderRadius.circular(24),
@@ -1845,8 +1845,8 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       useSafeArea: true,
       builder: (_) => SingleChildScrollView(
         child: Container(
-          margin: const EdgeInsets.fromLTRB(12, 12, 12, 16),
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+          margin: const EdgeInsetsDirectional.fromSTEB(12, 12, 12, 16),
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 20, 20, 20),
           decoration: BoxDecoration(
             color: AppColors.bgCard,
             borderRadius: BorderRadius.circular(24),
@@ -3722,7 +3722,7 @@ class _MapHeader extends StatelessWidget {
         bottom: false,
         child: Padding(
           // Build 146: padding 20/10/12/8 → 16/6/8/4 로 컴팩트.
-          padding: const EdgeInsets.fromLTRB(16, 6, 8, 4),
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 6, 8, 4),
           child: Row(
             children: [
               // Build 146: 로고를 ✉️ 이모지 + 텍스트 조합으로 바꿔 브랜딩
@@ -3885,7 +3885,7 @@ class _MapHelpButton extends StatelessWidget {
         expand: false,
         builder: (_, scroll) => SingleChildScrollView(
           controller: scroll,
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 32),
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 18, 20, 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -4108,8 +4108,8 @@ class _PickupSheet extends StatelessWidget {
         : const Color(0xFF0A1A00);
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(12, 12, 12, 24),
-      padding: const EdgeInsets.fromLTRB(22, 20, 22, 20),
+      margin: const EdgeInsetsDirectional.fromSTEB(12, 12, 12, 24),
+      padding: const EdgeInsetsDirectional.fromSTEB(22, 20, 22, 20),
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(24),
@@ -4222,7 +4222,7 @@ class _TransitInfoSheet extends StatelessWidget {
     return SingleChildScrollView(
       child: Container(
         margin: const EdgeInsets.all(12),
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+        padding: const EdgeInsetsDirectional.fromSTEB(20, 20, 20, 28),
         decoration: BoxDecoration(
           color: AppColors.bgCard,
           borderRadius: BorderRadius.circular(20),

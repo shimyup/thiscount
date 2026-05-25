@@ -892,7 +892,7 @@ class _InboxScreenState extends State<InboxScreen>
                 // 있어요" 메시지 한 줄. 브랜드 포지셔닝 변경으로 브랜드도
                 // 줍기 가능해졌기에 모든 등급에 표시.
                 Container(
-                  margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  margin: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
                     vertical: 9,
@@ -939,7 +939,7 @@ class _InboxScreenState extends State<InboxScreen>
                         });
                       },
                       child: Container(
-                        margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                        margin: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 14,
                           vertical: 10,
@@ -1006,7 +1006,7 @@ class _InboxScreenState extends State<InboxScreen>
                       return const SizedBox(height: 6);
                     }
                     return Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(20, 6, 20, 0),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -1192,7 +1192,7 @@ class _InboxScreenState extends State<InboxScreen>
     final l10n = AppL10n.of(state.currentUser.languageCode);
     return Padding(
       // Build 179: 세로 패딩 축소 (16→12), 내부 구조 단일화.
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 20, 4),
       child: Column(
         children: [
           Row(
@@ -2935,7 +2935,7 @@ class _CategorySectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 14, 4, 8),
+      padding: const EdgeInsetsDirectional.fromSTEB(4, 14, 4, 8),
       child: Row(
         children: [
           Container(width: 3, height: 14, color: color),
@@ -3073,11 +3073,11 @@ class _BrandSentSummaryView extends StatelessWidget {
     final useRate = picked > 0 ? (used / picked * 100) : 0.0;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 24),
       children: [
         // ── Hero: 총 발송 수 ──
         Container(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 18, 20, 18),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
@@ -3340,7 +3340,7 @@ class _BrandSentSummaryView extends StatelessWidget {
         builder: (_, scrollCtrl) => Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 14, 20, 8),
+              padding: const EdgeInsetsDirectional.fromSTEB(20, 14, 20, 8),
               child: Row(
                 children: [
                   Expanded(
@@ -3368,7 +3368,7 @@ class _BrandSentSummaryView extends StatelessWidget {
             Expanded(
               child: ListView.builder(
                 controller: scrollCtrl,
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 24),
                 itemCount: subset.length,
                 itemBuilder: (_, i) => _LetterCard(
                   letter: subset[i],
@@ -3455,7 +3455,7 @@ class _BrandStatBlock extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+          padding: const EdgeInsetsDirectional.fromSTEB(14, 14, 14, 14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
@@ -3535,7 +3535,7 @@ class _LetterFilterBar extends StatelessWidget {
           color: AppColors.bgCard,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+        padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 28),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -3632,7 +3632,7 @@ class _LetterFilterBar extends StatelessWidget {
       ),
       builder: (sheetCtx) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 14, 20, 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -3707,7 +3707,7 @@ class _LetterFilterBar extends StatelessWidget {
     // 가로 스크롤 + 우측 fade 로 화면 폭 부족할 때 시각 cue.
     // BottomSheet 제거 — 모든 선택이 1탭 (이전엔 BottomSheet 열고 닫는 추가 2탭).
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 6, 8, 4),
+      padding: const EdgeInsetsDirectional.fromSTEB(8, 6, 8, 4),
       child: SizedBox(
         height: 34,
         child: ShaderMask(
@@ -3907,7 +3907,7 @@ class _MerchantHookCard extends StatelessWidget {
       onTap: () => MerchantInterestSheet.show(context),
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+        padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 12, 12),
         decoration: BoxDecoration(
           color: orange.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(16),
