@@ -4439,6 +4439,21 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (isNewUser) {
       _pickedUpCampaignIds.clear();
       _myPickedUpLetterIds.clear();
+      // Build 368 (PR-CC2 P0 #6): in-memory letter 컬렉션도 동시 clear.
+      //   이전엔 _inbox / _sent / _worldLetters 가 그대로 유지되어 같은 디바
+      //   이스 logout → 다른 계정 login → 다음 loadFromPrefs 호출 전까지
+      //   사용자 B 가 A 의 인박스/보낸함을 보던 critical 데이터 누수 회귀.
+      _inbox.clear();
+      _sent.clear();
+      _worldLetters.clear();
+      _pendingRedemptionStartedAt.clear();
+      // Build 368 (PR-CC2 P0 #7): GPS in-memory cache 도 reset.
+      //   prefs 에서 키 제거는 _clearUserScopedPrefs 가 처리하지만 in-memory
+      //   _cachedLastKnownLat/Lng 가 잔존하면 다음 _doSaveUserToFirestore 가
+      //   이전 위치로 PATCH.
+      _cachedLastKnownLat = 0.0;
+      _cachedLastKnownLng = 0.0;
+      _lastKnownCacheLoaded = false;
       unawaited(_clearUserScopedPrefs());
     }
 
@@ -5004,20 +5019,31 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         lkLngOut = (_cachedLastKnownLng * 1000).round() / 1000.0;
       }
       final hasLastKnown = lkLatOut != 0.0 || lkLngOut != 0.0;
+      // Build 368 (PR-CC2 P0 #8): isMapPublic OFF 면 좌표 4 필드를
+      //   명시적으로 nullValue PATCH — raw doc read (rules `allow read: if true`)
+      //   에서 좌표 leak 차단. 이전엔 client 가 `if (!isMapPublic) continue`
+      //   로 skip 했지만 Firestore REST 직접 호출 시 우회 가능.
+      //   isMapPublic=true 일 때만 좌표 필드 작성.
+      final mapPublic = _currentUser.isMapPublic;
       final fields = <String, Map<String, dynamic>>{
         'id': {'stringValue': _currentUser.id},
         'username': {'stringValue': _currentUser.username},
         'countryFlag': {'stringValue': _currentUser.countryFlag},
         'country': {'stringValue': _currentUser.country},
-        if (hasValidCoords) 'latitude': {'doubleValue': coarseLat},
-        if (hasValidCoords) 'longitude': {'doubleValue': coarseLng},
+        // isMapPublic ON + 유효 좌표 → 작성. OFF 면 null 로 PATCH 해 leak 차단.
+        if (mapPublic && hasValidCoords) 'latitude': {'doubleValue': coarseLat},
+        if (mapPublic && hasValidCoords) 'longitude': {'doubleValue': coarseLng},
+        if (!mapPublic) 'latitude': {'nullValue': null},
+        if (!mapPublic) 'longitude': {'nullValue': null},
         // Build 287: 별도 lastKnownLat/Lng 필드 — 로그아웃 후에도 위치 보존.
         // fetchMapUsers 가 latitude/longitude 가 (0,0) 일 때 이 값을 fallback.
         // Build 308: 캐시 fallback 도 인정 — 현재 GPS 가 (0,0) 이어도 가장
-        // 최근 유효 좌표로 lastKnown 을 항상 갱신. 가입된 모든 사용자가 다른
-        // 사용자 지도에 마지막 위치 기반으로 표시되도록.
-        if (hasLastKnown) 'lastKnownLatitude': {'doubleValue': lkLatOut},
-        if (hasLastKnown) 'lastKnownLongitude': {'doubleValue': lkLngOut},
+        // 최근 유효 좌표로 lastKnown 을 항상 갱신.
+        // Build 368: isMapPublic OFF 면 lastKnown 도 null 로 강제.
+        if (mapPublic && hasLastKnown) 'lastKnownLatitude': {'doubleValue': lkLatOut},
+        if (mapPublic && hasLastKnown) 'lastKnownLongitude': {'doubleValue': lkLngOut},
+        if (!mapPublic) 'lastKnownLatitude': {'nullValue': null},
+        if (!mapPublic) 'lastKnownLongitude': {'nullValue': null},
         'isUsernamePublic': {'booleanValue': _currentUser.isUsernamePublic},
         // Build 290 (P1): isMapPublic 을 isUsernamePublic 과 독립으로 저장.
         // 이전엔 같은 값 강제 → 사용자가 둘을 분리 제어 불가했음 (audit E2/E9).
@@ -7955,6 +7981,18 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         // premium 특급 배송 (premium 사용자 전용)
         'dailyPremiumExpressSentCount',
         'dailyPremiumExpressDateKey',
+        // Build 368 (PR-CC2 P0 #7): GPS 캐시 — 이전 사용자 위치가 다음 사용자
+        //   부팅 시 잔존 → _doSaveUserToFirestore 가 user B 의 lastKnown 을
+        //   user A 위치로 PATCH → 다른 회원 지도에 잘못된 위치 표시.
+        'lkLat_v1',
+        'lkLng_v1',
+        // 지도 마지막 카메라 위치/줌 — 사용자 사생활 (자주 가는 동네 노출)
+        'map_last_lat',
+        'map_last_lng',
+        'map_last_zoom',
+        // 튜토리얼 / 데모 seeding flag — 새 사용자가 튜토리얼 letter 못 받던 회귀
+        'tutorial_letter_placed',
+        'demo_letters_seeded_v1',
       ];
       for (final key in userScopedKeys) {
         await prefs.remove(key);
