@@ -2080,7 +2080,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                 SnackBar(
                   content: Text(
                     l.redemptionCodeCopied,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: AppColors.tealInk),
                   ),
                   backgroundColor: AppColors.teal,
                   behavior: SnackBarBehavior.floating,
