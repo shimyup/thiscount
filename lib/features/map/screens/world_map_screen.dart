@@ -2630,6 +2630,18 @@ class _MyLocationButtonState extends State<_MyLocationButton> {
         }
         return;
       }
+      // Build 371 (PR-CC5 P0 #21): GPS service-disabled 검사 — iOS 설정→
+      //   개인정보보호→위치서비스 OFF 케이스. 이전엔 silent catch 로 swallow
+      //   되어 사용자가 "왜 안 되지?" 혼란. SnackBar 로 명시 안내.
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.gpsAccuracyLow)),
+          );
+        }
+        return;
+      }
       final rawPos = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,

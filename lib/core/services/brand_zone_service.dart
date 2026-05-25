@@ -211,9 +211,13 @@ class BrandZoneService {
   }) async {
     if (!FirebaseConfig.kFirebaseEnabled) return null;
     if (brandId.isEmpty || content.isEmpty) return null;
+    // Build 371 (PR-CC5 P0 #19): durationDays 클램프 1-90 — rule 에서 ISO8601
+    //   string size 만 검증 가능, 실제 duration cap 은 클라이언트가 책임.
+    //   영구 zone (9999-12-31) 차단 — read cap 점유 amplification 방어.
+    final clampedDays = durationDays.clamp(1, 90);
     try {
       final now = DateTime.now().toUtc();
-      final expires = now.add(Duration(days: durationDays));
+      final expires = now.add(Duration(days: clampedDays));
       final fields = <String, dynamic>{
         'brandId': {'stringValue': brandId},
         'brandName': {'stringValue': brandName},
