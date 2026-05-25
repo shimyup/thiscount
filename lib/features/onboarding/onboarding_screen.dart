@@ -299,7 +299,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.teal,
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.tealInk,
               padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
             ),
             onPressed: () => Navigator.of(ctx).pop(true),

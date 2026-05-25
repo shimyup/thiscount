@@ -2933,6 +2933,9 @@ class _LetterReadScreenState extends State<LetterReadScreen>
     if (isNetwork) {
       return Image.network(
         imageUrl,
+        // Build 381 (PR-EE5 WCAG P1): semanticLabel — 스크린리더 사용자가
+        //   이미지 첨부 인지 가능. 본문 텍스트 외 별도 alt 없으므로 generic.
+        semanticLabel: 'letter image',
         width: double.infinity,
         fit: BoxFit.cover,
         cacheWidth: cacheW,
@@ -3234,6 +3237,8 @@ class _FullscreenImageViewerState extends State<_FullscreenImageViewer> {
                   child: isNetwork
                       ? Image.network(
                           widget.imageUrl,
+                          // Build 381 (PR-EE5 WCAG P1): 확대 보기 이미지 alt.
+                          semanticLabel: 'letter image (zoom)',
                           fit: BoxFit.contain,
                           // Build 304: 5x 줌까지 허용하면서 메모리 cap.
                           // 2048px 면 일반 폰 화면 (414×3=1242) 5x 확대 시

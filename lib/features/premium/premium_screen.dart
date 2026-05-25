@@ -1328,7 +1328,7 @@ class _GiftCardTile extends StatelessWidget {
                   },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.teal,
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.tealInk,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -1782,7 +1782,7 @@ class _InviteRewardTileState extends State<_InviteRewardTile> {
                         },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.teal,
-                    foregroundColor: Colors.white,
+                    foregroundColor: AppColors.tealInk,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
