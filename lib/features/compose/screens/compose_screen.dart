@@ -2682,7 +2682,7 @@ class _ComposeScreenState extends State<ComposeScreen>
       onTap: _applyLuckyLetter,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+        padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 16),
         decoration: BoxDecoration(
           color: AppColors.gold,
           borderRadius: BorderRadius.circular(20),
@@ -4115,7 +4115,7 @@ class _ComposeScreenState extends State<ComposeScreen>
       ),
       builder: (sheetCtx) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 18, 20, 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -4633,8 +4633,8 @@ class _ComposeScreenState extends State<ComposeScreen>
               bottom: MediaQuery.of(ctx).viewInsets.bottom,
             ),
             child: Container(
-              margin: const EdgeInsets.fromLTRB(12, 12, 12, 16),
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+              margin: const EdgeInsetsDirectional.fromSTEB(12, 12, 12, 16),
+              padding: const EdgeInsetsDirectional.fromSTEB(20, 20, 20, 20),
               decoration: BoxDecoration(
                 color: AppColors.bgCard,
                 borderRadius: BorderRadius.circular(24),
@@ -6286,7 +6286,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                 ),
                 // ── 헤더 ─────────────────────────────────────────────────
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 14, 12, 0),
+                  padding: const EdgeInsetsDirectional.fromSTEB(20, 14, 12, 0),
                   child: Row(
                     children: [
                       const Text('🎨', style: TextStyle(fontSize: 20)),
@@ -6346,7 +6346,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                 // ── 현재 조합 미리보기 ──────────────────────────────────────
                 if (_categoryEmojis.isNotEmpty)
                   Container(
-                    margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+                    margin: const EdgeInsetsDirectional.fromSTEB(16, 10, 16, 0),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 10,
@@ -6476,7 +6476,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                 ),
                 // ── 이모티콘 그리드 ───────────────────────────────────────
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                  padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
                   child: GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -6544,7 +6544,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                 ),
                 // ── 완료 버튼 ─────────────────────────────────────────────
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+                  padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 28),
                   child: SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -6644,7 +6644,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                     Navigator.pop(context);
                   },
                   child: Container(
-                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    margin: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 8),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: p.bgColor,
@@ -6683,7 +6683,7 @@ class _ComposeScreenState extends State<ComposeScreen>
               }),
               // PRO locked item
               Container(
-                margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                margin: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 24),
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: AppColors.bgCard,
@@ -6774,7 +6774,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                   Navigator.pop(context);
                 },
                 child: Container(
-                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  margin: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 8),
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: AppColors.bgCard,
@@ -6825,7 +6825,7 @@ class _ComposeScreenState extends State<ComposeScreen>
               );
             }),
             Container(
-              margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+              margin: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 24),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: AppColors.bgCard,
@@ -6903,7 +6903,7 @@ class _ComposeScreenState extends State<ComposeScreen>
         expressQuotaSuffix +
         rewardSuffix;
     return Container(
-      padding: EdgeInsets.fromLTRB(
+      padding: EdgeInsetsDirectional.fromSTEB(
         20,
         10,
         20,

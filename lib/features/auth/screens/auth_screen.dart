@@ -430,7 +430,7 @@ class _LoginTabState extends State<_LoginTab> {
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(widget.langCode);
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+      padding: const EdgeInsetsDirectional.fromSTEB(24, 20, 24, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1734,7 +1734,7 @@ class _SignupTabState extends State<_SignupTab> {
   Widget _buildSignupForm(BuildContext context) {
     final l10n = _l10n;
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+      padding: const EdgeInsetsDirectional.fromSTEB(24, 20, 24, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -2624,7 +2624,7 @@ class _SignupTabState extends State<_SignupTab> {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 0),
                 child: Row(
                   children: [
                     Expanded(
@@ -2907,7 +2907,7 @@ class _ConsentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 12, 12),
       decoration: BoxDecoration(
         color: checked
             ? AppColors.teal.withValues(alpha: 0.07)
@@ -3012,7 +3012,7 @@ class _AgreeAllCard extends StatelessWidget {
       onTap: () => onChanged?.call(!checked),
       borderRadius: BorderRadius.circular(14),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+        padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 14, 14),
         decoration: BoxDecoration(
           color: checked
               ? AppColors.teal.withValues(alpha: 0.12)

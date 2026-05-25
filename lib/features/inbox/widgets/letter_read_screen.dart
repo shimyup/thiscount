@@ -703,7 +703,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
     final l10n = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
     return Consumer<AppState>(
       builder: (ctx2, state, _) => Container(
-        padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+        padding: const EdgeInsetsDirectional.fromSTEB(20, 18, 20, 18),
         decoration: BoxDecoration(
           color: AppColors.bgCard,
           borderRadius: BorderRadius.circular(22),
@@ -1274,7 +1274,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   Widget _buildChatInviteCard(BuildContext ctx, Letter letter, AppState state) {
     final l10n = AppL10n.of(state.currentUser.languageCode);
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 18, 20, 18),
       decoration: BoxDecoration(
         color: AppColors.letter,
         borderRadius: BorderRadius.circular(22),
@@ -3477,7 +3477,7 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
       // Build 335 (PR-S7 시뮬레이션 P1 #9): 좌우 padding 14 → 6 으로 줄여
       //   barcode 폭 확장. iPhone 12 mini 기준 290px → 330px 로 ↑.
       //   POS 스캐너 인식률 향상. 높이도 72 → 88 로 증가 (1D 권장 ≥ 80px).
-      padding: const EdgeInsets.fromLTRB(6, 14, 6, 12),
+      padding: const EdgeInsetsDirectional.fromSTEB(6, 14, 6, 12),
       decoration: BoxDecoration(
         color: disabled
             ? AppColors.bgSurface
@@ -3499,7 +3499,7 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
           // Build 345 (PR-S16 5차 시뮬레이션 P1): disabled 헤더 일관성 — 항상
           //   표시하되 disabled 시 회색 톤 → 접근성 정보 손실 차단.
           Padding(
-            padding: const EdgeInsets.fromLTRB(8, 0, 8, 6),
+            padding: const EdgeInsetsDirectional.fromSTEB(8, 0, 8, 6),
             child: Row(
               children: [
                 const Text('🛒', style: TextStyle(fontSize: 13)),
