@@ -8346,6 +8346,24 @@ class AppL10n {
     'th': 'ไม่มี $title',
   });
 
+  /// Build 374 (PR-DD3 audit pickup P1-1): inbox prefs corruption skip 안내.
+  String inboxLoadSkippedNotice(int n) => _t({
+    'ko': '⚠️ 손상된 인박스 데이터 ${n}건이 복원되지 않았어요',
+    'en': '⚠️ $n inbox items could not be restored due to corruption',
+    'ja': '⚠️ 破損したインボックスデータ${n}件が復元できませんでした',
+    'zh': '⚠️ ${n}条收件箱数据因损坏未能恢复',
+    'fr': '⚠️ $n éléments de la boîte n\'ont pas pu être restaurés (corruption)',
+    'de': '⚠️ $n Inbox-Einträge konnten wegen Beschädigung nicht wiederhergestellt werden',
+    'es': '⚠️ $n elementos de la bandeja no pudieron restaurarse por corrupción',
+    'pt': '⚠️ $n itens da caixa não puderam ser restaurados por corrupção',
+    'ru': '⚠️ $n записей входящих не восстановлены из-за повреждения',
+    'tr': '⚠️ $n gelen kutusu öğesi bozulma nedeniyle geri yüklenemedi',
+    'ar': '⚠️ تعذر استعادة $n عنصر من الصندوق بسبب التلف',
+    'it': '⚠️ $n elementi della casella non sono stati ripristinati a causa di corruzione',
+    'hi': '⚠️ भ्रष्टाचार के कारण $n इनबॉक्स आइटम पुनर्स्थापित नहीं हो सके',
+    'th': '⚠️ ไม่สามารถกู้คืน $n รายการในกล่องเนื่องจากเสียหาย',
+  });
+
   String get inboxEmptyReceived => _t({
     'ko': '조건에 맞는 받은 혜택이 없어요',
     'en': 'No received rewards match the filter',

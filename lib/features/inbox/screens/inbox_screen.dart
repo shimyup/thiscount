@@ -585,7 +585,31 @@ class _InboxScreenState extends State<InboxScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _consumePendingDeepLink();
+      _surfaceInboxLoadSkippedIfAny();
     });
+  }
+
+  /// Build 374 (PR-DD3 audit pickup P1-1): inbox prefs corruption 으로 skip
+  /// 된 letter 수를 사용자에게 SnackBar 로 1회 안내. PR-V4 가 카운트만 노출
+  /// 했지만 UI surfacing 누락 → 사용자가 "왜 5건 사라졌지" 알 길 없음.
+  void _surfaceInboxLoadSkippedIfAny() {
+    final state = context.read<AppState>();
+    final skipped = state.lastInboxLoadSkipped;
+    if (skipped <= 0) return;
+    state.acknowledgeInboxLoadSkipped();
+    if (!mounted) return;
+    final l10n = AppL10n.of(state.currentUser.languageCode);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          l10n.inboxLoadSkippedNotice(skipped),
+          style: const TextStyle(color: Colors.white),
+        ),
+        backgroundColor: AppColors.bgCard,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+      ),
+    );
   }
 
   void _consumePendingDeepLink() {

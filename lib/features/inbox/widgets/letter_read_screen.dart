@@ -1969,7 +1969,10 @@ class _LetterReadScreenState extends State<LetterReadScreen>
           icon: Icons.reply_rounded,
           color: AppColors.textPrimary,
           label: l10n.letterReadReply,
-          primary: true,
+          // Build 374 (PR-DD3 P1-5): canReply=false 면 primary 도 false 로
+          //   토글 — 이전엔 acceptsReplies=false 인 brand letter 에 답장 버튼
+          //   이 시각적으로 active 인데 탭 무반응. 사용자 혼란 차단.
+          primary: canReply,
           onTap: canReply
               ? () {
                   // Build 324: Free 면 답장도 발송이라 차단 — upsell sheet.

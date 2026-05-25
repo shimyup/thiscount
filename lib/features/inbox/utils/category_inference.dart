@@ -41,7 +41,10 @@ const Map<String, List<String>> categoryKeywords = {
     'watch',
   ],
   'it': [
-    'IT', 'it서비스', '앱', '소프트웨어', 'SaaS', '구독서비스',
+    // Build 374 (PR-DD3 audit pickup P2-1): 'IT' 단독 키워드 제거 — 영어
+    //   일반 단어 "it" 와 case-folding 충돌 → "If it's good" 같은 letter 가
+    //   IT 카테고리로 false-classify. 'it서비스' / 'IT 서비스' compound 만 유지.
+    'IT 서비스', 'IT서비스', 'it서비스', '앱', '소프트웨어', 'SaaS', '구독서비스',
     '컴퓨터', '노트북', '맥북', '데스크탑', '스마트폰', '핸드폰',
     '갤럭시', '아이폰', '아이패드', '태블릿', '이어폰', '에어팟',
     '키보드', '마우스', '모니터', '게임', '구글', '애플', '마이크로소프트',
