@@ -1,6 +1,10 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_theme.dart';
@@ -352,6 +356,54 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       },
     );
+  }
+
+  // Build 385 (PR-FF4 audit C7): GDPR Art.20 — 사용자 데이터 portability export.
+  // currentUser + inbox + sent + consents 를 JSON 으로 share intent.
+  // share_plus 사용 — iOS/Android 양쪽 system share sheet 노출.
+  Future<void> _exportUserData(BuildContext ctx) async {
+    final state = ctx.read<AppState>();
+    final l = AppL10n.of(state.currentUser.languageCode);
+    try {
+      final u = state.currentUser;
+      final data = <String, dynamic>{
+        'exportedAt': DateTime.now().toUtc().toIso8601String(),
+        'app': 'Thiscount',
+        'version': '1.0.0+385',
+        'user': {
+          'id': u.id,
+          'username': u.username,
+          'country': u.country,
+          'countryFlag': u.countryFlag,
+          'languageCode': u.languageCode,
+          'email': u.email,
+          'isPremium': u.isPremium,
+          'isBrand': u.isBrand,
+          'isMapPublic': u.isMapPublic,
+          'isUsernamePublic': u.isUsernamePublic,
+          'joinedAt': u.joinedAt.toUtc().toIso8601String(),
+          'latitude': u.latitude,
+          'longitude': u.longitude,
+        },
+        'activityScore': u.activityScore.toJson(),
+        'inbox': state.inbox.map((l) => l.toJson()).toList(),
+        'sent': state.sent.map((l) => l.toJson()).toList(),
+      };
+      final json = const JsonEncoder.withIndent('  ').convert(data);
+      final dir = await getTemporaryDirectory();
+      final ts = DateTime.now().millisecondsSinceEpoch;
+      final file = File('${dir.path}/thiscount_data_$ts.json');
+      await file.writeAsString(json);
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        subject: 'Thiscount Data Export',
+      );
+    } catch (e) {
+      if (!ctx.mounted) return;
+      ScaffoldMessenger.of(ctx).showSnackBar(
+        SnackBar(content: Text('${l.settingsExportFailed}: $e')),
+      );
+    }
   }
 
   // ── 로그아웃 ───────────────────────────────────────────────────────────────
@@ -1041,6 +1093,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       label: l.settingsLogout,
                       color: AppColors.textSecondary,
                       onTap: () => _confirmLogout(ctx),
+                    ),
+                    // Build 385 (PR-FF4 audit C7): GDPR Art.20 portability —
+                    //   사용자가 자기 데이터 download. inbox / sent / 프로필 /
+                    //   consents 를 JSON 으로 share intent.
+                    _tile(
+                      icon: Icons.download_rounded,
+                      label: l.settingsExportData,
+                      color: AppColors.textSecondary,
+                      onTap: () => _exportUserData(ctx),
                     ),
                     _tile(
                       icon: Icons.delete_forever_rounded,

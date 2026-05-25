@@ -2590,6 +2590,41 @@ class AppL10n {
     'hi': 'खाता हटाएं',
     'th': 'ลบบัญชี',
   });
+
+  /// Build 385 (PR-FF4 audit C7): GDPR Art.20 portability export.
+  String get settingsExportData => _t({
+    'ko': '내 데이터 내보내기 (JSON)',
+    'en': 'Export My Data (JSON)',
+    'ja': 'マイデータをエクスポート (JSON)',
+    'zh': '导出我的数据 (JSON)',
+    'fr': 'Exporter mes données (JSON)',
+    'de': 'Meine Daten exportieren (JSON)',
+    'es': 'Exportar mis datos (JSON)',
+    'pt': 'Exportar meus dados (JSON)',
+    'ru': 'Экспорт моих данных (JSON)',
+    'tr': 'Verilerimi dışa aktar (JSON)',
+    'ar': 'تصدير بياناتي (JSON)',
+    'it': 'Esporta i miei dati (JSON)',
+    'hi': 'मेरा डेटा निर्यात करें (JSON)',
+    'th': 'ส่งออกข้อมูลของฉัน (JSON)',
+  });
+
+  String get settingsExportFailed => _t({
+    'ko': '데이터 내보내기 실패',
+    'en': 'Data export failed',
+    'ja': 'データのエクスポートに失敗',
+    'zh': '数据导出失败',
+    'fr': 'Échec de l\'exportation des données',
+    'de': 'Datenexport fehlgeschlagen',
+    'es': 'Error al exportar datos',
+    'pt': 'Falha ao exportar dados',
+    'ru': 'Не удалось экспортировать данные',
+    'tr': 'Veri dışa aktarımı başarısız',
+    'ar': 'فشل تصدير البيانات',
+    'it': 'Esportazione dati fallita',
+    'hi': 'डेटा निर्यात विफल',
+    'th': 'การส่งออกข้อมูลล้มเหลว',
+  });
   String get settingsWithdrawConfirm => _t({
     'ko': '정말 탈퇴하시겠어요?\n모든 데이터가 삭제됩니다.',
     'en': 'Are you sure?\nAll data will be deleted.',
