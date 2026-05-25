@@ -896,11 +896,15 @@ class _ComposeScreenState extends State<ComposeScreen>
       return;
     }
     setState(() => _isSending = true);
+    // Build 364 (PR-BB3): try/finally 로 _isSending 항상 reset.
+    //   이전엔 success 후 Navigator.pop 만 호출, error 경로 일부에서만 reset
+    //   → dialog stack 등에서 pop 실패 시 버튼 영구 disable 회귀.
+    String? createdId;
     try {
       // Build 360 (PR-AA1): zone 1개 = 코드 1개 (zone 으로 발급되는 모든 letter
       //   가 동일 코드 공유 → 매장 POS 1회 등록). 코드 토글이 ON 이면 생성.
       final zoneCode = _attachRedemptionCode ? RedemptionCode.generate() : null;
-      final id = await BrandZoneService.instance.createZone(
+      createdId = await BrandZoneService.instance.createZone(
         brandId: user.id,
         brandName: user.username,
         center: LatLng(user.latitude, user.longitude),
@@ -912,21 +916,20 @@ class _ComposeScreenState extends State<ComposeScreen>
         maxRedeems: maxR,
         redemptionCode: zoneCode,
       );
-      if (!mounted) return;
-      if (id == null) {
-        _showError(l10n.zoneCampaignSubmitError);
-        setState(() => _isSending = false);
-        return;
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.zoneCampaignSubmitOk)),
-      );
-      Navigator.of(context).pop();
     } catch (_) {
-      if (!mounted) return;
-      _showError(l10n.zoneCampaignSubmitError);
-      setState(() => _isSending = false);
+      createdId = null;
+    } finally {
+      if (mounted) setState(() => _isSending = false);
     }
+    if (!mounted) return;
+    if (createdId == null) {
+      _showError(l10n.zoneCampaignSubmitError);
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.zoneCampaignSubmitOk)),
+    );
+    Navigator.of(context).pop();
   }
 
   @override
