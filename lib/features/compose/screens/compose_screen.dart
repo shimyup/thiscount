@@ -1335,27 +1335,39 @@ class _ComposeScreenState extends State<ComposeScreen>
       await Future.delayed(const Duration(milliseconds: 500));
       await _refreshCurrentLocationIfAvailable(state);
 
-      final totalSent = await state.sendBulkLetter(
-        content: content,
-        targets: _bulkTargets,
-        sendCount: _isBulkRandom ? _sendPerCountry : _sendPerCountry,
-        randomMode: _isBulkRandom,
-        socialLink: _attachSocial && _socialLinkController.text.isNotEmpty
-            ? _socialLinkController.text.trim()
-            : null,
-        imageUrl: _imageFilePath,
-        paperStyle: _paperStyle,
-        fontStyle: _fontStyle,
-        brandUniquePerUser: _brandUniquePerUser,
-        brandAutoExpireHours: _brandAutoExpireHours,
-        category: _brandCategory,
-        acceptsReplies: _brandAcceptsReplies,
-        redemptionInfo: _redemptionInfoController.text.trim().isEmpty
-            ? null
-            : _redemptionInfoController.text.trim(),
-        redemptionExpiresAt: _computeRedemptionExpiresAt(),
-        attachRedemptionCode: _attachRedemptionCode,
-      );
+      // Build 373 (PR-DD1 P0 잔여): bulk send try/catch — throw 시 _isSending
+      //   영구 락 + dispose draft 손실 회귀 차단 (단건은 PR-CC5 에서 처리됨).
+      int totalSent = 0;
+      try {
+        totalSent = await state.sendBulkLetter(
+          content: content,
+          targets: _bulkTargets,
+          sendCount: _isBulkRandom ? _sendPerCountry : _sendPerCountry,
+          randomMode: _isBulkRandom,
+          socialLink: _attachSocial && _socialLinkController.text.isNotEmpty
+              ? _socialLinkController.text.trim()
+              : null,
+          imageUrl: _imageFilePath,
+          paperStyle: _paperStyle,
+          fontStyle: _fontStyle,
+          brandUniquePerUser: _brandUniquePerUser,
+          brandAutoExpireHours: _brandAutoExpireHours,
+          category: _brandCategory,
+          acceptsReplies: _brandAcceptsReplies,
+          redemptionInfo: _redemptionInfoController.text.trim().isEmpty
+              ? null
+              : _redemptionInfoController.text.trim(),
+          redemptionExpiresAt: _computeRedemptionExpiresAt(),
+          attachRedemptionCode: _attachRedemptionCode,
+        );
+      } catch (_) {
+        if (mounted) {
+          setState(() => _isSending = false);
+          _sendController.reset();
+          _showError(l10n.composeNoNetwork);
+        }
+        return;
+      }
 
       if (mounted) {
         _clearDraft();
@@ -6802,8 +6814,15 @@ class _ComposeScreenState extends State<ComposeScreen>
 
   Widget _buildSendButton(AppState state) {
     final l10n = AppL10n.of(state.currentUser.languageCode);
+    // Build 373 (PR-DD1 P1): canSend 게이트 강화 — 일반 letter 는 20자 필요.
+    //   이전엔 `_charCount >= 1` 만 → 사용자가 5자 입력 → 버튼 활성 → 누르면
+    //   composeMinLengthError SnackBar 매번 → friction. coupon 토글 분기
+    //   (_attachRedemptionCode) 는 매장 코드 발급 letter 라 1자 OK 유지.
+    //   Brand 일반 letter 도 20자 enforce — UI 일관성.
+    final isReplyOrCoupon = _isReply || _attachRedemptionCode;
+    final minChars = isReplyOrCoupon ? 1 : 20;
     final canSend =
-        !_isSending && _charCount >= 1 && state.hasRemainingDailyQuota;
+        !_isSending && _charCount >= minChars && state.hasRemainingDailyQuota;
     final expressQuotaSuffix =
         (!_isReply &&
             _isExpressMode &&
