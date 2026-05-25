@@ -1259,7 +1259,12 @@ class _ComposeScreenState extends State<ComposeScreen>
       await Future.delayed(const Duration(milliseconds: 500));
       await _refreshCurrentLocationIfAvailable(state);
 
+      // Build 375 (PR-DD5 P0 잔여): express+bulk for loop try/catch.
+      //   sendBrandExpressBlast throw 시 _isSending 영구 락 + dispose draft 손실.
+      //   for 본체 await 가 throw 하면 outer for 도 함께 break — totalSent 만큼만
+      //   정상 발송됨.
       int totalSent = 0;
+      try {
       if (_isBulkRandom) {
         // 랜덤 국가 특송: 매 편지마다 랜덤 국가 선택
         for (int i = 0; i < _sendPerCountry; i++) {
@@ -1325,6 +1330,14 @@ class _ComposeScreenState extends State<ComposeScreen>
             preciseLng: preciseLng,
           );
         }
+      }
+      } catch (_) {
+        if (mounted) {
+          setState(() => _isSending = false);
+          _sendController.reset();
+          _showError(l10n.composeNoNetwork);
+        }
+        return;
       }
       if (mounted) {
         _clearDraft();
