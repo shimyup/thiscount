@@ -52,11 +52,9 @@ class _SplashScreenState extends State<SplashScreen>
     final onboardingDone = prefs.getBool('onboarding_v2_complete') ?? false;
     if (!mounted) return;
 
-    if (!onboardingDone && kDebugMode) {
-      await prefs.setBool('onboarding_v2_complete', true);
-      Navigator.of(context).pushReplacementNamed('/auth');
-      return;
-    }
+    // Build 368 (PR-CC3 P0 #16): kDebugMode 분기 제거 — 이전엔 debug 빌드가
+    //   onboarding 흐름을 항상 force-skip 해서 release 와 동작 불일치.
+    //   debug/release 흐름 일치화 → 같은 시나리오 검증 가능.
     if (!onboardingDone) {
       // Build 284: 첫 방문 → 인포그래픽 투어 → 기존 onboarding 으로.
       // Build 298 (P0 i18n audit): tour 콘텐츠가 한국어 only — 비-ko 단말은

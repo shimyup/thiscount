@@ -1597,7 +1597,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     //     -1 (sentinel) → 현재 startRedemption 진행 중. UI 는 false 로 처리.
     //     미래값       → 즉시 false (pending 아님). consumeElapsed 가 정리.
     if (startedMs <= 0) return false;
-    final elapsed = DateTime.now().millisecondsSinceEpoch - startedMs;
+    // Build 368 (PR-CC3 P0 #15): DateTime.now() → SecureClock.now() — 시계
+    //   되돌리기로 TTL 무한 연장 (코드 재노출 무제한) 우회 차단.
+    final elapsed = SecureClock.now().millisecondsSinceEpoch - startedMs;
     if (elapsed < 0) return false;
     if (elapsed >= _pendingRedemptionTtl.inMilliseconds) return false;
     return true;
@@ -1637,8 +1639,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // Build 342 (PR-S13 3차 시뮬레이션 P0): sentinel = -now (negative timestamp)
     //   — consumeElapsedPendingRedemptions 가 abs(value) > 1분 stale lock 을
     //   자동 cleanup 가능. 이전 -1 fixed 는 stuck 시 영구 잔존.
+    // Build 368 (PR-CC3 P0 #15): SecureClock 통일 — 시계 우회 차단.
     _pendingRedemptionStartedAt[letterId] =
-        -DateTime.now().millisecondsSinceEpoch;
+        -SecureClock.now().millisecondsSinceEpoch;
     // Build 334 (PR-S6 시뮬레이션 P0 #4): IDOR 가드 — letter 가 본인 _inbox 에
     //   실제 픽업되어 있어야 reveal 진행. 이전엔 letterId 추측만으로 Firestore
     //   `revealedCount` increment 호출 가능 → 남의 캠페인 카운트 조작.
@@ -1665,7 +1668,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     //   의 letter.codeRevealedAt restore 분기는 dead code → 제거.
     //   다중 디바이스 sync 는 Phase 2 (proper auth + per-user reveal ledger) 로
     //   deferred. 본인 디바이스는 _pendingRedemptionStartedAt prefs 만 신뢰.
-    final now = DateTime.now();
+    // Build 368 (PR-CC3 P0 #15): SecureClock 통일 — 시계 우회 차단.
+    final now = SecureClock.now();
     _pendingRedemptionStartedAt[letterId] = now.millisecondsSinceEpoch;
     // Build 331 (PR-S1): inbox letter 의 codeRevealedAt set → UI 변별 +
     //   Brand 4단계 funnel (코드 노출 카운트) Firestore 동기화.
@@ -1716,7 +1720,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// 1h 경과한 pending 들을 자동 markLetterRedeemed 호출 + map 에서 제거.
   ///   화면 진입 시 / app resume 시 / pickUp 시 호출.
   Future<void> consumeElapsedPendingRedemptions() async {
-    final now = DateTime.now().millisecondsSinceEpoch;
+    // Build 368 (PR-CC3 P0 #15): SecureClock 통일 — 시계 +1년 우회 시
+    //   자동 markRedeemed 트리거 차단.
+    final now = SecureClock.now().millisecondsSinceEpoch;
     final ttlMs = _pendingRedemptionTtl.inMilliseconds;
     final expired = <String>[];
     // Build 342 (PR-S13 3차 시뮬레이션 P0): stale sentinel (-now) cleanup —
@@ -7044,6 +7050,18 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       _inbox.add(letter.clone());
       _hasNearbyAlert = true;
       _currentUser.activityScore.receivedCount++;
+
+      // Build 368 (PR-CC3 P0 #14): zone redeemedCount Firestore PATCH.
+      //   이전엔 이 호출이 없어 maxRedeems 무력화 → 100 한정 zone 도 무제한
+      //   발급. Brand 비즈니스 손실 (수량 광고 의도 깨짐).
+      //   fire-and-forget — UI 차단 안 함. rule 이 +0/+1 delta 만 허용 +
+      //   isAllowedBrandZoneUpdate (PR-BB3) 가 화이트리스트.
+      unawaited(FirestoreService.incrementField(
+        path: 'brand_zones/${zone.id}',
+        field: 'redeemedCount',
+      ));
+      // in-memory cache 도 동기화 — 다음 isActive 검증이 정확.
+      BrandZoneService.instance.bumpRedeemedCount(zone.id);
 
       // Build 292 (P1): persistence 우선. 알림 / notifyListeners 전에 prefs
       // save → 사용자가 알림 받은 직후 앱 강제 종료해도 letter 가 인박스에
