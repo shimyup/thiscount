@@ -1694,7 +1694,7 @@ class AppL10n {
       case 'pt':
         return "Cupom escrito $label às $hour";
       case 'ru':
-        return 'Купон написано $label в $hour:00';
+        return 'Купон создан $label в $hour:00';
       case 'tr':
         return '$label saat $hour\'da yazıldı';
       case 'ar':
@@ -2354,7 +2354,7 @@ class AppL10n {
     'pt':
         '"Chegou um cupom pra mim hoje?"\nUm lembrete sutil às 8h para abrir sua caixa.',
     'ru':
-        '"Пришло ли мне сегодня купон?"\nЛёгкое напоминание в 8 утра открыть почтовый ящик.',
+        '"Пришёл ли мне сегодня купон?"\nЛёгкое напоминание в 8 утра открыть инбокс.',
     'tr':
         '"Bugün bana kupon geldi mi?"\nSabah 8\'de posta kutunu açman için sakin bir hatırlatma.',
     'ar':
@@ -7079,7 +7079,7 @@ class AppL10n {
     'de': 'Belohnungen pro Land',
     'es': 'Recompensas por país',
     'pt': 'Recompensas por país',
-    'ru': 'Писем на страну',
+    'ru': 'Купонов на страну',
     'tr': 'Ülke başına ödül',
     'ar': 'مكافآت لكل دولة',
     'it': 'Ricompense per paese',
@@ -7882,7 +7882,7 @@ class AppL10n {
     'tr': 'Sonrakini okumak için $remaining ödül daha gönderin.',
     'ar': 'أرسل $remaining مكافأة أخرى لقراءة التالية.',
     'it':
-        'Invia ancora $remaining letter${remaining == 1 ? "a" : "e"} per leggere la prossima.',
+        'Invia ancora $remaining coupon per leggere il prossimo.',
     'hi': 'अगला पढ़ने के लिए $remaining और पुरस्कार भेजें।',
     'th': 'ส่งรางวัลอีก $remaining ฉบับเพื่ออ่านฉบับต่อไป',
   });
@@ -8403,7 +8403,7 @@ class AppL10n {
       case 'pt':
         return 'Ainda não há cupons de $filterName';
       case 'ru':
-        return 'Писем категории «$filterName» пока нет';
+        return 'Купонов категории «$filterName» пока нет';
       case 'tr':
         return 'Henüz $filterName kuponu yok';
       case 'ar':
@@ -11233,7 +11233,7 @@ class AppL10n {
     'de': 'Tägliche Belohnungen',
     'es': 'Recompensas diarias',
     'pt': 'Recompensas diárias',
-    'ru': 'Писем/день',
+    'ru': 'Купонов/день',
     'tr': 'Günlük ödül',
     'ar': 'مكافآت يومية',
     'it': 'Ricompense/giorno',
@@ -11250,7 +11250,7 @@ class AppL10n {
     'de': 'Monatliche Belohnungen',
     'es': 'Recompensas mensuales',
     'pt': 'Recompensas mensais',
-    'ru': 'Писем/месяц',
+    'ru': 'Купонов/месяц',
     'tr': 'Aylık ödül',
     'ar': 'مكافآت شهرية',
     'it': 'Ricompense/mese',
