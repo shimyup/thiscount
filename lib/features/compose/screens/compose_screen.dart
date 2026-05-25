@@ -1442,40 +1442,50 @@ class _ComposeScreenState extends State<ComposeScreen>
       }
     }
 
-    if (_isReply) {
-      sent = await state.replyToLetter(
-        originalLetterId: widget.replyToId!,
-        content: content,
-      );
-    } else {
-      sent = await state.sendLetter(
-        content: content,
-        destinationCountry: _selectedCountry,
-        destinationFlag: _selectedFlag,
-        destLat: _destLat,
-        destLng: _destLng,
-        // compose에서 이미 선택된 도시를 그대로 넘겨 재랜덤을 방지
-        destCityName: _selectedCity.isNotEmpty ? _selectedCity : null,
-        // Build 317: ExactDrop 발송 시 destCityName 미정이어도 핀 좌표 보존.
-        useExactCoordinates: _isExactDropped,
-        deliveryEmoji: _deliveryEmojiEncoded,
-        socialLink: _attachSocial && _socialLinkController.text.isNotEmpty
-            ? _socialLinkController.text.trim()
-            : null,
-        paperStyle: _paperStyle,
-        fontStyle: _fontStyle,
-        imageUrl: _imageFilePath,
-        isExpress: useExpressSingle,
-        brandUniquePerUser: _brandUniquePerUser,
-        brandAutoExpireHours: _brandAutoExpireHours,
-        category: _brandCategory,
-        acceptsReplies: _brandAcceptsReplies,
-        redemptionInfo: _redemptionInfoController.text.trim().isEmpty
-            ? null
-            : _redemptionInfoController.text.trim(),
-        redemptionExpiresAt: _computeRedemptionExpiresAt(),
-        attachRedemptionCode: _attachRedemptionCode,
-      );
+    // Build 371 (PR-CC5 P0 #20): try/catch — send await 중 throw 시 _isSending
+    //   영구 락 + dispose draft 손실 회귀 차단.
+    try {
+      if (_isReply) {
+        sent = await state.replyToLetter(
+          originalLetterId: widget.replyToId!,
+          content: content,
+        );
+      } else {
+        sent = await state.sendLetter(
+          content: content,
+          destinationCountry: _selectedCountry,
+          destinationFlag: _selectedFlag,
+          destLat: _destLat,
+          destLng: _destLng,
+          // compose에서 이미 선택된 도시를 그대로 넘겨 재랜덤을 방지
+          destCityName: _selectedCity.isNotEmpty ? _selectedCity : null,
+          // Build 317: ExactDrop 발송 시 destCityName 미정이어도 핀 좌표 보존.
+          useExactCoordinates: _isExactDropped,
+          deliveryEmoji: _deliveryEmojiEncoded,
+          socialLink: _attachSocial && _socialLinkController.text.isNotEmpty
+              ? _socialLinkController.text.trim()
+              : null,
+          paperStyle: _paperStyle,
+          fontStyle: _fontStyle,
+          imageUrl: _imageFilePath,
+          isExpress: useExpressSingle,
+          brandUniquePerUser: _brandUniquePerUser,
+          brandAutoExpireHours: _brandAutoExpireHours,
+          category: _brandCategory,
+          acceptsReplies: _brandAcceptsReplies,
+          redemptionInfo: _redemptionInfoController.text.trim().isEmpty
+              ? null
+              : _redemptionInfoController.text.trim(),
+          redemptionExpiresAt: _computeRedemptionExpiresAt(),
+          attachRedemptionCode: _attachRedemptionCode,
+        );
+      }
+    } catch (_) {
+      sent = false;
+      if (mounted) {
+        setState(() => _isSending = false);
+        _sendController.reset();
+      }
     }
 
     if (!sent) {
