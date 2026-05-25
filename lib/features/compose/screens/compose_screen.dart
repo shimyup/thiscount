@@ -486,6 +486,20 @@ class _ComposeScreenState extends State<ComposeScreen>
     // Русский
     'блядь', 'сука', 'хуй', 'пизда', 'ебать', 'мудак', 'дерьмо',
     'говно', 'пиздец', 'заткнись',
+    // Build 375 (PR-DD4 audit msg P1-8): AR/TR/IT/HI/TH 추가 — PR-AA2 가
+    //   user-facing 14언어 정리했으나 banned word 사전이 9언어만 → 5언어
+    //   사용자 욕설 leak.
+    // العربية
+    'كس', 'زب', 'شرموطة', 'كلب', 'لعنة', 'احمق', 'قحبة', 'منيك',
+    // Türkçe
+    'siktir', 'amına', 'orospu', 'piç', 'aptal', 'göt', 'yarrak', 'kahpe',
+    // Italiano
+    'cazzo', 'merda', 'vaffanculo', 'stronzo', 'coglione', 'puttana', 'fanculo',
+    'figa', 'troia',
+    // हिन्दी
+    'मादरचोद', 'भोसडी', 'चूतिया', 'गांडू', 'रंडी', 'हरामी', 'कमीना',
+    // ภาษาไทย
+    'ควย', 'หี', 'แม่ง', 'เหี้ย', 'สัส', 'อีดอก', 'มึง',
     // Spam patterns (multilingual)
     '카지노', '도박', '대출', '비트코인 투자', '클릭하세요',
     'casino', 'gambling', 'bitcoin invest', 'click here', 'free money',
@@ -1174,13 +1188,25 @@ class _ComposeScreenState extends State<ComposeScreen>
     // Build 254: 네트워크 연결 사전 체크. 비행기 모드/오프라인 상태에서
     // 발송 시도해도 로컬엔 추가되지만 서버 동기화 안 돼 다른 사용자가 못 봄.
     // 사용자에게 명확히 안내 후 진행 의사 확인.
+    // Build 375 (PR-DD4 audit msg P1-5): IPv6 / corporate proxy 환경에서
+    //   thiscount.io DNS lookup false-positive 차단. 2단계 fallback —
+    //   thiscount.io 실패 시 google.com 으로 재시도. 둘 다 실패해야 offline.
+    //   sendLetter 자체의 throw 는 PR-CC5 try/catch 가 잡으므로 DNS check
+    //   는 fast-fail UX 보조만.
+    bool online = false;
     try {
       final lookup = await InternetAddress.lookup('thiscount.io')
           .timeout(const Duration(seconds: 3));
-      if (lookup.isEmpty || lookup.first.rawAddress.isEmpty) {
-        throw const SocketException('No DNS');
-      }
-    } catch (_) {
+      online = lookup.isNotEmpty && lookup.first.rawAddress.isNotEmpty;
+    } catch (_) {}
+    if (!online) {
+      try {
+        final lookup = await InternetAddress.lookup('google.com')
+            .timeout(const Duration(seconds: 3));
+        online = lookup.isNotEmpty && lookup.first.rawAddress.isNotEmpty;
+      } catch (_) {}
+    }
+    if (!online) {
       _showError(l10n.composeNoNetwork);
       return;
     }
