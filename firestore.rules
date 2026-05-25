@@ -178,9 +178,12 @@ service cloud.firestore {
 
       // 회원 탈퇴는 클라이언트가 직접 호출. owner check 불가하지만 1회 호출
       // 후 prefs 가 비워지고 secure storage 도 wipe 되므로 abuse 표면 작음.
-      // (delete 화이트리스트 강화는 별도 PR — pending_gdpr_deletions 큐 마이그
-      // 레이션 동시 필요.)
-      allow delete: if isSignedIn();
+      // Build 384 (PR-FF3 audit A14): doc id 형식 검증 추가 — random
+      //   UUID/hex/base32 형식 (16-64 char) 만 통과. 일반 attacker 가
+      //   sequential id enumerate 로 삭제 시도 차단. 진짜 owner check 는
+      //   Phase 2 Cloud Function 이전 deferred.
+      allow delete: if isSignedIn()
+                  && userId.matches('^[a-zA-Z0-9_-]{16,64}$');
     }
 
     // ── letters 컬렉션 ────────────────────────────────────────────────
