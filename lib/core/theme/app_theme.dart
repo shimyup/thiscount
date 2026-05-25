@@ -99,6 +99,10 @@ class AppColors {
   static const Color goldDark = Color(0xFFB89500);
   static const Color teal = Color(0xFFB8FF5C);
   static const Color tealDark = Color(0xFF7BC93C);
+  // Build 380 (PR-EE4 WCAG audit P0 #18): teal (#B8FF5C lime) 위에 흰
+  //   텍스트는 1.9:1 (fail). 어두운 ink 사용 시 ~14:1 (pass). 사용 site 는
+  //   SnackBar content / Button foregroundColor / Text style.
+  static const Color tealInk = Color(0xFF0A1A00);
 
   // Text
   static const Color textPrimary = Color(0xFFFFFFFF);

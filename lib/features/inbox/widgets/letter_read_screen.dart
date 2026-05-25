@@ -2517,7 +2517,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                       SnackBar(
                         content: Text(
                           l10n.letterReadRedemptionStartedToast,
-                          style: const TextStyle(color: Colors.white),
+                          style: const TextStyle(color: AppColors.tealInk),
                         ),
                         backgroundColor: AppColors.teal,
                         behavior: SnackBarBehavior.floating,
@@ -2742,7 +2742,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                     SnackBar(
                       content: Text(
                         l10n.letterReadCouponCopied,
-                        style: const TextStyle(color: Colors.white),
+                        style: const TextStyle(color: AppColors.tealInk),
                       ),
                       backgroundColor: AppColors.teal,
                       behavior: SnackBarBehavior.floating,
@@ -3550,7 +3550,7 @@ class _RedemptionCodePanelState extends State<_RedemptionCodePanel> {
                       SnackBar(
                         content: Text(
                           widget.l10n.redemptionCodeCopied,
-                          style: const TextStyle(color: Colors.white),
+                          style: const TextStyle(color: AppColors.tealInk),
                         ),
                         backgroundColor: AppColors.teal,
                         behavior: SnackBarBehavior.floating,
