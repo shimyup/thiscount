@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:geolocator/geolocator.dart';
+import '../../../core/services/secure_location.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/sms_service.dart';
@@ -271,11 +272,13 @@ class _AuthScreenState extends State<AuthScreen>
       final perm = await Geolocator.checkPermission();
       if (perm == LocationPermission.always ||
           perm == LocationPermission.whileInUse) {
-        pos = await Geolocator.getCurrentPosition(
+        final rawPos = await Geolocator.getCurrentPosition(
           locationSettings: const LocationSettings(
             accuracy: LocationAccuracy.low,
           ),
         ).timeout(const Duration(seconds: 5));
+        // Build 370 (PR-CC4 P0 #9): GPS spoofing 가드.
+        pos = SecureLocation.guard(rawPos);
       }
     } catch (_) {}
 

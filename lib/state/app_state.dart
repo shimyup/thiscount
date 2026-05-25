@@ -1085,8 +1085,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // =false 사용 → 두 번째 호출은 ALREADY_EXISTS 로 fail → 한쪽만 trial 부여.
     final claimedAtNow = DateTime.now();
     if (FirebaseConfig.kFirebaseEnabled) {
+      // Build 370 (PR-CC4 P0 #10 stop-gap): createdBy = Firebase anonymous uid
+      //   추가. victim hash griefing 의 forensic visibility — admin REST 로
+      //   fraudulent claim 식별/정리. Cloud Function 마이그레이션까지 임시.
+      final myUid = FirebaseAuthService.currentUid ?? '';
       final result = await FirestoreService.createDocumentIfAbsent(claimPath, {
         'claimedAt': claimedAtNow.toUtc().toIso8601String(),
+        'createdBy': myUid,
       });
       if (result == CreateDocumentResult.alreadyExists) {
         // 다른 디바이스 가 먼저 claim — re-grant 차단.

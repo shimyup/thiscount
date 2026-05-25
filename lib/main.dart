@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
+import 'core/services/secure_location.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/time_theme.dart';
 import 'core/data/country_cities.dart';
@@ -40,9 +41,12 @@ Future<Position?> _getLocation() async {
         permission == LocationPermission.deniedForever) {
       return null;
     }
-    return await Geolocator.getCurrentPosition(
+    final pos = await Geolocator.getCurrentPosition(
       locationSettings: const LocationSettings(accuracy: LocationAccuracy.low),
     ).timeout(const Duration(seconds: 5));
+    // Build 370 (PR-CC4 P0 #9): GPS spoofing 가드 — release 빌드에서 mocked
+    //   position 반환 시 null. Brand zone 위조 + 위장 위치 표시 차단.
+    return SecureLocation.guard(pos);
   } catch (_) {
     return null;
   }
