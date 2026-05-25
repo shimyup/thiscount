@@ -521,11 +521,14 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   const SizedBox(height: 24),
                 ],
 
-                // 선물권 섹션
-                _SectionTitle(l.premiumSectionGift),
-                const SizedBox(height: 12),
-                _GiftCardTile(purchase: purchase),
-                const SizedBox(height: 24),
+                // Build 373 (PR-DD2 P0 #2 잔여): 선물권 섹션 hide.
+                //   PR-CC1 에서 buyGiftCard 자체는 차단했지만 UI 가 노출되면
+                //   사용자가 클릭 → "준비 중" 에러 → 혼란. 서버 redemption 흐름
+                //   (Firestore gift_codes + redeem UI) 완성될 때까지 섹션 비활성.
+                // _SectionTitle(l.premiumSectionGift),
+                // const SizedBox(height: 12),
+                // _GiftCardTile(purchase: purchase),
+                // const SizedBox(height: 24),
 
                 _SectionTitle(l.premiumSectionInvite),
                 const SizedBox(height: 12),
