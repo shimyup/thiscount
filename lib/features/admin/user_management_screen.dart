@@ -1013,7 +1013,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                             onPressed: _fetchUsers,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.teal,
-                              foregroundColor: Colors.white,
+                              foregroundColor: AppColors.tealInk,
                             ),
                             child: Text(l.koEn('다시 시도', 'Retry')),
                           ),

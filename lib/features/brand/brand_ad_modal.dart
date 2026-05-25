@@ -273,6 +273,8 @@ class _BrandAdDialog extends StatelessWidget {
     if (isNet) {
       return Image.network(
         url,
+        // Build 381 (PR-EE5 WCAG P1): 광고 이미지 alt.
+        semanticLabel: 'brand promo image',
         width: double.infinity,
         height: double.infinity,
         fit: BoxFit.cover,
