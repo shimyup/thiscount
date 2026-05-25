@@ -7959,6 +7959,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       for (final key in userScopedKeys) {
         await prefs.remove(key);
       }
+      // Build 366 (PR-BB5): brand_zones_seen_<userId> prefix-scoped 모든 key
+      //   삭제 (storage bloat 방지). userId-scoped 라 단일 key 제거 불가능 —
+      //   getKeys() 로 enumerate 후 prefix matching. 사용자 A→B 전환 시
+      //   A 의 zone seen-set 이 DEVICE 에 잔존 (수년 사용 시 prefs 비대).
+      final allKeys = prefs.getKeys();
+      for (final key in allKeys) {
+        if (key.startsWith('brand_zones_seen_')) {
+          await prefs.remove(key);
+        }
+      }
       _pendingRedemptionStartedAt.clear();
     } catch (e) {
       if (kDebugMode) debugPrint('[setUser] clear prefs 실패: $e');

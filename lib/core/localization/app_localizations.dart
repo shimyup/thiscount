@@ -638,7 +638,7 @@ class AppL10n {
     'es':
         'Recoge descuentos y cupones que flotan en el mapa cerca de ti y úsalos al instante. Las marcas promocionan con ofertas; los miembros cazan tesoros.',
     'pt':
-        'Apanha descontos e cupões que flutuam no mapa à tua volta e usa imediatamente. As marcas promovem com ofertas; os membros caçam tesouros.',
+        'Apanha descontos e cupons que flutuam no mapa à tua volta e usa imediatamente. As marcas promovem com ofertas; os membros caçam tesouros.',
     'ru':
         'Подбирайте скидки и купоны на карте рядом с вами — используйте сразу. Бренды продвигаются через промо, участники охотятся за сокровищами.',
     'tr':
@@ -733,7 +733,7 @@ class AppL10n {
     'es':
         'Cupones, vales y mensajes promo de marcas caen en el mapa mundial. Recoge recompensas a 200 m de ti y úsalas al instante. Plataforma global de cupones espaciales.',
     'pt':
-        'Cupões, vales e mensagens promo das marcas caem no mapa mundial. Apanha recompensas a 200 m de ti e usa na hora. Plataforma global de cupões espaciais.',
+        'Cupões, vales e mensagens promo das marcas caem no mapa mundial. Apanha recompensas a 200 m de ti e usa na hora. Plataforma global de cupons espaciais.',
     'ru':
         'Купоны, ваучеры и промо-сообщения брендов падают на мировой карте. Подбирайте награды в радиусе 200 м и используйте сразу. Глобальная платформа пространственных купонов.',
     'tr':
@@ -782,7 +782,7 @@ class AppL10n {
     'es':
         'Premium te promociona con 📸 fotos y 🔗 enlaces. Brand lanza campañas 🎟 cupones & 🎁 vales. Free se dedica a recoger.',
     'pt':
-        'Premium promove-te com 📸 fotos e 🔗 links. Brand lança campanhas 🎟 cupões & 🎁 vales. Free foca-se em apanhar.',
+        'Premium promove-te com 📸 fotos e 🔗 links. Brand lança campanhas 🎟 cupons & 🎁 vales. Free foca-se em apanhar.',
     'ru':
         'Premium продвигает вас через 📸 фото и 🔗 ссылки на канал. Brand запускает кампании 🎟 купонов и 🎁 ваучеров. Free собирает.',
     'tr':
@@ -828,7 +828,7 @@ class AppL10n {
     'es':
         'Abre el mapa y recoge cupones y promos cercanas. Usa el código o enlace al instante.',
     'pt':
-        'Abre o mapa e apanha promos e cupões próximos. Usa o código ou link imediatamente.',
+        'Abre o mapa e apanha promos e cupons próximos. Usa o código ou link imediatamente.',
     'ru':
         'Откройте карту и подбирайте рядом промо и купоны. Используйте код или ссылку сразу.',
     'tr':
@@ -1201,7 +1201,7 @@ class AppL10n {
     'fr': 'Ramasse des coupons\ndans un rayon plus large',
     'de': 'Sammle Coupons\nin einem größeren Umkreis',
     'es': 'Recoge cupones\nen un radio más amplio',
-    'pt': 'Apanha cupões\nnum raio maior',
+    'pt': 'Apanha cupons\nnum raio maior',
     'ru': 'Подбирайте купоны\nв большем радиусе',
     'tr': 'Daha geniş alanda\nkupon topla',
     'ar': 'التقط كوبونات\nفي نطاق أوسع',
@@ -2162,7 +2162,7 @@ class AppL10n {
       case 'es':
         return 'Esta semana, $letters cupones tuyos partieron a $countries países · $continents continentes 🌍';
       case 'pt':
-        return 'Esta semana, $letters cupões seus partiram para $countries países · $continents continentes 🌍';
+        return 'Esta semana, $letters cupons seus partiram para $countries países · $continents continentes 🌍';
       case 'ru':
         return 'На этой неделе $letters ваших купонов отправились в $countries стран · $continents континентов 🌍';
       case 'tr':
@@ -2197,7 +2197,7 @@ class AppL10n {
       case 'es':
         return 'El cupón más lejano viajó ${km} km ✈️';
       case 'pt':
-        return 'O cupão mais distante viajou ${km} km ✈️';
+        return 'O cupom mais distante viajou ${km} km ✈️';
       case 'ru':
         return 'Самый дальний купон преодолел ${km} км ✈️';
       case 'tr':
@@ -2294,7 +2294,7 @@ class AppL10n {
     'es':
         'Este cupón lo escribió un bot literario, así que las respuestas no llegan a nadie. Responde a un cupón real.',
     'pt':
-        'Este cupão veio de um bot literário — respostas não chegam a ninguém. Responda a um cupão real.',
+        'Este cupom veio de um bot literário — respostas não chegam a ninguém. Responda a um cupom real.',
     'ru':
         'Этот купон написал литературный бот, поэтому ответы никуда не дойдут. Ответьте на реальный купон.',
     'tr':
@@ -4165,7 +4165,7 @@ class AppL10n {
     'tr':
         'Kuponunuza 1 fotoğraf ekleyin.\nPremium üyeler günde 20 resimli kupon gönderebilir.',
     'ar':
-        'أرفق صورة واحدة برسالتك.\nيمكن للأعضاء المميزين إرسال حتى 20 قسيمة مصورة يوميًا.',
+        'أرفق صورة واحدة بقسيمتك.\nيمكن للأعضاء المميزين إرسال حتى 20 قسيمة مصورة يوميًا.',
     'it':
         'Allega 1 foto al tuo coupon.\nI membri Premium possono inviare fino a 20 coupon con immagine al giorno.',
     'hi':
@@ -5511,7 +5511,7 @@ class AppL10n {
     'es':
         '¡Bienvenido a Thiscount! ✨\n\nRecoge este cupón para probar la experiencia. Acércate y tócala.\n\nEl contador 📍 Cerca se iluminará en cuanto estés a tiro.\n\nMarcas de todo el mundo sueltan cupones de eventos — ¡buena caza!',
     'pt':
-        'Bem-vindo ao Thiscount! ✨\n\nApanha este cupom para experimentar. Aproxima-te e toca.\n\nO contador 📍 Perto vai acender assim que estiveres no alcance.\n\nMarcas do mundo inteiro largam cupões de eventos — boa caça!',
+        'Bem-vindo ao Thiscount! ✨\n\nApanha este cupom para experimentar. Aproxima-te e toca.\n\nO contador 📍 Perto vai acender assim que estiveres no alcance.\n\nMarcas do mundo inteiro largam cupons de eventos — boa caça!',
     'ru':
         'Добро пожаловать в Thiscount! ✨\n\nПодберите это купон, чтобы попробовать охоту. Подойдите и нажмите.\n\nСчётчик 📍 Рядом подсветится, как только вы окажетесь в зоне.\n\nБренды со всего мира разбрасывают купоны — удачной охоты!',
     'tr':
@@ -5726,7 +5726,7 @@ class AppL10n {
     'fr': 'Des récompenses de coupons de marque arrivent',
     'de': 'Marken-Coupon-Belohnungen sind unterwegs',
     'es': 'Las recompensas de cupón de marca están llegando',
-    'pt': 'Recompensas de cupão de marca estão a chegar',
+    'pt': 'Recompensas de cupom de marca estão a chegar',
     'ru': 'Награды-купоны брендов уже на карте',
     'tr': 'Marka kupon ödüllerı haritada',
     'ar': 'مكافآت قسائم العلامات تصل الآن',
@@ -5749,7 +5749,7 @@ class AppL10n {
     'es':
         'Acércate a los cupones en el mapa para recibir cupones y vales listos para usar. ¡Revisa tu Colección!',
     'pt':
-        'Aproxima-te dos cupons no mapa para receber cupões e vales prontos a usar. Vê a tua Coleção!',
+        'Aproxima-te dos cupons no mapa para receber cupons e vales prontos a usar. Vê a tua Coleção!',
     'ru':
         'Подойдите ближе к купоным на карте, чтобы получить готовые к использованию купоны и ваучеры. Проверьте Коллекцию!',
     'tr':
@@ -6328,7 +6328,7 @@ class AppL10n {
     'tr':
         'SNS veya blog bağlantılarını kuponunuza ekleyin.\nSadece Premium ve Brand üyeler.',
     'ar':
-        'أرفق روابط SNS أو المدونة برسالتك.\nللأعضاء المميزين والعلامات التجارية فقط.',
+        'أرفق روابط SNS أو المدونة بقسيمتك.\nللأعضاء المميزين والعلامات التجارية فقط.',
     'it':
         'Allega link SNS o blog al tuo coupon.\nSolo per membri Premium e Brand.',
     'hi':
@@ -6603,7 +6603,7 @@ class AppL10n {
     'fr': 'Chaque utilisateur ne peut récupérer qu\'1 coupon de cet envoi',
     'de': 'Jeder Nutzer kann nur 1 Coupon aus diesem Versand abholen',
     'es': 'Cada usuario puede recibir solo 1 cupón de este envío',
-    'pt': 'Cada usuário pode receber apenas 1 cupão deste envio',
+    'pt': 'Cada usuário pode receber apenas 1 cupom deste envio',
     'ru': 'Каждый пользователь может получить только 1 купон из этой рассылки',
     'tr': 'Her kullanıcı bu gönderimden yalnızca 1 kupon alabilir',
     'ar': 'يمكن لكل مستخدم استلام كوبون واحد فقط من هذا الإرسال',
@@ -7871,13 +7871,13 @@ class AppL10n {
     'ja': '次の特典を読むにはあと${remaining}通送ってください。',
     'zh': '再发送${remaining}封优惠券即可阅读下一封。',
     'fr':
-        'Envoyez encore $remaining coupon${remaining == 1 ? "" : "s"} pour lire la suivante.',
+        'Envoyez encore $remaining coupon${remaining == 1 ? "" : "s"} pour lire le suivant.',
     'de':
         'Sende noch $remaining Coupon${remaining == 1 ? "" : "s"}, um den nächsten zu lesen.',
     'es':
-        'Envía $remaining cupón${remaining == 1 ? "" : "es"} más para leer la siguiente.',
+        'Envía $remaining cupón${remaining == 1 ? "" : "es"} más para leer el siguiente.',
     'pt':
-        'Envie mais $remaining cupom${remaining == 1 ? "" : "s"} para ler a próxima.',
+        'Envie mais $remaining cupom${remaining == 1 ? "" : "s"} para ler o próximo.',
     'ru': 'Отправьте ещё $remaining, чтобы прочитать следующее.',
     'tr': 'Sonrakini okumak için $remaining ödül daha gönderin.',
     'ar': 'أرسل $remaining مكافأة أخرى لقراءة التالية.',
@@ -7944,7 +7944,7 @@ class AppL10n {
     'ja': 'この特典を削除しますか？\n削除した特典は復元できません。',
     'zh': '确定删除这封优惠券？\n删除后无法恢复。',
     'fr':
-        'Supprimer ce coupon ?\nLes coupons supprimés ne peuvent pas être récupérées.',
+        'Supprimer ce coupon ?\nLes coupons supprimés ne peuvent pas être récupérés.',
     'de':
         'Diesen Coupon löschen?\nGelöschte Coupons können nicht wiederhergestellt werden.',
     'es':
@@ -8730,12 +8730,12 @@ class AppL10n {
     'zh': '累计收件',
     'fr': 'Total reçu',
     'de': 'Gesamt erhalten',
-    'es': 'Total recibidas',
-    'pt': 'Total recebidas',
+    'es': 'Total recibidos',
+    'pt': 'Total recebidos',
     'ru': 'Всего получено',
     'tr': 'Toplam alınan',
     'ar': 'إجمالي المستلم',
-    'it': 'Totale ricevute',
+    'it': 'Totale ricevuti',
     'hi': 'कुल प्राप्त',
     'th': 'รับทั้งหมด',
   });
@@ -15966,14 +15966,14 @@ class AppL10n {
     'en': '$n received',
     'ja': '${n}通 受信',
     'zh': '收到${n}封',
-    'fr': '$n reçues',
+    'fr': '$n reçus',
     'de': '$n empfangen',
-    'es': '$n recibidas',
-    'pt': '$n recebidas',
+    'es': '$n recibidos',
+    'pt': '$n recebidos',
     'ru': '$n получено',
     'tr': '$n alındı',
-    'ar': '$n مستلمة',
-    'it': '$n ricevute',
+    'ar': '$n مستلم',
+    'it': '$n ricevuti',
     'hi': '$n प्राप्त',
     'th': 'ได้รับ $n ฉบับ',
   });
@@ -16102,7 +16102,7 @@ class AppL10n {
     'fr': 'Ramasse des coupons\ndans un rayon plus large',
     'de': 'Sammle Coupons\nin einem größeren Umkreis',
     'es': 'Recoge cupones\nen un radio más amplio',
-    'pt': 'Apanha cupões\nnum raio maior',
+    'pt': 'Apanha cupons\nnum raio maior',
     'ru': 'Подбирайте купоны\nв большем радиусе',
     'tr': 'Daha geniş alanda\nkupon topla',
     'ar': 'التقط كوبونات\nفي نطاق أوسع',
@@ -19355,7 +19355,7 @@ class AppL10n {
     'de':
         '🎟 Coupon- & 🎁 Gutschein-Kampagnen · ExactDrop · Analytics-Dashboard.',
     'es': 'Campañas 🎟 cupones & 🎁 vales · ExactDrop · panel de analíticas.',
-    'pt': 'Campanhas 🎟 cupões & 🎁 vales · ExactDrop · painel de análise.',
+    'pt': 'Campanhas 🎟 cupons & 🎁 vales · ExactDrop · painel de análise.',
     'ru': 'Кампании 🎟 купоны & 🎁 ваучеры · ExactDrop · панель аналитики.',
     'tr': '🎟 Kupon & 🎁 çek kampanyaları · ExactDrop · analiz panosu.',
     'ar': 'حملات 🎟 القسائم و 🎁 الكوبونات · ExactDrop · لوحة تحليلات.',
@@ -22247,14 +22247,14 @@ class AppL10n {
     'en': '$count sent',
     'ja': '送信 ${count}通',
     'zh': '已发 ${count}封',
-    'fr': '$count envoyée(s)',
+    'fr': '$count envoyé(s)',
     'de': '$count gesendet',
-    'es': '$count enviada(s)',
-    'pt': '$count enviada(s)',
+    'es': '$count enviado(s)',
+    'pt': '$count enviado(s)',
     'ru': '$count отправлено',
     'tr': '$count gönderildi',
-    'ar': '$count مرسلة',
-    'it': '$count inviate',
+    'ar': '$count مرسل',
+    'it': '$count inviati',
     'hi': '$count भेजे गए',
     'th': 'ส่ง $count ฉบับ',
   });
@@ -22264,14 +22264,14 @@ class AppL10n {
     'en': '$count received',
     'ja': '受信 ${count}通',
     'zh': '已收 ${count}封',
-    'fr': '$count reçue(s)',
+    'fr': '$count reçu(s)',
     'de': '$count empfangen',
-    'es': '$count recibida(s)',
-    'pt': '$count recebida(s)',
+    'es': '$count recibido(s)',
+    'pt': '$count recebido(s)',
     'ru': '$count получено',
     'tr': '$count alındı',
-    'ar': '$count مستلمة',
-    'it': '$count ricevute',
+    'ar': '$count مستلم',
+    'it': '$count ricevuti',
     'hi': '$count प्राप्त',
     'th': 'รับ $count ฉบับ',
   });
@@ -23675,7 +23675,7 @@ class AppL10n {
     'es':
         'La plataforma global de cupones por ubicación para recoger recompensas cerca de ti',
     'pt':
-        'A plataforma global de cupões por localização para recolher recompensas perto de você',
+        'A plataforma global de cupons por localização para recolher recompensas perto de você',
     'ru': 'Глобальная геокупонная платформа для получения наград рядом с вами',
     'tr':
         'Yakındaki ödülleri toplamanı sağlayan küresel konum tabanlı kupon platformu',
@@ -23698,7 +23698,7 @@ class AppL10n {
     'fr': 'Un portefeuille pour récupérer\ncoupons et avantages autour de toi.',
     'de': 'Sammle Coupons und Belohnungen\naus deiner Nähe direkt ins Wallet.',
     'es': 'Una cartera para recoger\ncupones y beneficios a tu alrededor.',
-    'pt': 'Uma carteira para recolher\ncupões e recompensas ao teu redor.',
+    'pt': 'Uma carteira para recolher\ncupons e recompensas ao teu redor.',
     'ru': 'Кошелёк, чтобы собирать\nкупоны и награды рядом с вами.',
     'tr': 'Yakındaki kuponları ve ödülleri\ncüzdanına alıp kullan.',
     'ar': 'محفظة لالتقاط القسائم\nوالمكافآت القريبة منك.',
@@ -27517,7 +27517,7 @@ class AppL10n {
     'es':
         'Brand es la pista de anunciantes. Emite cupones tras verificación comercial/marca.',
     'pt':
-        'Brand é o canal de anunciantes. Emite cupões após verificação de negócio/marca.',
+        'Brand é o canal de anunciantes. Emite cupons após verificação de negócio/marca.',
     'ru':
         'Brand — трек для рекламодателей. Выпуск купонов после бизнес-верификации.',
     'tr':
@@ -27660,7 +27660,7 @@ class AppL10n {
     'fr': '🎟 Émettre coupons remise',
     'de': '🎟 Rabattcoupons ausgeben',
     'es': '🎟 Emitir cupones',
-    'pt': '🎟 Emitir cupões',
+    'pt': '🎟 Emitir cupons',
     'ru': '🎟 Выпуск купонов',
     'tr': '🎟 İndirim kuponu',
     'ar': '🎟 إصدار قسائم خصم',
@@ -28148,7 +28148,7 @@ class AppL10n {
     'es':
         'Atrae clientes colocando tus cupones en el mapa. Gratis durante la beta.',
     'pt':
-        'Atrai clientes colocando os teus cupões no mapa. Grátis durante a beta.',
+        'Atrai clientes colocando os teus cupons no mapa. Grátis durante a beta.',
     'ru':
         'Привлекайте клиентов, размещая купоны на карте. Бесплатно во время беты.',
     'tr':
@@ -28169,7 +28169,7 @@ class AppL10n {
     'fr': 'Émission illimitée de coupons',
     'de': 'Unbegrenzte Coupon-Ausgabe',
     'es': 'Emisión ilimitada de cupones',
-    'pt': 'Emissão ilimitada de cupões',
+    'pt': 'Emissão ilimitada de cupons',
     'ru': 'Безлимитный выпуск купонов',
     'tr': 'Sınırsız kupon yayını',
     'ar': 'إصدار قسائم غير محدود',
@@ -28220,7 +28220,7 @@ class AppL10n {
     'fr': 'Déposez les coupons juste devant votre boutique',
     'de': 'Coupons genau vor Ihrem Geschäft platzieren',
     'es': 'Coloca cupones justo frente a tu tienda',
-    'pt': 'Coloca cupões mesmo em frente à tua loja',
+    'pt': 'Coloca cupons mesmo em frente à tua loja',
     'ru': 'Размещайте купоны прямо у магазина',
     'tr': 'Kuponları mağazanızın önüne tam olarak yerleştirin',
     'ar': 'ضع القسائم مباشرة أمام متجرك',

@@ -231,11 +231,14 @@ class BrandZoneService {
           'redemptionInfo': {'stringValue': redemptionInfo},
         if (redemptionCode != null && redemptionCode.isNotEmpty)
           'redemptionCode': {'stringValue': redemptionCode},
-        'startsAt': {'timestampValue': now.toIso8601String()},
-        'expiresAt': {'timestampValue': expires.toIso8601String()},
+        // Build 366 (PR-BB5): timestamp 필드를 admin path 와 통일해 stringValue
+        //   로. Firestore rules 의 isValidBrandZoneCreate 가 `is string` 검사
+        //   → timestampValue 면 rule 강화 시 reject 가능. 양 path 동일 schema.
+        'startsAt': {'stringValue': now.toIso8601String()},
+        'expiresAt': {'stringValue': expires.toIso8601String()},
         'maxRedeems': {'integerValue': '$maxRedeems'},
         'redeemedCount': {'integerValue': '0'},
-        'createdAt': {'timestampValue': now.toIso8601String()},
+        'createdAt': {'stringValue': now.toIso8601String()},
       };
       final uri = Uri.parse(
         '${FirebaseConfig.firestoreBase}/brand_zones'
