@@ -1356,6 +1356,7 @@ class _InboxScreenState extends State<InboxScreen>
               // 검색 버튼
               IconButton(
                 onPressed: _toggleSearch,
+                tooltip: l10n.a11ySearch,
                 icon: Icon(
                   _searchMode ? Icons.search_off_rounded : Icons.search_rounded,
                   color: _searchMode ? AppColors.gold : AppColors.textSecondary,
@@ -3353,6 +3354,7 @@ class _BrandSentSummaryView extends StatelessWidget {
                     ),
                   ),
                   IconButton(
+                    tooltip: AppL10n.of(context.read<AppState>().currentUser.languageCode).authClose,
                     icon: const Icon(
                       Icons.close_rounded,
                       color: AppColors.textMuted,
