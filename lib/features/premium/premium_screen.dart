@@ -2924,12 +2924,19 @@ void _showBrandUpgradeDialog({
     }
     await purchase.scheduleUpgradeToBrand(userEmail: userEmail);
     if (context.mounted) {
+      // Build 383 (PR-FF1 audit AA1 후속): production 에선 buyBrand() 즉시
+      //   결제 (PR-CC1 P0 #1 fix 후) → schedule 카피 부정확. 결제 완료
+      //   메시지로 분기. test/beta 모드만 schedule 카피 유지.
+      final isProduction = !kDebugMode && !purchase.isTestMode &&
+          !purchase.isBetaUpgradeSimulator;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            kDebugMode
-                ? l10n.premiumBrandUpgradeTestSuccess
-                : '⏰ $formatted ${l10n.premiumPendingBrandAfter}',
+            isProduction
+                ? '✅ ${l10n.premiumBrandUpgradeTestSuccess}'
+                : (kDebugMode
+                    ? l10n.premiumBrandUpgradeTestSuccess
+                    : '⏰ $formatted ${l10n.premiumPendingBrandAfter}'),
             style: const TextStyle(color: Colors.white),
           ),
           backgroundColor: AppColors.coupon,

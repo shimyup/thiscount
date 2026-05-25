@@ -102,7 +102,9 @@ class _AdminSpecialMessageScreenState extends State<AdminSpecialMessageScreen> {
       // id 는 Firestore POST 시점에 결정되지만 미리 생성해서 senderId 와 통일.
       id: 'admin_${now.millisecondsSinceEpoch}_$randSuffix',
       brandId: 'admin',
-      brandName: '관리자',
+      // Build 383 (PR-FF1): senderName 이 비-ko 사용자 인박스에도 노출 →
+      //   universal 'Admin' 영어. AppL10n 접근 어려운 model 생성 시점.
+      brandName: 'Admin',
       center: LatLng(centerLat, centerLng),
       radiusM: _radiusM,
       content: content,
