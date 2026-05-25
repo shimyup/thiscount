@@ -2420,6 +2420,7 @@ class _ComposeScreenState extends State<ComposeScreen>
         children: [
           IconButton(
             onPressed: () => _tryClose(ctx),
+            tooltip: l10n.authClose,
             icon: const Icon(
               Icons.close_rounded,
               color: AppColors.textSecondary,
@@ -4134,6 +4135,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                     ),
                   ),
                   IconButton(
+                    tooltip: l10n.authClose,
                     icon: const Icon(
                       Icons.close_rounded,
                       color: AppColors.textMuted,
@@ -6331,6 +6333,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                         ),
                       IconButton(
                         onPressed: () => Navigator.pop(ctx),
+                        tooltip: l10n.authClose,
                         icon: const Icon(
                           Icons.close,
                           color: AppColors.textMuted,

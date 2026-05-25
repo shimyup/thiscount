@@ -3951,6 +3951,59 @@ class AppL10n {
     'th': 'ปิด',
   });
 
+  /// Build 379 (PR-EE3 WCAG audit P0): IconButton tooltip 14언어.
+  /// VoiceOver / TalkBack 사용자가 액션 식별 가능 (legal accessibility).
+  String get a11yBack => _t({
+    'ko': '뒤로',
+    'en': 'Back',
+    'ja': '戻る',
+    'zh': '返回',
+    'fr': 'Retour',
+    'de': 'Zurück',
+    'es': 'Atrás',
+    'pt': 'Voltar',
+    'ru': 'Назад',
+    'tr': 'Geri',
+    'ar': 'رجوع',
+    'it': 'Indietro',
+    'hi': 'पीछे',
+    'th': 'ย้อนกลับ',
+  });
+
+  String get a11yRefresh => _t({
+    'ko': '새로고침',
+    'en': 'Refresh',
+    'ja': '更新',
+    'zh': '刷新',
+    'fr': 'Actualiser',
+    'de': 'Aktualisieren',
+    'es': 'Actualizar',
+    'pt': 'Atualizar',
+    'ru': 'Обновить',
+    'tr': 'Yenile',
+    'ar': 'تحديث',
+    'it': 'Aggiorna',
+    'hi': 'ताज़ा करें',
+    'th': 'รีเฟรช',
+  });
+
+  String get a11ySearch => _t({
+    'ko': '검색',
+    'en': 'Search',
+    'ja': '検索',
+    'zh': '搜索',
+    'fr': 'Rechercher',
+    'de': 'Suchen',
+    'es': 'Buscar',
+    'pt': 'Pesquisar',
+    'ru': 'Поиск',
+    'tr': 'Ara',
+    'ar': 'بحث',
+    'it': 'Cerca',
+    'hi': 'खोज',
+    'th': 'ค้นหา',
+  });
+
   String get authSelectResidenceCountry => _t({
     'ko': '거주 국가 선택',
     'en': 'Select Country of Residence',

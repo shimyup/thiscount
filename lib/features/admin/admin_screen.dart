@@ -133,6 +133,7 @@ class _AdminScreenState extends State<AdminScreen> {
           backgroundColor: colors.bgDeep,
           elevation: 0,
           leading: IconButton(
+            tooltip: AppL10n.of(user.languageCode).a11yBack,
             icon: const Icon(
               Icons.arrow_back_ios_new_rounded,
               color: AppColors.textPrimary,
@@ -164,6 +165,7 @@ class _AdminScreenState extends State<AdminScreen> {
         backgroundColor: colors.bgDeep,
         elevation: 0,
         leading: IconButton(
+          tooltip: AppL10n.of(user.languageCode).a11yBack,
           icon: const Icon(
             Icons.arrow_back_ios_new_rounded,
             color: AppColors.textPrimary,
@@ -2019,6 +2021,7 @@ class _TesterDashboardScreenState extends State<_TesterDashboardScreen>
         backgroundColor: colors.bgDeep,
         elevation: 0,
         leading: IconButton(
+          tooltip: AppL10n.of(context.read<AppState>().currentUser.languageCode).a11yBack,
           icon: const Icon(Icons.arrow_back_ios_new_rounded,
               color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.pop(context),
@@ -2030,6 +2033,7 @@ class _TesterDashboardScreenState extends State<_TesterDashboardScreen>
                 fontSize: 17)),
         actions: [
           IconButton(
+            tooltip: AppL10n.of(context.read<AppState>().currentUser.languageCode).a11yRefresh,
             icon: const Icon(Icons.refresh_rounded,
                 color: AppColors.textSecondary),
             onPressed: _fetchAll,

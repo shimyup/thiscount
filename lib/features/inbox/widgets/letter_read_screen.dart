@@ -1016,6 +1016,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
       child: Row(
         children: [
           IconButton(
+            tooltip: l10n.a11yBack,
             onPressed: () => Navigator.pop(ctx),
             icon: const Icon(
               Icons.arrow_back_ios_new_rounded,
