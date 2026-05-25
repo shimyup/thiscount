@@ -1307,6 +1307,11 @@ class AuthService {
     } catch (_) {
       // 테스트 환경에서 PaintingBinding 미초기화 가능 — 무시.
     }
+    // Build 368 (PR-CC1 P0 #4): logout 시 PurchaseService in-memory tier
+    //   상태 명시 reset. 이전엔 syncUserIdentity() (RC logout 만) 호출했지만
+    //   _isPremium/_isBrand in-memory 필드는 reset 안 됨 → 같은 디바이스
+    //   계정 전환 시 RC sync 전까지 이전 사용자 Premium 시각화.
+    await PurchaseService().resetForLogout();
     await PurchaseService().syncUserIdentity();
   }
 
@@ -1403,6 +1408,9 @@ class AuthService {
     await prefs.clear();
     FirebaseAuthService.signOut();
     await _secure.deleteAll();
+    // Build 368 (PR-CC1 P0 #4): deleteAccount 도 동일 — PurchaseService
+    //   in-memory tier reset (logout 와 같은 이유).
+    await PurchaseService().resetForLogout();
     await PurchaseService().syncUserIdentity();
   }
 
