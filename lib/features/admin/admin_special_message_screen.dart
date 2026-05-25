@@ -11,6 +11,7 @@
 // Function (Phase 4) 까지 보류. 베타 기간엔 admin 패널 접근 자체가 통제됨.
 
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -92,9 +93,14 @@ class _AdminSpecialMessageScreenState extends State<AdminSpecialMessageScreen> {
     // Build 360 (PR-AA1): 토글 ON 이면 zone 1개 = 코드 1개 (zone 으로 발급되는
     //   모든 letter 가 동일 코드 공유 → 매장 POS 1회 등록).
     final code = _attachCode ? RedemptionCode.generate() : null;
+    // Build 364 (PR-BB3): id 충돌 방지 — 같은 ms 안 2 zone 생성 또는 두 admin
+    //   동시 생성 시 documentId 중복 → 409 ALREADY_EXISTS. 6-hex random suffix
+    //   추가 (16M combinations) → 충돌 확률 무시 가능.
+    final rng = math.Random.secure();
+    final randSuffix = rng.nextInt(0xFFFFFF).toRadixString(16).padLeft(6, '0');
     final zone = BrandZone(
       // id 는 Firestore POST 시점에 결정되지만 미리 생성해서 senderId 와 통일.
-      id: 'admin_${now.millisecondsSinceEpoch}',
+      id: 'admin_${now.millisecondsSinceEpoch}_$randSuffix',
       brandId: 'admin',
       brandName: '관리자',
       center: LatLng(centerLat, centerLng),
@@ -550,7 +556,11 @@ class _RecentZonesListState extends State<_RecentZonesList> {
                   ),
                 ),
                 // Build 360 (PR-AA1): zone 매장 POS 코드 (있으면).
-                if (z.redemptionCode != null && z.redemptionCode!.isNotEmpty) ...[
+                // Build 364 (PR-BB3): 만료된 zone 의 코드는 매장 POS 에서 부정
+                //   사용 위험 → 표시/복사 액션 둘 다 숨김. expired 뱃지만 노출.
+                if (z.redemptionCode != null &&
+                    z.redemptionCode!.isNotEmpty &&
+                    z.expiresAt.isAfter(now)) ...[
                   const SizedBox(height: 6),
                   Row(
                     children: [

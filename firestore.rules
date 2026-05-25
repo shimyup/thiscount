@@ -234,9 +234,27 @@ service cloud.firestore {
     //     Cloud Function).
 
     function isValidBrandZoneCreate(data) {
-      return data.brandId is string && data.brandId.size() > 0
+      // Build 364 (PR-BB3 hardening): 필드 화이트리스트 + redemptionCode 검증.
+      // PR-AA1 추가 redemptionCode 가 룰 검증 부재 → 향후 hasOnly 강화 시
+      //   silent reject 의 시한 폭탄이었음.
+      // anonymous Firebase Auth 한계로 `data.brandId == request.auth.uid`
+      //   강제 불가 (앱이 자체 UUID 사용, Firebase uid 아님) — Phase 2 Cloud
+      //   Function 까지 stop-gap: brandId 길이 cap (UUID + 'admin' literal).
+      return data.keys().hasOnly([
+            'brandId', 'brandName', 'content', 'redemptionInfo',
+            'redemptionCode', 'center', 'radiusM', 'startsAt', 'expiresAt',
+            'maxRedeems', 'redeemedCount', 'createdAt', 'id'
+          ])
+          && data.brandId is string && data.brandId.size() > 0 && data.brandId.size() <= 64
           && data.brandName is string && data.brandName.size() <= 100
           && data.content is string && data.content.size() <= 1000
+          && (!('redemptionInfo' in data)
+              || (data.redemptionInfo is string && data.redemptionInfo.size() <= 500))
+          && (!('redemptionCode' in data)
+              || (data.redemptionCode is string
+                  && data.redemptionCode.size() >= 6
+                  && data.redemptionCode.size() <= 16
+                  && data.redemptionCode.matches('^[0-9A-Z]+$')))
           && data.radiusM is number
           && data.radiusM >= 50.0 && data.radiusM <= 5000.0
           && data.startsAt is string

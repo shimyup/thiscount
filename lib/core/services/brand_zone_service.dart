@@ -258,8 +258,27 @@ class BrandZoneService {
       final resp = jsonDecode(r.body) as Map<String, dynamic>;
       final docName = resp['name'] as String? ?? '';
       final id = docName.split('/').last;
-      _cache = const [];
-      _cachedAt = null;
+      // Build 364 (PR-BB3): cache 무효화 race fix.
+      //   이전엔 `_cache = const []` + `_cachedAt = null` → 다음 triggerForUser
+      //   가 8초간 _refreshCache 대기. 그 사이 첫 손님이 zone 진입 시 letter
+      //   못 받는 윈도우. 대신 새 zone 을 in-place inject + timestamp 유지.
+      final newZone = BrandZone(
+        id: id,
+        brandId: brandId,
+        brandName: brandName,
+        center: center,
+        radiusM: radiusM,
+        content: content,
+        redemptionInfo: redemptionInfo,
+        startsAt: now.toLocal(),
+        expiresAt: expires.toLocal(),
+        maxRedeems: maxRedeems,
+        redeemedCount: 0,
+        createdAt: now.toLocal(),
+        redemptionCode: redemptionCode,
+      );
+      _cache = List<BrandZone>.unmodifiable([..._cache, newZone]);
+      // _cachedAt 유지 — 다음 triggerForUser 는 in-memory 즉시 응답.
       return id;
     } catch (e, st) {
       if (kDebugMode) debugPrint('[BrandZone] createZone err: $e\n$st');
