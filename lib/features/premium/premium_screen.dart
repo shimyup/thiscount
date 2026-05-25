@@ -1454,7 +1454,11 @@ class _GiftCardSuccessDialog extends StatelessWidget {
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: () async {
-                await SecureClipboard.copyEphemeral(code);
+                // Build 363 (PR-BB1 hotfix): gift card 코드는 사용자가 KakaoTalk
+                //   / iMessage 등으로 친구에게 공유하기 위한 결제 자산. 45s TTL
+                //   ephemeral 적용은 회귀 — paste 실패 시 결제 자금 손실.
+                //   copyPersistent 로 통일 (직전 ephemeral timer 는 cancel).
+                await SecureClipboard.copyPersistent(code);
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -1646,7 +1650,10 @@ class _InviteRewardTileState extends State<_InviteRewardTile> {
                     const SizedBox(width: 8),
                     OutlinedButton(
                       onPressed: () async {
-                        await SecureClipboard.copyEphemeral(inviteCode);
+                        // Build 363 (PR-BB1 hotfix): invite code 는 친구 공유
+                        //   목적 — TTL 적용은 use case 위반. paste 실패 시
+                        //   추천 보너스 손실.
+                        await SecureClipboard.copyPersistent(inviteCode);
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
