@@ -2992,7 +2992,10 @@ Future<void> _showShareOptions(
                   sublabel: l10n.premiumShareKakaoDesc,
                   onTap: () async {
                     Navigator.pop(sheetCtx);
-                    await Clipboard.setData(ClipboardData(text: shareText));
+                    // Build 365 (PR-BB4): share text 도 SecureClipboard 통일 —
+                    //   직전 ephemeral timer cancel + iOS 14+ paste prompt
+                    //   회피.
+                    await SecureClipboard.copyPersistent(shareText);
                     final kakaoUri = Uri.parse('kakaotalk://');
                     if (await canLaunchUrl(kakaoUri)) {
                       await launchUrl(
@@ -3056,7 +3059,8 @@ Future<void> _showShareOptions(
                 sublabel: l10n.premiumShareCopyLinkDesc,
                 onTap: () async {
                   Navigator.pop(sheetCtx);
-                  await Clipboard.setData(ClipboardData(text: shareText));
+                  // Build 365 (PR-BB4): SecureClipboard 통일 (위와 동일 이유).
+                  await SecureClipboard.copyPersistent(shareText);
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
