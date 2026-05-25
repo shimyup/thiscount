@@ -19062,21 +19062,22 @@ class AppL10n {
     'th': 'คัดลอก',
   });
 
+  /// Build 378 (PR-EE1): TTL 안내 추가.
   String get letterReadCouponCopied => _t({
-    'ko': '📋 할인 코드가 복사됐어요',
-    'en': '📋 Coupon code copied',
-    'ja': '📋 クーポンコードをコピーしました',
-    'zh': '📋 优惠码已复制',
-    'fr': '📋 Code copié',
-    'de': '📋 Code kopiert',
-    'es': '📋 Código copiado',
-    'pt': '📋 Código copiado',
-    'ru': '📋 Код скопирован',
-    'tr': '📋 Kod kopyalandı',
-    'ar': '📋 تم نسخ الكود',
-    'it': '📋 Codice copiato',
-    'hi': '📋 कूपन कोड कॉपी हुआ',
-    'th': '📋 คัดลอกรหัสแล้ว',
+    'ko': '📋 할인 코드 복사됨 · 45초 안 사용',
+    'en': '📋 Coupon code copied · use within 45s',
+    'ja': '📋 クーポンコードをコピー · 45秒以内に使用',
+    'zh': '📋 优惠码已复制 · 45秒内使用',
+    'fr': '📋 Code copié · utilisez sous 45s',
+    'de': '📋 Code kopiert · in 45s verwenden',
+    'es': '📋 Código copiado · úselo en 45s',
+    'pt': '📋 Código copiado · use em 45s',
+    'ru': '📋 Код скопирован · используйте за 45с',
+    'tr': '📋 Kod kopyalandı · 45s içinde kullanın',
+    'ar': '📋 تم نسخ الكود · استخدمه خلال 45 ثانية',
+    'it': '📋 Codice copiato · usa entro 45s',
+    'hi': '📋 कूपन कोड कॉपी · 45 सेकंड में उपयोग करें',
+    'th': '📋 คัดลอกรหัส · ใช้ภายใน 45 วินาที',
   });
 
   // Build 133: 쿠폰/교환권 유효기간 · 만료 상태.
@@ -28580,21 +28581,23 @@ class AppL10n {
     'th': 'คัดลอกรหัส',
   });
 
+  /// Build 378 (PR-EE1 audit AA3 P1-4): SnackBar TTL 안내 — 사용자가 45초
+  /// 안에 paste 해야 함을 명시 (이후 자동 clear).
   String get redemptionCodeCopied => _t({
-    'ko': '🔑 코드 복사됨',
-    'en': '🔑 Code copied',
-    'ja': '🔑 コードをコピーしました',
-    'zh': '🔑 已复制代码',
-    'fr': '🔑 Code copié',
-    'de': '🔑 Code kopiert',
-    'es': '🔑 Código copiado',
-    'pt': '🔑 Código copiado',
-    'ru': '🔑 Код скопирован',
-    'tr': '🔑 Kod kopyalandı',
-    'ar': '🔑 تم نسخ الرمز',
-    'it': '🔑 Codice copiato',
-    'hi': '🔑 कोड कॉपी हुआ',
-    'th': '🔑 คัดลอกรหัสแล้ว',
+    'ko': '🔑 코드 복사됨 · 45초 안 사용',
+    'en': '🔑 Code copied · use within 45s',
+    'ja': '🔑 コードをコピーしました · 45秒以内に使用',
+    'zh': '🔑 已复制代码 · 45秒内使用',
+    'fr': '🔑 Code copié · utilisez sous 45s',
+    'de': '🔑 Code kopiert · in 45s verwenden',
+    'es': '🔑 Código copiado · úselo en 45s',
+    'pt': '🔑 Código copiado · use em 45s',
+    'ru': '🔑 Код скопирован · используйте за 45с',
+    'tr': '🔑 Kod kopyalandı · 45s içinde kullanın',
+    'ar': '🔑 تم نسخ الرمز · استخدمه خلال 45 ثانية',
+    'it': '🔑 Codice copiato · usa entro 45s',
+    'hi': '🔑 कोड कॉपी हुआ · 45 सेकंड में उपयोग करें',
+    'th': '🔑 คัดลอกรหัสแล้ว · ใช้ภายใน 45 วินาที',
   });
 
   String get redemptionPanelHeader => _t({
