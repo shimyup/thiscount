@@ -367,6 +367,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       // concurrency. 다른 admin 이 방금 변경했다면 stale 로컬 상태 위에서
       // overwrite 하는 회귀 차단. 동일 admin 단말 의도가 우선이면 강행 가능
       // 하도록 confirm dialog 분기 가능 (현재는 단순 skip).
+      // Build 400 (PR-II3 audit 회원관리 P0-4 stop-gap): updatedAt drift 감지
+      //   시 즉시 차단 + admin 에게 안내. 이전엔 "그래도 진행" 으로 stale
+      //   write — 다른 admin 변경 silent overwrite 회귀. Cloud Function
+      //   transaction 까지의 stop-gap.
       try {
         final latest = await FirestoreService.getDocument('users/${user.id}');
         if (latest != null) {
@@ -379,15 +383,25 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 debugPrint('[adminSetTier] stale local — remote updatedAt '
                     'diverged. local=${user.updatedAt} remote=$remote');
               }
-              // 그래도 진행 (admin 의 의도가 일반적으로 우선) — 단 경고 로그.
+              if (mounted) {
+                _showSnack(
+                  l.koEn(
+                    '⚠️ 다른 admin 이 방금 변경 — 새로고침 후 재시도',
+                    '⚠️ Another admin just changed this — refresh and retry',
+                  ),
+                  isError: true,
+                );
+              }
+              return;
             }
           }
         }
       } catch (_) {}
+      final newUpdatedAt = DateTime.now().toIso8601String();
       final ok = await FirestoreService.setDocument('users/${user.id}', {
         'isPremium': isPremium,
         'isBrand': isBrand,
-        'updatedAt': DateTime.now().toIso8601String(),
+        'updatedAt': newUpdatedAt,
       });
     if (!mounted) return;
     if (ok) {
@@ -408,7 +422,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           ratingCount: user.ratingCount,
           inviteCode: user.inviteCode,
           inviteRewardCredits: user.inviteRewardCredits,
-          updatedAt: user.updatedAt,
+          // Build 400 (PR-II3 audit P1-1): newUpdatedAt 사용 — 이전 user.updatedAt
+          //   (옛 값) 사용 → 다음 토글 시 drift trigger 회귀.
+          updatedAt: newUpdatedAt,
           isBanned: user.isBanned,
           isPremium: isPremium,
           isBrand: isBrand,
@@ -716,16 +732,33 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         // senderId/Name 이 다른 사용자 inbox + 지도에 영구 잔존 → PII 누출.
         // GDPR Art.17 준수를 위해 auth_service 의 best-effort scrub 와 동일하게
         // letter 본문 빈문자열 overwrite + senderId/Name 익명화.
+        // Build 400 (PR-II3 audit 회원관리 P1-5): scrubLettersBySender 실패
+        //   silent swallow 회귀 → admin 이 "삭제 완료" SnackBar 받지만 letter
+        //   PII 잔존. release 빌드도 명확한 경고 SnackBar 표시 + 카운트.
+        int scrubbed = -1;
         try {
-          await FirestoreService.scrubLettersBySender(user.id);
+          scrubbed = await FirestoreService.scrubLettersBySender(user.id);
         } catch (e) {
           if (kDebugMode) {
-            debugPrint('[AdminDelete] letters scrub warning ${user.id}: $e');
+            debugPrint('[AdminDelete] letters scrub error ${user.id}: $e');
           }
         }
         _users.removeWhere((u) => u.id == user.id);
         _applyFilter();
-        _showSnack(l.koEn('🗑️ ${user.username} 삭제 완료', '🗑️ ${user.username} deleted'));
+        if (scrubbed < 0) {
+          // scrub 실패 — admin 에게 명시적 경고 (PII 잔존 인지).
+          _showSnack(
+            l.koEn(
+              '⚠️ ${user.username} 삭제됨 — letter 본문 scrub 실패 (재시도 권장)',
+              '⚠️ ${user.username} deleted — letter scrub failed (retry recommended)',
+            ),
+            isError: true,
+          );
+        } else {
+          _showSnack(l.koEn(
+              '🗑️ ${user.username} 삭제 완료 (letter ${scrubbed}건 scrub)',
+              '🗑️ ${user.username} deleted ($scrubbed letters scrubbed)'));
+        }
       } else {
         _showSnack(
           l.koEn(
