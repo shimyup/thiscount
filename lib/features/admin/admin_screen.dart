@@ -203,10 +203,24 @@ class _AdminScreenState extends State<AdminScreen> {
 
     // Build 388 (PR-GG1): Listener 가 pointer event 시 _markActivity 호출 —
     //   사용자 interaction 마다 idle timer reset. child event 가로채지 않음.
+    // Build 396 (PR-HH5 audit A1 강화): pointer + keyboard + focus event 모두
+    //   감지. 이전 Listener pointer 만 → TextField 타이핑/scroll 미감지로
+    //   admin 9분 작성 중 자동 pop 회귀. FocusManager scroll 감지 추가.
     return Listener(
       onPointerDown: (_) => _markActivity(),
       onPointerMove: (_) => _markActivity(),
-      child: Scaffold(
+      onPointerSignal: (_) => _markActivity(), // mouse wheel / scroll signal
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (_) {
+          _markActivity();
+          return false;
+        },
+      child: Focus(
+        onKeyEvent: (_, __) {
+          _markActivity();
+          return KeyEventResult.ignored;
+        },
+        child: Scaffold(
       backgroundColor: colors.bgDeep,
       appBar: AppBar(
         backgroundColor: colors.bgDeep,
@@ -872,6 +886,8 @@ class _AdminScreenState extends State<AdminScreen> {
           ),
         ],
       ),
+    ),
+    ),
     ),
     );
   }
