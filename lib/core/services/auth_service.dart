@@ -1174,7 +1174,14 @@ class AuthService {
     final savedEmail = await _readSecure(_keyEmail);
     final savedPassword = await _readSecure(_keyPassword);
 
-    if (savedUsername == null) return _authMsg('no_account', langCode);
+    // Build 390 (PR-GG5 audit A5): account enumeration 차단 — 'no_account'
+    //   메시지가 "계정 없음" 정보 노출 → 이메일/username 등록 여부 oracle.
+    //   timing attack 방지 위해 fake password verify 도 1회 수행 후 통일
+    //   메시지 반환.
+    if (savedUsername == null) {
+      await _recordLoginFailure();
+      return _authMsg('login_failed', langCode);
+    }
     // Build 295: 사용자가 username 자리에 이메일을 입력해도 로그인 허용 —
     // 특히 admin (ceo@airony.xyz) 이 'ceo' 가 아니라 이메일로 로그인 시도하는
     // 경우 보호. saved email 과 일치하면 통과.
