@@ -17,6 +17,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
+import '../../core/config/app_keys.dart';
 import '../../core/config/firebase_config.dart';
 import '../../core/services/brand_zone_service.dart';
 import '../../core/theme/app_theme.dart';
@@ -58,6 +59,14 @@ class _AdminSpecialMessageScreenState extends State<AdminSpecialMessageScreen> {
 
   Future<void> _submit() async {
     final state = context.read<AppState>();
+    // Build 393 (PR-HH2 P0): admin 가드 enforcement — `/admin_special_message`
+    //   라우트가 직접 navigate 가능하므로 _submit 진입 시 admin 재검증 필수.
+    //   이전엔 라우트만 push 하면 누구나 zone POST 가능 → 일반 user 가
+    //   'Admin' 위장 zone 생성으로 fake 자동 letter 살포 가능했음.
+    if (!BetaConstants.isAdmin(state.currentUser.email)) {
+      setState(() => _error = '관리자 권한 없음');
+      return;
+    }
     final content = _contentCtrl.text.trim();
     if (content.isEmpty) {
       setState(() => _error = '메시지 본문을 입력하세요');
@@ -189,6 +198,24 @@ class _AdminSpecialMessageScreenState extends State<AdminSpecialMessageScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final state = context.watch<AppState>();
+    // Build 393 (PR-HH2 P0): admin 가드 — build 진입 시 admin email 검증.
+    //   non-admin 진입 시 차단 화면 표시 (라우트 push 자체는 막을 수 없음).
+    if (!BetaConstants.isAdmin(state.currentUser.email)) {
+      return Scaffold(
+        backgroundColor: AppColors.bgDeep,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          title: const Text(''),
+        ),
+        body: const Center(
+          child: Text(
+            '🔒 관리자 권한 필요',
+            style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
+          ),
+        ),
+      );
+    }
     return Scaffold(
       backgroundColor: AppColors.bgDeep,
       appBar: AppBar(

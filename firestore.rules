@@ -248,6 +248,12 @@ service cloud.firestore {
             'maxRedeems', 'redeemedCount', 'createdAt', 'id'
           ])
           && data.brandId is string && data.brandId.size() > 0 && data.brandId.size() <= 64
+          // Build 393 (PR-HH2 P0): brandId 형식 검증 — 'admin' literal 단 1개
+          //   (admin 본인 zone) 또는 UUID 형식 (일반 brand). 임의 string 차단.
+          //   주: anonymous Auth 한계로 admin 사칭 100% 차단 불가 (Phase 2
+          //   Cloud Function 까지 stop-gap) — client-side 의 admin email
+          //   가드 (admin_special_message_screen) 와 함께 layered defense.
+          && (data.brandId == 'admin' || data.brandId.matches('^[a-zA-Z0-9_-]{16,64}$'))
           && data.brandName is string && data.brandName.size() <= 100
           && data.content is string && data.content.size() <= 1000
           && (!('redemptionInfo' in data)
