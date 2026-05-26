@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,6 +20,18 @@ class AdminScreen extends StatefulWidget {
 }
 
 class _AdminScreenState extends State<AdminScreen> {
+  // Build 388 (PR-GG1 audit A1): Admin 화면 10분 idle 자동 종료 — 디바이스
+  //   분실 + 앱 켜진 상태에서 사용자 일괄 삭제/티어 변경 차단. 비밀번호 재
+  //   인증은 일단 미적용 (Cloud Function + per-action verify 까지 deferred).
+  //   Listener 가 pointer event 시 _lastActivity 갱신, 30s periodic check.
+  static const Duration _adminIdleTimeout = Duration(minutes: 10);
+  DateTime _lastActivity = DateTime.now();
+  Timer? _idleCheckTimer;
+
+  void _markActivity() {
+    _lastActivity = DateTime.now();
+  }
+
   // ── 배송 속도 슬라이더 ──────────────────────────────────────────────────────
   static const List<double> _speedOptions = [
     1,
@@ -111,6 +125,34 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    // Build 388 (PR-GG1 audit A1): admin 화면 idle 자동 종료 — 30s 마다 검사.
+    _idleCheckTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (!mounted) return;
+      if (DateTime.now().difference(_lastActivity) > _adminIdleTimeout) {
+        _idleCheckTimer?.cancel();
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('🔒 보안: 10분 idle 으로 admin 화면 자동 종료'),
+              behavior: SnackBarBehavior.floating,
+              duration: Duration(seconds: 4),
+            ),
+          );
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _idleCheckTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l = _l10n(context);
     final state = context.watch<AppState>();
@@ -159,7 +201,12 @@ class _AdminScreenState extends State<AdminScreen> {
       );
     }
 
-    return Scaffold(
+    // Build 388 (PR-GG1): Listener 가 pointer event 시 _markActivity 호출 —
+    //   사용자 interaction 마다 idle timer reset. child event 가로채지 않음.
+    return Listener(
+      onPointerDown: (_) => _markActivity(),
+      onPointerMove: (_) => _markActivity(),
+      child: Scaffold(
       backgroundColor: colors.bgDeep,
       appBar: AppBar(
         backgroundColor: colors.bgDeep,
@@ -825,6 +872,7 @@ class _AdminScreenState extends State<AdminScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 
