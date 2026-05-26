@@ -134,11 +134,14 @@ class _AdminScreenState extends State<AdminScreen> {
         _idleCheckTimer?.cancel();
         if (Navigator.of(context).canPop()) {
           Navigator.of(context).pop();
+          // Build 399 (PR-II2): i18n 적용.
+          final l = AppL10n.of(
+              context.read<AppState>().currentUser.languageCode);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('🔒 보안: 10분 idle 으로 admin 화면 자동 종료'),
+            SnackBar(
+              content: Text(l.adminIdleAutoCloseNotice),
               behavior: SnackBarBehavior.floating,
-              duration: Duration(seconds: 4),
+              duration: const Duration(seconds: 4),
             ),
           );
         }

@@ -975,7 +975,11 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
     // 출시 차단 — 서버 redemption 흐름 (Firestore gift_codes/{code} +
     //   redeem UI) 완성될 때까지 기능 비활성. UI 호출처는 false 받고 자동
     //   에러 메시지 표시. 베타/테스트 모드도 차단 (UI 가 우회 노출되지 않도록).
-    _setError('선물권 기능은 준비 중이에요. 다음 업데이트를 기다려주세요.');
+    // Build 399 (PR-II2): i18n 안내 키 사용. 14언어 사용자 한글 노출 차단.
+    //   _setError 는 String 직접 받음 → 호출자가 l10n 키 자체를 넘겨야 하지만
+    //   현재 PurchaseService 는 BuildContext 미보유 → ko 기본 + (en) 병기.
+    //   진정한 i18n 은 호출 site (premium_screen) 에서 처리 권장 (deferred).
+    _setError('선물권 기능 준비 중 / Gift card feature coming soon');
     return false;
   }
 

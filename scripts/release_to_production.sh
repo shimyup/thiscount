@@ -40,7 +40,15 @@ import re
 c = re.sub(r"BETA_DISABLE_IN_RELEASE=.*", "BETA_DISABLE_IN_RELEASE=true", c)
 c = re.sub(r"BETA_FREE_PREMIUM=.*", "BETA_FREE_PREMIUM=false", c)
 c = re.sub(r"BETA_UPGRADE_SIMULATOR=.*", "BETA_UPGRADE_SIMULATOR=false", c)
+c = re.sub(r"BETA_TESTFLIGHT_BUILD=.*", "BETA_TESTFLIGHT_BUILD=false", c)
 c = re.sub(r"BETA_ADMIN_EMAIL=.*", "BETA_ADMIN_EMAIL=", c)
+# Build 399 (PR-II2 audit A3): PRODUCTION_BUILD=true 명시 주입 — beta flag
+#   layered defense 활성화 (BetaConstants.isProductionBuild → 모든 beta flag
+#   강제 차단). 빌드 스크립트 실수로 BETA flag 가 새어 들어가도 막힘.
+if "PRODUCTION_BUILD=" in c:
+    c = re.sub(r"PRODUCTION_BUILD=.*", "PRODUCTION_BUILD=true", c)
+else:
+    c += "\nPRODUCTION_BUILD=true\n"
 with open("$ENV_FILE", "w") as f: f.write(c)
 PY
 echo "[env] production 모드 적용:"

@@ -3986,6 +3986,42 @@ class AppL10n {
     'th': 'ปิด',
   });
 
+  /// Build 399 (PR-II2): admin idle 자동 종료 안내.
+  String get adminIdleAutoCloseNotice => _t({
+    'ko': '🔒 보안: 10분 idle 으로 관리자 화면 자동 종료',
+    'en': '🔒 Security: Admin screen auto-closed after 10min idle',
+    'ja': '🔒 セキュリティ: 10分間操作なしで管理者画面を自動終了',
+    'zh': '🔒 安全: 10分钟无操作自动关闭管理员界面',
+    'fr': '🔒 Sécurité: Écran admin fermé après 10min d\'inactivité',
+    'de': '🔒 Sicherheit: Admin-Bildschirm nach 10min Inaktivität geschlossen',
+    'es': '🔒 Seguridad: Pantalla admin cerrada tras 10min inactiva',
+    'pt': '🔒 Segurança: Tela admin fechada após 10min inativa',
+    'ru': '🔒 Безопасность: Админ-экран закрыт после 10 минут простоя',
+    'tr': '🔒 Güvenlik: 10dk hareketsizlik sonrası admin ekran kapatıldı',
+    'ar': '🔒 الأمان: تم إغلاق شاشة المسؤول بعد 10 دقائق من عدم النشاط',
+    'it': '🔒 Sicurezza: Schermata admin chiusa dopo 10min inattivi',
+    'hi': '🔒 सुरक्षा: 10 मिनट निष्क्रिय रहने पर एडमिन स्क्रीन बंद',
+    'th': '🔒 ความปลอดภัย: ปิดหน้าจอผู้ดูแลอัตโนมัติหลังไม่ใช้ 10 นาที',
+  });
+
+  /// Build 399 (PR-II2): gift card 기능 준비 중 안내.
+  String get premiumGiftCardComingSoon => _t({
+    'ko': '선물권 기능은 준비 중이에요. 다음 업데이트를 기다려주세요.',
+    'en': 'Gift card feature coming soon. Please wait for the next update.',
+    'ja': '選物機能は準備中です。次のアップデートをお待ちください。',
+    'zh': '礼品卡功能即将推出，请等待下次更新。',
+    'fr': 'Carte cadeau bientôt disponible. Attendez la prochaine mise à jour.',
+    'de': 'Geschenkkarte kommt bald. Bitte warten Sie auf das nächste Update.',
+    'es': 'Tarjeta regalo próximamente. Espere la próxima actualización.',
+    'pt': 'Cartão presente em breve. Aguarde a próxima atualização.',
+    'ru': 'Подарочная карта скоро. Подождите следующее обновление.',
+    'tr': 'Hediye kartı yakında. Bir sonraki güncellemeyi bekleyin.',
+    'ar': 'بطاقة الهدايا قريباً. يرجى انتظار التحديث القادم.',
+    'it': 'Carta regalo in arrivo. Attendi il prossimo aggiornamento.',
+    'hi': 'गिफ्ट कार्ड जल्द ही। कृपया अगले अपडेट की प्रतीक्षा करें।',
+    'th': 'บัตรของขวัญเร็วๆ นี้ โปรดรอการอัปเดตครั้งต่อไป',
+  });
+
   /// Build 379 (PR-EE3 WCAG audit P0): IconButton tooltip 14언어.
   /// VoiceOver / TalkBack 사용자가 액션 식별 가능 (legal accessibility).
   String get a11yBack => _t({

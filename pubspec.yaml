@@ -3,7 +3,7 @@ description: "Thiscount - Pick up coupons and discounts around you"
 publish_to: 'none'
 homepage: 'https://thiscount.io'
 issue_tracker: 'https://thiscount.io/support'
-version: 1.0.0+399
+version: 1.0.0+400
 
 environment:
   # Build 272 (P2): Flutter SDK 최소 버전 명시 — withValues(alpha:) API 호환성.
