@@ -366,10 +366,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final l = AppL10n.of(state.currentUser.languageCode);
     try {
       final u = state.currentUser;
+      // Build 399 (PR-II1 audit B11): GDPR Art.20 "all personal data" 요건 —
+      //   누락된 14 필드 추가 + version 동적.
+      //   APP_VERSION 은 빌드 스크립트가 dart-define 으로 주입 권장
+      //   (`--dart-define=APP_VERSION=1.0.0+399`). 미주입 시 'dev' 표시 —
+      //   stale 하드코딩 (이전 '385') 보다 정직.
+      const appVersion = String.fromEnvironment(
+        'APP_VERSION',
+        defaultValue: 'dev',
+      );
+      final prefs = await SharedPreferences.getInstance();
       final data = <String, dynamic>{
         'exportedAt': DateTime.now().toUtc().toIso8601String(),
         'app': 'Thiscount',
-        'version': '1.0.0+385',
+        'version': appVersion,
         'user': {
           'id': u.id,
           'username': u.username,
@@ -377,6 +387,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           'countryFlag': u.countryFlag,
           'languageCode': u.languageCode,
           'email': u.email,
+          'phoneNumber': u.phoneNumber,
           'isPremium': u.isPremium,
           'isBrand': u.isBrand,
           'isMapPublic': u.isMapPublic,
@@ -384,8 +395,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
           'joinedAt': u.joinedAt.toUtc().toIso8601String(),
           'latitude': u.latitude,
           'longitude': u.longitude,
+          'lastKnownLatitude': prefs.getDouble('lkLat_v1'),
+          'lastKnownLongitude': prefs.getDouble('lkLng_v1'),
+        },
+        'consents': {
+          for (final key in [
+            'consent_terms_ts',
+            'consent_privacy_ts',
+            'consent_marketing_ts',
+            'consent_thirdparty_ts',
+            'consent_age14_ts',
+          ])
+            key: prefs.getString(key),
         },
         'activityScore': u.activityScore.toJson(),
+        'trial': {
+          'welcomeTrialClaimedAt': prefs.getString('welcomeTrialClaimedAt'),
+        },
+        'invite': {
+          'inviteCode': prefs.getString('inviteCode'),
+          'inviteAppliedCode': prefs.getString('inviteAppliedCode'),
+          'inviteRewardCredits': prefs.getInt('inviteRewardCredits'),
+        },
+        'streak': {
+          'current': prefs.getInt('streak_current'),
+          'longest': prefs.getInt('streak_longest'),
+          'lastCheckin': prefs.getString('streak_last_checkin'),
+        },
+        'brandExtra': {
+          'monthlyQuota': prefs.getInt('brandExtraMonthlyQuota'),
+        },
+        'exactDrop': {
+          'credits': prefs.getInt('brandExactDropCredits'),
+        },
         'inbox': state.inbox.map((l) => l.toJson()).toList(),
         'sent': state.sent.map((l) => l.toJson()).toList(),
       };

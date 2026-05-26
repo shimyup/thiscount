@@ -484,7 +484,8 @@ class AuthService {
   /// 기존 호출자 (auth_screen) 가 email 채널 기준으로 보면 됨.
   static int get otpCooldownSecondsRemaining {
     if (_lastEmailOtpSentAt == null) return 0;
-    final elapsed = DateTime.now().difference(_lastEmailOtpSentAt!);
+    // Build 399 (PR-II1 audit A4): SecureClock — 시계 우회 cooldown 우회 차단.
+    final elapsed = SecureClock.now().difference(_lastEmailOtpSentAt!);
     if (elapsed >= _otpCooldownDuration) return 0;
     return (_otpCooldownDuration - elapsed).inSeconds;
   }
@@ -492,14 +493,16 @@ class AuthService {
   /// 다음 phone OTP 요청까지 남은 초 (Build 288 신규).
   static int get phoneOtpCooldownSecondsRemaining {
     if (_lastPhoneOtpSentAt == null) return 0;
-    final elapsed = DateTime.now().difference(_lastPhoneOtpSentAt!);
+    // Build 399 (PR-II1 audit A4): SecureClock.
+    final elapsed = SecureClock.now().difference(_lastPhoneOtpSentAt!);
     if (elapsed >= _otpCooldownDuration) return 0;
     return (_otpCooldownDuration - elapsed).inSeconds;
   }
 
   /// 현재 윈도우 내 남은 email OTP 요청 횟수 (Build 288: email/phone 분리).
   static int get otpRequestsRemaining {
-    final now = DateTime.now();
+    // Build 399 (PR-II1 audit A4): SecureClock 통일 — 시계 우회 window reset 차단.
+    final now = SecureClock.now();
     if (_emailOtpWindowStart == null ||
         now.difference(_emailOtpWindowStart!) >= _otpWindowDuration) {
       return _maxOtpRequestsPerWindow;
@@ -512,7 +515,8 @@ class AuthService {
 
   /// 현재 윈도우 내 남은 phone OTP 요청 횟수 (Build 288 신규).
   static int get phoneOtpRequestsRemaining {
-    final now = DateTime.now();
+    // Build 399 (PR-II1 audit A4): SecureClock.
+    final now = SecureClock.now();
     if (_phoneOtpWindowStart == null ||
         now.difference(_phoneOtpWindowStart!) >= _otpWindowDuration) {
       return _maxOtpRequestsPerWindow;
@@ -1267,11 +1271,13 @@ class AuthService {
         (int.tryParse((await _readSecure(_keyLoginAttempts)) ?? '') ?? 0) + 1;
     await _writeSecure(_keyLoginAttempts, '$attempts');
     if (attempts >= _maxLoginAttempts) {
-      final lockoutUntil = DateTime.now()
+      // Build 399 (PR-II1 audit A4): lockoutUntil SecureClock 기반 — wall-clock
+      //   사용 시 시계 우회로 즉시 만료 가능했음. SecureClock.now() 는 forward
+      //   monotonic — 시계 되돌려도 영향 없음.
+      final lockoutUntil = SecureClock.now()
           .add(_loginLockoutDuration)
           .millisecondsSinceEpoch;
       await _writeSecure(_keyLoginLockoutUntil, '$lockoutUntil');
-      // Build 304: lockout 트리거 시각을 SecureClock 에 박는다.
       SecureClock.touch();
     }
   }
@@ -1401,7 +1407,9 @@ class AuthService {
         storedEmail.isNotEmpty &&
         storedEmail.toLowerCase() == inputEmail.toLowerCase()) {
       final tempPassword = _generateTempPassword();
-      final expiresAt = DateTime.now()
+      // Build 399 (PR-II1 audit A4): SecureClock — 임시 비밀번호 만료 시각
+      //   시계 우회 차단.
+      final expiresAt = SecureClock.now()
           .add(_tempPasswordTtl)
           .millisecondsSinceEpoch;
       await _writeSecure(_keyTempPasswordHash, _hashPassword(tempPassword));
