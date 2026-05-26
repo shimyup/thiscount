@@ -135,7 +135,7 @@ class _BrandAdDialog extends StatelessWidget {
               Expanded(
                 flex: 5,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(22, 18, 22, 20),
+                  padding: const EdgeInsetsDirectional.fromSTEB(22, 18, 22, 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

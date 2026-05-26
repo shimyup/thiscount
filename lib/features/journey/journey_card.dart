@@ -27,7 +27,7 @@ class JourneyCard extends StatelessWidget {
         final l10n = AppL10n.of(state.currentUser.languageCode);
 
         return Container(
-          margin: margin ?? const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          margin: margin ?? const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 0),
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             gradient: LinearGradient(

@@ -82,7 +82,7 @@ class StampAlbumScreen extends StatelessWidget {
                 const SizedBox(height: 6),
                 Expanded(
                   child: ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+                    padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 32),
                     itemCount: stampList.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
                     itemBuilder: (context, i) =>
@@ -97,8 +97,8 @@ class StampAlbumScreen extends StatelessWidget {
   // ── 헤더 (v5 stat 카드 — UPPERCASE eyebrow + 큰 숫자) ──────────────────────
   Widget _buildHeader(int countryCount, int totalLetters, AppL10n l) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(20, 4, 20, 14),
-      padding: const EdgeInsets.fromLTRB(22, 18, 22, 18),
+      margin: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 14),
+      padding: const EdgeInsetsDirectional.fromSTEB(22, 18, 22, 18),
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(22),
@@ -171,7 +171,7 @@ class StampAlbumScreen extends StatelessWidget {
       child: InkWell(
         onTap: () => _showStampDetail(context, stamp, l, langCode),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 14, 16, 14),
           child: Row(
             children: [
               // 작은 원형 flag
@@ -262,7 +262,7 @@ class StampAlbumScreen extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (ctx) => Padding(
-        padding: const EdgeInsets.fromLTRB(24, 14, 24, 32),
+        padding: const EdgeInsetsDirectional.fromSTEB(24, 14, 24, 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -48,7 +48,7 @@ class _V5SplashScreenState extends State<V5SplashScreen>
           Expanded(
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 60, 24, 24),
+                padding: const EdgeInsetsDirectional.fromSTEB(24, 60, 24, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

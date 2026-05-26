@@ -72,7 +72,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 32),
         children: [
           // 1) 헤드라인 — 사용 전환률 + 평가
           _buildHeadline(insights),

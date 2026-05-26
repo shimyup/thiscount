@@ -197,7 +197,7 @@ class _AdminSpecialMessageScreenState extends State<AdminSpecialMessageScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 20, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

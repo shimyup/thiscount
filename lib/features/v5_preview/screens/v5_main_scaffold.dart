@@ -59,7 +59,7 @@ class _V5MainScaffoldState extends State<V5MainScaffold> {
 
   Widget _tabBar() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(0, 8, 0, 28),
+      padding: const EdgeInsetsDirectional.fromSTEB(0, 8, 0, 28),
       decoration: BoxDecoration(
         color: V5Colors.bg1.withValues(alpha: 0.94),
         border: const Border(

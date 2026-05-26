@@ -55,7 +55,7 @@ class LetterContextBadge extends StatelessWidget {
     final l10n = AppL10n.of(langCode);
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      margin: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 12),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.gold.withValues(alpha: 0.08),

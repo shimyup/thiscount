@@ -157,7 +157,7 @@ class _WalletCardTile extends StatelessWidget {
               // 본문 (검정 4/5)
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
+                  padding: const EdgeInsetsDirectional.fromSTEB(18, 14, 18, 14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

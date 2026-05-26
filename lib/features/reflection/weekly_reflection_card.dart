@@ -76,7 +76,7 @@ class _WeeklyReflectionCardState extends State<WeeklyReflectionCard> {
         if (reflection.isEmpty) return const SizedBox.shrink();
         final l10n = AppL10n.of(state.currentUser.languageCode);
         return Container(
-          margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          margin: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 16),
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             gradient: LinearGradient(

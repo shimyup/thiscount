@@ -199,7 +199,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (sheetCtx) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
+            padding: const EdgeInsetsDirectional.fromSTEB(12, 12, 12, 16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -310,7 +310,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (sheetCtx) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
+            padding: const EdgeInsetsDirectional.fromSTEB(12, 12, 12, 16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -707,7 +707,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16),
-        padding: const EdgeInsets.fromLTRB(22, 18, 22, 18),
+        padding: const EdgeInsetsDirectional.fromSTEB(22, 18, 22, 18),
         decoration: BoxDecoration(
           color: AppColors.bgCard,
           borderRadius: BorderRadius.circular(22),
@@ -788,7 +788,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.fromLTRB(22, 18, 22, 18),
+      padding: const EdgeInsetsDirectional.fromSTEB(22, 18, 22, 18),
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(22),
@@ -1536,8 +1536,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // Build 181: 4-stat 카드 → 한 줄 compact inline. padding 14 제거,
     // container border 얇게, 이모지·수치 nowrap. 수직 공간 ~50px 회수.
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+      margin: const EdgeInsetsDirectional.fromSTEB(16, 14, 16, 0),
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 18, 20, 18),
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(22),
@@ -2026,7 +2026,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (sheetCtx) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -2378,7 +2378,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // ── 섹션 헤더 ──────────────────────────────────────────────────────────────
   Widget _sectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 4),
       child: Text(
         title,
         style: const TextStyle(
@@ -2705,7 +2705,7 @@ class _BrandExactDropCreditsCard extends StatelessWidget {
           color: AppColors.bgCard,
           borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
         ),
-        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+        padding: const EdgeInsetsDirectional.fromSTEB(24, 16, 24, 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -2786,7 +2786,7 @@ class _ExpandableSettingsGroupState extends State<_ExpandableSettingsGroup> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

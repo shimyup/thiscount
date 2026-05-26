@@ -87,8 +87,8 @@ class _MerchantInterestSheetState extends State<MerchantInterestSheet> {
     final orange = AppColors.coupon;
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(12, 12, 12, 16),
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+      margin: const EdgeInsetsDirectional.fromSTEB(12, 12, 12, 16),
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 14, 20, 24),
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(24),

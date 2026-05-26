@@ -653,7 +653,7 @@ class _DmConversationScreenState extends State<DmConversationScreen> {
   Widget _buildInputBar(AppState state) {
     final l = AppL10n.of(state.currentUser.languageCode);
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 12, 8),
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         border: const Border(top: BorderSide(color: AppColors.bgSurface)),

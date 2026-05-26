@@ -22,7 +22,7 @@ class V5PremiumScreen extends StatelessWidget {
           Expanded(
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -264,7 +264,7 @@ class V5PremiumScreen extends StatelessWidget {
 
   Widget _socialProof() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
+      padding: const EdgeInsetsDirectional.fromSTEB(18, 14, 18, 14),
       decoration: BoxDecoration(
         color: V5Colors.bg2,
         borderRadius: BorderRadius.circular(V5Radius.tile),

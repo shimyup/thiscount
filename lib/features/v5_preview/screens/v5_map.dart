@@ -87,7 +87,7 @@ class _V5MapScreenState extends State<V5MapScreen> {
             right: 0,
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
                 child: Column(
                   children: [
                     Row(
@@ -293,9 +293,9 @@ class _BottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 90),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 90),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
+        padding: const EdgeInsetsDirectional.fromSTEB(14, 8, 14, 14),
         decoration: BoxDecoration(
           color: V5Colors.bg2.withValues(alpha: 0.92),
           borderRadius: BorderRadius.circular(22),
@@ -354,7 +354,7 @@ class _BottomSheet extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 14, 14, 14),
           child: Row(
             children: [
               Expanded(
