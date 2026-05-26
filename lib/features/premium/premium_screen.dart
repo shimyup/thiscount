@@ -192,7 +192,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
             centerTitle: true,
           ),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 40),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -857,7 +857,7 @@ class _ActivePlanBanner extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(22, 18, 22, 18),
+      padding: const EdgeInsetsDirectional.fromSTEB(22, 18, 22, 18),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(22),
@@ -918,7 +918,7 @@ class _PremiumHeroBanner extends StatelessWidget {
     final l = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+      padding: const EdgeInsetsDirectional.fromSTEB(24, 28, 24, 24),
       decoration: BoxDecoration(
         color: AppColors.gold,
         borderRadius: BorderRadius.circular(24),
@@ -1033,7 +1033,7 @@ class _PlanCard extends StatelessWidget {
         children: [
           // 헤더 — eyebrow + 큰 가격
           Padding(
-            padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
+            padding: const EdgeInsetsDirectional.fromSTEB(22, 22, 22, 18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1102,7 +1102,7 @@ class _PlanCard extends StatelessWidget {
           ),
           Container(height: 1, color: divider),
           Padding(
-            padding: const EdgeInsets.fromLTRB(22, 16, 22, 16),
+            padding: const EdgeInsetsDirectional.fromSTEB(22, 16, 22, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: features
@@ -1368,7 +1368,7 @@ class _GiftCardSuccessDialog extends StatelessWidget {
     return AlertDialog(
       backgroundColor: AppColors.bgCard,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      contentPadding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+      contentPadding: const EdgeInsetsDirectional.fromSTEB(24, 28, 24, 20),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -2634,7 +2634,7 @@ Future<bool> _confirmTestPurchase(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: EdgeInsets.fromLTRB(
+      padding: EdgeInsetsDirectional.fromSTEB(
         24,
         8,
         24,
@@ -2751,7 +2751,7 @@ Future<bool> _confirmBetaPremium(BuildContext context) async {
         color: AppColors.bgCard,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: EdgeInsets.fromLTRB(
+      padding: EdgeInsetsDirectional.fromSTEB(
         24,
         8,
         24,
@@ -2971,7 +2971,7 @@ Future<void> _showShareOptions(
     builder: (sheetCtx) {
       return SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+          padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 12, 8),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

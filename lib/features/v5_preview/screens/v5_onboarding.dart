@@ -49,7 +49,7 @@ class _V5OnboardingScreenState extends State<V5OnboardingScreen> {
           Expanded(
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                padding: const EdgeInsetsDirectional.fromSTEB(24, 16, 24, 24),
                 child: Column(
                   children: [
                     Row(

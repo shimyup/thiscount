@@ -21,7 +21,7 @@ class _V5InboxScreenState extends State<V5InboxScreen> {
       body: SafeArea(
         bottom: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 100),
           children: [
             // 헤더
             Row(

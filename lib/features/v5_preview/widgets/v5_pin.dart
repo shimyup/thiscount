@@ -45,7 +45,7 @@ class V5ClusterPin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(7, 5, 10, 5),
+      padding: const EdgeInsetsDirectional.fromSTEB(7, 5, 10, 5),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.85),
         borderRadius: BorderRadius.circular(999),

@@ -289,7 +289,7 @@ class _TowerScreenState extends State<TowerScreen>
     final accent = user.isPremium ? AppColors.gold : AppColors.teal;
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 24, 16, 20),
+      margin: const EdgeInsetsDirectional.fromSTEB(16, 24, 16, 20),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -508,7 +508,7 @@ class _TowerScreenState extends State<TowerScreen>
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           tilePadding: const EdgeInsets.symmetric(horizontal: 14),
-          childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+          childrenPadding: const EdgeInsetsDirectional.fromSTEB(14, 0, 14, 14),
           iconColor: AppColors.textMuted,
           collapsedIconColor: AppColors.textMuted,
           title: Row(
@@ -649,7 +649,7 @@ class _TowerScreenState extends State<TowerScreen>
         const SizedBox(height: 8),
         Container(
           height: 310,
-          margin: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+          margin: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 0),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             gradient: LinearGradient(
@@ -918,9 +918,9 @@ class _TowerScreenState extends State<TowerScreen>
     final l = AppL10n.of(user.languageCode);
     final tierColor = _communityTierColor(score.tier);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 0),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 14, 12),
         decoration: BoxDecoration(
           color: AppColors.bgCard,
           borderRadius: BorderRadius.circular(18),
@@ -1285,7 +1285,7 @@ class _TowerScreenState extends State<TowerScreen>
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(22, 20, 22, 18),
+        padding: const EdgeInsetsDirectional.fromSTEB(22, 20, 22, 18),
         decoration: BoxDecoration(
           color: AppColors.bgCard,
           borderRadius: BorderRadius.circular(24),
@@ -2251,7 +2251,7 @@ class _TowerScreenState extends State<TowerScreen>
       isScrollControlled: true,
       builder: (_) => Container(
         margin: const EdgeInsets.all(12),
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+        padding: const EdgeInsetsDirectional.fromSTEB(24, 24, 24, 32),
         decoration: BoxDecoration(
           color: AppColors.bgCard,
           borderRadius: BorderRadius.circular(24),
@@ -2496,7 +2496,7 @@ class _TowerScreenState extends State<TowerScreen>
       builder: (_) => StatefulBuilder(
         builder: (_, setModal) => Container(
           height: MediaQuery.of(ctx).size.height * 0.65,
-          padding: EdgeInsets.fromLTRB(
+          padding: EdgeInsetsDirectional.fromSTEB(
             24,
             24,
             24,
@@ -2600,7 +2600,7 @@ class _TowerScreenState extends State<TowerScreen>
             color: AppColors.bgCard,
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 40),
+          padding: const EdgeInsetsDirectional.fromSTEB(24, 16, 24, 40),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -2831,7 +2831,7 @@ class _TowerScreenState extends State<TowerScreen>
               // 스크롤 가능한 본문
               Flexible(
                 child: SingleChildScrollView(
-                  padding: EdgeInsets.fromLTRB(
+                  padding: EdgeInsetsDirectional.fromSTEB(
                     24, 0, 24,
                     MediaQuery.of(context).viewInsets.bottom + 40,
                   ),
@@ -3507,7 +3507,7 @@ class _TowerScreenState extends State<TowerScreen>
         builder: (_, ctrl) => Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 8),
               child: Row(
                 children: [
                   Text(
@@ -3765,7 +3765,7 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 16, 14, 14),
+      padding: const EdgeInsetsDirectional.fromSTEB(14, 16, 14, 14),
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(20),

@@ -13,7 +13,7 @@ class V5ProfileScreen extends StatelessWidget {
       body: SafeArea(
         bottom: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 100),
           children: [
             Text('나.', style: V5Text.display.copyWith(fontSize: 34)),
             const SizedBox(height: 18),

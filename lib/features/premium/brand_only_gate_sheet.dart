@@ -55,7 +55,7 @@ class BrandOnlyGateSheet extends StatelessWidget {
         color: AppColors.bgCard,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 40),
+      padding: const EdgeInsetsDirectional.fromSTEB(24, 16, 24, 40),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

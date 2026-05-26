@@ -22,7 +22,7 @@ class V5DetailScreen extends StatelessWidget {
           Expanded(
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 20),
                 child: Column(
                   children: [
                     Row(
@@ -251,7 +251,7 @@ class V5DetailScreen extends StatelessWidget {
 
   Widget _messageBox() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+      padding: const EdgeInsetsDirectional.fromSTEB(18, 16, 18, 16),
       decoration: BoxDecoration(
         color: V5Colors.bg2,
         borderRadius: BorderRadius.circular(V5Radius.tile),

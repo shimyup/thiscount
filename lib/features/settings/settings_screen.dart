@@ -272,7 +272,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (sheetCtx) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
+            padding: const EdgeInsetsDirectional.fromSTEB(12, 12, 12, 16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -1368,7 +1368,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       (mode: PushMode.full, emoji: '📣', label: l.pushModeFull),
     ];
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1453,7 +1453,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _sectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 4),
       child: Text(
         title,
         style: const TextStyle(

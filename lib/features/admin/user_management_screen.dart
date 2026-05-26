@@ -471,7 +471,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         maxChildSize: 0.9,
         builder: (_, sc) => SingleChildScrollView(
           controller: sc,
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -892,7 +892,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         children: [
           // ── 검색 + 정렬 ─────────────────────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 8),
             child: Column(
               children: [
                 // 검색창
@@ -1032,7 +1032,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     ),
                   )
                 : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                    padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 32),
                     itemCount: displayList.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 6),
                     itemBuilder: (_, i) => _userTile(displayList[i]),

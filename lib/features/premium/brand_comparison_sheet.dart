@@ -57,8 +57,8 @@ class _BrandComparisonSheetState extends State<BrandComparisonSheet> {
     final l10n = AppL10n.of(lang.isEmpty ? 'en' : lang);
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(12, 12, 12, 16),
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+      margin: const EdgeInsetsDirectional.fromSTEB(12, 12, 12, 16),
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 14, 20, 20),
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(24),
@@ -245,7 +245,7 @@ class _TierColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 14),
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 12, 12, 14),
       decoration: BoxDecoration(
         color: color.withValues(alpha: isCurrent ? 0.10 : 0.05),
         borderRadius: BorderRadius.circular(14),

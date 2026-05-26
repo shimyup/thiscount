@@ -65,7 +65,7 @@ class ScarcityIndicator extends StatelessWidget {
     required String subtitle,
   }) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      margin: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 12),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),

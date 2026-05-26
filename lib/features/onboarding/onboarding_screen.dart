@@ -692,7 +692,7 @@ class _CountrySelectionPageState extends State<_CountrySelectionPage> {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(28, 32, 28, 140),
+          padding: const EdgeInsetsDirectional.fromSTEB(28, 32, 28, 140),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -763,7 +763,7 @@ class _CountrySelectionPageState extends State<_CountrySelectionPage> {
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         margin: const EdgeInsets.only(bottom: 6),
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                        padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 12),
                         decoration: BoxDecoration(
                           color: isSelected
                               ? AppColors.textPrimary
@@ -837,7 +837,7 @@ class _LocationPermissionPage extends StatelessWidget {
       color: AppColors.bgDeep,
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(28, 32, 28, 160),
+          padding: const EdgeInsetsDirectional.fromSTEB(28, 32, 28, 160),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -885,7 +885,7 @@ class _LocationPermissionPage extends StatelessWidget {
                 const SizedBox(height: 22),
                 // GPS 약관 박스 — v5 클린
                 Container(
-                  padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
+                  padding: const EdgeInsetsDirectional.fromSTEB(18, 14, 18, 14),
                   decoration: BoxDecoration(
                     color: AppColors.bgCard,
                     borderRadius: BorderRadius.circular(16),
@@ -1001,7 +1001,7 @@ class _PremiumPage extends StatelessWidget {
       color: AppColors.bgDeep,
       child: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(28, 32, 28, 160),
+          padding: const EdgeInsetsDirectional.fromSTEB(28, 32, 28, 160),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1396,7 +1396,7 @@ class _IntroPage extends StatelessWidget {
       color: AppColors.bgDeep,
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(28, 32, 28, 160),
+          padding: const EdgeInsetsDirectional.fromSTEB(28, 32, 28, 160),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

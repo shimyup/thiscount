@@ -108,7 +108,7 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
           children: [
             // ── 상단: Skip ────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
+              padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 16, 0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -230,7 +230,7 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
 
             // ── CTA ────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+              padding: const EdgeInsetsDirectional.fromSTEB(24, 0, 24, 24),
               child: SizedBox(
                 width: double.infinity,
                 height: 56,
@@ -369,7 +369,7 @@ class _PickupHowToPage extends StatelessWidget {
   Widget build(BuildContext context) {
     const p = AppPaletteDark();
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+      padding: const EdgeInsetsDirectional.fromSTEB(24, 24, 24, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -437,7 +437,7 @@ class _TierComparePage extends StatelessWidget {
   Widget build(BuildContext context) {
     const p = AppPaletteDark();
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 24, 20, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -538,7 +538,7 @@ class _GameGrowthPage extends StatelessWidget {
   Widget build(BuildContext context) {
     const p = AppPaletteDark();
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+      padding: const EdgeInsetsDirectional.fromSTEB(24, 24, 24, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -625,7 +625,7 @@ class _BrandRoiPage extends StatelessWidget {
   Widget build(BuildContext context) {
     const p = AppPaletteDark();
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+      padding: const EdgeInsetsDirectional.fromSTEB(24, 24, 24, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -993,7 +993,7 @@ class _TierCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 14, 16, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: features

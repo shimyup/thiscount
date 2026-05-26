@@ -29,7 +29,7 @@ class HuntWalletCard extends StatelessWidget {
         final isEmpty = totalPickups == 0 && totalRedeemed == 0;
 
         return Container(
-          margin: margin ?? const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          margin: margin ?? const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 0),
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             gradient: LinearGradient(

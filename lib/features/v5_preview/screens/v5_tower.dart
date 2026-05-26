@@ -11,7 +11,7 @@ class V5TowerScreen extends StatelessWidget {
       body: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 100),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -181,7 +181,7 @@ class V5TowerScreen extends StatelessWidget {
 
   Widget _progress() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 18, 20, 18),
       decoration: BoxDecoration(
         color: V5Colors.bg2,
         borderRadius: BorderRadius.circular(V5Radius.tile),

@@ -573,7 +573,7 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
         border: Border(top: BorderSide(color: AppColors.bgSurface)),
       ),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

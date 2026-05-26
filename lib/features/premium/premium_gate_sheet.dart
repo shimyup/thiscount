@@ -98,7 +98,7 @@ class PremiumGateSheet extends StatelessWidget {
         color: AppColors.bgCard,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 40),
+      padding: const EdgeInsetsDirectional.fromSTEB(24, 16, 24, 40),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -172,7 +172,7 @@ class PremiumGateSheet extends StatelessWidget {
           // 기존 작은 뱃지는 한 줄이라 눈에 잘 안 띈다는 페르소나 4 지적 반영.
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(22, 18, 22, 18),
+            padding: const EdgeInsetsDirectional.fromSTEB(22, 18, 22, 18),
             decoration: BoxDecoration(
               color: AppColors.gold,
               borderRadius: BorderRadius.circular(20),

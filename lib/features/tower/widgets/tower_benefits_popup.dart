@@ -66,7 +66,7 @@ class _BenefitsDialogState extends State<_BenefitsDialog> {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 460),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
+          padding: const EdgeInsetsDirectional.fromSTEB(22, 22, 22, 18),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -268,7 +268,7 @@ class _BenefitsDialogState extends State<_BenefitsDialog> {
     required List<Widget> children,
   }) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+      padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 14, 14),
       decoration: BoxDecoration(
         color: AppColors.bgSurface,
         borderRadius: BorderRadius.circular(14),
@@ -348,7 +348,7 @@ class _TierBenefitRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 12, 10),
       decoration: BoxDecoration(
         color: highlight ? color.withValues(alpha: 0.12) : Colors.transparent,
         borderRadius: BorderRadius.circular(10),

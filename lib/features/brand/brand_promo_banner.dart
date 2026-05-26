@@ -126,7 +126,7 @@ class _BrandPromoBannerState extends State<BrandPromoBanner>
     return SlideTransition(
       position: _slide,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+        padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 12, 0),
         child: Align(
           alignment: Alignment.centerRight,
           child: AnimatedSwitcher(
@@ -168,7 +168,7 @@ class _BrandPromoBannerState extends State<BrandPromoBanner>
           _hide();
         },
         child: Container(
-          padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
+          padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 10, 10),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               colors: [AppColors.goldLight, AppColors.gold],

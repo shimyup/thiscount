@@ -32,7 +32,7 @@ class WeeklyChallengeCard extends StatelessWidget {
             : (achieved ? AppColors.teal : AppColors.textMuted);
 
         return Container(
-          margin: margin ?? const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          margin: margin ?? const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 0),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AppColors.bgCard,

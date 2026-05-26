@@ -256,7 +256,7 @@ class _AdminScreenState extends State<AdminScreen> {
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 40),
+        padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 40),
         children: [
           // ──────────────────────────────────────────────────────────────────
           // 👥 회원 관리
@@ -327,7 +327,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 _divider(),
                 // 배송 속도 배율
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                  padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 4),
                   child: Row(
                     children: [
                       const Icon(
@@ -391,7 +391,7 @@ class _AdminScreenState extends State<AdminScreen> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+                  padding: const EdgeInsetsDirectional.fromSTEB(8, 0, 8, 12),
                   child: SliderTheme(
                     data: SliderThemeData(
                       activeTrackColor: AppColors.teal,
@@ -907,7 +907,7 @@ class _AdminScreenState extends State<AdminScreen> {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 18, 20, 20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1066,7 +1066,7 @@ class _AdminScreenState extends State<AdminScreen> {
       builder: (sheetCtx) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1344,7 +1344,7 @@ class _AdminScreenState extends State<AdminScreen> {
             Expanded(
               child: ListView.separated(
                 controller: scrollCtrl,
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 24),
                 itemCount: letters.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (_, i) {
@@ -1528,7 +1528,7 @@ class _AdminScreenState extends State<AdminScreen> {
             Expanded(
               child: ListView.separated(
                 controller: scrollCtrl,
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 24),
                 itemCount: ids.length,
                 separatorBuilder: (_, __) =>
                     const Divider(color: AppColors.bgSurface, height: 1),
@@ -1646,7 +1646,7 @@ class _AdminScreenState extends State<AdminScreen> {
             Expanded(
               child: ListView.separated(
                 controller: scrollCtrl,
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 24),
                 itemCount: ids.length,
                 separatorBuilder: (_, __) =>
                     const Divider(color: AppColors.bgSurface, height: 1),
@@ -1692,7 +1692,7 @@ class _AdminScreenState extends State<AdminScreen> {
   // ── UI 위젯 헬퍼 ────────────────────────────────────────────────────────────
   Widget _sectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
+      padding: const EdgeInsetsDirectional.fromSTEB(4, 16, 4, 8),
       child: Text(
         title,
         style: const TextStyle(
@@ -1858,7 +1858,7 @@ class _AdminScreenState extends State<AdminScreen> {
     required ValueChanged<bool> onChanged,
   }) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 4, 12, 4),
       child: Row(
         children: [
           Container(
@@ -2134,7 +2134,7 @@ class _TesterDashboardScreenState extends State<_TesterDashboardScreen>
               style: TextStyle(color: AppColors.textMuted)));
     }
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 40),
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 12, 40),
       itemCount: _testers.length + 1, // +1 for summary card
       itemBuilder: (ctx, i) {
         if (i == 0) return _testerSummaryCard();
@@ -2321,7 +2321,7 @@ class _TesterDashboardScreenState extends State<_TesterDashboardScreen>
               style: TextStyle(color: AppColors.textMuted)));
     }
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 40),
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 12, 40),
       itemCount: _letters.length,
       itemBuilder: (ctx, i) => _letterCard(_letters[i]),
     );
