@@ -225,10 +225,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     final appDir = await getApplicationDocumentsDirectory();
                     // Build 281 (P0 privacy): EXIF (GPS 좌표/촬영 시각) 제거.
                     // flutter_image_compress 가 keepExif:false 로 메타데이터를
-                    // 통째로 떨군 jpeg 를 다시 인코딩한다. 실패 시 fallback 으로
-                    // 원본 copy 유지 (앱은 동작해야 하므로).
+                    // 통째로 떨군 jpeg 를 다시 인코딩한다.
+                    // Build 388 (PR-GG2 audit A8): compress 실패 시 원본 copy
+                    //   fall-back 제거 — 이전엔 EXIF/GPS 좌표 포함 원본이
+                    //   프로필 이미지로 영구 저장되던 P0 privacy leak. compose
+                    //   의 Build 296 fix 와 동일 정책 — compress 실패 시 거부.
                     final newPath =
                         '${appDir.path}/profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
+                    bool compressOk = false;
                     try {
                       final result =
                           await FlutterImageCompress.compressAndGetFile(
@@ -239,11 +243,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             minHeight: 200,
                             keepExif: false,
                           );
-                      if (result == null) {
-                        await File(picked.path).copy(newPath);
-                      }
+                      compressOk = result != null;
                     } catch (_) {
-                      await File(picked.path).copy(newPath);
+                      compressOk = false;
+                    }
+                    if (!compressOk) {
+                      if (mounted) {
+                        _showSnack(ctx, _pl.composeImageCompressWarning);
+                      }
+                      return;
                     }
 
                     final oldPath = state.currentUser.profileImagePath;
