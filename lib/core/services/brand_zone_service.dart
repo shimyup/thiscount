@@ -146,9 +146,12 @@ class BrandZoneService {
     final picked = <BrandZone>[];
     final r = rng ?? math.Random();
     for (final zone in candidates) {
-      // 사용자 현재 위치 ± 30m random offset → 정확한 zone 중심 아님 → 픽업
+      // 사용자 현재 위치 ± 10m random offset → 정확한 zone 중심 아님 → 픽업
       // 반경 100m 이내 보장 (현재 위치 근처라서) + 깜짝 발견감.
-      final dest = randomOffset(userPos, maxMeters: 30, rng: r);
+      // Build 394 (PR-HH3 audit 지도 P0-4): 30m → 10m. 이전 30m offset +
+      //   사용자 이동으로 pickup radius 200m 초과 → deliveredFar 강등 → letter
+      //   못 받는 회귀. 10m 면 사용자가 200m 이동해도 안전 margin 확보.
+      final dest = randomOffset(userPos, maxMeters: 10, rng: r);
       try {
         await onZoneEnter(zone, dest);
         await _markSeen(userId, zone.id);

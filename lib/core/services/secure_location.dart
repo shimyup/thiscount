@@ -30,17 +30,34 @@ class SecureLocation {
   /// Position 이 신뢰 가능한지 검증.
   /// release 빌드 + mocked = false (차단).
   /// debug/profile 빌드 + mocked = true (경고만 — 시뮬레이터/개발 편의).
+  ///
+  /// Build 394 (PR-HH3 audit 지도 P1 #8): iOS heuristic 추가 — iOS 에서
+  /// `Position.isMocked` 가 항상 false 반환 (geolocator 13 Android 전용).
+  /// release iOS 빌드에서 GPS spoofing 0% 차단되던 회귀 보강:
+  /// - accuracy 가 비정상적으로 0 (real GPS 는 최소 3-5m)
+  /// - speed/altitude 가 NaN (시뮬레이터 default)
+  /// 단순 heuristic — false-positive 우려 있어 release 만 활성.
   static bool allow(Position pos) {
     final mocked = pos.isMocked;
-    if (!mocked) return true;
-    if (kReleaseMode) {
+    if (mocked) {
+      if (kReleaseMode) {
+        if (kDebugMode) {
+          debugPrint('[SecureLocation] mocked position rejected (release)');
+        }
+        return false;
+      }
       if (kDebugMode) {
-        debugPrint('[SecureLocation] mocked position rejected (release)');
+        debugPrint('[SecureLocation] mocked position allowed (non-release)');
+      }
+      return true;
+    }
+    // iOS heuristic — release 빌드 + accuracy=0 (real GPS 는 최소 3m)
+    //   + altitude.isNaN (시뮬레이터) → spoofing 의심.
+    if (kReleaseMode && pos.accuracy == 0.0 && pos.altitude.isNaN) {
+      if (kDebugMode) {
+        debugPrint('[SecureLocation] iOS heuristic rejected (accuracy=0 + altitude NaN)');
       }
       return false;
-    }
-    if (kDebugMode) {
-      debugPrint('[SecureLocation] mocked position allowed (non-release)');
     }
     return true;
   }
