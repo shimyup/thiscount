@@ -690,6 +690,12 @@ class AuthService {
   static const int _pbkdf2Rounds = 600000;
   static const String _pbkdf2Prefix = r'$pbkdf$';
 
+  /// Build 395 (PR-HH4 audit P1-1): timing oracle 방지용 dummy pbkdf2 hash.
+  /// 진짜 verify 와 동일 비용 (~100K iter) 발생시켜 wall-clock 시간차로
+  /// enumeration 불가능하게.
+  static const String _dummyVerifyHash =
+      r'$pbkdf$0000000000000000000000000000000000000000000000000000000000000000$0000000000000000000000000000000000000000000000000000000000000000';
+
   /// [레거시] 단순 SHA-256 해시 — 기존 저장값 검증 전용, 신규 저장에는 사용하지 않음.
   static String _hashPasswordLegacy(String raw) {
     const salt = 'globaldrift_v1_';
@@ -886,6 +892,14 @@ class AuthService {
 
   /// 비밀번호 검증: v2(강화) → v1(레거시) → 평문 순으로 시도.
   /// 레거시 또는 평문 일치 시 자동으로 v2 해시로 재저장(마이그레이션).
+  /// Build 395 (PR-HH4 audit D18): 비밀번호 확인 전용 — failure counter 미증분.
+  /// `_changePassword` / 민감 액션 재인증 시 사용. login() 호출 시 self-lockout
+  /// 회귀 차단.
+  static Future<bool> verifyCurrentPassword(String raw) async {
+    final stored = await _readSecure(_keyPassword);
+    return _verifyAndMigratePassword(raw, stored);
+  }
+
   static Future<bool> _verifyAndMigratePassword(
     String raw,
     String? stored,
@@ -1176,9 +1190,12 @@ class AuthService {
 
     // Build 390 (PR-GG5 audit A5): account enumeration 차단 — 'no_account'
     //   메시지가 "계정 없음" 정보 노출 → 이메일/username 등록 여부 oracle.
-    //   timing attack 방지 위해 fake password verify 도 1회 수행 후 통일
-    //   메시지 반환.
+    // Build 395 (PR-HH4 audit P1-1): timing oracle — savedUsername null 일 때
+    //   즉시 return 하면 PBKDF2 verify 안 함 → wall-clock 시간차로 enumeration
+    //   여전 가능. fake verify 1회 수행 (constant-time-ish) 후 통일 메시지.
     if (savedUsername == null) {
+      // dummy hash (정상 pbkdf2 verify 와 동일 비용) — 결과 무시.
+      await _verifyAndMigratePassword(password, _dummyVerifyHash);
       await _recordLoginFailure();
       return _authMsg('login_failed', langCode);
     }
