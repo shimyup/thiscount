@@ -6010,7 +6010,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         final f = fields[key];
         if (f is! Map) return fallback;
         final v = Map<String, dynamic>.from(f);
-        final raw = v['boolValue'];
+        // Build 393 (PR-HH1 P0): Firestore REST 는 `'booleanValue'` 반환 —
+        //   이전 `'boolValue'` 오타로 isMapPublic OFF 사용자 username/towerName/
+        //   카운터 leak 됐던 P0 회귀. PR-CC2 의 좌표 nullValue PATCH 가 좌표
+        //   leak 만 막고 boolean 필드는 fallback (true) 으로 떨어졌었음.
+        //   `'boolValue'` 도 legacy 호환 위해 fallback 으로 함께 검사.
+        final raw = v['booleanValue'] ?? v['boolValue'];
         if (raw is bool) return raw;
         if (raw is String) return raw.toLowerCase() == 'true';
         return fallback;
@@ -6082,10 +6087,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
               continue;
             }
 
+            // Build 393 (PR-HH1 P1): fallback=true → false. Build 287 이전
+            //   legacy user 가 isMapPublic 필드 부재로 자동 노출 → opt-in.
             final isMapPublic = parseBool(
               fields,
               'isMapPublic',
-              fallback: parseBool(fields, 'isUsernamePublic', fallback: true),
+              fallback: parseBool(fields, 'isUsernamePublic', fallback: false),
             );
             if (!isMapPublic) continue;
 
