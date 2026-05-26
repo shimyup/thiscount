@@ -6854,7 +6854,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   // ── 배송 시뮬레이션 ────────────────────────────────────────────────────────
   void _startDeliverySimulation() {
-    _deliveryTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+    // Build 394 (PR-HH3 audit 지도 P0-3): 5s → 30s 주기. 5s tick 은 배터리/
+    //   네트워크 6배 비용 + BrandZoneService seenZones prefs read 매 tick.
+    //   사용자 이동 감지는 별도 onLocationUpdated trigger 로 즉시 처리됨.
+    _deliveryTimer = Timer.periodic(const Duration(seconds: 30), (_) {
       _runDeliveryTick();
     });
   }
