@@ -776,7 +776,11 @@ class _TrialCountdownBanner extends StatelessWidget {
   String _formatRemaining(AppL10n l, int hours) {
     if (hours <= 0) return l.trialBannerExpired;
     if (hours < 24) return l.trialBannerHoursLeft(hours);
-    final days = (hours / 24).floor();
+    // Build 402 (PR-JJ9 UX P1-8): premium_screen `_TrialExpiryBanner` 와 동일하게
+    //   `.ceil()` 통일. 이전엔 `.floor()` 사용 → 71h 남았을 때 헤더 배너 "2일"
+    //   vs Premium 화면 "3일" 불일치 → 환불 요청 유발. 사용자 친화 측면에서도
+    //   `.ceil()` 이 자연 ("내일까지 사용 가능" 인식).
+    final days = (hours / 24).ceil();
     return l.trialBannerDaysLeft(days);
   }
 }

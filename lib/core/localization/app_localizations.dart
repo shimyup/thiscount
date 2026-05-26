@@ -10764,7 +10764,10 @@ class AppL10n {
     'en':
         'Per Korean ICT Network Act & EU GDPR Art.8, users under $age cannot sign up.',
     'ja': '韓国情報通信網法および EU GDPR Art.8 により、$age歳未満は登録できません。',
-    'zh': '根据韩国信息通优惠券网络法和欧盟 GDPR Art.8，未满 $age 岁不可注册。',
+    // Build 402 (PR-JJ9 UX P1-4 fix): letter→reward retire 스크립트가 "信" 뒤
+    //   "息通" 의 통(通) 다음에 substring 치환을 잘못 적용해 "信息通信网络法"
+    //   → "信息通优惠券网络法" 로 변형됨. 한국 법령명 "정보통신망법" 정상 복원.
+    'zh': '根据韩国信息通信网络法和欧盟 GDPR Art.8，未满 $age 岁不可注册。',
     'fr':
         "Selon la loi coréenne sur les TIC et le RGPD Art.8, les moins de $age ans ne peuvent pas s'inscrire.",
     'de':

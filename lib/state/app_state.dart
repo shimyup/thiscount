@@ -1066,9 +1066,45 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           // 기존 claim 존재 → 재부여 차단.
           final data = FirestoreService.fromFirestoreDoc(doc);
           final raw = data['claimedAt'] as String?;
+          final docCreatedBy = data['createdBy'] as String?;
+          final myUid = FirebaseAuthService.currentUid ?? '';
           if (raw != null && raw.isNotEmpty) {
-            _welcomeTrialClaimedAt =
-                DateTime.tryParse(raw)?.toLocal() ?? DateTime.now();
+            final claimedAt = DateTime.tryParse(raw)?.toLocal();
+            // Build 402 (PR-JJ6 B1 stop-gap): griefing 완화 — 다른 uid 가
+            //   pre-claim 한 항목이 24h 이상 경과한 경우, OTP 인증 통과한 신규
+            //   가입자에게 local Premium 부여. server doc 은 그대로 유지하여
+            //   재진입 시 또 override 되지 않음 (farming 방어).
+            //
+            //   가능한 경우:
+            //   - 정상: 본인 재가입 (uid 동일) → block.
+            //   - griefing: 24h+ 전 다른 uid 가 victim hash pre-claim → override.
+            //   - race: 다른 uid 가 24h 이내 claim → 안전 측면에서 block 유지
+            //     (legit 사용자 2명이 동시 가입 가능성).
+            //
+            //   Cloud Function 마이그레이션 후 server-side OTP 토큰 검증으로
+            //   완전 차단 예정 (Phase 2).
+            final griefingSuspected =
+                docCreatedBy != null
+                && docCreatedBy.isNotEmpty
+                && docCreatedBy != myUid
+                && claimedAt != null
+                && DateTime.now().difference(claimedAt)
+                    > const Duration(hours: 24);
+            if (griefingSuspected) {
+              if (kDebugMode) {
+                debugPrint(
+                  '[trial] griefing 추정 — createdBy=$docCreatedBy claimedAt=$raw, '
+                  'OTP 검증 신규 가입자에게 local grant (server doc 보존)',
+                );
+              }
+              await grant();
+              _welcomeTrialClaimedAt = DateTime.now();
+              _pendingWelcomeTrialNotice = true;
+              await _saveUserToFirestore();
+              notifyListeners();
+              return true;
+            }
+            _welcomeTrialClaimedAt = claimedAt ?? DateTime.now();
             return false;
           }
         }
@@ -4595,32 +4631,54 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final lat = _currentUser.latitude != 0 ? _currentUser.latitude : 37.5665;
     final lng = _currentUser.longitude != 0 ? _currentUser.longitude : 126.978;
     final origin = LatLng(lat, lng);
-    // demo letter 의 사용 안내는 i18n 안내 — 한국어 'ko' 만 specific, 나머지는 EN.
+    // Build 402 (PR-JJ7 UX A1 fix): 14언어 demo letter seeds. 이전엔 한국어
+    //   하드코딩으로 비-KR 신규 사용자 인박스에 한국어 카드 5장 → 사용 불가
+    //   인식 + 신뢰 손상. lang 별 (name, content) 맵으로 분기.
     final lang = _currentUser.languageCode.isNotEmpty
         ? _currentUser.languageCode
         : 'en';
-    final demoRedemption = lang == 'ko'
-        ? '동네 매장에서 사용 가능 (체험용 예시 혜택)'
-        : 'Try this near your location (demo reward)';
-    // 사용자 위치 기준 ±500m 4-방향 demo destination.
+    final localized = _demoLetterTextsForLang(lang);
+    final demoRedemption = localized.redemption;
+    // Build 402 (PR-JJ8 UX A3 fix): demo destination offset 을 ±0.003 (≈333m)
+    //   → ±0.0008 (≈89m) 으로 좁힘. Free Level 1 pickup radius 200m 안에 모두
+    //   포함시켜 cold-start 첫 픽업 시도가 성공하도록.
     LatLng nearby(double dLat, double dLng) =>
         LatLng(lat + dLat, lng + dLng);
-    // Build 324 (5차 audit): demo letter 이름에 "(체험)" prefix — 사용자가 핀/카드
-    //   첫 인상부터 demo letter 임을 인지 → "낚시성" 신뢰 손상 차단. 클릭 후
-    //   "체험용" 라벨 보고 실망하던 흐름 fix.
+    // demo letter 이름에 lang-prefix ("(체험)"/"(Demo)"/etc.) — 사용자가 핀/카드
+    //   첫 인상부터 demo letter 임을 인지 → "낚시성" 신뢰 손상 차단.
     final seeds = [
-      (id: 'demo_cafe', name: '체험 · 동네 카페', tag: 'cafe', content: '☕ 아메리카노 1+1 (체험용 예시)', expireH: 12),
-      (id: 'demo_food', name: '체험 · 동네 식당', tag: 'food', content: '🍴 점심 정식 30% 할인 (체험용 예시)', expireH: 72),
-      (id: 'demo_beauty', name: '체험 · 동네 뷰티샵', tag: 'beauty', content: '💄 마스크팩 1+1 (체험용 예시)', expireH: 168),
-      (id: 'demo_fashion', name: '체험 · 동네 패션샵', tag: 'fashion', content: '👗 신상품 20% 할인 (체험용 예시)', expireH: 48),
-      (id: 'demo_event', name: '체험 · 동네 이벤트', tag: 'event', content: '🎉 주말 팝업 무료 입장 (체험용 예시)', expireH: 96),
+      (id: 'demo_cafe',
+          name: localized.cafeName,
+          tag: 'cafe',
+          content: localized.cafeContent,
+          expireH: 12),
+      (id: 'demo_food',
+          name: localized.foodName,
+          tag: 'food',
+          content: localized.foodContent,
+          expireH: 72),
+      (id: 'demo_beauty',
+          name: localized.beautyName,
+          tag: 'beauty',
+          content: localized.beautyContent,
+          expireH: 168),
+      (id: 'demo_fashion',
+          name: localized.fashionName,
+          tag: 'fashion',
+          content: localized.fashionContent,
+          expireH: 48),
+      (id: 'demo_event',
+          name: localized.eventName,
+          tag: 'event',
+          content: localized.eventContent,
+          expireH: 96),
     ];
     final offsets = [
-      (0.003, 0.0),
-      (0.0, 0.003),
-      (-0.003, 0.0),
-      (0.0, -0.003),
-      (0.002, 0.002),
+      (0.0008, 0.0),
+      (0.0, 0.0008),
+      (-0.0008, 0.0),
+      (0.0, -0.0008),
+      (0.0005, 0.0005),
     ];
     final result = <Letter>[];
     for (var i = 0; i < seeds.length; i++) {
@@ -4655,6 +4713,212 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       ));
     }
     return result;
+  }
+
+  /// Build 402 (PR-JJ7 UX A1 fix): demo letter 카피 14언어 lookup.
+  ///   기존 한국어 hardcode 회귀 fix — 비-KR 사용자도 자국어 demo letter 노출.
+  ///   배포에 추가되는 문구 14×6 (5 demo × name/content + redemption) = 84개.
+  ///   AppLocalizations 에 넣기엔 surface area 커서 inline map 으로 유지.
+  _DemoLetterTexts _demoLetterTextsForLang(String lang) {
+    switch (lang) {
+      case 'ko':
+        return const _DemoLetterTexts(
+          cafeName: '체험 · 동네 카페',
+          cafeContent: '☕ 아메리카노 1+1 (체험용 예시)',
+          foodName: '체험 · 동네 식당',
+          foodContent: '🍴 점심 정식 30% 할인 (체험용 예시)',
+          beautyName: '체험 · 동네 뷰티샵',
+          beautyContent: '💄 마스크팩 1+1 (체험용 예시)',
+          fashionName: '체험 · 동네 패션샵',
+          fashionContent: '👗 신상품 20% 할인 (체험용 예시)',
+          eventName: '체험 · 동네 이벤트',
+          eventContent: '🎉 주말 팝업 무료 입장 (체험용 예시)',
+          redemption: '동네 매장에서 사용 가능 (체험용 예시 혜택)',
+        );
+      case 'ja':
+        return const _DemoLetterTexts(
+          cafeName: '体験・近所のカフェ',
+          cafeContent: '☕ アメリカーノ 1+1 (体験用サンプル)',
+          foodName: '体験・近所のレストラン',
+          foodContent: '🍴 ランチ定食 30% OFF (体験用サンプル)',
+          beautyName: '体験・近所のビューティーショップ',
+          beautyContent: '💄 マスクパック 1+1 (体験用サンプル)',
+          fashionName: '体験・近所のファッションショップ',
+          fashionContent: '👗 新商品 20% OFF (体験用サンプル)',
+          eventName: '体験・近所のイベント',
+          eventContent: '🎉 週末ポップアップ無料入場 (体験用サンプル)',
+          redemption: '近くの店舗で利用可能 (体験用サンプル特典)',
+        );
+      case 'zh':
+        return const _DemoLetterTexts(
+          cafeName: '体验·附近咖啡馆',
+          cafeContent: '☕ 美式买一送一 (体验示例)',
+          foodName: '体验·附近餐厅',
+          foodContent: '🍴 午餐套餐 7 折 (体验示例)',
+          beautyName: '体验·附近美妆店',
+          beautyContent: '💄 面膜买一送一 (体验示例)',
+          fashionName: '体验·附近服饰店',
+          fashionContent: '👗 新品 8 折 (体验示例)',
+          eventName: '体验·附近活动',
+          eventContent: '🎉 周末快闪免费入场 (体验示例)',
+          redemption: '可在附近门店使用 (体验示例优惠)',
+        );
+      case 'fr':
+        return const _DemoLetterTexts(
+          cafeName: 'Démo · Café local',
+          cafeContent: '☕ Americano 1+1 (exemple démo)',
+          foodName: 'Démo · Restaurant local',
+          foodContent: '🍴 Déjeuner −30% (exemple démo)',
+          beautyName: 'Démo · Boutique beauté locale',
+          beautyContent: '💄 Masque 1+1 (exemple démo)',
+          fashionName: 'Démo · Boutique mode locale',
+          fashionContent: '👗 Nouveautés −20% (exemple démo)',
+          eventName: 'Démo · Événement local',
+          eventContent: '🎉 Pop-up week-end gratuit (exemple démo)',
+          redemption: 'Utilisable dans une boutique près de chez vous (exemple démo)',
+        );
+      case 'de':
+        return const _DemoLetterTexts(
+          cafeName: 'Demo · Café in der Nähe',
+          cafeContent: '☕ Americano 1+1 (Demo-Beispiel)',
+          foodName: 'Demo · Restaurant in der Nähe',
+          foodContent: '🍴 Mittagsmenü 30% Rabatt (Demo-Beispiel)',
+          beautyName: 'Demo · Beauty-Shop in der Nähe',
+          beautyContent: '💄 Maske 1+1 (Demo-Beispiel)',
+          fashionName: 'Demo · Mode-Shop in der Nähe',
+          fashionContent: '👗 Neuheiten 20% Rabatt (Demo-Beispiel)',
+          eventName: 'Demo · Event in der Nähe',
+          eventContent: '🎉 Wochenend-Pop-up frei (Demo-Beispiel)',
+          redemption: 'In einem Geschäft in Ihrer Nähe einlösbar (Demo-Beispiel)',
+        );
+      case 'es':
+        return const _DemoLetterTexts(
+          cafeName: 'Demo · Cafetería local',
+          cafeContent: '☕ Americano 2x1 (ejemplo demo)',
+          foodName: 'Demo · Restaurante local',
+          foodContent: '🍴 Menú −30% (ejemplo demo)',
+          beautyName: 'Demo · Tienda de belleza local',
+          beautyContent: '💄 Mascarilla 2x1 (ejemplo demo)',
+          fashionName: 'Demo · Tienda de moda local',
+          fashionContent: '👗 Novedades −20% (ejemplo demo)',
+          eventName: 'Demo · Evento local',
+          eventContent: '🎉 Pop-up fin de semana gratis (ejemplo demo)',
+          redemption: 'Canjeable en tiendas cercanas (ejemplo demo)',
+        );
+      case 'pt':
+        return const _DemoLetterTexts(
+          cafeName: 'Demo · Cafeteria local',
+          cafeContent: '☕ Americano 2 por 1 (exemplo demo)',
+          foodName: 'Demo · Restaurante local',
+          foodContent: '🍴 Almoço −30% (exemplo demo)',
+          beautyName: 'Demo · Loja de beleza local',
+          beautyContent: '💄 Máscara 2 por 1 (exemplo demo)',
+          fashionName: 'Demo · Loja de moda local',
+          fashionContent: '👗 Novidades −20% (exemplo demo)',
+          eventName: 'Demo · Evento local',
+          eventContent: '🎉 Pop-up de fim de semana grátis (exemplo demo)',
+          redemption: 'Resgatável em lojas próximas (exemplo demo)',
+        );
+      case 'ru':
+        return const _DemoLetterTexts(
+          cafeName: 'Демо · Местное кафе',
+          cafeContent: '☕ Американо 1+1 (демо-пример)',
+          foodName: 'Демо · Местный ресторан',
+          foodContent: '🍴 Бизнес-ланч −30% (демо-пример)',
+          beautyName: 'Демо · Магазин красоты',
+          beautyContent: '💄 Маска 1+1 (демо-пример)',
+          fashionName: 'Демо · Магазин одежды',
+          fashionContent: '👗 Новинки −20% (демо-пример)',
+          eventName: 'Демо · Местное событие',
+          eventContent: '🎉 Pop-up на выходных, бесплатный вход (демо-пример)',
+          redemption: 'Можно использовать в магазине рядом (демо-пример)',
+        );
+      case 'tr':
+        return const _DemoLetterTexts(
+          cafeName: 'Demo · Yerel kafe',
+          cafeContent: '☕ Americano 1+1 (demo örnek)',
+          foodName: 'Demo · Yerel restoran',
+          foodContent: '🍴 Öğle menüsü %30 indirim (demo örnek)',
+          beautyName: 'Demo · Yerel güzellik mağazası',
+          beautyContent: '💄 Maske 1+1 (demo örnek)',
+          fashionName: 'Demo · Yerel moda mağazası',
+          fashionContent: '👗 Yeni ürünler %20 indirim (demo örnek)',
+          eventName: 'Demo · Yerel etkinlik',
+          eventContent: '🎉 Hafta sonu pop-up ücretsiz giriş (demo örnek)',
+          redemption: 'Yakındaki mağazalarda kullanılabilir (demo örnek)',
+        );
+      case 'ar':
+        return const _DemoLetterTexts(
+          cafeName: 'تجريبي · مقهى محلي',
+          cafeContent: '☕ أمريكانو اشتر واحد واحصل على آخر مجانًا (مثال تجريبي)',
+          foodName: 'تجريبي · مطعم محلي',
+          foodContent: '🍴 وجبة غداء بخصم 30% (مثال تجريبي)',
+          beautyName: 'تجريبي · متجر تجميل محلي',
+          beautyContent: '💄 قناع اشترِ واحدًا واحصل على الثاني مجانًا (مثال تجريبي)',
+          fashionName: 'تجريبي · متجر أزياء محلي',
+          fashionContent: '👗 أحدث الموديلات بخصم 20% (مثال تجريبي)',
+          eventName: 'تجريبي · فعالية محلية',
+          eventContent: '🎉 دخول مجاني لفعالية نهاية الأسبوع (مثال تجريبي)',
+          redemption: 'يمكن استخدامه في متجر قريب (مثال تجريبي)',
+        );
+      case 'it':
+        return const _DemoLetterTexts(
+          cafeName: 'Demo · Caffetteria locale',
+          cafeContent: '☕ Americano 1+1 (esempio demo)',
+          foodName: 'Demo · Ristorante locale',
+          foodContent: '🍴 Pranzo −30% (esempio demo)',
+          beautyName: 'Demo · Negozio beauty locale',
+          beautyContent: '💄 Maschera 1+1 (esempio demo)',
+          fashionName: 'Demo · Negozio moda locale',
+          fashionContent: '👗 Nuovi arrivi −20% (esempio demo)',
+          eventName: 'Demo · Evento locale',
+          eventContent: '🎉 Pop-up weekend gratuito (esempio demo)',
+          redemption: 'Utilizzabile in un negozio vicino (esempio demo)',
+        );
+      case 'hi':
+        return const _DemoLetterTexts(
+          cafeName: 'डेमो · पास का कैफ़े',
+          cafeContent: '☕ अमेरिकानो 1+1 (डेमो उदाहरण)',
+          foodName: 'डेमो · पास का रेस्तरां',
+          foodContent: '🍴 लंच −30% (डेमो उदाहरण)',
+          beautyName: 'डेमो · पास का ब्यूटी स्टोर',
+          beautyContent: '💄 मास्क 1+1 (डेमो उदाहरण)',
+          fashionName: 'डेमो · पास का फैशन स्टोर',
+          fashionContent: '👗 नया स्टॉक −20% (डेमो उदाहरण)',
+          eventName: 'डेमो · पास का इवेंट',
+          eventContent: '🎉 वीकेंड पॉप-अप मुफ़्त एंट्री (डेमो उदाहरण)',
+          redemption: 'पास के स्टोर पर इस्तेमाल योग्य (डेमो उदाहरण)',
+        );
+      case 'th':
+        return const _DemoLetterTexts(
+          cafeName: 'ตัวอย่าง · คาเฟ่ในย่าน',
+          cafeContent: '☕ อเมริกาโน่ 1 แถม 1 (ตัวอย่างเดโม)',
+          foodName: 'ตัวอย่าง · ร้านอาหารในย่าน',
+          foodContent: '🍴 เซตเที่ยง ลด 30% (ตัวอย่างเดโม)',
+          beautyName: 'ตัวอย่าง · ร้านบิวตี้ในย่าน',
+          beautyContent: '💄 แมสก์ 1 แถม 1 (ตัวอย่างเดโม)',
+          fashionName: 'ตัวอย่าง · ร้านแฟชั่นในย่าน',
+          fashionContent: '👗 สินค้าใหม่ ลด 20% (ตัวอย่างเดโม)',
+          eventName: 'ตัวอย่าง · อีเวนต์ในย่าน',
+          eventContent: '🎉 ป๊อปอัปสุดสัปดาห์ เข้าฟรี (ตัวอย่างเดโม)',
+          redemption: 'ใช้ได้ที่ร้านใกล้คุณ (ตัวอย่างเดโม)',
+        );
+      case 'en':
+      default:
+        return const _DemoLetterTexts(
+          cafeName: 'Demo · Local café',
+          cafeContent: '☕ Americano BOGO (demo example)',
+          foodName: 'Demo · Local restaurant',
+          foodContent: '🍴 Lunch combo 30% off (demo example)',
+          beautyName: 'Demo · Local beauty shop',
+          beautyContent: '💄 Sheet mask BOGO (demo example)',
+          fashionName: 'Demo · Local fashion shop',
+          fashionContent: '👗 New arrivals 20% off (demo example)',
+          eventName: 'Demo · Local event',
+          eventContent: '🎉 Weekend pop-up free entry (demo example)',
+          redemption: 'Redeemable at a shop near you (demo example reward)',
+        );
+    }
   }
 
   // Build 309: letter id collision 차단용 4바이트 (8 hex) random suffix.
@@ -8990,7 +9254,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _saveToPrefs();
   }
 
-  /// Firestore에 신고 기록 저장 (관리자 조회용)
+  /// Firestore에 신고 기록 저장 (관리자 조회용).
+  ///
+  /// Build 402 (PR-JJ1 D5 fix): 기존 구현은 `?key=apiKey` URL 로 anonymous
+  /// HTTP POST 만 보내서 Firestore rules (isSignedIn) 평가에서 PERMISSION_DENIED
+  /// 로 무조건 실패 → UGC 신고 기능이 완전히 비작동 상태였음. FirestoreService
+  /// .setDocument 로 전환해 Bearer ID 토큰 attach. doc id 는
+  /// `{letterId}_{reporterId}` deterministic 으로 동일 신고자 중복 차단.
   Future<void> _saveReportToFirestore({
     required String letterId,
     required String senderId,
@@ -8999,25 +9269,25 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     required int reportCount,
   }) async {
     try {
-      final url = Uri.parse(
-        '${FirebaseConfig.firestoreBase}/reports?key=${Uri.encodeQueryComponent(FirebaseConfig.apiKey)}',
-      );
-      final body = {
-        'fields': {
-          'letterId': {'stringValue': letterId},
-          'senderId': {'stringValue': senderId},
-          'reporterId': {'stringValue': reporterId},
-          'reason': {'stringValue': reason},
-          'reportCount': {'integerValue': '$reportCount'},
-          'status': {'stringValue': 'pending'}, // pending → reviewed → resolved
-          'createdAt': {'timestampValue': DateTime.now().toUtc().toIso8601String()},
-        },
-      };
-      await http.post(url, body: jsonEncode(body), headers: {
-        'Content-Type': 'application/json',
-      }).timeout(const Duration(seconds: 10));
+      // Build 402: deterministic doc id — letterId+reporterId 해시로
+      //   동일 신고자가 같은 letter 다중 신고 차단 (memory 단의 reportedBy 가드
+      //   외 추가 안전망).
+      final docId = '${letterId}_$reporterId'
+          .replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_');
+      final ok = await FirestoreService.setDocument('reports/$docId', {
+        'letterId': letterId,
+        'senderId': senderId,
+        'reporterId': reporterId,
+        'reason': reason,
+        'reportCount': reportCount,
+        'status': 'pending', // pending → reviewed → resolved
+        'createdAt': DateTime.now().toUtc().toIso8601String(),
+      });
+      if (!ok && kDebugMode) {
+        debugPrint('[report] Firestore setDocument 실패 — rules 또는 네트워크');
+      }
     } catch (e) {
-      debugPrint('Failed to save report to Firestore: $e');
+      if (kDebugMode) debugPrint('Failed to save report to Firestore: $e');
     }
   }
 
@@ -9239,6 +9509,37 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _flushDebounce = null;
     super.dispose();
   }
+}
+
+/// Build 402 (PR-JJ7 UX A1 fix): demo letter 5세트 텍스트 (lang 별).
+///   AppState._demoLetterTextsForLang() 이 lang 코드에 따라 14가지 중 하나
+///   반환. ARB 분리하기엔 표면적 작아 inline.
+class _DemoLetterTexts {
+  final String cafeName;
+  final String cafeContent;
+  final String foodName;
+  final String foodContent;
+  final String beautyName;
+  final String beautyContent;
+  final String fashionName;
+  final String fashionContent;
+  final String eventName;
+  final String eventContent;
+  final String redemption;
+
+  const _DemoLetterTexts({
+    required this.cafeName,
+    required this.cafeContent,
+    required this.foodName,
+    required this.foodContent,
+    required this.beautyName,
+    required this.beautyContent,
+    required this.fashionName,
+    required this.fashionContent,
+    required this.eventName,
+    required this.eventContent,
+    required this.redemption,
+  });
 }
 
 /// Build 138: 브랜드 분석 결과 데이터 클래스.

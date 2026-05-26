@@ -169,7 +169,16 @@ Letter buildWelcomeLetter({
   required String langCode,
 }) {
   final origin = LatLng(_hqLat, _hqLng);
-  final dest = LatLng(userLat, userLng);
+  // Build 402 (PR-JJ9 UX P1-9 fix): GPS denied / 권한 거부 신규 사용자는
+  //   _currentUser.latitude/longitude 가 0.0 으로 저장 → 지도에서 Welcome
+  //   letter route 가 Seoul → Null Island (대서양) 로 그려져 비정상.
+  //   userLat/userLng=0 fallback 시 origin 과 동일 좌표 → "현지 도착" route 로
+  //   표시. 정상 GPS 사용자는 그대로 유지.
+  final hasValidUserCoord =
+      !(userLat == 0.0 && userLng == 0.0) &&
+      userLat.abs() <= 90.0 &&
+      userLng.abs() <= 180.0;
+  final dest = hasValidUserCoord ? LatLng(userLat, userLng) : origin;
   final segments = LogisticsHubs.buildRoute(
     fromCountry: _hqCountry,
     fromCity: origin,

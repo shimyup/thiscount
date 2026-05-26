@@ -2,3 +2,5 @@
 "NSLocationAlwaysAndWhenInUseUsageDescription" = "Your location is used to show nearby store coupons.";
 "NSPhotoLibraryUsageDescription" = "Photo library access is used to change your profile picture and attach coupon images.";
 "NSPhotoLibraryAddUsageDescription" = "Permission is needed to save selected photos in the app.";
+"NSUserNotificationUsageDescription" = "Notifications let you know when new rewards arrive nearby.";
+"NSCameraUsageDescription" = "Camera access is needed if you choose to take a new profile photo. You can also pick from your photo library.";

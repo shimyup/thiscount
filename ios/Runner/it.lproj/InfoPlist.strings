@@ -3,3 +3,4 @@
 "NSPhotoLibraryUsageDescription" = "L'accesso alla libreria foto è necessario per cambiare la tua foto profilo e le immagini dei coupon.";
 "NSPhotoLibraryAddUsageDescription" = "L'autorizzazione è necessaria per salvare le foto selezionate nell'app.";
 "NSUserNotificationUsageDescription" = "Le notifiche sono necessarie per avvisarti quando arrivano nuove ricompense nelle vicinanze.";
+"NSCameraUsageDescription" = "L'accesso alla fotocamera è necessario se scegli di scattare una nuova foto profilo. Puoi anche selezionare dalla libreria foto.";

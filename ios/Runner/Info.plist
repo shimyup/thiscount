@@ -10,12 +10,25 @@
 	<string>Photo library access is needed to change your profile picture.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Permission is needed to save your selected profile photo.</string>
+	<!-- Build 402 (PR-JJ3 manifest C1 fix): image_picker iOS plugin links the
+	     UIImagePickerController camera API even when we never call
+	     ImageSource.camera. App Store static analysis (ITMS-90683) rejects
+	     binaries that reference camera APIs without an explicit usage string.
+	     Profile-photo flow currently uses gallery only; if camera is wired up
+	     later this copy already covers the use case. -->
+	<key>NSCameraUsageDescription</key>
+	<string>Camera access is needed if you choose to take a new profile photo. You can also pick from your photo library.</string>
 	<key>NSUserNotificationUsageDescription</key>
 	<string>Notifications let you know when new rewards arrive nearby.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<!-- Build 402 (PR-JJ3 manifest C2 fix): 14 lproj 디렉토리 (en/ko/ja/zh/es/
+	     fr/de/pt-BR/ar/it/hi + ru/tr/th) 가 모두 InfoPlist.strings 를 갖고
+	     있으나 CFBundleLocalizations 에 ru/tr/th 가 누락돼 시스템 언어가
+	     러시아어/터키어/태국어인 단말에서 앱 이름/사용권한 안내가 영어로
+	     fallback 됐다. App Store 노출 가능 언어 14개로 통일. -->
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>en</string>
@@ -29,6 +42,9 @@
 		<string>ar</string>
 		<string>it</string>
 		<string>hi</string>
+		<string>ru</string>
+		<string>tr</string>
+		<string>th</string>
 	</array>
 	<key>CFBundleDisplayName</key>
 	<string>Thiscount</string>

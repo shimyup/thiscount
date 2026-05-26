@@ -3,3 +3,4 @@
 "NSPhotoLibraryUsageDescription" = "プロフィール写真とクーポン画像を変更するためにフォトライブラリを使用します。";
 "NSPhotoLibraryAddUsageDescription" = "選択した写真をアプリに保存するために権限が必要です。";
 "NSUserNotificationUsageDescription" = "近くに新しい特典が届いたときにお知らせするため、通知の許可が必要です。";
+"NSCameraUsageDescription" = "新しいプロフィール写真を撮影する場合にカメラへのアクセスが必要です。フォトライブラリからも選択できます。";

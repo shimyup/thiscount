@@ -3,3 +3,4 @@
 "NSPhotoLibraryUsageDescription" = "O acesso à biblioteca de fotos é usado para alterar sua foto de perfil e imagens de cupons.";
 "NSPhotoLibraryAddUsageDescription" = "Permissão necessária para salvar as fotos selecionadas no app.";
 "NSUserNotificationUsageDescription" = "As notificações são necessárias para avisar quando novas recompensas chegarem por perto.";
+"NSCameraUsageDescription" = "É necessário acesso à câmera caso queira tirar uma nova foto de perfil. Você também pode escolher da biblioteca de fotos.";

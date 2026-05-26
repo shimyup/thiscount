@@ -3,3 +3,4 @@
 "NSPhotoLibraryUsageDescription" = "مطلوب الوصول إلى مكتبة الصور لتغيير صورة ملفك الشخصي وصور الكوبونات.";
 "NSPhotoLibraryAddUsageDescription" = "مطلوب إذن لحفظ الصور المختارة في التطبيق.";
 "NSUserNotificationUsageDescription" = "الإشعارات مطلوبة لتنبيهك عند وصول مكافآت جديدة بالقرب منك.";
+"NSCameraUsageDescription" = "مطلوب الوصول إلى الكاميرا إذا اخترت التقاط صورة ملف شخصي جديدة. يمكنك أيضًا الاختيار من مكتبة الصور.";

@@ -1,15 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Android 12+ (API 31+) 의 백업·기기 이전 규칙.
-  cloud-backup: Google Drive (앱 재설치 시 복원) — 민감정보 제외
-  device-transfer: 새 기기 전송 (USB / D2D) — secure storage 포함
+  Android 12+ (API 31+) 백업·기기 이전 규칙.
+
+  Build 402 (PR-JJ4 보안 C3): allowBackup=false 와 함께 정책 명시.
+  cloud-backup: Google Drive (Auto Backup) — 사실상 비활성.
+  device-transfer: D2D (Smart Switch / Quick Setup) — 신뢰 가능한 경로이므로
+    secure storage 포함해서 사용자 편의 유지.
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <include domain="sharedpref" path="."/>
+        <!-- Build 402: shared_preferences 본체 제외 (allowBackup=false 이지만
+             정책 일관성 위해 명시). -->
         <exclude domain="sharedpref" path="FlutterSecureStorage"/>
+        <exclude domain="sharedpref" path="FlutterSharedPreferences"/>
     </cloud-backup>
     <device-transfer>
+        <!-- D2D 는 사용자가 직접 두 단말 사이 USB / Quick Setup 로 전송하므로
+             secure storage 도 포함 — 새 단말로 이주 시 자동 로그인 유지. -->
         <include domain="sharedpref" path="."/>
     </device-transfer>
 </data-extraction-rules>

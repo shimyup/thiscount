@@ -30,7 +30,11 @@ if [[ -z "$BUILD_NUM" ]]; then
   echo "❌ pubspec build number 파싱 실패." >&2
   exit 1
 fi
-echo "==[ Build $BUILD_NUM 출시 파이프라인 시작 ]=="
+# Build 402 (PR-JJ5): APP_VERSION dart-define 주입 (production 스크립트와 동일).
+#   누락 시 '설정 > 정보' 화면이 'dev' 로 표시.
+APP_MARKETING_VERSION=$(grep -E "^version:" "$PUBSPEC" | sed -E 's/version:[[:space:]]*([0-9.]+)\+.*/\1/')
+export APP_VERSION="${APP_MARKETING_VERSION}+${BUILD_NUM}"
+echo "==[ Build $BUILD_NUM 출시 파이프라인 시작 (APP_VERSION=$APP_VERSION) ]=="
 
 # 1) .env.local backup + TestFlight 베타 모드 플립
 #

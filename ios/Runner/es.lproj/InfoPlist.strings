@@ -3,3 +3,4 @@
 "NSPhotoLibraryUsageDescription" = "Se necesita acceso a la fototeca para cambiar tu foto de perfil e imágenes de cupones.";
 "NSPhotoLibraryAddUsageDescription" = "Se necesita permiso para guardar las fotos seleccionadas en la app.";
 "NSUserNotificationUsageDescription" = "Se necesitan notificaciones para avisarte cuando lleguen nuevas recompensas cerca.";
+"NSCameraUsageDescription" = "Se necesita acceso a la cámara si eliges tomar una nueva foto de perfil. También puedes elegir de tu fototeca.";

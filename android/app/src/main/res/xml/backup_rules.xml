@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Android 11 이하의 Auto Backup 규칙.
-  Google Drive 로 백업되어 앱 재설치 시 자동 복원.
-  편지·타워·활동 점수가 담긴 SharedPreferences 만 포함.
-  secure storage 와 캐시는 include 하지 않음 → 자동 제외됨.
+  Android 11 이하 (API ≤ 30) Auto Backup 규칙.
+
+  Build 402 (PR-JJ4 보안 C3): allowBackup=false 로 변경하면서 이 파일은
+  사실상 효력 없음. 만약 차후 정책 검토 후 allowBackup=true 로 되돌릴
+  경우를 대비해 화이트리스트는 유지 (FlutterSharedPreferences 자체 제외 —
+  로그인 이메일/티어/trial 클레임/brand zone 캐시 등 PII 가 포함됨).
 -->
 <full-backup-content>
-    <include domain="sharedpref" path="."/>
     <!-- secure storage 는 민감 정보라 백업에서 제외 -->
     <exclude domain="sharedpref" path="FlutterSecureStorage"/>
+    <!-- Build 402: shared_preferences 본체도 제외 — 로그인 이메일/Premium
+         tier/welcome trial 클레임 hash/brand zone 캐시 등 사용자 식별
+         가능한 정보가 누적 저장됨. Google 계정 탈취 시 복원 단말에서
+         사용자 계정 인계가 가능해지므로 제외. -->
+    <exclude domain="sharedpref" path="FlutterSharedPreferences"/>
 </full-backup-content>

@@ -3,3 +3,4 @@
 "NSPhotoLibraryUsageDescription" = "Zugriff auf die Fotobibliothek wird benötigt, um Profilbild und Gutscheinbilder zu ändern.";
 "NSPhotoLibraryAddUsageDescription" = "Berechtigung wird benötigt, um ausgewählte Fotos in der App zu speichern.";
 "NSUserNotificationUsageDescription" = "Mitteilungen werden benötigt, um Sie über neue Belohnungen in der Nähe zu informieren.";
+"NSCameraUsageDescription" = "Kamerazugriff wird benötigt, wenn Sie ein neues Profilfoto aufnehmen möchten. Sie können auch aus der Fotobibliothek wählen.";

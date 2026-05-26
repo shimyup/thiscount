@@ -27,7 +27,12 @@ if [[ ! -f "$ENV_FILE" ]]; then
 fi
 
 BUILD_NUM=$(grep -E "^version:" "$PUBSPEC" | sed -E 's/.*\+([0-9]+).*/\1/')
-echo "==[ Build $BUILD_NUM PRODUCTION 출시 빌드 ]=="
+# Build 402 (PR-JJ5 manifest A3 fix): 출시 빌드 시 pubspec 의 마케팅 버전 +
+#   빌드 번호를 APP_VERSION dart-define 으로 주입한다. 누락 시 build_ios_release
+#   .sh 가 'dev' 로 fallback 해 설정 화면에 'dev' 표시 (사용자 혼란 + CS 비용).
+APP_MARKETING_VERSION=$(grep -E "^version:" "$PUBSPEC" | sed -E 's/version:[[:space:]]*([0-9.]+)\+.*/\1/')
+export APP_VERSION="${APP_MARKETING_VERSION}+${BUILD_NUM}"
+echo "==[ Build $BUILD_NUM PRODUCTION 출시 빌드 (APP_VERSION=$APP_VERSION) ]=="
 
 BACKUP="/tmp/env.local.bak.prod.$BUILD_NUM"
 cp "$ENV_FILE" "$BACKUP"
