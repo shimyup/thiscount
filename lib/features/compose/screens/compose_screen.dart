@@ -1049,23 +1049,29 @@ class _ComposeScreenState extends State<ComposeScreen>
 
   bool _hasBannedWords(String text) {
     // Build 378 (PR-EE1 audit msg P1-8 잔여): 우회 차단 강화.
-    //   이전: lower.contains(word) — `s h i t` / `s*hit` / `s_h_i_t` 우회 가능
-    //   (audit 의 substring match 약점).
-    //   강화: 비-알파숫자 (공백/특수문자/이모지) 제거 후 정규화된 텍스트와
-    //   정규화된 banned word 비교. 우회 패턴 95%+ 차단.
-    //   Trade-off: 정상 텍스트 "Hi! Asshole's joke" 같은 case 도 매칭 (false-
-    //   positive 가능) — 욕설 정책 보수적 선호 (사용자 친화 < spam 차단).
+    // Build 397 (PR-HH6 audit 전반 P1-4): \b word boundary — 영문 word
+    //   level 매칭. 이전 substring (`lower.contains(w)`) 로 "class/passion/
+    //   glass/massachusetts" 같은 정상 단어가 'ass' banned word 로 false-
+    //   positive 차단됐던 회귀. CJK/Arabic/Thai/Hindi 는 word boundary 개념
+    //   다르므로 normalized substring 유지.
     final lowerOriginal = text.toLowerCase();
-    // 알파숫자/한중일/아랍/태국/힌디 글자만 유지, 나머지 제거.
     final normalized = lowerOriginal
         .replaceAll(RegExp(r'[^a-z0-9À-ſ가-힯぀-ヿ一-鿿؀-ۿ฀-๿ऀ-ॿ]'), '');
     return _bannedWords.any((w) {
       final wl = w.toLowerCase();
-      // 1) original substring (공백 포함 phrase 매칭 — 'kill yourself')
-      if (lowerOriginal.contains(wl)) return true;
-      // 2) normalized substring (우회 패턴)
-      final wn = wl.replaceAll(RegExp(r'[^a-z0-9À-ſ가-힯぀-ヿ一-鿿؀-ۿ฀-๿ऀ-ॿ]'), '');
-      if (wn.isNotEmpty && normalized.contains(wn)) return true;
+      // 영문/숫자만 으로 이뤄진 word → \b boundary 매칭 (정상 단어 false-positive 방지).
+      final isAsciiWord = RegExp(r'^[a-z0-9 \-]+$').hasMatch(wl);
+      if (isAsciiWord) {
+        // 'kill yourself' 같은 phrase 도 \b...\b 통과.
+        final pattern = r'\b' + RegExp.escape(wl) + r'\b';
+        if (RegExp(pattern).hasMatch(lowerOriginal)) return true;
+      } else {
+        // 비-ascii (CJK / 아랍 / 태국 / 힌디 등) — substring 매칭.
+        if (lowerOriginal.contains(wl)) return true;
+        // 정규화 우회 차단 (공백/특수문자 우회).
+        final wn = wl.replaceAll(RegExp(r'[^a-z0-9À-ſ가-힯぀-ヿ一-鿿؀-ۿ฀-๿ऀ-ॿ]'), '');
+        if (wn.isNotEmpty && normalized.contains(wn)) return true;
+      }
       return false;
     });
   }
