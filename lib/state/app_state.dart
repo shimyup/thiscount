@@ -4493,8 +4493,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       socialLink: socialLink,
       profileImagePath: _currentUser.profileImagePath,
       languageCode: resolvedLanguageCode,
-      latitude: latitude ?? 37.5665,
-      longitude: longitude ?? 126.9780,
+      // Build 397 (PR-HH6 audit 전반 P1-5): Seoul (37.5665, 126.9780) fallback
+      //   제거. Build 272 PR 노트 ("한국 기본값 제거 / 글로벌화") 와 모순.
+      //   EU/US 신규 가입자 GPS 권한 거부 시 한국 위치로 표시되는 회귀.
+      //   null/0 시 (0,0) 으로 → fetchMapUsers 가 lastKnown / countryFlagCenter
+      //   fallback 처리 (자연스러운 글로벌).
+      latitude: latitude ?? 0.0,
+      longitude: longitude ?? 0.0,
       activityScore: _currentUser.activityScore, // 기존 점수 유지 (초기값 하드코딩 제거)
       phoneNumber: phoneNumber,
       verifyMethod: verifyMethod ?? 'email',

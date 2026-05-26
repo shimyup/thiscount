@@ -2455,6 +2455,10 @@ class _TesterDashboardScreenState extends State<_TesterDashboardScreen>
               Navigator.pop(context);
               final state = context.read<AppState>();
               await state.adminDeleteLetter(letterId);
+              // Build 397 (PR-HH6 audit 회원관리 P0-2): mounted check 추가 —
+              //   await 후 dispose 되었을 수 있음. setState/_fetchAll 호출 시
+              //   dead context throw 차단.
+              if (!mounted) return;
               _fetchAll();
             },
             child: const Text('Delete',
