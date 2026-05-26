@@ -78,6 +78,15 @@ if [[ "${BETA_TESTFLIGHT_BUILD:-false}" == "true" ]]; then
   DART_DEFINES+=("--dart-define=BETA_TESTFLIGHT_BUILD=true")
 fi
 
+# Build 399 (PR-II2 audit A3): PRODUCTION_BUILD layered defense.
+if [[ "${PRODUCTION_BUILD:-false}" == "true" ]]; then
+  echo "[android] PRODUCTION_BUILD=true — 모든 beta flag 강제 차단"
+  DART_DEFINES+=("--dart-define=PRODUCTION_BUILD=true")
+fi
+
+# Build 399 (PR-II1 audit B11): APP_VERSION dart-define.
+DART_DEFINES+=("--dart-define=APP_VERSION=${APP_VERSION:-dev}")
+
 if [[ -n "${BETA_ADMIN_EMAIL:-}" ]]; then
   echo "[android] BETA_ADMIN_EMAIL=${BETA_ADMIN_EMAIL}"
   DART_DEFINES+=("--dart-define=BETA_ADMIN_EMAIL=${BETA_ADMIN_EMAIL}")

@@ -94,6 +94,20 @@ if [[ "${BETA_TESTFLIGHT_BUILD:-false}" == "true" ]]; then
   DART_DEFINES+=("--dart-define=BETA_TESTFLIGHT_BUILD=true")
 fi
 
+# Build 399 (PR-II2 audit A3): PRODUCTION_BUILD flag — production 빌드에서
+# 모든 beta flag 강제 차단. release_to_production.sh 가 .env.local 에
+# PRODUCTION_BUILD=true 주입 → 이 스크립트가 dart-define 으로 패스스루.
+# BetaConstants.isProductionBuild → _isBetaFreePremium / _isBetaUpgradeSimulator
+# 가 무조건 false → 빌드 실수로 BETA flag 가 새어 들어가도 layered defense.
+if [[ "${PRODUCTION_BUILD:-false}" == "true" ]]; then
+  echo "[ios] PRODUCTION_BUILD=true — 모든 beta flag 강제 차단"
+  DART_DEFINES+=("--dart-define=PRODUCTION_BUILD=true")
+fi
+
+# Build 399 (PR-II1 audit B11): GDPR export 의 'version' 필드 동적 — Dart
+# AOT 가 String.fromEnvironment 컴파일 시점 inline.
+DART_DEFINES+=("--dart-define=APP_VERSION=${APP_VERSION:-dev}")
+
 if [[ -n "${BETA_ADMIN_EMAIL:-}" ]]; then
   echo "[ios] BETA_ADMIN_EMAIL=${BETA_ADMIN_EMAIL}"
   DART_DEFINES+=("--dart-define=BETA_ADMIN_EMAIL=${BETA_ADMIN_EMAIL}")
