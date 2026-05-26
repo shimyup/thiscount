@@ -204,12 +204,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               }
               final user = await AuthService.getCurrentUser();
               if (user == null) return;
-              final err = await AuthService.login(
-                username: user['username'] ?? '',
-                password: oldCtrl.text,
-                langCode: state.currentUser.languageCode,
-              );
-              if (err != null) {
+              // Build 395 (PR-HH4 audit D18): verifyCurrentPassword (counter
+              //   미증분) — 이전 AuthService.login 호출 시 _recordLoginFailure
+              //   카운트 누적 → 본인 4회 실수 + 다음 1회 login = self-lockout
+              //   회귀.
+              final ok = await AuthService.verifyCurrentPassword(oldCtrl.text);
+              if (!ok) {
                 if (ctx.mounted) _showSnack(ctx, l.settingsPwError);
                 return;
               }
