@@ -2268,6 +2268,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   /// 시스템 편지를 받은 편지함에 직접 추가
   void adminAddSystemLetter(String content) {
+    // Build 396 (PR-HH5 audit 회원관리 P1-7): admin XSS / size 검증.
+    //   admin 디바이스 분실 시 attacker 가 무제한 본문 + script tag 삽입 가능
+    //   했음 — compose 의 banned filter 우회.
+    //   size cap 5000 + script tag/javascript: / data: URL strip.
+    if (content.isEmpty) return;
+    final trimmed = content.length > 5000 ? content.substring(0, 5000) : content;
+    final sanitized = trimmed
+        .replaceAll(RegExp(r'<script[^>]*>.*?</script>', caseSensitive: false, dotAll: true), '')
+        .replaceAll(RegExp(r'javascript:', caseSensitive: false), '')
+        .replaceAll(RegExp(r'data:text/html', caseSensitive: false), '');
     final now = DateTime.now();
     final originLoc = LatLng(_currentUser.latitude, _currentUser.longitude);
     final letter = Letter(
@@ -2276,7 +2286,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       senderName: '📮 Message in a Bottle',
       senderCountry: _l10n.stateAdmin,
       senderCountryFlag: '🌐',
-      content: content,
+      content: sanitized,
       originLocation: originLoc,
       destinationLocation: originLoc,
       destinationCountry: _currentUser.country,
