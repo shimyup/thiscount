@@ -141,6 +141,27 @@ class _MainScaffoldState extends State<MainScaffold> {
     }
     if (!state.currentUser.isPremium && !state.currentUser.isBrand) {
       final l = AppL10n.of(state.currentUser.languageCode);
+      // Build 403 (PR-LL4): newcomer (가입 후 5분 이내) 에게는 paywall sheet
+      //   대신 가벼운 SnackBar coachmark. 첫 진입에서 결제 압박을 받으면
+      //   drop-off → 일단 픽업 흐름 안내만. trial 받은 사용자는 isPremium=true
+      //   이므로 이 분기 안 옴 (자유 발송 가능).
+      if (state.currentUser.isNewcomer) {
+        ScaffoldMessenger.of(ctx).showSnackBar(
+          SnackBar(
+            backgroundColor: AppColors.bgCard,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 4),
+            content: Text(
+              l.koEn(
+                '👋 먼저 지도에서 근처 쿠폰을 픽업해보세요. 발송은 픽업 후 안내드릴게요.',
+                '👋 Try picking up a nearby coupon on the map first. We\'ll guide you to sending after.',
+              ),
+              style: const TextStyle(color: AppColors.textPrimary),
+            ),
+          ),
+        );
+        return;
+      }
       PremiumGateSheet.show(
         ctx,
         featureName: l.composeGateFeatureName,

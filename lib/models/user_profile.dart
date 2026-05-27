@@ -508,4 +508,21 @@ class UserProfile {
        joinedAt = joinedAt ?? DateTime.now(),
        followingIds = followingIds ?? [],
        followerIds = followerIds ?? [];
+
+  /// Build 403 (PR-LL4): 가입 직후 첫 [minutes] 분 이내 여부.
+  ///
+  /// LL4 "Free-only mode" 의 입구. 신규 사용자가 가입 직후 paywall/upsell 에
+  /// 즉시 노출되면 conversion 0% + drop-off 증가. 5분 정도는 핵심 기능 (픽업·
+  /// 지도·인박스) 만 노출하도록 callsite 가 이 헬퍼로 분기 가능.
+  ///
+  /// 예: trial 만료 배너 styling 완화, 상위 tier 비교 표 default hide,
+  ///     compose 진입 시 paywall sheet 대신 "먼저 픽업해보세요" coachmark.
+  bool isWithinFirstMinutes(int minutes) {
+    if (minutes <= 0) return false;
+    final age = DateTime.now().difference(joinedAt);
+    return age < Duration(minutes: minutes);
+  }
+
+  /// PR-LL4: 표준 newcomer 윈도우 (5분). 호출 측 magic number 분산 방지.
+  bool get isNewcomer => isWithinFirstMinutes(5);
 }

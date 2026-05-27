@@ -6697,21 +6697,24 @@ class AppL10n {
     'th': 'ส่งจำนวนมาก เปิด',
   });
 
+  // Build 403 (PR-LL3): "(Brand 전용)" suffix 제거. 이 toggle 은 isBrand=true
+  //   분기에서만 노출되므로 본인이 이미 Brand 인데 (Brand 전용) 표시 불필요.
+  //   메타 라벨 폐지 → 명확한 동사 ("대량 발송") 만 유지.
   String get composeBulkBrandOnly => _t({
-    'ko': '대량 발송 (Brand 전용)',
-    'en': 'Bulk Send (Brand only)',
-    'ja': '大量送信（Brand専用）',
-    'zh': '批量发送（Brand 专属）',
-    'fr': 'Envoi en masse (Brand uniquement)',
-    'de': 'Massenversand (nur Brand)',
-    'es': 'Envío masivo (solo Brand)',
-    'pt': 'Envio em massa (apenas Brand)',
-    'ru': 'Массовая рассылка (только Brand)',
-    'tr': 'Toplu Gönderim (sadece Brand)',
-    'ar': 'إرسال جماعي (Brand فقط)',
-    'it': 'Invio massivo (solo Brand)',
-    'hi': 'बल्क भेजना (केवल Brand)',
-    'th': 'ส่งจำนวนมาก (Brand เท่านั้น)',
+    'ko': '대량 발송',
+    'en': 'Bulk Send',
+    'ja': '大量送信',
+    'zh': '批量发送',
+    'fr': 'Envoi en masse',
+    'de': 'Massenversand',
+    'es': 'Envío masivo',
+    'pt': 'Envio em massa',
+    'ru': 'Массовая рассылка',
+    'tr': 'Toplu Gönderim',
+    'ar': 'إرسال جماعي',
+    'it': 'Invio massivo',
+    'hi': 'बल्क भेजना',
+    'th': 'ส่งจำนวนมาก',
   });
 
   // ── Brand options ──────────────────────────────────────────────────────
@@ -6944,21 +6947,24 @@ class AppL10n {
     'th': 'โหมดด่วน เปิด — ส่งหลายฉบับทันทีไปยังประเทศที่เลือก',
   });
 
+  // Build 403 (PR-LL3): "(Brand 전용)" suffix 제거. 이 라벨은 isBrand
+  //   인 사용자만 보는 토글이므로 본인 tier 표기 redundant. 기능 설명
+  //   "5분 즉시 배송" 만 유지.
   String get composeExpressModeBrand => _t({
-    'ko': '특송 모드 (Brand 전용 · 5분 즉시 배송)',
-    'en': 'Express Mode (Brand only · 5 min instant delivery)',
-    'ja': '特送モード（Brand専用 · 5分即時配送）',
-    'zh': '特快模式（Brand 专属 · 5分钟即时配送）',
-    'fr': 'Mode Express (Brand uniquement · livraison instantanée 5 min)',
-    'de': 'Express-Modus (nur Brand · 5 Min. Sofortlieferung)',
-    'es': 'Modo Exprés (solo Brand · entrega instantánea 5 min)',
-    'pt': 'Modo Express (apenas Brand · entrega instantânea 5 min)',
-    'ru': 'Экспресс-режим (только Brand · доставка за 5 мин)',
-    'tr': 'Hızlı Mod (sadece Brand · 5 dk anında teslimat)',
-    'ar': 'وضع سريع (Brand فقط · توصيل فوري 5 دقائق)',
-    'it': 'Modalità Express (solo Brand · consegna istantanea 5 min)',
-    'hi': 'एक्सप्रेस मोड (केवल Brand · 5 मिनट तुरंत डिलीवरी)',
-    'th': 'โหมดด่วน (Brand เท่านั้น · ส่งทันทีใน 5 นาที)',
+    'ko': '특송 모드 · 5분 즉시 배송',
+    'en': 'Express Mode · 5 min instant delivery',
+    'ja': '特送モード · 5分即時配送',
+    'zh': '特快模式 · 5分钟即时配送',
+    'fr': 'Mode Express · livraison instantanée 5 min',
+    'de': 'Express-Modus · 5 Min. Sofortlieferung',
+    'es': 'Modo Exprés · entrega instantánea 5 min',
+    'pt': 'Modo Express · entrega instantânea 5 min',
+    'ru': 'Экспресс-режим · доставка за 5 мин',
+    'tr': 'Hızlı Mod · 5 dk anında teslimat',
+    'ar': 'وضع سريع · توصيل فوري 5 دقائق',
+    'it': 'Modalità Express · consegna istantanea 5 min',
+    'hi': 'एक्सप्रेस मोड · 5 मिनट तुरंत डिलीवरी',
+    'th': 'โหมดด่วน · ส่งทันทีใน 5 นาที',
   });
 
   String get composeExpressSettings => _t({
