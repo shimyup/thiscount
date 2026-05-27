@@ -4485,6 +4485,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     double? longitude,
     String? phoneNumber,
     String? verifyMethod,
+    // Build 405 (PR-NN2): NN1 chooser 에서 선택한 계정 종류.
+    //   true 면 즉시 Brand UX 진입 (MainScaffold NN3 분기).
+    bool isBrand = false,
+    String? brandName,
   }) {
     // Build 324: 다른 uid 로 전환 시 (logout → 다른 계정 login) 캠페인 dedup
     //   기록이 새 사용자에게 leakage 되지 않도록 in-memory + prefs 동시 clear.
@@ -4526,6 +4530,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       country: country,
       countryFlag: countryFlag,
       isPremium: isPremium,
+      // Build 405 (PR-NN2): 가입 시 chooser 에서 선택한 계정 종류 반영.
+      //   isBrand=true 인 신규 사용자는 MainScaffold (NN3) 가 Brand UX 노출.
+      //   기존 사용자도 cold-start 에서 secure storage 의 isBrand 값 복원.
+      isBrand: isBrand || _currentUser.isBrand,
+      brandName: brandName ?? _currentUser.brandName,
       socialLink: socialLink,
       profileImagePath: _currentUser.profileImagePath,
       languageCode: resolvedLanguageCode,

@@ -285,6 +285,12 @@ class AuthService {
   static const _keyMustChangePassword = 'mustChangePassword';
   static const _keyPhoneNumber = 'phoneNumber';
   static const _keyVerifyMethod = 'verifyMethod'; // 'email' or 'phone'
+  // Build 405 (PR-NN2): 가입 시점에 선택한 계정 종류 영구 저장.
+  //   'true' / 'false' string. 가입 시 isBrand=true 면 즉시 Brand UX 진입.
+  //   결제 (RevenueCat) 와 별개 — Brand 가입 자체는 무료이며 추후 발송 시
+  //   결제/인증 절차 (사업자등록증 등) 가 추가될 예정 (Phase 2).
+  static const _keyIsBrand = 'isBrand_v1';
+  static const _keyBrandName = 'brandName_v1';
   static const _keySecureMigrated = 'auth_secure_migrated_v1';
   static const _tempPasswordTtl = Duration(minutes: 15);
 
@@ -1024,6 +1030,9 @@ class AuthService {
       'socialLink': (await _readSecure(_keySocialLink)) ?? '',
       'phoneNumber': (await _readSecure(_keyPhoneNumber)) ?? '',
       'verifyMethod': (await _readSecure(_keyVerifyMethod)) ?? 'email',
+      // Build 405 (PR-NN2): NN1 chooser 에서 선택한 계정 종류 복원.
+      'isBrand': (await _readSecure(_keyIsBrand)) ?? 'false',
+      'brandName': (await _readSecure(_keyBrandName)) ?? '',
     };
   }
 
@@ -1094,6 +1103,11 @@ class AuthService {
     String? phoneNumber,
     String verifyMethod = 'email',
     String langCode = 'en',
+    // Build 405 (PR-NN2): 가입 시점에 선택한 계정 종류.
+    //   false (default): 일반 회원 (Free 시작).
+    //   true: Brand 계정으로 즉시 가입. brandName 같이 받음.
+    bool isBrand = false,
+    String? brandName,
   }) async {
     // ── 형식 검사 ──
     final normalizedEmail = email?.trim() ?? '';
@@ -1146,6 +1160,14 @@ class AuthService {
       await _deleteSecure(_keyPhoneNumber);
     }
     await _writeSecure(_keyVerifyMethod, verifyMethod);
+    // Build 405 (PR-NN2): 계정 종류 영구 저장. 후속 cold-start /
+    //   getCurrentUser 가 이 값 읽어 AppState.setUser(isBrand:) 로 전달.
+    await _writeSecure(_keyIsBrand, isBrand ? 'true' : 'false');
+    if (isBrand && brandName != null && brandName.trim().isNotEmpty) {
+      await _writeSecure(_keyBrandName, brandName.trim());
+    } else {
+      await _deleteSecure(_keyBrandName);
+    }
     return null; // null = 성공
   }
 

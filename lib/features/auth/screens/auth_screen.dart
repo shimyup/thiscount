@@ -1454,6 +1454,13 @@ class _SignupTabState extends State<_SignupTab> {
       phoneNumber: _fullPhoneNumber,
       verifyMethod: _verifyMethod,
       langCode: _langCode,
+      // Build 405 (PR-NN2): NN1 chooser 에서 선택한 계정 종류 전달.
+      //   Brand 선택 시 brandName 도 같이 — username 을 fallback 으로 사용
+      //   (브랜드명 별도 입력 step 은 후속 PR 에서 강화 예정).
+      isBrand: _selectedAccountType == SignupAccountType.brand,
+      brandName: _selectedAccountType == SignupAccountType.brand
+          ? _usernameCtrl.text.trim()
+          : null,
     );
 
     if (!mounted) return;
