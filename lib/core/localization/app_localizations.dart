@@ -388,6 +388,121 @@ class AppL10n {
     'hi': '← दूसरा प्रकार चुनें',
     'th': '← เลือกประเภทอื่น',
   });
+
+  // ── Build 405 (PR-NN4): Brand 캠페인 대시보드 화면 ─────────────────────
+  String get brandCampaignTitle => _t({
+    'ko': '내 캠페인', 'en': 'My Campaigns', 'ja': 'マイキャンペーン',
+    'zh': '我的活动', 'fr': 'Mes campagnes', 'de': 'Meine Kampagnen',
+    'es': 'Mis campañas', 'pt': 'Minhas campanhas', 'ru': 'Мои кампании',
+    'tr': 'Kampanyalarım', 'ar': 'حملاتي', 'it': 'Le mie campagne',
+    'hi': 'मेरे अभियान', 'th': 'แคมเปญของฉัน',
+  });
+  String get brandCampaignAnalytics => _t({
+    'ko': '분석', 'en': 'Analytics', 'ja': '分析',
+    'zh': '分析', 'fr': 'Analyses', 'de': 'Analyse',
+    'es': 'Analítica', 'pt': 'Análise', 'ru': 'Аналитика',
+    'tr': 'Analiz', 'ar': 'تحليلات', 'it': 'Analisi',
+    'hi': 'विश्लेषण', 'th': 'การวิเคราะห์',
+  });
+  String get brandCampaignQuickSend => _t({
+    'ko': '새 캠페인 발송', 'en': 'New campaign', 'ja': '新規キャンペーン',
+    'zh': '新建活动', 'fr': 'Nouvelle campagne', 'de': 'Neue Kampagne',
+    'es': 'Nueva campaña', 'pt': 'Nova campanha', 'ru': 'Новая кампания',
+    'tr': 'Yeni kampanya', 'ar': 'حملة جديدة', 'it': 'Nuova campagna',
+    'hi': 'नया अभियान', 'th': 'แคมเปญใหม่',
+  });
+  String get brandCampaignQuickComposeTitle => _t({
+    'ko': '쿠폰 발송하기',
+    'en': 'Send a coupon',
+    'ja': 'クーポンを送る',
+    'zh': '发送优惠券',
+    'fr': 'Envoyer un coupon',
+    'de': 'Coupon senden',
+    'es': 'Enviar un cupón',
+    'pt': 'Enviar um cupom',
+    'ru': 'Отправить купон',
+    'tr': 'Kupon gönder',
+    'ar': 'إرسال كوبون',
+    'it': 'Invia un coupon',
+    'hi': 'कूपन भेजें',
+    'th': 'ส่งคูปอง',
+  });
+  String get brandCampaignQuickComposeSub => _t({
+    'ko': '나라·도시·위치 지정 또는 대량 발송',
+    'en': 'Pick country / city / spot or bulk send',
+    'ja': '国・都市・場所を指定または一斉送信',
+    'zh': '选择国家·城市·位置或批量发送',
+    'fr': 'Pays / ville / lieu ou envoi en masse',
+    'de': 'Land / Stadt / Ort oder Massenversand',
+    'es': 'Elige país / ciudad / lugar o envío masivo',
+    'pt': 'Escolha país / cidade / local ou envio em massa',
+    'ru': 'Страна / город / точка или массовая рассылка',
+    'tr': 'Ülke / şehir / nokta veya toplu gönder',
+    'ar': 'دولة / مدينة / موقع أو إرسال جماعي',
+    'it': 'Paese / città / luogo o invio massivo',
+    'hi': 'देश / शहर / स्थान या बल्क भेजें',
+    'th': 'เลือกประเทศ / เมือง / จุด หรือส่งจำนวนมาก',
+  });
+  String get brandCampaignLatestPickup => _t({
+    'ko': '가장 최근 픽업', 'en': 'Latest pickup', 'ja': '最新ピックアップ',
+    'zh': '最近领取', 'fr': 'Dernière collecte', 'de': 'Letzte Aufnahme',
+    'es': 'Última recogida', 'pt': 'Última coleta', 'ru': 'Последний пикап',
+    'tr': 'Son alım', 'ar': 'آخر التقاط', 'it': 'Ultimo ritiro',
+    'hi': 'सबसे नया पिकअप', 'th': 'การเก็บล่าสุด',
+  });
+  String get brandCampaignRecentSent => _t({
+    'ko': '최근 발송 캠페인', 'en': 'Recent campaigns', 'ja': '最近のキャンペーン',
+    'zh': '最近的活动', 'fr': 'Campagnes récentes', 'de': 'Letzte Kampagnen',
+    'es': 'Campañas recientes', 'pt': 'Campanhas recentes', 'ru': 'Недавние кампании',
+    'tr': 'Son kampanyalar', 'ar': 'الحملات الأخيرة', 'it': 'Campagne recenti',
+    'hi': 'हाल के अभियान', 'th': 'แคมเปญล่าสุด',
+  });
+  String get brandCampaignPicked => _t({
+    'ko': '픽업됨', 'en': 'Picked up', 'ja': 'ピックアップ済み',
+    'zh': '已领取', 'fr': 'Récupérés', 'de': 'Aufgenommen',
+    'es': 'Recogidos', 'pt': 'Coletados', 'ru': 'Подобрано',
+    'tr': 'Alındı', 'ar': 'تم الالتقاط', 'it': 'Raccolti',
+    'hi': 'उठाए गए', 'th': 'ถูกเก็บ',
+  });
+  String get brandCampaignRedeemed => _t({
+    'ko': '사용됨', 'en': 'Redeemed', 'ja': '利用済み',
+    'zh': '已使用', 'fr': 'Utilisés', 'de': 'Eingelöst',
+    'es': 'Canjeados', 'pt': 'Resgatados', 'ru': 'Использовано',
+    'tr': 'Kullanıldı', 'ar': 'تم الاستخدام', 'it': 'Riscattati',
+    'hi': 'उपयोग किए', 'th': 'ใช้แล้ว',
+  });
+  String get brandCampaignEmptyTitle => _t({
+    'ko': '아직 발송한 캠페인이 없어요',
+    'en': 'No campaigns yet',
+    'ja': 'まだキャンペーンを送っていません',
+    'zh': '还没有发送的活动',
+    'fr': 'Pas encore de campagne',
+    'de': 'Noch keine Kampagnen',
+    'es': 'Aún no hay campañas',
+    'pt': 'Ainda sem campanhas',
+    'ru': 'Пока нет кампаний',
+    'tr': 'Henüz kampanya yok',
+    'ar': 'لا توجد حملات بعد',
+    'it': 'Nessuna campagna ancora',
+    'hi': 'अभी कोई अभियान नहीं',
+    'th': 'ยังไม่มีแคมเปญ',
+  });
+  String get brandCampaignEmptySub => _t({
+    'ko': '아래 + 버튼으로 첫 쿠폰을 발송해보세요',
+    'en': 'Tap + below to send your first coupon',
+    'ja': '下の + で初めてのクーポンを送信',
+    'zh': '点击下方 + 发送第一张优惠券',
+    'fr': "Appuyez sur + pour envoyer votre premier coupon",
+    'de': 'Tippe + unten, um den ersten Coupon zu senden',
+    'es': 'Pulsa + abajo para enviar tu primer cupón',
+    'pt': 'Toque em + abaixo para enviar seu primeiro cupom',
+    'ru': 'Нажмите + ниже, чтобы отправить первый купон',
+    'tr': 'İlk kuponu göndermek için aşağıdaki + simgesine dokun',
+    'ar': 'اضغط + بالأسفل لإرسال أول كوبون',
+    'it': 'Tocca + per inviare il primo coupon',
+    'hi': 'पहला कूपन भेजने के लिए नीचे + दबाएँ',
+    'th': 'แตะ + ด้านล่างเพื่อส่งคูปองแรก',
+  });
   String get email => _t({
     'ko': '이메일',
     'en': 'Email',
