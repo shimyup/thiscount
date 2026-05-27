@@ -251,6 +251,11 @@ class _GlobalDriftAppState extends State<GlobalDriftApp> {
         verifyMethod: widget.initialUserData!['verifyMethod'] ?? 'email',
         latitude: widget.initialLat,
         longitude: widget.initialLng,
+        // Build 405 (PR-NN2): cold-start 시 secure storage 의 계정 종류 복원.
+        isBrand: widget.initialUserData!['isBrand'] == 'true',
+        brandName: widget.initialUserData!['brandName']?.isNotEmpty == true
+            ? widget.initialUserData!['brandName']
+            : null,
       );
       // 이메일을 UserProfile에 저장 (이메일 기반 기능에 필요)
       final email = widget.initialUserData!['email'];

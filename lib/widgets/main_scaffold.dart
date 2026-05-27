@@ -10,6 +10,7 @@ import '../features/compose/screens/compose_screen.dart';
 import '../features/premium/premium_gate_sheet.dart';
 import '../features/premium/premium_screen.dart';
 import '../features/premium/brand_comparison_sheet.dart';
+import '../features/brand/brand_campaign_screen.dart';
 import '../features/inbox/screens/inbox_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/streak/streak_badge.dart';
@@ -36,12 +37,21 @@ class _MainScaffoldState extends State<MainScaffold> {
   // Build 324 (positioning): 4탭 → 3탭. 타워 탭 격리 — TowerScreen 은 별도
   //   /tower 라우트로 ProfileScreen 안의 진입 카드를 통해 접근. 첫 화면의
   //   인지 부하 -25% (4개 nav → 3개 + 중앙 보내기).
-  //   인덱스 매핑: 0=지도, 1=인박스, 2=프로필 (이전 3 → 2 reindex).
-  late final List<Widget> _pages = [
-    WorldMapScreen(onGoToInbox: () => setState(() => _currentIndex = 1)),
-    const InboxScreen(),
-    const ProfileScreen(),
-  ];
+  //   인덱스 매핑: 0=지도, 1=인박스/캠페인, 2=프로필.
+  //
+  // Build 405 (PR-NN3): isBrand 분기 — 가운데 탭이 사용자 종류에 따라 달라짐.
+  //   일반 회원: [지도, 인박스 (받은 쿠폰), 프로필]
+  //   Brand 계정: [지도 (공유), 캠페인 (내 발송), 프로필 (공유)]
+  //   index 1 만 다르고 0/2 는 공유. 데이터 source 도 일부 공유:
+  //   - state.worldLetters / state.currentUser.latitude/longitude → 공유
+  //   - state.sent → Brand 쪽에서 캠페인 list 로 사용
+  //   - state.inbox → 일반 회원만 사용
+  //   getter 로 reactive — isBrand 변경 시 (settings 에서) 자동 재계산.
+  List<Widget> _pagesFor({required bool isBrand}) => [
+        WorldMapScreen(onGoToInbox: () => setState(() => _currentIndex = 1)),
+        if (isBrand) const BrandCampaignScreen() else const InboxScreen(),
+        const ProfileScreen(),
+      ];
 
   @override
   void initState() {
@@ -256,7 +266,13 @@ class _MainScaffoldState extends State<MainScaffold> {
             //   이제 모든 탭 상단에서 1뎁스로 ROI 가시화 + 1 탭으로 상세 진입.
             const _BrandInsightsHomeBanner(),
             Expanded(
-              child: IndexedStack(index: _currentIndex, children: _pages),
+              // Build 405 (PR-NN3): isBrand 별 다른 페이지 list. 가운데 탭만
+              //   다름 (인박스 vs 캠페인). IndexedStack 으로 탭 전환 시 state
+              //   유지. isBrand 가 settings 에서 변경되면 즉시 reflect.
+              child: IndexedStack(
+                index: _currentIndex,
+                children: _pagesFor(isBrand: isBrand),
+              ),
             ),
           ],
         ),
@@ -337,14 +353,24 @@ class _MainScaffoldState extends State<MainScaffold> {
                       onTap: () => setState(() => _currentIndex = 0),
                     ),
                   ),
+                  // Build 405 (PR-NN3): 가운데-왼쪽 탭이 isBrand 분기.
+                  //   일반 회원: 인박스 (받은 쿠폰) + unread 뱃지
+                  //   Brand: 캠페인 (보낸 발송) — 뱃지 없음 (받는 게 아니라 보내는 거)
                   Expanded(
-                    child: _NavItemWithBadge(
-                      icon: Icons.inventory_2_rounded,
-                      label: l.navCollection,
-                      isSelected: _currentIndex == 1,
-                      badgeCount: badgeCount,
-                      onTap: () => setState(() => _currentIndex = 1),
-                    ),
+                    child: isBrand
+                        ? _NavItem(
+                            icon: Icons.campaign_rounded,
+                            label: l.brandCampaignTitle,
+                            isSelected: _currentIndex == 1,
+                            onTap: () => setState(() => _currentIndex = 1),
+                          )
+                        : _NavItemWithBadge(
+                            icon: Icons.inventory_2_rounded,
+                            label: l.navCollection,
+                            isSelected: _currentIndex == 1,
+                            badgeCount: badgeCount,
+                            onTap: () => setState(() => _currentIndex = 1),
+                          ),
                   ),
                   Expanded(
                     // Build 281: Free 회원에게 잠긴 "홍보" 보다 "업그레이드" 를

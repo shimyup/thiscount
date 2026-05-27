@@ -1114,7 +1114,20 @@ class _SignupTab extends StatefulWidget {
   State<_SignupTab> createState() => _SignupTabState();
 }
 
+/// Build 405 (PR-NN1): 회원 가입 종류.
+///
+/// - [general]: Free / Premium tier path. 픽업·인박스·답장 중심 UX.
+/// - [brand]: Business path. 즉시 isBrand=true 로 가입, 캠페인 발송 UX.
+///
+/// 가입 시점에 선택하여 이후 MainScaffold 분기 (NN3) 와 가입 form 분기
+/// (NN2) 의 입구가 된다. 가입 후 변경 가능 (settings 에서).
+enum SignupAccountType { general, brand }
+
 class _SignupTabState extends State<_SignupTab> {
+  // Build 405 (PR-NN1): 가입 진입 시 첫 화면 — 계정 종류 선택.
+  //   null 이면 chooser 노출, 선택 후엔 해당 가입 form 노출.
+  SignupAccountType? _selectedAccountType;
+
   final _emailCtrl = TextEditingController();
   final _usernameCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
@@ -1228,6 +1241,44 @@ class _SignupTabState extends State<_SignupTab> {
     _usernameCtrl.addListener(_validateUsername);
     _passCtrl.addListener(_validatePassword);
     _phoneCtrl.addListener(_onPhoneChanged);
+  }
+
+  /// Build 406 (PR-OO5 시뮬레이션 P1 #2): chooser 로 돌아갈 때 form state
+  ///   reset. 이전엔 _selectedAccountType 만 null 로 reset → email/username/
+  ///   password/inviteCode/agree* 모두 잔존 → 사용자가 Brand 로 입력하다가
+  ///   일반으로 갈아탈 때 PII 누설 + 동의 carry-over 가능.
+  ///
+  ///   reset 대상:
+  ///   - 모든 TextEditingController (text 비움)
+  ///   - 검증 에러 상태 (_usernameError / _passwordError / _phoneError / _otpError)
+  ///   - 동의 체크박스 (privacy / terms / age / location / thirdParty)
+  ///   - OTP 진행 상태 (_showOtpScreen / _devOtpCode / _otpCountdown / _otpTimer)
+  void _resetSignupFormAndReturnToChooser() {
+    _otpTimer?.cancel();
+    setState(() {
+      _selectedAccountType = null;
+      _emailCtrl.clear();
+      _usernameCtrl.clear();
+      _passCtrl.clear();
+      _socialCtrl.clear();
+      _inviteCodeCtrl.clear();
+      _phoneCtrl.clear();
+      _otpCtrl.clear();
+      _usernameError = null;
+      _passwordError = null;
+      _usernameTaken = false;
+      _phoneError = null;
+      _otpError = null;
+      _error = null;
+      _agreePrivacy = false;
+      _agreeTerms = false;
+      _agreeLocation = false;
+      _agreeAgeAbove14 = false;
+      _agreeThirdPartySharing = false;
+      _showOtpScreen = false;
+      _devOtpCode = null;
+      _otpCountdown = 0;
+    });
   }
 
   void _onPhoneChanged() {
@@ -1441,6 +1492,13 @@ class _SignupTabState extends State<_SignupTab> {
       phoneNumber: _fullPhoneNumber,
       verifyMethod: _verifyMethod,
       langCode: _langCode,
+      // Build 405 (PR-NN2): NN1 chooser 에서 선택한 계정 종류 전달.
+      //   Brand 선택 시 brandName 도 같이 — username 을 fallback 으로 사용
+      //   (브랜드명 별도 입력 step 은 후속 PR 에서 강화 예정).
+      isBrand: _selectedAccountType == SignupAccountType.brand,
+      brandName: _selectedAccountType == SignupAccountType.brand
+          ? _usernameCtrl.text.trim()
+          : null,
     );
 
     if (!mounted) return;
@@ -1490,13 +1548,19 @@ class _SignupTabState extends State<_SignupTab> {
       if (mounted) {
         final purchase = context.read<PurchaseService>();
         final state = context.read<AppState>();
-        await state.tryClaimWelcomeTrial(
-          email: _emailCtrl.text.trim().toLowerCase(),
-          grant: () => purchase.grantWelcomeTrial(days: 3),
-        );
+        // Build 406 (PR-OO4 시뮬레이션 P1 #3): Brand 가입자는 welcome trial
+        //   부여 skip. Brand 는 발송 중심 권한 — trial Premium 부여 의미 없음
+        //   + 만료 안내 노출이 혼란 유발. 일반 회원 (general) 만 부여.
+        if (_selectedAccountType != SignupAccountType.brand) {
+          await state.tryClaimWelcomeTrial(
+            email: _emailCtrl.text.trim().toLowerCase(),
+            grant: () => purchase.grantWelcomeTrial(days: 3),
+          );
+        }
         // Build 324: 친구 invite code 자동 적용 — viral loop 작동.
         //   양쪽 (가입자 + 추천인) 모두 +5 invite reward credits.
         //   premium 화면에서도 입력 가능하지만 signUp 시점 입력이 가장 효과적.
+        //   Brand 가입자도 invite code 사용 가능 (네트워킹 효과 동일).
         final code = _inviteCodeCtrl.text.trim();
         if (code.isNotEmpty) {
           unawaited(state.applyInviteCode(code));
@@ -1728,7 +1792,79 @@ class _SignupTabState extends State<_SignupTab> {
   @override
   Widget build(BuildContext context) {
     if (_showOtpScreen) return _buildOtpScreen(context);
+    // Build 405 (PR-NN1): 가입 진입 첫 화면은 계정 종류 선택. 사용자가
+    //   본인이 일반/브랜드 어느 흐름에 들어가는지 명시 인지 후 form 진입.
+    if (_selectedAccountType == null) return _buildAccountTypeChooser(context);
     return _buildSignupForm(context);
+  }
+
+  /// Build 405 (PR-NN1): 회원 가입 시 첫 화면 — 일반 vs 브랜드 선택.
+  ///
+  /// 큰 카드 2장 + 각각 설명/이점 3개 + 가입 버튼. 가입 후 변경 가능
+  /// (settings) 임을 subtitle 에 명시. 지도/위치는 공유되지만 인박스/홈은
+  /// 분리됨을 사용자에게 사전 인지.
+  Widget _buildAccountTypeChooser(BuildContext context) {
+    final l10n = _l10n;
+    return SingleChildScrollView(
+      padding: const EdgeInsetsDirectional.fromSTEB(24, 28, 24, 28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.accountTypeChooserTitle,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 19,
+              fontWeight: FontWeight.w800,
+              height: 1.3,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            l10n.accountTypeChooserSubtitle,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 12.5,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 24),
+          _AccountTypeCard(
+            emoji: '🆓',
+            title: l10n.accountTypeGeneralTitle,
+            subtitle: l10n.accountTypeGeneralSubtitle,
+            bullets: [
+              l10n.accountTypeGeneralBullet1,
+              l10n.accountTypeGeneralBullet2,
+              l10n.accountTypeGeneralBullet3,
+            ],
+            ctaLabel: l10n.accountTypeChooseGeneral,
+            accentColor: AppColors.teal,
+            onTap: () => setState(() {
+              _selectedAccountType = SignupAccountType.general;
+            }),
+          ),
+          const SizedBox(height: 16),
+          _AccountTypeCard(
+            emoji: '🏷️',
+            title: l10n.accountTypeBrandTitle,
+            subtitle: l10n.accountTypeBrandSubtitle,
+            bullets: [
+              l10n.accountTypeBrandBullet1,
+              l10n.accountTypeBrandBullet2,
+              l10n.accountTypeBrandBullet3,
+            ],
+            ctaLabel: l10n.accountTypeChooseBrand,
+            accentColor: AppColors.coupon,
+            onTap: () => setState(() {
+              _selectedAccountType = SignupAccountType.brand;
+            }),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildSignupForm(BuildContext context) {
@@ -1738,6 +1874,16 @@ class _SignupTabState extends State<_SignupTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Build 405 (PR-NN1): 선택한 계정 종류 표시 + 변경 link. 사용자가
+          //   잘못 선택했음을 가입 도중에도 인지 → chooser 로 돌아갈 수 있음.
+          _SelectedAccountTypeBar(
+            accountType: _selectedAccountType!,
+            generalLabel: l10n.accountTypeGeneralTitle,
+            brandLabel: l10n.accountTypeBrandTitle,
+            changeLabel: l10n.accountTypeChangeLink,
+            onChange: _resetSignupFormAndReturnToChooser,
+          ),
+          const SizedBox(height: 12),
           if (_error != null) _ErrorBanner(message: _error!),
 
           // ── 1. 이메일 ──────────────────────────────────────────────────────
@@ -3122,6 +3268,188 @@ class _AuthDot extends StatelessWidget {
       decoration: const BoxDecoration(
         color: AppColors.gold,
         shape: BoxShape.circle,
+      ),
+    );
+  }
+}
+
+/// Build 405 (PR-NN1): 회원 가입 종류 선택 카드.
+///
+/// 큰 emoji + title + subtitle + bullet 3개 + 큰 CTA 버튼. 두 카드를
+/// 위아래로 쌓아 사용자가 "내게 맞는 종류" 비교 후 선택. 카드 자체가
+/// 탭 가능 (전체 탭 = CTA 동일).
+class _AccountTypeCard extends StatelessWidget {
+  final String emoji;
+  final String title;
+  final String subtitle;
+  final List<String> bullets;
+  final String ctaLabel;
+  final Color accentColor;
+  final VoidCallback onTap;
+
+  const _AccountTypeCard({
+    required this.emoji,
+    required this.title,
+    required this.subtitle,
+    required this.bullets,
+    required this.ctaLabel,
+    required this.accentColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppColors.bgCard,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: accentColor.withValues(alpha: 0.4),
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Text(emoji, style: const TextStyle(fontSize: 30)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            color: accentColor,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle,
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              ...bullets.map(
+                (b) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text(
+                    b,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 12.5,
+                      height: 1.45,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: onTap,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: accentColor,
+                  foregroundColor: AppColors.bgDeep,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  ctaLabel,
+                  style: const TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Build 405 (PR-NN1): 가입 form 상단에 표시되는 "현재 선택된 계정 종류"
+/// 안내 + 변경 link. 사용자가 가입 진행 중에도 선택을 인지 + 돌아갈 수 있음.
+class _SelectedAccountTypeBar extends StatelessWidget {
+  final SignupAccountType accountType;
+  final String generalLabel;
+  final String brandLabel;
+  final String changeLabel;
+  final VoidCallback onChange;
+
+  const _SelectedAccountTypeBar({
+    required this.accountType,
+    required this.generalLabel,
+    required this.brandLabel,
+    required this.changeLabel,
+    required this.onChange,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isBrand = accountType == SignupAccountType.brand;
+    final accent = isBrand ? AppColors.coupon : AppColors.teal;
+    final emoji = isBrand ? '🏷️' : '🆓';
+    final label = isBrand ? brandLabel : generalLabel;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: accent.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 16)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: accent,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: onChange,
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              minimumSize: const Size(0, 28),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Text(
+              changeLabel,
+              style: TextStyle(
+                color: accent,
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
