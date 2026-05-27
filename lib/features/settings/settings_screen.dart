@@ -1493,17 +1493,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // Build 404 (PR-MM5): section header 시각 hierarchy 개선.
+  //   - top spacing 16 → 20 (그룹 사이 호흡 ↑)
+  //   - 제목 옆에 8px 짧은 teal underline → 그룹 시작 명확히 신호
+  //   - 폰트 11.5 + letter-spacing 1.4 로 더 caps-look (typography polish)
+  //   9 섹션 (구독/계정/알림/화면/앱정보/지원/데이터/계정관리/관리자) 모두
+  //   동일 hierarchy 로 통일.
   Widget _sectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 4),
-      child: Text(
-        title,
-        style: const TextStyle(
-          color: AppColors.teal,
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.2,
-        ),
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 20, 20, 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 3,
+            height: 14,
+            decoration: BoxDecoration(
+              color: AppColors.teal,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              title,
+              style: const TextStyle(
+                color: AppColors.teal,
+                fontSize: 11.5,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.4,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
