@@ -17,6 +17,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/person_emoji.dart';
 import '../../../models/letter.dart';
 import '../../inbox/widgets/letter_read_screen.dart';
+import '../../../widgets/app_card.dart';
 import '../../../models/user_profile.dart';
 import '../../../state/app_state.dart';
 import '../../brand/brand_promo_banner.dart';
@@ -448,43 +449,50 @@ class _WorldMapScreenState extends State<WorldMapScreen>
               ),
             // Build 165: 국가 점프 스크롤 바 — 수평 스크롤 칩으로 다른 나라
             // 지도로 원탭 이동. 기존 "수동 줌아웃 후 드래그" 산만함 해소.
-            Positioned(
-              top: 56,
-              left: 0,
-              right: 0,
-              child: SafeArea(
-                bottom: false,
-                child: _CountryJumpBar(
-                  myCountry: state.currentUser.country,
-                  resetSignal: _countryBarResetSignal,
-                  onJump: (lat, lng) {
-                    HapticFeedback.lightImpact();
-                    _mapController.move(ll.LatLng(lat, lng), 5.5);
-                  },
+            //
+            // Build 404 (PR-MM2): newcomer (가입 5분 이내) 에게는 hide.
+            //   첫 인상 지도에 헤더 외 floating UI 가 5+ 동시 노출되면 인지
+            //   부담. 5분 후 자연스럽게 나라 점프 + 브랜드 프로모 노출.
+            if (!state.currentUser.isNewcomer)
+              Positioned(
+                top: 56,
+                left: 0,
+                right: 0,
+                child: SafeArea(
+                  bottom: false,
+                  child: _CountryJumpBar(
+                    myCountry: state.currentUser.country,
+                    resetSignal: _countryBarResetSignal,
+                    onJump: (lat, lng) {
+                      HapticFeedback.lightImpact();
+                      _mapController.move(ll.LatLng(lat, lng), 5.5);
+                    },
+                  ),
                 ),
               ),
-            ),
             // Build 142: 헤더·국가 바 아래로 슬라이드-다운 브랜드 홍보 배너.
             // Build 176: 국가 바 높이 42→32 로 축소, 배너 top 104→94.
-            Positioned(
-              top: 94,
-              left: 0,
-              right: 0,
-              child: SafeArea(
-                bottom: false,
-                child: BrandPromoBanner(
-                  onRevealOnMap: (letter) {
-                    _mapController.move(
-                      ll.LatLng(
-                        letter.destinationLocation.latitude,
-                        letter.destinationLocation.longitude,
-                      ),
-                      14.0,
-                    );
-                  },
+            // Build 404 (PR-MM2): newcomer hide — 위 country bar 와 동일 사유.
+            if (!state.currentUser.isNewcomer)
+              Positioned(
+                top: 94,
+                left: 0,
+                right: 0,
+                child: SafeArea(
+                  bottom: false,
+                  child: BrandPromoBanner(
+                    onRevealOnMap: (letter) {
+                      _mapController.move(
+                        ll.LatLng(
+                          letter.destinationLocation.latitude,
+                          letter.destinationLocation.longitude,
+                        ),
+                        14.0,
+                      );
+                    },
+                  ),
                 ),
               ),
-            ),
             // ── 근처 도착 배너 (experienced 레벨 이상에서만) ─────────────
             // 브랜드도 줍기 가능해져서 `!isBrand` 조건 제거.
             if (state.hasNearbyAlert &&
@@ -678,23 +686,12 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                         _mapController.move(target, 14.0);
                       });
                     },
-                    child: Container(
+                    // Build 404 (PR-MM2): inline Container → AppCard.accent
+                    //   통일. border alpha / radius / shadow 모두 토큰 사용.
+                    child: AppCard.accent(
+                      color: AppColors.gold,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.bgCard.withValues(alpha: 0.92),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppColors.gold.withValues(alpha: 0.4),
-                          width: 1.2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.3),
-                            blurRadius: 10,
-                          ),
-                        ],
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
