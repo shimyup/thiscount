@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../core/services/secure_location.dart';
+import '../../../widgets/app_card.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:latlong2/latlong.dart' as ll;
@@ -7081,18 +7082,18 @@ class _ComposeOptionsSectionState extends State<_ComposeOptionsSection> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.bgSurface),
-      ),
+    // Build 404 (PR-MM4): AppCard 로 교체. 시각 변화 없음 (radius 14 동일,
+    //   border 동일), 다른 카드와 색/border 정확히 일치 → 일관성 회복.
+    //   default collapsed 유지 — 사용자가 핵심 액션 (본문 작성 + 보내기)
+    //   1순위에 집중.
+    return AppCard(
+      padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 헤더 (탭하면 펼침/접힘 토글)
           InkWell(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppCard.radius),
             onTap: () => setState(() => _expanded = !_expanded),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -7110,6 +7111,20 @@ class _ComposeOptionsSectionState extends State<_ComposeOptionsSection> {
                       ),
                     ),
                   ),
+                  // Build 404 (PR-MM4): 옵션 갯수 micro-badge — "안에 N개
+                  //   옵션 있어요" 인지 → 굳이 열 필요 없는 사용자는 그냥
+                  //   pass. 옵션이 0개면 hide (드물지만 안전).
+                  if (widget.children.isNotEmpty) ...[
+                    Text(
+                      '${widget.children.length}',
+                      style: const TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                  ],
                   AnimatedRotation(
                     duration: const Duration(milliseconds: 200),
                     turns: _expanded ? 0.5 : 0,

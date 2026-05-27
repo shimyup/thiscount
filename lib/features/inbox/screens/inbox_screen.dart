@@ -6,6 +6,7 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../core/localization/country_names.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/person_emoji.dart';
+import '../../../widgets/app_card.dart';
 import '../../../core/services/recommendation_service.dart';
 import '../../../models/letter.dart';
 import '../../../models/direct_message.dart';
@@ -938,50 +939,41 @@ class _InboxScreenState extends State<InboxScreen>
                           _tabController.animateTo(0);
                         });
                       },
-                      child: Container(
-                        margin: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                            colors: [
-                              AppColors.coupon.withValues(alpha: 0.18),
-                              AppColors.coupon.withValues(alpha: 0.10),
-                            ],
+                      // Build 404 (PR-MM3): inline gradient Container → AppCard
+                      //   .active. urgency 시각은 동일 색상(coupon) + active
+                      //   variant 의 더 진한 border 로 표현. 코드 50줄 → 15줄.
+                      child: Padding(
+                        padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
+                        child: AppCard.active(
+                          color: AppColors.coupon,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
                           ),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: AppColors.coupon.withValues(alpha: 0.55),
-                            width: 1.2,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                l10n.expirySirenTitle(expiring.length),
-                                style: const TextStyle(
-                                  color: AppColors.coupon,
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w800,
-                                  height: 1.35,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  l10n.expirySirenTitle(expiring.length),
+                                  style: const TextStyle(
+                                    color: AppColors.coupon,
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w800,
+                                    height: 1.35,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              l10n.expirySirenCta,
-                              style: const TextStyle(
-                                color: AppColors.coupon,
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w700,
+                              const SizedBox(width: 6),
+                              Text(
+                                l10n.expirySirenCta,
+                                style: const TextStyle(
+                                  color: AppColors.coupon,
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     );
