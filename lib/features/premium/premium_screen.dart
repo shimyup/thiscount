@@ -24,6 +24,11 @@ class PremiumScreen extends StatefulWidget {
 }
 
 class _PremiumScreenState extends State<PremiumScreen> {
+  // Build 403 (PR-LL2): "현재 tier 의 다음 단계" 1장만 default 노출.
+  //   Free → Premium 카드, Premium → Brand 카드, Brand → 활성 카드 + invite.
+  //   "모든 플랜 보기" 토글 시 3장 전체 expand. scroll fatigue + 인지 부담 감소.
+  bool _showAllPlans = false;
+
   @override
   void initState() {
     super.initState();
@@ -263,7 +268,18 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   const SizedBox(height: 16),
                 ],
 
-                // 플랜 카드 — Free / Premium / Brand
+                // Build 403 (PR-LL2): 플랜 카드 1장만 default 노출.
+                //   현재 tier 의 "다음 단계" 우선 표시 + "모든 플랜 보기" 토글.
+                //
+                //   Free 사용자: Premium 카드만 (Brand 까지 가는 conversion 0%
+                //     이므로 hide). Free 카드 자체는 "현재 사용 중" 정보이지만
+                //     의사결정 액션이 없어 default 에서 hide.
+                //   Premium 사용자: Brand 카드 (다음 단계). Free 다운그레이드는
+                //     destructive 액션이라 toggle 뒤로 숨김.
+                //   Brand 사용자: 활성 카드만 노출 (다운그레이드는 toggle 뒤).
+                //
+                //   _showAllPlans=true 면 3장 전체 노출 (legacy 흐름).
+                if (_showAllPlans)
                 _PlanCard(
                   emoji: '🆓',
                   name: 'Free',
@@ -371,8 +387,12 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   color: AppColors.textMuted,
                   actionLabel: l.premiumDowngradeBtn,
                 ),
-                const SizedBox(height: 16),
+                if (_showAllPlans) const SizedBox(height: 16),
 
+                // Build 403 (PR-LL2): Premium 카드 — Free 또는 Premium active
+                //   사용자에게 노출. Brand 사용자는 default 에서 hide (다운그레이드
+                //   는 toggle 후).
+                if (_showAllPlans || !isBrand)
                 _PlanCard(
                   emoji: '⭐',
                   name: 'Premium',
@@ -421,7 +441,12 @@ class _PremiumScreenState extends State<PremiumScreen> {
                       ? l.premiumNoDowngrade
                       : l.premiumSubscribeBtn,
                 ),
-                const SizedBox(height: 16),
+                if (_showAllPlans || !isBrand) const SizedBox(height: 16),
+                // Build 403 (PR-LL2): Brand 카드 — 모든 사용자에게 노출 (Free 도
+                //   비즈니스 계정 가입 가능). 단, 비-Brand Free 는 Premium 카드
+                //   먼저 본 다음 Brand 까지 한 번에 노출은 과부하 → "더 보기"
+                //   토글로 hide. Premium 사용자에겐 next-step 이므로 default 노출.
+                if (_showAllPlans || isPremium || isBrand)
                 Builder(
                   builder: (_) {
                     final brandEmail =
@@ -511,7 +536,34 @@ class _PremiumScreenState extends State<PremiumScreen> {
                     );
                   },
                 ),
-                const SizedBox(height: 24),
+                // Build 403 (PR-LL2): "모든 플랜 보기 / 접기" 토글.
+                //   default 1장 노출 후 사용자가 비교를 원할 때만 expand.
+                const SizedBox(height: 12),
+                Center(
+                  child: TextButton.icon(
+                    onPressed: () => setState(() {
+                      _showAllPlans = !_showAllPlans;
+                    }),
+                    icon: Icon(
+                      _showAllPlans
+                          ? Icons.expand_less_rounded
+                          : Icons.expand_more_rounded,
+                      color: AppColors.textMuted,
+                      size: 18,
+                    ),
+                    label: Text(
+                      _showAllPlans
+                          ? l.koEn('플랜 비교 접기', 'Collapse plans')
+                          : l.koEn('모든 플랜 비교', 'Compare all plans'),
+                      style: const TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
 
                 // 브랜드 추가 발송권 (브랜드 회원만 표시)
                 if (isBrand) ...[
