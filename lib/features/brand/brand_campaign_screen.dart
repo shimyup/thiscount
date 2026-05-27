@@ -32,6 +32,16 @@ class BrandCampaignScreen extends StatelessWidget {
     final sentByNewest = [...state.sent]
       ..sort((a, b) => b.sentAt.compareTo(a.sentAt));
     final mostRecentlyPickedUp = state.brandMostRecentlyPickedUpLetter;
+    // Build 406 (PR-OO7 시뮬레이션 P1 #1): Brand 사용자가 zone letter 등 픽업
+    //   시 _inbox 에 들어가지만 BrandCampaignScreen 미노출 → invisible 누수.
+    //   여기서 최근 5개 받은 letter 도 노출 (picked-up). 일반 회원의 InboxScreen
+    //   과 동일 source (state.inbox) 사용 — 공유 시스템 일관성.
+    final receivedByNewest = [...state.inbox]
+      ..sort((a, b) {
+        final at = a.arrivedAt ?? a.sentAt;
+        final bt = b.arrivedAt ?? b.sentAt;
+        return bt.compareTo(at);
+      });
 
     return Scaffold(
       backgroundColor: AppColors.bgDeep,
@@ -81,6 +91,19 @@ class BrandCampaignScreen extends StatelessWidget {
                     child: _CampaignRow(letter: letter, l: l),
                   ),
                 ),
+          // Build 406 (PR-OO7): Brand 도 zone letter 픽업 가능 → 받은 letter
+          //   섹션을 별도로 노출. 비어있으면 hide (Brand 대부분 케이스).
+          if (receivedByNewest.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            _SectionHeader(title: l.brandCampaignReceived),
+            const SizedBox(height: 8),
+            ...receivedByNewest.take(5).map(
+                  (letter) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: _CampaignRow(letter: letter, l: l),
+                  ),
+                ),
+          ],
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(

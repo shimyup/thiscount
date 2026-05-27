@@ -1243,6 +1243,44 @@ class _SignupTabState extends State<_SignupTab> {
     _phoneCtrl.addListener(_onPhoneChanged);
   }
 
+  /// Build 406 (PR-OO5 시뮬레이션 P1 #2): chooser 로 돌아갈 때 form state
+  ///   reset. 이전엔 _selectedAccountType 만 null 로 reset → email/username/
+  ///   password/inviteCode/agree* 모두 잔존 → 사용자가 Brand 로 입력하다가
+  ///   일반으로 갈아탈 때 PII 누설 + 동의 carry-over 가능.
+  ///
+  ///   reset 대상:
+  ///   - 모든 TextEditingController (text 비움)
+  ///   - 검증 에러 상태 (_usernameError / _passwordError / _phoneError / _otpError)
+  ///   - 동의 체크박스 (privacy / terms / age / location / thirdParty)
+  ///   - OTP 진행 상태 (_showOtpScreen / _devOtpCode / _otpCountdown / _otpTimer)
+  void _resetSignupFormAndReturnToChooser() {
+    _otpTimer?.cancel();
+    setState(() {
+      _selectedAccountType = null;
+      _emailCtrl.clear();
+      _usernameCtrl.clear();
+      _passCtrl.clear();
+      _socialCtrl.clear();
+      _inviteCodeCtrl.clear();
+      _phoneCtrl.clear();
+      _otpCtrl.clear();
+      _usernameError = null;
+      _passwordError = null;
+      _usernameTaken = false;
+      _phoneError = null;
+      _otpError = null;
+      _error = null;
+      _agreePrivacy = false;
+      _agreeTerms = false;
+      _agreeLocation = false;
+      _agreeAgeAbove14 = false;
+      _agreeThirdPartySharing = false;
+      _showOtpScreen = false;
+      _devOtpCode = null;
+      _otpCountdown = 0;
+    });
+  }
+
   void _onPhoneChanged() {
     // _canSignUp 갱신 (전화번호 입력 여부에 따라 버튼 활성화)
     setState(() {});
@@ -1510,13 +1548,19 @@ class _SignupTabState extends State<_SignupTab> {
       if (mounted) {
         final purchase = context.read<PurchaseService>();
         final state = context.read<AppState>();
-        await state.tryClaimWelcomeTrial(
-          email: _emailCtrl.text.trim().toLowerCase(),
-          grant: () => purchase.grantWelcomeTrial(days: 3),
-        );
+        // Build 406 (PR-OO4 시뮬레이션 P1 #3): Brand 가입자는 welcome trial
+        //   부여 skip. Brand 는 발송 중심 권한 — trial Premium 부여 의미 없음
+        //   + 만료 안내 노출이 혼란 유발. 일반 회원 (general) 만 부여.
+        if (_selectedAccountType != SignupAccountType.brand) {
+          await state.tryClaimWelcomeTrial(
+            email: _emailCtrl.text.trim().toLowerCase(),
+            grant: () => purchase.grantWelcomeTrial(days: 3),
+          );
+        }
         // Build 324: 친구 invite code 자동 적용 — viral loop 작동.
         //   양쪽 (가입자 + 추천인) 모두 +5 invite reward credits.
         //   premium 화면에서도 입력 가능하지만 signUp 시점 입력이 가장 효과적.
+        //   Brand 가입자도 invite code 사용 가능 (네트워킹 효과 동일).
         final code = _inviteCodeCtrl.text.trim();
         if (code.isNotEmpty) {
           unawaited(state.applyInviteCode(code));
@@ -1837,7 +1881,7 @@ class _SignupTabState extends State<_SignupTab> {
             generalLabel: l10n.accountTypeGeneralTitle,
             brandLabel: l10n.accountTypeBrandTitle,
             changeLabel: l10n.accountTypeChangeLink,
-            onChange: () => setState(() => _selectedAccountType = null),
+            onChange: _resetSignupFormAndReturnToChooser,
           ),
           const SizedBox(height: 12),
           if (_error != null) _ErrorBanner(message: _error!),

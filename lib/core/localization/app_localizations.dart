@@ -457,6 +457,14 @@ class AppL10n {
     'tr': 'Son kampanyalar', 'ar': 'الحملات الأخيرة', 'it': 'Campagne recenti',
     'hi': 'हाल के अभियान', 'th': 'แคมเปญล่าสุด',
   });
+  // Build 406 (PR-OO7): Brand 가 픽업한 letter 섹션 — invisible 누수 방지.
+  String get brandCampaignReceived => _t({
+    'ko': '받은 쿠폰', 'en': 'Received coupons', 'ja': '受け取ったクーポン',
+    'zh': '收到的优惠券', 'fr': 'Coupons reçus', 'de': 'Erhaltene Coupons',
+    'es': 'Cupones recibidos', 'pt': 'Cupons recebidos', 'ru': 'Полученные купоны',
+    'tr': 'Alınan kuponlar', 'ar': 'الكوبونات المستلمة', 'it': 'Coupon ricevuti',
+    'hi': 'प्राप्त कूपन', 'th': 'คูปองที่ได้รับ',
+  });
   String get brandCampaignPicked => _t({
     'ko': '픽업됨', 'en': 'Picked up', 'ja': 'ピックアップ済み',
     'zh': '已领取', 'fr': 'Récupérés', 'de': 'Aufgenommen',

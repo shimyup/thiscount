@@ -1205,10 +1205,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// 현재 활성 중인 브랜드 홍보 편지 중 가장 최근 것을 반환.
   /// 기준: senderIsBrand=true · 만료되지 않음 · coupon 또는 voucher 카테고리.
   /// 없으면 null (팝업 미노출).
+  ///
+  /// Build 406 (PR-OO3 시뮬레이션 P1 #1): 본인이 발송한 광고는 제외.
+  ///   이전엔 Brand 사용자가 자기 캠페인의 BrandAdModal 을 자기 디바이스에서
+  ///   받는 비논리적 흐름. senderId != currentUser.id 가드 추가.
   Letter? get featuredBrandPromo {
     final now = DateTime.now();
+    final myId = _currentUser.id;
     final candidates = _worldLetters.where((l) =>
         l.senderIsBrand &&
+        l.senderId != myId &&
         (l.category == LetterCategory.coupon ||
             l.category == LetterCategory.voucher) &&
         (l.expiresAt == null || l.expiresAt!.isAfter(now))).toList();
@@ -2642,14 +2648,32 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   // ── 프리미엄 상태 동기화 (PurchaseService → AppState) ────────────────────
+  /// Build 406 (PR-OO2 시뮬레이션 P0 #2): NN1 isBrand OR fallback.
+  ///
+  /// 배경: NN1 chooser 에서 "브랜드" 선택해 가입한 사용자는 secure storage
+  /// 의 `_keyIsBrand='true'` source 로 `_currentUser.isBrand=true` 가 설정됨.
+  /// 그러나 PurchaseService 는 RC entitlement (`brand` product) 기반 isBrand
+  /// 만 인지 — NN1 가입자는 RC `_isBrand=false`. cold-start 후 main.dart 가
+  /// `_onPurchaseChanged()` 콜백을 호출하면 이 함수가 `_currentUser.isBrand
+  /// = false` 로 덮어써서 NN1 Brand UX 가 무력화되던 P0 회귀.
+  ///
+  /// Fix: isBrand 는 두 source (NN1 + RC) 의 **OR**. RC=true (결제됨) 면
+  /// 무조건 Brand, RC=false 여도 NN1 chooser 가 true 였으면 보존.
+  /// 만약 사용자가 NN1 Brand → 명시적으로 일반 회원으로 강등하려면 별도
+  /// settings UI (NN6+) 에서 secure storage 의 `_keyIsBrand` 를 false 로
+  /// 쓰고 다음 setUser 흐름에서 갱신해야 한다.
+  ///
+  /// isPremium 은 RC source 만 있으므로 그대로 단순 대입.
   void syncPremiumStatus({required bool isPremium, required bool isBrand}) {
     bool changed = false;
     if (_currentUser.isPremium != isPremium) {
       _currentUser.isPremium = isPremium;
       changed = true;
     }
-    if (_currentUser.isBrand != isBrand) {
-      _currentUser.isBrand = isBrand;
+    // OR fallback — RC 가 true 이거나 기존 isBrand 가 true 이면 true.
+    final resolvedIsBrand = isBrand || _currentUser.isBrand;
+    if (_currentUser.isBrand != resolvedIsBrand) {
+      _currentUser.isBrand = resolvedIsBrand;
       changed = true;
     }
     if (changed) notifyListeners();
@@ -3812,6 +3836,25 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           serverWindow != null &&
           serverWindow > 0) {
         _currentUser.towerWindowStyle = serverWindow;
+        updated = true;
+      }
+
+      // Build 406 (PR-OO6 시뮬레이션 P0 #2): NN2 계정 종류 복원.
+      //   디바이스 변경/재설치 시 secure storage 의 _keyIsBrand 가 없어
+      //   default false 로 강등되던 회귀 보완. 서버 doc 의 isBrand=true 면
+      //   client 의 false 위에 OR fallback (RC entitlement 와도 결합).
+      //   brandName 도 같이 복원.
+      final serverIsBrand = map['isBrand'];
+      if (serverIsBrand is bool && serverIsBrand && !_currentUser.isBrand) {
+        _currentUser.isBrand = true;
+        updated = true;
+      }
+      final serverBrandName = map['brandName'];
+      if (serverBrandName is String &&
+          serverBrandName.isNotEmpty &&
+          (_currentUser.brandName == null ||
+              _currentUser.brandName!.isEmpty)) {
+        _currentUser.brandName = serverBrandName;
         updated = true;
       }
 
@@ -5347,6 +5390,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         // Build 290 (P1): isMapPublic 을 isUsernamePublic 과 독립으로 저장.
         // 이전엔 같은 값 강제 → 사용자가 둘을 분리 제어 불가했음 (audit E2/E9).
         'isMapPublic': {'booleanValue': _currentUser.isMapPublic},
+        // Build 406 (PR-OO6 시뮬레이션 P0 #2): NN2 계정 종류 영구 동기화.
+        //   이전엔 secure storage 의 _keyIsBrand 만이 source → 디바이스 분실/
+        //   재설치/다른 디바이스 로그인 시 false default 로 강등 (Brand 계정
+        //   영구 손실 + 결제·계정 분쟁 위험). Firestore users 문서에 명시
+        //   동기화 → _restoreProfileFromServer 가 다음 cold-start 에 복원.
+        'isBrand': {'booleanValue': _currentUser.isBrand},
+        if (_currentUser.brandName != null &&
+            _currentUser.brandName!.isNotEmpty)
+          'brandName': {'stringValue': _currentUser.brandName!},
         // 로그아웃 스냅샷 + 최근 활동 타임스탬프
         'lastSeenAt': {
           'timestampValue': DateTime.now().toUtc().toIso8601String(),
