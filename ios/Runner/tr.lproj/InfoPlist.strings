@@ -2,3 +2,5 @@
 "NSLocationAlwaysAndWhenInUseUsageDescription" = "Yakındaki mağaza kuponlarını göstermek için konumunuz kullanılır.";
 "NSPhotoLibraryUsageDescription" = "Profil fotoğrafınızı ve kupon görsellerini değiştirmek için fotoğraf kitaplığı erişimi gereklidir.";
 "NSPhotoLibraryAddUsageDescription" = "Seçtiğiniz fotoğrafları uygulamaya kaydetmek için izin gereklidir.";
+"NSUserNotificationUsageDescription" = "Yakınınızda yeni ödüller geldiğinde bildirim almak için izin gereklidir.";
+"NSCameraUsageDescription" = "Yeni bir profil fotoğrafı çekmek isterseniz kamera erişimi gereklidir. Fotoğraf kitaplığından da seçim yapabilirsiniz.";

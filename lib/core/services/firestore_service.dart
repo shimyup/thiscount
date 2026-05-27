@@ -286,6 +286,15 @@ class FirestoreService {
   /// 막고 있어 클라이언트가 직접 scrub 하지 못한다 — 대신 senderId 가 일치
   /// 하는 letter 들의 status 를 'deletedBySender' 로 mark, 후속 admin REST
   /// 작업에서 일괄 hard-delete.
+  /// senderId 가 보낸 모든 letter 의 본문 PII 를 scrub 한다.
+  ///
+  /// Build 402 (PR-JJ2 A6 fix): 기존 구현이 query 실패/catch 모두 0 을 반환해
+  /// admin user_management_screen 의 `scrubbed < 0` 경고 분기가 dead code 가
+  /// 됐다 (PR-II3 회귀). 반환 의미를 명확화:
+  ///   - `>= 0`: 성공. 값은 scrub 한 letter 개수.
+  ///   - `-1`: 부분/전체 실패. admin 에게 명시 경고 + 재시도 권장.
+  ///
+  /// 개별 PATCH 가 하나라도 실패하면 PII 가 잔존할 수 있으므로 -1 반환.
   static Future<int> scrubLettersBySender(String senderId) async {
     if (!FirebaseConfig.kFirebaseEnabled) return 0;
     if (senderId.isEmpty) return 0;
@@ -297,6 +306,7 @@ class FirestoreService {
         limit: 500,
       );
       int marked = 0;
+      int innerFailures = 0;
       for (final doc in docs) {
         // 'name' 은 'projects/.../databases/.../documents/letters/{id}' 형식.
         final name = doc['name'] as String?;
@@ -315,18 +325,30 @@ class FirestoreService {
               'status': {'stringValue': 'deletedBySender'},
             },
           });
-          await http
+          final res = await http
               .patch(url, headers: _headers, body: body)
               .timeout(const Duration(seconds: 8));
-          marked++;
-        } catch (_) {
-          // 개별 letter 실패는 무시
+          if (res.statusCode == 200) {
+            marked++;
+          } else {
+            innerFailures++;
+            if (kDebugMode) {
+              debugPrint(
+                '[scrubLetters] PATCH $id 실패 status=${res.statusCode}',
+              );
+            }
+          }
+        } catch (e) {
+          // Build 402: 개별 letter 실패도 카운트 — PII 잔존 가능성.
+          innerFailures++;
+          if (kDebugMode) debugPrint('[scrubLetters] PATCH $id 예외: $e');
         }
       }
+      if (innerFailures > 0) return -1; // 일부라도 실패 → PII 잔존 경고.
       return marked;
     } catch (e, st) {
       if (kDebugMode) debugPrint('[FirestoreService] scrubLetters 에러: $e\n$st');
-      return 0;
+      return -1; // Build 402: query 실패 → 명시적 -1 (admin 경고 분기 활성화).
     }
   }
 

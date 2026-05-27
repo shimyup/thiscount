@@ -3,3 +3,4 @@
 "NSPhotoLibraryUsageDescription" = "L'accès à la photothèque est utilisé pour modifier votre photo de profil et les images de coupons.";
 "NSPhotoLibraryAddUsageDescription" = "L'autorisation est nécessaire pour enregistrer les photos sélectionnées dans l'app.";
 "NSUserNotificationUsageDescription" = "Les notifications sont nécessaires pour vous prévenir lorsque de nouvelles récompenses arrivent à proximité.";
+"NSCameraUsageDescription" = "L'accès à la caméra est nécessaire si vous choisissez de prendre une nouvelle photo de profil. Vous pouvez aussi sélectionner depuis la photothèque.";
