@@ -6203,6 +6203,39 @@ class AppL10n {
     'hi': 'इस स्थान की पुष्टि करें',
     'th': 'ยืนยันตำแหน่งนี้',
   });
+  // Build 403 (PR-KK1): ExactDrop 검색창 i18n 14언어.
+  String get composeExactDropSearchHint => _t({
+    'ko': '주소·매장·랜드마크 검색',
+    'en': 'Search address, store, or landmark',
+    'ja': '住所・店舗・ランドマークで検索',
+    'zh': '搜索地址·店铺·地标',
+    'fr': 'Adresse, magasin ou point de repère',
+    'de': 'Adresse, Geschäft oder Ort suchen',
+    'es': 'Buscar dirección, tienda o lugar',
+    'pt': 'Buscar endereço, loja ou ponto',
+    'ru': 'Поиск: адрес, магазин или место',
+    'tr': 'Adres, mağaza veya yer ara',
+    'ar': 'ابحث عن عنوان أو متجر أو معلم',
+    'it': 'Cerca indirizzo, negozio o luogo',
+    'hi': 'पता, स्टोर या स्थान खोजें',
+    'th': 'ค้นหาที่อยู่ ร้าน หรือสถานที่',
+  });
+  String get composeExactDropSearchNoResults => _t({
+    'ko': '검색 결과 없음 — 키워드를 바꿔보세요',
+    'en': 'No results — try different keywords',
+    'ja': '検索結果なし — キーワードを変えてみてください',
+    'zh': '无结果 — 请尝试其他关键词',
+    'fr': 'Aucun résultat — essayez d\'autres mots',
+    'de': 'Keine Ergebnisse — andere Suchbegriffe?',
+    'es': 'Sin resultados — prueba otras palabras',
+    'pt': 'Sem resultados — tente outras palavras',
+    'ru': 'Ничего не найдено — попробуйте другие слова',
+    'tr': 'Sonuç yok — farklı kelime deneyin',
+    'ar': 'لا توجد نتائج — جرّب كلمات أخرى',
+    'it': 'Nessun risultato — prova altre parole',
+    'hi': 'कोई परिणाम नहीं — अलग शब्द आज़माएँ',
+    'th': 'ไม่พบผลลัพธ์ — ลองคำอื่น',
+  });
   String get dayThemeBannerTitle => _t({
     'ko': '오늘의 테마',
     'en': "TODAY'S THEME",
