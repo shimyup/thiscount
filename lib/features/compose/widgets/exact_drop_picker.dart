@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as ll;
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/localization/country_names.dart';
+import '../../../core/services/geocoding_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../state/app_state.dart';
 
@@ -40,6 +43,18 @@ class _ExactDropPickerState extends State<ExactDropPicker> {
   // 이전엔 zoom=4 (대륙) 으로 시작해 사용자가 매번 +확대해야 했음.
   double _zoom = 11;
 
+  // Build 403 (PR-KK1): 주소 검색 상태.
+  //   _searchCtrl — TextField 컨트롤러
+  //   _searchFocus — 포커스 (검색 중에만 결과 패널 표시)
+  //   _searchResults — Nominatim 결과 (최대 5건)
+  //   _searchDebounce — 사용자 타이핑 중 매 키스트로크마다 호출 방지
+  //   _searchInFlight — 동시 호출 차단 (로딩 인디케이터 + race 차단)
+  final TextEditingController _searchCtrl = TextEditingController();
+  final FocusNode _searchFocus = FocusNode();
+  Timer? _searchDebounce;
+  bool _searchInFlight = false;
+  List<GeocodingSearchResult> _searchResults = const [];
+
   // Build 246: 🚨 LateInitializationError 픽스 — _ctrl 과 _center 가 late 로
   // 선언됐지만 initState 가 없어서 build 시 무한 hang 발생 (Brand ExactDrop
   // 화면 멈춤 보고). MapController 와 initial 좌표 명시적 초기화.
@@ -52,8 +67,60 @@ class _ExactDropPickerState extends State<ExactDropPicker> {
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
+    _searchCtrl.dispose();
+    _searchFocus.dispose();
     _ctrl.dispose();
     super.dispose();
+  }
+
+  /// Build 403 (PR-KK1): 사용자가 검색창에 타이핑할 때 500ms debounce 후
+  ///   GeocodingService.searchAddress 호출. 결과는 패널에 list 로 표시.
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    final q = value.trim();
+    if (q.length < 2) {
+      if (_searchResults.isNotEmpty) {
+        setState(() => _searchResults = const []);
+      }
+      return;
+    }
+    _searchDebounce = Timer(const Duration(milliseconds: 500), () async {
+      if (!mounted) return;
+      setState(() => _searchInFlight = true);
+      final results = await GeocodingService.instance.searchAddress(
+        q,
+        langCode: widget.langCode,
+        limit: 5,
+      );
+      if (!mounted) return;
+      setState(() {
+        _searchInFlight = false;
+        _searchResults = results;
+      });
+    });
+  }
+
+  /// 검색 결과 1건 선택 시 지도 이동 + 검색 패널 닫기.
+  void _onPickSearchResult(GeocodingSearchResult r) {
+    final pt = ll.LatLng(r.lat, r.lng);
+    _ctrl.move(pt, _zoom < 14 ? 14 : _zoom);
+    setState(() {
+      _center = pt;
+      _searchResults = const [];
+    });
+    _searchCtrl.text = r.displayName;
+    _searchFocus.unfocus();
+  }
+
+  void _clearSearch() {
+    _searchDebounce?.cancel();
+    _searchCtrl.clear();
+    setState(() {
+      _searchResults = const [];
+      _searchInFlight = false;
+    });
+    _searchFocus.unfocus();
   }
 
   /// 나라 칩 탭 시 hub 좌표(또는 box 중심) 로 지도 이동.
@@ -162,6 +229,25 @@ class _ExactDropPickerState extends State<ExactDropPicker> {
             right: 16,
             child: Column(
               children: [
+                // Build 403 (PR-KK1): 주소 검색창 — 사용자가 매장 이름·도로명·
+                //   랜드마크 등으로 검색해 지도를 즉시 이동. 지도를 직접
+                //   드래그하는 기존 UX 와 병행.
+                _AddressSearchBar(
+                  controller: _searchCtrl,
+                  focusNode: _searchFocus,
+                  langCode: widget.langCode,
+                  loading: _searchInFlight,
+                  onChanged: _onSearchChanged,
+                  onClear: _clearSearch,
+                ),
+                if (_searchResults.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  _SearchResultsPanel(
+                    results: _searchResults,
+                    onPick: _onPickSearchResult,
+                  ),
+                ],
+                const SizedBox(height: 8),
                 // Build 210: 메인 지도처럼 상단에 빠른 나라 점프 칩 — 자주
                 // 발송하는 나라로 한 번에 이동. 탭 시 해당 나라 hub 좌표 +
                 // zoom 11 로 이동.
@@ -247,6 +333,183 @@ class _ExactDropPickerState extends State<ExactDropPicker> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Build 403 (PR-KK1): 주소 검색창.
+///   TextField + 우측 progress/clear 아이콘 토글. 검색 결과 list 는 별도
+///   _SearchResultsPanel 위젯이 바로 아래 자리에 노출.
+class _AddressSearchBar extends StatelessWidget {
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final String langCode;
+  final bool loading;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+
+  const _AddressSearchBar({
+    required this.controller,
+    required this.focusNode,
+    required this.langCode,
+    required this.loading,
+    required this.onChanged,
+    required this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppL10n.of(langCode);
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.bgCard.withValues(alpha: 0.96),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: AppColors.gold.withValues(alpha: 0.35),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.18),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        focusNode: focusNode,
+        onChanged: onChanged,
+        textInputAction: TextInputAction.search,
+        style: const TextStyle(
+          color: AppColors.textPrimary,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+        ),
+        decoration: InputDecoration(
+          hintText: l.composeExactDropSearchHint,
+          hintStyle: const TextStyle(
+            color: AppColors.textMuted,
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
+          prefixIcon: const Icon(
+            Icons.search_rounded,
+            color: AppColors.teal,
+            size: 20,
+          ),
+          suffixIcon: loading
+              ? const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation(AppColors.teal),
+                    ),
+                  ),
+                )
+              : (controller.text.isEmpty
+                  ? null
+                  : IconButton(
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        color: AppColors.textMuted,
+                        size: 18,
+                      ),
+                      tooltip: MaterialLocalizations.of(context)
+                          .modalBarrierDismissLabel,
+                      onPressed: onClear,
+                    )),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 0,
+            vertical: 12,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Build 403 (PR-KK1): 검색 결과 패널.
+///   최대 5건 list 로 표시. 항목 탭 시 부모의 onPick 호출 → 지도 이동.
+class _SearchResultsPanel extends StatelessWidget {
+  final List<GeocodingSearchResult> results;
+  final ValueChanged<GeocodingSearchResult> onPick;
+
+  const _SearchResultsPanel({
+    required this.results,
+    required this.onPick,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(maxHeight: 260),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard.withValues(alpha: 0.98),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: AppColors.gold.withValues(alpha: 0.3),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ListView.separated(
+        shrinkWrap: true,
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        itemCount: results.length,
+        separatorBuilder: (_, __) => Divider(
+          height: 1,
+          thickness: 0.5,
+          color: AppColors.textMuted.withValues(alpha: 0.2),
+        ),
+        itemBuilder: (_, i) {
+          final r = results[i];
+          return InkWell(
+            onTap: () => onPick(r),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 10,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(top: 1),
+                    child: Icon(
+                      Icons.location_on_rounded,
+                      color: AppColors.teal,
+                      size: 18,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      r.displayName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

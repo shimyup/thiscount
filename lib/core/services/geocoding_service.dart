@@ -14,6 +14,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// 4. 기존 getDisplayAddress() 기능도 유지
 class GeocodingService {
   static const _nominatimUrl = 'https://nominatim.openstreetmap.org/reverse';
+  // Build 403 (PR-KK1): forward search endpoint — 주소 → 좌표 검색용.
+  //   ExactDropPicker 검색창에서 호출. reverse 와 같은 Nominatim 호스트,
+  //   같은 1 req/sec rate limit 정책을 공유한다.
+  static const _nominatimSearchUrl =
+      'https://nominatim.openstreetmap.org/search';
   static const _userAgent = 'Thiscount/1.0 (thiscount.io)';
   static const _cachePrefix = 'geo_addr_cache_';
   static const _maxCachePerCountry = 50;
@@ -529,4 +534,91 @@ class GeocodingService {
   /// 캐시 통계
   Map<String, int> get cacheStats =>
       _addressCache.map((k, v) => MapEntry(k, v.length));
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // forward 검색 (주소 → 좌표) — Build 403 (PR-KK1)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  /// 사용자가 입력한 주소/장소 키워드로 Nominatim 검색을 호출해 후보 좌표를
+  /// 반환한다. ExactDropPicker 의 검색창에서 호출.
+  ///
+  /// - [query]: 자유 형식 주소/장소명 (예: "강남역 12번 출구", "Eiffel Tower").
+  /// - [langCode]: 결과 표시 언어 (Nominatim accept-language). 비우면 영어.
+  /// - [limit]: 최대 결과 개수 (기본 5, 최대 10).
+  ///
+  /// 빈 검색어/공백만/2글자 미만이면 빈 리스트 즉시 반환 (rate-limit 절약).
+  /// rate-limit 충돌 시 [_waitForRateLimit] 가 알아서 1.1s 대기.
+  /// 결과 항목 schema: `{lat, lng, display}`.
+  Future<List<GeocodingSearchResult>> searchAddress(
+    String query, {
+    String langCode = 'en',
+    int limit = 5,
+  }) async {
+    final q = query.trim();
+    if (q.length < 2) return const [];
+    final safeLimit = limit.clamp(1, 10);
+
+    try {
+      await _waitForRateLimit();
+      _lastApiCall = DateTime.now();
+      final uri = Uri.parse(_nominatimSearchUrl).replace(queryParameters: {
+        'q': q,
+        'format': 'json',
+        'limit': '$safeLimit',
+        'accept-language': langCode.isEmpty ? 'en' : langCode,
+        'addressdetails': '0',
+      });
+      final res = await http.get(
+        uri,
+        headers: {'User-Agent': _userAgent},
+      ).timeout(const Duration(seconds: 8));
+      if (res.statusCode != 200) {
+        assert(() {
+          debugPrint(
+            '[Geocoding] searchAddress status=${res.statusCode} q="$q"',
+          );
+          return true;
+        }());
+        return const [];
+      }
+      final raw = json.decode(res.body);
+      if (raw is! List) return const [];
+      final out = <GeocodingSearchResult>[];
+      for (final item in raw) {
+        if (item is! Map) continue;
+        final latRaw = item['lat'];
+        final lonRaw = item['lon'];
+        final display = item['display_name'];
+        final lat = latRaw is String ? double.tryParse(latRaw) : null;
+        final lng = lonRaw is String ? double.tryParse(lonRaw) : null;
+        if (lat == null || lng == null) continue;
+        if (lat.abs() > 90.0 || lng.abs() > 180.0) continue;
+        out.add(GeocodingSearchResult(
+          lat: lat,
+          lng: lng,
+          displayName: display is String ? display : '$lat, $lng',
+        ));
+      }
+      return out;
+    } catch (e) {
+      assert(() {
+        debugPrint('[Geocoding] searchAddress 에러: $e q="$query"');
+        return true;
+      }());
+      return const [];
+    }
+  }
+}
+
+/// Build 403 (PR-KK1): 주소 검색 결과 한 건.
+class GeocodingSearchResult {
+  final double lat;
+  final double lng;
+  final String displayName;
+
+  const GeocodingSearchResult({
+    required this.lat,
+    required this.lng,
+    required this.displayName,
+  });
 }
