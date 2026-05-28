@@ -92,6 +92,11 @@ class _ComposeScreenState extends State<ComposeScreen>
   // Build 229: 사진+링크 첨부 카드 onTap → 첨부 영역으로 스크롤 + 토글 활성화.
   final GlobalKey _attachAreaKey = GlobalKey();
   bool _isSending = false;
+  // Build 407 (PR-QQ1): draft 버리기 후 autoSaveTimer 가 _selectedCountry 등
+  //   기본값으로 brand draft 재저장 → 다음 진입 시 "이어쓰기" 무한 재출현
+  //   회귀. discard 시 true 설정 → _saveDraft / autoSave 가 skip. 사용자가
+  //   본문 타이핑을 다시 시작하면 false 로 해제.
+  bool _draftDiscarded = false;
   int _charCount = 0;
   String? _imageFilePath; // 첨부 이미지 경로 (프리미엄)
   bool _isCompressingImage = false;
@@ -619,6 +624,15 @@ class _ComposeScreenState extends State<ComposeScreen>
       // 있으면 저장 (이전엔 text 비면 저장 안 해서 bulk/express 상태가 휘발).
       _autoSaveTimer = Timer.periodic(const Duration(seconds: 3), (_) {
         if (_isSending) return;
+        // Build 407 (PR-QQ1): discard 직후 재저장 차단. 본문이 실제로 있을
+        //   때만 discard 해제 (사용자가 새로 작성 시작).
+        if (_draftDiscarded) {
+          if (_contentController.text.isNotEmpty) {
+            _draftDiscarded = false;
+          } else {
+            return;
+          }
+        }
         if (_contentController.text.isNotEmpty ||
             _isBulkMode ||
             _isExpressMode ||
@@ -763,6 +777,16 @@ class _ComposeScreenState extends State<ComposeScreen>
   }
 
   void _clearDraft() {
+    // Build 407 (PR-QQ1): discard flag 설정 + in-memory state reset.
+    //   prefs.remove 만으로는 autoSaveTimer 가 다음 tick 에서 _selectedCountry
+    //   기본값으로 brand draft 재생성 → "이어쓰기" 무한 재출현. flag 로 차단 +
+    //   복원 안 한 mode state 도 명시적 clear.
+    _draftDiscarded = true;
+    _isBulkMode = false;
+    _isExpressMode = false;
+    _bulkTargets.clear();
+    _contentController.clear();
+    _charCount = 0;
     SharedPreferences.getInstance().then((prefs) {
       prefs.remove('compose_draft');
       prefs.remove('compose_draft_brand');
