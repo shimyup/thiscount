@@ -2674,17 +2674,29 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// 쓰고 다음 setUser 흐름에서 갱신해야 한다.
   ///
   /// isPremium 은 RC source 만 있으므로 그대로 단순 대입.
-  void syncPremiumStatus({required bool isPremium, required bool isBrand}) {
+  void syncPremiumStatus({
+    required bool isPremium,
+    required bool isBrand,
+    // Build 409 (sim P1.17): true 면 OR-fallback 없이 isBrand 를 그대로 반영
+    //   (예약 다운그레이드 확정 강등). 기본 false — 신규 Brand 가입의 cold-start
+    //   보존(OR-fallback) 유지.
+    bool authoritative = false,
+  }) {
     bool changed = false;
     if (_currentUser.isPremium != isPremium) {
       _currentUser.isPremium = isPremium;
       changed = true;
     }
     // OR fallback — RC 가 true 이거나 기존 isBrand 가 true 이면 true.
-    final resolvedIsBrand = isBrand || _currentUser.isBrand;
+    //   authoritative 면 fallback 없이 isBrand 직접 반영 (확정 강등 경로).
+    final resolvedIsBrand = authoritative ? isBrand : (isBrand || _currentUser.isBrand);
     if (_currentUser.isBrand != resolvedIsBrand) {
       _currentUser.isBrand = resolvedIsBrand;
       changed = true;
+      // 확정 강등으로 isBrand=false 가 되면 서버 user doc 에도 반영.
+      if (authoritative && !resolvedIsBrand) {
+        unawaited(_saveUserToFirestore());
+      }
     }
     if (changed) notifyListeners();
   }

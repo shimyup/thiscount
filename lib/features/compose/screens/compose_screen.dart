@@ -1008,6 +1008,13 @@ class _ComposeScreenState extends State<ComposeScreen>
   }
 
   // ── 이미지 첨부 (프리미엄 전용) ───────────────────────────────────────────
+  // Build 409 (sim P1.15): 첨부 이미지는 업로드 후 HTTPS URL 일 수도, 업로드 전/
+  //   실패 시 로컬 경로일 수도 있다. 미리보기가 양쪽 모두 렌더하도록 provider 분기.
+  static ImageProvider _attachImageProvider(String pathOrUrl) =>
+      pathOrUrl.startsWith('http')
+          ? NetworkImage(pathOrUrl)
+          : FileImage(File(pathOrUrl)) as ImageProvider;
+
   Future<void> _pickImage(AppState state, PurchaseService purchase) async {
     final hasPremium =
         purchase.isPremium ||
@@ -1059,8 +1066,33 @@ class _ComposeScreenState extends State<ComposeScreen>
       // `result?.path ?? picked.path` 로 EXIF 원본 (GPS 좌표 포함) 을 그대로
       // 첨부하던 누출 경로. compress 가 null/throw 면 첨부 거부 + 사용자 알림.
       if (result?.path == null) throw StateError('compressAndGetFile returned null');
+      // 압축본 로컬 경로 — 즉시 썸네일 미리보기.
       setState(() {
         _imageFilePath = result!.path;
+      });
+      // Build 409 (sim P1.15): 압축본을 Firebase Storage 에 업로드 → HTTPS URL 로
+      //   교체. 이전엔 로컬 경로가 imageUrl 로 저장돼 다른 기기 수신자는 항상
+      //   placeholder 만 봤음 (사진이 발신 기기에만 존재). voucher 흐름과 동일
+      //   패턴. 업로드 실패 시 로컬 경로 유지 (같은 기기 테스트는 가능).
+      try {
+        final uploadPath = StorageService.letterImagePath(
+          'letter_${DateTime.now().millisecondsSinceEpoch}',
+        );
+        if (uploadPath.isNotEmpty) {
+          final url = await StorageService.uploadImage(
+            file: File(result!.path),
+            path: uploadPath,
+          );
+          if (!mounted) return;
+          if (url != null && url.isNotEmpty) {
+            _imageFilePath = url;
+          }
+        }
+      } catch (_) {
+        // 업로드 실패 — 로컬 경로 유지.
+      }
+      if (!mounted) return;
+      setState(() {
         _isCompressingImage = false;
       });
     } catch (e) {
@@ -2297,6 +2329,11 @@ class _ComposeScreenState extends State<ComposeScreen>
     AppState state,
     AppL10n l,
   ) async {
+    // Build 409 (sim P1.20): 스토어 현지화 가격(priceString) 우선, 미로드 시
+    //   하드코딩 KRW fallback. unitLabel 은 통화 불일치 방지 위해 수량 라벨로.
+    final purchase = ctx.read<PurchaseService>();
+    String priceFor(String productId, String krwFallback) =>
+        purchase.localizedPriceFor(productId) ?? krwFallback;
     await showDialog<void>(
       context: ctx,
       builder: (dCtx) => AlertDialog(
@@ -2335,24 +2372,24 @@ class _ComposeScreenState extends State<ComposeScreen>
             const SizedBox(height: 14),
             _ExactDropTierButton(
               qty: 50,
-              priceLabel: '₩6,000',
-              unitLabel: '통당 ₩120',
+              priceLabel: priceFor(PurchaseProductIds.exactDrop50, '₩6,000'),
+              unitLabel: l.koEn('정밀 발송 50회', '50 ExactDrops'),
               best: false,
               onTap: () => _purchaseExactDropTier(dCtx, 50),
             ),
             const SizedBox(height: 8),
             _ExactDropTierButton(
               qty: 100,
-              priceLabel: '₩10,000',
-              unitLabel: '통당 ₩100',
+              priceLabel: priceFor(PurchaseProductIds.exactDrop100, '₩10,000'),
+              unitLabel: l.koEn('정밀 발송 100회', '100 ExactDrops'),
               best: true,
               onTap: () => _purchaseExactDropTier(dCtx, 100),
             ),
             const SizedBox(height: 8),
             _ExactDropTierButton(
               qty: 500,
-              priceLabel: '₩40,000',
-              unitLabel: '통당 ₩80',
+              priceLabel: priceFor(PurchaseProductIds.exactDrop500, '₩40,000'),
+              unitLabel: l.koEn('정밀 발송 500회', '500 ExactDrops'),
               best: false,
               onTap: () => _purchaseExactDropTier(dCtx, 500),
             ),
@@ -4822,8 +4859,8 @@ class _ComposeScreenState extends State<ComposeScreen>
                     const SizedBox(height: 10),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.file(
-                        File(_imageFilePath!),
+                      child: Image(
+                        image: _attachImageProvider(_imageFilePath!),
                         height: 140,
                         width: double.infinity,
                         fit: BoxFit.cover,
@@ -6017,8 +6054,8 @@ class _ComposeScreenState extends State<ComposeScreen>
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: Image.file(
-            File(_imageFilePath!),
+          child: Image(
+            image: _attachImageProvider(_imageFilePath!),
             height: 160,
             width: double.infinity,
             fit: BoxFit.cover,

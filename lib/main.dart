@@ -161,9 +161,15 @@ class _GlobalDriftAppState extends State<GlobalDriftApp> {
     _purchaseService.setPreferredLanguageCode(
       _appState.currentUser.languageCode,
     );
+    // Build 409 (sim P1.17): 예약 다운그레이드가 방금 발효됐으면 authoritative
+    //   sync — OR-fallback 우회해 isBrand 를 실제로 해제. 그 외 일반 RC 변경은
+    //   기존 보존 로직(신규 Brand 가입 transient 보호) 유지.
+    final authoritative =
+        _purchaseService.consumePendingAuthoritativeDowngrade();
     _appState.syncPremiumStatus(
       isPremium: _purchaseService.isPremium,
       isBrand: _purchaseService.isBrand,
+      authoritative: authoritative,
     );
   }
 

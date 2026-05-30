@@ -396,7 +396,10 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 _PlanCard(
                   emoji: '⭐',
                   name: 'Premium',
-                  price: '₩4,900',
+                  // Build 409 (sim P1.14): 스토어 현지화 가격 우선, fallback ₩4,900.
+                  price: purchase.localizedPriceFor(
+                          PurchaseProductIds.premiumMonthly) ??
+                      '₩4,900',
                   period: l.premiumPerMonth,
                   badge: isPremium && !isBrand ? l.premiumCurrentPlan : '',
                   badgeColor: AppColors.teal,
@@ -461,7 +464,10 @@ class _PremiumScreenState extends State<PremiumScreen> {
                     return _PlanCard(
                       emoji: '🏷️',
                       name: 'Brand / Creator',
-                      price: '₩99,000',
+                      // Build 409 (sim P1.14): 스토어 현지화 가격 우선, fallback ₩99,000.
+                      price: purchase.localizedPriceFor(
+                              PurchaseProductIds.brandMonthly) ??
+                          '₩99,000',
                       period: l.premiumPerMonth,
                       badge: isBrand
                           ? l.premiumCurrentPlan
