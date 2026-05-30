@@ -1168,6 +1168,8 @@ class AuthService {
     } else {
       await _deleteSecure(_keyBrandName);
     }
+    // Build 413 (Auth Phase 2, flag-gated): 가입 직후 정식 Firebase Auth 바인딩.
+    await _bindFirebaseAuthIfEnabled(normalizedEmail, password);
     return null; // null = 성공
   }
 
@@ -1285,7 +1287,29 @@ class AuthService {
     await _deleteSecure(_keyTempPasswordExpiresAt);
     await _writeSecure(_keyMustChangePassword, 'false');
     await _writeSecure(_keyIsLoggedIn, 'true');
+    // Build 413 (Auth Phase 2, flag-gated): 로컬 비번 검증 통과 직후 정식
+    //   Firebase Auth 에 바인딩(그림자). 플래그 OFF 면 no-op. best-effort —
+    //   실패해도 로그인 성공 흐름엔 영향 없음 (rules 는 아직 public).
+    await _bindFirebaseAuthIfEnabled(savedEmail, password);
     return null; // null = 성공
+  }
+
+  /// Build 413 (Auth Phase 2): AUTH_BIND_ENABLED 일 때만 정식 Firebase Auth
+  ///   (email/password) 세션 확보 + refresh token 보관. 실패는 조용히 무시.
+  static Future<void> _bindFirebaseAuthIfEnabled(
+    String? email,
+    String password,
+  ) async {
+    if (!FirebaseConfig.authBindEnabled) return;
+    if (email == null || email.trim().isEmpty) return;
+    try {
+      await FirebaseAuthService.signInOrMigrate(
+        email: email.trim(),
+        password: password,
+      );
+    } catch (e) {
+      if (kDebugMode) debugPrint('[AuthService] firebase bind skip: $e');
+    }
   }
 
   // Build 294: 로그인 실패 카운팅 + 5회 도달 시 15분 lockout 발화.

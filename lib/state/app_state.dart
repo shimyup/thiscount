@@ -3571,10 +3571,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> _initFirebaseAndSync() async {
     if (!FirebaseConfig.kFirebaseEnabled) return;
-    // 익명 로그인 (Firestore 접근용 ID 토큰 획득)
-    final ok = await FirebaseAuthService.signInAnonymously();
+    // Build 413 (Auth Phase 2, flag-gated): 저장된 정식 세션이 있으면 비번 없이
+    //   복원해 anon 대신 사용 (cold-start 에도 request.auth.uid == authUid 유지).
+    //   실패 시 기존 anon 로그인으로 fallback. 플래그 OFF 면 기존 동작 그대로.
+    var ok = false;
+    if (FirebaseConfig.authBindEnabled) {
+      ok = await FirebaseAuthService.restoreRealSessionIfAvailable();
+    }
+    // 익명 로그인 (Firestore 접근용 ID 토큰 획득) — 정식 세션 미복원 시.
+    if (!ok) ok = await FirebaseAuthService.signInAnonymously();
     if (!ok) {
-      if (kDebugMode) debugPrint('[Firebase] 익명 로그인 실패 — 서버 동기화 스킵');
+      if (kDebugMode) debugPrint('[Firebase] 로그인 실패 — 서버 동기화 스킵');
       return;
     }
     // 내 프로필을 Firestore에 저장 (다른 테스터가 지도에서 볼 수 있도록)
@@ -5589,6 +5596,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'id': {'stringValue': _currentUser.id},
         if (namePublic) 'username': {'stringValue': _currentUser.username},
         if (!namePublic) 'username': {'nullValue': null},
+        // Build 413 (Auth Phase 2, flag-gated): 정식 Firebase Auth 세션이면
+        //   authUid 바인딩 기록 (TOFU). Phase 3 rules cutover 후 owner-check 의
+        //   기준. 플래그 OFF / anon 세션이면 realAuthUid==null → 미기록(무변경).
+        if (FirebaseAuthService.realAuthUid != null)
+          'authUid': {'stringValue': FirebaseAuthService.realAuthUid!},
         'countryFlag': {'stringValue': _currentUser.countryFlag},
         'country': {'stringValue': _currentUser.country},
         // isMapPublic ON + 유효 좌표 → 작성. OFF 면 null 로 PATCH 해 leak 차단.

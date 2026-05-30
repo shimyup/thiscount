@@ -67,11 +67,19 @@ allow update: if isSignedIn() && (
 - 목표 rules 를 `firestore.rules.phase2` 별도 파일로 작성(**미배포**, 리뷰용).
 - 현재 rules / 로그인 흐름 **무변경** → 빌드/사용자 영향 0.
 
-**Phase 2 — 그림자 바인딩 (실기기 검증 후, 여전히 비파괴)**
-- `AUTH_BIND_ENABLED=true` 빌드. 로컬 로그인/가입 성공 직후 백그라운드로
-  `signInOrMigrate(email, password)` 호출 → 성공 시 `authUid` 를 user doc 에 기록.
-- rules 는 **아직 공개 유지** (write 잠그지 않음) → 바인딩 실패해도 앱 정상.
-- 며칠 운영하며 `authUid` 바인딩률 모니터링 (대부분 사용자가 1회 로그인 시 바인딩).
+**Phase 2 — 그림자 바인딩 (✅ 코드 구현 완료, 플래그 OFF — 실기기 검증 후 활성)**
+- 구현됨 (`AUTH_BIND_ENABLED`, 기본 false):
+  · auth_service.login/signUp 성공 직후 `_bindFirebaseAuthIfEnabled(email,pw)`
+    → `FirebaseAuthService.signInOrMigrate` (best-effort, 실패 무시).
+  · 정식 세션의 refresh token 을 secure storage 에 보관(`_persistRealRefreshToken`).
+  · cold-start: `_initFirebaseAndSync` 가 `restoreRealSessionIfAvailable()` 우선
+    시도(비번 없이 정식 세션 복원) → 실패 시 anon fallback.
+  · `_doSaveUserToFirestore` 가 `realAuthUid != null` 일 때 user doc 에 `authUid` 기록.
+  · logout(signOut) 시 보관된 refresh token 삭제.
+- rules 는 **아직 공개 유지** → 바인딩 실패해도 앱 정상.
+- ⚠️ **미검증**: auth 흐름은 analyze/유닛테스트로 검증 불가 → `AUTH_BIND_ENABLED=true`
+  로 **테스트 빌드 + 실기기**에서 가입/로그인/재로그인(cold-start)/다기기/비번재설정/
+  로그아웃 시나리오 검증 필수. 검증 전까지 플래그 OFF 유지.
 
 **Phase 3 — rules cutover (되돌리기 어려움 · GATED)**
 - 바인딩률 충분(예: 활성 사용자 95%+) 확인 후, `firestore.rules.phase2` 배포 →

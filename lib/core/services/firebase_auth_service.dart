@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import '../config/firebase_config.dart';
 import 'firestore_service.dart';
@@ -15,6 +16,50 @@ class FirebaseAuthService {
 
   static String? get currentUid => _uid;
   static bool get isSignedIn => _idToken != null && _uid != null;
+
+  // ── Auth 마이그레이션 Phase 2 (flag-gated) ────────────────────────────────
+  // 현재 세션이 '정식' Firebase Auth(email/password) 인지(true) anon 인지(false).
+  // 정식일 때만 realAuthUid 가 비고, user doc 의 authUid 바인딩에 사용.
+  static bool _isRealAuth = false;
+  static String? get realAuthUid => _isRealAuth ? _uid : null;
+
+  // cold-start 에 비번 없이 정식 세션을 복원하기 위한 refresh token 보관.
+  static const FlutterSecureStorage _authStore = FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    iOptions: IOSOptions(
+      accessibility: KeychainAccessibility.first_unlock_this_device,
+    ),
+  );
+  static const String _kRealRefreshToken = 'fb_real_refresh_v1';
+
+  static Future<void> _persistRealRefreshToken() async {
+    try {
+      if (_refreshToken != null && _refreshToken!.isNotEmpty) {
+        await _authStore.write(key: _kRealRefreshToken, value: _refreshToken!);
+      }
+    } catch (_) {/* best-effort */}
+  }
+
+  /// Build 413 (Auth Phase 2): cold-start 시 저장된 refresh token 으로 정식
+  /// 세션 복원 (비번 불필요). 성공 시 true → 호출자는 anon 로그인 skip.
+  /// AUTH_BIND_ENABLED 일 때만 의미. 실패/미존재 시 false (anon fallback).
+  static Future<bool> restoreRealSessionIfAvailable() async {
+    if (!FirebaseConfig.kFirebaseEnabled) return false;
+    String? rt;
+    try {
+      rt = await _authStore.read(key: _kRealRefreshToken);
+    } catch (_) {
+      return false;
+    }
+    if (rt == null || rt.isEmpty) return false;
+    _refreshToken = rt;
+    await refreshTokenIfNeeded(refreshToken: rt, forceIfExpiringSoon: true);
+    if (_idToken != null) {
+      _isRealAuth = true;
+      return true;
+    }
+    return false;
+  }
 
   /// Firestore 요청 전 호출 — 토큰 만료 시 자동 갱신
   static Future<void> ensureValidToken() async {
@@ -179,6 +224,8 @@ class FirebaseAuthService {
     if (signInRes != null &&
         signInRes['error'] == null &&
         signInRes['localId'] is String) {
+      _isRealAuth = true;
+      await _persistRealRefreshToken();
       return signInRes['localId'] as String;
     }
     // 계정 미존재(또는 anon→email 미승급) → 생성 시도.
@@ -186,6 +233,8 @@ class FirebaseAuthService {
     if (signUpRes != null &&
         signUpRes['error'] == null &&
         signUpRes['localId'] is String) {
+      _isRealAuth = true;
+      await _persistRealRefreshToken();
       return signUpRes['localId'] as String;
     }
     if (kDebugMode) {
@@ -217,6 +266,7 @@ class FirebaseAuthService {
         _uid = data['localId'] as String?;
         _refreshToken = data['refreshToken'] as String?;
         _tokenExpiry = DateTime.now().add(const Duration(seconds: 3600));
+        _isRealAuth = false; // anon 세션 — authUid 바인딩에 쓰지 않음.
         FirestoreService.setIdToken(_idToken ?? '');
         if (kDebugMode) debugPrint('[FirebaseAuth] 익명 로그인 성공: $_uid');
         return true;
@@ -240,7 +290,10 @@ class FirebaseAuthService {
     _uid = null;
     _tokenExpiry = null;
     _refreshToken = null;
+    _isRealAuth = false;
     FirestoreService.setIdToken('');
+    // Build 413 (Auth Phase 2): 저장된 정식 세션 refresh token 도 제거.
+    unawaited(_authStore.delete(key: _kRealRefreshToken));
   }
 
   // ── 토큰 갱신 확인 ──────────────────────────────────────────────────────────
