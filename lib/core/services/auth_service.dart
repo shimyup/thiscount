@@ -1247,7 +1247,10 @@ class AuthService {
       final tempHash = await _readSecure(_keyTempPasswordHash);
       final tempExpiresAtRaw = await _readSecure(_keyTempPasswordExpiresAt);
       final tempExpiresAt = int.tryParse(tempExpiresAtRaw ?? '');
-      final nowMs = DateTime.now().millisecondsSinceEpoch;
+      // Build 409 (sim P2 보안): 임시/재설정 비밀번호 만료 검증도 SecureClock.
+      //   설정은 SecureClock 인데 검증이 DateTime.now() 면 시계를 과거로 돌려
+      //   만료된 temp password 를 계속 쓰는 우회 가능했음.
+      final nowMs = SecureClock.now().millisecondsSinceEpoch;
 
       // 임시 비밀번호 검증 (마이그레이션 없이 비교만 수행)
       final tempMatched = tempHash != null &&

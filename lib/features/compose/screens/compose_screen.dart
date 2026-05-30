@@ -1612,6 +1612,11 @@ class _ComposeScreenState extends State<ComposeScreen>
     }
 
     if (!sent) {
+      // Build 409 (sim P2 L1543): 발송 실패 시 위에서 차감한 ExactDrop 크레딧
+      //   환불 (베타는 no-op). 이전엔 차감만 되고 환불 없어 유료 크레딧 손실.
+      if (_isExactDropped && !_isReply) {
+        unawaited(state.refundExactDropCredit());
+      }
       if (mounted) {
         setState(() => _isSending = false);
         _sendController.reset();

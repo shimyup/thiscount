@@ -101,6 +101,9 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
 
   Widget _buildHeadline(BrandInsights i, AppL10n l) {
     final pct = (i.redeemRate * 100).toStringAsFixed(1);
+    // Build 409 (sim P2 L99): 데이터 0 인 신규 Brand 에게 빨간 '개선 필요 0.0%'
+    //   verdict 는 부정확·위축감. 발송 0 또는 픽업 0 이면 중립 안내로 대체.
+    final noData = i.totalSent == 0 || i.totalPickup == 0;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -132,7 +135,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '$pct%',
+                noData ? '—' : '$pct%',
                 style: const TextStyle(
                   color: AppColors.gold,
                   fontSize: 36,
@@ -144,7 +147,9 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 4),
                 child: Text(
-                  '${i.healthEmoji} ${i.healthLabel}',
+                  noData
+                      ? l.koEn('🆕 데이터 수집 중', '🆕 Collecting data')
+                      : '${i.healthEmoji} ${i.healthLabel}',
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 13,
@@ -156,8 +161,11 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            l.koEn('픽업한 사람 중 매장 사용 비율',
-                'In-store redemption rate among pickups'),
+            noData
+                ? l.koEn('첫 픽업이 발생하면 사용 전환율이 표시돼요',
+                    'Redemption rate appears once you get your first pickup')
+                : l.koEn('픽업한 사람 중 매장 사용 비율',
+                    'In-store redemption rate among pickups'),
             style: const TextStyle(
                 color: AppColors.textSecondary, fontSize: 12),
           ),

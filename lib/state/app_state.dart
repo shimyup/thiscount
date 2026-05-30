@@ -1165,6 +1165,18 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     return true;
   }
 
+  /// Build 409 (sim P2 L1543): ExactDrop 크레딧 환불. consumeExactDropCredit 으로
+  ///   차감 후 발송이 실패/throw 하면 차감된 유료 크레딧을 되돌린다. 베타
+  ///   (exactDropFreeForBeta) 에선 애초에 차감 안 했으므로 no-op.
+  Future<void> refundExactDropCredit() async {
+    if (exactDropFreeForBeta) return;
+    _brandExactDropCredits++;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('brandExactDropCredits', _brandExactDropCredits);
+    unawaited(_saveUserToFirestore());
+    notifyListeners();
+  }
+
   // ── 🎟 브랜드 홍보 팝업 — 티켓형 (Build 107) ────────────────────────────
   // 로그인 직후 홈 화면에서 "신상 50% 할인 by 000 브랜드" 스타일의 티켓 팝업을
   // 1회 노출. 유저가 닫으면 해당 세션 동안 재출현 금지 (`_promoShownThisSession`).
@@ -3640,6 +3652,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           continue;
         }
         if (_inbox.any((l) => l.id == letterId)) continue;
+        // Build 409 (sim P2 L3617): 내가 이미 주운 편지는 재추가 금지 — inbox
+        //   에서 지워졌더라도(보관 정리 등) _myPickedUpLetterIds 가 authoritative.
+        //   이전엔 다시 줍기 가능한 마커로 부활했음.
+        if (_myPickedUpLetterIds.contains(letterId)) continue;
 
         // Build 408 (QQ4): 이미 소진된 편지는 신규 추가하지 않음.
         if (srvConsumed) continue;
@@ -4695,6 +4711,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       _blockedSenderIds.clear();
       _tempBlockedSenderIds.clear();
       _mutedBrandIds.clear();
+      // Build 409 (sim P2 L4603): _seenLetterIds dedup set 도 reset. 안 지우면
+      //   사용자 B 가 A 가 이미 본 letter id 를 'seen' 으로 취급해 B 에게 공유된
+      //   편지가 인박스/지도에 안 들어오는 silent drop 발생.
+      _seenLetterIds.clear();
       // Build 409 (sim P1.44): 이전 사용자 프로필 사진이 다음 계정으로 넘어가지
       //   않도록 null. 아래 UserProfile 재생성이 _currentUser.profileImagePath 를
       //   복사하므로 여기서 끊어야 함.
@@ -8046,6 +8066,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (!_currentUser.isPremium && !_currentUser.isBrand) {
       return false;
     }
+    // Build 409 (sim P2 보안 L7948): 차단된 사용자 발송 차단 (state-level
+    //   defense-in-depth). 이전엔 UI 가드만 있어 우회 시 발송 가능했음. 모든
+    //   발송(reply 포함)이 이 함수로 합류하므로 여기서 한 번에 차단.
+    if (_currentUser.isBanned) {
+      return false;
+    }
     if (!_canSendLetterByDailyLimit()) {
       return false;
     }
@@ -8541,6 +8567,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'blocked',
         'temp_blocked',
         'mutedBrandIds',
+        // Build 409 (sim P2 L8393): 편지 컬렉션 prefs 도 제거 — in-memory 는
+        //   isNewUser 에서 clear 하지만 prefs 키가 남으면 다음 loadFromPrefs
+        //   가 사용자 A 의 인박스/보낸함/지도편지를 B 에게 복원 (데이터 누수).
+        'inbox',
+        'sent',
+        'worldLettersIncoming',
       ];
       for (final key in userScopedKeys) {
         await prefs.remove(key);
@@ -8593,6 +8625,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     String? campaignId,
   }) async {
     if (!_currentUser.isBrand) return 0;
+    // Build 409 (sim P2 보안 L7948): 차단된 Brand 도 express+bulk 발송 차단.
+    if (_currentUser.isBanned) return 0;
 
     const expressTotalMin = 5; // 특송: 5분 즉시 배송
     final now = DateTime.now();
@@ -9869,9 +9903,13 @@ class BrandAnalytics {
   });
 
   /// 픽업 대비 사용 전환율 (0.0 ~ 1.0). picks 가 0 이면 0.
-  double get redeemConversion =>
-      totalPicked == 0 ? 0 : totalRedeemed / totalPicked;
+  /// Build 409 (sim P2 L9710): 0..1 clamp — 카운터 race(redeemed>picked /
+  ///   pickup>sent)로 비율이 1 초과 시 230% 같은 비정상 표기 방지.
+  double get redeemConversion => totalPicked == 0
+      ? 0
+      : (totalRedeemed / totalPicked).clamp(0.0, 1.0);
 
   /// 발송 대비 픽업률 (reach — 얼마나 주워졌는지).
-  double get pickupReach => totalSent == 0 ? 0 : totalPicked / totalSent;
+  double get pickupReach =>
+      totalSent == 0 ? 0 : (totalPicked / totalSent).clamp(0.0, 1.0);
 }
