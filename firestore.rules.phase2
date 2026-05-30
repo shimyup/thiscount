@@ -1,0 +1,59 @@
+// ─────────────────────────────────────────────────────────────────────────
+// Auth 마이그레이션 Phase 3 (rules cutover) 목표 규칙 — ⚠️ 미배포 / 리뷰용.
+//
+// 이 파일은 firebase.json 이 가리키지 않으므로 배포되지 않는다. Phase 2
+// (AUTH_BIND_ENABLED=true) 로 활성 사용자 대부분이 user doc 에 authUid 를
+// 바인딩한 뒤, 아래 변경을 실제 firestore.rules 의 해당 블록에 머지하고
+// `firebase deploy --only firestore:rules` 로 cutover 한다.
+// 상세: docs/AUTH_MIGRATION_DESIGN.md
+//
+// 핵심: users 문서 WRITE 를 owner(=authUid)로 제한 → PII 시뮬레이션 HIGH
+//   (익명 auth IDOR write / 타인 문서 위·변조) 차단. READ 는 지도용 공개 유지
+//   (PII 는 Build 412 에서 doc 에서 이미 최소화/제거됨).
+// ─────────────────────────────────────────────────────────────────────────
+
+// ── users/{userId} (cutover 후) ──
+match /users/{userId} {
+  // READ: 지도 타워 표시용 공개 유지. server doc 에 email/phone/비번 없음,
+  //   username 은 isUsernamePublic=false 시 null (Build 412).
+  allow read: if true;
+  allow list: if reasonableListLimit();
+
+  allow create: if isSignedIn() && isValidUserCreate(request.resource.data);
+
+  // UPDATE: 본인(authUid) 만. 미바인딩 doc 은 1회 claim 허용(TOFU).
+  allow update: if isSignedIn()
+              && isUserDocOwnerOrClaim()
+              && isAllowedUserUpdate()      // 기존 화이트리스트 + 'authUid' 추가
+              && isAuthUidBindSafe()        // authUid 는 본인 uid 로만 설정 가능
+              && isReasonableUserCounterDelta();
+
+  allow delete: if isSignedIn()
+              && isUserDocOwnerOrClaim()
+              && userId.matches('^[a-zA-Z0-9_-]{16,64}$');
+}
+
+// ── 추가/수정 helper ──
+function isUserDocOwnerOrClaim() {
+  // authUid 미바인딩(null/부재) → 최초 claim 허용. 이미 바인딩 → 본인만.
+  return !('authUid' in resource.data)
+      || resource.data.authUid == null
+      || resource.data.authUid == request.auth.uid;
+}
+
+function isAuthUidBindSafe() {
+  // authUid 를 변경하는 경우, 반드시 호출자 본인의 uid 로만. 타인 uid 로
+  //   바인딩 시도 차단 (claim 탈취 방지).
+  return !('authUid' in request.resource.data.diff(resource.data).affectedKeys())
+      || request.resource.data.authUid == request.auth.uid;
+}
+
+// isAllowedUserUpdate() 의 hasOnly([...]) 목록에 'authUid' 추가:
+//   ... 기존 키들 ..., 'authUid'
+// (claim/바인딩 write 가 화이트리스트를 통과하도록.)
+
+// ── 참고: credit 무결성 ──
+// brandExactDropCredits / brandExtraMonthlyQuota / inviteRewardCredits 는
+// owner-scope 후에도 "본인이 자기 doc 에 self-grant" 가 가능하다 (rules 만으론
+// 불충분). 결제 무결성은 RevenueCat 검증 또는 Cloud Function 권위 부여로 별도
+// 처리 필요 — 본 cutover 범위 밖. (sim MED — 후속 백로그)

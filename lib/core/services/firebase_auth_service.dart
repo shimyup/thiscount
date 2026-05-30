@@ -162,6 +162,38 @@ class FirebaseAuthService {
     }
   }
 
+  /// Build 413 (Auth 마이그레이션 Phase 1 — groundwork, 기본 비활성):
+  /// 로컬 비번 검증을 통과한 사용자를 정식 Firebase Auth(email/password)로
+  /// 로그인하거나, 아직 Firebase 계정이 없으면 on-the-fly 생성(migrate).
+  /// 성공 시 Firebase uid(localId), 실패 시 null 반환.
+  ///
+  /// ⚠️ AUTH_BIND_ENABLED 플래그가 켜졌을 때만 호출됨 (docs/AUTH_MIGRATION_DESIGN.md).
+  ///   호출 시점엔 이미 앱이 로컬에서 username+password 를 검증한 상태이므로
+  ///   email/password 쌍은 신뢰 가능. signIn 실패(미존재) → signUp 으로 승급.
+  static Future<String?> signInOrMigrate({
+    required String email,
+    required String password,
+  }) async {
+    if (!FirebaseConfig.kFirebaseEnabled) return null;
+    final signInRes = await signIn(email: email, password: password);
+    if (signInRes != null &&
+        signInRes['error'] == null &&
+        signInRes['localId'] is String) {
+      return signInRes['localId'] as String;
+    }
+    // 계정 미존재(또는 anon→email 미승급) → 생성 시도.
+    final signUpRes = await signUp(email: email, password: password);
+    if (signUpRes != null &&
+        signUpRes['error'] == null &&
+        signUpRes['localId'] is String) {
+      return signUpRes['localId'] as String;
+    }
+    if (kDebugMode) {
+      debugPrint('[FirebaseAuthService] signInOrMigrate 실패 (계정 충돌 가능)');
+    }
+    return null;
+  }
+
   // ── 익명 로그인 (테스터용 — Firebase 계정 없이 Firestore 접근) ────────────────
   static Future<bool> signInAnonymously() async {
     if (!FirebaseConfig.kFirebaseEnabled) return false;

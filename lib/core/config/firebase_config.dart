@@ -84,4 +84,14 @@ class FirebaseConfig {
 
   /// SMS 발송 relay 가 설정돼 있는지.
   static bool get isSmsProviderEnabled => authSmsFnUrl.isNotEmpty;
+
+  // ── Auth 마이그레이션 (Phase 1 groundwork — 기본 비활성) ─────────────────
+  // true 면 로컬 로그인/가입 성공 후 정식 Firebase Auth(email/password)에
+  // 바인딩하고 user doc 에 authUid 를 기록(그림자 바인딩). rules cutover 전까지
+  // 런타임 동작은 바뀌지 않음. docs/AUTH_MIGRATION_DESIGN.md 참조.
+  //   --dart-define=AUTH_BIND_ENABLED=true 로 Phase 2 활성 (실기기 검증 후).
+  static const bool authBindEnabled = bool.fromEnvironment(
+    'AUTH_BIND_ENABLED',
+    defaultValue: false,
+  );
 }
