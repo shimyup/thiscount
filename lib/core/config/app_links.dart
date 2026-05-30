@@ -37,6 +37,17 @@ abstract class AppLinks {
     return '$termsOfService?lang=$lang';
   }
 
+  // ── 위치기반서비스 이용약관 (위치정보법 별도 약관 의무) ──────────────────
+  // Build 411 (launch): 위치정보의 보호 및 이용 등에 관한 법률상 개인정보
+  //   처리방침과 별개의 '위치기반서비스 이용약관' 게시 의무. docs/location_terms.html
+  //   를 thiscount.io 에 호스팅 필요. 미게시 시 1천만원 이하 과태료.
+  static const String locationTerms = 'https://thiscount.io/location_terms.html';
+
+  static String locationTermsForLanguage(String? langCode) {
+    final lang = (langCode ?? '').toLowerCase().startsWith('ko') ? 'ko' : 'en';
+    return '$locationTerms?lang=$lang';
+  }
+
   // ── 고객 지원 ────────────────────────────────────────────────────────────
   // Build 281: 사용자 노출 지원 채널.
   // Build 310: 1인 운영 단계라 ceo@airony.xyz 로 직접 수신 통일.

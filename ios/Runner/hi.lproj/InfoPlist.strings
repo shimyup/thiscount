@@ -1,5 +1,4 @@
 "NSLocationWhenInUseUsageDescription" = "आस-पास की दुकानों के कूपन दिखाने के लिए आपके स्थान का उपयोग किया जाता है।";
-"NSLocationAlwaysAndWhenInUseUsageDescription" = "आस-पास की दुकानों के कूपन दिखाने के लिए आपके स्थान का उपयोग किया जाता है।";
 "NSPhotoLibraryUsageDescription" = "अपनी प्रोफ़ाइल तस्वीर और कूपन छवियाँ बदलने के लिए फोटो लाइब्रेरी एक्सेस आवश्यक है।";
 "NSPhotoLibraryAddUsageDescription" = "ऐप में चयनित फ़ोटो सहेजने के लिए अनुमति आवश्यक है।";
 "NSUserNotificationUsageDescription" = "आस-पास नए पुरस्कार आने पर सूचित करने के लिए नोटिफिकेशन की अनुमति आवश्यक है।";

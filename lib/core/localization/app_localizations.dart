@@ -4038,6 +4038,53 @@ class AppL10n {
         'การอนุญาตตำแหน่งสามารถขอได้เมื่อส่งคูปอง\nยินยอมตอนนี้เพื่อใช้ฟีเจอร์ตำแหน่งทันที',
   });
 
+  // Build 411 (launch): 광고성 정보 수신 동의 (선택). 정보통신망법 제50조 —
+  //   필수 동의와 분리된 별도 opt-in.
+  String get authMarketingOptional => _t({
+    'ko': '(선택) 광고성 정보 수신 동의',
+    'en': '(Optional) Marketing Notifications',
+    'ja': '（任意）広告情報の受信に同意',
+    'zh': '（可选）接收营销信息',
+    'fr': '(Facultatif) Notifications marketing',
+    'de': '(Optional) Marketing-Benachrichtigungen',
+    'es': '(Opcional) Notificaciones de marketing',
+    'pt': '(Opcional) Notificações de marketing',
+    'ru': '(Необязательно) Маркетинговые уведомления',
+    'tr': '(İsteğe bağlı) Pazarlama bildirimleri',
+    'ar': '(اختياري) إشعارات تسويقية',
+    'it': '(Facoltativo) Notifiche di marketing',
+    'hi': '(वैकल्पिक) मार्केटिंग सूचनाएं',
+    'th': '(ไม่บังคับ) รับข้อมูลโปรโมชั่น',
+  });
+
+  String get authMarketingDesc => _t({
+    'ko': '신규 혜택·이벤트·할인 소식을 푸시/이메일로 받아요.\n언제든 설정에서 해제할 수 있어요.',
+    'en':
+        'Get new deals, events, and discounts via push/email.\nYou can turn this off anytime in settings.',
+    'ja': '新しい特典・イベント・割引をプッシュ/メールで受け取ります。\n設定でいつでも解除できます。',
+    'zh': '通过推送/邮件接收新优惠、活动和折扣。\n可随时在设置中关闭。',
+    'fr':
+        'Recevez offres, événements et réductions par notification/e-mail.\nDésactivable à tout moment dans les réglages.',
+    'de':
+        'Erhalte neue Angebote, Events und Rabatte per Push/E-Mail.\nJederzeit in den Einstellungen deaktivierbar.',
+    'es':
+        'Recibe ofertas, eventos y descuentos por push/correo.\nPuedes desactivarlo cuando quieras en ajustes.',
+    'pt':
+        'Receba ofertas, eventos e descontos por push/e-mail.\nPode desativar quando quiser nas configurações.',
+    'ru':
+        'Получайте акции, события и скидки через push/e-mail.\nМожно отключить в настройках в любое время.',
+    'tr':
+        'Yeni fırsat, etkinlik ve indirimleri push/e-posta ile alın.\nAyarlardan istediğiniz zaman kapatabilirsiniz.',
+    'ar':
+        'احصل على العروض والفعاليات والخصومات عبر الإشعارات/البريد.\nيمكنك إيقافها في أي وقت من الإعدادات.',
+    'it':
+        'Ricevi offerte, eventi e sconti via push/email.\nPuoi disattivarli quando vuoi nelle impostazioni.',
+    'hi':
+        'नई डील, इवेंट और छूट पुश/ईमेल से पाएं।\nइसे कभी भी सेटिंग में बंद कर सकते हैं।',
+    'th':
+        'รับข่าวดีล อีเวนต์ และส่วนลดผ่านพุช/อีเมล\nปิดได้ทุกเมื่อในการตั้งค่า',
+  });
+
   String get authGranted => _t({
     'ko': '허용됨',
     'en': 'Granted',

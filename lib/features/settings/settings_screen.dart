@@ -967,6 +967,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         }
                       },
                     ),
+                    // Build 411 (launch): 위치기반서비스 이용약관 (위치정보법
+                    //   별도 게시 의무) — 개인정보처리방침/이용약관과 분리해 노출.
+                    _tile(
+                      icon: Icons.location_on_outlined,
+                      label: l.koEn('위치기반서비스 이용약관',
+                          'Location-Based Service Terms'),
+                      onTap: () async {
+                        final uri = Uri.parse(
+                          AppLinks.locationTermsForLanguage(user.languageCode),
+                        );
+                        try {
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.inAppBrowserView,
+                          );
+                        } catch (_) {
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        }
+                      },
+                    ),
 
                     const SizedBox(height: 8),
                     // ── 고객 지원 ───────────────────────────────────────────

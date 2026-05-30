@@ -1179,6 +1179,10 @@ class _SignupTabState extends State<_SignupTab> {
   // Firebase / Stadia Maps / RevenueCat 등 처리 위탁 업체 명시. 별도 동의로
   // privacy 동의와 분리 — 사용자가 의식적으로 인지하도록 함.
   bool _agreeThirdPartySharing = false;
+  // Build 411 (launch): 광고성 정보 수신 동의 (선택). 한국 정보통신망법 제50조 —
+  //   마케팅/광고 푸시는 필수 동의와 분리된 별도 opt-in 이어야 함. 가입 필수
+  //   아님(_canSignUp 에 미포함). 동의 시 consent_marketing_ts 기록.
+  bool _agreeMarketing = false;
 
   // Build 286 (보안 A3): 동의 audit log 를 Keychain/EncryptedSharedPreferences
   // 로 옮김. 이전엔 SharedPreferences plain text 라 device root 환경에서 위변
@@ -1278,6 +1282,7 @@ class _SignupTabState extends State<_SignupTab> {
       _agreeLocation = false;
       _agreeAgeAbove14 = false;
       _agreeThirdPartySharing = false;
+      _agreeMarketing = false;
       _showOtpScreen = false;
       _devOtpCode = null;
       _otpSendFailed = false;
@@ -1533,6 +1538,14 @@ class _SignupTabState extends State<_SignupTab> {
         key: 'consent_third_party_sharing_ts',
         value: ts,
       );
+      // Build 411 (launch): 광고성 정보 수신 동의(선택) — 체크 시에만 기록.
+      //   미체크면 키를 명시적으로 삭제(이전 동의 잔존 방지). 정보통신망법
+      //   제50조 — opt-in 증빙 + export 에서 읽는 consent_marketing_ts 와 연결.
+      if (_agreeMarketing) {
+        await _consentStore.write(key: 'consent_marketing_ts', value: ts);
+      } else {
+        await _consentStore.delete(key: 'consent_marketing_ts');
+      }
     } catch (_) {}
 
     // Build 262: 신규 가입 무료 Premium 부여 (cold-start 해소).
@@ -1732,7 +1745,8 @@ class _SignupTabState extends State<_SignupTab> {
       _agreeTerms &&
       _agreeAgeAbove14 &&
       _agreeThirdPartySharing &&
-      _agreeLocation;
+      _agreeLocation &&
+      _agreeMarketing;
 
   Future<void> _onAgreeAllTap(bool? checked) async {
     final next = checked ?? false;
@@ -1741,6 +1755,9 @@ class _SignupTabState extends State<_SignupTab> {
       _agreeTerms = next;
       _agreeAgeAbove14 = next;
       _agreeThirdPartySharing = next;
+      // Build 411 (launch): 광고성 수신(선택)도 전체동의에 포함 — 단 개별
+      //   해제 가능 + _canSignUp 에 미포함이라 가입 강제는 아님.
+      _agreeMarketing = next;
     });
     if (next) {
       if (!_agreeLocation) {
@@ -2268,6 +2285,20 @@ class _SignupTabState extends State<_SignupTab> {
                   )
                 : null,
             onCheckChanged: _onLocationConsentTap,
+          ),
+          const SizedBox(height: 10),
+
+          // ── 7-1. Build 411 (launch): 광고성 정보 수신 동의 (선택). 정보통신망법
+          //   제50조 — 마케팅 푸시는 필수 동의와 분리된 별도 opt-in. 가입 필수 아님.
+          _ConsentCard(
+            checked: _agreeMarketing,
+            icon: Icons.campaign_rounded,
+            iconColor: AppColors.gold,
+            title: l10n.authMarketingOptional,
+            description: l10n.authMarketingDesc,
+            langCode: widget.langCode,
+            onCheckChanged: (v) =>
+                setState(() => _agreeMarketing = v ?? false),
           ),
           const SizedBox(height: 24),
 

@@ -1,5 +1,4 @@
 "NSLocationWhenInUseUsageDescription" = "ใช้ตำแหน่งของคุณเพื่อแสดงคูปองของร้านค้าที่อยู่ใกล้เคียง";
-"NSLocationAlwaysAndWhenInUseUsageDescription" = "ใช้ตำแหน่งของคุณเพื่อแสดงคูปองของร้านค้าที่อยู่ใกล้เคียง";
 "NSPhotoLibraryUsageDescription" = "ต้องการเข้าถึงคลังรูปภาพเพื่อเปลี่ยนรูปโปรไฟล์และรูปคูปอง";
 "NSPhotoLibraryAddUsageDescription" = "ต้องการสิทธิ์เพื่อบันทึกรูปที่เลือกในแอป";
 "NSUserNotificationUsageDescription" = "ต้องการสิทธิ์การแจ้งเตือนเพื่อแจ้งให้คุณทราบเมื่อมีรางวัลใหม่อยู่ใกล้";

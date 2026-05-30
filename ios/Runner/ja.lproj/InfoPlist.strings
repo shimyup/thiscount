@@ -1,5 +1,4 @@
 "NSLocationWhenInUseUsageDescription" = "近くの店舗のクーポンを表示するために位置情報を使用します。";
-"NSLocationAlwaysAndWhenInUseUsageDescription" = "近くの店舗のクーポンを表示するために位置情報を使用します。";
 "NSPhotoLibraryUsageDescription" = "プロフィール写真とクーポン画像を変更するためにフォトライブラリを使用します。";
 "NSPhotoLibraryAddUsageDescription" = "選択した写真をアプリに保存するために権限が必要です。";
 "NSUserNotificationUsageDescription" = "近くに新しい特典が届いたときにお知らせするため、通知の許可が必要です。";

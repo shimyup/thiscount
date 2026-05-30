@@ -454,9 +454,14 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   builder: (_) {
                     final brandEmail =
                         state.currentUser.email?.toLowerCase() ?? '';
-                    final isAdminBrand =
-                        brandEmail == DebugConstants.testBrandEmail ||
-                        BetaConstants.isAdmin(brandEmail);
+                    // Build 411 (sim security LOW): production 출시 빌드에서는
+                    //   하드코딩 admin 이메일 매칭을 무시 (isAdmin 과 동일 정책).
+                    //   이전엔 ceo@airony.xyz 가 production 에서도 brand 구매 UI
+                    //   활성으로 보였음 (실 entitlement 은 RC 서버 통제라 무해하나
+                    //   일관성 위해 가드).
+                    final isAdminBrand = !BetaConstants.isProductionBuild &&
+                        (brandEmail == DebugConstants.testBrandEmail ||
+                            BetaConstants.isAdmin(brandEmail));
                     // 테스터는 브랜드 구매 비활성화 (보이기만 함)
                     final brandDisabled =
                         (kDebugMode && !isAdminBrand && !isBrand) ||

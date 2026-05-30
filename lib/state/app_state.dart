@@ -892,14 +892,18 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     required String languageCode,
   }) async {
     final docId = 'interest_${_currentUser.id}_${DateTime.now().millisecondsSinceEpoch}';
+    // Build 411 (launch sim P2): 좌표를 ~100m(소수 3자리)로 좌표화해 저장 —
+    //   _doSaveUserToFirestore 의 데이터 최소화 정책과 통일. 이전엔 원좌표(정밀
+    //   집 위치)를 그대로 기록하던 유일한 경로였음.
+    double coarse(double v) => (v * 1000).round() / 1000;
     await FirestoreService.setDocument('merchant_interest/$docId', {
       'userId': _currentUser.id,
       'username': _currentUser.username,
       'country': country,
       'countryFlag': countryFlag,
       'languageCode': languageCode,
-      'lat': _currentUser.latitude,
-      'lng': _currentUser.longitude,
+      'lat': coarse(_currentUser.latitude),
+      'lng': coarse(_currentUser.longitude),
       'createdAt': DateTime.now().toUtc().toIso8601String(),
     });
   }
