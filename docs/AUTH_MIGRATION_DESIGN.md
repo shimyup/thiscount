@@ -77,9 +77,20 @@ allow update: if isSignedIn() && (
   · `_doSaveUserToFirestore` 가 `realAuthUid != null` 일 때 user doc 에 `authUid` 기록.
   · logout(signOut) 시 보관된 refresh token 삭제.
 - rules 는 **아직 공개 유지** → 바인딩 실패해도 앱 정상.
-- ⚠️ **미검증**: auth 흐름은 analyze/유닛테스트로 검증 불가 → `AUTH_BIND_ENABLED=true`
-  로 **테스트 빌드 + 실기기**에서 가입/로그인/재로그인(cold-start)/다기기/비번재설정/
-  로그아웃 시나리오 검증 필수. 검증 전까지 플래그 OFF 유지.
+- ✅ **시뮬레이터 검증 (2026-05-31, iPhone 17 Pro, AUTH_BIND_ENABLED=true)**:
+  · 플래그 빌드 정상 실행, 익명 fallback 정상, 크래시 없음.
+  · 디버그 로그인(testuser123/test@thiscount.io) → **Firebase Auth 계정 생성 확인**
+    (REST signInWithPassword 로 localId `fzWBHN…` 반환 → signInOrMigrate 작동 ✅).
+  · ❗ **발견**: `authUid` 가 Firestore user doc 에 **기록 안 됨** — 배포된
+    `isAllowedUserUpdate` 화이트리스트에 `authUid` 가 없어 user 저장이 403
+    PERMISSION_DENIED (로그 line 176/202). → **firestore.rules 에 authUid 추가**
+    (additive) 후 배포 필요. **이것이 Phase 2 의 필수 선행(아래)**.
+- **Phase 1.5 — rules 에 authUid 허용 (firestore.rules, additive, ✅ 코드 반영 / 배포 대기)**:
+  `isAllowedUserUpdate` hasOnly 목록에 `authUid` 추가. 배포(`firebase deploy
+  --only firestore:rules`) 해야 Phase 2 바인딩이 authUid 를 실제로 저장. 추가형이라
+  read·다른 제약 불변, 프로덕션(flag OFF) 무영향.
+- ⚠️ 남은 검증(rules 배포 후): authUid Firestore 기록 재확인 / 재시작 cold-start
+  세션 복원 / 다기기 / 비번재설정 / 로그아웃 토큰삭제. 실기기 최종 확인 권장.
 
 **Phase 3 — rules cutover (되돌리기 어려움 · GATED)**
 - 바인딩률 충분(예: 활성 사용자 95%+) 확인 후, `firestore.rules.phase2` 배포 →

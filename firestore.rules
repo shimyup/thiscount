@@ -121,6 +121,12 @@ service cloud.firestore {
             'customTowerName', 'towerColor', 'towerAccentEmoji',
             'towerRoofStyle', 'towerWindowStyle',
             'preferredCategoryKey',
+            // Build 413 (Auth Phase 2): authUid 바인딩 필드 허용. 이게 없으면
+            //   AUTH_BIND_ENABLED 빌드에서 user doc 저장이 hasOnly 위반으로 전부
+            //   403 거부됨(시뮬레이터 테스트로 확인). 추가형 변경 — 다른 제약·
+            //   read 규칙 불변, 프로덕션(flag OFF, authUid 미기록) 영향 없음.
+            //   Phase 3 cutover 에서 authUid 는 owner-check 기준이 됨.
+            'authUid',
             // Build 300: welcomeTrialClaimedAt 는 client update 차단.
             // 서버측 source of truth = trial_claims/{sha256(email)}.
             // (client 가 user doc 의 timestamp 를 지워 farming 시도 회로 차단.)
