@@ -95,6 +95,14 @@ if [[ "$RELEASE_TARGET" == "production" ]]; then
   # 다층 방어 — 코드 default false + release_to_production.sh + 이 검증.
   require_release_false BETA_TESTFLIGHT_BUILD
   require_release_empty BETA_ADMIN_EMAIL
+  # Build 409 (sim P1.29): PRODUCTION_BUILD=true 강제. BetaConstants.isAdmin 의
+  #   비-production admin fallback(Build 408)이 정식 출시에서 차단되려면
+  #   isProductionBuild=true 가 보장돼야 함. release_to_production.sh 가 주입
+  #   하지만 누락 시 ceo@airony.xyz 가 App Store 빌드에서도 admin 진입 가능 →
+  #   preflight 에서 hard-fail 로 안전망.
+  if [[ "${PRODUCTION_BUILD:-false}" != "true" ]]; then
+    fail "PRODUCTION_BUILD must be true for RELEASE_TARGET=production"
+  fi
 elif [[ "$RELEASE_TARGET" == "testflight" ]]; then
   # TestFlight 베타 빌드 — ASC IAP 미등록 상태에서도 테스터가 결제 흐름 체험.
   # BETA_DISABLE_IN_RELEASE=false + BETA_UPGRADE_SIMULATOR=true 가 정상.

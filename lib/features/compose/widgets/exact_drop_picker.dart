@@ -158,8 +158,16 @@ class _ExactDropPickerState extends State<ExactDropPicker> {
             options: MapOptions(
               initialCenter: _center,
               initialZoom: _zoom,
-              minZoom: 2,
+              // Build 408 (QQ2 일관성): minZoom 2→3 + 월드 경계 제한 — 축소·
+              //   패닝 시 타일 밖 검정 영역 노출 방지 (메인 지도와 동일 정책).
+              minZoom: 3,
               maxZoom: 14,
+              cameraConstraint: CameraConstraint.contain(
+                bounds: LatLngBounds(
+                  const ll.LatLng(-85.0, -180.0),
+                  const ll.LatLng(85.0, 180.0),
+                ),
+              ),
               onPositionChanged: (pos, _) {
                 _center = pos.center;
               },

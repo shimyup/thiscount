@@ -2924,6 +2924,22 @@ void _showBrandUpgradeDialog({
   final effectiveDate =
       purchase.nextBillingDate ?? DateTime.now().add(const Duration(days: 30));
   final formatted = DateFormat.yMd(langCode).format(effectiveDate);
+  // Build 409 (sim P1.16): production 에선 buyBrand() 가 즉시 결제됨 (PR-CC1).
+  //   따라서 다이얼로그 본문/버튼도 '다음 결제일부터 예약' 이 아니라 '즉시
+  //   업그레이드/결제' 로 분기해야 함. 이전엔 snackbar 만 분기되고 다이얼로그는
+  //   항상 예약 카피라 production 사용자에게 거짓 안내였음. test/beta 는 예약 유지.
+  final isProduction = !kDebugMode &&
+      !purchase.isTestMode &&
+      !purchase.isBetaUpgradeSimulator;
+  final dialogBody = isProduction
+      ? l10n.koEn(
+          '지금 Brand/크리에이터 플랜으로 즉시 전환되며 바로 결제됩니다.',
+          'You will switch to the Brand/Creator plan now and be charged immediately.',
+        )
+      : '${l10n.premiumBrandUpgradeDesc1} $formatted ${l10n.premiumBrandUpgradeDesc2}';
+  final confirmLabel = isProduction
+      ? l10n.koEn('지금 업그레이드', 'Upgrade now')
+      : l10n.premiumBrandSchedule;
 
   showDialog<bool>(
     context: context,
@@ -2938,7 +2954,7 @@ void _showBrandUpgradeDialog({
         ),
       ),
       content: Text(
-        '${l10n.premiumBrandUpgradeDesc1} $formatted ${l10n.premiumBrandUpgradeDesc2}',
+        dialogBody,
         style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
       ),
       actions: [
@@ -2952,7 +2968,7 @@ void _showBrandUpgradeDialog({
         TextButton(
           onPressed: () => Navigator.pop(ctx, true),
           child: Text(
-            l10n.premiumBrandSchedule,
+            confirmLabel,
             style: TextStyle(
               color: AppColors.coupon,
               fontWeight: FontWeight.w700,

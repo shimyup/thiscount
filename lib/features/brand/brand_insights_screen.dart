@@ -56,6 +56,9 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
     final insights = state.brandInsights;
+    // Build 409 (sim P1.24): 비-Korean Brand 가 한국어 고정 문구를 보던 헤드라인/
+    //   빈 상태/도움말을 l 로 현지화 (koEn 토글). l 을 helper 들에 전달.
+    final l = AppL10n.of(state.currentUser.languageCode);
     return Scaffold(
       backgroundColor: AppColors.bgDeep,
       appBar: AppBar(
@@ -75,7 +78,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
         padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 32),
         children: [
           // 1) 헤드라인 — 사용 전환률 + 평가
-          _buildHeadline(insights),
+          _buildHeadline(insights, l),
           const SizedBox(height: 20),
           // 2) 단계별 funnel
           _buildFunnel(insights),
@@ -86,17 +89,17 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
           ..._buildActiveCodesSection(insights),
           // 3) 캠페인 list
           if (insights.campaigns.isEmpty)
-            _buildEmpty()
+            _buildEmpty(l)
           else
             ...insights.campaigns.take(10).map(_buildCampaignCard),
           const SizedBox(height: 24),
-          _buildHelpFooter(),
+          _buildHelpFooter(l),
         ],
       ),
     );
   }
 
-  Widget _buildHeadline(BrandInsights i) {
+  Widget _buildHeadline(BrandInsights i, AppL10n l) {
     final pct = (i.redeemRate * 100).toStringAsFixed(1);
     return Container(
       padding: const EdgeInsets.all(20),
@@ -115,9 +118,9 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '최근 30일',
-            style: TextStyle(
+          Text(
+            l.koEn('최근 30일', 'Last 30 days'),
+            style: const TextStyle(
               color: AppColors.textMuted,
               fontSize: 11,
               fontWeight: FontWeight.w700,
@@ -152,9 +155,11 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
             ],
           ),
           const SizedBox(height: 4),
-          const Text(
-            '픽업한 사람 중 매장 사용 비율',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+          Text(
+            l.koEn('픽업한 사람 중 매장 사용 비율',
+                'In-store redemption rate among pickups'),
+            style: const TextStyle(
+                color: AppColors.textSecondary, fontSize: 12),
           ),
         ],
       ),
@@ -528,60 +533,68 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
     );
   }
 
-  Widget _buildEmpty() {
+  Widget _buildEmpty(AppL10n l) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Column(
+      child: Column(
         children: [
-          Text('📭', style: TextStyle(fontSize: 32)),
-          SizedBox(height: 8),
+          const Text('📭', style: TextStyle(fontSize: 32)),
+          const SizedBox(height: 8),
           Text(
-            '최근 30일 캠페인 데이터 없음',
-            style: TextStyle(
+            l.koEn('최근 30일 캠페인 데이터 없음',
+                'No campaign data in the last 30 days'),
+            style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 13,
               fontWeight: FontWeight.w700,
             ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
-            '캠페인 화면에서 첫 캠페인을 등록해 보세요',
-            style: TextStyle(color: AppColors.textMuted, fontSize: 11),
+            l.koEn('캠페인 화면에서 첫 캠페인을 등록해 보세요',
+                'Launch your first campaign from the Campaign screen'),
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHelpFooter() {
+  Widget _buildHelpFooter(AppL10n l) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.bgCard.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(10),
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '📚 지표 읽는 법',
-            style: TextStyle(
+            l.koEn('📚 지표 읽는 법', '📚 How to read these metrics'),
+            style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 11,
               fontWeight: FontWeight.w800,
             ),
           ),
-          SizedBox(height: 6),
+          const SizedBox(height: 6),
           Text(
-            '• 사용 전환률 ≥ 20%: 잘 되는 캠페인 — 동일 패턴 재집행\n'
-            '• 5~20%: 보통 — 가벼운 본문 / 가격 조정\n'
-            '• < 5%: 개선 필요 — 본문 / 반경 / 가격 재검토\n'
-            '• 픽업 0: 반경 좁히거나 본문 매력 ↑',
-            style: TextStyle(
+            l.koEn(
+              '• 사용 전환률 ≥ 20%: 잘 되는 캠페인 — 동일 패턴 재집행\n'
+                  '• 5~20%: 보통 — 가벼운 본문 / 가격 조정\n'
+                  '• < 5%: 개선 필요 — 본문 / 반경 / 가격 재검토\n'
+                  '• 픽업 0: 반경 좁히거나 본문 매력 ↑',
+              '• Redemption ≥ 20%: strong — repeat the same pattern\n'
+                  '• 5–20%: average — tweak copy / price\n'
+                  '• < 5%: needs work — revisit copy / radius / price\n'
+                  '• 0 pickups: narrow the radius or sharpen the copy',
+            ),
+            style: const TextStyle(
               color: AppColors.textMuted,
               fontSize: 11,
               height: 1.5,

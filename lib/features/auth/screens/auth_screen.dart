@@ -1218,6 +1218,9 @@ class _SignupTabState extends State<_SignupTab> {
   bool _showOtpScreen = false; // OTP 입력 화면 표시 여부
   final _otpCtrl = TextEditingController();
   String? _otpError;
+  // Build 409 (sim P1.1): 이메일 발송이 실제로 실패했는지 (오답 입력과 구분).
+  //   on-screen 코드 fallback 노출은 이 flag 가 true 일 때만 (또는 debug/미설정).
+  bool _otpSendFailed = false;
   String? _devOtpCode; // 개발용: 생성된 OTP 코드 (실제 배포시 제거)
   int _otpCountdown = 0; // 남은 시간 (초)
   Timer? _otpTimer; // 타이머
@@ -1277,6 +1280,7 @@ class _SignupTabState extends State<_SignupTab> {
       _agreeThirdPartySharing = false;
       _showOtpScreen = false;
       _devOtpCode = null;
+      _otpSendFailed = false;
       _otpCountdown = 0;
     });
   }
@@ -1452,6 +1456,10 @@ class _SignupTabState extends State<_SignupTab> {
       _showOtpScreen = true;
       _devOtpCode = code;
       _otpError = sendErr; // 발송 실패 시 사용자에게 알림 (화면 fallback 함께 표시)
+      // Build 409 (sim P1.1): 코드 화면 노출은 '발송 실패' 시에만. 이전엔
+      //   _otpError != null 로 노출 조건을 걸어 '오답 입력' 시에도 진짜 코드가
+      //   화면에 떠 OTP 보안 무력화. 발송 실패 여부를 별도 flag 로 추적.
+      _otpSendFailed = sendErr != null;
       _otpCountdown = AuthService.otpRemainingSeconds;
     });
     _startOtpTimer();
@@ -1598,6 +1606,8 @@ class _SignupTabState extends State<_SignupTab> {
     setState(() {
       _otpCtrl.clear();
       _otpError = sendErr; // 발송 실패 시 사용자에게 알림 + 화면 fallback 코드 노출
+      // Build 409 (sim P1.1): 재발송 성공 시 send-failed flag 해제 (코드 숨김).
+      _otpSendFailed = sendErr != null;
       _devOtpCode = code;
       _otpCountdown = AuthService.otpRemainingSeconds;
     });
@@ -2359,9 +2369,11 @@ class _SignupTabState extends State<_SignupTab> {
           //   - DEBUG 빌드: 항상 표시
           //   - RELEASE 빌드: SendGrid/Resend 미설정 시 OR 발송 실패 시 표시
           //     → 사용자가 "이메일 안 옴" 으로 막히는 회귀 차단 (Build 295)
+          // Build 409 (sim P1.1): 오답 입력(_otpError)이 아니라 실제 발송 실패
+          //   (_otpSendFailed) 또는 debug/미설정 시에만 코드 fallback 노출.
           if ((kDebugMode ||
                   !EmailService.isConfigured ||
-                  _otpError != null) &&
+                  _otpSendFailed) &&
               _devOtpCode != null &&
               _devOtpCode!.isNotEmpty) ...[
             Container(
@@ -2499,7 +2511,9 @@ class _SignupTabState extends State<_SignupTab> {
               onPressed: _isLoading || expired ? null : _verifyOtpAndComplete,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.teal,
-                foregroundColor: Colors.white,
+                // Build 409 (sim P1.41 a11y): white-on-teal 은 대비 ~1.2:1 로
+                //   거의 안 보임. 다른 teal 버튼과 동일하게 어두운 잉크 사용.
+                foregroundColor: AppColors.tealInk,
                 disabledBackgroundColor: AppColors.bgCard,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -2512,7 +2526,7 @@ class _SignupTabState extends State<_SignupTab> {
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Colors.white,
+                        color: AppColors.tealInk,
                       ),
                     )
                   : Text(

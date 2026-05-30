@@ -37,6 +37,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/brand_zone.dart';
 import '../../models/letter.dart' show LatLng;
 import '../config/firebase_config.dart';
+import 'firebase_auth_service.dart';
+import 'firestore_service.dart';
 
 class BrandZoneService {
   BrandZoneService._();
@@ -252,10 +254,15 @@ class BrandZoneService {
         '?key=${FirebaseConfig.apiKey}',
       );
       final body = jsonEncode({'fields': fields});
+      // Build 409 (sim P0.2): 인증 토큰 부착. firestore.rules 의 brand_zones
+      //   create 는 isSignedIn()(request.auth != null) 필요 — apiKey 만으론
+      //   request.auth 가 비어 403 reject. 다른 인증 write 와 동일하게
+      //   ensureValidToken() + Bearer 헤더(FirestoreService.authHeaders) 사용.
+      await FirebaseAuthService.ensureValidToken();
       final r = await http
           .post(
             uri,
-            headers: {'Content-Type': 'application/json'},
+            headers: FirestoreService.authHeaders,
             body: body,
           )
           .timeout(const Duration(seconds: 15));

@@ -145,6 +145,13 @@ class _QuotaSummaryCard extends StatelessWidget {
     // 베타 무료 Brand 면 ExactDrop 무제한, 아니면 크레딧 수.
     final exactDropFree = state.exactDropFreeForBeta;
     final credits = state.brandExactDropCredits;
+    // Build 408 (QQ7): 일별 발송 잔여 — "남은 발송 가능 쿠폰 수" 사용자 요구.
+    final dailyRemaining = state.remainingDailySendCount;
+    final dailyLimit = state.dailySendLimit;
+    final dailyPct = dailyLimit > 0 ? dailyRemaining / dailyLimit : 0.0;
+    final dailyColor = dailyPct > 0.4
+        ? AppColors.teal
+        : (dailyPct > 0.15 ? AppColors.gold : AppColors.error);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -182,14 +189,25 @@ class _QuotaSummaryCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
+                // 주 지표: 오늘 남은 발송 가능 수 (사용자 요구 핵심).
+                Text(
+                  l.brandCampaignDailyRemaining(dailyRemaining, dailyLimit),
+                  style: TextStyle(
+                    color: dailyColor,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                // 부 지표: ExactDrop(정밀 발송) 잔여 / 베타 무제한.
                 Text(
                   exactDropFree
                       ? l.brandCampaignQuotaUnlimited
                       : l.brandCampaignQuotaCredits(credits),
                   style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],

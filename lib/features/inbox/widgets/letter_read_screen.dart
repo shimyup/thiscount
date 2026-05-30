@@ -2538,7 +2538,9 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.teal,
-                    foregroundColor: Colors.white,
+                    // Build 409 (sim P1.40 a11y): white-on-teal(~1.2:1) → tealInk
+                    //   (~15:1). 같은 화면 SnackBar(line 2520) 와 일관.
+                    foregroundColor: AppColors.tealInk,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),

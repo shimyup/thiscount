@@ -26,7 +26,10 @@ import '../../brand/brand_promo_banner.dart';
 
 class WorldMapScreen extends StatefulWidget {
   final VoidCallback? onGoToInbox;
-  const WorldMapScreen({super.key, this.onGoToInbox});
+  // Build 408 (QQ9): false 면 상단 chrome(헤더/국가바/배너 등)을 숨겨 지도를
+  //   다른 탭의 배경 peek 로 쓸 때 UI 가 비치지 않게 한다. 기본 true.
+  final bool showChrome;
+  const WorldMapScreen({super.key, this.onGoToInbox, this.showChrome = true});
 
   @override
   State<WorldMapScreen> createState() => _WorldMapScreenState();
@@ -91,6 +94,11 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       if (!mounted) return;
       final state = context.read<AppState>();
       state.fetchMapUsers(force: true);
+      // Build 408 (QQ8): 지도 진입 시 월드 편지(쿠폰)도 즉시 1회 fetch.
+      //   이전엔 _initFirebaseAndSync 의 30초 주기 timer 에만 의존 → 신규
+      //   가입자가 첫 지도 화면에서 이미 발송된 쿠폰이 안 보이고 최대 30초
+      //   비어 있었음. force fetch 로 기존 드롭을 즉시 노출 + 줍기 가능.
+      unawaited(state.syncWorldLettersFromServer());
       // Build 151: 이전 세션의 지도 위치·줌이 저장돼 있으면 우선 복원.
       // 없으면 기존 로직 (유저 현재 위치로 이동).
       _restoreLastMapPosition(state);
@@ -173,9 +181,13 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       final savedLng = prefs.getDouble(_prefLastLng);
       if (!mounted) return;
       if (savedZoom != null && savedLat != null && savedLng != null) {
-        // 복귀 사용자 (저장값 있음): 즉시 마지막 지점으로 이동
-        _mapController.move(ll.LatLng(savedLat, savedLng), savedZoom);
-        _lastKnownZoom = savedZoom;
+        // 복귀 사용자 (저장값 있음): 즉시 마지막 지점으로 이동.
+        // Build 408 (QQ2 후속): minZoom 2.0→3.0 상향 후, 구버전에서 저장된
+        //   2.x 줌은 카메라에선 3.0 으로 clamp 되지만 _lastKnownZoom 에는 raw
+        //   값이 들어가 라벨 임계/다음 저장이 실제 카메라와 어긋남. clamp 통일.
+        final clampedZoom = savedZoom < 3.0 ? 3.0 : savedZoom;
+        _mapController.move(ll.LatLng(savedLat, savedLng), clampedZoom);
+        _lastKnownZoom = clampedZoom;
         return;
       }
     } catch (_) {}
@@ -241,21 +253,35 @@ class _WorldMapScreenState extends State<WorldMapScreen>
         final langCode = state.currentUser.languageCode;
         // 지도 표시: 배송중 + nearYou + deliveredFar + 도착했지만 아직 열리지 않은 편지
         // inbox에 있는 delivered(수령 후 미열람) 편지도 📮 마커로 지도에 표시
+        // Build 409 (sim P1.48): 소진(만료/정원/차단)된 inbox 편지는 지도 마커
+        //   에서 제외 — 이전엔 무조건 추가되어 만료 쿠폰이 줍기 가능처럼 보임.
         final inboxDelivered = state.inbox
-            .where((l) => l.status == DeliveryStatus.delivered)
+            .where((l) =>
+                l.status == DeliveryStatus.delivered &&
+                !l.isReadByRecipient &&
+                !_isLetterConsumed(l))
             .toList();
+        // Build 409 (sim P1.46): 이미 인박스에 들어온 편지 id 집합 — worldLetters
+        //   에서 같은 id 를 제외해 "주운 편지가 지도에 중복(여전히 줍기 가능)
+        //   마커로 겹쳐 보이는" 문제 차단. inbox 복사본이 canonical 마커.
+        final inboxIds = inboxDelivered.map((l) => l.id).toSet();
         final letters = _showNearbyOnly
             ? state.nearbyLetters
             : [
                 ...state.worldLetters.where(
                   (l) =>
-                      l.status == DeliveryStatus.inTransit ||
-                      l.status == DeliveryStatus.nearYou ||
-                      // 수령 대기 (목적지 도착, 500m 밖): 지도에서 계속 표시
-                      l.status == DeliveryStatus.deliveredFar ||
-                      // 일반 편지: 도착 후 누군가 열기 전까지 지도에 유지
-                      (l.status == DeliveryStatus.delivered &&
-                          !l.isReadByRecipient),
+                      // Build 408 (QQ4): 다른 사람이 다 주워간(maxReaders 도달)
+                      //   / 만료 / 신고차단된 쿠폰은 지도에서 제외. 이전엔 status
+                      //   만 보고 표시 → 소진된 쿠폰이 잔존했음.
+                      !_isLetterConsumed(l) &&
+                      !inboxIds.contains(l.id) &&
+                      (l.status == DeliveryStatus.inTransit ||
+                          l.status == DeliveryStatus.nearYou ||
+                          // 수령 대기 (목적지 도착, 500m 밖): 지도에서 계속 표시
+                          l.status == DeliveryStatus.deliveredFar ||
+                          // 일반 편지: 도착 후 누군가 열기 전까지 지도에 유지
+                          (l.status == DeliveryStatus.delivered &&
+                              !l.isReadByRecipient)),
                 ),
                 // 내가 수령했지만 아직 읽지 않은 inbox 편지도 지도에 📮로 표시
                 ...inboxDelivered,
@@ -282,10 +308,23 @@ class _WorldMapScreenState extends State<WorldMapScreen>
               mapController: _mapController,
               options: MapOptions(
                 initialCenter: const ll.LatLng(20.0, 10.0), // 전체 세계 지도
-                initialZoom: 2.0,
-                minZoom: 2.0,
+                initialZoom: 3.0,
+                // Build 408 (QQ2): minZoom 2.0 → 3.0. 세로로 긴 폰 화면에서
+                //   zoom 2 는 월드 타일 높이(256*2^2=1024px)가 화면을 못 채워
+                //   상/하단에 bgDeep(어두운) 검정 띠 노출. zoom 3(2048px)이면
+                //   어떤 폰이든 타일이 화면을 덮음.
+                minZoom: 3.0,
                 maxZoom: 18.0,
                 backgroundColor: timeColors.bgDeep,
+                // Build 408 (QQ2): 카메라 가장자리를 월드 경계(±85 lat, ±180
+                //   lng) 안으로 제한 → 축소·패닝 시 타일 밖 빈 영역(검정) 진입
+                //   차단. contain 은 viewport edge 를 bounds 안에 가둔다.
+                cameraConstraint: CameraConstraint.contain(
+                  bounds: LatLngBounds(
+                    const ll.LatLng(-85.0, -180.0),
+                    const ll.LatLng(85.0, 180.0),
+                  ),
+                ),
                 interactionOptions: const InteractionOptions(
                   flags: InteractiveFlag.all,
                 ),
@@ -427,15 +466,18 @@ class _WorldMapScreenState extends State<WorldMapScreen>
               ),
             ),
             // ── 상단 헤더 ──────────────────────────────────────────────────
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: const _MapHeader(),
-            ),
+            // Build 408 (QQ9): peek 모드(showChrome=false)에서는 헤더/배너를
+            //   숨겨 다른 탭 상단에 지도 chrome 이 비치는 회귀 차단.
+            if (widget.showChrome)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: const _MapHeader(),
+              ),
             // Build 271: 위치 권한 거부 시 영구 배너 — 사용자가 "왜 핀이 안 보이지?"
             // 같은 혼란 차단. 탭 시 앱 설정 진입.
-            if (_locationPermissionDenied)
+            if (widget.showChrome && _locationPermissionDenied)
               Positioned(
                 top: 48,
                 left: 12,
@@ -453,7 +495,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
             // Build 404 (PR-MM2): newcomer (가입 5분 이내) 에게는 hide.
             //   첫 인상 지도에 헤더 외 floating UI 가 5+ 동시 노출되면 인지
             //   부담. 5분 후 자연스럽게 나라 점프 + 브랜드 프로모 노출.
-            if (!state.currentUser.isNewcomer)
+            if (widget.showChrome && !state.currentUser.isNewcomer)
               Positioned(
                 top: 56,
                 left: 0,
@@ -473,7 +515,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
             // Build 142: 헤더·국가 바 아래로 슬라이드-다운 브랜드 홍보 배너.
             // Build 176: 국가 바 높이 42→32 로 축소, 배너 top 104→94.
             // Build 404 (PR-MM2): newcomer hide — 위 country bar 와 동일 사유.
-            if (!state.currentUser.isNewcomer)
+            if (widget.showChrome && !state.currentUser.isNewcomer)
               Positioned(
                 top: 94,
                 left: 0,
@@ -1082,6 +1124,15 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     }
     return markers;
   }
+
+  // Build 408 (QQ4): 쿠폰이 "소진"되어 지도에서 사라져야 하는지 판정.
+  //   - readCount >= maxReaders : 정원 모두 주워감 (다른 사람 포함)
+  //   - isExpired               : expiresAt 경과
+  //   - isBlocked               : 신고 누적(reportCount>=3)
+  //   syncWorldLettersFromServer 가 readCount/maxReaders/reportCount 를 주기적
+  //   으로 병합하므로 다른 사용자의 픽업도 반영됨.
+  static bool _isLetterConsumed(Letter l) =>
+      l.readCount >= l.maxReaders || l.isExpired || l.isBlocked;
 
   // ── 지도 타워 마커 (내 타워 + 다른 회원) ─────────────────────────────────────
   //
@@ -1731,6 +1782,13 @@ class _WorldMapScreenState extends State<WorldMapScreen>
               ),
             ),
             const SizedBox(height: 12),
+            // Build 409 (sim P1.47): 큰 클러스터(타워 다수)에서 리스트가 화면을
+            //   넘쳐 하단 행이 잘리던 문제 → 스크롤 가능 영역으로 감싸 높이 제한.
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
             ...towers.map((u) {
               final tierColor = _towerTierColor(u.tier);
               final name = u.towerName?.isNotEmpty == true
@@ -1809,6 +1867,10 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 ),
               );
             }),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
