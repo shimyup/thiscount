@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'core/services/secure_location.dart';
+import 'core/utils/secure_clipboard.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/time_theme.dart';
 import 'core/data/country_cities.dart';
@@ -54,6 +55,10 @@ Future<Position?> _getLocation() async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Build 412 (PII sim LOW YES.8): 직전 세션이 kill-swipe 로 종료돼 TTL clear 를
+  //   못 한 민감 clipboard(쿠폰 코드)를 cold-start 에 1회 정리 (해시 대조).
+  unawaited(SecureClipboard.clearStaleOnLaunch());
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

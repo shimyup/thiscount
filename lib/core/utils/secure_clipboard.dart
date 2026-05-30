@@ -23,16 +23,33 @@
 //   );
 
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SecureClipboard {
   SecureClipboard._();
 
   /// 활성 clear timer — 새로운 ephemeral copy 호출 시 기존 timer cancel.
   static Timer? _activeTimer;
+
+  // Build 412 (PII sim LOW YES.8): kill-swipe(앱 강제종료) 시 Dart Timer 가
+  //   isolate 와 함께 소멸 → clipboard 의 민감 코드가 무기한 잔존하던 한계.
+  //   pending clear 를 secure storage 에 (값이 아닌 sha256 해시 + 만료시각으로)
+  //   영속화하고, 다음 cold-start 에 clearStaleOnLaunch() 가 만료된 항목을
+  //   clipboard 와 대조 후 제거. 값 자체는 저장하지 않음(해시만).
+  static const _persistKey = 'sec_clip_pending_v1';
+  static const FlutterSecureStorage _store = FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    iOptions: IOSOptions(
+      accessibility: KeychainAccessibility.first_unlock_this_device,
+    ),
+  );
+  static String _hash(String v) => sha256.convert(utf8.encode(v)).toString();
 
   /// 가장 최근 copy 한 값. clear 시점에 clipboard 가 여전히 이 값인지 확인용.
   static String? _pendingValue;
@@ -75,6 +92,51 @@ class SecureClipboard {
       return;
     }
     _activeTimer = Timer(ttl, _attemptClear);
+    // 영속화 (kill-swipe 후 cold-start clear 용). 실패해도 in-memory timer 가
+    //   주 경로이므로 best-effort.
+    unawaited(_persistPending(text, _pendingExpiresAt!));
+  }
+
+  static Future<void> _persistPending(String text, DateTime expiresAt) async {
+    try {
+      await _store.write(
+        key: _persistKey,
+        value: jsonEncode({
+          'h': _hash(text),
+          'exp': expiresAt.millisecondsSinceEpoch,
+        }),
+      );
+    } catch (_) {/* best-effort */}
+  }
+
+  static Future<void> _clearPersisted() async {
+    try {
+      await _store.delete(key: _persistKey);
+    } catch (_) {/* best-effort */}
+  }
+
+  /// 앱 cold-start 시 1회 호출 (main). 직전 세션에서 kill 돼 clear 못 한
+  /// 민감 clipboard 가 만료됐고, clipboard 가 여전히 그 값(해시 일치)이면 제거.
+  static Future<void> clearStaleOnLaunch() async {
+    try {
+      final raw = await _store.read(key: _persistKey);
+      if (raw == null) return;
+      await _store.delete(key: _persistKey); // 1회성 — 즉시 소비
+      final m = jsonDecode(raw) as Map<String, dynamic>;
+      final expMs = (m['exp'] as num?)?.toInt() ?? 0;
+      final h = m['h'] as String? ?? '';
+      if (h.isEmpty) return;
+      // 만료 전이면 그대로 둔다 (정상 TTL 범위 — 새 세션 timer 없지만 곧 만료).
+      if (DateTime.now().millisecondsSinceEpoch < expMs) return;
+      final current = await Clipboard.getData(Clipboard.kTextPlain);
+      final cur = current?.text;
+      if (cur != null && cur.isNotEmpty && _hash(cur) == h) {
+        await Clipboard.setData(const ClipboardData(text: ''));
+        if (kDebugMode) debugPrint('[SecureClipboard] stale cleared on launch');
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('[SecureClipboard] launch-clear err: $e');
+    }
   }
 
   /// 일반 copy — TTL 없음. share text 등 일반 텍스트용 wrapper.
@@ -121,6 +183,7 @@ class SecureClipboard {
       _pendingValue = null;
       _pendingExpiresAt = null;
       _activeTimer = null;
+      unawaited(_clearPersisted());
     }
   }
 

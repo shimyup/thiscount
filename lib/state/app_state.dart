@@ -353,8 +353,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   Duration get pickupCooldownDuration => _nearbyPickupCooldown;
 
   // ── SharedPreferences 암호화 ─────────────────────────────────────────────
+  // Build 412 (PII sim MED): iOptions 추가 — letter 복호화 AES 키가 iCloud/
+  //   iTunes 백업으로 다른 기기에 복원되는 경로 차단 (first_unlock_this_device =
+  //   백업 비포함, 기기 종속). auth_service._secure 와 동일 정책.
   static const _secure = FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    iOptions: IOSOptions(
+      accessibility: KeychainAccessibility.first_unlock_this_device,
+    ),
   );
   static const _encKeyName = 'sp_enc_key_v1';
   static Uint8List? _encKey; // 32바이트 XOR 키 (앱 최초 실행 시 생성)
@@ -838,18 +844,24 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       _currentUser.brandVerifiedAt = DateTime.now();
     }
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      'brandBusinessNumber',
-      _currentUser.businessRegistrationNumber ?? '',
+    // Build 412 (PII sim MED YES.3): 사업자등록번호/연락처/등록문서 URL 은
+    //   민감 PII → 평문 SharedPreferences 대신 암호화 secure storage 에 저장.
+    //   기존 평문 키는 제거 (rooted/백업 환경 노출 차단).
+    await _secure.write(
+      key: 'brandBusinessNumber',
+      value: _currentUser.businessRegistrationNumber ?? '',
     );
-    await prefs.setString(
-      'brandRegistrationDocUrl',
-      _currentUser.businessRegistrationDocUrl ?? '',
+    await _secure.write(
+      key: 'brandRegistrationDocUrl',
+      value: _currentUser.businessRegistrationDocUrl ?? '',
     );
-    await prefs.setString(
-      'brandContactPhone',
-      _currentUser.businessContactPhone ?? '',
+    await _secure.write(
+      key: 'brandContactPhone',
+      value: _currentUser.businessContactPhone ?? '',
     );
+    await prefs.remove('brandBusinessNumber');
+    await prefs.remove('brandRegistrationDocUrl');
+    await prefs.remove('brandContactPhone');
     final verifiedAt = _currentUser.brandVerifiedAt;
     if (verifiedAt != null) {
       await prefs.setInt(
@@ -3139,20 +3151,27 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _followedBrandIds.addAll(prefs.getStringList('followedBrandIds') ?? []);
 
     // Brand 사업자 인증 복원 (Build 127)
+    // Build 412 (PII sim MED YES.3): secure storage 에서 읽되, 레거시 평문
+    //   prefs 값이 있으면 1회 마이그레이션 (secure 로 복사 후 평문 제거).
+    Future<String?> loadBrandPii(String key) async {
+      var v = await _secure.read(key: key);
+      if (v == null) {
+        final legacy = prefs.getString(key);
+        if (legacy != null && legacy.isNotEmpty) {
+          await _secure.write(key: key, value: legacy);
+          v = legacy;
+        }
+        // 평문 잔존 제거 (값 유무와 무관).
+        if (prefs.containsKey(key)) await prefs.remove(key);
+      }
+      return (v == null || v.isEmpty) ? null : v;
+    }
     _currentUser.businessRegistrationNumber =
-        prefs.getString('brandBusinessNumber');
-    if (_currentUser.businessRegistrationNumber?.isEmpty ?? false) {
-      _currentUser.businessRegistrationNumber = null;
-    }
+        await loadBrandPii('brandBusinessNumber');
     _currentUser.businessRegistrationDocUrl =
-        prefs.getString('brandRegistrationDocUrl');
-    if (_currentUser.businessRegistrationDocUrl?.isEmpty ?? false) {
-      _currentUser.businessRegistrationDocUrl = null;
-    }
-    _currentUser.businessContactPhone = prefs.getString('brandContactPhone');
-    if (_currentUser.businessContactPhone?.isEmpty ?? false) {
-      _currentUser.businessContactPhone = null;
-    }
+        await loadBrandPii('brandRegistrationDocUrl');
+    _currentUser.businessContactPhone =
+        await loadBrandPii('brandContactPhone');
     final brandVerifiedMs = prefs.getInt('brandVerifiedAtMs');
     _currentUser.brandVerifiedAt = brandVerifiedMs != null
         ? DateTime.fromMillisecondsSinceEpoch(brandVerifiedMs)
@@ -3830,12 +3849,18 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       final isAnon = letter.isAnonymous;
       final firestoreSenderId = isAnon ? 'anon_${letter.id}' : letter.senderId;
       final firestoreSenderName = isAnon ? '__anonymous__' : letter.senderName;
+      // Build 412 (PII sim MED): 비익명 letter 의 origin 도 ~100m 로 좌표화.
+      //   이전엔 비익명 분기가 originLocation 을 full precision 으로 public
+      //   letters 컬렉션(allow read: if true)에 기록 → 실명 발신자의 정확한
+      //   집/현재 위치가 노출됐음. 익명은 기존대로 destination 으로 collapse,
+      //   비익명은 ~110m 좌표화(지도 경로선 표시는 유지, 정밀 PII 제거).
+      double coarse(double v) => (v * 1000).round() / 1000;
       final firestoreOriginLat = isAnon
           ? letter.destinationLocation.latitude
-          : letter.originLocation.latitude;
+          : coarse(letter.originLocation.latitude);
       final firestoreOriginLng = isAnon
           ? letter.destinationLocation.longitude
-          : letter.originLocation.longitude;
+          : coarse(letter.originLocation.longitude);
       await FirestoreService.setDocument('letters/${letter.id}', {
         'id': letter.id,
         'senderId': firestoreSenderId,
@@ -5478,6 +5503,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     try {
       await flushPrefsBlocking();
     } catch (_) {/* prefs corruption — 진행 */}
+    // Build 412 (PII sim MED YES.7): 로그아웃 시 user-scoped prefs 명시 정리.
+    //   guest→재가입 경로는 setUser isNewUser 가 안 걸려 다음 사용자가 이전
+    //   사용자의 Brand/Premium/프로필/인박스 prefs 를 상속하던 누수 차단.
+    //   flush 이후 실행 — 직전 debounced 저장이 다시 쓴 값까지 제거.
+    try {
+      await _clearUserScopedPrefs();
+    } catch (_) {/* prefs 정리 실패는 무시 */}
     if (_currentUser.id.isEmpty || _currentUser.id == 'guest') return;
     if (!FirebaseConfig.kFirebaseEnabled) return;
     await _saveUserToFirestore(markLoggedOut: true);
@@ -5547,9 +5579,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       //   로 skip 했지만 Firestore REST 직접 호출 시 우회 가능.
       //   isMapPublic=true 일 때만 좌표 필드 작성.
       final mapPublic = _currentUser.isMapPublic;
+      // Build 412 (PII sim HIGH): username/타워명도 isUsernamePublic 토글 따라
+      //   공개. 이전엔 isMapPublic 좌표만 null 처리하고 username 은 항상 평문
+      //   기록 → raw REST read (rules `allow read: if true`)로 비공개 설정한
+      //   사용자의 닉네임까지 전부 수집 가능했음. 지도 렌더러는 username null 시
+      //   '국기 #순위' 로 fallback 하므로 기능 영향 없음.
+      final namePublic = _currentUser.isUsernamePublic;
       final fields = <String, Map<String, dynamic>>{
         'id': {'stringValue': _currentUser.id},
-        'username': {'stringValue': _currentUser.username},
+        if (namePublic) 'username': {'stringValue': _currentUser.username},
+        if (!namePublic) 'username': {'nullValue': null},
         'countryFlag': {'stringValue': _currentUser.countryFlag},
         'country': {'stringValue': _currentUser.country},
         // isMapPublic ON + 유효 좌표 → 작성. OFF 면 null 로 PATCH 해 leak 차단.
@@ -5626,8 +5665,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             'timestampValue': _lastInviteRewardAt!.toUtc().toIso8601String(),
           },
         'updatedAt': {'stringValue': DateTime.now().toIso8601String()},
-        if (_currentUser.customTowerName != null)
+        // Build 412 (PII sim HIGH): 커스텀 타워명도 닉네임 공개 설정 따름 +
+        //   비공개 시 기존 값 null PATCH (이전 공개 시점 잔존 제거).
+        if (namePublic && _currentUser.customTowerName != null)
           'customTowerName': {'stringValue': _currentUser.customTowerName!},
+        if (!namePublic) 'customTowerName': {'nullValue': null},
         'towerColor': {'stringValue': _currentUser.towerColor},
         if (_currentUser.towerAccentEmoji != null)
           'towerAccentEmoji': {'stringValue': _currentUser.towerAccentEmoji!},
@@ -8589,6 +8631,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'inbox',
         'sent',
         'worldLettersIncoming',
+        // Build 412 (PII sim MED YES.7): 티어/프로필 prefs — 로그아웃 후
+        //   guest→재가입 시 isNewUser 가 안 걸려(_currentUser.id=='guest')
+        //   다음 사용자가 이전 사용자의 Brand/Premium/프로필 사진을 상속하던
+        //   누수. secure storage 는 logout 의 deleteAll 이 지우지만 이 plain
+        //   prefs 키들은 누락됐었음. (PrefKeys.* 와 동일 문자열)
+        'isBrand',
+        'brandName',
+        'profileImagePath',
+        'purchase_isPremium',
+        'purchase_isBrand',
       ];
       for (final key in userScopedKeys) {
         await prefs.remove(key);

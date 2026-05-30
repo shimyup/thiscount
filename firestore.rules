@@ -314,7 +314,12 @@ service cloud.firestore {
     //     완화: hash 가 random sha256 (64-hex) 패턴인 경우만 허용 + 후속 단계
     //     에서 admin REST 기반 issuance 로 마이그레이션 (Cloud Function).
     match /trial_claims/{emailHash} {
-      allow get: if true;
+      // Build 412 (PII sim MED): get:true → false. sha256(email) point-read 이
+      //   email 등록여부 membership oracle (rainbow-table) 로 악용 가능했음.
+      //   클라이언트는 read 불필요 — create 의 currentDocument.exists=false
+      //   precondition 이 단건 grant 를 server-side 로 보장 (tryClaimWelcomeTrial
+      //   의 alreadyExists 처리로 검증됨). list 는 이미 false.
+      allow get: if false;
       allow list: if false;
       // Build 370 (PR-CC4 P0 #10 stop-gap): createdBy 필드 추적 추가.
       //   victim email hash 를 attacker 가 pre-create 한 griefing 케이스를
