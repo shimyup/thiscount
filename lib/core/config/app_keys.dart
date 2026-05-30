@@ -112,10 +112,22 @@ abstract class BetaConstants {
   /// 남아있어도 production 에서 admin 권한 부여 차단.
   static bool isAdmin(String? email) {
     if (email == null || email.isEmpty) return false;
-    final lower = email.toLowerCase();
+    // Build 408 (QQ5): 앞뒤 공백 제거 — secure storage 라운드트립에서 trailing
+    //   공백이 섞이면 admin gate 가 조용히 실패하던 회귀 방지.
+    final lower = email.trim().toLowerCase();
     // permanentAdminEmail 은 모든 빌드에서 항상 admin 으로 인정.
     if (permanentAdminEmail.isNotEmpty &&
         lower == permanentAdminEmail.toLowerCase()) {
+      return true;
+    }
+    // Build 408 (QQ5): production 출시 빌드가 아니면(=TestFlight/베타/디버그)
+    //   알려진 운영자 이메일(ceo@airony.xyz)을 admin 으로 인정. 이전엔
+    //   BETA_ADMIN_EMAIL dart-define 이 빌드에 주입돼야만 admin 진입 가능 →
+    //   define 누락/구버전 빌드에서 "관리자 모드 안 들어가짐" 회귀. 이 fallback
+    //   으로 TestFlight admin 을 보장하되, PRODUCTION_BUILD=true (정식 출시
+    //   release_to_production.sh) 면 차단 — 출시 보안 정책 유지.
+    if (!isProductionBuild &&
+        lower == DebugConstants.testBrandEmail.toLowerCase()) {
       return true;
     }
     // BETA_ADMIN_EMAIL 은 release + disableInRelease 일 땐 절대 인정 안 함.

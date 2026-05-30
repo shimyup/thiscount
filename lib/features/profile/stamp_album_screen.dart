@@ -229,9 +229,10 @@ class StampAlbumScreen extends StatelessWidget {
                         height: 1,
                       ),
                     ),
-                    const TextSpan(
-                      text: '\nLETTERS',
-                      style: TextStyle(
+                    TextSpan(
+                      // Build 409 (sim P2 L233): 영어 전용 'LETTERS' → 현지화.
+                      text: '\n${l.koEn('수집', 'COLLECTED')}',
+                      style: const TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 9,
                         fontWeight: FontWeight.w700,
@@ -327,7 +328,8 @@ class StampAlbumScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _detailRow(
-              label: 'LAST',
+              // Build 409 (sim P2 L330): 영어 전용 'LAST' → 현지화.
+              label: l.koEn('최근', 'LAST'),
               value: _formatDate(stamp.lastReceivedAt),
             ),
           ],

@@ -30,6 +30,10 @@ class MainScaffold extends StatefulWidget {
 
 class _MainScaffoldState extends State<MainScaffold> {
   late int _currentIndex = widget.initialIndex;
+  // Build 408 (QQ9): 비-지도 탭에서 지도가 상단으로 노출되는 peek 높이(px).
+  //   "하단 탭 눌러도 내 위치 지도가 일부 보임" 요구. 너무 크면 콘텐츠 영역
+  //   손실, 너무 작으면 의미 없음 → 96px 절충 (지도 핀 1–2개 보이는 정도).
+  static const double _kMapPeek = 96;
   // Build 205: 마지막으로 광고 모달을 trigger 시도한 promo letter id. 같은
   // id 가 다시 build 되면 무시 — id 가 바뀌면(새 광고 도착) 다시 trigger.
   String? _lastTriggeredAdId;
@@ -47,11 +51,14 @@ class _MainScaffoldState extends State<MainScaffold> {
   //   - state.sent → Brand 쪽에서 캠페인 list 로 사용
   //   - state.inbox → 일반 회원만 사용
   //   getter 로 reactive — isBrand 변경 시 (settings 에서) 자동 재계산.
-  List<Widget> _pagesFor({required bool isBrand}) => [
-        WorldMapScreen(onGoToInbox: () => setState(() => _currentIndex = 1)),
-        if (isBrand) const BrandCampaignScreen() else const InboxScreen(),
-        const ProfileScreen(),
-      ];
+  // Build 408 (QQ9): 지도는 Stack base 로 항상 mount. 비-지도 페이지는 body
+  //   내부 IndexedStack 에서 직접 구성 (peek 레이아웃과 결합).
+  Widget _mapPage() => WorldMapScreen(
+        onGoToInbox: () => setState(() => _currentIndex = 1),
+        // Build 408 (QQ9): 지도 탭일 때만 chrome 노출. 다른 탭에서는 배경
+        //   peek 로만 쓰여 헤더/배너가 비치지 않게 한다.
+        showChrome: _currentIndex == 0,
+      );
 
   @override
   void initState() {
@@ -254,27 +261,80 @@ class _MainScaffoldState extends State<MainScaffold> {
         decoration: BoxDecoration(
           gradient: AppTimeColors.of(context).backgroundGradient,
         ),
-        child: Column(
-          children: [
-            const OfflineBanner(),
-            // Build 288: trial 만료 카운트다운 배너 — Free 페르소나 friction
-            // point 1 (trial 만료 surprise) 해소. trial 활성 중 + 미결제 상태
-            // 일 때만 노출. 탭하면 premium_screen 진입.
-            const _TrialCountdownBanner(),
-            // Build 325 (T6): Brand 사용자 홈 배너 — brandInsights 사용 전환률 +
-            //   상태 emoji 한 줄. 기존엔 profile → Brand 카드 (2뎁스) 진입.
-            //   이제 모든 탭 상단에서 1뎁스로 ROI 가시화 + 1 탭으로 상세 진입.
-            const _BrandInsightsHomeBanner(),
-            Expanded(
-              // Build 405 (PR-NN3): isBrand 별 다른 페이지 list. 가운데 탭만
-              //   다름 (인박스 vs 캠페인). IndexedStack 으로 탭 전환 시 state
-              //   유지. isBrand 가 settings 에서 변경되면 즉시 reflect.
-              child: IndexedStack(
-                index: _currentIndex,
-                children: _pagesFor(isBrand: isBrand),
+        // Build 408 (QQ3): 상단 SafeArea — 배너(offline/trial/brandInsights)가
+        //   status bar/notch 아래로 짤리던 회귀 차단. bottom:false 로 하단
+        //   네비(자체 SafeArea)와 inset 중복 방지. 배너가 모두 숨김(shrink)
+        //   이어도 SafeArea 는 상단만 패딩 → 지도 상단 strip 은 테마 그라데이션.
+        child: SafeArea(
+          top: true,
+          bottom: false,
+          child: Column(
+            children: [
+              const OfflineBanner(),
+              // Build 288: trial 만료 카운트다운 배너 — Free 페르소나 friction
+              // point 1 (trial 만료 surprise) 해소. trial 활성 중 + 미결제 상태
+              // 일 때만 노출. 탭하면 premium_screen 진입.
+              const _TrialCountdownBanner(),
+              // Build 325 (T6): Brand 사용자 홈 배너 — brandInsights 사용 전환률 +
+              //   상태 emoji 한 줄. 기존엔 profile → Brand 카드 (2뎁스) 진입.
+              //   이제 모든 탭 상단에서 1뎁스로 ROI 가시화 + 1 탭으로 상세 진입.
+              const _BrandInsightsHomeBanner(),
+              Expanded(
+                // Build 408 (QQ9): IndexedStack → Stack. 지도를 항상 base 로
+                //   깔고, 비-지도 탭 선택 시 상단 _kMapPeek 만큼 지도가 보이도록
+                //   콘텐츠 시트를 내린다("내 위치 지도 항상 일부 노출"). 비-지도
+                //   페이지는 Offstage 안의 IndexedStack 으로 state 유지.
+                child: Stack(
+                  children: [
+                    // 지도 — 항상 mount (state/카메라 유지 + peek 노출).
+                    // Build 409 (sim P1.42 a11y): 비-지도 탭에서는 지도가 시트
+                    //   뒤로 가려지므로 semantics 트리·포인터에서 제외 — 스크린
+                    //   리더가 가려진 마커들을 읽는 dead zone + 시트 뒤 오작동
+                    //   터치 차단. (상단 96px peek 도 비활성 — 탭은 하단 nav 로.)
+                    Positioned.fill(
+                      child: ExcludeSemantics(
+                        excluding: _currentIndex != 0,
+                        child: IgnorePointer(
+                          ignoring: _currentIndex != 0,
+                          child: _mapPage(),
+                        ),
+                      ),
+                    ),
+                    // 비-지도 탭 시트 — 상단 peek 만큼 내려 지도 노출.
+                    Positioned(
+                      top: _kMapPeek,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: Offstage(
+                        offstage: _currentIndex == 0,
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(20),
+                          ),
+                          // 시트가 이미 status bar 아래라 top inset 중복 제거.
+                          child: MediaQuery.removePadding(
+                            context: context,
+                            removeTop: true,
+                            child: IndexedStack(
+                              index: (_currentIndex - 1).clamp(0, 1),
+                              children: [
+                                if (isBrand)
+                                  const BrandCampaignScreen()
+                                else
+                                  const InboxScreen(),
+                                const ProfileScreen(),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: Column(

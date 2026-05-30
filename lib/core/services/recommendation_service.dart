@@ -56,13 +56,19 @@ class RecommendationService {
 
     // 1) 카테고리 매치 (+0~25)
     //   명시 선호 (Premium Lv11+) 가 있으면 우선, 없으면 소비 이력 분포로 implicit 추론.
-    final tag = letter.categoryTag;
-    if (tag != null) {
-      final explicit = user.preferredCategoryKey;
-      if (explicit != null && explicit.isNotEmpty && explicit == tag) {
+    // Build 409 (sim P1.19): 명시 선호(preferredCategoryKey)는 LetterCategory
+    //   키('coupon'/'voucher')라 letter.category.key 와 비교해야 함. 이전엔
+    //   letter.categoryTag(food/cafe 등 content 태그)와 비교해 영영 불일치 →
+    //   Premium 명시 선호가 추천 점수에 전혀 반영 안 됐음. implicit 분포 추론은
+    //   여전히 content 태그(categoryTag) 기반.
+    final explicit = user.preferredCategoryKey;
+    if (explicit != null && explicit.isNotEmpty) {
+      if (explicit == letter.category.key) {
         s += 25;
-      } else if ((explicit == null || explicit.isEmpty) &&
-          historyByCategory.isNotEmpty) {
+      }
+    } else {
+      final tag = letter.categoryTag;
+      if (tag != null && historyByCategory.isNotEmpty) {
         final total = historyByCategory.values.fold<int>(0, (a, b) => a + b);
         final freq = historyByCategory[tag] ?? 0;
         // Build 324 fix: 신호의 자기강화를 막기 위해 threshold 를 0.4 로 상향
@@ -197,9 +203,10 @@ class RecommendationService {
     }
 
     // 3) 선호 카테고리 매치
-    final tag = letter.categoryTag;
+    // Build 409 (sim P1.19): 명시 선호는 letter.category.key 와 비교 (위 score
+    //   와 동일 값 공간). 이전엔 categoryTag 와 비교해 reason 도 안 떴음.
     final pref = user.preferredCategoryKey;
-    if (tag != null && pref != null && pref.isNotEmpty && tag == pref) {
+    if (pref != null && pref.isNotEmpty && letter.category.key == pref) {
       return (emoji: '🎯', labelKey: 'aiReasonCategoryMatch');
     }
 

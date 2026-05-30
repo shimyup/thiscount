@@ -152,6 +152,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   List<AdminUser> _filtered = [];
   bool _loading = false;
   String? _error;
+  // Build 409 (sim P1.31): 부분 로드(후속 페이지 에러 / 500 상한) 경고를
+  //   치명적 _error 와 분리 — 이미 받은 목록은 계속 표시.
+  String? _partialWarning;
   final _searchCtrl = TextEditingController();
   String _sortBy = 'tower'; // tower | recent | sent
 
@@ -178,6 +181,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     setState(() {
       _loading = true;
       _error = null;
+      _partialWarning = null;
     });
 
     if (!FirebaseConfig.kFirebaseEnabled) {
@@ -191,8 +195,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       return;
     }
 
+    // Build 409 (sim P1.31): try 밖에서 선언 — catch 에서도 부분 결과 접근.
+    final allUsers = <AdminUser>[];
     try {
-      final allUsers = <AdminUser>[];
       String? nextPageToken;
       int page = 0;
 
@@ -249,13 +254,31 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
       _users = allUsers;
       _applySort();
+      // Build 409 (sim P1.31): 500명(5페이지) 상한에 도달했는데 다음 토큰이 남아
+      //   있으면 silent truncation → admin 에게 명시 (목록은 계속 표시).
+      if (nextPageToken != null) {
+        _partialWarning = l.koEn(
+          '⚠️ 최대 500명만 표시 중 (더 많은 회원 존재).',
+          '⚠️ Showing first 500 users only (more exist).',
+        );
+      }
     } catch (e) {
-      setState(
-        () => _error = l.koEn(
+      // Build 409 (sim P1.31): 후속 페이지 HTTP 에러로 throw 돼도 이미 받은
+      //   페이지(allUsers)는 버리지 않고 표시 + 부분 경고. 이전엔 page-1 100명을
+      //   성공 fetch 했어도 page-2 에러 시 _users 가 비어 전체 화면 에러로 가렸음.
+      if (allUsers.isNotEmpty) {
+        _users = allUsers;
+        _applySort();
+        _partialWarning = l.koEn(
+          '⚠️ 회원 목록 일부만 불러옴 (네트워크/권한): $e',
+          '⚠️ Partial user list loaded (network/permission): $e',
+        );
+      } else {
+        _error = l.koEn(
           '회원 정보를 불러오는 데 실패했어요.\n$e',
           'Failed to load user data.\n$e',
-        ),
-      );
+        );
+      }
     } finally {
       setState(() => _loading = false);
     }
@@ -1064,11 +1087,32 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       ),
                     ),
                   )
-                : ListView.separated(
-                    padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 32),
-                    itemCount: displayList.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 6),
-                    itemBuilder: (_, i) => _userTile(displayList[i]),
+                : Column(
+                    children: [
+                      // Build 409 (sim P1.31): 부분 로드 경고 배너 (non-blocking).
+                      if (_partialWarning != null)
+                        Container(
+                          width: double.infinity,
+                          color: AppColors.gold.withValues(alpha: 0.15),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
+                          child: Text(
+                            _partialWarning!,
+                            style: const TextStyle(
+                                color: AppColors.gold, fontSize: 12),
+                          ),
+                        ),
+                      Expanded(
+                        child: ListView.separated(
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                              16, 8, 16, 32),
+                          itemCount: displayList.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 6),
+                          itemBuilder: (_, i) => _userTile(displayList[i]),
+                        ),
+                      ),
+                    ],
                   ),
           ),
         ],

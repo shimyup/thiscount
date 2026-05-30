@@ -113,9 +113,12 @@ void main() {
     });
 
     test('preferredCategoryKey 일치 → 카테고리 미일치보다 높음', () {
-      final match = _letter(categoryTag: 'food');
-      final miss = _letter(categoryTag: 'beauty');
-      final u = _user(preferredCategoryKey: 'food');
+      // Build 409 (sim P1.19): 명시 선호는 LetterCategory 키('coupon'/'voucher')
+      //   이며 letter.category 와 매치된다 (categoryTag 가 아님). 선호 picker
+      //   (setPreferredCategory) 가 LetterCategory 만 저장하므로 이 값공간이 정확.
+      final match = _letter(category: LetterCategory.coupon);
+      final miss = _letter(category: LetterCategory.voucher);
+      final u = _user(preferredCategoryKey: 'coupon');
       final sMatch =
           RecommendationService.score(match, u, followedBrandIds: {});
       final sMiss =
@@ -234,11 +237,12 @@ void main() {
     });
 
     test('preferred 카테고리 letter 가 다른 letter 들보다 상위', () {
-      final pref = _letter(id: 'p', categoryTag: 'food');
-      final other = _letter(id: 'o', categoryTag: 'beauty');
+      // Build 409 (sim P1.19): 명시 선호 = LetterCategory 키 → letter.category 매치.
+      final pref = _letter(id: 'p', category: LetterCategory.coupon);
+      final other = _letter(id: 'o', category: LetterCategory.voucher);
       final ranked = RecommendationService.rank(
         [other, pref],
-        _user(preferredCategoryKey: 'food'),
+        _user(preferredCategoryKey: 'coupon'),
         followedBrandIds: {},
       );
       expect(ranked.first.id, 'p');

@@ -74,6 +74,10 @@ class BrandCampaignScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
         children: [
+          // Build 407 (PR-QQ7): 구독 플랜 + 남은 발송 가능 수를 캠페인 화면
+          //   최상단에 한눈에. 이전엔 프로필 깊숙이 있어 발송 전 확인 어려움.
+          _QuotaSummaryCard(state: state, l: l),
+          const SizedBox(height: 12),
           _QuickComposeCard(l: l),
           const SizedBox(height: 16),
           if (mostRecentlyPickedUp != null) ...[
@@ -117,6 +121,104 @@ class BrandCampaignScreen extends StatelessWidget {
         onPressed: () => Navigator.of(context).push(MaterialPageRoute(
           builder: (_) => const ComposeScreen(),
         )),
+      ),
+    );
+  }
+}
+
+/// Build 407 (PR-QQ7): 구독 플랜 + 남은 발송 가능 수 요약 카드.
+///   Brand: ExactDrop 크레딧 + (베타면 무제한 안내). Premium: 특급 잔여.
+class _QuotaSummaryCard extends StatelessWidget {
+  final AppState state;
+  final AppL10n l;
+  const _QuotaSummaryCard({required this.state, required this.l});
+
+  @override
+  Widget build(BuildContext context) {
+    final isBrand = state.currentUser.isBrand;
+    final planLabel = isBrand
+        ? 'Brand'
+        : (state.currentUser.isPremium ? 'Premium' : 'Free');
+    final planColor = isBrand
+        ? AppColors.coupon
+        : (state.currentUser.isPremium ? AppColors.gold : AppColors.textMuted);
+    // 베타 무료 Brand 면 ExactDrop 무제한, 아니면 크레딧 수.
+    final exactDropFree = state.exactDropFreeForBeta;
+    final credits = state.brandExactDropCredits;
+    // Build 408 (QQ7): 일별 발송 잔여 — "남은 발송 가능 쿠폰 수" 사용자 요구.
+    final dailyRemaining = state.remainingDailySendCount;
+    final dailyLimit = state.dailySendLimit;
+    final dailyPct = dailyLimit > 0 ? dailyRemaining / dailyLimit : 0.0;
+    final dailyColor = dailyPct > 0.4
+        ? AppColors.teal
+        : (dailyPct > 0.15 ? AppColors.gold : AppColors.error);
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: planColor.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: planColor.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              planLabel,
+              style: TextStyle(
+                color: planColor,
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l.brandCampaignQuotaLabel,
+                  style: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 11,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                // 주 지표: 오늘 남은 발송 가능 수 (사용자 요구 핵심).
+                Text(
+                  l.brandCampaignDailyRemaining(dailyRemaining, dailyLimit),
+                  style: TextStyle(
+                    color: dailyColor,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                // 부 지표: ExactDrop(정밀 발송) 잔여 / 베타 무제한.
+                Text(
+                  exactDropFree
+                      ? l.brandCampaignQuotaUnlimited
+                      : l.brandCampaignQuotaCredits(credits),
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(
+            Icons.bolt_rounded,
+            color: AppColors.coupon,
+            size: 20,
+          ),
+        ],
       ),
     );
   }

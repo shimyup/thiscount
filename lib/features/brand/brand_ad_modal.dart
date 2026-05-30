@@ -8,6 +8,7 @@ import '../../core/localization/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/letter.dart';
 import '../../state/app_state.dart';
+import '../../widgets/app_snack.dart';
 import '../inbox/widgets/letter_read_screen.dart';
 
 /// Build 202 — 온보딩 직후 1회 표시되는 브랜드 광고 모달.
@@ -317,7 +318,15 @@ class _BrandAdDialog extends StatelessWidget {
     // 2) modal 닫고 → letter_read_screen 으로 이동해 본문 표시.
     final inboxHas = state.inbox.any((l) => l.id == letter.id);
     if (!inboxHas) {
-      state.pickUpLetter(letter.id, distanceCheck: false);
+      // Build 409 (sim P0.4 security): 근접 검증 우회 제거. 이전엔
+      //   distanceCheck:false 라 광고 모달에서 멀리 있는 brand 쿠폰을 거리
+      //   무관하게 픽업/사용 가능 (지도 경로의 200m/1km 가드를 우회). 지도
+      //   픽업과 동일하게 거리 검증 후, 실패 시 안내 + 화면 이동 중단.
+      final err = state.pickUpLetter(letter.id);
+      if (err != null) {
+        if (context.mounted) AppSnack.error(context, err);
+        return;
+      }
     }
     state.readLetter(letter.id);
     final picked = state.inbox.firstWhere(

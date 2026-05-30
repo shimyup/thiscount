@@ -2037,6 +2037,10 @@ class _TesterDashboardScreenState extends State<_TesterDashboardScreen>
   List<Map<String, dynamic>> _letters = [];
   bool _loading = true;
   String? _error;
+  // Build 409 (sim P1.30): 부분 fetch 경고는 치명적 에러(_error)와 분리. 이전엔
+  //   partial 도 _error 에 담아 build() 가 전체화면 에러로 가려 이미 받은
+  //   사용자 목록을 못 보게 했음.
+  String? _partialWarning;
 
   @override
   void initState() {
@@ -2052,7 +2056,7 @@ class _TesterDashboardScreenState extends State<_TesterDashboardScreen>
   }
 
   Future<void> _fetchAll() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() { _loading = true; _error = null; _partialWarning = null; });
     try {
       final state = context.read<AppState>();
       final results = await Future.wait([
@@ -2062,12 +2066,15 @@ class _TesterDashboardScreenState extends State<_TesterDashboardScreen>
       if (mounted) {
         // Build 292: partial fetch 감지 시 admin 에게 명시 알림 — 이전엔
         // page 2+ 의 403 / pagination max 초과를 silent 처리.
+        // Build 409 (sim P1.30): partial 은 _partialWarning (non-blocking 배너)
+        //   으로 — 이미 받은 목록은 그대로 보여줌.
         final partial = state.adminFetchUsersPartialError;
         setState(() {
           _testers = results[0];
           _letters = results[1];
           _loading = false;
-          _error = partial != null
+          _error = null;
+          _partialWarning = partial != null
               ? '⚠️ 사용자 목록 일부만 불러옴: $partial'
               : null;
         });
@@ -2135,11 +2142,44 @@ class _TesterDashboardScreenState extends State<_TesterDashboardScreen>
                     ),
                   ),
                 )
-              : TabBarView(
-                  controller: _tabController,
+              : Column(
                   children: [
-                    _buildTesterList(),
-                    _buildLetterList(),
+                    // Build 409 (sim P1.30): 부분 fetch 경고 배너 (non-blocking).
+                    if (_partialWarning != null)
+                      Container(
+                        width: double.infinity,
+                        color: AppColors.gold.withValues(alpha: 0.15),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _partialWarning!,
+                                style: const TextStyle(
+                                    color: AppColors.gold, fontSize: 12),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: _fetchAll,
+                              child: const Text('↻',
+                                  style: TextStyle(
+                                      color: AppColors.gold,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    Expanded(
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          _buildTesterList(),
+                          _buildLetterList(),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
     );

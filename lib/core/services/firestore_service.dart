@@ -313,35 +313,53 @@ class FirestoreService {
         if (name == null || name.isEmpty) continue;
         final id = name.split('/').last;
         if (id.isEmpty) continue;
-        try {
-          // status='deletedBySender' 만 PATCH (rule 화이트리스트 통과).
-          // updateMask 명시 안 하면 다른 필드를 비우려 시도해 거절될 수 있음.
-          final url = Uri.parse(
-            '${FirebaseConfig.firestoreBase}/letters/$id'
-            '?updateMask.fieldPaths=status',
-          );
-          final body = jsonEncode({
-            'fields': {
-              'status': {'stringValue': 'deletedBySender'},
-            },
-          });
-          final res = await http
-              .patch(url, headers: _headers, body: body)
-              .timeout(const Duration(seconds: 8));
-          if (res.statusCode == 200) {
-            marked++;
-          } else {
-            innerFailures++;
-            if (kDebugMode) {
-              debugPrint(
-                '[scrubLetters] PATCH $id 실패 status=${res.statusCode}',
-              );
+        // status='deletedBySender' 만 PATCH (rule 화이트리스트 통과).
+        // Build 409 (sim P1.36): content/senderName/senderId 의 물리적 blank 는
+        //   firestore.rules 의 isAllowedLetterUpdate 화이트리스트(카운터/status
+        //   필드만)에 막혀 client 에서 불가 → 시도하면 403 으로 scrub 가 항상
+        //   실패. 대신 (a) status soft-delete 로 마킹 + (b) 모든 read 경로가
+        //   deletedBy* 를 필터(Build 409 P0.3)해 PII 노출 차단. 물리적 erasure
+        //   (GDPR Art.17 완전 삭제)는 elevated 권한 Cloud Function 필요 — 백로그.
+        // Build 409 (sim P1.37): 일시적 실패 대비 per-letter 재시도(최대 3회).
+        bool ok = false;
+        for (int attempt = 0; attempt < 3 && !ok; attempt++) {
+          try {
+            final url = Uri.parse(
+              '${FirebaseConfig.firestoreBase}/letters/$id'
+              '?updateMask.fieldPaths=status',
+            );
+            final body = jsonEncode({
+              'fields': {
+                'status': {'stringValue': 'deletedBySender'},
+              },
+            });
+            final res = await http
+                .patch(url, headers: _headers, body: body)
+                .timeout(const Duration(seconds: 8));
+            if (res.statusCode == 200) {
+              ok = true;
+            } else if (res.statusCode >= 400 && res.statusCode < 500) {
+              // client error (rule reject 등) — 재시도 무의미.
+              if (kDebugMode) {
+                debugPrint('[scrubLetters] PATCH $id 거절 ${res.statusCode}');
+              }
+              break;
+            } else if (attempt < 2) {
+              await Future.delayed(Duration(milliseconds: 300 * (attempt + 1)));
+            }
+          } catch (e) {
+            if (attempt < 2) {
+              await Future.delayed(Duration(milliseconds: 300 * (attempt + 1)));
+            } else if (kDebugMode) {
+              debugPrint('[scrubLetters] PATCH $id 예외: $e');
             }
           }
-        } catch (e) {
+        }
+        if (ok) {
+          marked++;
+        } else {
           // Build 402: 개별 letter 실패도 카운트 — PII 잔존 가능성.
           innerFailures++;
-          if (kDebugMode) debugPrint('[scrubLetters] PATCH $id 예외: $e');
         }
       }
       if (innerFailures > 0) return -1; // 일부라도 실패 → PII 잔존 경고.
@@ -359,7 +377,27 @@ class FirestoreService {
     required String value,
     int limit = 1,
   }) async {
-    if (!FirebaseConfig.kFirebaseEnabled) return [];
+    final r = await queryWhereEqualsResult(
+      collectionId: collectionId,
+      field: field,
+      value: value,
+      limit: limit,
+    );
+    return r.docs;
+  }
+
+  /// Build 409 (sim P1.23): 실패(비-200/예외)와 빈 성공을 구분해야 하는 호출자용.
+  ///   ok=false 면 네트워크/권한 실패 (호출자가 'offline' 처리 가능),
+  ///   ok=true + docs.isEmpty 면 정상 빈 결과. queryWhereEquals 는 이걸 래핑해
+  ///   기존 시그니처(빈 리스트 반환)를 유지.
+  static Future<({List<Map<String, dynamic>> docs, bool ok})>
+      queryWhereEqualsResult({
+    required String collectionId,
+    required String field,
+    required String value,
+    int limit = 1,
+  }) async {
+    if (!FirebaseConfig.kFirebaseEnabled) return (docs: <Map<String, dynamic>>[], ok: false);
     await FirebaseAuthService.ensureValidToken();
     try {
       final body = jsonEncode({
@@ -394,7 +432,7 @@ class FirestoreService {
             docs.add(doc);
           }
         }
-        return docs;
+        return (docs: docs, ok: true);
       }
       if (kDebugMode) debugPrint(
         '[FirestoreService] queryWhereEquals 실패: ${res.statusCode} ${res.body}',
@@ -402,7 +440,7 @@ class FirestoreService {
     } catch (e, st) {
       if (kDebugMode) debugPrint('[FirestoreService] 에러: $e\n$st');
     }
-    return [];
+    return (docs: <Map<String, dynamic>>[], ok: false);
   }
 
   // ── 복합 조건 쿼리 (여러 field == value) ──────────────────────────────────────

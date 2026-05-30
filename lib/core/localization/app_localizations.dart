@@ -479,6 +479,47 @@ class AppL10n {
     'tr': 'Kullanıldı', 'ar': 'تم الاستخدام', 'it': 'Riscattati',
     'hi': 'उपयोग किए', 'th': 'ใช้แล้ว',
   });
+  // Build 408 (QQ7): 캠페인 화면 상단 요약 카드 i18n. QQ 커밋이 키 정의를
+  //   누락해 빌드가 깨져 있던 것을 복구 + 일별 발송 잔여 키 추가.
+  String get brandCampaignQuotaLabel => _t({
+    'ko': '발송 가능', 'en': 'Available to send', 'ja': '送信可能',
+    'zh': '可发送', 'fr': 'Disponible à envoyer', 'de': 'Sendbar',
+    'es': 'Disponible para enviar', 'pt': 'Disponível para enviar',
+    'ru': 'Доступно к отправке', 'tr': 'Gönderilebilir',
+    'ar': 'متاح للإرسال', 'it': 'Disponibile all’invio',
+    'hi': 'भेजने के लिए उपलब्ध', 'th': 'พร้อมส่ง',
+  });
+  String get brandCampaignQuotaUnlimited => _t({
+    'ko': '무제한 (베타)', 'en': 'Unlimited (beta)', 'ja': '無制限（ベータ）',
+    'zh': '无限（测试版）', 'fr': 'Illimité (bêta)', 'de': 'Unbegrenzt (Beta)',
+    'es': 'Ilimitado (beta)', 'pt': 'Ilimitado (beta)',
+    'ru': 'Безлимит (бета)', 'tr': 'Sınırsız (beta)',
+    'ar': 'غير محدود (تجريبي)', 'it': 'Illimitato (beta)',
+    'hi': 'असीमित (बीटा)', 'th': 'ไม่จำกัด (เบต้า)',
+  });
+  String brandCampaignQuotaCredits(int n) => _t({
+    'ko': '정밀 발송 $n회', 'en': '$n ExactDrops', 'ja': '精密発送 $n回',
+    'zh': '精准投放 $n 次', 'fr': '$n ExactDrops', 'de': '$n ExactDrops',
+    'es': '$n ExactDrops', 'pt': '$n ExactDrops', 'ru': '$n точных сбросов',
+    'tr': '$n ExactDrop', 'ar': '$n إسقاط دقيق', 'it': '$n ExactDrop',
+    'hi': '$n एक्ज़ैक्टड्रॉप', 'th': '$n ExactDrop',
+  });
+  String brandCampaignDailyRemaining(int remaining, int limit) => _t({
+    'ko': '오늘 $remaining/$limit통',
+    'en': 'Today $remaining/$limit',
+    'ja': '本日 $remaining/$limit通',
+    'zh': '今日 $remaining/$limit',
+    'fr': "Aujourd'hui $remaining/$limit",
+    'de': 'Heute $remaining/$limit',
+    'es': 'Hoy $remaining/$limit',
+    'pt': 'Hoje $remaining/$limit',
+    'ru': 'Сегодня $remaining/$limit',
+    'tr': 'Bugün $remaining/$limit',
+    'ar': 'اليوم $remaining/$limit',
+    'it': 'Oggi $remaining/$limit',
+    'hi': 'आज $remaining/$limit',
+    'th': 'วันนี้ $remaining/$limit',
+  });
   String get brandCampaignEmptyTitle => _t({
     'ko': '아직 발송한 캠페인이 없어요',
     'en': 'No campaigns yet',

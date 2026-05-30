@@ -368,6 +368,16 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
   ScheduledPlanTarget? _scheduledPlanTarget;
   DateTime? get scheduledPlanChangeDate => _scheduledPlanChangeDate;
   ScheduledPlanTarget? get scheduledPlanTarget => _scheduledPlanTarget;
+
+  // Build 409 (sim P1.17): 예약 다운그레이드 발효 시 1회 set 되는 '확정 강등'
+  //   플래그. AppState 리스너가 consume 해서 authoritative sync (OR-fallback
+  //   우회) 를 트리거. 일회성이라 신규 Brand 가입의 transient false 와 구분.
+  bool _pendingAuthoritativeDowngrade = false;
+  bool consumePendingAuthoritativeDowngrade() {
+    if (!_pendingAuthoritativeDowngrade) return false;
+    _pendingAuthoritativeDowngrade = false;
+    return true;
+  }
   bool get isPendingPlanChange =>
       _scheduledPlanChangeDate != null && _scheduledPlanTarget != null;
   bool get isPendingDowngrade =>
@@ -637,6 +647,11 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
     if (_scheduledPlanTarget == ScheduledPlanTarget.free) {
       _isPremium = false;
       _isBrand = false;
+      // Build 409 (sim P1.17): 예약 다운그레이드가 실제 발효된 '확정 강등'
+      //   신호. AppState.syncPremiumStatus 의 OR-fallback(한 번 Brand 면 유지)을
+      //   이 경우엔 우회해야 isBrand 가 실제로 꺼짐. 일회성 flag 로 표시 —
+      //   transient RC notify 와 구분 (신규 Brand 가입 보존은 그대로).
+      _pendingAuthoritativeDowngrade = true;
       unawaited(_saveSecurePremiumState(isPremium: false, isBrand: false));
     }
     // Build 368 (PR-CC1 P0 #1): scheduled Brand 자동 flip 제거.
@@ -1378,6 +1393,17 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   // ── Private 헬퍼 ────────────────────────────────────────────────────────
+
+  /// Build 409 (sim P1.14/P1.20): productId 의 현지화된 가격 문자열(예: "$4.99",
+  ///   "₩6,000", "¥720"). RC StoreProduct.priceString 은 사용자 스토어프론트
+  ///   로케일/통화로 자동 포맷됨. 캐시 또는 offering 에서 조회, 없으면 null →
+  ///   호출자가 하드코딩 KRW fallback. (offerings 미로드 시 null)
+  String? localizedPriceFor(String productId) {
+    final cached = _storeProductsById[productId];
+    if (cached != null) return cached.priceString;
+    final pkg = _findPackage(productId);
+    return pkg?.storeProduct.priceString;
+  }
 
   /// Offering에서 productId에 맞는 Package 찾기
   Package? _findPackage(String productId) {

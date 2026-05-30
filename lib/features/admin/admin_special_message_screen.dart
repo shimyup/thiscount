@@ -20,6 +20,8 @@ import 'package:provider/provider.dart';
 import '../../core/config/app_keys.dart';
 import '../../core/config/firebase_config.dart';
 import '../../core/services/brand_zone_service.dart';
+import '../../core/services/firebase_auth_service.dart';
+import '../../core/services/firestore_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/redemption_code.dart';
 import '../../core/utils/secure_clipboard.dart';
@@ -153,10 +155,13 @@ class _AdminSpecialMessageScreenState extends State<AdminSpecialMessageScreen> {
       final uri = Uri.parse(
         '${FirebaseConfig.firestoreBase}/brand_zones?documentId=${zone.id}',
       );
+      // Build 409 (sim P0.2): 인증 토큰 부착 — firestore.rules 가 isSignedIn()
+      //   요구. apiKey 만으론 request.auth 비어 403. (brand_zone_service 와 동일)
+      await FirebaseAuthService.ensureValidToken();
       final r = await http
           .post(
             uri,
-            headers: {'Content-Type': 'application/json'},
+            headers: FirestoreService.authHeaders,
             body: jsonEncode({'fields': fields}),
           )
           .timeout(const Duration(seconds: 10));

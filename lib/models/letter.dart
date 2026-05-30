@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:intl/intl.dart';
 import '../core/data/country_cities.dart';
 import '../core/localization/app_localizations.dart';
+import '../core/services/secure_clock.dart';
 
 // ── 편지 타입 ──────────────────────────────────────────────────────────────────
 enum LetterType { normal, express, brandExpress }
@@ -450,13 +451,17 @@ class Letter {
 
   double get avgRating => ratingCount > 0 ? ratingTotal / ratingCount : 0.0;
   bool get isBlocked => reportCount >= 3;
-  bool get isExpired => expiresAt != null && DateTime.now().isAfter(expiresAt!);
+  // Build 409 (sim P2 보안): 시계 되돌리기 우회 차단 — SecureClock 사용.
+  bool get isExpired =>
+      expiresAt != null && SecureClock.now().isAfter(expiresAt!);
 
   /// Build 132: 쿠폰/교환권 사용 기한이 지났는지.
   /// `redemptionExpiresAt` 이 null 이면 무제한 → false.
+  /// Build 409 (sim P2 보안): 할인코드 만료 게이트를 SecureClock 으로 — 기기
+  ///   시계를 과거로 돌려 만료 쿠폰을 재사용하는 우회 차단.
   bool get isRedemptionExpired =>
       redemptionExpiresAt != null &&
-      DateTime.now().isAfter(redemptionExpiresAt!);
+      SecureClock.now().isAfter(redemptionExpiresAt!);
 
   // ── 현재 구간 ───────────────────────────────────────────────────────────────
   RouteSegment get currentSegment =>

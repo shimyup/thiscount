@@ -1022,6 +1022,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   bool get exactDropFreeForBeta =>
       _currentUser.isBrand && _isBetaBuild;
 
+  // Build 408 (QQ6): compose 등 외부에서 beta/TestFlight 빌드 판정 (production
+  //   출시 빌드 제외). ExactDrop 자동 충전 / 가짜 결제 흐름 게이팅에 사용.
+  bool get isBetaBuild => _isBetaBuild && !BetaConstants.isProductionBuild;
+
   // Build 298 (HIGH billing audit): Welcome trial farming 차단을 위한 server-side
   // claim timestamp. 사용자가 계정 삭제 후 재가입해도 동일 user 에 대해 trial
   // 이 한 번만 부여됨. _saveUserToFirestore 가 자동 영구화하고
@@ -1066,44 +1070,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           // 기존 claim 존재 → 재부여 차단.
           final data = FirestoreService.fromFirestoreDoc(doc);
           final raw = data['claimedAt'] as String?;
-          final docCreatedBy = data['createdBy'] as String?;
-          final myUid = FirebaseAuthService.currentUid ?? '';
           if (raw != null && raw.isNotEmpty) {
+            // Build 409 (sim P1.6/P1.7/P1.38): 'griefing 완화' 재부여 분기 제거.
+            //   기존 분기는 docCreatedBy != currentUid 면 24h 뒤 Premium 을
+            //   재부여했는데, currentUid 는 cold-start 마다 새로 생성되는
+            //   ephemeral anonymous uid 라 정상 사용자도 항상 불일치 →
+            //   (a) trial 종료 후 cold-start 마다 무료 Premium 재부여 (매출 누수)
+            //   (b) 계정 삭제 후 재가입 trial farming.
+            //   claim 이 존재하면 무조건 차단 (server-as-truth). victim-hash
+            //   griefing 의 정식 방어는 Cloud Function server-side OTP 검증으로
+            //   별도 처리 (백로그).
             final claimedAt = DateTime.tryParse(raw)?.toLocal();
-            // Build 402 (PR-JJ6 B1 stop-gap): griefing 완화 — 다른 uid 가
-            //   pre-claim 한 항목이 24h 이상 경과한 경우, OTP 인증 통과한 신규
-            //   가입자에게 local Premium 부여. server doc 은 그대로 유지하여
-            //   재진입 시 또 override 되지 않음 (farming 방어).
-            //
-            //   가능한 경우:
-            //   - 정상: 본인 재가입 (uid 동일) → block.
-            //   - griefing: 24h+ 전 다른 uid 가 victim hash pre-claim → override.
-            //   - race: 다른 uid 가 24h 이내 claim → 안전 측면에서 block 유지
-            //     (legit 사용자 2명이 동시 가입 가능성).
-            //
-            //   Cloud Function 마이그레이션 후 server-side OTP 토큰 검증으로
-            //   완전 차단 예정 (Phase 2).
-            final griefingSuspected =
-                docCreatedBy != null
-                && docCreatedBy.isNotEmpty
-                && docCreatedBy != myUid
-                && claimedAt != null
-                && DateTime.now().difference(claimedAt)
-                    > const Duration(hours: 24);
-            if (griefingSuspected) {
-              if (kDebugMode) {
-                debugPrint(
-                  '[trial] griefing 추정 — createdBy=$docCreatedBy claimedAt=$raw, '
-                  'OTP 검증 신규 가입자에게 local grant (server doc 보존)',
-                );
-              }
-              await grant();
-              _welcomeTrialClaimedAt = DateTime.now();
-              _pendingWelcomeTrialNotice = true;
-              await _saveUserToFirestore();
-              notifyListeners();
-              return true;
-            }
             _welcomeTrialClaimedAt = claimedAt ?? DateTime.now();
             return false;
           }
@@ -1188,6 +1165,18 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     return true;
   }
 
+  /// Build 409 (sim P2 L1543): ExactDrop 크레딧 환불. consumeExactDropCredit 으로
+  ///   차감 후 발송이 실패/throw 하면 차감된 유료 크레딧을 되돌린다. 베타
+  ///   (exactDropFreeForBeta) 에선 애초에 차감 안 했으므로 no-op.
+  Future<void> refundExactDropCredit() async {
+    if (exactDropFreeForBeta) return;
+    _brandExactDropCredits++;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('brandExactDropCredits', _brandExactDropCredits);
+    unawaited(_saveUserToFirestore());
+    notifyListeners();
+  }
+
   // ── 🎟 브랜드 홍보 팝업 — 티켓형 (Build 107) ────────────────────────────
   // 로그인 직후 홈 화면에서 "신상 50% 할인 by 000 브랜드" 스타일의 티켓 팝업을
   // 1회 노출. 유저가 닫으면 해당 세션 동안 재출현 금지 (`_promoShownThisSession`).
@@ -1240,7 +1229,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   int get dailySendLimit {
     if (isBrandMember) {
-      return _isTestLimitedBrand ? _dailyLimitPremium : _dailyLimitBrand;
+      // Build 409 (sim P1.25): Brand 일일 캡을 월간 유효 한도(기본 10,000 +
+      //   구매 추가분)로 통일. 이전엔 고정 200/일 이라 _canSendLetterByDailyLimit
+      //   이 일간·월간 동시 검사 → 200/일 벽이 항상 binding → 10,000/월 도달
+      //   불가 + 구매한 extra quota 가 무의미했음. 이제 월간 한도가 실질 캡이
+      //   되고 추가 quota 가 같은 날에도 소진 가능. 테스트 제한 brand 는 유지.
+      return _isTestLimitedBrand
+          ? _dailyLimitPremium
+          : _monthlyLimitBrand + _brandExtraMonthlyQuota;
     }
     if (!isGeneralMember) return _dailyLimitPremium;
     // 이벤트 모드: 무료 유저도 프리미엄 한도 적용
@@ -1279,6 +1275,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   bool get hasRemainingMonthlyQuota => remainingMonthlySendCount > 0;
+
+  /// Build 409 (sim P1.8): 실제 발송 가능 여부 (일간+월간 base 동시 충족 OR
+  ///   초대 크레딧). _canSendLetterByDailyLimit() 와 동일 로직의 public 미러 —
+  ///   compose canSend 게이트가 이 값을 써야 월간 소진 시 버튼이 정확히 비활성.
+  ///   (hasRemainingDailyQuota 만 보면 일간 여유 + 월간 소진 시 버튼 활성 →
+  ///   누르면 실패하는 friction.)
+  bool get canSendByQuota =>
+      (remainingDailySendCount > 0 && remainingMonthlySendCount > 0) ||
+      _inviteRewardCredits > 0;
 
   int get brandExtraMonthlyQuota => _brandExtraMonthlyQuota;
   int get inviteRewardCredits => _inviteRewardCredits;
@@ -2589,6 +2594,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     }
     if (_inviteRewardCredits > 0) {
       _inviteRewardCredits--;
+      // Build 409 (sim P1.18): 초대 보상 크레딧 소비를 서버에 즉시 반영.
+      //   이전엔 prefs 에만 저장 → cold-start reconcile 이 서버의 원래 값으로
+      //   복원해 크레딧이 재생성(quota farming). _doSaveUserToFirestore 가
+      //   inviteRewardCredits 를 기록하므로 호출만 추가하면 decrement 영속화.
+      unawaited(_saveUserToFirestore());
     }
   }
 
@@ -2664,17 +2674,29 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// 쓰고 다음 setUser 흐름에서 갱신해야 한다.
   ///
   /// isPremium 은 RC source 만 있으므로 그대로 단순 대입.
-  void syncPremiumStatus({required bool isPremium, required bool isBrand}) {
+  void syncPremiumStatus({
+    required bool isPremium,
+    required bool isBrand,
+    // Build 409 (sim P1.17): true 면 OR-fallback 없이 isBrand 를 그대로 반영
+    //   (예약 다운그레이드 확정 강등). 기본 false — 신규 Brand 가입의 cold-start
+    //   보존(OR-fallback) 유지.
+    bool authoritative = false,
+  }) {
     bool changed = false;
     if (_currentUser.isPremium != isPremium) {
       _currentUser.isPremium = isPremium;
       changed = true;
     }
     // OR fallback — RC 가 true 이거나 기존 isBrand 가 true 이면 true.
-    final resolvedIsBrand = isBrand || _currentUser.isBrand;
+    //   authoritative 면 fallback 없이 isBrand 직접 반영 (확정 강등 경로).
+    final resolvedIsBrand = authoritative ? isBrand : (isBrand || _currentUser.isBrand);
     if (_currentUser.isBrand != resolvedIsBrand) {
       _currentUser.isBrand = resolvedIsBrand;
       changed = true;
+      // 확정 강등으로 isBrand=false 가 되면 서버 user doc 에도 반영.
+      if (authoritative && !resolvedIsBrand) {
+        unawaited(_saveUserToFirestore());
+      }
     }
     if (changed) notifyListeners();
   }
@@ -3519,6 +3541,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   // ── Firebase 익명 로그인 + 서버 동기화 ────────────────────────────────────────
   Timer? _worldLetterSyncTimer;
+  // Build 408 (P1): 동시 실행 가드. init / 30s timer / lifecycle resume / 지도
+  //   initState(QQ8) 등 여러 트리거가 겹쳐 같은 50-doc 쿼리가 중복 발사 +
+  //   _worldLetters 동시 변경되던 비용/경합 방지.
+  bool _worldLetterSyncInFlight = false;
 
   Future<void> _initFirebaseAndSync() async {
     if (!FirebaseConfig.kFirebaseEnabled) return;
@@ -3544,6 +3570,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> syncWorldLettersFromServer() async {
     if (!FirebaseConfig.kFirebaseEnabled) return;
     if (!FirebaseAuthService.isSignedIn) return;
+    // Build 408 (P1): 중복 동시 실행 차단 (init/timer/resume/지도 진입 겹침).
+    if (_worldLetterSyncInFlight) return;
+    _worldLetterSyncInFlight = true;
     try {
       // Build 303 (HIGH cost audit): map sync 에 필요한 필드만 fetch — egress
        // 비용 ~10× 절감 (image url / content 본문 / redemption 정보 제외).
@@ -3555,8 +3584,24 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           'id', 'senderId', 'senderCountry', 'senderCountryFlag',
           'destinationCountry', 'destinationCountryFlag',
           'destinationCity', 'originLat', 'originLng',
-          'destinationLat', 'destinationLng', 'sentAt',
+          // Build 408 (P0 fix): 저장 필드명은 destLat/destLng. 이전 mask 는
+          //   destinationLat/destinationLng 를 요청해 좌표가 안 와서 모든
+          //   서버 편지가 (0,0) 으로 렌더 + 픽업 거리체크 실패. QQ8 force-sync
+          //   가 이 결함을 신규 사용자 지도 전면에 노출시킴.
+          'destLat', 'destLng', 'sentAt',
           'status', 'estimatedTotalMinutes',
+          // Build 408 (QQ4): 소진 판정에 필요한 카운터 동기화.
+          'readCount', 'maxReaders', 'reportCount', 'expiresAt',
+          // Build 409 (sim P1.39/P1.2): 발신자 정체성 + 쿠폰 분류 필드.
+          //   누락 시 → 모든 서버 편지가 익명·일반(general) 으로 렌더되어
+          //   (a) 발신 brand/익명 표시가 틀리고 (b) category=general 로 떨어져
+          //   픽업 시 refetchLetterContentIfEmpty 의 redemption 게이트가 안
+          //   걸려 할인코드가 영영 안 보임. 모두 작은 scalar 라 egress 영향 미미.
+          //   (content/redemptionInfo/imageUrl 같은 heavy 필드는 여전히 제외 —
+          //   픽업 시 getDocument 로 on-demand fetch.)
+          'isAnonymous', 'senderName', 'senderTier', 'senderIsBrand',
+          'category', 'brandUniquePerUser', 'campaignId', 'deliveryEmoji',
+          'socialLink', 'acceptsReplies', 'redemptionExpiresAt',
         ],
       );
       if (docs.isEmpty) return;
@@ -3568,15 +3613,72 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         final data = FirestoreService.fromFirestoreDoc(doc);
         final letterId = data['id'] as String? ?? '';
         if (letterId.isEmpty) continue;
+        // Build 409 (sim P0.3): scrub/admin 삭제된 letter 는 지도에서 제외 +
+        //   로컬에 남아 있으면 제거. status 가 enum 밖 'deletedBy*' 문자열.
+        if (_isDeletedLetterStatus(data['status'])) {
+          final di = _worldLetters.indexWhere((l) => l.id == letterId);
+          if (di >= 0) {
+            _worldLetters.removeAt(di);
+            changed = true;
+          }
+          continue;
+        }
         // 자기가 보낸 편지는 건너뜀 (이미 로컬에 있음)
         if (data['senderId'] == _currentUser.id) continue;
-        // 이미 로컬에 있으면 건너뜀
-        if (_worldLetters.any((l) => l.id == letterId) ||
-            _inbox.any((l) => l.id == letterId)) continue;
+        // Build 409 (sim P1.10/P1.13): 차단한 발신자의 편지는 sync 가 다시 지도에
+        //   올리지 않음 + 로컬에 남아 있으면 제거. 이전엔 block 필터가 이
+        //   경로엔 없어서 차단해도 30초 뒤 재출현했음.
+        final srvSenderId = data['senderId'] as String? ?? '';
+        if (_blockedSenderIds.contains(srvSenderId) ||
+            _tempBlockedSenderIds.contains(srvSenderId)) {
+          final bi = _worldLetters.indexWhere((l) => l.id == letterId);
+          if (bi >= 0) {
+            _worldLetters.removeAt(bi);
+            changed = true;
+          }
+          continue;
+        }
+
+        // Build 408 (QQ4): 서버 소진 카운터.
+        final srvReadCount = (data['readCount'] as num?)?.toInt() ?? 0;
+        final srvMaxReaders =
+            (data['maxReaders'] as num?)?.toInt() ?? Letter.maxReadersDefault;
+        final srvReportCount = (data['reportCount'] as num?)?.toInt() ?? 0;
+        final srvConsumed =
+            srvReadCount >= srvMaxReaders || srvReportCount >= 3;
+
+        // Build 408 (QQ4): 이미 로컬에 있는 편지는 소진 카운터만 병합 후
+        //   소진됐으면 지도에서 제거. (이전엔 무조건 skip → 다른 사용자가
+        //   주워간 쿠폰이 영원히 잔존.)
+        final existingIdx = _worldLetters.indexWhere((l) => l.id == letterId);
+        if (existingIdx >= 0) {
+          final ex = _worldLetters[existingIdx];
+          // 내 로컬 픽업이 서버 반영보다 앞설 수 있어 max 사용.
+          if (srvReadCount > ex.readCount) ex.readCount = srvReadCount;
+          ex.maxReaders = srvMaxReaders;
+          if (srvReportCount > ex.reportCount) ex.reportCount = srvReportCount;
+          if (ex.readCount >= ex.maxReaders || ex.isBlocked || ex.isExpired) {
+            _worldLetters.removeAt(existingIdx);
+            changed = true;
+          }
+          continue;
+        }
+        if (_inbox.any((l) => l.id == letterId)) continue;
+        // Build 409 (sim P2 L3617): 내가 이미 주운 편지는 재추가 금지 — inbox
+        //   에서 지워졌더라도(보관 정리 등) _myPickedUpLetterIds 가 authoritative.
+        //   이전엔 다시 줍기 가능한 마커로 부활했음.
+        if (_myPickedUpLetterIds.contains(letterId)) continue;
+
+        // Build 408 (QQ4): 이미 소진된 편지는 신규 추가하지 않음.
+        if (srvConsumed) continue;
 
         // 서버 데이터로 Letter 객체 생성
         final letter = _letterFromFirestoreData(data, now);
         if (letter == null) continue;
+        // expiresAt 경과 등 추가 가드.
+        if (letter.readCount >= letter.maxReaders ||
+            letter.isBlocked ||
+            letter.isExpired) continue;
 
         // 지도에 추가 (배송 중이든 도착했든 모두 표시)
         _worldLetters.add(letter);
@@ -3595,7 +3697,19 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       }
     } catch (e, st) {
       if (kDebugMode) debugPrint('[Firebase] 월드 편지 동기화 실패: $e\n$st');
+    } finally {
+      _worldLetterSyncInFlight = false;
     }
+  }
+
+  /// Build 409 (sim P0.3): soft-delete 된 letter 의 raw status. scrub
+  ///   (deletedBySender) / admin 삭제 (deletedByAdmin) 는 enum 밖 문자열로
+  ///   Firestore 에 기록되는데, parse 가 status 를 도착시간 기준 재계산해서
+  ///   무시 → 삭제된 letter 가 지도/인박스에 다시 나타남. 모든 서버 read 경로
+  ///   에서 이 helper 로 raw status 를 먼저 걸러낸다.
+  static bool _isDeletedLetterStatus(dynamic rawStatus) {
+    final s = rawStatus is String ? rawStatus : '';
+    return s == 'deletedBySender' || s == 'deletedByAdmin';
   }
 
   /// Firestore 문서 데이터를 Letter 객체로 변환
@@ -3685,6 +3799,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         // Build 324: brandUniquePerUser 캠페인의 묶음 식별자. legacy letter 는 null.
         campaignId: data['campaignId'] as String?,
         expiresAt: expAt,
+        // Build 408 (QQ4): 소진 판정용 카운터 복원.
+        readCount: (data['readCount'] as num?)?.toInt() ?? 0,
+        maxReaders:
+            (data['maxReaders'] as num?)?.toInt() ?? Letter.maxReadersDefault,
+        reportCount: (data['reportCount'] as num?)?.toInt() ?? 0,
       );
     } catch (e, st) {
       if (kDebugMode) debugPrint('[Firebase] Letter 변환 실패: $e\n$st');
@@ -3736,6 +3855,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'letterType': letter.letterType.name,
         'status': letter.status.name,
         'senderTier': letter.senderTier.name,
+        // Build 408 (QQ4): 소진 판정 카운터 초기화. maxReaders 가 없으면 다른
+        //   클라이언트가 default(3) 로 오판 → maxReaders=1 쿠폰이 3회까지
+        //   지도에 잔존. readCount/reportCount 도 명시 초기화.
+        'readCount': letter.readCount,
+        'maxReaders': letter.maxReaders,
+        'reportCount': letter.reportCount,
         // Build 135: 쿠폰/교환권 필드 전체 동기화. 이전엔 누락돼 다른 기기에서
         // 주운 수신자가 할인 코드·교환권 이미지·유효기간을 볼 수 없었음.
         'category': letter.category.key,
@@ -3847,6 +3972,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       final serverIsBrand = map['isBrand'];
       if (serverIsBrand is bool && serverIsBrand && !_currentUser.isBrand) {
         _currentUser.isBrand = true;
+        updated = true;
+      }
+      // Build 409 (sim P1.32): admin 이 tier toggle 로 부여한 isPremium 을 대상
+      //   사용자 기기가 읽어오게 함 (이전엔 isBrand 만 복원 → admin Premium 부여가
+      //   대상에게 전달 안 됐음). grant-only — true 만 반영, RC 가 관리하는 만료/
+      //   취소(false 방향)는 절대 덮어쓰지 않아 유료 구독 충돌 없음.
+      final serverIsPremium = map['isPremium'];
+      if (serverIsPremium is bool &&
+          serverIsPremium &&
+          !_currentUser.isPremium) {
+        _currentUser.isPremium = true;
         updated = true;
       }
       final serverBrandName = map['brandName'];
@@ -3963,12 +4099,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (!_currentUser.isBrand) return null;
     if (!FirebaseConfig.kFirebaseEnabled) return null;
     try {
-      final docs = await FirestoreService.queryWhereEquals(
+      // Build 409 (sim P1.23): 실패(403/5xx/timeout)와 '발송 0건' 구분.
+      //   이전엔 queryWhereEquals 가 실패해도 빈 리스트 → 모든 합계 0 인
+      //   가짜 대시보드 반환 → 'offline, 재시도' 안내가 안 떴음.
+      final res = await FirestoreService.queryWhereEqualsResult(
         collectionId: 'letters',
         field: 'senderId',
         value: _currentUser.id,
         limit: 500,
       );
+      if (!res.ok) return null; // 네트워크/권한 실패 → UI offline 처리
+      final docs = res.docs;
       int totalSent = 0;
       int totalPicked = 0;
       int totalRedeemed = 0;
@@ -4036,6 +4177,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       int added = 0;
       for (final doc in docs) {
         final map = FirestoreService.fromFirestoreDoc(doc);
+        // Build 409 (sim P0.3): scrub/admin 삭제된 보낸편지는 복원하지 않음.
+        if (_isDeletedLetterStatus(map['status'])) continue;
         final letter = _letterFromFirestore(map);
         if (letter == null) continue;
         if (_sent.any((l) => l.id == letter.id)) continue;
@@ -4122,6 +4265,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _mapSyncTimer?.cancel();
     _syncTimer = null;
     _mapSyncTimer = null;
+    // Build 409 (sim P1.43): world-letter 동기화 timer(Build 408)도 정지 —
+    //   이전엔 로그아웃 후에도 30초마다 서버 fetch 가 계속 돌았음.
+    _worldLetterSyncTimer?.cancel();
+    _worldLetterSyncTimer = null;
     _syncStartedAt = null;
     _syncPaused = false;
   }
@@ -4203,6 +4350,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       int added = 0;
       for (final doc in docs) {
         final map = FirestoreService.fromFirestoreDoc(doc);
+        // Build 409 (sim P0.3): scrub/admin 삭제 letter 제외.
+        if (_isDeletedLetterStatus(map['status'])) continue;
         final letter = _letterFromFirestore(map);
         if (letter == null) continue;
         // 자기 자신이 보낸 편지는 제외
@@ -4212,6 +4361,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         if (_tempBlockedSenderIds.contains(letter.senderId)) continue;
         // 이미 처리한 편지 ID 는 빠르게 스킵 (O(1))
         if (_seenLetterIds.contains(letter.id)) continue;
+        // Build 409 (sim P1.45): 서버에서 이미 소진(정원도달/만료/차단)된 쿠폰은
+        //   지도/인박스에 재추가하지 않음 (QQ4 prune 일관성, over-redemption 방지).
+        if (letter.readCount >= letter.maxReaders ||
+            letter.isBlocked ||
+            letter.isExpired) continue;
 
         // 도착 상태에 따라 분배:
         //   - delivered → inbox (받은 편지함)
@@ -4349,6 +4503,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             : map['socialLink'] as String?,
         senderTier: senderTier,
         senderIsBrand: senderTier == LetterSenderTier.brand,
+        // Build 409 (sim P1.45): 소진 카운터 복원 — 위 소진 가드 + QQ4 prune 이
+        //   정확히 동작하도록. 이전엔 0/default 로 떨어져 over-redemption 가능.
+        readCount: (map['readCount'] as num?)?.toInt() ?? 0,
+        maxReaders:
+            (map['maxReaders'] as num?)?.toInt() ?? Letter.maxReadersDefault,
+        reportCount: (map['reportCount'] as num?)?.toInt() ?? 0,
       );
     } catch (e) {
       if (kDebugMode) debugPrint('[Firebase] 편지 파싱 실패: $e');
@@ -4558,6 +4718,19 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       _cachedLastKnownLat = 0.0;
       _cachedLastKnownLng = 0.0;
       _lastKnownCacheLoaded = false;
+      // Build 409 (sim P1.12): 차단/뮤트 in-memory set 도 reset (prefs 제거는
+      //   _clearUserScopedPrefs 가 처리하지만 in-memory 잔존 시 즉시 누수).
+      _blockedSenderIds.clear();
+      _tempBlockedSenderIds.clear();
+      _mutedBrandIds.clear();
+      // Build 409 (sim P2 L4603): _seenLetterIds dedup set 도 reset. 안 지우면
+      //   사용자 B 가 A 가 이미 본 letter id 를 'seen' 으로 취급해 B 에게 공유된
+      //   편지가 인박스/지도에 안 들어오는 silent drop 발생.
+      _seenLetterIds.clear();
+      // Build 409 (sim P1.44): 이전 사용자 프로필 사진이 다음 계정으로 넘어가지
+      //   않도록 null. 아래 UserProfile 재생성이 _currentUser.profileImagePath 를
+      //   복사하므로 여기서 끊어야 함.
+      _currentUser.profileImagePath = null;
       unawaited(_clearUserScopedPrefs());
     }
 
@@ -5290,6 +5463,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// 않은 채 세션만 종료되어, 다른 회원들의 지도에서 해당 타워가 누락되거나
   /// 오래된 좌표로 남는 문제가 발생한다.
   Future<void> snapshotUserForLogout() async {
+    // Build 409 (sim P1.43): 로그아웃 시 모든 서버 sync timer 정지 — 이전엔
+    //   타이머가 계속 돌아 로그아웃된 사용자 컨텍스트로 fetch/PATCH 가 발생.
+    stopServerSync();
     // Build 307: PurchaseService 도 같은 흐름에서 reset → 다음 사용자가 잔존
     // Premium 을 잠시라도 보지 않게. 그리고 prefs flush 완료까지 대기.
     try {
@@ -5562,9 +5738,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         _inviteRewardCredits = serverCredits;
         changed = true;
       }
-      if (_brandExtraMonthlyQuota != serverBrandExtraQuota) {
+      // Build 409 (sim P1.27): 유료 추가 quota 는 가산형 — 절대 줄이지 않음.
+      //   server < local 이면(예: 직전 grant 의 서버 write 실패) 서버 값으로
+      //   덮어쓰지 말고 로컬을 유지 + 서버를 끌어올림. server > local 이면
+      //   재설치 복구로 보고 서버 값 채택.
+      if (serverBrandExtraQuota > _brandExtraMonthlyQuota) {
         _brandExtraMonthlyQuota = serverBrandExtraQuota;
         changed = true;
+      } else if (serverBrandExtraQuota < _brandExtraMonthlyQuota) {
+        // 로컬이 더 큼 → 서버 stale. 로컬 유지 + 서버 보정 push.
+        unawaited(_saveUserToFirestore());
       }
       if (_brandExactDropCredits != serverExactDropCredits) {
         _brandExactDropCredits = serverExactDropCredits;
@@ -6397,6 +6580,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           'mask.fieldPaths=sentCount',
           'mask.fieldPaths=likeCount',
           'mask.fieldPaths=customTowerName',
+          // Build 408 (P1 fix): 타워 커스터마이즈 필드 — mask 에서 누락돼 있어
+          //   다른 사용자 타워가 항상 기본색(#FFD700)/기본 지붕·창문으로 렌더
+          //   되던 회귀. 파서(아래)가 이 키들을 읽으므로 mask 에 포함 필수.
+          'mask.fieldPaths=towerColor',
+          'mask.fieldPaths=towerAccentEmoji',
+          'mask.fieldPaths=towerRoofStyle',
+          'mask.fieldPaths=towerWindowStyle',
         ];
         if (pageToken.isNotEmpty) {
           params.add('pageToken=${Uri.encodeQueryComponent(pageToken)}');
@@ -6424,6 +6614,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             final fields = (doc['fields'] as Map<String, dynamic>?) ?? {};
             final id = extractDocId(doc, fields);
             if (id.isEmpty || id == _currentUser.id || !seenUserIds.add(id)) {
+              continue;
+            }
+            // Build 409 (sim P1.11): 차단한 사용자의 타워는 지도에서 제외.
+            //   이전엔 편지만 필터하고 타워 마커는 다음 fetchMapUsers 에서
+            //   재출현했음.
+            if (_blockedSenderIds.contains(id) ||
+                _tempBlockedSenderIds.contains(id)) {
               continue;
             }
 
@@ -7881,6 +8078,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (!_currentUser.isPremium && !_currentUser.isBrand) {
       return false;
     }
+    // Build 409 (sim P2 보안 L7948): 차단된 사용자 발송 차단 (state-level
+    //   defense-in-depth). 이전엔 UI 가드만 있어 우회 시 발송 가능했음. 모든
+    //   발송(reply 포함)이 이 함수로 합류하므로 여기서 한 번에 차단.
+    if (_currentUser.isBanned) {
+      return false;
+    }
     if (!_canSendLetterByDailyLimit()) {
       return false;
     }
@@ -8274,6 +8477,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   String _newCampaignId() =>
       'cmp_${DateTime.now().millisecondsSinceEpoch}_${_shortRandHex()}';
 
+  /// Build 409 (sim P1.22): compose 가 멀티콜 캠페인에 공유할 campaignId 를
+  ///   미리 생성하기 위한 public wrapper.
+  static String newCampaignIdPublic() =>
+      'cmp_${DateTime.now().millisecondsSinceEpoch}_${_shortRandHex()}';
+
   /// Build 334 (PR-S4): 가장 최근 발송 letter 의 redemptionCode 반환. compose
   /// 화면이 발송 직후 snackbar / dialog 에 코드 노출해 매장 POS 등록을 유도.
   /// bulk send 의 경우 100통 모두 동일 코드라 last letter 만 봐도 OK.
@@ -8366,6 +8574,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         // 튜토리얼 / 데모 seeding flag — 새 사용자가 튜토리얼 letter 못 받던 회귀
         'tutorial_letter_placed',
         'demo_letters_seeded_v1',
+        // Build 409 (sim P1.12): 차단/뮤트 목록 — 이전엔 global prefs 라
+        //   사용자 A 가 차단한 발신자를 B 가 그대로 상속 (privacy/UX 누수).
+        'blocked',
+        'temp_blocked',
+        'mutedBrandIds',
+        // Build 409 (sim P2 L8393): 편지 컬렉션 prefs 도 제거 — in-memory 는
+        //   isNewUser 에서 clear 하지만 prefs 키가 남으면 다음 loadFromPrefs
+        //   가 사용자 A 의 인박스/보낸함/지도편지를 B 에게 복원 (데이터 누수).
+        'inbox',
+        'sent',
+        'worldLettersIncoming',
       ];
       for (final key in userScopedKeys) {
         await prefs.remove(key);
@@ -8411,13 +8630,22 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     DateTime? redemptionExpiresAt,
     double? preciseLat,
     double? preciseLng,
+    // Build 409 (sim P1.22): 호출자가 캠페인 전체에 공유할 campaignId 를 주입.
+    //   express random blast 는 count:1 로 여러 번 호출되는데, 이전엔 매 호출이
+    //   _newCampaignId() 로 자기만의 id 를 만들어 brandUniquePerUser dedup
+    //   (같은 campaignId 1개만 픽업)이 깨졌음. null 이면 기존처럼 자체 생성.
+    String? campaignId,
   }) async {
     if (!_currentUser.isBrand) return 0;
+    // Build 409 (sim P2 보안 L7948): 차단된 Brand 도 express+bulk 발송 차단.
+    if (_currentUser.isBanned) return 0;
 
     const expressTotalMin = 5; // 특송: 5분 즉시 배송
     final now = DateTime.now();
     // Build 324: brandUniquePerUser=true 면 이 blast 전체에 공통 campaignId.
-    final blastCampaignId = brandUniquePerUser ? _newCampaignId() : null;
+    // Build 409 (sim P1.22): 주입된 campaignId 우선 (멀티콜 캠페인 공유).
+    final blastCampaignId =
+        brandUniquePerUser ? (campaignId ?? _newCampaignId()) : null;
     final fromCity = LatLng(_currentUser.latitude, _currentUser.longitude);
     // 실제 위치 기반 발신국 (호주 여행 중인 한국 회원도 호주 발송으로 표시)
     final geoSvc = GeocodingService.instance;
@@ -8489,7 +8717,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       );
       _rebalanceSegmentEstimatedMinutes(segments, expressTotalMin);
 
-      final id = 'bx_${now.millisecondsSinceEpoch}_$i';
+      // Build 409 (sim P1.21): 랜덤 suffix 추가 — 같은 ms 에 생성되는 blast
+      //   letter 들의 id 충돌(bx_<ms>_<i> 가 두 blast 간 겹침) 방지.
+      final id = 'bx_${now.millisecondsSinceEpoch}_${i}_${_shortRandHex()}';
       final letter = Letter(
         id: id,
         senderId: _currentUser.id,
@@ -8534,6 +8764,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
       _worldLetters.add(letter);
       _sent.add(letter);
+      // Build 409 (sim P0.1): express+bulk 캠페인 쿠폰을 Firestore 에 업로드.
+      //   이전엔 _worldLetters/_sent 에만 추가해 발신자 기기에만 존재 → 다른
+      //   사용자 지도/인박스(서버 fetch)에 절대 안 보이고 픽업 불가. 일반 bulk
+      //   (sendBulkLetter)는 sendLetter 경유로 이미 업로드되지만 express 모드는
+      //   이 경로를 타서 누락됐음. 단건 sendLetter(line 8217)와 동일하게 저장.
+      unawaited(_saveLetterToFirestore(letter));
       _consumeDailyQuota();
       if (imageUrl != null) _consumeImageQuota();
       _currentUser.activityScore.sentCount++;
@@ -8717,7 +8953,22 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
     // ⑦ Firestore 클레임 등록 (Firebase 활성화 시, 선착순 기록)
     if (FirebaseConfig.kFirebaseEnabled) {
-      _claimLetterOnFirestore(letter.id);
+      // Build 409 (sim P1.3): 단일 슬롯 claim 은 maxReaders==1 (진짜 선착순
+      //   1인 쿠폰) 에만 적용. 이전엔 maxReaders=3 letter 도 claim 을 걸어,
+      //   claim 메커니즘이 활성화될 경우 2·3번째 픽업자가 412 로 rollback 되어
+      //   3인 픽업이 깨지는 잠재 버그. 다인 letter 는 readCount 증가 + prune 로
+      //   소진 관리.
+      if (letter.maxReaders == 1) _claimLetterOnFirestore(letter.id);
+      // Build 408 (QQ4): 모든 픽업에 letters.readCount 원자적 +1. 다른 사용자
+      //   클라이언트가 syncWorldLettersFromServer 에서 readCount>=maxReaders
+      //   판정 → 소진된 쿠폰을 지도에서 제거 가능 (이전엔 brand 만 pickupCount
+      //   증가 → 일반 letter 의 cross-user 소진 동기화 불가).
+      unawaited(
+        FirestoreService.incrementField(
+          path: 'letters/${letter.id}',
+          field: 'readCount',
+        ),
+      );
       // Build 138: 브랜드 편지 픽업 집계 — 브랜드 대시보드에서 impression
       // 숫자로 노출. 원자적 증감 (`:commit` fieldTransforms.increment).
       if (letter.senderIsBrand) {
@@ -8744,10 +8995,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         '${FirebaseConfig.firestoreBase}/claimedLetters/$letterId'
         '?currentDocument.exists=false',
       );
+      // Build 409 (sim P1.28): 인증 토큰 부착 — claimedLetters 도 rule 적용 시
+      //   isSignedIn() 필요. 이전엔 apiKey 없는 raw PATCH 라 rule 평가 자체가
+      //   불가했음. (claimedLetters rule 자체 추가는 firestore.rules 배포 필요 —
+      //   백로그.)
+      await FirebaseAuthService.ensureValidToken();
       final response = await http
           .patch(
             url,
-            headers: {'Content-Type': 'application/json'},
+            headers: FirestoreService.authHeaders,
             body: jsonEncode({
               'fields': {
                 'claimedBy': {'stringValue': _currentUser.id},
@@ -8776,6 +9032,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _inbox.removeWhere((l) => l.id == letterId);
     if (_inbox.length == before) return; // 이미 없음 (사용자가 삭제 등) — no-op
     _myPickedUpLetterIds.remove(letterId);
+    // Build 409 (sim P1.4): rollback 시 픽업 쿨다운 해제. 이전엔 optimistic
+    //   픽업 때 _lastNearbyPickupAt 가 찍혀, claim 패배(못 받음)에도 사용자가
+    //   60분 쿨다운에 묶여 "받지도 못한 편지" 때문에 다음 픽업이 막혔음.
+    _lastNearbyPickupAt = null;
     _pickupRolledBackLetterId = letterId;
     if (kDebugMode) {
       debugPrint('[pickUp] rollback — Firestore claim lost: $letterId');
@@ -8885,11 +9145,27 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       final serverContent = (map['content'] as String?)?.trim() ?? '';
       final serverRed = (map['redemptionInfo'] as String?)?.trim() ?? '';
       final serverImg = (map['imageUrl'] as String?)?.trim() ?? '';
+      // Build 409 (sim P1.2): 서버 doc 의 category 를 진실로 사용. map sync 가
+      //   category 를 마스킹했던 시절 픽업된 쿠폰은 local category=general 로
+      //   떨어져 redemption 게이트(needsRedemption)가 안 걸려 코드가 영영 빈
+      //   채로 남았음. 서버 category 로 재판정 → 할인코드 정상 복원.
+      final serverCategory = map['category'] != null
+          ? LetterCategoryExt.fromKey(map['category'] as String?)
+          : letter.category;
+      final serverIsBrandRaw = map['senderIsBrand'] as bool?;
+      final effectiveCategory = serverCategory;
 
       final fillContent = needsContent && serverContent.isNotEmpty;
-      final fillRed = needsRedemption && serverRed.isNotEmpty;
-      final fillImg = needsImage && serverImg.isNotEmpty;
-      if (!fillContent && !fillRed && !fillImg) return false;
+      // 서버 category 기준으로 redemption 필요 여부 재계산 (local stale 무시).
+      final fillRed = effectiveCategory != LetterCategory.general &&
+          serverRed.isNotEmpty &&
+          (letter.redemptionInfo == null || letter.redemptionInfo!.isEmpty);
+      final fillImg = (needsImage ||
+              effectiveCategory == LetterCategory.voucher) &&
+          serverImg.isNotEmpty &&
+          (letter.imageUrl == null || letter.imageUrl!.isEmpty);
+      final fixCategory = effectiveCategory != letter.category;
+      if (!fillContent && !fillRed && !fillImg && !fixCategory) return false;
 
       // Letter 필드 대부분 final — clone 후 신규 인스턴스로 교체. mutate 된
       // inbox 전용 status/readAt 은 유지.
@@ -8930,7 +9206,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         deliveryEmoji: letter.deliveryEmoji,
         hasReplied: letter.hasReplied,
         imageUrl: fillImg ? serverImg : letter.imageUrl,
-        senderIsBrand: letter.senderIsBrand,
+        // Build 409 (sim P1.2): 서버 senderIsBrand 우선 (마스킹 시절 false 로
+        //   떨어진 경우 보정). null 이면 local 유지.
+        senderIsBrand: serverIsBrandRaw ?? letter.senderIsBrand,
         senderTier: letter.senderTier,
         brandUniquePerUser: letter.brandUniquePerUser,
         // Build 324: refetch 시 campaignId / 기타 누락 필드도 보존.
@@ -8939,7 +9217,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         categoryTag: letter.categoryTag,
         redeemedAt: letter.redeemedAt,
         expiresAt: letter.expiresAt,
-        category: letter.category,
+        // Build 409 (sim P1.2): 서버 category 로 교정 (코드 reveal 게이트 정상화).
+        category: effectiveCategory,
         acceptsReplies: letter.acceptsReplies,
         redemptionInfo: fillRed ? serverRed : letter.redemptionInfo,
         redemptionExpiresAt: letter.redemptionExpiresAt,
@@ -9302,6 +9581,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         reason: reason,
         reportCount: letter.reportCount,
       );
+      // Build 409 (sim P1.9): canonical letter doc 의 reportCount 도 원자적 +1.
+      //   이전엔 reports 컬렉션에만 기록 → 다른 사용자 클라이언트의
+      //   syncWorldLettersFromServer 가 reportCount 를 못 봐서 cross-user
+      //   차단(QQ4 prune)이 작동 안 했음. pickup readCount 증가와 동일 패턴.
+      unawaited(
+        FirestoreService.incrementField(
+          path: 'letters/$letterId',
+          field: 'reportCount',
+        ),
+      );
     }
 
     // ④ 3회 이상 누적 시 영구 차단으로 승격
@@ -9626,9 +9915,13 @@ class BrandAnalytics {
   });
 
   /// 픽업 대비 사용 전환율 (0.0 ~ 1.0). picks 가 0 이면 0.
-  double get redeemConversion =>
-      totalPicked == 0 ? 0 : totalRedeemed / totalPicked;
+  /// Build 409 (sim P2 L9710): 0..1 clamp — 카운터 race(redeemed>picked /
+  ///   pickup>sent)로 비율이 1 초과 시 230% 같은 비정상 표기 방지.
+  double get redeemConversion => totalPicked == 0
+      ? 0
+      : (totalRedeemed / totalPicked).clamp(0.0, 1.0);
 
   /// 발송 대비 픽업률 (reach — 얼마나 주워졌는지).
-  double get pickupReach => totalSent == 0 ? 0 : totalPicked / totalSent;
+  double get pickupReach =>
+      totalSent == 0 ? 0 : (totalPicked / totalSent).clamp(0.0, 1.0);
 }

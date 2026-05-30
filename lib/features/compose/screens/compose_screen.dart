@@ -92,6 +92,11 @@ class _ComposeScreenState extends State<ComposeScreen>
   // Build 229: 사진+링크 첨부 카드 onTap → 첨부 영역으로 스크롤 + 토글 활성화.
   final GlobalKey _attachAreaKey = GlobalKey();
   bool _isSending = false;
+  // Build 407 (PR-QQ1): draft 버리기 후 autoSaveTimer 가 _selectedCountry 등
+  //   기본값으로 brand draft 재저장 → 다음 진입 시 "이어쓰기" 무한 재출현
+  //   회귀. discard 시 true 설정 → _saveDraft / autoSave 가 skip. 사용자가
+  //   본문 타이핑을 다시 시작하면 false 로 해제.
+  bool _draftDiscarded = false;
   int _charCount = 0;
   String? _imageFilePath; // 첨부 이미지 경로 (프리미엄)
   bool _isCompressingImage = false;
@@ -619,6 +624,15 @@ class _ComposeScreenState extends State<ComposeScreen>
       // 있으면 저장 (이전엔 text 비면 저장 안 해서 bulk/express 상태가 휘발).
       _autoSaveTimer = Timer.periodic(const Duration(seconds: 3), (_) {
         if (_isSending) return;
+        // Build 407 (PR-QQ1): discard 직후 재저장 차단. 본문이 실제로 있을
+        //   때만 discard 해제 (사용자가 새로 작성 시작).
+        if (_draftDiscarded) {
+          if (_contentController.text.isNotEmpty) {
+            _draftDiscarded = false;
+          } else {
+            return;
+          }
+        }
         if (_contentController.text.isNotEmpty ||
             _isBulkMode ||
             _isExpressMode ||
@@ -632,6 +646,13 @@ class _ComposeScreenState extends State<ComposeScreen>
 
   /// Build 189: 브랜드 필드까지 저장. 창 닫아도 모드/나라 선택이 유지되도록.
   void _saveDraft() {
+    // Build 408 (QQ1 후속 회귀): discard 후 dispose() 가 _saveDraft 를 무조건
+    //   호출 (line 985). _clearDraft 가 _selectedCountry 등 brand state 를
+    //   남겨둬서 hasState=true → compose_draft_brand 재생성 → 다음 진입 시
+    //   "이어쓰기" 다이얼로그 무한 재출현. autoSaveTimer 는 _draftDiscarded 로
+    //   막았지만 dispose 경로가 누락됐었음. 본문이 비어 있고 discard 된
+    //   상태면 저장 skip (사용자가 새로 타이핑하면 _draftDiscarded 해제됨).
+    if (_draftDiscarded && _contentController.text.isEmpty) return;
     SharedPreferences.getInstance().then((prefs) {
       final text = _contentController.text;
       if (text.isEmpty) {
@@ -763,6 +784,24 @@ class _ComposeScreenState extends State<ComposeScreen>
   }
 
   void _clearDraft() {
+    // Build 407 (PR-QQ1): discard flag 설정 + in-memory state reset.
+    //   prefs.remove 만으로는 autoSaveTimer 가 다음 tick 에서 _selectedCountry
+    //   기본값으로 brand draft 재생성 → "이어쓰기" 무한 재출현. flag 로 차단 +
+    //   복원 안 한 mode state 도 명시적 clear.
+    _draftDiscarded = true;
+    _isBulkMode = false;
+    _isExpressMode = false;
+    _bulkTargets.clear();
+    _contentController.clear();
+    _charCount = 0;
+    // Build 408 (QQ1 후속): 목적지/Exact 상태도 reset. 이전엔 _selectedCountry
+    //   가 남아 hasState=true → dispose 의 _saveDraft 가 brand draft 부활.
+    _selectedCountry = '';
+    _selectedFlag = '';
+    _selectedCity = '';
+    _destLat = 0.0;
+    _destLng = 0.0;
+    _isExactDropped = false;
     SharedPreferences.getInstance().then((prefs) {
       prefs.remove('compose_draft');
       prefs.remove('compose_draft_brand');
@@ -969,6 +1008,13 @@ class _ComposeScreenState extends State<ComposeScreen>
   }
 
   // ── 이미지 첨부 (프리미엄 전용) ───────────────────────────────────────────
+  // Build 409 (sim P1.15): 첨부 이미지는 업로드 후 HTTPS URL 일 수도, 업로드 전/
+  //   실패 시 로컬 경로일 수도 있다. 미리보기가 양쪽 모두 렌더하도록 provider 분기.
+  static ImageProvider _attachImageProvider(String pathOrUrl) =>
+      pathOrUrl.startsWith('http')
+          ? NetworkImage(pathOrUrl)
+          : FileImage(File(pathOrUrl)) as ImageProvider;
+
   Future<void> _pickImage(AppState state, PurchaseService purchase) async {
     final hasPremium =
         purchase.isPremium ||
@@ -1020,8 +1066,33 @@ class _ComposeScreenState extends State<ComposeScreen>
       // `result?.path ?? picked.path` 로 EXIF 원본 (GPS 좌표 포함) 을 그대로
       // 첨부하던 누출 경로. compress 가 null/throw 면 첨부 거부 + 사용자 알림.
       if (result?.path == null) throw StateError('compressAndGetFile returned null');
+      // 압축본 로컬 경로 — 즉시 썸네일 미리보기.
       setState(() {
         _imageFilePath = result!.path;
+      });
+      // Build 409 (sim P1.15): 압축본을 Firebase Storage 에 업로드 → HTTPS URL 로
+      //   교체. 이전엔 로컬 경로가 imageUrl 로 저장돼 다른 기기 수신자는 항상
+      //   placeholder 만 봤음 (사진이 발신 기기에만 존재). voucher 흐름과 동일
+      //   패턴. 업로드 실패 시 로컬 경로 유지 (같은 기기 테스트는 가능).
+      try {
+        final uploadPath = StorageService.letterImagePath(
+          'letter_${DateTime.now().millisecondsSinceEpoch}',
+        );
+        if (uploadPath.isNotEmpty) {
+          final url = await StorageService.uploadImage(
+            file: File(result!.path),
+            path: uploadPath,
+          );
+          if (!mounted) return;
+          if (url != null && url.isNotEmpty) {
+            _imageFilePath = url;
+          }
+        }
+      } catch (_) {
+        // 업로드 실패 — 로컬 경로 유지.
+      }
+      if (!mounted) return;
+      setState(() {
         _isCompressingImage = false;
       });
     } catch (e) {
@@ -1289,6 +1360,12 @@ class _ComposeScreenState extends State<ComposeScreen>
       //   for 본체 await 가 throw 하면 outer for 도 함께 break — totalSent 만큼만
       //   정상 발송됨.
       int totalSent = 0;
+      // Build 409 (sim P1.22): 이 발송 액션 전체가 공유할 campaignId 1개 생성.
+      //   brandUniquePerUser 캠페인이 여러 sendBrandExpressBlast 호출(랜덤 국가
+      //   루프 / 멀티 타깃)로 쪼개져도 같은 campaignId 를 공유 → 사용자당 1개
+      //   픽업 dedup 정상 동작.
+      final sharedCampaignId =
+          _brandUniquePerUser ? AppState.newCampaignIdPublic() : null;
       try {
       if (_isBulkRandom) {
         // 랜덤 국가 특송: 매 편지마다 랜덤 국가 선택
@@ -1316,6 +1393,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                 ? null
                 : _redemptionInfoController.text.trim(),
             redemptionExpiresAt: _computeRedemptionExpiresAt(),
+            campaignId: sharedCampaignId,
           );
           totalSent += sent;
           if (sent == 0) break; // 한도 초과 시 중단
@@ -1351,6 +1429,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                 ? null
                 : _redemptionInfoController.text.trim(),
             redemptionExpiresAt: _computeRedemptionExpiresAt(),
+            campaignId: sharedCampaignId,
             preciseLat: preciseLat,
             preciseLng: preciseLng,
           );
@@ -1565,6 +1644,11 @@ class _ComposeScreenState extends State<ComposeScreen>
     }
 
     if (!sent) {
+      // Build 409 (sim P2 L1543): 발송 실패 시 위에서 차감한 ExactDrop 크레딧
+      //   환불 (베타는 no-op). 이전엔 차감만 되고 환불 없어 유료 크레딧 손실.
+      if (_isExactDropped && !_isReply) {
+        unawaited(state.refundExactDropCredit());
+      }
       if (mounted) {
         setState(() => _isSending = false);
         _sendController.reset();
@@ -1573,6 +1657,12 @@ class _ComposeScreenState extends State<ComposeScreen>
           errMsg = state.premiumExpressLimitExceededMessage;
         } else if (_imageFilePath != null && !state.hasRemainingImageQuota) {
           errMsg = state.imageLimitExceededMessage;
+        } else if (!state.hasRemainingMonthlyQuota &&
+            state.hasRemainingDailyQuota) {
+          // Build 409 (sim P1.8): 월간 한도 소진(일간은 남음)이면 월간 메시지를
+          //   보여줘야 함. 이전엔 무조건 dailyLimitExceededMessage 라 "오늘
+          //   한도 초과" 로 잘못 안내됐음.
+          errMsg = state.monthlyLimitExceededMessage;
         } else {
           errMsg = state.dailyLimitExceededMessage;
         }
@@ -1722,15 +1812,21 @@ class _ComposeScreenState extends State<ComposeScreen>
     final langCode = state.currentUser.languageCode;
     final l = AppL10n.of(langCode);
 
-    // Build 189: 디버그/테스트 빌드 에서는 크레딧 0 이어도 ExactDrop 을 열 수
-    // 있게 자동 부여 5 통. 개발자/QA 가 실결제 없이 UX 검증 가능.
-    if (kDebugMode &&
+    // Build 189 → 408 (QQ6): 디버그뿐 아니라 모든 beta/TestFlight 빌드에서
+    //   크레딧 0 인 Brand 가 ExactDrop 진입 시 자동 충전 10통. 테스터가
+    //   실결제 없이 정밀 발송을 끝까지 체험 (이전엔 kDebugMode 한정이라
+    //   TestFlight 에서 "자동 구매 안 됨" 회귀). production 출시 빌드
+    //   (isBetaBuild=false) 는 정상 결제 유도.
+    if (state.isBetaBuild &&
         state.currentUser.isBrand &&
         state.brandExactDropCredits == 0) {
-      await state.adminGrantExactDropCredits(5);
+      await state.adminGrantExactDropCredits(10);
     }
 
     // 크레딧 체크 — 0 이면 유료 안내 다이얼로그로 이탈.
+    // Build 408 (QQ6): beta/TestFlight 빌드의 Brand 는 위 auto-grant + 기존
+    //   exactDropFreeForBeta 로 canUseExactDrop=true 라 여기 진입 안 함 (자동
+    //   사용). production/비-Brand 만 paywall 진입 — 정상 결제 유도.
     if (!state.canUseExactDrop) {
       // Build 325 (T4): 50 / 100 / 500 통 3 티어 선택 paywall. 시범 운영 사장
       //   (50, ₩6,000) / 정착 사장 (100, ₩10,000) / 대량 (500, ₩40,000) 양극화.
@@ -2233,6 +2329,11 @@ class _ComposeScreenState extends State<ComposeScreen>
     AppState state,
     AppL10n l,
   ) async {
+    // Build 409 (sim P1.20): 스토어 현지화 가격(priceString) 우선, 미로드 시
+    //   하드코딩 KRW fallback. unitLabel 은 통화 불일치 방지 위해 수량 라벨로.
+    final purchase = ctx.read<PurchaseService>();
+    String priceFor(String productId, String krwFallback) =>
+        purchase.localizedPriceFor(productId) ?? krwFallback;
     await showDialog<void>(
       context: ctx,
       builder: (dCtx) => AlertDialog(
@@ -2271,24 +2372,24 @@ class _ComposeScreenState extends State<ComposeScreen>
             const SizedBox(height: 14),
             _ExactDropTierButton(
               qty: 50,
-              priceLabel: '₩6,000',
-              unitLabel: '통당 ₩120',
+              priceLabel: priceFor(PurchaseProductIds.exactDrop50, '₩6,000'),
+              unitLabel: l.koEn('정밀 발송 50회', '50 ExactDrops'),
               best: false,
               onTap: () => _purchaseExactDropTier(dCtx, 50),
             ),
             const SizedBox(height: 8),
             _ExactDropTierButton(
               qty: 100,
-              priceLabel: '₩10,000',
-              unitLabel: '통당 ₩100',
+              priceLabel: priceFor(PurchaseProductIds.exactDrop100, '₩10,000'),
+              unitLabel: l.koEn('정밀 발송 100회', '100 ExactDrops'),
               best: true,
               onTap: () => _purchaseExactDropTier(dCtx, 100),
             ),
             const SizedBox(height: 8),
             _ExactDropTierButton(
               qty: 500,
-              priceLabel: '₩40,000',
-              unitLabel: '통당 ₩80',
+              priceLabel: priceFor(PurchaseProductIds.exactDrop500, '₩40,000'),
+              unitLabel: l.koEn('정밀 발송 500회', '500 ExactDrops'),
               best: false,
               onTap: () => _purchaseExactDropTier(dCtx, 500),
             ),
@@ -4758,8 +4859,8 @@ class _ComposeScreenState extends State<ComposeScreen>
                     const SizedBox(height: 10),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.file(
-                        File(_imageFilePath!),
+                      child: Image(
+                        image: _attachImageProvider(_imageFilePath!),
                         height: 140,
                         width: double.infinity,
                         fit: BoxFit.cover,
@@ -5953,8 +6054,8 @@ class _ComposeScreenState extends State<ComposeScreen>
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: Image.file(
-            File(_imageFilePath!),
+          child: Image(
+            image: _attachImageProvider(_imageFilePath!),
             height: 160,
             width: double.infinity,
             fit: BoxFit.cover,
@@ -6888,8 +6989,11 @@ class _ComposeScreenState extends State<ComposeScreen>
     //   Brand 일반 letter 도 20자 enforce — UI 일관성.
     final isReplyOrCoupon = _isReply || _attachRedemptionCode;
     final minChars = isReplyOrCoupon ? 1 : 20;
+    // Build 409 (sim P1.8): 일간뿐 아니라 월간 한도까지 본 canSendByQuota 사용.
+    //   이전엔 hasRemainingDailyQuota 만 봐서 월간 소진 시 버튼 활성 → 발송
+    //   실패 friction.
     final canSend =
-        !_isSending && _charCount >= minChars && state.hasRemainingDailyQuota;
+        !_isSending && _charCount >= minChars && state.canSendByQuota;
     final expressQuotaSuffix =
         (!_isReply &&
             _isExpressMode &&

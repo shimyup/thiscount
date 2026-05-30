@@ -3069,10 +3069,16 @@ class _PreferredCategoryCard extends StatelessWidget {
     final unlocked = state.isCategoryPreferenceUnlocked;
     final selected = state.preferredCategory;
     final level = state.currentLevel;
+    // Build 409 (sim P2 L3161): 비-Korean Premium 사용자에게 한국어로만 보이던
+    //   카테고리 선호 카드 문구 현지화.
+    final l = AppL10n.of(user.languageCode);
 
     final lockReason = !user.isPremium
-        ? '🔒 Premium 가입 후 Lv 11 부터'
-        : (level < 11 ? '🔒 Lv $level → Lv 11 도달 시 잠금 해제' : null);
+        ? l.koEn('🔒 Premium 가입 후 Lv 11 부터', '🔒 Premium + Lv 11 required')
+        : (level < 11
+            ? l.koEn('🔒 Lv $level → Lv 11 도달 시 잠금 해제',
+                '🔒 Lv $level → unlocks at Lv 11')
+            : null);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -3129,8 +3135,9 @@ class _PreferredCategoryCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             unlocked
-                ? '브랜드가 보낸 편지 중 선택 카테고리의 픽업 확률이 올라가요.'
-                : (lockReason ?? '잠금 해제'),
+                ? l.koEn('브랜드가 보낸 편지 중 선택 카테고리의 픽업 확률이 올라가요.',
+                    'Boosts pickup odds for your chosen category from brands.')
+                : (lockReason ?? l.koEn('잠금 해제', 'Unlock')),
             style: const TextStyle(
               color: AppColors.textMuted,
               fontSize: 12,
@@ -3158,15 +3165,19 @@ class _PreferredCategoryCard extends StatelessWidget {
                         if (!user.isPremium) {
                           PremiumGateSheet.show(
                             context,
-                            featureName: '카테고리 선호 부스트',
+                            featureName: l.koEn(
+                                '카테고리 선호 부스트', 'Category preference boost'),
                             featureEmoji: '🎯',
-                            description:
+                            description: l.koEn(
                                 'Premium 가입 후 Lv 11 도달 시, 받고 싶은 혜택 카테고리를 지정하면 매칭 확률이 올라갑니다.',
+                                'At Premium + Lv 11, pick a benefit category to raise your match odds.'),
                           );
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Lv 11 도달 후 잠금 해제 (현재 Lv $level)'),
+                              content: Text(l.koEn(
+                                  'Lv 11 도달 후 잠금 해제 (현재 Lv $level)',
+                                  'Unlocks at Lv 11 (currently Lv $level)')),
                               behavior: SnackBarBehavior.floating,
                             ),
                           );
