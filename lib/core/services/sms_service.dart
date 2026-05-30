@@ -1,138 +1,86 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../config/firebase_config.dart';
+import 'firebase_auth_service.dart';
+import 'firestore_service.dart';
 
-/// Twilio REST API를 사용한 SMS 발송 서비스.
+/// SMS 발송 서비스 — Cloud Function relay 경유.
 ///
-/// 빌드 시 dart-define 으로 인증 정보를 주입:
-///   --dart-define=TWILIO_ACCOUNT_SID=ACxxxxxxxxxx
-///   --dart-define=TWILIO_AUTH_TOKEN=xxxxxxxxxx
-///   --dart-define=TWILIO_FROM_NUMBER=+1xxxxxxxxxx
+/// Build 412 (PII sim CRITICAL fix): 이전엔 Twilio Account SID/Auth Token 을
+/// 클라이언트 바이너리에 컴파일해 직접 Twilio REST 를 호출했음. 키 추출 시
+/// 임의 SMS 발송(요금 폭탄/스미싱) 가능. 이제 키는 Cloud Function
+/// (`sendAuthSms`) 서버에만 있고, 클라이언트는 함수 URL(비밀 아님)로 ID 토큰 +
+/// {to, code} 만 전달 → 함수가 토큰 검증 + 고정 OTP 템플릿으로만 발송.
+/// 함수 URL 미설정 시 발송 스킵(null) → on-screen OTP fallback.
 class SmsService {
   SmsService._();
 
-  /// Twilio 설정이 유효한지 확인
-  static bool get isConfigured =>
-      FirebaseConfig.twilioAccountSid.isNotEmpty &&
-      FirebaseConfig.twilioAuthToken.isNotEmpty &&
-      FirebaseConfig.twilioFromNumber.isNotEmpty;
+  /// SMS relay 가 설정돼 있는지 (함수 URL 존재).
+  static bool get isConfigured => FirebaseConfig.isSmsProviderEnabled;
 
-  /// SMS 발송.
-  /// 성공 시 null 반환, 실패 시 에러 메시지 반환.
-  static Future<String?> sendSms({
-    required String to,
-    required String body,
-  }) async {
-    if (!isConfigured) {
-      assert(() {
-        debugPrint('[SmsService] Twilio 미설정 — SMS 발송 스킵');
-        return true;
-      }());
-      // 개발 환경에서 Twilio 미설정 시 성공 처리 (OTP는 화면에 표시)
-      return null;
-    }
-
-    final accountSid = FirebaseConfig.twilioAccountSid;
-    final authToken = FirebaseConfig.twilioAuthToken;
-    final fromNumber = FirebaseConfig.twilioFromNumber;
-
-    final url = Uri.parse(
-      'https://api.twilio.com/2010-04-01/Accounts/$accountSid/Messages.json',
-    );
-
-    final credentials = base64Encode(utf8.encode('$accountSid:$authToken'));
-
-    try {
-      final response = await http.post(
-        url,
-        headers: {
-          'Authorization': 'Basic $credentials',
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: {
-          'To': to,
-          'From': fromNumber,
-          'Body': body,
-        },
-      ).timeout(const Duration(seconds: 15));
-
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        assert(() {
-          debugPrint('[SmsService] SMS 발송 성공: ${_maskPhone(to)}');
-          return true;
-        }());
-        return null; // 성공
-      }
-
-      // 에러 처리
-      // Build 309: response.body 가 비-JSON (예: 503 plain HTML) 일 때
-      // jsonDecode throw → 외부 catch 로 떨어지지만 사용자에게 raw 예외
-      // 노출됨. tryDecode 패턴으로 다듬어 'Unknown error' fallback.
-      String errorMsg = 'Unknown error';
-      try {
-        final errorBody = jsonDecode(response.body);
-        if (errorBody is Map && errorBody['message'] is String) {
-          errorMsg = errorBody['message'] as String;
-        }
-      } catch (_) {/* 비-JSON 응답 — fallback 메시지 유지 */}
-      assert(() {
-        debugPrint('[SmsService] SMS 발송 실패 (${response.statusCode}): $errorMsg');
-        return true;
-      }());
-      return 'SMS sending failed: $errorMsg';
-    } catch (e) {
-      assert(() {
-        debugPrint('[SmsService] SMS 발송 예외: $e');
-        return true;
-      }());
-      return 'SMS sending failed: ${e.toString()}';
-    }
-  }
-
-  /// OTP 코드를 SMS로 발송.
+  /// OTP 코드를 SMS로 발송 (relay 경유).
   /// [phoneNumber]는 국가번호 포함 E.164 형식 (예: +821012345678)
   static Future<String?> sendOtp({
     required String phoneNumber,
     required String code,
     String langCode = 'en',
-  }) {
-    final message = _otpMessage(code, langCode);
-    return sendSms(to: phoneNumber, body: message);
+  }) async {
+    if (!isConfigured) {
+      assert(() {
+        debugPrint('[SmsService] relay 미설정 — SMS 발송 스킵 (화면 노출 fallback)');
+        return true;
+      }());
+      return null;
+    }
+    try {
+      await FirebaseAuthService.ensureValidToken();
+      final response = await http
+          .post(
+            Uri.parse(FirebaseConfig.authSmsFnUrl),
+            headers: FirestoreService.authHeaders,
+            body: jsonEncode({
+              'to': phoneNumber,
+              'code': code,
+              'langCode': langCode,
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        assert(() {
+          debugPrint('[SmsService] relay 발송 성공: ${_maskPhone(phoneNumber)}');
+          return true;
+        }());
+        return null;
+      }
+      assert(() {
+        debugPrint('[SmsService] relay 실패 (${response.statusCode})');
+        return true;
+      }());
+      return _networkErrorMsg(langCode);
+    } on SocketException {
+      return _networkErrorMsg(langCode);
+    } on TimeoutException {
+      return _networkErrorMsg(langCode);
+    } catch (e) {
+      assert(() {
+        debugPrint('[SmsService] relay 예외: $e');
+        return true;
+      }());
+      return _networkErrorMsg(langCode);
+    }
   }
 
-  /// 언어별 OTP 메시지 생성
-  static String _otpMessage(String code, String langCode) {
-    switch (langCode) {
-      case 'ko':
-        return '[Thiscount] 인증번호: $code (10분 유효)';
-      case 'ja':
-        return '[Thiscount] 認証コード: $code（10分間有効）';
-      case 'zh':
-        return '[Thiscount] 验证码: $code（10分钟有效）';
-      case 'fr':
-        return '[Thiscount] Code de vérification: $code (valide 10 min)';
-      case 'de':
-        return '[Thiscount] Bestätigungscode: $code (10 Min. gültig)';
-      case 'es':
-        return '[Thiscount] Código de verificación: $code (válido 10 min)';
-      case 'pt':
-        return '[Thiscount] Código de verificação: $code (válido por 10 min)';
-      case 'ru':
-        return '[Thiscount] Код подтверждения: $code (действителен 10 мин)';
-      case 'tr':
-        return '[Thiscount] Doğrulama kodu: $code (10 dk geçerli)';
-      case 'ar':
-        return '[Thiscount] رمز التحقق: $code (صالح لمدة 10 دقائق)';
-      case 'it':
-        return '[Thiscount] Codice di verifica: $code (valido 10 min)';
-      case 'hi':
-        return '[Thiscount] सत्यापन कोड: $code (10 मिनट के लिए वैध)';
-      case 'th':
-        return '[Thiscount] รหัสยืนยัน: $code (ใช้ได้ 10 นาที)';
-      default:
-        return '[Thiscount] Verification code: $code (valid for 10 min)';
-    }
+  static String _networkErrorMsg(String langCode) {
+    const m = <String, String>{
+      'ko': 'SMS 발송 실패: 네트워크 연결을 확인해주세요.',
+      'en': 'Failed to send SMS. Please check your connection.',
+      'ja': 'SMS送信失敗: ネットワーク接続を確認してください。',
+      'zh': '短信发送失败：请检查网络连接。',
+    };
+    return m[langCode] ?? m['en']!;
   }
 
   /// E.164 형식으로 전화번호 정규화.

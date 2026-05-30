@@ -55,75 +55,33 @@ class FirebaseConfig {
   static String get fcmBase =>
       'https://fcm.googleapis.com/v1/projects/$projectId/messages:send';
 
-  // ── Twilio SMS 설정 ──────────────────────────────────────────────────────
-  // 빌드 시 dart-define 으로 주입:
-  //   --dart-define=TWILIO_ACCOUNT_SID=ACxxxxxxxxxx
-  //   --dart-define=TWILIO_AUTH_TOKEN=xxxxxxxxxx
-  //   --dart-define=TWILIO_FROM_NUMBER=+1xxxxxxxxxx
+  // ── 인증 메일/SMS relay (Build 412 — PII sim CRITICAL fix) ───────────────
+  // 이전엔 Resend/SendGrid/Twilio 서버급 API 키를 dart-define 으로 클라이언트
+  // 바이너리에 컴파일 → IPA/APK 를 `strings` 로 긁어 키 추출 → 도메인 사칭
+  // 피싱 → 계정 탈취가 가능했음 (CRITICAL). 이제 키는 Cloud Function 서버에만
+  // 보관하고, 클라이언트는 '함수 URL'(비밀 아님)만 안다. 함수가 ID 토큰 검증 +
+  // 고정 템플릿으로만 발송 → 임의 본문 발송/도메인 사칭 불가.
+  //
+  // 빌드 시 dart-define 으로 함수 URL 주입 (값이 비밀이 아니므로 안전):
+  //   --dart-define=AUTH_EMAIL_FN_URL=https://us-central1-<proj>.cloudfunctions.net/sendAuthEmail
+  //   --dart-define=AUTH_SMS_FN_URL=https://us-central1-<proj>.cloudfunctions.net/sendAuthSms
+  // 미설정(빈 값) 시 클라이언트는 발송을 스킵하고 on-screen OTP fallback 사용.
 
-  /// Twilio Account SID
-  static const String twilioAccountSid = String.fromEnvironment(
-    'TWILIO_ACCOUNT_SID',
+  /// 인증 메일 relay Cloud Function URL (비밀 아님).
+  static const String authEmailFnUrl = String.fromEnvironment(
+    'AUTH_EMAIL_FN_URL',
     defaultValue: '',
   );
 
-  /// Twilio Auth Token
-  static const String twilioAuthToken = String.fromEnvironment(
-    'TWILIO_AUTH_TOKEN',
+  /// 인증 SMS relay Cloud Function URL (비밀 아님).
+  static const String authSmsFnUrl = String.fromEnvironment(
+    'AUTH_SMS_FN_URL',
     defaultValue: '',
   );
 
-  /// Twilio 발신 번호 (E.164 형식, 예: +15551234567)
-  static const String twilioFromNumber = String.fromEnvironment(
-    'TWILIO_FROM_NUMBER',
-    defaultValue: '',
-  );
+  /// 이메일 발송 relay 가 설정돼 있는지 (함수 URL 존재 여부).
+  static bool get isEmailProviderEnabled => authEmailFnUrl.isNotEmpty;
 
-  // ── SendGrid 이메일 설정 ─────────────────────────────────────────────────────
-  // 빌드 시 dart-define 으로 주입:
-  //   --dart-define=SENDGRID_API_KEY=SG.xxxxxxxxxx
-  //   --dart-define=SENDGRID_FROM_EMAIL=noreply@yourdomain.com
-
-  /// SendGrid API Key
-  static const String sendgridApiKey = String.fromEnvironment(
-    'SENDGRID_API_KEY',
-    defaultValue: '',
-  );
-
-  /// SendGrid 발신 이메일 주소
-  static const String sendgridFromEmail = String.fromEnvironment(
-    'SENDGRID_FROM_EMAIL',
-    defaultValue: '',
-  );
-
-  /// SendGrid 설정 여부
-  static bool get isSendgridEnabled =>
-      sendgridApiKey.isNotEmpty && sendgridFromEmail.isNotEmpty;
-
-  // ── Resend 이메일 설정 ───────────────────────────────────────────────────────
-  // SendGrid 대안 — 현재 프로젝트의 기본 이메일 발송 경로.
-  // 빌드 시 dart-define 으로 주입:
-  //   --dart-define=RESEND_API_KEY=re_xxxxxxxxxxxx
-  //   --dart-define=RESEND_FROM_EMAIL=noreply@yourdomain.com
-
-  /// Resend API Key
-  static const String resendApiKey = String.fromEnvironment(
-    'RESEND_API_KEY',
-    defaultValue: '',
-  );
-
-  /// Resend 발신 이메일 주소. 도메인이 Resend 에 검증되어 있어야 하며
-  /// 그렇지 않으면 `onboarding@resend.dev` 를 사용할 것.
-  static const String resendFromEmail = String.fromEnvironment(
-    'RESEND_FROM_EMAIL',
-    defaultValue: '',
-  );
-
-  /// Resend 설정 여부
-  static bool get isResendEnabled =>
-      resendApiKey.isNotEmpty && resendFromEmail.isNotEmpty;
-
-  /// 활성화된 이메일 발송 프로바이더가 하나라도 있는지
-  static bool get isEmailProviderEnabled =>
-      isResendEnabled || isSendgridEnabled;
+  /// SMS 발송 relay 가 설정돼 있는지.
+  static bool get isSmsProviderEnabled => authSmsFnUrl.isNotEmpty;
 }

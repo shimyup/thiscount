@@ -122,20 +122,17 @@ if [[ -n "${PERMANENT_ADMIN_EMAIL:-}" ]]; then
   DART_DEFINES+=("--dart-define=PERMANENT_ADMIN_EMAIL=${PERMANENT_ADMIN_EMAIL}")
 fi
 
-# Resend 이메일 프로바이더 (OTP 실제 발송).
-# 설정되면 EmailService.isConfigured=true → auth_screen 의 on-screen OTP
-# fallback 이 자동으로 숨겨지고 실제 이메일이 발송됨.
-if [[ -n "${RESEND_API_KEY:-}" && -n "${RESEND_FROM_EMAIL:-}" ]]; then
-  echo "[ios] RESEND configured: ${RESEND_FROM_EMAIL}"
-  DART_DEFINES+=("--dart-define=RESEND_API_KEY=${RESEND_API_KEY}")
-  DART_DEFINES+=("--dart-define=RESEND_FROM_EMAIL=${RESEND_FROM_EMAIL}")
+# Build 412 (PII sim CRITICAL fix): Resend/SendGrid/Twilio 서버급 API 키를
+# 더 이상 클라이언트 바이너리에 주입하지 않는다 (strings 추출 → 도메인 사칭
+# 피싱 위험). 메일/SMS 는 Cloud Function relay (functions/) 가 서버에서 발송하고,
+# 클라이언트엔 '함수 URL'(비밀 아님)만 주입한다. 미설정 시 on-screen OTP fallback.
+if [[ -n "${AUTH_EMAIL_FN_URL:-}" ]]; then
+  echo "[ios] AUTH_EMAIL_FN_URL set"
+  DART_DEFINES+=("--dart-define=AUTH_EMAIL_FN_URL=${AUTH_EMAIL_FN_URL}")
 fi
-
-# SendGrid 이메일 프로바이더 (폴백).
-if [[ -n "${SENDGRID_API_KEY:-}" && -n "${SENDGRID_FROM_EMAIL:-}" ]]; then
-  echo "[ios] SENDGRID configured: ${SENDGRID_FROM_EMAIL}"
-  DART_DEFINES+=("--dart-define=SENDGRID_API_KEY=${SENDGRID_API_KEY}")
-  DART_DEFINES+=("--dart-define=SENDGRID_FROM_EMAIL=${SENDGRID_FROM_EMAIL}")
+if [[ -n "${AUTH_SMS_FN_URL:-}" ]]; then
+  echo "[ios] AUTH_SMS_FN_URL set"
+  DART_DEFINES+=("--dart-define=AUTH_SMS_FN_URL=${AUTH_SMS_FN_URL}")
 fi
 
 cd "$ROOT_DIR"

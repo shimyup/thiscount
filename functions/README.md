@@ -1,0 +1,48 @@
+# Thiscount Auth Relay Functions
+
+이메일/SMS 인증 발송을 서버에서 처리하는 Cloud Function. **서버급 API 키
+(Resend/Twilio)를 클라이언트 바이너리에서 제거하기 위한 보안 필수 구성요소**
+(Build 412 — PII 시뮬레이션 CRITICAL fix).
+
+## 왜 필요한가
+이전엔 Resend/Twilio 키를 `--dart-define` 으로 앱에 컴파일 → 공격자가 IPA/APK 를
+`strings` 로 긁어 키를 추출 → 검증된 도메인(thiscount.io)으로 위장 메일 발송
+(피싱) → 계정 탈취가 가능했습니다. 이 함수가 키를 서버에만 두고, **인증된**
+(Firebase ID 토큰) 호출자에게 **고정 템플릿** OTP/임시비밀번호만 발송합니다.
+
+## 함수
+- `sendAuthEmail` — `{type: 'otp'|'tempPassword', to, code, expiresInMinutes?, langCode}`
+- `sendAuthSms` — `{to, code, langCode}`
+둘 다 `Authorization: Bearer <Firebase ID 토큰>` 필수, per-uid 분당 5회 rate limit,
+입력 형식 검증(이메일/전화/코드), 본문은 서버 템플릿으로만 생성.
+
+## 배포 (1회 셋업)
+```bash
+cd functions
+npm install
+
+# 시크릿 등록 (값 입력 프롬프트):
+firebase functions:secrets:set RESEND_API_KEY        # 새로 발급한 Resend 키
+firebase functions:secrets:set TWILIO_ACCOUNT_SID    # (SMS 사용 시)
+firebase functions:secrets:set TWILIO_AUTH_TOKEN     # (SMS 사용 시)
+
+# 발신번호(비밀 아님)는 환경변수로 (SMS 사용 시):
+#   functions/.env 에  TWILIO_FROM_NUMBER=+1xxxxxxxxxx
+
+firebase deploy --only functions
+```
+> ⚠️ 아웃바운드 네트워크(Resend/Twilio) 호출은 Firebase **Blaze(종량제)** 플랜 필요.
+
+## 배포 후
+배포 출력의 함수 URL 을 클라이언트 빌드 환경(.env.local)에 넣으면 실제 발송이 켜집니다:
+```
+AUTH_EMAIL_FN_URL=https://us-central1-<project>.cloudfunctions.net/sendAuthEmail
+AUTH_SMS_FN_URL=https://us-central1-<project>.cloudfunctions.net/sendAuthSms
+```
+URL 미설정 시 클라이언트는 발송을 스킵하고 **on-screen OTP fallback** 으로 동작
+(개발/미배포 단계에서 흐름 유지).
+
+## 보안 메모
+- 이전 키 `re_MBwa…` 는 ≤Build 410 빌드에 이미 나갔으므로 **반드시 폐기/재발급**.
+- 클라이언트는 함수 URL(공개 가능)만 알며, 키는 절대 바이너리에 들어가지 않음.
+- 함수는 임의 본문을 받지 않음(템플릿 고정) → 도메인 사칭 발송 차단.

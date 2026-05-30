@@ -98,18 +98,15 @@ if [[ -n "${PERMANENT_ADMIN_EMAIL:-}" ]]; then
   DART_DEFINES+=("--dart-define=PERMANENT_ADMIN_EMAIL=${PERMANENT_ADMIN_EMAIL}")
 fi
 
-# Resend 이메일 프로바이더 (OTP 실제 발송).
-if [[ -n "${RESEND_API_KEY:-}" && -n "${RESEND_FROM_EMAIL:-}" ]]; then
-  echo "[android] RESEND configured: ${RESEND_FROM_EMAIL}"
-  DART_DEFINES+=("--dart-define=RESEND_API_KEY=${RESEND_API_KEY}")
-  DART_DEFINES+=("--dart-define=RESEND_FROM_EMAIL=${RESEND_FROM_EMAIL}")
+# Build 412 (PII sim CRITICAL fix): 서버급 API 키 클라이언트 주입 제거.
+# 메일/SMS 는 Cloud Function relay 가 서버에서 발송, 클라이언트엔 함수 URL 만 주입.
+if [[ -n "${AUTH_EMAIL_FN_URL:-}" ]]; then
+  echo "[android] AUTH_EMAIL_FN_URL set"
+  DART_DEFINES+=("--dart-define=AUTH_EMAIL_FN_URL=${AUTH_EMAIL_FN_URL}")
 fi
-
-# SendGrid 이메일 프로바이더 (폴백).
-if [[ -n "${SENDGRID_API_KEY:-}" && -n "${SENDGRID_FROM_EMAIL:-}" ]]; then
-  echo "[android] SENDGRID configured: ${SENDGRID_FROM_EMAIL}"
-  DART_DEFINES+=("--dart-define=SENDGRID_API_KEY=${SENDGRID_API_KEY}")
-  DART_DEFINES+=("--dart-define=SENDGRID_FROM_EMAIL=${SENDGRID_FROM_EMAIL}")
+if [[ -n "${AUTH_SMS_FN_URL:-}" ]]; then
+  echo "[android] AUTH_SMS_FN_URL set"
+  DART_DEFINES+=("--dart-define=AUTH_SMS_FN_URL=${AUTH_SMS_FN_URL}")
 fi
 
 cd "$ROOT_DIR"
