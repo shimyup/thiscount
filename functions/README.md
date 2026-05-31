@@ -46,3 +46,25 @@ URL 미설정 시 클라이언트는 발송을 스킵하고 **on-screen OTP fall
 - 이전 키 `re_MBwa…` 는 ≤Build 410 빌드에 이미 나갔으므로 **반드시 폐기/재발급**.
 - 클라이언트는 함수 URL(공개 가능)만 알며, 키는 절대 바이너리에 들어가지 않음.
 - 함수는 임의 본문을 받지 않음(템플릿 고정) → 도메인 사칭 발송 차단.
+
+## revenueCatWebhook — 결제 크레딧 서버 권위 grant (sim200 P0-A 근본 해결)
+ExactDrop/추가발송권 크레딧 **증가**는 firestore.rules(self-mint 차단, 감소만 허용)
+때문에 client 가 쓸 수 없다. 이 webhook 이 RevenueCat 결제 이벤트를 받아 Admin SDK
+(룰 우회)로 `users/{app_user_id}` 의 크레딧을 원자적·멱등(event.id dedup)으로 증가시킨다.
+client 는 다음 동기화에서 `_restoreProfileFromServer` 의 가산형 복원(server>local 채택)으로
+서버 grant 값을 흡수한다 → 재설치/기변에도 유료 자산 보존.
+
+```bash
+# 1) webhook 인증용 비밀(임의의 긴 무작위 문자열) 등록
+firebase functions:secrets:set RC_WEBHOOK_AUTH
+# 2) 배포
+firebase deploy --only functions:revenueCatWebhook
+# 3) RevenueCat 대시보드 → Project → Integrations → Webhooks
+#    URL  = https://us-central1-lettergo-147eb.cloudfunctions.net/revenueCatWebhook
+#    Authorization header = (위 RC_WEBHOOK_AUTH 와 동일 값)
+```
+- 매핑: `*exact_drop_50/100/500` → brandExactDropCredits, `*brand_extra_1000` →
+  brandExtraMonthlyQuota (premium/brand 구독은 RC entitlement 로 처리, grant 아님).
+- `$RCAnonymousID*` app_user_id(로그인 전 anon)는 skip — Purchases.logIn(userId)
+  이후 결제만 grant 대상.
+- ⚠️ Blaze 플랜 + Admin SDK(Firestore write) 권한 필요(기본 admin.initializeApp 로 충족).

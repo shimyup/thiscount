@@ -33,6 +33,9 @@ admin.initializeApp();
 const RESEND_API_KEY = defineSecret("RESEND_API_KEY");
 const TWILIO_ACCOUNT_SID = defineSecret("TWILIO_ACCOUNT_SID");
 const TWILIO_AUTH_TOKEN = defineSecret("TWILIO_AUTH_TOKEN");
+// RevenueCat webhook Authorization 헤더 검증용 공유 비밀.
+//   RC 대시보드 → Integrations → Webhooks → Authorization header 에 동일 값 설정.
+const RC_WEBHOOK_AUTH = defineSecret("RC_WEBHOOK_AUTH");
 
 // 발신 정보 (비밀 아님). 도메인이 Resend 에 검증돼 있어야 함.
 const RESEND_FROM = "Thiscount <ceo@airony.xyz>";
@@ -214,6 +217,88 @@ exports.sendAuthSms = onRequest(
       return res.json({ ok: true });
     } catch (e) {
       logger.error("sendAuthSms error", e);
+      return bad(res, 500, "internal");
+    }
+  }
+);
+
+// ── revenueCatWebhook: 결제 grant 서버 권위 부여 (sim200 P0-A 근본 해결) ───────
+//
+// WHY: ExactDrop/추가발송권 크레딧 '증가(grant)'는 firestore.rules 의
+//   isReasonableUserCounterDelta 가 self-mint(결제 우회) 차단 위해 client write
+//   를 막는다(감소만 허용). 따라서 grant 는 반드시 서버 권위로만 해야 한다.
+//   이 함수가 RevenueCat 결제 webhook 을 받아 Admin SDK(룰 우회)로 users/{uid}
+//   의 크레딧을 원자적으로 증가시킨다. RC app_user_id = 앱 userId (Purchases.logIn).
+//
+// DEPLOY:
+//   firebase functions:secrets:set RC_WEBHOOK_AUTH   # 임의의 긴 무작위 문자열
+//   firebase deploy --only functions:revenueCatWebhook
+//   # RC 대시보드 → Project → Integrations → Webhooks:
+//   #   URL  = https://us-central1-lettergo-147eb.cloudfunctions.net/revenueCatWebhook
+//   #   Authorization header = (위 RC_WEBHOOK_AUTH 와 동일 값)
+//
+// 멱등성: event.id 로 purchaseClaims/{id} create-if-absent → 재전송(at-least-once)
+//   webhook 이 중복 grant 하지 않도록 보장.
+
+// product_id → 부여할 크레딧 (substring 매칭 — ios/android/legacy id 모두 커버).
+function grantForProduct(productId) {
+  const p = (productId || "").toLowerCase();
+  if (p.includes("exact_drop_500")) return { field: "brandExactDropCredits", amount: 500 };
+  if (p.includes("exact_drop_100")) return { field: "brandExactDropCredits", amount: 100 };
+  if (p.includes("exact_drop_50")) return { field: "brandExactDropCredits", amount: 50 };
+  if (p.includes("brand_extra_1000")) return { field: "brandExtraMonthlyQuota", amount: 1000 };
+  return null; // premium/brand 구독은 entitlement(RC)로 처리 — 크레딧 grant 아님.
+}
+
+exports.revenueCatWebhook = onRequest(
+  { secrets: [RC_WEBHOOK_AUTH], cors: false, region: "us-central1" },
+  async (req, res) => {
+    if (req.method !== "POST") return bad(res, 405, "POST only");
+    // 1) webhook 인증 — RC 가 보내는 Authorization 헤더가 우리 비밀과 일치해야.
+    const expected = RC_WEBHOOK_AUTH.value();
+    if (!expected || (req.get("Authorization") || "") !== expected) {
+      return bad(res, 401, "unauthorized");
+    }
+    const event = (req.body && req.body.event) || {};
+    const type = event.type;
+    const productId = event.product_id;
+    const appUserId = event.app_user_id;
+    const eventId = event.id;
+
+    // 2) consumable 결제 이벤트만 grant. 구독/취소/환불 등은 무시(RC entitlement).
+    const GRANT_TYPES = ["INITIAL_PURCHASE", "NON_RENEWING_PURCHASE", "RENEWAL"];
+    if (!GRANT_TYPES.includes(type)) return res.json({ ok: true, skipped: type });
+
+    const grant = grantForProduct(productId);
+    if (!grant) return res.json({ ok: true, skipped: "no-credit-product" });
+    if (typeof appUserId !== "string" || appUserId.length < 3 ||
+        appUserId.startsWith("$RCAnonymousID")) {
+      return res.json({ ok: true, skipped: "anon-or-bad-uid" });
+    }
+    if (typeof eventId !== "string" || !eventId) {
+      return bad(res, 400, "missing event id");
+    }
+
+    try {
+      const db = admin.firestore();
+      // 3) 멱등성 — 이미 처리한 event.id 면 skip.
+      const claimRef = db.collection("purchaseClaims").doc(eventId);
+      const userRef = db.collection("users").doc(appUserId);
+      const granted = await db.runTransaction(async (tx) => {
+        const claim = await tx.get(claimRef);
+        if (claim.exists) return false; // 중복 webhook
+        tx.set(claimRef, {
+          appUserId, productId, field: grant.field, amount: grant.amount,
+          type, at: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        tx.set(userRef, {
+          [grant.field]: admin.firestore.FieldValue.increment(grant.amount),
+        }, { merge: true });
+        return true;
+      });
+      return res.json({ ok: true, granted, field: grant.field, amount: grant.amount });
+    } catch (e) {
+      logger.error("revenueCatWebhook error", e);
       return bad(res, 500, "internal");
     }
   }
