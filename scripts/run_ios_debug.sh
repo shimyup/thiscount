@@ -61,6 +61,20 @@ if [[ -n "${BETA_ADMIN_EMAIL:-}" ]]; then
   DART_DEFINES+=("--dart-define=BETA_ADMIN_EMAIL=${BETA_ADMIN_EMAIL}")
 fi
 
+# Build 414: Cloud Function URL 들 (.env.local 에 있을 때만) — 디버그에서도 실제
+#   이메일 relay / AI 쿠폰 생성 테스트 가능하게.
+if [[ -n "${AUTH_EMAIL_FN_URL:-}" ]]; then
+  echo "[ios-debug] AUTH_EMAIL_FN_URL set"
+  DART_DEFINES+=("--dart-define=AUTH_EMAIL_FN_URL=${AUTH_EMAIL_FN_URL}")
+fi
+if [[ -n "${AUTH_SMS_FN_URL:-}" ]]; then
+  DART_DEFINES+=("--dart-define=AUTH_SMS_FN_URL=${AUTH_SMS_FN_URL}")
+fi
+if [[ -n "${COUPON_AI_FN_URL:-}" ]]; then
+  echo "[ios-debug] COUPON_AI_FN_URL set"
+  DART_DEFINES+=("--dart-define=COUPON_AI_FN_URL=${COUPON_AI_FN_URL}")
+fi
+
 cd "$ROOT_DIR"
 
 DEVICE_ID="${1:-}"

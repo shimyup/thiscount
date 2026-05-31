@@ -79,6 +79,16 @@ class FirebaseConfig {
     defaultValue: '',
   );
 
+  /// Build 414: AI 쿠폰 생성 Cloud Function URL (비밀 아님). 미설정 시 AI 버튼 숨김.
+  ///   ko→Upstage Solar(국산) / 그 외→Gemini Flash. LLM 키는 서버 secret.
+  static const String couponAIFnUrl = String.fromEnvironment(
+    'COUPON_AI_FN_URL',
+    defaultValue: '',
+  );
+
+  /// AI 쿠폰 생성 사용 가능 여부 (함수 URL 존재).
+  static bool get isCouponAIEnabled => couponAIFnUrl.isNotEmpty;
+
   /// 이메일 발송 relay 가 설정돼 있는지 (함수 URL 존재 여부).
   static bool get isEmailProviderEnabled => authEmailFnUrl.isNotEmpty;
 

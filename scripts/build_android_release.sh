@@ -114,6 +114,11 @@ if [[ -n "${AUTH_SMS_FN_URL:-}" ]]; then
   echo "[android] AUTH_SMS_FN_URL set"
   DART_DEFINES+=("--dart-define=AUTH_SMS_FN_URL=${AUTH_SMS_FN_URL}")
 fi
+# Build 414: AI 쿠폰 생성 함수 URL (.env.local 에 있을 때만).
+if [[ -n "${COUPON_AI_FN_URL:-}" ]]; then
+  echo "[android] COUPON_AI_FN_URL set"
+  DART_DEFINES+=("--dart-define=COUPON_AI_FN_URL=${COUPON_AI_FN_URL}")
+fi
 
 cd "$ROOT_DIR"
 

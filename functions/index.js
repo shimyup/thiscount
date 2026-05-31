@@ -36,6 +36,10 @@ const TWILIO_AUTH_TOKEN = defineSecret("TWILIO_AUTH_TOKEN");
 // RevenueCat webhook Authorization 헤더 검증용 공유 비밀.
 //   RC 대시보드 → Integrations → Webhooks → Authorization header 에 동일 값 설정.
 const RC_WEBHOOK_AUTH = defineSecret("RC_WEBHOOK_AUTH");
+// AI 쿠폰 생성 LLM 키 (서버 전용 — 절대 클라이언트 바이너리에 두지 않음).
+//   ko(한국) → Upstage Solar(국산), 그 외 → Google Gemini Flash(무료/최저가).
+const SOLAR_API_KEY = defineSecret("SOLAR_API_KEY");
+const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 
 // 발신 정보 (비밀 아님). 도메인이 Resend 에 검증돼 있어야 함.
 const RESEND_FROM = "Thiscount <ceo@airony.xyz>";
@@ -218,6 +222,143 @@ exports.sendAuthSms = onRequest(
     } catch (e) {
       logger.error("sendAuthSms error", e);
       return bad(res, 500, "internal");
+    }
+  }
+);
+
+// ── generateCoupon: AI 쿠폰 생성 (ko→Solar 국산 / 그 외→Gemini Flash) ─────────
+//
+// WHY: 매장(Brand)이 업종·목표만 입력하면 LLM 이 쿠폰 카피/혜택을 생성 → 매장
+//   진입장벽↓ (양면시장 콜드스타트 완화) + AI 특화(지원사업). LLM 키는 서버에만.
+//
+// 라우팅: langCode==='ko' → Upstage Solar(국산), 그 외 → Google Gemini 2.0 Flash
+//   (무료티어 + 최저가). 둘 다 OpenAI/REST 호환.
+//
+// 콘텐츠 모델 정합: type = general(일반홍보)/coupon(할인권)/voucher(교환권),
+//   category = cafe/food/beauty/fashion/it/event/other.
+//
+// DEPLOY:
+//   firebase functions:secrets:set SOLAR_API_KEY     # console.upstage.ai
+//   firebase functions:secrets:set GEMINI_API_KEY    # aistudio.google.com (무료)
+//   firebase deploy --only functions:generateCoupon
+//   # 함수 URL 을 클라 빌드에 주입: --dart-define=COUPON_AI_FN_URL=<url>
+
+const TYPE_LABEL = {
+  general: "일반 홍보 (할인/교환 없이 매장·이벤트·신메뉴 알림. 혜택 문구 없음)",
+  coupon: "할인권 (예: 전 메뉴 20% 할인, 1만원 이상 2천원 할인)",
+  voucher: "교환권 (예: 아메리카노 1잔 무료, 사이드 메뉴 증정)",
+};
+const CAT_LABEL = {
+  cafe: "카페", food: "식당/음식", beauty: "뷰티/미용", fashion: "패션/의류",
+  it: "IT/전자", event: "행사/이벤트", other: "기타",
+};
+
+function buildCouponPrompt({ businessName, businessDesc, type, category, langCode }) {
+  const t = TYPE_LABEL[type] || TYPE_LABEL.coupon;
+  const c = CAT_LABEL[category] || CAT_LABEL.other;
+  const lang = langCode === "ko" ? "한국어" :
+    (langCode === "ja" ? "일본어" : langCode === "zh" ? "중국어" : "영어");
+  return `너는 하이퍼로컬 쿠폰 마케팅 카피라이터다. 아래 매장을 위한 ${type === "general" ? "홍보" : "쿠폰"} 1건을 만든다.
+매장명: ${businessName || "(미입력)"}
+업종: ${c}
+설명/목표: ${businessDesc || "(미입력)"}
+종류: ${t}
+출력 언어: ${lang}
+
+규칙:
+- title: 25자 이내, 눈길 끄는 한 줄.
+- body: 80자 이내, 따뜻하고 구체적인 홍보 문구. 과장·허위·의료/효능 단정 금지.
+- redemptionInfo: ${type === "general" ? "빈 문자열\"\" (일반 홍보는 혜택 없음)" : "실제 제공 혜택 한 줄 (예: \"아메리카노 1잔 무료\" 또는 \"전 메뉴 20% 할인\"). 매장이 감당 가능한 현실적 수준."}
+- 반드시 아래 JSON 만 출력 (코드펜스/설명 금지):
+{"title":"...","body":"...","redemptionInfo":"..."}`;
+}
+
+function parseLooseJson(text) {
+  if (!text) return null;
+  let s = String(text).trim();
+  // 코드펜스 제거
+  s = s.replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
+  const a = s.indexOf("{"), b = s.lastIndexOf("}");
+  if (a >= 0 && b > a) s = s.slice(a, b + 1);
+  try {
+    const o = JSON.parse(s);
+    return {
+      title: String(o.title || "").slice(0, 60),
+      body: String(o.body || "").slice(0, 300),
+      redemptionInfo: String(o.redemptionInfo || "").slice(0, 200),
+    };
+  } catch (_) { return null; }
+}
+
+async function callSolar(prompt) {
+  const r = await fetch("https://api.upstage.ai/v1/solar/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${SOLAR_API_KEY.value()}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "solar-pro2",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.8,
+      response_format: { type: "json_object" },
+    }),
+  });
+  if (!r.ok) throw new Error(`solar ${r.status}`);
+  const d = await r.json();
+  return d.choices && d.choices[0] && d.choices[0].message
+    ? d.choices[0].message.content : "";
+}
+
+async function callGemini(prompt) {
+  const r = await fetch(
+    "https://generativelanguage.googleapis.com/v1beta/models/" +
+      `gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY.value()}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.8, responseMimeType: "application/json" },
+      }),
+    }
+  );
+  if (!r.ok) throw new Error(`gemini ${r.status}`);
+  const d = await r.json();
+  return d.candidates && d.candidates[0] && d.candidates[0].content &&
+    d.candidates[0].content.parts && d.candidates[0].content.parts[0]
+    ? d.candidates[0].content.parts[0].text : "";
+}
+
+exports.generateCoupon = onRequest(
+  { secrets: [SOLAR_API_KEY, GEMINI_API_KEY], cors: false, region: "us-central1" },
+  async (req, res) => {
+    if (req.method !== "POST") return bad(res, 405, "POST only");
+    const decoded = await verifyCaller(req, res);
+    if (!decoded) return;
+    if (rateLimited(decoded.uid)) return bad(res, 429, "rate limited");
+
+    const body = req.body || {};
+    const type = ["general", "coupon", "voucher"].includes(body.type)
+      ? body.type : "coupon";
+    const category = Object.keys(CAT_LABEL).includes(body.category)
+      ? body.category : "other";
+    const langCode = typeof body.langCode === "string" ? body.langCode : "en";
+    const input = {
+      businessName: String(body.businessName || "").slice(0, 60),
+      businessDesc: String(body.businessDesc || "").slice(0, 300),
+      type, category, langCode,
+    };
+    const prompt = buildCouponPrompt(input);
+    try {
+      // ko → 국산 Solar, 그 외 → 무료/최저가 Gemini Flash.
+      const raw = langCode === "ko" ? await callSolar(prompt) : await callGemini(prompt);
+      const parsed = parseLooseJson(raw);
+      if (!parsed) return bad(res, 502, "generation failed");
+      return res.json({ ok: true, type, category, ...parsed });
+    } catch (e) {
+      logger.error("generateCoupon error", e);
+      return bad(res, 502, "llm error");
     }
   }
 );

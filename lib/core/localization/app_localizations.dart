@@ -7679,6 +7679,47 @@ class AppL10n {
     'th': 'ส่งโปร $count ฉบับไปยังประเทศแบบสุ่ม',
   });
 
+  // Build 414: AI 쿠폰 생성 (Brand). _t 가 미정의 언어는 en 으로 fallback.
+  String get composeAIGenerate => _t({
+    'ko': '✨ AI 생성', 'en': '✨ AI Generate', 'ja': '✨ AI 生成', 'zh': '✨ AI 生成',
+  });
+  String get composeAIGenerateTitle => _t({
+    'ko': 'AI 쿠폰 생성', 'en': 'Generate with AI',
+    'ja': 'AI クーポン生成', 'zh': 'AI 优惠券生成',
+  });
+  String get composeAIBusinessName => _t({
+    'ko': '매장명', 'en': 'Business name', 'ja': '店舗名', 'zh': '店铺名',
+  });
+  String get composeAIBusinessDesc => _t({
+    'ko': '설명·목표 (예: 신메뉴 홍보, 점심 손님 유치)',
+    'en': 'Description / goal (e.g., promote new menu)',
+    'ja': '説明・目標 (例: 新メニュー宣伝)', 'zh': '描述/目标 (如: 推广新菜单)',
+  });
+  String get composeAIFailed => _t({
+    'ko': 'AI 생성에 실패했어요. 잠시 후 다시 시도해주세요.',
+    'en': 'AI generation failed. Please try again.',
+    'ja': 'AI 生成に失敗しました。後でもう一度お試しください。',
+    'zh': 'AI 生成失败，请稍后重试。',
+  });
+  String composeAICategoryLabel(String key) {
+    switch (key) {
+      case 'cafe':
+        return _t({'ko': '카페', 'en': 'Cafe', 'ja': 'カフェ', 'zh': '咖啡'});
+      case 'food':
+        return _t({'ko': '식당/음식', 'en': 'Restaurant', 'ja': '飲食店', 'zh': '餐饮'});
+      case 'beauty':
+        return _t({'ko': '뷰티/미용', 'en': 'Beauty', 'ja': 'ビューティー', 'zh': '美容'});
+      case 'fashion':
+        return _t({'ko': '패션/의류', 'en': 'Fashion', 'ja': 'ファッション', 'zh': '时尚'});
+      case 'it':
+        return _t({'ko': 'IT/전자', 'en': 'IT/Electronics', 'ja': 'IT/電子', 'zh': 'IT/电子'});
+      case 'event':
+        return _t({'ko': '행사/이벤트', 'en': 'Event', 'ja': 'イベント', 'zh': '活动'});
+      default:
+        return _t({'ko': '기타', 'en': 'Other', 'ja': 'その他', 'zh': '其他'});
+    }
+  }
+
   String get composeSelectTargetCountry => _t({
     'ko': '발송 나라 선택',
     'en': 'Select target countries',

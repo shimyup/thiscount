@@ -33,6 +33,7 @@ import '../day_theme.dart';
 import '../widgets/exact_drop_picker.dart';
 import '../../../core/services/feedback_service.dart';
 import '../../../core/services/storage_service.dart';
+import '../../../core/services/coupon_ai_service.dart';
 
 class ComposeScreen extends StatefulWidget {
   final String? replyToId;
@@ -97,6 +98,8 @@ class _ComposeScreenState extends State<ComposeScreen>
   //   편지 중복 발송 + 크레딧 이중 소모. 이 플래그는 진입 즉시 set, finally 에서
   //   해제하므로 모든 early-return 경로에서도 정확히 풀린다.
   bool _sendInFlight = false;
+  // Build 414: AI 쿠폰 생성 진행 중 플래그 (버튼 비활성/스피너).
+  bool _isGeneratingAI = false;
   // Build 407 (PR-QQ1): draft 버리기 후 autoSaveTimer 가 _selectedCountry 등
   //   기본값으로 brand draft 재저장 → 다음 진입 시 "이어쓰기" 무한 재출현
   //   회귀. discard 시 true 설정 → _saveDraft / autoSave 가 skip. 사용자가
@@ -1282,6 +1285,121 @@ class _ComposeScreenState extends State<ComposeScreen>
   );
   static String _stripBidiControls(String input) =>
       input.replaceAll(_bidiControlRe, '');
+
+  // Build 414: AI 쿠폰 생성 버튼 (Brand 전용, 함수 설정 시).
+  Widget _buildAICouponButton(BuildContext context) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 8, bottom: 2),
+        child: TextButton.icon(
+          onPressed: _isGeneratingAI ? null : () => _showAICouponDialog(context),
+          icon: _isGeneratingAI
+              ? const SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('✨', style: TextStyle(fontSize: 14)),
+          label: Text(l10n.composeAIGenerate),
+          style: TextButton.styleFrom(
+            foregroundColor: AppColors.teal,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Build 414: AI 쿠폰 생성 다이얼로그 — 업종/설명 입력 → LLM 초안으로 필드 채움.
+  Future<void> _showAICouponDialog(BuildContext context) async {
+    final state = context.read<AppState>();
+    final l10n = AppL10n.of(state.currentUser.languageCode);
+    final nameCtrl =
+        TextEditingController(text: state.currentUser.brandName ?? '');
+    final descCtrl = TextEditingController();
+    const cats = ['cafe', 'food', 'beauty', 'fashion', 'it', 'event', 'other'];
+    String cat = 'other';
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dctx) => StatefulBuilder(
+        builder: (dctx, setLocal) => AlertDialog(
+          backgroundColor: AppColors.bgCard,
+          title: Text(l10n.composeAIGenerateTitle,
+              style: const TextStyle(color: AppColors.textPrimary, fontSize: 16)),
+          content: SingleChildScrollView(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              TextField(
+                controller: nameCtrl,
+                style: const TextStyle(color: AppColors.textPrimary),
+                decoration: InputDecoration(labelText: l10n.composeAIBusinessName),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: descCtrl,
+                maxLines: 2,
+                style: const TextStyle(color: AppColors.textPrimary),
+                decoration: InputDecoration(labelText: l10n.composeAIBusinessDesc),
+              ),
+              const SizedBox(height: 10),
+              DropdownButton<String>(
+                value: cat,
+                isExpanded: true,
+                dropdownColor: AppColors.bgCard,
+                items: cats
+                    .map((c) => DropdownMenuItem(
+                          value: c,
+                          child: Text(l10n.composeAICategoryLabel(c),
+                              style: const TextStyle(color: AppColors.textPrimary)),
+                        ))
+                    .toList(),
+                onChanged: (v) => setLocal(() => cat = v ?? 'other'),
+              ),
+            ]),
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(dctx, false),
+                child: Text(l10n.authCancel)),
+            ElevatedButton(
+                onPressed: () => Navigator.pop(dctx, true),
+                child: Text(l10n.composeAIGenerate)),
+          ],
+        ),
+      ),
+    );
+    if (ok != true || !mounted) return;
+    setState(() => _isGeneratingAI = true);
+    final result = await CouponAIService.generate(
+      businessName: nameCtrl.text.trim(),
+      businessDesc: descCtrl.text.trim(),
+      type: _brandCategory.key, // general / coupon / voucher
+      category: cat,
+      langCode: state.currentUser.languageCode,
+    );
+    if (!mounted) return;
+    setState(() {
+      _isGeneratingAI = false;
+      if (result != null) {
+        final t = result.title.trim();
+        final b = result.body.trim();
+        _contentController.text = t.isEmpty ? b : '$t\n\n$b';
+        if (result.redemptionInfo.isNotEmpty) {
+          _redemptionInfoController.text = result.redemptionInfo;
+          // 혜택이 생성됐는데 타입이 '일반'이면 할인권으로 승격.
+          if (_brandCategory == LetterCategory.general) {
+            _brandCategory = LetterCategory.coupon;
+          }
+        }
+      }
+    });
+    if (result == null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.composeAIFailed)),
+      );
+    }
+  }
 
   // Build 414 (sim200 P2): 재진입 가드 래퍼 — 두 번째 탭은 즉시 무시.
   //   내부 구현(_onSendInner)의 다수 early-return 을 건드리지 않고 finally 로 해제.
@@ -3156,6 +3274,11 @@ class _ComposeScreenState extends State<ComposeScreen>
               ),
               if (_charCount == 0 && !_isReply)
                 _buildDailyPromptChip(paper.inkColor),
+              // Build 414: AI 쿠폰 생성 (Brand + 함수 설정 시). 업종/타입 기반으로
+              //   LLM(ko→Solar 국산 / 그 외→Gemini)이 카피·혜택 초안을 채운다.
+              if (context.read<AppState>().currentUser.isBrand &&
+                  CouponAIService.isAvailable)
+                _buildAICouponButton(context),
               TextField(
                 controller: _contentController,
                 focusNode: _contentFocus,
