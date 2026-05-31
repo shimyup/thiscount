@@ -62,6 +62,15 @@ if [[ -n "${STADIA_MAPS_API_KEY:-}" ]]; then
   DART_DEFINES+=("--dart-define=STADIA_MAPS_API_KEY=${STADIA_MAPS_API_KEY}")
 fi
 
+# Build 414 (Auth Phase 2 / Phase 3 STEP 1): .env.local 에 AUTH_BIND_ENABLED=true
+#   가 있을 때만 정식 Firebase Auth 그림자 바인딩 활성(TestFlight 베타로 authUid
+#   바인딩률 축적용). 미설정/없음 = false(프로덕션 기본, 익명 auth 유지).
+#   rules cutover(Phase 3) 전까진 런타임 동작 불변이라 안전. docs/AUTH_PHASE3_CUTOVER_RUNBOOK.md
+if [[ -n "${AUTH_BIND_ENABLED:-}" ]]; then
+  echo "[ios] AUTH_BIND_ENABLED=${AUTH_BIND_ENABLED}"
+  DART_DEFINES+=("--dart-define=AUTH_BIND_ENABLED=${AUTH_BIND_ENABLED}")
+fi
+
 # Build 273 hardening:
 # release_preflight.sh 가 BETA_* 플래그를 사전에 차단한다.
 # 여기서는 preflight 를 통과한 값만 주입한다.

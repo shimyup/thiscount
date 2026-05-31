@@ -34,6 +34,13 @@ if [[ -n "${STADIA_MAPS_API_KEY:-}" ]]; then
   DART_DEFINES+=("--dart-define=STADIA_MAPS_API_KEY=${STADIA_MAPS_API_KEY}")
 fi
 
+# Build 414 (Auth Phase 3 STEP 1/2): .env.local 에 AUTH_BIND_ENABLED=true 일 때만
+#   주입 — 시뮬레이터 debug 로 그림자 바인딩 검증용.
+if [[ -n "${AUTH_BIND_ENABLED:-}" ]]; then
+  echo "[ios-debug] AUTH_BIND_ENABLED=${AUTH_BIND_ENABLED}"
+  DART_DEFINES+=("--dart-define=AUTH_BIND_ENABLED=${AUTH_BIND_ENABLED}")
+fi
+
 if [[ -n "${REVENUECAT_IOS_KEY:-}" ]]; then
   DART_DEFINES+=("--dart-define=REVENUECAT_IOS_KEY=${REVENUECAT_IOS_KEY}")
 fi
