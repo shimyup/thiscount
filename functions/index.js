@@ -54,7 +54,13 @@ function rateLimited(uid) {
 
 // ── 입력 검증 헬퍼 ──────────────────────────────────────────────────────────
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-const CODE_RE = /^[A-Za-z0-9]{4,10}$/; // OTP / 임시비번 코드 형식 제한 (인젝션 차단)
+// OTP 코드: 영숫자 4-10 (SMS/이메일 공통).
+const OTP_RE = /^[A-Za-z0-9]{4,10}$/;
+// 임시 비밀번호: 클라이언트 _generateTempPassword 가 12자 + !@#% 특수문자를
+//   생성하므로 OTP_RE 로는 항상 거부됨(길이/문자셋 위반) → 비밀번호 찾기 메일
+//   영구 발송 불가 버그. 임시비번 전용으로 특수문자 4종 + 8-20 길이 허용.
+//   <>&"' 등 HTML/인젝션 위험 문자는 여전히 불허(인젝션 차단 유지).
+const TEMP_PW_RE = /^[A-Za-z0-9!@#%]{8,20}$/;
 function bad(res, code, msg) {
   return res.status(code).json({ ok: false, error: msg });
 }
@@ -138,16 +144,17 @@ exports.sendAuthEmail = onRequest(
     const { type, to, code, expiresInMinutes, langCode } = req.body || {};
     const lang = typeof langCode === "string" ? langCode : "en";
     if (!EMAIL_RE.test(to || "")) return bad(res, 400, "bad email");
-    if (!CODE_RE.test(code || "")) return bad(res, 400, "bad code");
 
     let subject, html, text;
     if (type === "otp") {
+      if (!OTP_RE.test(code || "")) return bad(res, 400, "bad code");
       subject = otpSubject(lang);
       text = otpText(code, lang);
       html = htmlWrap(subject,
         `<div style="font-size:36px;font-weight:800;letter-spacing:10px;background:#F3F4F6;border:2px solid #111827;border-radius:12px;padding:18px 12px;display:inline-block;min-width:220px;">${code}</div>`,
         text.replace(/\n/g, "<br>"));
     } else if (type === "tempPassword") {
+      if (!TEMP_PW_RE.test(code || "")) return bad(res, 400, "bad code");
       const mins = Number.isFinite(+expiresInMinutes) ? +expiresInMinutes : 30;
       subject = tempSubject(lang);
       text = tempText(code, mins, lang);
@@ -184,7 +191,7 @@ exports.sendAuthSms = onRequest(
     const { to, code, langCode } = req.body || {};
     const lang = typeof langCode === "string" ? langCode : "en";
     if (!/^\+?[0-9]{7,15}$/.test(to || "")) return bad(res, 400, "bad phone");
-    if (!CODE_RE.test(code || "")) return bad(res, 400, "bad code");
+    if (!OTP_RE.test(code || "")) return bad(res, 400, "bad code"); // SMS 는 OTP 만
     if (!TWILIO_FROM) return bad(res, 500, "sms not configured");
 
     const body = (otpText(code, lang).split("\n")[0]) || `Thiscount: ${code}`;

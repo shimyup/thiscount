@@ -25661,21 +25661,23 @@ class AppL10n {
   });
 
   // Build 286: 만 14세 이상 미동의 에러 메시지.
-  String get authMustAgreeAge14 => _t({
-    'ko': '만 14세 이상 동의가 필요합니다',
-    'en': 'Please confirm you are 14 years or older',
-    'ja': '14歳以上であることに同意してください',
-    'zh': '请确认您已年满 14 岁',
-    'fr': 'Veuillez confirmer que vous avez 14 ans ou plus',
-    'de': 'Bitte bestätigen Sie, dass Sie 14 Jahre oder älter sind',
-    'es': 'Confirme que tiene 14 años o más',
-    'pt': 'Confirme que tem 14 anos ou mais',
-    'ru': 'Подтвердите, что вам 14 лет или больше',
-    'tr': '14 yaşında veya daha büyük olduğunuzu onaylayın',
-    'ar': 'يرجى تأكيد أن عمرك 14 عامًا أو أكثر',
-    'it': 'Conferma di avere 14 anni o più',
-    'hi': 'कृपया पुष्टि करें कि आप 14 वर्ष या उससे अधिक हैं',
-    'th': 'โปรดยืนยันว่าคุณอายุ 14 ปีขึ้นไป',
+  // Build 414 (sim P2): EU/EEA 가입자는 _minAge=16 이나 에러 메시지가 '14세'
+  //   고정이라 동의 카드(16세)와 불일치했음 → age 파라미터화.
+  String authMustAgreeAge(int age) => _t({
+    'ko': '만 $age세 이상 동의가 필요합니다',
+    'en': 'Please confirm you are $age years or older',
+    'ja': '$age歳以上であることに同意してください',
+    'zh': '请确认您已年满 $age 岁',
+    'fr': 'Veuillez confirmer que vous avez $age ans ou plus',
+    'de': 'Bitte bestätigen Sie, dass Sie $age Jahre oder älter sind',
+    'es': 'Confirme que tiene $age años o más',
+    'pt': 'Confirme que tem $age anos ou mais',
+    'ru': 'Подтвердите, что вам $age лет или больше',
+    'tr': '$age yaşında veya daha büyük olduğunuzu onaylayın',
+    'ar': 'يرجى تأكيد أن عمرك $age عامًا أو أكثر',
+    'it': 'Conferma di avere $age anni o più',
+    'hi': 'कृपया पुष्टि करें कि आप $age वर्ष या उससे अधिक हैं',
+    'th': 'โปรดยืนยันว่าคุณอายุ $age ปีขึ้นไป',
   });
 
   // Build 286: 제3자 정보 제공 미동의 에러 메시지.

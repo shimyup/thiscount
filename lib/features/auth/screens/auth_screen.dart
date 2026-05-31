@@ -1039,9 +1039,16 @@ class _LoginTabState extends State<_LoginTab> {
               final bool ok = result['success'] == true;
               // Build 297 (P0 audit): release 빌드에서 화면 노출 차단된 임시 비번
               // 을 이메일로 전송. 이전엔 어떤 채널로도 전달되지 않아 영구 잠금.
+              // Build 414 (sim P2): relay(Cloud Function) 미설정 release 에서는
+              //   EmailService 가 발송 없이 null 을 반환 → 과거엔 emailDelivered=
+              //   true 로 "이메일 발송됨" 거짓 안내 + 임시비번 미전달(사실상 잠금).
+              //   relay 미설정이면 debug 와 동일하게 화면에 임시비번을 직접 노출
+              //   (fallback) 해 사용자가 잠기지 않게 한다.
+              final bool showOnScreen =
+                  kDebugMode || !EmailService.isConfigured;
               bool emailDelivered = false;
               String? emailError;
-              if (ok && !kDebugMode) {
+              if (ok && !showOnScreen) {
                 final pw = result['tempPassword'] as String?;
                 if (pw != null && pw.isNotEmpty) {
                   emailError = await EmailService.sendTempPassword(
@@ -1069,7 +1076,7 @@ class _LoginTabState extends State<_LoginTab> {
                   ),
                   content: Text(
                     ok
-                        ? (kDebugMode
+                        ? (showOnScreen
                               ? '${l10n.authTempPasswordLabel}: ${result['tempPassword']}\n'
                                     '${l10n.authExpiresInMinutes(result['expiresInMinutes'])}\n'
                                     '${l10n.authMustChangeAfterLogin}'
@@ -1081,7 +1088,7 @@ class _LoginTabState extends State<_LoginTab> {
                                           l10n.authTempPasswordSendFailed)))
                         : (result['error'] ?? l10n.authErrorOccurred),
                     style: TextStyle(
-                      color: ok && (kDebugMode || emailDelivered)
+                      color: ok && (showOnScreen || emailDelivered)
                           ? AppColors.teal
                           : AppColors.error,
                     ),
@@ -1387,7 +1394,7 @@ class _SignupTabState extends State<_SignupTab> {
       return;
     }
     if (!_agreeAgeAbove14) {
-      setState(() => _error = l10n.authMustAgreeAge14);
+      setState(() => _error = l10n.authMustAgreeAge(_minAge));
       return;
     }
     if (!_agreeThirdPartySharing) {

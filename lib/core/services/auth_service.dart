@@ -1479,6 +1479,17 @@ class AuthService {
     await _deleteSecure(_keyTempPasswordHash);
     await _deleteSecure(_keyTempPasswordExpiresAt);
     await _writeSecure(_keyMustChangePassword, 'false');
+    // Build 414 (Auth Phase 2, sim P1): 정식 세션이 살아있는 경우 Firebase Auth
+    //   비번도 동기화해 desync 차단. flag OFF / anon 세션이면 no-op.
+    //   ⚠️ 비밀번호 찾기(임시비번) 흐름은 정식 세션이 없을 수 있어 여기서 동기
+    //   화 불가 — Phase 3 서버측 reset(Admin SDK) 으로 해결 (docs 백로그 참조).
+    if (FirebaseConfig.authBindEnabled) {
+      try {
+        await FirebaseAuthService.changePassword(newPassword);
+      } catch (e) {
+        if (kDebugMode) debugPrint('[AuthService] fb changePassword skip: $e');
+      }
+    }
   }
 
   // Delete account

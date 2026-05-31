@@ -243,6 +243,59 @@ class FirebaseAuthService {
     return null;
   }
 
+  /// Build 414 (Auth Phase 2, sim P1): 정식 세션 비밀번호 변경 (accounts:update).
+  /// 앱 로컬 비번을 바꿀 때 Firebase Auth 비번도 함께 갱신하지 않으면, 다음
+  /// signInOrMigrate 가 INVALID_PASSWORD/EMAIL_EXISTS 로 실패해 realAuthUid 가
+  /// 영구 null → Phase 3 cutover 시 owner-check(request.auth.uid==authUid) 불일
+  /// 치로 self-write 가 전면 403 으로 잠긴다. 현 정식 세션 idToken 으로 동기화.
+  ///
+  /// 정식(real) 세션이 없으면(anon 또는 미로그인) no-op + false. flag OFF 면 무의미.
+  /// best-effort — 실패해도 로컬 비번 변경 흐름은 유지(다음 로그인 때 재바인딩 가능).
+  static Future<bool> changePassword(String newPassword) async {
+    if (!FirebaseConfig.kFirebaseEnabled) return false;
+    if (!_isRealAuth || _idToken == null) return false;
+    try {
+      final res = await http
+          .post(
+            Uri.parse(
+              '${FirebaseConfig.authBase}:update?key=${FirebaseConfig.apiKey}',
+            ),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'idToken': _idToken,
+              'password': newPassword,
+              'returnSecureToken': true,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body) as Map<String, dynamic>;
+        // returnSecureToken 시 새 idToken/refreshToken 발급 — 세션 유지.
+        final newIdToken = data['idToken'] as String?;
+        if (newIdToken != null && newIdToken.isNotEmpty) {
+          _idToken = newIdToken;
+          _tokenExpiry = DateTime.now().add(const Duration(seconds: 3600));
+          FirestoreService.setIdToken(_idToken ?? '');
+        }
+        final newRefresh = data['refreshToken'] as String?;
+        if (newRefresh != null && newRefresh.isNotEmpty) {
+          _refreshToken = newRefresh;
+          await _persistRealRefreshToken();
+        }
+        return true;
+      }
+      if (kDebugMode) {
+        debugPrint(
+          '[FirebaseAuthService] changePassword 실패: ${_extractErrorCode(res)}',
+        );
+      }
+      return false;
+    } catch (e) {
+      if (kDebugMode) debugPrint('[FirebaseAuthService] changePassword 에러: $e');
+      return false;
+    }
+  }
+
   // ── 익명 로그인 (테스터용 — Firebase 계정 없이 Firestore 접근) ────────────────
   static Future<bool> signInAnonymously() async {
     if (!FirebaseConfig.kFirebaseEnabled) return false;

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -376,6 +377,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
         defaultValue: 'dev',
       );
       final prefs = await SharedPreferences.getInstance();
+      // Build 414 (sim P2): 동의 타임스탬프는 Build 286 부터 FlutterSecureStorage
+      //   에 저장(auth_screen._consentStore)되는데, export 는 SharedPreferences
+      //   에서 (게다가 2건은 잘못된 키로) 읽어 GDPR Art.20 export 가 동의 항목을
+      //   항상 null 로 내보내고 있었다. 동일 store/키로 정정.
+      const consentStore = FlutterSecureStorage(
+        aOptions: AndroidOptions(encryptedSharedPreferences: true),
+        iOptions: IOSOptions(
+          accessibility: KeychainAccessibility.first_unlock_this_device,
+        ),
+      );
+      final consents = <String, String?>{
+        'consent_terms_ts': await consentStore.read(key: 'consent_terms_ts'),
+        'consent_privacy_ts':
+            await consentStore.read(key: 'consent_privacy_ts'),
+        'consent_marketing_ts':
+            await consentStore.read(key: 'consent_marketing_ts'),
+        'consent_thirdparty_ts':
+            await consentStore.read(key: 'consent_third_party_sharing_ts'),
+        'consent_age14_ts':
+            await consentStore.read(key: 'consent_age_above14_ts'),
+      };
       final data = <String, dynamic>{
         'exportedAt': DateTime.now().toUtc().toIso8601String(),
         'app': 'Thiscount',
@@ -398,16 +420,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           'lastKnownLatitude': prefs.getDouble('lkLat_v1'),
           'lastKnownLongitude': prefs.getDouble('lkLng_v1'),
         },
-        'consents': {
-          for (final key in [
-            'consent_terms_ts',
-            'consent_privacy_ts',
-            'consent_marketing_ts',
-            'consent_thirdparty_ts',
-            'consent_age14_ts',
-          ])
-            key: prefs.getString(key),
-        },
+        'consents': consents,
         'activityScore': u.activityScore.toJson(),
         'trial': {
           'welcomeTrialClaimedAt': prefs.getString('welcomeTrialClaimedAt'),
