@@ -785,6 +785,10 @@ class _AdminScreenState extends State<AdminScreen> {
                               state.syncPremiumStatus(
                                 isPremium: false,
                                 isBrand: false,
+                                // Build 414 (sim200 P3): admin 명시적 강등은
+                                //   authoritative — OR-fallback 으로 Brand 가
+                                //   유지돼 강등이 무력화되던 것 차단.
+                                authoritative: true,
                               );
                               _showSnack(
                                 l.koEn(
@@ -810,6 +814,9 @@ class _AdminScreenState extends State<AdminScreen> {
                             state.syncPremiumStatus(
                               isPremium: true,
                               isBrand: false,
+                              // Build 414 (sim200 P3): admin 명시적 Brand→Premium
+                              //   강등도 authoritative (OR-fallback 우회).
+                              authoritative: true,
                             );
                             _showSnack(
                               l.koEn(

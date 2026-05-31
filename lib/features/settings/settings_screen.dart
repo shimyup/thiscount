@@ -706,6 +706,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: confirmCtrl.text.trim() == username
                   ? () async {
                       Navigator.pop(dCtx);
+                      // Build 414 (sim200 P2): 탈퇴 전 서버 sync 타이머 정지 —
+                      //   안 멈추면 삭제 직후 타이머가 user doc 을 재기록(부활)해
+                      //   GDPR 삭제가 무력화됨(로그아웃과 동일 대칭).
+                      ctx.read<AppState>().stopServerSync();
                       await AuthService.deleteAccount();
                       if (ctx.mounted) {
                         Navigator.of(

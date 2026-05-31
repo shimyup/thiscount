@@ -3657,6 +3657,8 @@ class _TowerScreenState extends State<TowerScreen>
           ),
           ElevatedButton(
             onPressed: () async {
+              // Build 414 (sim200 P2): 탈퇴 전 sync 정지 — 삭제 doc 부활 방지(GDPR).
+              ctx.read<AppState>().stopServerSync();
               await AuthService.deleteAccount();
               if (!ctx.mounted) return;
               Navigator.pop(ctx);

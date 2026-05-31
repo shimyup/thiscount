@@ -92,6 +92,11 @@ class _ComposeScreenState extends State<ComposeScreen>
   // Build 229: 사진+링크 첨부 카드 onTap → 첨부 영역으로 스크롤 + 토글 활성화.
   final GlobalKey _attachAreaKey = GlobalKey();
   bool _isSending = false;
+  // Build 414 (sim200 P2): _onSend 동기 재진입 가드. _isSending 은 실제 발송
+  //   브랜치에서야 setState 되어, 그 전 네트워크 lookup(최대 6s) 동안 더블탭 시
+  //   편지 중복 발송 + 크레딧 이중 소모. 이 플래그는 진입 즉시 set, finally 에서
+  //   해제하므로 모든 early-return 경로에서도 정확히 풀린다.
+  bool _sendInFlight = false;
   // Build 407 (PR-QQ1): draft 버리기 후 autoSaveTimer 가 _selectedCountry 등
   //   기본값으로 brand draft 재저장 → 다음 진입 시 "이어쓰기" 무한 재출현
   //   회귀. discard 시 true 설정 → _saveDraft / autoSave 가 skip. 사용자가
@@ -1067,13 +1072,13 @@ class _ComposeScreenState extends State<ComposeScreen>
       // 첨부하던 누출 경로. compress 가 null/throw 면 첨부 거부 + 사용자 알림.
       if (result?.path == null) throw StateError('compressAndGetFile returned null');
       // 압축본 로컬 경로 — 즉시 썸네일 미리보기.
+      final String localPath = result!.path;
       setState(() {
-        _imageFilePath = result!.path;
+        _imageFilePath = localPath;
       });
       // Build 409 (sim P1.15): 압축본을 Firebase Storage 에 업로드 → HTTPS URL 로
       //   교체. 이전엔 로컬 경로가 imageUrl 로 저장돼 다른 기기 수신자는 항상
-      //   placeholder 만 봤음 (사진이 발신 기기에만 존재). voucher 흐름과 동일
-      //   패턴. 업로드 실패 시 로컬 경로 유지 (같은 기기 테스트는 가능).
+      //   placeholder 만 봤음 (사진이 발신 기기에만 존재). voucher 흐름과 동일 패턴.
       bool uploaded = false;
       try {
         final uploadPath = StorageService.letterImagePath(
@@ -1081,12 +1086,18 @@ class _ComposeScreenState extends State<ComposeScreen>
         );
         if (uploadPath.isNotEmpty) {
           final url = await StorageService.uploadImage(
-            file: File(result!.path),
+            file: File(localPath),
             path: uploadPath,
           );
           if (!mounted) return;
-          if (url != null && url.isNotEmpty) {
+          // Build 414 (sim200 P3): 업로드 중 사용자가 X 로 제거(또는 다른 사진으로
+          //   교체)했으면 _imageFilePath 가 더는 localPath 가 아니다 → url 로
+          //   되살리지 말 것(제거한 사진이 부활/발송되는 버그 차단).
+          if (url != null && url.isNotEmpty && _imageFilePath == localPath) {
             _imageFilePath = url;
+            uploaded = true;
+          } else if (_imageFilePath != localPath) {
+            // 사용자가 이미 제거/교체 → 이 업로드 결과는 폐기. 첨부 상태 유지.
             uploaded = true;
           }
         }
@@ -1272,7 +1283,19 @@ class _ComposeScreenState extends State<ComposeScreen>
   static String _stripBidiControls(String input) =>
       input.replaceAll(_bidiControlRe, '');
 
+  // Build 414 (sim200 P2): 재진입 가드 래퍼 — 두 번째 탭은 즉시 무시.
+  //   내부 구현(_onSendInner)의 다수 early-return 을 건드리지 않고 finally 로 해제.
   Future<void> _onSend(AppState state) async {
+    if (_sendInFlight) return;
+    _sendInFlight = true;
+    try {
+      await _onSendInner(state);
+    } finally {
+      _sendInFlight = false;
+    }
+  }
+
+  Future<void> _onSendInner(AppState state) async {
     final l10n = AppL10n.of(state.currentUser.languageCode);
     // Build 309: Banned 사용자 차단. Build 291 의 reply 가드 (letter_read_screen)
     // 가 reply 경로만 막고 compose 진입은 안 막아서, replyToId 직접 전달 시
