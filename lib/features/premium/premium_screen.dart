@@ -3001,7 +3001,27 @@ void _showBrandUpgradeDialog({
       );
       if (!ok) return;
     }
-    await purchase.scheduleUpgradeToBrand(userEmail: userEmail);
+    final upgraded = await purchase.scheduleUpgradeToBrand(userEmail: userEmail);
+    if (!context.mounted) return;
+    // Build 414 (sim100 #4/#6): 결제 취소/실패 시 '성공' 스낵바 금지. 이전엔
+    //   결과를 무시하고 무조건 녹색 성공 표시 → 결제 안 됐는데 됐다고 오인.
+    if (!upgraded) {
+      final msg = purchase.errorMessage;
+      if (msg != null && msg.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(msg, style: const TextStyle(color: Colors.white)),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+      return;
+    }
     if (context.mounted) {
       // Build 383 (PR-FF1 audit AA1 후속): production 에선 buyBrand() 즉시
       //   결제 (PR-CC1 P0 #1 fix 후) → schedule 카피 부정확. 결제 완료

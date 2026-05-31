@@ -2522,6 +2522,27 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     if (mounted && denied != _locationPermissionDenied) {
       setState(() => _locationPermissionDenied = denied);
     }
+    // Build 414 (sim100 #2): 신규 가입자가 (0,0) 으로 남아 줍기/지도가 전면
+    //   불가하던 회귀 해소. 권한 허용 상태인데 좌표가 (0,0) 이면 즉시 1회 GPS
+    //   취득 후 반영 (best-effort — 실패 시 (0,0) 유지, 기존 fallback 동작).
+    if (!denied && mounted) {
+      final state = context.read<AppState>();
+      final u = state.currentUser;
+      if (u.latitude == 0.0 && u.longitude == 0.0) {
+        try {
+          if (await Geolocator.isLocationServiceEnabled()) {
+            final rawPos = await Geolocator.getCurrentPosition(
+              locationSettings:
+                  const LocationSettings(accuracy: LocationAccuracy.high),
+            ).timeout(const Duration(seconds: 8));
+            final pos = SecureLocation.guard(rawPos);
+            if (pos != null && mounted) {
+              state.updateUserLocation(pos.latitude, pos.longitude);
+            }
+          }
+        } catch (_) {/* 권한 거부/타임아웃 등 — 무시 */}
+      }
+    }
     if (permission != LocationPermission.deniedForever) return;
     if (!mounted) return;
 

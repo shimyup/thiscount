@@ -121,6 +121,17 @@ service cloud.firestore {
             'customTowerName', 'towerColor', 'towerAccentEmoji',
             'towerRoofStyle', 'towerWindowStyle',
             'preferredCategoryKey',
+            // Build 414 (sim100 P0-1): 클라이언트 _doSaveUserToFirestore PATCH 가
+            //   항상 포함하던 필드. 화이트리스트에 없어 update 가 atomic 403 →
+            //   프로필/카운터/위치/크레딧 전부 서버 미저장(런타임 확인). 추가.
+            //   - pickedUpCampaignIds: 본인 픽업 dedup 동기화(Build 324) — self 데이터.
+            //   - isBrand/brandName: 계정종류 영속(Build 406). create 는 여전히
+            //     isValidUserCreate 가 isBrand=false 강제(가입 시 self-born Brand 차단).
+            //     ⚠️ update 에서 client 가 isBrand=true 설정 가능 = self-promote
+            //     잔존 위험. 단, 본 앱은 anon-auth 라 Brand 가 이미 client-side 티어
+            //     (서버 결제검증 부재, 백로그 ③/#33). 근본 차단은 Auth Phase 3
+            //     cutover + 서버 entitlement 검증 (firestore.rules.phase2).
+            'pickedUpCampaignIds', 'isBrand', 'brandName', 'id',
             // Build 413 (Auth Phase 2): authUid 바인딩 필드 허용. 이게 없으면
             //   AUTH_BIND_ENABLED 빌드에서 user doc 저장이 hasOnly 위반으로 전부
             //   403 거부됨(시뮬레이터 테스트로 확인). 추가형 변경 — 다른 제약·

@@ -239,6 +239,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   List<Letter> get nearbyLetters {
     final list = _worldLetters
         .where((l) => l.status == DeliveryStatus.nearYou)
+        // Build 414 (sim100 #41): 만료된 auto-drop/letter 가 지도에 ghost 마커로
+        //   잔존 + 탭 시 '이미 받았어요' 오안내 → 만료분 사전 제외.
+        .where((l) => !l.isExpired)
         // Build 324: brandUniquePerUser 캠페인의 다른 letter 를 이미 픽업했다면
         //   같은 캠페인의 잔여 letter 는 지도/리스트에서 숨김. 노출 후 탭 시점
         //   "이미 받았어요" 차단보다 사전 차단이 UX 자연스럽다.
@@ -344,7 +347,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// 다음 줍기 가능까지 남은 시간 (null = 바로 가능)
   Duration? get nearbyPickupRemainingCooldown {
     if (_lastNearbyPickupAt == null) return null;
-    final elapsed = DateTime.now().difference(_lastNearbyPickupAt!);
+    // Build 414 (sim100 #54): SecureClock — 시계 전진으로 픽업 쿨다운 우회 차단.
+    final elapsed = SecureClock.now().difference(_lastNearbyPickupAt!);
     if (elapsed >= _nearbyPickupCooldown) return null;
     return _nearbyPickupCooldown - elapsed;
   }
@@ -2556,7 +2560,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void _rolloverDailySendCounterIfNeeded() {
-    final todayKey = _dateKey(DateTime.now());
+    // Build 414 (sim100 #54): 발송 한도 리셋 키를 SecureClock(단조 증가)으로 —
+    //   wall-clock 사용 시 시계 전진으로 일/월 한도 우회 가능.
+    final todayKey = _dateKey(SecureClock.now());
     if (_dailySentDateKey != todayKey) {
       _dailySentDateKey = todayKey;
       _dailySentCount = 0;
@@ -2564,7 +2570,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void _rolloverMonthlySendCounterIfNeeded() {
-    final thisMonthKey = _monthKey(DateTime.now());
+    final thisMonthKey = _monthKey(SecureClock.now());
     if (_monthlyDateKey != thisMonthKey) {
       _monthlyDateKey = thisMonthKey;
       _monthlySentCount = 0;
@@ -2573,7 +2579,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void _rolloverDailyPremiumExpressCounterIfNeeded() {
-    final todayKey = _dateKey(DateTime.now());
+    final todayKey = _dateKey(SecureClock.now());
     if (_dailyPremiumExpressDateKey != todayKey) {
       _dailyPremiumExpressDateKey = todayKey;
       _dailyPremiumExpressSentCount = 0;
@@ -4785,8 +4791,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       // Build 405 (PR-NN2): 가입 시 chooser 에서 선택한 계정 종류 반영.
       //   isBrand=true 인 신규 사용자는 MainScaffold (NN3) 가 Brand UX 노출.
       //   기존 사용자도 cold-start 에서 secure storage 의 isBrand 값 복원.
-      isBrand: isBrand || _currentUser.isBrand,
-      brandName: brandName ?? _currentUser.brandName,
+      // Build 414 (sim100 #8/#34): isNewUser(계정 전환) 시엔 이전 사용자의
+      //   in-memory isBrand/brandName 가 OR/??-fallback 으로 새 계정에 상속되던
+      //   Brand 권한 누수 차단 — 전달된 파라미터 값만 사용.
+      isBrand: isNewUser ? isBrand : (isBrand || _currentUser.isBrand),
+      brandName: isNewUser ? brandName : (brandName ?? _currentUser.brandName),
       socialLink: socialLink,
       profileImagePath: _currentUser.profileImagePath,
       languageCode: resolvedLanguageCode,
@@ -5662,14 +5671,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'brandExactDropCredits': {
           'integerValue': '$_brandExactDropCredits',
         },
-        // Build 298 (HIGH audit): Welcome trial 1회 한정 claim timestamp.
-        // 사용자가 계정 삭제 후 재가입해도 동일 user.id 에 대해 trial 한 번만
-        // 부여됨. null 이면 미수령, ISO timestamp 면 수령 완료.
-        if (_welcomeTrialClaimedAt != null)
-          'welcomeTrialClaimedAt': {
-            'timestampValue':
-                _welcomeTrialClaimedAt!.toUtc().toIso8601String(),
-          },
+        // Build 414 (sim100 P0-1/#9): welcomeTrialClaimedAt 는 client PATCH 에서
+        //   제거. Build 300 이 trial farming 차단 위해 화이트리스트에서 뺐는데
+        //   client 가 계속 mask 에 포함 → claim 시 affected key 가 되어 user doc
+        //   PATCH 전체가 atomic 403. 서버 권위 소스는 trial_claims/{sha256(email)}
+        //   이므로 user doc 미러는 불필요(제거해도 trial 무결성 영향 없음).
         if (_appliedInviteCode != null)
           'inviteAppliedCode': {'stringValue': _appliedInviteCode!},
         if (_lastInviteRewardAt != null)
@@ -5715,6 +5721,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         '?key=${FirebaseConfig.apiKey}&$maskParams',
       );
       final body = jsonEncode({'fields': fields});
+      // Build 414 (sim100 P0-1): 인증 토큰 확보 후 Bearer 헤더 부착. 이전엔
+      //   Content-Type 만 보내 request.auth==null → rules isSignedIn() false →
+      //   user doc PATCH 가 항상 403(런타임 확인: letters 는 authHeaders 라 성공,
+      //   user save 만 실패). letters 경로와 동일하게 FirestoreService.authHeaders 사용.
+      await FirebaseAuthService.ensureValidToken();
       for (int attempt = 0; attempt < 3; attempt++) {
         try {
           // Build 302 (MED audit): HTTP status code 검사 추가. 이전엔 res
@@ -5722,7 +5733,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           // ("settings didn't save" 회귀 가능).
           final res = await http.patch(
             url,
-            headers: {'Content-Type': 'application/json'},
+            headers: FirestoreService.authHeaders,
             body: body,
           ).timeout(const Duration(seconds: 20));
           if (res.statusCode >= 200 && res.statusCode < 300) {
@@ -5807,12 +5818,18 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         // 로컬이 더 큼 → 서버 stale. 로컬 유지 + 서버 보정 push.
         unawaited(_saveUserToFirestore());
       }
-      if (_brandExactDropCredits != serverExactDropCredits) {
+      // Build 414 (sim100 #5): ExactDrop 유료 크레딧도 brandExtraMonthlyQuota
+      //   와 동일하게 가산형. 이전엔 server 값으로 무조건 덮어써(=) 구매 직후
+      //   서버 write 실패 시 다음 동기화에서 유료 크레딧이 소실됐다.
+      //   server > local → 재설치 복구로 보고 채택, server < local → 로컬 유지 +
+      //   서버 끌어올림.
+      if (serverExactDropCredits > _brandExactDropCredits) {
         _brandExactDropCredits = serverExactDropCredits;
-        // 캐시도 동기 갱신 — 다음 부팅 때 prefs 가 stale 하지 않도록.
         final prefs = await SharedPreferences.getInstance();
         await prefs.setInt('brandExactDropCredits', _brandExactDropCredits);
         changed = true;
+      } else if (serverExactDropCredits < _brandExactDropCredits) {
+        unawaited(_saveUserToFirestore());
       }
       // Build 298 (HIGH audit): Welcome trial 1회 한정 — server-as-truth.
       final claimedAtRaw = data['welcomeTrialClaimedAt'] as String?;
@@ -8731,6 +8748,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final usePrecise = preciseLat != null && preciseLng != null;
     for (int i = 0; i < count; i++) {
       if (!_canSendLetterByDailyLimit()) break;
+      // Build 414 (sim100 #35): 이미지 첨부 시 일일 이미지 한도 검사 — 이전엔
+      //   express+bulk 경로가 _canSendImageLetter 를 안 봐서 이미지 quota 우회.
+      if (imageUrl != null && !_canSendImageLetter()) break;
       // Build 373 (PR-DD2 P1 audit msg #2): ExactDrop credit 차감 — bulk +
       //   정확좌표 발송 분기에서 이전엔 차감 누락 → 베타 무료 분기 우회 외에도
       //   출시 빌드에서 무료 발송 가능 (비즈니스 손실). 단건 path 의
@@ -8901,7 +8921,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
     // Build 324: worldLetters 정리가 lag 일 때 만료된 letter 픽업 시도 차단.
     //   캠페인 dedup 보다 먼저 — "만료" 메시지가 "이미 받았어요" 보다 정확.
-    if (letter.isExpired) {
+    // Build 414 (sim100 #24): 사용기한(redemptionExpiresAt) 지난 쿠폰도 차단 —
+    //   이전엔 지도 만료(expiresAt)만 봐서 못 쓰는 쿠폰을 픽업해 쿨다운만 소모.
+    if (letter.isExpired || letter.isRedemptionExpired) {
       return _l10n.stateAlreadyTaken;
     }
 
@@ -8971,6 +8993,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           );
 
     _inbox.add(inboxCopy);
+    // Build 414 (sim100 #49): 라이브 픽업 세션 중 _inbox 무제한 증가 방지.
+    _capInbox();
 
     // 최대 읽기 인원 도달 시 지도에서 제거
     if (letter.readCount >= letter.maxReaders) {
@@ -8978,7 +9002,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     _currentUser.activityScore.receivedCount++;
-    _lastNearbyPickupAt = DateTime.now(); // 쿨다운 시작
+    // Build 414 (sim100 #54): 쿨다운 시작 시각도 SecureClock — getter 와 일관.
+    _lastNearbyPickupAt = SecureClock.now(); // 쿨다운 시작
 
     // 픽업 모먼트 햅틱 — 포켓몬 고식 "편지 주움" 감각. Brand 발신 편지는
     // 한 단계 더 무거운 시퀀스로 "공식 발송인" 체감 차별화.

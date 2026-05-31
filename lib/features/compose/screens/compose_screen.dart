@@ -4154,8 +4154,30 @@ class _ComposeScreenState extends State<ComposeScreen>
         'voucher_${DateTime.now().millisecondsSinceEpoch}',
       );
       // Build 305: uid 없으면 (로그인 안 됨 / Firebase off) 빈 path → 업로드 스킵.
+      // Build 414 (sim100 #12/P0-4): Storage 미활성 시 로컬 파일경로가 컨트롤러에
+      //   남아 그대로 Firestore 에 저장됨 → 발송자 외 모든 수신자에게 깨진 이미지
+      //   (소비자 기만). 업로드 불가 시 로컬 경로를 비워 broken 경로 저장 차단 +
+      //   사용자에게 안내.
       if (uploadPath.isEmpty) {
-        if (mounted) setState(() => _isUploadingVoucher = false);
+        if (mounted) {
+          setState(() {
+            _isUploadingVoucher = false;
+            _voucherImageLocalPath = null;
+            _redemptionInfoController.clear();
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(AppL10n.of(
+                      Provider.of<AppState>(context, listen: false)
+                          .currentUser
+                          .languageCode)
+                  .composeImageCompressWarning),
+              backgroundColor: AppColors.gold,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
         return;
       }
       final url = await StorageService.uploadImage(
@@ -4169,10 +4191,35 @@ class _ComposeScreenState extends State<ComposeScreen>
           // HTTPS URL 로 교체 — 미리보기는 여전히 로컬 경로에서 그려
           // (네트워크 왕복 생략). 발송 시점엔 redemptionInfo=URL.
           _redemptionInfoController.text = url;
+        } else {
+          // Build 414 (sim100 #12): 업로드 실패 시에도 로컬 경로 저장 차단.
+          _voucherImageLocalPath = null;
+          _redemptionInfoController.clear();
         }
       });
+      if (url == null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppL10n.of(
+                    Provider.of<AppState>(context, listen: false)
+                        .currentUser
+                        .languageCode)
+                .composeImageCompressWarning),
+            backgroundColor: AppColors.gold,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     } catch (_) {
-      if (mounted) setState(() => _isUploadingVoucher = false);
+      // Build 414 (sim100 #12): 예외 시에도 broken 로컬 경로 잔존 차단.
+      if (mounted) {
+        setState(() {
+          _isUploadingVoucher = false;
+          _voucherImageLocalPath = null;
+          _redemptionInfoController.clear();
+        });
+      }
     }
   }
 
