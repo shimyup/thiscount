@@ -79,20 +79,21 @@ firebase deploy --only functions:deleteMyData
 client(auth_service.deleteAccount)에서 ID토큰 + {userId} 로 POST 하도록 후속 배선
 필요(Phase 3 활성 시점). 현재는 함수만 준비.
 
-## generateCoupon — AI 쿠폰 생성 (ko→Solar 국산 / 그 외→Gemini Flash)
+## generateCoupon — AI 쿠폰 생성 (현재 전 언어 Gemini Flash 단일)
 매장(Brand)이 업종·설명만 입력 → LLM 이 카피/혜택 초안 생성. LLM 키는 서버 전용.
-라우팅: `langCode==='ko'` → **Upstage Solar(국산)**, 그 외 → **Google Gemini 2.0 Flash**
-(무료티어+최저가). 콘텐츠 모델 정합: type=general/coupon/voucher, category=cafe/food/
-beauty/fashion/it/event/other.
+현재 라우팅: **전 언어 Google Gemini 2.0 Flash**(무료티어+최저가). 콘텐츠 모델 정합:
+type=general/coupon/voucher, category=cafe/food/beauty/fashion/it/event/other.
 ```bash
-# 1) LLM 키 등록 (서버 secret)
-firebase functions:secrets:set SOLAR_API_KEY      # https://console.upstage.ai
-firebase functions:secrets:set GEMINI_API_KEY     # https://aistudio.google.com (무료 발급)
+# 1) Gemini 키 등록 (무료 발급: https://aistudio.google.com → Get API key)
+firebase functions:secrets:set GEMINI_API_KEY
 # 2) 배포
 firebase deploy --only functions:generateCoupon
-# 3) 함수 URL 을 클라 빌드에 주입 (.env.local):
+# 3) Cloud Run 공개: generatecoupon 서비스에 allUsers + Cloud Run 호출자
+#    (org 정책 이미 완화됨 — 다른 함수와 동일)
+# 4) 함수 URL 을 클라 빌드에 주입 (.env.local):
 #    COUPON_AI_FN_URL=https://generatecoupon-sgtezc3c6q-uc.a.run.app
-# 4) Cloud Run 공개(allUsers + Invoker) — 다른 함수와 동일(이미 org 정책 완화됨)
 ```
 - 미설정(URL 없음) 시 compose 의 'AI 생성' 버튼은 자동 숨김.
 - client: `CouponAIService.generate(...)` → 결과로 content/redemptionInfo 채움.
+- **ko→Solar(국산) 도입(선택)**: index.js 상단 주석의 4단계 참고 (SOLAR_API_KEY
+  defineSecret 복원 + secrets 배열 추가 + callSolar 복원 + ko 라우팅 분기).

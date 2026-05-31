@@ -37,8 +37,12 @@ const TWILIO_AUTH_TOKEN = defineSecret("TWILIO_AUTH_TOKEN");
 //   RC 대시보드 → Integrations → Webhooks → Authorization header 에 동일 값 설정.
 const RC_WEBHOOK_AUTH = defineSecret("RC_WEBHOOK_AUTH");
 // AI 쿠폰 생성 LLM 키 (서버 전용 — 절대 클라이언트 바이너리에 두지 않음).
-//   ko(한국) → Upstage Solar(국산), 그 외 → Google Gemini Flash(무료/최저가).
-const SOLAR_API_KEY = defineSecret("SOLAR_API_KEY");
+//   현재: 전 언어 Google Gemini Flash(무료티어+최저가) 단일 사용.
+//   ⚠️ 한국어 품질 비교 후 ko→Upstage Solar(국산) 도입하려면:
+//     1) const SOLAR_API_KEY = defineSecret("SOLAR_API_KEY"); 추가
+//     2) generateCoupon 의 secrets 배열에 SOLAR_API_KEY 추가
+//     3) callSolar() 복원(아래 주석) + 라우팅을 langCode==='ko' 분기로 변경
+//     4) firebase functions:secrets:set SOLAR_API_KEY 후 재배포
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 
 // 발신 정보 (비밀 아님). 도메인이 Resend 에 검증돼 있어야 함.
@@ -290,25 +294,20 @@ function parseLooseJson(text) {
   } catch (_) { return null; }
 }
 
-async function callSolar(prompt) {
-  const r = await fetch("https://api.upstage.ai/v1/solar/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${SOLAR_API_KEY.value()}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "solar-pro2",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.8,
-      response_format: { type: "json_object" },
-    }),
-  });
-  if (!r.ok) throw new Error(`solar ${r.status}`);
-  const d = await r.json();
-  return d.choices && d.choices[0] && d.choices[0].message
-    ? d.choices[0].message.content : "";
-}
+// ⚠️ ko→Solar(국산) 도입 시 복원할 함수 (현재 미사용 — 전 언어 Gemini):
+// async function callSolar(prompt) {
+//   const r = await fetch("https://api.upstage.ai/v1/solar/chat/completions", {
+//     method: "POST",
+//     headers: { Authorization: `Bearer ${SOLAR_API_KEY.value()}`,
+//       "Content-Type": "application/json" },
+//     body: JSON.stringify({ model: "solar-pro2",
+//       messages: [{ role: "user", content: prompt }], temperature: 0.8,
+//       response_format: { type: "json_object" } }),
+//   });
+//   if (!r.ok) throw new Error(`solar ${r.status}`);
+//   const d = await r.json();
+//   return d.choices?.[0]?.message?.content || "";
+// }
 
 async function callGemini(prompt) {
   const r = await fetch(
@@ -331,7 +330,7 @@ async function callGemini(prompt) {
 }
 
 exports.generateCoupon = onRequest(
-  { secrets: [SOLAR_API_KEY, GEMINI_API_KEY], cors: false, region: "us-central1" },
+  { secrets: [GEMINI_API_KEY], cors: false, region: "us-central1" },
   async (req, res) => {
     if (req.method !== "POST") return bad(res, 405, "POST only");
     const decoded = await verifyCaller(req, res);
@@ -351,8 +350,9 @@ exports.generateCoupon = onRequest(
     };
     const prompt = buildCouponPrompt(input);
     try {
-      // ko → 국산 Solar, 그 외 → 무료/최저가 Gemini Flash.
-      const raw = langCode === "ko" ? await callSolar(prompt) : await callGemini(prompt);
+      // 현재: 전 언어 Gemini Flash(무료/최저가) 단일.
+      //   (ko→Solar 도입 시: langCode === "ko" ? await callSolar(prompt) : ...)
+      const raw = await callGemini(prompt);
       const parsed = parseLooseJson(raw);
       if (!parsed) return bad(res, 502, "generation failed");
       return res.json({ ok: true, type, category, ...parsed });
