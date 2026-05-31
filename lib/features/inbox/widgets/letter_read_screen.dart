@@ -92,6 +92,11 @@ class _LetterReadScreenState extends State<LetterReadScreen>
       // Build 324 (Q1): 화면 진입 시 만료된 pending redemption 자동 정리
       //   → redeemed 처리 + UI 즉시 반영 (dim + 사용됨 라벨).
       unawaited(state.consumeElapsedPendingRedemptions());
+      // Build 414 (sim200 P1-1): 어느 경로(지도 직행/인박스)로 열든 '열람' 처리.
+      //   지도→상세 직행 시 readLetter 미호출로 status=delivered 잔존 → 7일 후
+      //   _purgeExpiredReadLetters 가 아직 유효한 쿠폰까지 미열람으로 삭제하던
+      //   버그. readLetter 는 status==delivered 일 때만 동작해 중복 호출 무해.
+      state.readLetter(widget.letter.id);
     });
     // 3단계 개봉 시퀀스 — 총 1500ms
     //   Phase 1 (0 → 0.3, ~400ms) : 봉투가 살짝 나타남 + light haptic

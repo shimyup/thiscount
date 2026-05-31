@@ -293,6 +293,13 @@ class _AuthScreenState extends State<AuthScreen>
       verifyMethod: userData['verifyMethod'] ?? 'email',
       latitude: pos?.latitude,
       longitude: pos?.longitude,
+      // Build 414 (sim200 P1-2): cold-start(main.dart) 경로와 동일하게 Brand
+      //   상태 전달. 누락 시 같은 세션 내 Brand 계정 로그인 전환 때 setUser 의
+      //   isNewUser 분기가 기본 isBrand:false 로 덮어써 Brand→Free 강등됐다.
+      isBrand: userData['isBrand'] == 'true',
+      brandName: (userData['brandName']?.isNotEmpty == true)
+          ? userData['brandName']
+          : null,
     );
     // 이메일을 UserProfile에 저장 (이메일 기반 기능에 필요)
     if (userData['email']?.isNotEmpty == true) {

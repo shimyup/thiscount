@@ -1074,6 +1074,7 @@ class _ComposeScreenState extends State<ComposeScreen>
       //   교체. 이전엔 로컬 경로가 imageUrl 로 저장돼 다른 기기 수신자는 항상
       //   placeholder 만 봤음 (사진이 발신 기기에만 존재). voucher 흐름과 동일
       //   패턴. 업로드 실패 시 로컬 경로 유지 (같은 기기 테스트는 가능).
+      bool uploaded = false;
       try {
         final uploadPath = StorageService.letterImagePath(
           'letter_${DateTime.now().millisecondsSinceEpoch}',
@@ -1086,12 +1087,28 @@ class _ComposeScreenState extends State<ComposeScreen>
           if (!mounted) return;
           if (url != null && url.isNotEmpty) {
             _imageFilePath = url;
+            uploaded = true;
           }
         }
       } catch (_) {
-        // 업로드 실패 — 로컬 경로 유지.
+        // 업로드 실패 — 아래에서 첨부 취소 처리.
       }
       if (!mounted) return;
+      // Build 414 (sim200 P1-7): Storage 미설정/업로드 실패 시 로컬 파일경로가
+      //   그대로 imageUrl 로 저장돼 발신 기기 외 모든 수신자에게 깨진 이미지가
+      //   되던 버그. 업로드 성공 시에만 첨부 유지, 아니면 취소 + 안내(voucher 와 동일).
+      if (!uploaded) {
+        _imageFilePath = null;
+        final l = AppL10n.of(state.currentUser.languageCode);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l.composeImageCompressWarning),
+            backgroundColor: AppColors.gold,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
       setState(() {
         _isCompressingImage = false;
       });

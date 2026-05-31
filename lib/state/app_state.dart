@@ -2548,6 +2548,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       if (letter.status == DeliveryStatus.delivered ||
           letter.status == DeliveryStatus.nearYou ||
           letter.status == DeliveryStatus.deliveredFar) {
+        // Build 414 (sim200 P1-1 defense): 아직 사용 가능한 쿠폰/교환권
+        //   (redemptionExpiresAt 가 미래)은 미열람 7일 삭제 대상에서 제외 —
+        //   픽업했지만 안 열어본 유효 쿠폰이 조용히 소실되는 것 방지.
+        final redEx = letter.redemptionExpiresAt;
+        if (redEx != null && redEx.isAfter(now)) {
+          return false;
+        }
         final arrivedTime = letter.arrivedAt ?? letter.sentAt;
         if (!letter.isReadByRecipient &&
             now.difference(arrivedTime) >= _unopenedLetterExpiry) {
@@ -4769,6 +4776,19 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       //   사용자 B 가 A 가 이미 본 letter id 를 'seen' 으로 취급해 B 에게 공유된
       //   편지가 인박스/지도에 안 들어오는 silent drop 발생.
       _seenLetterIds.clear();
+      // Build 414 (sim200 P1-3/P1-4): 계정 전환 시 다음 사용자에게 누수되던
+      //   in-memory 상태 추가 reset — DM 대화/메시지, 팔로우 브랜드, 사용완료
+      //   쿠폰, Brand ROI 캐시, 그리고 유료 크레딧/quota(브랜드 자산 누수).
+      //   prefs 쪽은 _clearUserScopedPrefs 가 처리(아래 키 추가).
+      _chatSessions.clear();
+      _dmMessages.clear();
+      _followedBrandIds.clear();
+      _redeemedLetterIds.clear();
+      _serverInsightsCache.clear();
+      _brandExactDropCredits = 0;
+      _brandExtraMonthlyQuota = 0;
+      _inviteRewardCredits = 0;
+      _welcomeTrialClaimedAt = null;
       // Build 409 (sim P1.44): 이전 사용자 프로필 사진이 다음 계정으로 넘어가지
       //   않도록 null. 아래 UserProfile 재생성이 _currentUser.profileImagePath 를
       //   복사하므로 여기서 끊어야 함.
@@ -5660,17 +5680,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           'integerValue': '${_currentUser.activityScore.likeCount}',
         },
         'inviteCode': {'stringValue': myInviteCode},
-        'inviteRewardCredits': {'integerValue': '$_inviteRewardCredits'},
-        'brandExtraMonthlyQuota': {
-          'integerValue': '$_brandExtraMonthlyQuota',
-        },
-        // Build 296 (P1 audit): ExactDrop 크레딧 (100통=₩10,000) Firestore
-        // 영구화. 이전엔 SharedPreferences 만 → 기기 재설치/로그인 변경 시
-        // 결제 손실. 재로그인 시 _fetchUserFromFirestore 가 이 필드를 읽어
-        // 복구. 클라이언트 측 prefs 는 캐시 역할.
-        'brandExactDropCredits': {
-          'integerValue': '$_brandExactDropCredits',
-        },
+        // Build 414 (sim200 P0-A 회귀수정): credit 카운터 3종
+        //   (inviteRewardCredits/brandExtraMonthlyQuota/brandExactDropCredits)은
+        //   이 일반 프로필 PATCH 에서 분리됐다. rules isReasonableUserCounterDelta
+        //   는 credit 을 '감소만' 허용(self-mint 차단)인데, 결제 grant 로 증가시키면
+        //   atomic PATCH 전체가 403 → 위치/프로필/카운터까지 전부 저장 실패.
+        //   → _saveCreditCountersToFirestore 로 별도 best-effort PATCH(아래).
+        //   증가(grant)는 룰상 여전히 차단(서버 grant=Phase 3), 감소(consume)만 영속.
         // Build 414 (sim100 P0-1/#9): welcomeTrialClaimedAt 는 client PATCH 에서
         //   제거. Build 300 이 trial farming 차단 위해 화이트리스트에서 뺐는데
         //   client 가 계속 mask 에 포함 → claim 시 affected key 가 되어 user doc
@@ -5726,6 +5742,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       //   user doc PATCH 가 항상 403(런타임 확인: letters 는 authHeaders 라 성공,
       //   user save 만 실패). letters 경로와 동일하게 FirestoreService.authHeaders 사용.
       await FirebaseAuthService.ensureValidToken();
+      // Build 414 (sim200 P0-A): credit 카운터는 별도 mask 로 분리 PATCH —
+      //   증가(grant) 시 룰 거부(403)가 나도 프로필/위치 저장을 막지 않도록.
+      //   disjoint fieldPaths 라 동시 실행 안전.
+      unawaited(_saveCreditCountersToFirestore());
       for (int attempt = 0; attempt < 3; attempt++) {
         try {
           // Build 302 (MED audit): HTTP status code 검사 추가. 이전엔 res
@@ -5764,6 +5784,46 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     } catch (e) {
       debugPrint('[Firestore] user save error: $e');
     }
+  }
+
+  /// Build 414 (sim200 P0-A): credit 카운터 전용 best-effort PATCH.
+  /// rules isReasonableUserCounterDelta 는 credit 을 '감소만' 허용(self-mint 차단).
+  /// 감소(consume) → 200 영속. 증가(grant) → 403(서버 grant=Phase 3 까지 로컬
+  /// 전용). 어느 쪽이든 이 PATCH 의 실패가 일반 프로필 저장을 막지 않는다(분리).
+  Future<void> _saveCreditCountersToFirestore() async {
+    if (!FirebaseConfig.kFirebaseEnabled) return;
+    if (_currentUser.id.isEmpty || _currentUser.id == 'guest') return;
+    try {
+      final fields = <String, Map<String, dynamic>>{
+        'inviteRewardCredits': {'integerValue': '$_inviteRewardCredits'},
+        'brandExtraMonthlyQuota': {'integerValue': '$_brandExtraMonthlyQuota'},
+        'brandExactDropCredits': {'integerValue': '$_brandExactDropCredits'},
+      };
+      final maskParams = fields.keys
+          .map((k) => 'updateMask.fieldPaths=${Uri.encodeQueryComponent(k)}')
+          .join('&');
+      final url = Uri.parse(
+        '${FirebaseConfig.firestoreBase}/users/${_currentUser.id}'
+        '?key=${FirebaseConfig.apiKey}&$maskParams',
+      );
+      await FirebaseAuthService.ensureValidToken();
+      final res = await http
+          .patch(
+            url,
+            headers: FirestoreService.authHeaders,
+            body: jsonEncode({'fields': fields}),
+          )
+          .timeout(const Duration(seconds: 20));
+      if (res.statusCode >= 400 && res.statusCode < 500) {
+        // 증가 grant 는 룰상 거부(정상) — 프로필 저장과 분리됐으므로 무해.
+        assert(() {
+          debugPrint(
+            '[Firestore] credit save ${res.statusCode} (grant=서버권위, 로컬 유지)',
+          );
+          return true;
+        }());
+      }
+    } catch (_) {/* best-effort */}
   }
 
   Future<void> _ensureInviteIdentityOnServer() async {
@@ -8670,6 +8730,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'profileImagePath',
         'purchase_isPremium',
         'purchase_isBrand',
+        // Build 414 (sim200 P1-3/P1-4): 계정 전환 누수 잔존 키 추가 —
+        //   DM 대화/메시지, 팔로우 브랜드, 사용완료 쿠폰, ExactDrop 유료 크레딧.
+        //   in-memory 는 isNewUser 블록에서 clear 하지만 prefs 키가 남으면 다음
+        //   loadFromPrefs 가 이전 사용자 데이터를 복원(cold restart 후 부활).
+        'chatSessions',
+        'dmMessages',
+        'followedBrandIds',
+        'redeemedLetterIds',
+        'brandExactDropCredits',
       ];
       for (final key in userScopedKeys) {
         await prefs.remove(key);
