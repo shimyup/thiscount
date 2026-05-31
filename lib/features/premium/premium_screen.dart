@@ -751,9 +751,12 @@ class _PremiumScreenState extends State<PremiumScreen> {
                         mode: LaunchMode.inAppBrowserView,
                       ),
                       style: TextButton.styleFrom(
-                        minimumSize: Size.zero,
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        // Build 414 (sim100 #39): a11y 터치 타깃 44pt 확보 —
+                        //   이전엔 shrinkWrap+작은 패딩으로 권장 최소 미만이었다.
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 12,
+                        ),
                       ),
                       child: Text(
                         l.settingsTerms,
@@ -782,9 +785,12 @@ class _PremiumScreenState extends State<PremiumScreen> {
                         mode: LaunchMode.inAppBrowserView,
                       ),
                       style: TextButton.styleFrom(
-                        minimumSize: Size.zero,
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        // Build 414 (sim100 #39): a11y 터치 타깃 44pt 확보 —
+                        //   이전엔 shrinkWrap+작은 패딩으로 권장 최소 미만이었다.
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 12,
+                        ),
                       ),
                       child: Text(
                         l.settingsPrivacy,

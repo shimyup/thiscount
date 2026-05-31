@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -1157,9 +1158,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 'I would like to withdraw consent for specific data processing.\n\nUsername: ${user.username}\nEmail: ${user.email ?? "N/A"}\n\nDetails:\n- [ ] Third-party sharing (Firebase / RevenueCat / Resend / Twilio / etc.)\n- [ ] Location processing\n- [ ] Marketing communications\n- [ ] Other (specify): ',
                           },
                         );
+                        // Build 414 (sim100 #38): 메일 앱 없으면 launchUrl 이
+                        //   조용히 실패해 데드버튼이었다. canLaunchUrl 사전체크 +
+                        //   실패 시 support 이메일을 SnackBar 로 직접 노출(복사 가능).
+                        bool ok = false;
                         try {
-                          await launchUrl(uri);
+                          if (await canLaunchUrl(uri)) {
+                            ok = await launchUrl(uri);
+                          }
                         } catch (_) {}
+                        if (!ok && ctx.mounted) {
+                          await Clipboard.setData(
+                            ClipboardData(text: AppLinks.supportEmail),
+                          );
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '${l.settingsWithdrawConsent}: ${AppLinks.supportEmail}',
+                              ),
+                              duration: const Duration(seconds: 5),
+                            ),
+                          );
+                        }
                       },
                     ),
 

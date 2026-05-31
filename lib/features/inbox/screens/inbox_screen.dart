@@ -773,7 +773,11 @@ class _InboxScreenState extends State<InboxScreen>
     bool isInbox = true,
   }) {
     final sorted = List<Letter>.from(letters);
-    final effectiveMode = (!isInbox && _sortMode == InboxSortMode.aiRecommend)
+    // Build 414 (sim100 #56): aiRecommend 는 Premium 전용 — 선택 후 다운그레이드
+    //   하면 모드가 남아 비-Premium 에게도 적용됐다. inbox 경로에서도 비-Premium
+    //   이면 latest 로 fallback (선택 시점 게이팅 + 적용 시점 게이팅 이중화).
+    final effectiveMode = (_sortMode == InboxSortMode.aiRecommend &&
+            (!isInbox || !state.currentUser.isPremium))
         ? InboxSortMode.latest
         : _sortMode;
     switch (effectiveMode) {
@@ -801,10 +805,20 @@ class _InboxScreenState extends State<InboxScreen>
         });
         break;
       case InboxSortMode.expiry:
-        // 만료 임박 먼저. expiresAt null → 맨 뒤로.
+        // 만료 임박 먼저. 둘 다 null → 맨 뒤로.
+        // Build 414 (sim100 #23): 쿠폰 사용기한(redemptionExpiresAt)도 고려 —
+        //   이전엔 지도 만료(expiresAt)만 봐서 사용기한 임박 쿠폰이 최하단으로
+        //   매장됐다. 둘 중 더 빠른(비-null) 시각 기준.
+        DateTime? earliestExpiry(Letter l) {
+          final r = l.redemptionExpiresAt;
+          final e = l.expiresAt;
+          if (r == null) return e;
+          if (e == null) return r;
+          return r.isBefore(e) ? r : e;
+        }
         sorted.sort((a, b) {
-          final ea = a.expiresAt;
-          final eb = b.expiresAt;
+          final ea = earliestExpiry(a);
+          final eb = earliestExpiry(b);
           if (ea == null && eb == null) return a.id.compareTo(b.id);
           if (ea == null) return 1;
           if (eb == null) return -1;
@@ -823,7 +837,14 @@ class _InboxScreenState extends State<InboxScreen>
           if (!l.isReadByRecipient) w += 1;
           return w;
         }
+        // Build 414 (sim100 #48): 사용완료/만료된 죽은 쿠폰은 가중치와 무관하게
+        //   하단으로 — 이전엔 Brand/coupon 가중치 때문에 못 쓰는 쿠폰이 상단 점유.
+        bool isDead(Letter l) =>
+            l.redeemedAt != null || l.isExpired || l.isRedemptionExpired;
         sorted.sort((a, b) {
+          final da = isDead(a);
+          final db = isDead(b);
+          if (da != db) return da ? 1 : -1; // 죽은 쿠폰 뒤로
           final wa = weight(a);
           final wb = weight(b);
           if (wa != wb) return wb.compareTo(wa); // 가중치 DESC

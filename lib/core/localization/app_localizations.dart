@@ -7659,11 +7659,22 @@ class AppL10n {
     'th': 'ส่งโปรโมไปยังประเทศแบบสุ่มจาก 198 ประเทศ',
   });
 
+  // Build 414 (sim100 #18): 4개 언어만 정의돼 나머지 10개는 영어 fallback 이었음.
   String composeBulkRandomSummary(int count) => _t({
     'ko': '랜덤 국가 ${count}통 발송',
     'en': '$count promos to random countries',
     'ja': 'ランダム国 ${count}通送信',
     'zh': '随机国家 $count封',
+    'fr': '$count promos vers des pays aléatoires',
+    'de': '$count Promos an zufällige Länder',
+    'es': '$count promos a países aleatorios',
+    'pt': '$count promoções para países aleatórios',
+    'ru': '$count промо в случайные страны',
+    'tr': 'rastgele ülkelere $count promosyon',
+    'ar': '$count عرض إلى دول عشوائية',
+    'it': '$count promo verso paesi casuali',
+    'hi': 'यादृच्छिक देशों को $count प्रोमो',
+    'th': 'ส่งโปร $count ฉบับไปยังประเทศแบบสุ่ม',
   });
 
   String get composeSelectTargetCountry => _t({
@@ -12218,34 +12229,38 @@ class AppL10n {
 
   // ── Downgrade section ──
 
+  // Build 414 (sim100 #13): 두 번째 불릿을 '다음 결제일부터 청구 안 됨' →
+  //   '스토어에서 직접 해지해야 청구가 멈춤' 으로 정정. 앱의 다운그레이드는
+  //   로컬 예약일 뿐 실제 스토어 구독을 해지하지 않아, 기존 문구는 허위 안내
+  //   (계속 청구 → 환불/리뷰 폭탄 리스크).
   String get premiumDowngradeDialogBody => _t({
     'ko':
-        '플랜을 무료로 변경하면:\n• 현재 결제 기간 종료 후 무료로 전환됩니다\n• 다음 결제일부터 요금이 청구되지 않아요\n• 현재 기간 동안은 모든 기능을 계속 이용하실 수 있어요',
+        '플랜을 무료로 변경하면:\n• 현재 결제 기간 종료 후 무료로 전환됩니다\n• 청구를 멈추려면 App Store/Play 스토어에서 구독을 직접 해지해야 해요\n• 현재 기간 동안은 모든 기능을 계속 이용하실 수 있어요',
     'en':
-        'If you switch to the Free plan:\n• You will switch to Free after the current billing period\n• No charges from the next billing date\n• You can continue using all features during the current period',
+        'If you switch to the Free plan:\n• You will switch to Free after the current billing period\n• To stop charges, you must cancel the subscription in the App Store/Play Store\n• You can continue using all features during the current period',
     'ja':
-        '無料プランに変更すると：\n• 現在の決済期間終了後に無料に変更されます\n• 次の決済日から料金は発生しません\n• 現在の期間中は全機能をご利用いただけます',
-    'zh': '切换到免费方案后：\n• 当前付费期结束后切换为免费\n• 下一个付款日起不再收费\n• 当前期间内可继续使用所有功能',
+        '無料プランに変更すると：\n• 現在の決済期間終了後に無料に変更されます\n• 課金を止めるには App Store/Play ストアで定期購入を解約してください\n• 現在の期間中は全機能をご利用いただけます',
+    'zh': '切换到免费方案后：\n• 当前付费期结束后切换为免费\n• 如需停止收费，请在 App Store/Play 商店中取消订阅\n• 当前期间内可继续使用所有功能',
     'fr':
-        'Si vous passez au forfait gratuit :\n• Vous passerez en gratuit après la période de facturation actuelle\n• Aucun frais à partir de la prochaine date de facturation\n• Vous pouvez continuer à utiliser toutes les fonctions pendant la période actuelle',
+        'Si vous passez au forfait gratuit :\n• Vous passerez en gratuit après la période de facturation actuelle\n• Pour arrêter les frais, vous devez annuler l’abonnement dans l’App Store/Play Store\n• Vous pouvez continuer à utiliser toutes les fonctions pendant la période actuelle',
     'de':
-        'Wenn Sie zum kostenlosen Plan wechseln:\n• Sie wechseln nach dem aktuellen Abrechnungszeitraum zu Kostenlos\n• Keine Gebühren ab dem nächsten Abrechnungsdatum\n• Sie können alle Funktionen während des aktuellen Zeitraums weiter nutzen',
+        'Wenn Sie zum kostenlosen Plan wechseln:\n• Sie wechseln nach dem aktuellen Abrechnungszeitraum zu Kostenlos\n• Um Gebühren zu stoppen, müssen Sie das Abo im App Store/Play Store kündigen\n• Sie können alle Funktionen während des aktuellen Zeitraums weiter nutzen',
     'es':
-        'Si cambia al plan gratuito:\n• Cambiará a Gratis después del período de facturación actual\n• Sin cargos desde la próxima fecha de facturación\n• Puede seguir usando todas las funciones durante el período actual',
+        'Si cambia al plan gratuito:\n• Cambiará a Gratis después del período de facturación actual\n• Para detener los cargos, debe cancelar la suscripción en App Store/Play Store\n• Puede seguir usando todas las funciones durante el período actual',
     'pt':
-        'Se mudar para o plano gratuito:\n• Mudará para Grátis após o período de cobrança atual\n• Sem cobranças a partir da próxima data de cobrança\n• Pode continuar usando todas as funções durante o período atual',
+        'Se mudar para o plano gratuito:\n• Mudará para Grátis após o período de cobrança atual\n• Para parar as cobranças, cancele a assinatura na App Store/Play Store\n• Pode continuar usando todas as funções durante o período atual',
     'ru':
-        'При переходе на бесплатный план:\n• Переход произойдёт после текущего периода оплаты\n• Со следующей даты оплаты средства списываться не будут\n• До конца текущего периода все функции доступны',
+        'При переходе на бесплатный план:\n• Переход произойдёт после текущего периода оплаты\n• Чтобы остановить списания, отмените подписку в App Store/Play Store\n• До конца текущего периода все функции доступны',
     'tr':
-        'Ücretsiz plana geçerseniz:\n• Mevcut fatura döneminden sonra ücretsiz olacaksınız\n• Sonraki fatura tarihinden itibaren ücret alınmaz\n• Mevcut dönem boyunca tüm özellikleri kullanmaya devam edebilirsiniz',
+        'Ücretsiz plana geçerseniz:\n• Mevcut fatura döneminden sonra ücretsiz olacaksınız\n• Ücretleri durdurmak için aboneliği App Store/Play Store’dan iptal etmelisiniz\n• Mevcut dönem boyunca tüm özellikleri kullanmaya devam edebilirsiniz',
     'ar':
-        'عند التبديل إلى الخطة المجانية:\n• ستنتقل إلى المجانية بعد فترة الفوترة الحالية\n• لن يتم تحصيل رسوم من تاريخ الفوترة التالي\n• يمكنك الاستمرار في استخدام جميع الميزات خلال الفترة الحالية',
+        'عند التبديل إلى الخطة المجانية:\n• ستنتقل إلى المجانية بعد فترة الفوترة الحالية\n• لإيقاف الرسوم، يجب إلغاء الاشتراك من App Store/Play Store\n• يمكنك الاستمرار في استخدام جميع الميزات خلال الفترة الحالية',
     'it':
-        'Se passi al piano gratuito:\n• Passerai a Gratuito dopo il periodo di fatturazione attuale\n• Nessun addebito dalla prossima data di fatturazione\n• Puoi continuare a usare tutte le funzioni durante il periodo attuale',
+        'Se passi al piano gratuito:\n• Passerai a Gratuito dopo il periodo di fatturazione attuale\n• Per interrompere gli addebiti, annulla l’abbonamento nell’App Store/Play Store\n• Puoi continuare a usare tutte le funzioni durante il periodo attuale',
     'hi':
-        'यदि आप मुफ्त योजना पर स्विच करते हैं:\n• वर्तमान बिलिंग अवधि के बाद मुफ्त में बदलेंगे\n• अगली बिलिंग तिथि से कोई शुल्क नहीं\n• वर्तमान अवधि के दौरान सभी सुविधाओं का उपयोग जारी रख सकते हैं',
+        'यदि आप मुफ्त योजना पर स्विच करते हैं:\n• वर्तमान बिलिंग अवधि के बाद मुफ्त में बदलेंगे\n• शुल्क रोकने के लिए App Store/Play Store में सदस्यता रद्द करें\n• वर्तमान अवधि के दौरान सभी सुविधाओं का उपयोग जारी रख सकते हैं',
     'th':
-        'หากเปลี่ยนเป็นแพ็กเกจฟรี:\n• จะเปลี่ยนเป็นฟรีหลังสิ้นสุดรอบบิลปัจจุบัน\n• ไม่เรียกเก็บเงินตั้งแต่วันบิลถัดไป\n• ยังใช้งานฟีเจอร์ทั้งหมดได้ในรอบปัจจุบัน',
+        'หากเปลี่ยนเป็นแพ็กเกจฟรี:\n• จะเปลี่ยนเป็นฟรีหลังสิ้นสุดรอบบิลปัจจุบัน\n• หากต้องการหยุดการเรียกเก็บเงิน ให้ยกเลิกการสมัครใน App Store/Play Store\n• ยังใช้งานฟีเจอร์ทั้งหมดได้ในรอบปัจจุบัน',
   });
 
   String get premiumDowngradeNextBilling => _t({

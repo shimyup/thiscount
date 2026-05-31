@@ -7079,7 +7079,9 @@ class _ComposeScreenState extends State<ComposeScreen>
           Text(
             quotaText,
             style: TextStyle(
-              color: state.hasRemainingDailyQuota
+              // Build 414 (sim100 #55): 월간 소진 시에도 경고색 — 이전엔 일간
+              //   잔여만 봐서 버튼 비활성(canSendByQuota) 사유가 색으로 안 드러남.
+              color: state.canSendByQuota
                   ? AppColors.textMuted
                   : AppColors.coupon,
               fontSize: 11,

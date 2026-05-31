@@ -1747,13 +1747,15 @@ class _SignupTabState extends State<_SignupTab> {
 
   // Build 296: 전체 동의 — 필수 4건 + 위치(선택) 일괄 토글. 위치는 OS 권한
   // 흐름을 그대로 호출하므로 거부 시 위치만 해제, 나머지 4건은 ON 보존.
+  // Build 414 (sim100 #16): 광고성 수신(_agreeMarketing)은 전체동의에서 제외.
+  //   정보통신망법 제50조 — 마케팅 수신은 필수 항목과 번들링 불가, 명시적
+  //   개별 opt-in 이어야 한다. 전체동의 = 필수 4건 + 위치(선택)만.
   bool get _agreeAll =>
       _agreePrivacy &&
       _agreeTerms &&
       _agreeAgeAbove14 &&
       _agreeThirdPartySharing &&
-      _agreeLocation &&
-      _agreeMarketing;
+      _agreeLocation;
 
   Future<void> _onAgreeAllTap(bool? checked) async {
     final next = checked ?? false;
@@ -1762,9 +1764,8 @@ class _SignupTabState extends State<_SignupTab> {
       _agreeTerms = next;
       _agreeAgeAbove14 = next;
       _agreeThirdPartySharing = next;
-      // Build 411 (launch): 광고성 수신(선택)도 전체동의에 포함 — 단 개별
-      //   해제 가능 + _canSignUp 에 미포함이라 가입 강제는 아님.
-      _agreeMarketing = next;
+      // Build 414 (sim100 #16): 광고성 수신은 전체동의에서 제외(정보통신망법
+      //   제50조 번들링 금지) — _agreeMarketing 은 사용자가 개별 체크해야만 ON.
     });
     if (next) {
       if (!_agreeLocation) {

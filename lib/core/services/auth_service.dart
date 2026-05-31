@@ -584,7 +584,9 @@ class AuthService {
   /// Rate limit 초과 시 null 반환 (UI에서 에러 메시지 표시).
   /// 실제 서비스에서는 이 코드를 이메일 발송 API와 연동.
   static String? generateEmailOtp(String email) {
-    final now = DateTime.now();
+    // Build 414 (sim100 #51): SecureClock — 시계 조작으로 OTP rate-limit 윈도우/
+    //   쿨다운 우회 차단. getter/verify 와 일관(단조 증가 watermark).
+    final now = SecureClock.now();
 
     // 윈도우 리셋 (10분 경과) — Build 288: email 전용 윈도우
     if (_emailOtpWindowStart == null ||
@@ -726,7 +728,8 @@ class AuthService {
     String phoneNumber, {
     String langCode = 'en',
   }) async {
-    final now = DateTime.now();
+    // Build 414 (sim100 #51): SecureClock — 시계 조작 OTP 우회 차단 (email 과 동일).
+    final now = SecureClock.now();
 
     // 윈도우 리셋 (10분 경과) — Build 288: phone 전용 윈도우
     if (_phoneOtpWindowStart == null ||
@@ -1264,6 +1267,11 @@ class AuthService {
           tempExpiresAt != null &&
           nowMs <= tempExpiresAt &&
           tempMatched) {
+        // Build 414 (sim100 #52): 임시 비번 로그인 성공도 정상 성공과 동일하게
+        //   실패 카운터/lockout 리셋 — 이전엔 미초기화라 직전 실패 누적이 남아
+        //   다음 로그인이 부당하게 lockout 될 수 있었음.
+        await _writeSecure(_keyLoginAttempts, '0');
+        await _deleteSecure(_keyLoginLockoutUntil);
         await _writeSecure(_keyMustChangePassword, 'true');
         await _writeSecure(_keyIsLoggedIn, 'true');
         return null;
