@@ -222,6 +222,62 @@ exports.sendAuthSms = onRequest(
   }
 );
 
+// ── deleteMyData: GDPR Art.17 서버 hard-delete (owner 검증, Phase 3 게이트) ────
+//
+// WHY: 탈퇴 시 client best-effort REST 는 firestore.rules 한계로 본인 letters/
+//   문서를 완전 삭제 못 한다. 이 함수가 Admin SDK(룰 우회)로 users/{userId} +
+//   해당 사용자의 letters(senderId==userId) 를 확실히 삭제한다.
+//
+// 보안: 익명 auth 환경에선 "누가 이 userId 의 주인인지" 서버가 검증 불가 →
+//   self-serve 삭제 엔드포인트는 타인 데이터 삭제(griefing) 위험. 따라서
+//   **owner 검증 = users/{userId}.authUid == 호출자 ID토큰 uid** 를 요구한다.
+//   Phase 3(authUid 바인딩) 전까진 authUid 가 없어 거부(=안전, 단 삭제 불가).
+//   Phase 3 cutover 후 정상 동작. docs/AUTH_PHASE3_CUTOVER_RUNBOOK.md
+//
+// DEPLOY: firebase deploy --only functions:deleteMyData
+exports.deleteMyData = onRequest(
+  { cors: false, region: "us-central1" },
+  async (req, res) => {
+    if (req.method !== "POST") return bad(res, 405, "POST only");
+    const decoded = await verifyCaller(req, res);
+    if (!decoded) return;
+    const { userId } = req.body || {};
+    if (typeof userId !== "string" || !userId.match(/^[a-zA-Z0-9_-]{8,64}$/)) {
+      return bad(res, 400, "bad userId");
+    }
+    try {
+      const db = admin.firestore();
+      const userRef = db.collection("users").doc(userId);
+      const snap = await userRef.get();
+      // owner 검증: authUid 바인딩된 본인만. 미바인딩(Phase 3 전) → 거부.
+      if (!snap.exists) return res.json({ ok: true, alreadyGone: true });
+      const authUid = snap.get("authUid");
+      if (!authUid || authUid !== decoded.uid) {
+        return bad(res, 403, "not owner (authUid mismatch — Phase 3 필요)");
+      }
+      // 1) 본인 letters 삭제 (비익명만 senderId==userId; 익명은 추적 불가/무PII).
+      let deleted = 0;
+      while (true) {
+        const batch = db.batch();
+        const q = await db.collection("letters")
+            .where("senderId", "==", userId).limit(300).get();
+        if (q.empty) break;
+        q.docs.forEach((d) => batch.delete(d.ref));
+        await batch.commit();
+        deleted += q.size;
+        if (q.size < 300) break;
+      }
+      // 2) user 문서 삭제.
+      await userRef.delete();
+      logger.info("deleteMyData done", { userId, letters: deleted });
+      return res.json({ ok: true, lettersDeleted: deleted });
+    } catch (e) {
+      logger.error("deleteMyData error", e);
+      return bad(res, 500, "internal");
+    }
+  }
+);
+
 // ── revenueCatWebhook: 결제 grant 서버 권위 부여 (sim200 P0-A 근본 해결) ───────
 //
 // WHY: ExactDrop/추가발송권 크레딧 '증가(grant)'는 firestore.rules 의

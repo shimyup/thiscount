@@ -68,3 +68,13 @@ firebase deploy --only functions:revenueCatWebhook
 - `$RCAnonymousID*` app_user_id(로그인 전 anon)는 skip — Purchases.logIn(userId)
   이후 결제만 grant 대상.
 - ⚠️ Blaze 플랜 + Admin SDK(Firestore write) 권한 필요(기본 admin.initializeApp 로 충족).
+
+## deleteMyData — GDPR Art.17 서버 hard-delete (owner 검증, Phase 3 게이트)
+탈퇴 시 client 가 못 지우는 본인 letters/문서를 Admin SDK 로 완전 삭제. 보안상
+**users/{userId}.authUid == 호출자 ID토큰 uid** 인 본인만 허용 → 익명 auth(Phase 3
+전)엔 authUid 부재로 거부(안전·단 삭제불가), **Phase 3 cutover 후 정상 동작**.
+```bash
+firebase deploy --only functions:deleteMyData
+```
+client(auth_service.deleteAccount)에서 ID토큰 + {userId} 로 POST 하도록 후속 배선
+필요(Phase 3 활성 시점). 현재는 함수만 준비.
