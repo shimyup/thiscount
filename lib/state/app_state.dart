@@ -1226,6 +1226,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         l.senderId != myId &&
         (l.category == LetterCategory.coupon ||
             l.category == LetterCategory.voucher) &&
+        // Build 414 (sim200 P3): 사용기한 만료 쿠폰을 광고 모달이 추천하면
+        //   픽업 시 실패 → 추천 후보에서 제외.
+        !l.isRedemptionExpired &&
         (l.expiresAt == null || l.expiresAt!.isAfter(now))).toList();
     if (candidates.isEmpty) return null;
     candidates.sort((a, b) => b.sentAt.compareTo(a.sentAt));
@@ -1867,7 +1870,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (letterId.isEmpty) return;
     if (_redeemedLetterIds.contains(letterId)) return;
     _redeemedLetterIds.add(letterId);
-    final now = DateTime.now();
+    // Build 414 (sim200 P3): SecureClock — 시계 조작 시 redeemedAt 분석/표시 왜곡 차단.
+    final now = SecureClock.now();
     // inbox 안의 letter object 에도 redeemedAt 직접 set — UI 즉시 반영.
     for (final l in _inbox) {
       if (l.id == letterId) {
@@ -1977,7 +1981,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       totalPickup += p;
       totalRevealed += v;
       totalRedeemed += r;
-      final rate = p == 0 ? 0.0 : r / p;
+      // Build 414 (sim200 P3): redeemed>pickup 시 카드별 rate '100% 초과' 방지 clamp.
+      final rate = (p == 0 ? 0.0 : r / p).clamp(0.0, 1.0);
       campaigns.add(CampaignInsight(
         letterId: l.id,
         title: l.content.length > 40 ? '${l.content.substring(0, 40)}…' : l.content,

@@ -2206,7 +2206,7 @@ class _SignupTabState extends State<_SignupTab> {
           _AgreeAllCard(
             checked: _agreeAll,
             title: l10n.authAgreeAllTitle,
-            description: l10n.authAgreeAllDesc,
+            description: l10n.authAgreeAllDesc(_minAge),
             onChanged: _onAgreeAllTap,
           ),
           const SizedBox(height: 12),

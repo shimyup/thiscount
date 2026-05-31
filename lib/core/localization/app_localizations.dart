@@ -4611,32 +4611,34 @@ class AppL10n {
     'th': 'ยอมรับทั้งหมด',
   });
 
-  String get authAgreeAllDesc => _t({
-    'ko': '개인정보·이용약관·만 14세 이상·제3자 제공·위치(선택) 동의를 한 번에 체크합니다. 개별 항목은 아래에서 조정할 수 있어요.',
+  // Build 414 (sim200 P2): 연령 파라미터화 — EU/EEA(_minAge=16) 가입자에게
+  //   '14+' 로 잘못 표기되던 것을 개별 동의 카드(16)·실제 게이트와 일치시킴.
+  String authAgreeAllDesc(int age) => _t({
+    'ko': '개인정보·이용약관·만 $age세 이상·제3자 제공·위치(선택) 동의를 한 번에 체크합니다. 개별 항목은 아래에서 조정할 수 있어요.',
     'en':
-        'Check Privacy, Terms, age 14+, third-party sharing, and location (optional) all at once. You can still adjust each item below.',
-    'ja': 'プライバシー・利用規約・14歳以上・第三者提供・位置情報（任意）に一括同意します。下で個別に変更できます。',
-    'zh': '一次性同意隐私、条款、14岁以上、第三方提供、位置（可选）。可在下方单独调整。',
+        'Check Privacy, Terms, age $age+, third-party sharing, and location (optional) all at once. You can still adjust each item below.',
+    'ja': 'プライバシー・利用規約・$age歳以上・第三者提供・位置情報（任意）に一括同意します。下で個別に変更できます。',
+    'zh': '一次性同意隐私、条款、$age岁以上、第三方提供、位置（可选）。可在下方单独调整。',
     'fr':
-        'Cochez en une fois Confidentialité, Conditions, 14 ans+, partage tiers et localisation (facultatif). Chaque élément reste modifiable ci-dessous.',
+        'Cochez en une fois Confidentialité, Conditions, $age ans+, partage tiers et localisation (facultatif). Chaque élément reste modifiable ci-dessous.',
     'de':
-        'Datenschutz, AGB, 14+, Weitergabe an Dritte und Standort (optional) auf einmal akzeptieren. Einzelne Punkte lassen sich unten anpassen.',
+        'Datenschutz, AGB, $age+, Weitergabe an Dritte und Standort (optional) auf einmal akzeptieren. Einzelne Punkte lassen sich unten anpassen.',
     'es':
-        'Acepta Privacidad, Términos, 14+, terceros y ubicación (opcional) de una vez. Puedes ajustar cada elemento abajo.',
+        'Acepta Privacidad, Términos, $age+, terceros y ubicación (opcional) de una vez. Puedes ajustar cada elemento abajo.',
     'pt':
-        'Aceite Privacidade, Termos, 14+, terceiros e localização (opcional) de uma vez. Você pode ajustar cada item abaixo.',
+        'Aceite Privacidade, Termos, $age+, terceiros e localização (opcional) de uma vez. Você pode ajustar cada item abaixo.',
     'ru':
-        'Согласитесь сразу со всем: конфиденциальность, условия, 14+, передача третьим лицам, геолокация (необязательно). Можно изменить ниже.',
+        'Согласитесь сразу со всем: конфиденциальность, условия, $age+, передача третьим лицам, геолокация (необязательно). Можно изменить ниже.',
     'tr':
-        'Gizlilik, Şartlar, 14+, üçüncü taraf paylaşımı ve konum (isteğe bağlı) için tek seferde onay verin. Aşağıdan tek tek değiştirebilirsiniz.',
+        'Gizlilik, Şartlar, $age+, üçüncü taraf paylaşımı ve konum (isteğe bağlı) için tek seferde onay verin. Aşağıdan tek tek değiştirebilirsiniz.',
     'ar':
-        'وافق على الخصوصية والشروط و14+ ومشاركة الأطراف الثالثة والموقع (اختياري) دفعة واحدة. يمكنك تعديل كل بند أدناه.',
+        'وافق على الخصوصية والشروط و$age+ ومشاركة الأطراف الثالثة والموقع (اختياري) دفعة واحدة. يمكنك تعديل كل بند أدناه.',
     'it':
-        'Accetta in un colpo solo Privacy, Termini, 14+, condivisione con terzi e posizione (facoltativa). Ogni voce è modificabile sotto.',
+        'Accetta in un colpo solo Privacy, Termini, $age+, condivisione con terzi e posizione (facoltativa). Ogni voce è modificabile sotto.',
     'hi':
-        'गोपनीयता, शर्तें, 14+, तृतीय-पक्ष साझाकरण और स्थान (वैकल्पिक) पर एक साथ सहमति दें। प्रत्येक मद नीचे बदला जा सकता है।',
+        'गोपनीयता, शर्तें, $age+, तृतीय-पक्ष साझाकरण और स्थान (वैकल्पिक) पर एक साथ सहमति दें। प्रत्येक मद नीचे बदला जा सकता है।',
     'th':
-        'ยอมรับนโยบายความเป็นส่วนตัว, ข้อกำหนด, อายุ 14+, การให้บุคคลที่สาม และตำแหน่ง (ทางเลือก) ในครั้งเดียว ปรับแยกรายการได้ด้านล่าง',
+        'ยอมรับนโยบายความเป็นส่วนตัว, ข้อกำหนด, อายุ $age+, การให้บุคคลที่สาม และตำแหน่ง (ทางเลือก) ในครั้งเดียว ปรับแยกรายการได้ด้านล่าง',
   });
 
   // ── Compose Screen ──────────────────────────────────────────────────

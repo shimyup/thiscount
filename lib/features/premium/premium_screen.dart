@@ -689,6 +689,15 @@ class _PremiumScreenState extends State<PremiumScreen> {
                                 success: false,
                                 message: purchase.errorMessage,
                               );
+                            } else {
+                              // Build 414 (sim200 P2): restorePurchases 가 빈 복원에
+                              //   false 반환(#28)하나 호출처가 미처리 → 토스트 무반응.
+                              //   '복원할 구매 없음' 명시 안내.
+                              _showPurchaseResultToast(
+                                context,
+                                success: false,
+                                message: l.settingsRestorePurchasesEmpty,
+                              );
                             }
                           },
                     child: Text(
