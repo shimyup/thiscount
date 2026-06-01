@@ -81,7 +81,7 @@ client(auth_service.deleteAccount)에서 ID토큰 + {userId} 로 POST 하도록 
 
 ## generateCoupon — AI 쿠폰 생성 (현재 전 언어 Gemini Flash 단일)
 매장(Brand)이 업종·설명만 입력 → LLM 이 카피/혜택 초안 생성. LLM 키는 서버 전용.
-현재 라우팅: **전 언어 Google Gemini 2.0 Flash**(무료티어+최저가). 콘텐츠 모델 정합:
+현재 라우팅: **전 언어 Google Gemini 2.5 Flash**(무료티어+최저가). 콘텐츠 모델 정합:
 type=general/coupon/voucher, category=cafe/food/beauty/fashion/it/event/other.
 ```bash
 # 1) Gemini 키 등록 (무료 발급: https://aistudio.google.com → Get API key)

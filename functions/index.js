@@ -235,7 +235,7 @@ exports.sendAuthSms = onRequest(
 // WHY: 매장(Brand)이 업종·목표만 입력하면 LLM 이 쿠폰 카피/혜택을 생성 → 매장
 //   진입장벽↓ (양면시장 콜드스타트 완화) + AI 특화(지원사업). LLM 키는 서버에만.
 //
-// 라우팅: langCode==='ko' → Upstage Solar(국산), 그 외 → Google Gemini 2.0 Flash
+// 라우팅: langCode==='ko' → Upstage Solar(국산), 그 외 → Google Gemini 2.5 Flash
 //   (무료티어 + 최저가). 둘 다 OpenAI/REST 호환.
 //
 // 콘텐츠 모델 정합: type = general(일반홍보)/coupon(할인권)/voucher(교환권),
@@ -312,7 +312,8 @@ function parseLooseJson(text) {
 async function callGemini(prompt) {
   const r = await fetch(
     "https://generativelanguage.googleapis.com/v1beta/models/" +
-      `gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY.value()}`,
+      // gemini-2.0-flash 는 신규 사용자 단종 → 2.5-flash 사용(현행, 초저가).
+      `gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY.value()}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
