@@ -19430,6 +19430,14 @@ class AppL10n {
   });
 
   // 5) 첫 픽업 축하 모달
+  // Build 414 (#3 아하모먼트): 첫 지도 진입 줍기 유도 hint.
+  String get mapFirstPickupHint => _t({
+    'ko': '📍 근처에 쿠폰이 떨어졌어요! 마커를 탭해서 주워보세요.',
+    'en': '📍 A coupon dropped nearby! Tap the marker to pick it up.',
+    'ja': '📍 近くにクーポンが落ちています！マーカーをタップして拾ってみましょう。',
+    'zh': '📍 附近掉落了优惠券！点击标记捡起来吧。',
+  });
+
   String get firstPickupCelebrationTitle => _t({
     'ko': '🎉 첫 혜택을 주웠어요!',
     'en': '🎉 First reward picked up!',

@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/config/map_config.dart';
 import '../../progression/user_level.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../widgets/app_snack.dart';
 import '../../../core/localization/country_names.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/person_emoji.dart';
@@ -102,6 +103,8 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       // Build 151: 이전 세션의 지도 위치·줌이 저장돼 있으면 우선 복원.
       // 없으면 기존 로직 (유저 현재 위치로 이동).
       _restoreLastMapPosition(state);
+      // Build 414 (#3 아하모먼트): 첫 지도 진입 신규 사용자에게 줍기 유도 1회.
+      unawaited(_maybeShowFirstPickupCoachmark(state));
     });
     // 15분마다 타워 목록 자동 갱신 (과도한 네트워크 호출 방지)
     _mapRefreshTimer = Timer.periodic(const Duration(minutes: 15), (_) {
@@ -2513,6 +2516,27 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       arrow: arrows[idx],
       emoji: catEmoji,
     );
+  }
+
+  // Build 414 (#3 아하모먼트): 첫 지도 진입 시 1회 줍기 유도 coachmark.
+  //   가입 후 _maybePlaceTutorialLetter 가 반경 내 튜토리얼 쿠폰을 깔아두므로,
+  //   신규 사용자(아직 픽업 0)에게 "탭해서 주워보세요"를 가볍게 안내 → 핵심
+  //   가치(줍기)를 60초 내 체감하게. 1회만(prefs flag).
+  Future<void> _maybeShowFirstPickupCoachmark(AppState state) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool('map_first_pickup_hint_v1') == true) return;
+      await prefs.setBool('map_first_pickup_hint_v1', true);
+      // 이미 줍기 경험이 있으면(인박스 보유) 안내 불필요.
+      if (state.inbox.isNotEmpty) return;
+      // 지도·쿠폰이 그려질 시간을 약간 준 뒤 노출.
+      await Future.delayed(const Duration(milliseconds: 1500));
+      if (!mounted) return;
+      AppSnack.hint(
+        context,
+        AppL10n.of(state.currentUser.languageCode).mapFirstPickupHint,
+      );
+    } catch (_) {/* best-effort 안내 */}
   }
 
   Future<void> _checkLocationPermission() async {
