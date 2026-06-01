@@ -15169,6 +15169,77 @@ class AppL10n {
     'th': '🎁 รับแล้ว! เหลือ $count ฉบับสำหรับคนอื่น',
   });
 
+  // Build 415 (#5 레어 드롭): rare/epic 편지를 주웠을 때 노출하는 축하 토스트.
+  //   게임화 — "특별한 걸 주웠다" 는 발견의 쾌감 강화.
+  String get rareDropToast => _t({
+    'ko': '✨ 레어 혜택을 발견했어요!',
+    'en': '✨ You found a rare reward!',
+    'ja': '✨ レアな特典を見つけました！',
+    'zh': '✨ 你发现了稀有优惠！',
+    'fr': '✨ Vous avez trouvé une récompense rare !',
+    'de': '✨ Du hast eine seltene Belohnung gefunden!',
+    'es': '✨ ¡Encontraste una recompensa rara!',
+    'pt': '✨ Você encontrou uma recompensa rara!',
+    'ru': '✨ Вы нашли редкую награду!',
+    'tr': '✨ Nadir bir ödül buldun!',
+    'ar': '✨ لقد عثرت على مكافأة نادرة!',
+    'it': '✨ Hai trovato una ricompensa rara!',
+    'hi': '✨ आपको एक दुर्लभ पुरस्कार मिला!',
+    'th': '✨ คุณพบรางวัลหายาก!',
+  });
+
+  String get epicDropToast => _t({
+    'ko': '💎 에픽 혜택을 발견했어요! 엄청 희귀해요',
+    'en': '💎 Epic reward found! Super rare',
+    'ja': '💎 エピックな特典を発見！超レアです',
+    'zh': '💎 发现史诗优惠！超级稀有',
+    'fr': '💎 Récompense épique trouvée ! Très rare',
+    'de': '💎 Epische Belohnung gefunden! Sehr selten',
+    'es': '💎 ¡Recompensa épica! Súper rara',
+    'pt': '💎 Recompensa épica! Super rara',
+    'ru': '💎 Эпическая награда! Очень редкая',
+    'tr': '💎 Efsanevi ödül! Çok nadir',
+    'ar': '💎 مكافأة أسطورية! نادرة جدًا',
+    'it': '💎 Ricompensa epica! Super rara',
+    'hi': '💎 एपिक पुरस्कार मिला! बहुत दुर्लभ',
+    'th': '💎 พบรางวัลระดับเอพิค! หายากสุดๆ',
+  });
+
+  // Build 415 (#5 레어 드롭): 지도 마커·픽업 시트의 희귀도 배지 라벨.
+  String get rarityRareLabel => _t({
+    'ko': '레어',
+    'en': 'RARE',
+    'ja': 'レア',
+    'zh': '稀有',
+    'fr': 'RARE',
+    'de': 'SELTEN',
+    'es': 'RARO',
+    'pt': 'RARO',
+    'ru': 'РЕДКОЕ',
+    'tr': 'NADİR',
+    'ar': 'نادر',
+    'it': 'RARO',
+    'hi': 'दुर्लभ',
+    'th': 'หายาก',
+  });
+
+  String get rarityEpicLabel => _t({
+    'ko': '에픽',
+    'en': 'EPIC',
+    'ja': 'エピック',
+    'zh': '史诗',
+    'fr': 'ÉPIQUE',
+    'de': 'EPISCH',
+    'es': 'ÉPICO',
+    'pt': 'ÉPICO',
+    'ru': 'ЭПИК',
+    'tr': 'EFSANE',
+    'ar': 'أسطوري',
+    'it': 'EPICO',
+    'hi': 'एपिक',
+    'th': 'เอพิค',
+  });
+
   // Build 324: brandUniquePerUser 캠페인의 dedup 알림 — 같은 캠페인의 다른
   //   letter 를 이미 픽업했을 때 노출. 같은 브랜드가 대량으로 랜덤 발송한 letter
   //   여러 개 중 1개만 받을 수 있다는 안내. ko 는 "캠페인" 마케팅 용어 회피.

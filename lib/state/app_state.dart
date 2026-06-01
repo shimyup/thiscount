@@ -8446,6 +8446,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       // coupon/voucher 카테고리는 브랜드만 선택할 수 있도록 서버 사이드 가드
       // 일반·프리미엄 유저가 어떤 방식으로 category 를 전달해도 general 로 강제.
       category: _currentUser.isBrand ? category : LetterCategory.general,
+      // Build 415 (#5 레어 드롭): 브랜드 발송이면 낮은 확률로 rare/epic 부여.
+      //   일반·프리미엄 유저 편지는 항상 normal (게임화는 브랜드 쿠폰 한정).
+      rarity: _rollLetterRarity(_currentUser.isBrand),
       // 답장 수락은 브랜드만 off 가능 — Free/Premium 은 항상 true 로 강제.
       acceptsReplies: _currentUser.isBrand ? acceptsReplies : true,
       // 쿠폰/교환권 사용 안내도 브랜드만 기록됨. 일반 유저가 넘겨도 무시.
@@ -8621,6 +8624,18 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   ///   미리 생성하기 위한 public wrapper.
   static String newCampaignIdPublic() =>
       'cmp_${DateTime.now().millisecondsSinceEpoch}_${_shortRandHex()}';
+
+  // Build 415 (#5 레어 드롭): 발송 편지의 희귀도 결정. 게임화 — 줍기 루프에
+  //   낮은 확률의 "발견 쾌감" 부여. 브랜드 발송 편지만 rare/epic 가능 (일반
+  //   유저 편지는 항상 normal). MVP 확률: epic 1% / rare 5% / 나머지 normal.
+  static final Random _rarityRng = Random();
+  static LetterRarity _rollLetterRarity(bool isBrand) {
+    if (!isBrand) return LetterRarity.normal;
+    final roll = _rarityRng.nextDouble();
+    if (roll < 0.01) return LetterRarity.epic; // 1%
+    if (roll < 0.06) return LetterRarity.rare; // 다음 5%
+    return LetterRarity.normal;
+  }
 
   /// Build 334 (PR-S4): 가장 최근 발송 letter 의 redemptionCode 반환. compose
   /// 화면이 발송 직후 snackbar / dialog 에 코드 노출해 매장 POS 등록을 유도.
@@ -8917,6 +8932,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             ? now.add(Duration(minutes: expressTotalMin) + Duration(hours: brandAutoExpireHours))
             : null,
         category: category,
+        // Build 415 (#5 레어 드롭): express blast 도 letter 마다 독립 희귀도 roll
+        //   (블라스트는 항상 브랜드) — 한 캠페인 안에서도 일부만 rare/epic.
+        rarity: _rollLetterRarity(true),
         acceptsReplies: acceptsReplies,
         redemptionInfo: redemptionInfo,
         redemptionExpiresAt: category != LetterCategory.general
@@ -9081,7 +9099,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
     // 픽업 모먼트 햅틱 — 포켓몬 고식 "편지 주움" 감각. Brand 발신 편지는
     // 한 단계 더 무거운 시퀀스로 "공식 발송인" 체감 차별화.
-    FeedbackService.onLetterPickUp(isBrand: letter.senderIsBrand);
+    // Build 415 (#5 레어 드롭): rare/epic 픽업 시 한 단계 강한 햅틱 (rarity.index).
+    FeedbackService.onLetterPickUp(
+      isBrand: letter.senderIsBrand,
+      rarityBoost: letter.rarity.index,
+    );
 
     // 픽업 거리 누적 — XP 공식의 "편지 간 거리" 원천. Brand 계정은 레벨
     // 시스템 밖이지만 필드 자체는 동일하게 축적해서 후일 Brand 전용 통계에

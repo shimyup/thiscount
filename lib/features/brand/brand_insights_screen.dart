@@ -178,74 +178,139 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
     // Build 331 (PR-S3): 4단계 funnel — 발송 → 픽업 → 코드 노출 → 사용.
     //   코드 노출 (revealedCount) = 매장 도착 의도 신호. 노출→사용 drop 큰
     //   캠페인은 POS 등록 누락 가능성 → 코칭 메시지로 알림.
-    return Row(
-      children: [
-        Expanded(child: _kpiCard('📮', i.totalSent.toString(), null)),
-        const SizedBox(width: 6),
-        Expanded(
-          child: _kpiCard(
-            '🎯',
-            i.totalPickup.toString(),
-            '${(i.pickupRate * 100).toStringAsFixed(0)}%',
+    // Build 415 (#8 ROI 퍼널 대시보드): KPI 4-up 카드 → 세로 퍼널로 시각화.
+    //   각 단계의 막대 폭 = 발송 대비 비율, 단계 간 전환율 (% 와 ↓ drop) 을
+    //   막대 옆에 표기해 "어디서 빠지는지" 한눈에 보이게 한다.
+    final l = AppL10n.of(
+      context.read<AppState>().currentUser.languageCode,
+    );
+    final stages = <_FunnelStage>[
+      _FunnelStage('📮', l.koEn('발송', 'Sent'), i.totalSent, AppColors.textMuted),
+      _FunnelStage('🎯', l.koEn('픽업', 'Pickup'), i.totalPickup, AppColors.teal),
+      _FunnelStage('🛒', l.koEn('노출', 'Reveal'), i.totalRevealed, AppColors.coupon),
+      _FunnelStage('✅', l.koEn('사용', 'Redeem'), i.totalRedeemed, AppColors.gold),
+    ];
+    final maxCount = i.totalSent <= 0 ? 1 : i.totalSent;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l.koEn('전환 퍼널', 'Conversion funnel'),
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.3,
+            ),
           ),
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: _kpiCard(
-            '🛒',
-            i.totalRevealed.toString(),
-            '${(i.revealRate * 100).toStringAsFixed(0)}%',
-          ),
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: _kpiCard(
-            '✅',
-            i.totalRedeemed.toString(),
-            '${(i.redeemRate * 100).toStringAsFixed(0)}%',
-          ),
-        ),
-      ],
+          const SizedBox(height: 12),
+          for (int s = 0; s < stages.length; s++)
+            _funnelRow(
+              stages[s],
+              maxCount,
+              // 단계 간 전환율 — 직전 단계 대비. 첫 단계(발송)는 기준점 → null.
+              s == 0 ? null : _stepRate(stages[s].count, stages[s - 1].count),
+            ),
+        ],
+      ),
     );
   }
 
-  Widget _kpiCard(String label, String value, String? sub) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
+  /// 직전 단계 대비 전환율 (0~1, clamp). 분모 0 이면 null.
+  double? _stepRate(int count, int prev) {
+    if (prev <= 0) return null;
+    return (count / prev).clamp(0.0, 1.0);
+  }
+
+  Widget _funnelRow(_FunnelStage stage, int maxCount, double? stepRate) {
+    // 막대 폭 = 발송 대비 비율. count>0 인데 막대가 안 보이지 않도록 최소 6%.
+    final raw = maxCount <= 0 ? 0.0 : stage.count / maxCount;
+    final widthFactor = stage.count == 0 ? 0.0 : (raw < 0.06 ? 0.06 : raw);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
+          // 라벨 (이모지 + 단계명)
+          SizedBox(
+            width: 76,
+            child: Row(
+              children: [
+                Text(stage.emoji, style: const TextStyle(fontSize: 14)),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    stage.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          if (sub != null) ...[
-            const SizedBox(height: 2),
-            Text(
-              sub,
-              style: const TextStyle(
-                color: AppColors.teal,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
+          // 비율 막대 + 수치
+          Expanded(
+            child: Container(
+              height: 28,
+              decoration: BoxDecoration(
+                color: AppColors.bgDeep,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Stack(
+                children: [
+                  FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
+                    widthFactor: widthFactor.clamp(0.0, 1.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: stage.color.withValues(alpha: 0.85),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        stage.count.toString(),
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
+          // 단계 전환율
+          SizedBox(
+            width: 52,
+            child: Text(
+              stepRate == null
+                  ? '—'
+                  : '${(stepRate * 100).toStringAsFixed(0)}%',
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                color: stepRate == null ? AppColors.textMuted : AppColors.teal,
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -518,6 +583,16 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
               fontSize: 11,
             ),
           ),
+          // Build 415 (#8 ROI 퍼널): 캠페인별 미니 퍼널 — 발송 대비 픽업/노출/사용
+          //   비율을 얇은 막대 3개로 시각화. 어느 단계에서 빠지는지 카드에서 즉시 인지.
+          if (c.sent > 0) ...[
+            const SizedBox(height: 8),
+            _miniFunnelBar(c.pickup, c.sent, AppColors.teal),
+            const SizedBox(height: 3),
+            _miniFunnelBar(c.revealed, c.sent, AppColors.coupon),
+            const SizedBox(height: 3),
+            _miniFunnelBar(c.redeemed, c.sent, AppColors.gold),
+          ],
           Builder(builder: (ctx) {
             final l = AppL10n.of(
               ctx.read<AppState>().currentUser.languageCode,
@@ -537,6 +612,29 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
             );
           }),
         ],
+      ),
+    );
+  }
+
+  /// Build 415 (#8 ROI 퍼널): 캠페인 카드용 얇은 비율 막대. count/total 만큼 채움.
+  Widget _miniFunnelBar(int count, int total, Color color) {
+    final raw = total <= 0 ? 0.0 : count / total;
+    final factor = count == 0 ? 0.0 : (raw < 0.04 ? 0.04 : raw);
+    return Container(
+      height: 5,
+      decoration: BoxDecoration(
+        color: AppColors.bgDeep,
+        borderRadius: BorderRadius.circular(3),
+      ),
+      child: FractionallySizedBox(
+        alignment: Alignment.centerLeft,
+        widthFactor: factor.clamp(0.0, 1.0),
+        child: Container(
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.85),
+            borderRadius: BorderRadius.circular(3),
+          ),
+        ),
       ),
     );
   }
@@ -618,6 +716,15 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
 ///   bulk send 100통이 코드 1개 공유 → 1 row 로 묶어 표시. POS 등록 단위 = 코드.
 /// Build 340 (PR-S11 시뮬레이션): totalPickup 추가 — 코드 카드 stat 이 4단계
 ///   funnel (📮 → 🎯 → 🛒 → ✅) 와 일치하도록.
+/// Build 415 (#8 ROI 퍼널): 퍼널 한 단계의 표시 데이터 (이모지·라벨·수치·색).
+class _FunnelStage {
+  final String emoji;
+  final String label;
+  final int count;
+  final Color color;
+  const _FunnelStage(this.emoji, this.label, this.count, this.color);
+}
+
 class _CodeAggregate {
   final String code;
   int letterCount = 0;

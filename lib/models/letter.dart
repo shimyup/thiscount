@@ -20,6 +20,74 @@ enum LetterSenderTier { free, premium, brand }
 // 에도 그대로 문자열로 저장되어 다른 유저가 수신할 때 필터링 기준으로 쓴다.
 enum LetterCategory { general, coupon, voucher }
 
+// ── 편지 희귀도 (게임화 — 줍기의 "발견 쾌감") ──────────────────────────────────
+//
+// Build 415 (#5 레어 드롭): 브랜드 발송 편지에 희귀도를 부여해 줍기 루프에
+// "포켓몬 고식" 발견의 쾌감을 더한다. 발송 시 낮은 확률로 자동 부여:
+//   normal (기본) — 일반 발송. 시각 강조 없음.
+//   rare   (~5%)  — ✨ 반짝 배지 + 강화된 글로우 + 한 단계 강한 픽업 햅틱.
+//   epic   (~1%)  — 💎 보석 배지 + 보라/골드 글로우 + 가장 강한 픽업 햅틱.
+//
+// 희귀도는 create 시점에 한 번 결정되어 immutable (firestore.rules 의 letter
+// update 화이트리스트에 없어 변경 불가 — 정상). normal 은 직렬화 생략해
+// 기존 letter 와 호환.
+enum LetterRarity { normal, rare, epic }
+
+extension LetterRarityExt on LetterRarity {
+  String get key {
+    switch (this) {
+      case LetterRarity.normal:
+        return 'normal';
+      case LetterRarity.rare:
+        return 'rare';
+      case LetterRarity.epic:
+        return 'epic';
+    }
+  }
+
+  bool get isSpecial => this != LetterRarity.normal;
+
+  /// 지도 마커·픽업 시트·도착 다이얼로그에서 희귀도를 알리는 배지 이모지.
+  /// normal 은 빈 문자열 (배지 미노출).
+  String get badge {
+    switch (this) {
+      case LetterRarity.normal:
+        return '';
+      case LetterRarity.rare:
+        return '✨';
+      case LetterRarity.epic:
+        return '💎';
+    }
+  }
+
+  static LetterRarity fromKey(String? s) {
+    switch (s) {
+      case 'rare':
+        return LetterRarity.rare;
+      case 'epic':
+        return LetterRarity.epic;
+      case 'normal':
+      default:
+        return LetterRarity.normal;
+    }
+  }
+
+  /// Firestore 는 int(index) 또는 string(key) 어느 쪽으로도 돌아올 수 있어
+  /// 양쪽 모두 안전 파싱. 범위 밖 int 는 normal 로 안전 폴백 (RangeError 차단).
+  static LetterRarity fromJson(dynamic v) {
+    if (v == null) return LetterRarity.normal;
+    if (v is int) {
+      if (v >= 0 && v < LetterRarity.values.length) {
+        return LetterRarity.values[v];
+      }
+      return LetterRarity.normal;
+    }
+    if (v is num) return fromJson(v.toInt());
+    if (v is String) return fromKey(v);
+    return LetterRarity.normal;
+  }
+}
+
 extension LetterCategoryExt on LetterCategory {
   String get key {
     switch (this) {
@@ -278,6 +346,10 @@ class Letter {
   // "쿠폰함" 섹션에 시각적으로 분리 표시된다.
   final LetterCategory category;
 
+  /// Build 415 (#5 레어 드롭): 편지 희귀도 (게임화). 발송 시 결정되어 immutable.
+  /// 브랜드 발송 편지만 rare/epic 가능 — 일반 유저 편지는 항상 normal.
+  final LetterRarity rarity;
+
   /// Build 315: 픽업 시 자동 분류된 산업 카테고리 태그.
   /// 7개 카테고리 (food/cafe/beauty/fashion/it/event/other) 중 하나.
   /// pickUpLetter 시 inferCategoryTag(letter) 로 한 번만 계산해서 저장 →
@@ -379,6 +451,7 @@ class Letter {
     this.brandUniquePerUser = false,
     this.expiresAt,
     this.category = LetterCategory.general,
+    this.rarity = LetterRarity.normal,
     this.acceptsReplies = true,
     this.redemptionInfo,
     this.redemptionExpiresAt,
@@ -431,6 +504,7 @@ class Letter {
     brandUniquePerUser: brandUniquePerUser,
     expiresAt: expiresAt,
     category: category,
+    rarity: rarity,
     acceptsReplies: acceptsReplies,
     redemptionInfo: redemptionInfo,
     redemptionExpiresAt: redemptionExpiresAt,
@@ -660,6 +734,8 @@ class Letter {
     'brandUniquePerUser': brandUniquePerUser,
     if (expiresAt != null) 'expiresAt': expiresAt!.millisecondsSinceEpoch,
     'category': category.key,
+    // Build 415 (#5): normal 은 생략 — 기존 letter/페이로드와 호환 + 직렬화 절약.
+    if (rarity != LetterRarity.normal) 'rarity': rarity.key,
     'acceptsReplies': acceptsReplies,
     if (redemptionInfo != null) 'redemptionInfo': redemptionInfo,
     if (redemptionExpiresAt != null)
@@ -765,6 +841,8 @@ class Letter {
     senderTier: LetterSenderTier.values[j['senderTier'] as int? ?? 0],
     brandUniquePerUser: j['brandUniquePerUser'] as bool? ?? false,
     category: LetterCategoryExt.fromKey(j['category'] as String?),
+    // Build 415 (#5): int(index) / string(key) 양쪽 안전 파싱 + 누락 시 normal.
+    rarity: LetterRarityExt.fromJson(j['rarity']),
     acceptsReplies: j['acceptsReplies'] as bool? ?? true,
     redemptionInfo: j['redemptionInfo'] as String?,
     redemptionExpiresAt: j['redemptionExpiresAt'] != null

@@ -2240,6 +2240,30 @@ class _WorldMapScreenState extends State<WorldMapScreen>
           final error = state.pickUpLetter(letter.id);
           Navigator.pop(ctx);
           if (error == null) {
+            // Build 415 (#5 레어 드롭): rare/epic 편지를 주웠으면 "발견" 축하
+            //   토스트. campaign dedup 안내보다 우선 (더 강한 도파민 신호).
+            if (letter.rarity.isSpecial) {
+              final isEpic = letter.rarity == LetterRarity.epic;
+              ScaffoldMessenger.of(ctx).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    isEpic ? l10n.epicDropToast : l10n.rareDropToast,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  backgroundColor: isEpic
+                      ? const Color(0xFF7C4DFF)
+                      : const Color(0xFFB8860B),
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 3),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              );
+            }
             // Build 324: brandUniquePerUser 캠페인 픽업 시 hidden 안내 스낵바.
             //   "왜 다른 letter 가 사라지지?" 의문 해소 (Premium 시뮬레이션 발견).
             if (preCampaignSiblings > 0) {
@@ -2870,6 +2894,19 @@ class _ArrivedWaitingMarker extends StatelessWidget {
     return '📬';
   }
 
+  /// Build 415 (#5 레어 드롭): 희귀도별 글로우 색. normal 은 null (강조 없음).
+  ///   epic = 보라, rare = 밝은 골드. 마커에 글로우 ring + 배지로 시각 구분.
+  Color? get _rarityColor {
+    switch (letter.rarity) {
+      case LetterRarity.epic:
+        return const Color(0xFF7C4DFF);
+      case LetterRarity.rare:
+        return const Color(0xFFFFD54F);
+      case LetterRarity.normal:
+        return null;
+    }
+  }
+
   /// Build 324 (FOMO): 만료 임박 (≤24h) 여부.
   ///   redemptionExpiresAt (쿠폰 사용 기한) 또는 expiresAt (편지 자동 삭제)
   ///   중 더 빠른 시각 기준. 24h 이내면 핀이 깜빡임 강화 + 빨간 ring 으로 시각화.
@@ -2903,8 +2940,13 @@ class _ArrivedWaitingMarker extends StatelessWidget {
     final state = context.read<AppState>();
     final isMine = letter.senderId == state.currentUser.id;
     final fomoColor = expiringSoon ? const Color(0xFFE53935) : null;
-    final baseColor = AppColors.gold;
-    final showMineRing = isMine && !expiringSoon; // FOMO 우선
+    // Build 415 (#5 레어 드롭): rare/epic 글로우. FOMO(만료임박) 가 더 강한 행동
+    //   신호라 빨강 ring 우선 — rare 글로우는 FOMO 아닐 때만 발화 (noise 억제).
+    final rarityColor = _rarityColor;
+    final rarityBadge = letter.rarity.badge;
+    final showRarity = rarityColor != null && !expiringSoon;
+    final baseColor = showRarity ? rarityColor : AppColors.gold;
+    final showMineRing = isMine && !expiringSoon && !showRarity; // FOMO·레어 우선
     return AnimatedBuilder(
       animation: pulseController,
       builder: (_, __) {
@@ -2913,7 +2955,27 @@ class _ArrivedWaitingMarker extends StatelessWidget {
         final pulse = (sin(phase) * 0.5 + 0.5);
         return Stack(
           alignment: Alignment.center,
+          clipBehavior: Clip.none,
           children: [
+            // Build 415 (#5): rare/epic 글로우 ring — 희귀도 색으로 마커를 감싼다.
+            if (showRarity)
+              Container(
+                width: 68 + pulse * 8,
+                height: 68 + pulse * 8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: baseColor.withValues(alpha: 0.5 + pulse * 0.4),
+                    width: 2.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: baseColor.withValues(alpha: 0.35 + pulse * 0.3),
+                      blurRadius: 16 + pulse * 8,
+                    ),
+                  ],
+                ),
+              ),
             // Build 324: 본인 sender ring — FOMO 가 아닐 때만 노출 (Q3 audit:
             //   동시발화 차단). FOMO 가 더 강한 사용자 행동 신호 → 우선.
             if (showMineRing)
@@ -2972,6 +3034,24 @@ class _ArrivedWaitingMarker extends StatelessWidget {
                 ],
               ),
             ),
+            // Build 415 (#5): rare/epic 배지 — 마커 우상단에 ✨/💎 표시.
+            if (showRarity && rarityBadge.isNotEmpty)
+              Positioned(
+                top: -2,
+                right: 4,
+                child: Text(
+                  rarityBadge,
+                  style: TextStyle(
+                    fontSize: 16,
+                    shadows: [
+                      Shadow(
+                        color: baseColor.withValues(alpha: 0.9),
+                        blurRadius: 8,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
         );
       },
@@ -4232,14 +4312,23 @@ class _PickupSheet extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                isBrand ? 'BRAND' : 'LETTER',
-                style: TextStyle(
-                  color: ink.withValues(alpha: 0.7),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.66,
-                ),
+              Row(
+                children: [
+                  Text(
+                    isBrand ? 'BRAND' : 'LETTER',
+                    style: TextStyle(
+                      color: ink.withValues(alpha: 0.7),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.66,
+                    ),
+                  ),
+                  // Build 415 (#5 레어 드롭): rare/epic 이면 희귀도 칩 노출.
+                  if (letter.rarity.isSpecial) ...[
+                    const SizedBox(width: 8),
+                    _RarityChip(rarity: letter.rarity, l10n: l10n),
+                  ],
+                ],
               ),
               Text(
                 letter.senderCountryFlag,
@@ -4297,6 +4386,39 @@ class _PickupSheet extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── Build 415 (#5 레어 드롭): 희귀도 칩 ──────────────────────────────────────
+//   픽업 시트 헤더에서 rare/epic 편지임을 알리는 작은 배지. ✨ RARE / 💎 EPIC.
+class _RarityChip extends StatelessWidget {
+  final LetterRarity rarity;
+  final AppL10n l10n;
+  const _RarityChip({required this.rarity, required this.l10n});
+
+  @override
+  Widget build(BuildContext context) {
+    final isEpic = rarity == LetterRarity.epic;
+    final color =
+        isEpic ? const Color(0xFF7C4DFF) : const Color(0xFFB8860B);
+    final label = isEpic ? l10n.rarityEpicLabel : l10n.rarityRareLabel;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.16),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.6), width: 1),
+      ),
+      child: Text(
+        '${rarity.badge} $label',
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.4,
+        ),
       ),
     );
   }

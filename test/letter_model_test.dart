@@ -11,10 +11,12 @@ Letter _brandLetter({
   DateTime? expiresAt,
   bool brandUniquePerUser = false,
   String? campaignId,
+  LetterRarity rarity = LetterRarity.normal,
 }) {
   final now = DateTime.now();
   return Letter(
     id: id,
+    rarity: rarity,
     senderId: 'brand1',
     senderName: 'Test Brand',
     senderCountry: '대한민국',
@@ -136,6 +138,44 @@ void main() {
       expect(LetterCategoryExt.fromKey('unknown'), LetterCategory.general);
       expect(LetterCategoryExt.fromKey('coupon'), LetterCategory.coupon);
       expect(LetterCategoryExt.fromKey('voucher'), LetterCategory.voucher);
+    });
+  });
+
+  group('LetterRarity enum (Build 415 #5 레어 드롭)', () {
+    test('keys + badge + isSpecial stable', () {
+      expect(LetterRarity.normal.key, 'normal');
+      expect(LetterRarity.rare.key, 'rare');
+      expect(LetterRarity.epic.key, 'epic');
+      expect(LetterRarity.normal.isSpecial, false);
+      expect(LetterRarity.rare.isSpecial, true);
+      expect(LetterRarity.epic.isSpecial, true);
+      expect(LetterRarity.rare.badge, '✨');
+      expect(LetterRarity.epic.badge, '💎');
+      expect(LetterRarity.normal.badge, '');
+    });
+
+    test('fromJson: string key / int index / null / out-of-range', () {
+      expect(LetterRarityExt.fromJson('rare'), LetterRarity.rare);
+      expect(LetterRarityExt.fromJson('epic'), LetterRarity.epic);
+      expect(LetterRarityExt.fromJson('unknown'), LetterRarity.normal);
+      expect(LetterRarityExt.fromJson(2), LetterRarity.epic);
+      expect(LetterRarityExt.fromJson(0), LetterRarity.normal);
+      expect(LetterRarityExt.fromJson(null), LetterRarity.normal);
+      expect(LetterRarityExt.fromJson(99), LetterRarity.normal); // 범위 밖 안전
+    });
+
+    test('normal 은 toJson 에서 키 생략 → legacy 호환', () {
+      final json = _brandLetter(rarity: LetterRarity.normal).toJson();
+      expect(json.containsKey('rarity'), false);
+      expect(Letter.fromJson(json).rarity, LetterRarity.normal);
+    });
+
+    test('rare/epic 라운드트립 + clone 보존', () {
+      final original = _brandLetter(rarity: LetterRarity.epic);
+      final json = original.toJson();
+      expect(json['rarity'], 'epic');
+      expect(Letter.fromJson(json).rarity, LetterRarity.epic);
+      expect(original.clone().rarity, LetterRarity.epic);
     });
   });
 
