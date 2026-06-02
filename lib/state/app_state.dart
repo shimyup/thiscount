@@ -3151,6 +3151,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _tempBlockedSenderIds.clear();
     _tempBlockedSenderIds.addAll(prefs.getStringList('temp_blocked') ?? []);
 
+    // Build 415 (sim50 P1): 오프라인 편지 업로드 아웃박스 복원. 이전 세션에서
+    //   오프라인 발송돼 서버에 못 올라간 letter id 들 — 다음 sync 에서 재업로드.
+    _pendingLetterUploadIds.clear();
+    _pendingLetterUploadIds.addAll(
+      prefs.getStringList('pending_letter_uploads') ?? const [],
+    );
+
     // 유저가 뮤트한 브랜드 복원
     _mutedBrandIds.clear();
     _mutedBrandIds.addAll(prefs.getStringList('mutedBrandIds') ?? []);
@@ -3622,6 +3629,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> syncWorldLettersFromServer() async {
     if (!FirebaseConfig.kFirebaseEnabled) return;
     if (!FirebaseAuthService.isSignedIn) return;
+    // Build 415 (sim50 P1): 모든 sync 트리거(init/30s timer/지도 진입/resume)에서
+    //   오프라인 아웃박스 재업로드 시도 — 오프라인 발송분이 온라인 복귀 시 서버에
+    //   올라가 다른 사용자가 픽업 가능. 자체 in-flight 가드로 중복 안전.
+    unawaited(_flushPendingLetterUploads());
     // Build 408 (P1): 중복 동시 실행 차단 (init/timer/resume/지도 진입 겹침).
     if (_worldLetterSyncInFlight) return;
     _worldLetterSyncInFlight = true;
@@ -3869,9 +3880,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   /// 보낸 편지를 Firestore에 저장 (다른 유저가 수신할 수 있도록)
-  Future<void> _saveLetterToFirestore(Letter letter) async {
-    if (!FirebaseConfig.kFirebaseEnabled) return;
-    if (!FirebaseAuthService.isSignedIn) return;
+  Future<bool> _saveLetterToFirestore(Letter letter) async {
+    if (!FirebaseConfig.kFirebaseEnabled) return false;
+    // Build 415 (sim50 P1): 미인증(오프라인/부트 직후)이면 업로드 불가 → 아웃박스에
+    //   넣고 다음 인증/sync 때 재시도. 이전엔 그냥 return 해 letter 가 발신자
+    //   기기에만 존재(할당량만 소모, 아무도 픽업 못함).
+    if (!FirebaseAuthService.isSignedIn) {
+      _enqueueLetterUpload(letter.id);
+      return false;
+    }
     try {
       // Build 207: 익명 편지의 발신자 정보를 서버 사이드에서 stripping.
       // 이전엔 isAnonymous=true 여도 senderId/Name 가 그대로 Firestore 에
@@ -3949,8 +3966,82 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       if (kDebugMode) {
         debugPrint('[Firebase] 편지 업로드 완료: ${letter.id} → ${letter.destinationCountry}');
       }
+      // Build 415 (sim50 P1): 업로드 성공 시 아웃박스에서 제거(있었다면).
+      _dequeueLetterUpload(letter.id);
+      return true;
     } catch (e, st) {
       if (kDebugMode) debugPrint('[Firebase] 편지 업로드 실패: $e\n$st');
+      // Build 415 (sim50 P1): 네트워크/일시 오류 → 아웃박스 등록, 다음 sync 재시도.
+      _enqueueLetterUpload(letter.id);
+      return false;
+    }
+  }
+
+  // ── Build 415 (sim50 P1): 편지 업로드 아웃박스 ───────────────────────────────
+  //   오프라인/일시오류로 _saveLetterToFirestore 가 실패한 letter 의 id 를 큐에
+  //   쌓아 두고, 인증 확립/30s sync 마다 _sent 에서 찾아 재업로드한다. _sent 는
+  //   prefs 영속('sent')이라 앱 재시작에도 보존. _sent 에 없으면(evicted) 큐에서
+  //   제거(복구 불가, best-effort). cap 으로 무한 증가 방지.
+  final Set<String> _pendingLetterUploadIds = <String>{};
+  static const int _letterOutboxCap = 200;
+  bool _flushingLetterOutbox = false;
+
+  void _enqueueLetterUpload(String id) {
+    if (id.isEmpty) return;
+    if (_pendingLetterUploadIds.length >= _letterOutboxCap &&
+        !_pendingLetterUploadIds.contains(id)) {
+      // 가장 오래된 항목 제거(LinkedHashSet insertion order).
+      _pendingLetterUploadIds.remove(_pendingLetterUploadIds.first);
+    }
+    if (_pendingLetterUploadIds.add(id)) _persistLetterOutbox();
+  }
+
+  void _dequeueLetterUpload(String id) {
+    if (_pendingLetterUploadIds.remove(id)) _persistLetterOutbox();
+  }
+
+  Future<void> _persistLetterOutbox() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (_pendingLetterUploadIds.isEmpty) {
+        await prefs.remove('pending_letter_uploads');
+      } else {
+        await prefs.setStringList(
+          'pending_letter_uploads',
+          _pendingLetterUploadIds.toList(),
+        );
+      }
+    } catch (_) {}
+  }
+
+  /// 아웃박스 재업로드. 인증 확립/주기 sync 에서 호출(best-effort).
+  Future<void> _flushPendingLetterUploads() async {
+    if (_flushingLetterOutbox) return;
+    if (!FirebaseConfig.kFirebaseEnabled) return;
+    if (!FirebaseAuthService.isSignedIn) return;
+    if (_pendingLetterUploadIds.isEmpty) return;
+    _flushingLetterOutbox = true;
+    try {
+      // snapshot — 재업로드 중 set 변경(성공 dequeue) 대비.
+      final ids = _pendingLetterUploadIds.toList();
+      for (final id in ids) {
+        Letter? letter;
+        for (final l in _sent) {
+          if (l.id == id) {
+            letter = l;
+            break;
+          }
+        }
+        if (letter == null) {
+          // _sent 에서 사라진 letter — 복구 불가, 큐에서 제거.
+          _dequeueLetterUpload(id);
+          continue;
+        }
+        // 성공 시 _saveLetterToFirestore 가 _dequeueLetterUpload 호출.
+        await _saveLetterToFirestore(letter);
+      }
+    } finally {
+      _flushingLetterOutbox = false;
     }
   }
 
@@ -4824,6 +4915,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       _weeklyChallengeClaimed = false;
       _sumPickupKm = 0.0;
       _sumSentKm = 0.0;
+      // Build 415 (sim50 P1): 이전 사용자의 오프라인 업로드 아웃박스도 정리
+      //   (그 letter 들은 _sent 와 함께 제거됨).
+      _pendingLetterUploadIds.clear();
+      unawaited(_persistLetterOutbox());
       // Build 409 (sim P1.44): 이전 사용자 프로필 사진이 다음 계정으로 넘어가지
       //   않도록 null. 아래 UserProfile 재생성이 _currentUser.profileImagePath 를
       //   복사하므로 여기서 끊어야 함.

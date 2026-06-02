@@ -237,6 +237,17 @@ service cloud.firestore {
       allow read, list, update, delete: if false;
     }
 
+    // ── merchant_interest 컬렉션 (Build 415 — B2B 영업 리드) ─────────────
+    // "사장님이세요?" 시트에서 관심 등록 시 기록되는 운영자 전용 리드.
+    // 이전엔 룰이 없어 default-deny(catch-all)로 모든 write 가 403 → 리드 소실.
+    // reports 와 동일 정책: 인증 사용자 create-only, 읽기·수정·삭제는 admin REST.
+    match /merchant_interest/{interestId} {
+      allow create: if isSignedIn()
+          && request.resource.data.userId is string
+          && request.resource.data.country is string;
+      allow read, list, update, delete: if false;
+    }
+
     // ── brand_zones 컬렉션 (Build 283 — Brand auto-drop) ───────────────
     // Brand 사용자가 미리 설정한 "쿠폰 zone": 좌표 + 반경 + 쿠폰 내용. 일반
     // 사용자가 zone 반경 안에 들어오면 자동으로 letter 1통이 인박스에 도착.
