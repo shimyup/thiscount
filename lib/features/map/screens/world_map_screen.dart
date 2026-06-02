@@ -1044,8 +1044,10 @@ class _WorldMapScreenState extends State<WorldMapScreen>
           Marker(
             point: ll.LatLng(destLoc.latitude, destLoc.longitude),
             width: isNearest ? 80 : 40,
+            // Build 415: nearest 라벨(칩+2px gap) 포함 시 비-브랜드 마커가 70px
+            //   박스를 1.5px 초과(RenderFlex overflow) → 추가 높이 22→24 로 여유.
             height: (isBrandLetter && viewerIsPremiumOrBrand ? 62 : 48) +
-                (isNearest ? 22 : 0),
+                (isNearest ? 24 : 0),
             child: GestureDetector(
               onTap: () => _onLetterTap(context, letter, state, l10n, langCode),
               child: _UnreadDeliveredMarker(
@@ -1070,8 +1072,10 @@ class _WorldMapScreenState extends State<WorldMapScreen>
           Marker(
             point: ll.LatLng(destLoc.latitude, destLoc.longitude),
             width: isNearest ? 80 : 40,
+            // Build 415: nearest 라벨(칩+2px gap) 포함 시 비-브랜드 마커가 70px
+            //   박스를 1.5px 초과(RenderFlex overflow) → 추가 높이 22→24 로 여유.
             height: (isBrandLetter && viewerIsPremiumOrBrand ? 62 : 48) +
-                (isNearest ? 22 : 0),
+                (isNearest ? 24 : 0),
             child: GestureDetector(
               onTap: () => _onLetterTap(context, letter, state, l10n, langCode),
               child: _UnreadDeliveredMarker(

@@ -279,20 +279,23 @@ class V5PremiumScreen extends StatelessWidget {
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),
+              // Build 415 (런타임 점검 #1): 조작된 "4,200명 사용 중 / ★4.8" 제거
+              //   (dev preview 화면이지만 동일 허위표시 리스크 차단). 사실 기반
+              //   가치 문구로 교체.
               children: const [
                 TextSpan(
-                  text: '4,200명',
+                  text: '3일 무료 체험',
                   style: TextStyle(
                     color: V5Colors.tx,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                TextSpan(text: '이 이미 사용 중'),
+                TextSpan(text: ' · 언제든 해지'),
               ],
             ),
           ),
           Text(
-            '★★★★☆ 4.8',
+            '광고 없음',
             style: V5Text.meta.copyWith(
               color: V5Colors.tx3,
               fontSize: 12,

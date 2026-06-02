@@ -15963,6 +15963,43 @@ class AppL10n {
     }
   }
 
+  // Build 415 (런타임 점검 #1): 조작 카운터(premiumSocialProof) 대체 — 사실
+  //   기반 신뢰 문구. 숫자/통계 주장 없음 → 허위·과장 표시 리스크 제거.
+  String get premiumTrustLine => _t({
+    'ko': '3일 무료 체험 · 언제든 해지 · 광고 없음',
+    'en': '3-day free trial · cancel anytime · no ads',
+    'ja': '3日間無料体験 · いつでも解約 · 広告なし',
+    'zh': '3天免费试用 · 随时取消 · 无广告',
+    'fr': "Essai gratuit 3 jours · annulez à tout moment · sans pub",
+    'de': '3 Tage gratis · jederzeit kündbar · werbefrei',
+    'es': 'Prueba gratis 3 días · cancela cuando quieras · sin anuncios',
+    'pt': 'Teste grátis 3 dias · cancele quando quiser · sem anúncios',
+    'ru': '3 дня бесплатно · отмена в любой момент · без рекламы',
+    'tr': '3 gün ücretsiz · istediğin zaman iptal · reklamsız',
+    'ar': 'تجربة مجانية 3 أيام · إلغاء في أي وقت · بدون إعلانات',
+    'it': 'Prova gratis 3 giorni · disdici quando vuoi · senza pubblicità',
+    'hi': '3-दिन मुफ़्त ट्रायल · कभी भी रद्द करें · कोई विज्ञापन नहीं',
+    'th': 'ทดลองฟรี 3 วัน · ยกเลิกได้ทุกเมื่อ · ไม่มีโฆษณา',
+  });
+
+  // Build 415 (런타임 점검 #2): RC 현지화 가격 + 기간 접미사 결합. RC priceString
+  //   (예: "$4.99" / "₩4,900")이 로케일/통화로 자동 포맷되므로, 여기서는 "/월"
+  //   접미사만 언어별로 붙인다. 하드코딩 KRW fallback 의 i18n 대체.
+  String premiumPricePerMonth(String price) {
+    switch (languageCode) {
+      case 'ko':
+        return '$price / 월';
+      case 'ja':
+        return '$price / 月';
+      case 'zh':
+        return '$price / 月';
+      case 'ar':
+        return '$price / شهر';
+      default:
+        return '$price / mo';
+    }
+  }
+
   /// Build 166: GPS 필수 동의 플로우 (약관 + skip 경고).
   String get gpsTermsHeader => _t({
     'ko': 'GPS 사용 동의',

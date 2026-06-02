@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/localization/app_localizations.dart';
+import '../../core/services/purchase_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../state/app_state.dart';
 import 'premium_screen.dart';
@@ -9,24 +10,16 @@ import 'premium_screen.dart';
 /// day-of-year 기반 deterministic 가상 수치 (실제 집계 인프라 도입 전까지
 /// placeholder). 범위 120~260명/주 + 시간대별 ±20 변동.
 /// "정확한 실시간 업그레이드 수" 가 아닌 **커뮤니티 활성도** 시그널.
+// Build 415 (런타임 점검 #1): 기존 "이번 주 N명 업그레이드" 는 실측이 아니라
+//   날짜 기반 조작 숫자(_weeklyUpgradeCount)를 진짜 통계처럼 노출 → App Store
+//   2.3.1 / 국내 표시광고법 위반 소지. 조작 카운터를 제거하고 사실 그대로의
+//   가치 문구(무료 체험·해지·광고 없음)로 교체. 숫자 주장 없음.
 class _SocialProofBar extends StatelessWidget {
   final AppL10n l10n;
   const _SocialProofBar({required this.l10n});
 
-  int _weeklyUpgradeCount() {
-    final now = DateTime.now();
-    // Day-of-year (1-366)
-    final jan1 = DateTime(now.year, 1, 1);
-    final dayOfYear = now.difference(jan1).inDays + 1;
-    // Base 120-260 range cycling
-    final base = 120 + (dayOfYear * 7 % 141);
-    // +weekday swing 0-35
-    return base + now.weekday * 5;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final count = _weeklyUpgradeCount();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
@@ -40,11 +33,11 @@ class _SocialProofBar extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('📈', style: TextStyle(fontSize: 14)),
+          const Text('✨', style: TextStyle(fontSize: 14)),
           const SizedBox(width: 6),
           Flexible(
             child: Text(
-              l10n.premiumSocialProof(count),
+              l10n.premiumTrustLine,
               style: const TextStyle(
                 color: AppColors.teal,
                 fontSize: 12,
@@ -93,6 +86,13 @@ class PremiumGateSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    // Build 415 (런타임 점검 #2): RC 현지화 가격 우선 — 미국/일본 등 비-KR
+    //   사용자에게 ₩ 고정 노출 차단. offerings 미로드 시 하드코딩 라벨 fallback.
+    final rcPrice = PurchaseService()
+        .localizedPriceFor(PurchaseProductIds.premiumMonthly);
+    final priceLabel = rcPrice != null
+        ? l10n.premiumPricePerMonth(rcPrice)
+        : l10n.premiumGatePriceLabel;
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.bgCard,
@@ -181,7 +181,7 @@ class PremiumGateSheet extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  l10n.premiumGatePriceLabel,
+                  priceLabel,
                   style: const TextStyle(
                     color: Color(0xFF1A1300),
                     fontSize: 26,

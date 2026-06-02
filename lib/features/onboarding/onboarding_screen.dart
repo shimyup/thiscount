@@ -5,6 +5,7 @@ import '../../core/localization/app_localizations.dart';
 import '../../core/localization/language_config.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/notification_service.dart';
+import '../../core/services/purchase_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -967,6 +968,11 @@ class _PremiumPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build 415 (런타임 점검 #2): RC 현지화 가격 우선 (비-KR 사용자 ₩ 고정 방지).
+    //   offerings 미로드 시 하드코딩 ₩4,900 fallback. 접미사(/월)는 유지.
+    final premiumPrice = PurchaseService()
+            .localizedPriceFor(PurchaseProductIds.premiumMonthly) ??
+        '₩4,900';
     // 무료 기능
     final freeFeatures = [
       l.onboardingFreeFeat1,
@@ -1187,9 +1193,9 @@ class _PremiumPage extends StatelessWidget {
                           RichText(
                             text: TextSpan(
                               children: [
-                                const TextSpan(
-                                  text: '₩4,900',
-                                  style: TextStyle(
+                                TextSpan(
+                                  text: premiumPrice,
+                                  style: const TextStyle(
                                     color: AppColors.gold,
                                     fontSize: 22,
                                     fontWeight: FontWeight.w800,
