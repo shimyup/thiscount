@@ -3650,6 +3650,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           'isAnonymous', 'senderName', 'senderTier', 'senderIsBrand',
           'category', 'brandUniquePerUser', 'campaignId', 'deliveryEmoji',
           'socialLink', 'acceptsReplies', 'redemptionExpiresAt',
+          // Build 415 (#5 레어 드롭, sim50 P1): 지도 마커 글로우/배지에 필요한
+          //   희귀도. 누락 시 서버 letter 가 항상 normal 로 렌더(작은 scalar).
+          'rarity',
         ],
       );
       if (docs.isEmpty) return;
@@ -3838,6 +3841,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         deliveryEmoji: data['deliveryEmoji'] as String?,
         isAnonymous: data['isAnonymous'] as bool? ?? true,
         category: category,
+        // Build 415 (#5 레어 드롭, sim50 P1): 서버 letter 의 희귀도 복원.
+        rarity: LetterRarityExt.fromJson(data['rarity']),
         redemptionInfo: redInfo,
         redemptionExpiresAt: redExpiresAt,
         acceptsReplies: data['acceptsReplies'] as bool? ?? true,
@@ -3931,6 +3936,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           'expiresAt': letter.expiresAt!.toIso8601String(),
         'isAnonymous': letter.isAnonymous,
         if (letter.deliveryEmoji != null) 'deliveryEmoji': letter.deliveryEmoji,
+        // Build 415 (#5 레어 드롭, sim50 P1): 희귀도 서버 직렬화. 이전엔 모델
+        //   toJson 만 rarity 를 담고 이 수기 맵은 누락 → 서버 letter 에 rarity 가
+        //   없어 다른 사용자 기기에서 항상 normal 로 강등(기능 cross-user 무효).
+        //   normal 은 생략(legacy 호환), rare/epic 만 기록.
+        if (letter.rarity != LetterRarity.normal) 'rarity': letter.rarity.key,
       });
       if (kDebugMode) {
         debugPrint('[Firebase] 편지 업로드 완료: ${letter.id} → ${letter.destinationCountry}');
@@ -4557,6 +4567,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             : map['socialLink'] as String?,
         senderTier: senderTier,
         senderIsBrand: senderTier == LetterSenderTier.brand,
+        // Build 415 (#5 레어 드롭, sim50 P1): 희귀도 복원 (getDocument 파싱 경로).
+        rarity: LetterRarityExt.fromJson(map['rarity']),
         // Build 409 (sim P1.45): 소진 카운터 복원 — 위 소진 가드 + QQ4 prune 이
         //   정확히 동작하도록. 이전엔 0/default 로 떨어져 over-redemption 가능.
         readCount: (map['readCount'] as num?)?.toInt() ?? 0,

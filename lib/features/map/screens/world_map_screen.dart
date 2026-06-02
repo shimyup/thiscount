@@ -3038,8 +3038,10 @@ class _ArrivedWaitingMarker extends StatelessWidget {
                 ],
               ),
             ),
-            // Build 415 (#5): rare/epic 배지 — 마커 우상단에 ✨/💎 표시.
-            if (showRarity && rarityBadge.isNotEmpty)
+            // Build 415 (#5, sim50 P2): rare/epic 배지 — 우상단 ✨/💎.
+            //   만료 임박(FOMO)으로 glow ring 이 빨강 우선되어도 배지는 항상 노출
+            //   (희소성 신호 소실 방지). 배지 색은 항상 희귀도 색.
+            if (rarityColor != null && rarityBadge.isNotEmpty)
               Positioned(
                 top: -2,
                 right: 4,
@@ -3049,7 +3051,7 @@ class _ArrivedWaitingMarker extends StatelessWidget {
                     fontSize: 16,
                     shadows: [
                       Shadow(
-                        color: baseColor.withValues(alpha: 0.9),
+                        color: rarityColor.withValues(alpha: 0.9),
                         blurRadius: 8,
                       ),
                     ],
@@ -3384,6 +3386,19 @@ class _UnreadDeliveredMarker extends StatelessWidget {
             ? '💌'
             : '📮';
 
+        // Build 415 (#5 레어 드롭, sim50 P1): 실제 픽업 가능한 마커에도 희귀도
+        //   글로우+배지. 이전엔 _ArrivedWaitingMarker(도착 직전 과도기)만 글로우가
+        //   있어, 정작 줍는 delivered/nearYou 마커에선 FOMO 신호가 사라졌음.
+        //   링/글로우 색만 recolor(레이아웃 불변) + 우상단 ✨/💎 배지(Positioned).
+        final rarityColor = letter.rarity == LetterRarity.epic
+            ? const Color(0xFF7C4DFF)
+            : letter.rarity == LetterRarity.rare
+                ? const Color(0xFFFFD54F)
+                : null;
+        final rarityBadge = letter.rarity.badge;
+        // tier glow 보다 희귀도 색을 우선(특별함 강조). normal 은 기존 색 유지.
+        final ringColor = rarityColor ?? glowColor;
+
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -3418,6 +3433,7 @@ class _UnreadDeliveredMarker extends StatelessWidget {
             ],
             Stack(
               alignment: Alignment.center,
+              clipBehavior: Clip.none,
               children: [
                 // Build 164: 최단 편지 전용 추가 halo (width 44+pulse, gold)
                 if (isNearest)
@@ -3434,14 +3450,14 @@ class _UnreadDeliveredMarker extends StatelessWidget {
                       ),
                     ),
                   ),
-                // 맥동 링
+                // 맥동 링 — Build 415: rare/epic 이면 희귀도 색으로 글로우.
                 Container(
                   width: 32 + pulse * 6,
                   height: 32 + pulse * 6,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: glowColor.withValues(alpha: 0.2 + pulse * 0.3),
+                      color: ringColor.withValues(alpha: 0.2 + pulse * 0.3),
                       width: 1.5,
                     ),
                   ),
@@ -3477,7 +3493,7 @@ class _UnreadDeliveredMarker extends StatelessWidget {
                         fontSize: 14,
                         shadows: [
                           Shadow(
-                            color: glowColor.withValues(alpha: 0.5),
+                            color: ringColor.withValues(alpha: 0.5),
                             blurRadius: 6,
                           ),
                         ],
@@ -3485,6 +3501,25 @@ class _UnreadDeliveredMarker extends StatelessWidget {
                     ),
                   ),
                 ),
+                // Build 415 (#5 레어 드롭, sim50 P1): rare/epic 배지(✨/💎).
+                //   Positioned 라 Column 높이에 영향 없음(오버플로우 무관).
+                if (rarityColor != null && rarityBadge.isNotEmpty)
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: Text(
+                      rarityBadge,
+                      style: TextStyle(
+                        fontSize: 13,
+                        shadows: [
+                          Shadow(
+                            color: rarityColor.withValues(alpha: 0.9),
+                            blurRadius: 6,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
               ],
             ),
             // 브랜드 편지 + 프리미엄/브랜드 뷰어: 발신자 ID 표시

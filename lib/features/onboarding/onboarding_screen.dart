@@ -1001,7 +1001,6 @@ class _PremiumPage extends StatelessWidget {
         'color': AppColors.coupon,
       },
     ];
-    final socialProofReviews = [l.onboardingReview1, l.onboardingReview2];
 
     return Container(
       color: AppColors.bgDeep,
@@ -1322,17 +1321,15 @@ class _PremiumPage extends StatelessWidget {
                       height: 16,
                       thickness: 0.3,
                     ),
-                    ...socialProofReviews.map(
-                      (review) => Padding(
-                        padding: const EdgeInsets.only(bottom: 6),
-                        child: Text(
-                          '• $review',
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 11,
-                            height: 1.5,
-                          ),
-                        ),
+                    // Build 415 (sim50 P1): 조작된 가짜 후기(onboardingReview1/2)
+                    //   제거 — 실사용자 없는 출시 전 앱의 인용형 후기는 기만광고
+                    //   소지(App Store 2.3.1/표시광고법). 사실 기반 신뢰 문구로 교체.
+                    Text(
+                      '✨ ${l.premiumTrustLine}',
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 11,
+                        height: 1.5,
                       ),
                     ),
                   ],
