@@ -44,7 +44,11 @@ class RedemptionCode {
   /// 형식 불일치 시 null.
   static String? normalize(String raw) {
     var c = raw.toUpperCase().replaceAll(RegExp(r'[\s\-]'), '');
-    if (c.startsWith('TC')) c = c.substring(2);
+    // Build 415: 'TC' 프리픽스는 표시 포맷(TC-XXXX-XXXX = 10자)일 때만 제거.
+    //   이전엔 길이 무관 strip → 본문이 우연히 'TC..' 로 시작하는 8자 코드
+    //   (~1/1024)도 앞 2자가 잘려 length 6 → null → verify 실패(=redeem 불가).
+    //   redemption_code 테스트가 간헐적으로 실패하던(릴리스 차단) 근본 원인.
+    if (c.length == 10 && c.startsWith('TC')) c = c.substring(2);
     if (c.length != 8) return null;
     // 알파벳 외 문자 1개라도 있으면 invalid (단, 0/O · 1/I/L 자동 보정).
     c = c.replaceAll('O', '0').replaceAll('I', '1').replaceAll('L', '1');

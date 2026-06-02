@@ -48,6 +48,20 @@ void main() {
       expect(RedemptionCode.normalize('K7M2J9PH'), 'K7M2J9PH');
     });
 
+    test('Build 415: 본문이 TC 로 시작하는 8자 코드는 TC 를 떼지 않음', () {
+      // 표시 프리픽스(TC-XXXX-XXXX=10자)일 때만 제거. 8자 코드 앞 TC 는 본문.
+      expect(RedemptionCode.normalize('TCABCDEF'), 'TCABCDEF');
+      expect(RedemptionCode.normalize('TC-ABCD-EF12'), 'ABCDEF12');
+    });
+
+    test('Build 415 (회귀): TC 로 시작하는 생성 코드도 verify 통과', () {
+      // 본문 'TC..' 케이스(~1/1024)를 충분히 포함하도록 대량 생성·검증.
+      for (var i = 0; i < 3000; i++) {
+        final code = RedemptionCode.generate();
+        expect(RedemptionCode.verify(code), isTrue, reason: code);
+      }
+    });
+
     test('O/0, I/L/1 자동 보정', () {
       // O → 0, I → 1, L → 1
       final corrected = RedemptionCode.normalize('OII LK7M2');
