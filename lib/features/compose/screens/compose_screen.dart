@@ -2179,31 +2179,19 @@ class _ComposeScreenState extends State<ComposeScreen>
                             // StyleBar(편지 꾸미기) 도 collapsible 섹션 안으로 이동.
                             // 작성 화면 1차 노출 항목을 줄여 "본문 작성" 1순위 액션을
                             // 묻히지 않게.
+                            // Build 415 (UX 통일): 발송 옵션 간소화.
+                            //   - SNS 링크 첨부(item 9) / 이름공개(item 10) 는 프로필
+                            //     설정으로 이동 → compose 에서 제거.
+                            //   - 꾸미기(종이/폰트, item 13) 제거, 발송 이모지만 유지.
+                            //   - 오늘의 혜택 자동발송/영감 자동주입(item 5·14) 제거.
                             _ComposeOptionsSection(
                               title: l10n.composeOptionsSectionTitle,
                               children: [
-                                _buildStyleBar(),
-                                const SizedBox(height: 10),
-                                if (!_isReply) ...[
-                                  _buildLuckyLetterButton(),
+                                _buildDeliveryEmojiButton(),
+                                if (!_isReply && isBrand) ...[
                                   const SizedBox(height: 10),
-                                  _buildRecallLastLetterButton(),
-                                  const SizedBox(height: 10),
+                                  _buildBrandOptions(state),
                                 ],
-                                if (!_isReply && !(hasPremium && !isBrand))
-                                  _buildSocialToggle(hasPremium: hasPremium),
-                                if (!_isReply &&
-                                    _attachSocial &&
-                                    hasPremium &&
-                                    isBrand) ...[
-                                  const SizedBox(height: 10),
-                                  _buildSocialInput(),
-                                ],
-                                if (!_isReply && !(hasPremium && !isBrand))
-                                  const SizedBox(height: 10),
-                                if (!_isReply) _buildAnonymousToggle(state),
-                                if (!_isReply && isBrand) const SizedBox(height: 10),
-                                if (!_isReply && isBrand) _buildBrandOptions(state),
                                 if (!(hasPremium && !isBrand)) ...[
                                   const SizedBox(height: 10),
                                   Container(
@@ -3238,7 +3226,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                       children: [
                         AnimatedSwitcher(
                           duration: const Duration(milliseconds: 200),
-                          child: _charCount < 20
+                          child: _charCount < 10
                               ? Row(
                                   key: const ValueKey('under'),
                                   children: [
@@ -3247,7 +3235,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                                       style: TextStyle(fontSize: 11),
                                     ),
                                     Text(
-                                      l10n.composeMinCharsNeeded(20 - _charCount),
+                                      l10n.composeMinCharsNeeded(10 - _charCount),
                                       style: const TextStyle(
                                         color: AppColors.warning,
                                         fontSize: 11,
@@ -5470,9 +5458,8 @@ class _ComposeScreenState extends State<ComposeScreen>
             ],
           ),
           const SizedBox(height: 12),
-          // Build 321: 자동 발송 zone 토글 + 옵션 ─ compose 통합
-          _buildAutoZoneSection(l10n),
-          const SizedBox(height: 10),
+          // Build 415 (item 5·14): '오늘의 혜택 자동 발송' zone 섹션 제거 —
+          //   compose 는 즉시 발송만. (자동 발송은 별도 화면으로 분리 예정)
           // ── 1 아이디당 1 편지 ──
           GestureDetector(
             onTap: () => setState(() => _brandUniquePerUser = !_brandUniquePerUser),
@@ -6306,93 +6293,10 @@ class _ComposeScreenState extends State<ComposeScreen>
     );
   }
 
-  Widget _buildStyleBar() {
-    final _lc = context.read<AppState>().currentUser.languageCode;
-    final l10n = AppL10n.of(_lc);
-    final paper = LetterStyles.paper(_paperStyle);
-    final font = LetterStyles.font(_fontStyle);
-    return Row(
-      children: [
-        // Paper picker button
-        Expanded(
-          child: GestureDetector(
-            onTap: _showPaperPicker,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppColors.bgCard,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.gold.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Text(paper.emoji, style: const TextStyle(fontSize: 16)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      paper.localizedName(_lc),
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const Icon(
-                    Icons.expand_more_rounded,
-                    color: AppColors.gold,
-                    size: 16,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        // Font picker button
-        Expanded(
-          child: GestureDetector(
-            onTap: _showFontPicker,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppColors.bgCard,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.teal.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Text(font.emoji, style: const TextStyle(fontSize: 16)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      font.localizedName(_lc),
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const Icon(
-                    Icons.expand_more_rounded,
-                    color: AppColors.teal,
-                    size: 16,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        // ── 배송 이모티콘 꾸미기 버튼 ─────────────────────────────────────────
-        GestureDetector(
+  // Build 415 (item 13): 종이/폰트 꾸미기 제거 — 발송 이모티콘 선택만 유지.
+  Widget _buildDeliveryEmojiButton() {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    return GestureDetector(
           onTap: _showEmojiPicker,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -6468,9 +6372,7 @@ class _ComposeScreenState extends State<ComposeScreen>
               ],
             ),
           ),
-        ),
-      ],
-    );
+        );
   }
 
   // ── 배송 이모티콘 피커 ────────────────────────────────────────────────────
@@ -7214,7 +7116,7 @@ class _ComposeScreenState extends State<ComposeScreen>
     //   (_attachRedemptionCode) 는 매장 코드 발급 letter 라 1자 OK 유지.
     //   Brand 일반 letter 도 20자 enforce — UI 일관성.
     final isReplyOrCoupon = _isReply || _attachRedemptionCode;
-    final minChars = isReplyOrCoupon ? 1 : 20;
+    final minChars = isReplyOrCoupon ? 1 : 10; // Build 415 (item 6): 20→10
     // Build 409 (sim P1.8): 일간뿐 아니라 월간 한도까지 본 canSendByQuota 사용.
     //   이전엔 hasRemainingDailyQuota 만 봐서 월간 소진 시 버튼 활성 → 발송
     //   실패 friction.
