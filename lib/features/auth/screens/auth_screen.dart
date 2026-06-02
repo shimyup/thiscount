@@ -1474,7 +1474,10 @@ class _SignupTabState extends State<_SignupTab> {
       _isLoading = false;
       _showOtpScreen = true;
       _devOtpCode = code;
-      _otpError = sendErr; // 발송 실패 시 사용자에게 알림 (화면 fallback 함께 표시)
+      // Build 415: sendErr 를 OTP 필드 errorText 로 띄우면 '코드 입력 전부터 오류'
+      //   처럼 보여 혼란(정상 발송인데도 빨간 메세지). 발송 실패는 _otpSendFailed
+      //   로 별도 안내(화면 fallback 코드 블록)하고, errorText 는 '오답 검증' 전용.
+      _otpError = null;
       // Build 409 (sim P1.1): 코드 화면 노출은 '발송 실패' 시에만. 이전엔
       //   _otpError != null 로 노출 조건을 걸어 '오답 입력' 시에도 진짜 코드가
       //   화면에 떠 OTP 보안 무력화. 발송 실패 여부를 별도 flag 로 추적.
@@ -1948,7 +1951,20 @@ class _SignupTabState extends State<_SignupTab> {
           if (_usernameError != null)
             _FieldError(message: _usernameError!)
           else if (_usernameTaken)
-            _FieldError(message: l10n.authUsernameTaken),
+            _FieldError(message: l10n.authUsernameTaken)
+          else
+            // Build 415: 아이디 규칙을 필드 아래 helper 로 노출 (hint 잘림 해소).
+            Padding(
+              padding: const EdgeInsets.only(top: 4, left: 12, right: 4),
+              child: Text(
+                l10n.authUsernameRule,
+                style: const TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 11,
+                  height: 1.3,
+                ),
+              ),
+            ),
           const SizedBox(height: 12),
 
           // ── 3. 비밀번호 ────────────────────────────────────────────────────
@@ -2508,8 +2524,15 @@ class _SignupTabState extends State<_SignupTab> {
               errorText: _otpError,
               errorStyle: const TextStyle(color: Colors.red, fontSize: 12),
             ),
-            onChanged: (_) {
+            // Build 415: 6자리 채우면 확인 버튼 없이 자동 검증. 잘못된 코드일
+            //   때만 errorText 노출, 입력 중에는 에러 초기화. (iOS OTP 자동완성도
+            //   한 번에 6자 채워져 자동 검증됨)
+            onChanged: (val) {
               if (_otpError != null) setState(() => _otpError = null);
+              if (val.trim().length == 6 && !_isLoading && !expired) {
+                FocusScope.of(context).unfocus();
+                _verifyOtpAndComplete();
+              }
             },
           ),
           const SizedBox(height: 12),
@@ -2548,42 +2571,21 @@ class _SignupTabState extends State<_SignupTab> {
               ),
             ],
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
 
-          // 확인 버튼
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _isLoading || expired ? null : _verifyOtpAndComplete,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.teal,
-                // Build 409 (sim P1.41 a11y): white-on-teal 은 대비 ~1.2:1 로
-                //   거의 안 보임. 다른 teal 버튼과 동일하게 어두운 잉크 사용.
-                foregroundColor: AppColors.tealInk,
-                disabledBackgroundColor: AppColors.bgCard,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+          // Build 415: 확인 버튼 제거 — 6자리 입력 시 자동 검증(위 onChanged).
+          //   진행 중에는 스피너만 노출해 가입 처리 중임을 안내.
+          if (_isLoading)
+            const Center(
+              child: SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.teal,
                 ),
               ),
-              child: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.tealInk,
-                      ),
-                    )
-                  : Text(
-                      l10n.authVerifyAndSignup,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
             ),
-          ),
 
           if (expired) ...[
             const SizedBox(height: 12),

@@ -3846,21 +3846,40 @@ class AppL10n {
     'th': 'เปิดการตั้งค่า',
   });
 
+  // Build 415: 규칙을 hint 에서 분리 — 긴 규칙이 입력칸에서 잘려 보이던 문제.
+  //   hint 는 예시만, 규칙은 authUsernameRule 로 필드 아래 helper 에 노출.
   String get authUsernameHint => _t({
-    'ko': 'traveler42   (영문 시작, 영문·숫자·_ 2~20자)',
-    'en': 'traveler42   (start with letter, 2-20 alphanumeric/_)',
-    'ja': 'traveler42   (英字開始、英数字·_ 2〜20文字)',
-    'zh': 'traveler42   (字母开头，字母·数字·_ 2-20位)',
-    'fr': 'traveler42   (commence par une récompense, 2-20 alphanum./_)',
-    'de': 'traveler42   (Buchstabe am Anfang, 2-20 Zeichen: Buchst./Ziffern/_)',
-    'es': 'traveler42   (inicia con letra, 2-20 alfanumérico/_)',
-    'pt': 'traveler42   (inicia com letra, 2-20 alfanumérico/_)',
-    'ru': 'traveler42   (начало с буквы, 2-20 букв/цифр/_)',
-    'tr': 'traveler42   (harf ile başlar, 2-20 harf/rakam/_)',
-    'ar': 'traveler42   (يبدأ بحرف، 2-20 حرف/رقم/_)',
-    'it': 'traveler42   (inizia con ricompensa, 2-20 alfanum./_)',
-    'hi': 'traveler42   (अक्षर से शुरू, 2-20 अक्षर/अंक/_)',
-    'th': 'traveler42   (เริ่มด้วยตัวอักษร, 2-20 ตัวอักษร/ตัวเลข/_)',
+    'ko': '예: traveler42',
+    'en': 'e.g. traveler42',
+    'ja': '例: traveler42',
+    'zh': '例: traveler42',
+    'fr': 'ex. traveler42',
+    'de': 'z. B. traveler42',
+    'es': 'ej. traveler42',
+    'pt': 'ex. traveler42',
+    'ru': 'напр. traveler42',
+    'tr': 'örn. traveler42',
+    'ar': 'مثال: traveler42',
+    'it': 'es. traveler42',
+    'hi': 'जैसे traveler42',
+    'th': 'เช่น traveler42',
+  });
+
+  String get authUsernameRule => _t({
+    'ko': '영문으로 시작 · 영문·숫자·_ 2~20자',
+    'en': 'Start with a letter · 2–20 letters/digits/_',
+    'ja': '英字で開始 · 英数字·_ 2〜20文字',
+    'zh': '字母开头 · 字母·数字·_ 2-20位',
+    'fr': 'Commence par une lettre · 2–20 lettres/chiffres/_',
+    'de': 'Mit Buchstabe beginnen · 2–20 Buchst./Ziffern/_',
+    'es': 'Empieza con letra · 2–20 letras/números/_',
+    'pt': 'Comece com letra · 2–20 letras/números/_',
+    'ru': 'Начните с буквы · 2–20 букв/цифр/_',
+    'tr': 'Harf ile başla · 2–20 harf/rakam/_',
+    'ar': 'ابدأ بحرف · 2–20 حرف/رقم/_',
+    'it': 'Inizia con lettera · 2–20 lettere/numeri/_',
+    'hi': 'अक्षर से शुरू · 2–20 अक्षर/अंक/_',
+    'th': 'เริ่มด้วยตัวอักษร · 2–20 ตัวอักษร/ตัวเลข/_',
   });
 
   String get authUsernameTaken => _t({
