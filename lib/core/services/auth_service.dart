@@ -1504,7 +1504,14 @@ class AuthService {
   static Future<void> deleteAccount() async {
     await _deleteRemoteAccountDataBestEffort();
     final prefs = await SharedPreferences.getInstance();
+    // Build 415 (sim50 P1): _deleteRemoteAccountDataBestEffort 가 실패 시 등록한
+    //   pending_gdpr_deletions 큐를 prefs.clear() 가 즉시 지워버려 재시도가 영영
+    //   불가능했음(dead queue). clear 전에 보존했다가 복원 → 다음 실행에서 retry.
+    final pendingGdpr = prefs.getStringList('pending_gdpr_deletions');
     await prefs.clear();
+    if (pendingGdpr != null && pendingGdpr.isNotEmpty) {
+      await prefs.setStringList('pending_gdpr_deletions', pendingGdpr);
+    }
     FirebaseAuthService.signOut();
     await _secure.deleteAll();
     // Build 368 (PR-CC1 P0 #4): deleteAccount 도 동일 — PurchaseService
@@ -1565,7 +1572,9 @@ class AuthService {
       }
     }
 
-    // 실패한 작업을 pending 큐에 등록 (다음 앱 실행 시 admin REST 로 후속 처리).
+    // 실패한 작업을 pending 큐에 등록 (다음 앱 실행 시 processPendingGdprDeletions
+    //   가 재시도). Build 415 (sim50 P1): 큐 보존(deleteAccount) + 재처리 추가 전엔
+    //   이 큐가 즉시 prefs.clear() 로 지워지고 읽는 코드도 없어 dead 였음.
     if (!userDeleted || !scrubbed) {
       try {
         final prefs = await SharedPreferences.getInstance();
@@ -1576,6 +1585,52 @@ class AuthService {
         await prefs.setStringList('pending_gdpr_deletions', pending);
       } catch (_) {}
     }
+  }
+
+  /// Build 415 (sim50 P1): pending_gdpr_deletions 큐 재처리. 앱 시작 시 1회 호출
+  ///   (best-effort) — 이전 탈퇴에서 원격 user doc 삭제/letter scrub 가 실패해
+  ///   큐에 남은 항목을 재시도하고, 성공분만 큐에서 제거한다. 실패분은 보존해
+  ///   다음 실행/서버측(deleteMyData) 처리로 넘긴다. 익명 세션 권한 부족으로
+  ///   403 이 나면 항목 유지(무한 누적은 서버 hard-delete 도입 시 해소).
+  static Future<void> processPendingGdprDeletions() async {
+    if (!FirebaseConfig.kFirebaseEnabled) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final pending = prefs.getStringList('pending_gdpr_deletions') ?? [];
+      if (pending.isEmpty) return;
+      final remaining = <String>[];
+      for (final entry in pending) {
+        final parts = entry.split('|');
+        final uid = parts.isNotEmpty ? parts[0].trim() : '';
+        if (uid.isEmpty) continue;
+        bool docOk = parts.length > 2 && parts[2] == 'doc_ok';
+        bool scrubOk = parts.length > 3 && parts[3] == 'scrub_ok';
+        final ts = parts.length > 1 ? parts[1] : '';
+        if (!docOk) {
+          try {
+            await FirestoreService.deleteDocument('users/$uid');
+            docOk = true;
+          } catch (_) {}
+        }
+        if (!scrubOk) {
+          try {
+            await FirestoreService.scrubLettersBySender(uid);
+            scrubOk = true;
+          } catch (_) {}
+        }
+        if (!docOk || !scrubOk) {
+          remaining.add('$uid|$ts|${docOk ? 'doc_ok' : 'doc_fail'}|'
+              '${scrubOk ? 'scrub_ok' : 'scrub_fail'}');
+        }
+      }
+      if (remaining.length != pending.length) {
+        if (remaining.isEmpty) {
+          await prefs.remove('pending_gdpr_deletions');
+        } else {
+          await prefs.setStringList('pending_gdpr_deletions', remaining);
+        }
+      }
+    } catch (_) {}
   }
 
   // Check onboarding completion (v2 = with country selection)

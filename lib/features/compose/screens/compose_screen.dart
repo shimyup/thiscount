@@ -1524,6 +1524,11 @@ class _ComposeScreenState extends State<ComposeScreen>
       //   픽업 dedup 정상 동작.
       final sharedCampaignId =
           _brandUniquePerUser ? AppState.newCampaignIdPublic() : null;
+      // Build 415 (sim50 P1): express+bulk 전체가 공유할 매장 코드 1개. 여러
+      //   sendBrandExpressBlast 호출(랜덤/멀티타깃)이 같은 코드를 쓰도록 주입 →
+      //   매장 POS 1회 등록. 이전엔 코드 자체가 발급 안 돼 손님 redeem 불가했음.
+      final sharedRedemptionCode =
+          _attachRedemptionCode ? RedemptionCode.generate() : null;
       try {
       if (_isBulkRandom) {
         // 랜덤 국가 특송: 매 편지마다 랜덤 국가 선택
@@ -1552,6 +1557,8 @@ class _ComposeScreenState extends State<ComposeScreen>
                 : _redemptionInfoController.text.trim(),
             redemptionExpiresAt: _computeRedemptionExpiresAt(),
             campaignId: sharedCampaignId,
+            attachRedemptionCode: _attachRedemptionCode,
+            explicitRedemptionCode: sharedRedemptionCode,
           );
           totalSent += sent;
           if (sent == 0) break; // 한도 초과 시 중단
@@ -1588,6 +1595,8 @@ class _ComposeScreenState extends State<ComposeScreen>
                 : _redemptionInfoController.text.trim(),
             redemptionExpiresAt: _computeRedemptionExpiresAt(),
             campaignId: sharedCampaignId,
+            attachRedemptionCode: _attachRedemptionCode,
+            explicitRedemptionCode: sharedRedemptionCode,
             preciseLat: preciseLat,
             preciseLng: preciseLng,
           );
@@ -1605,20 +1614,27 @@ class _ComposeScreenState extends State<ComposeScreen>
         _clearDraft();
         FeedbackService.onLetterSend();
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n.composeExpressBulkSent(_bulkTargets.length, _sendPerCountry, totalSent),
-              style: const TextStyle(color: Colors.white),
+        // Build 415 (sim50 P1): 코드 발급된 경우 reveal 다이얼로그로 노출(일반 bulk
+        //   와 parity) → 사장이 POS 등록. 이전엔 코드 자체가 없어 redeem 불가했음.
+        final code = state.lastSentRedemptionCode;
+        if (code != null && context.mounted) {
+          unawaited(_showSentCodeReveal(context, code, totalSent));
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                l10n.composeExpressBulkSent(_bulkTargets.length, _sendPerCountry, totalSent),
+                style: const TextStyle(color: Colors.white),
+              ),
+              backgroundColor: AppColors.bgCard,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              duration: const Duration(seconds: 4),
             ),
-            backgroundColor: AppColors.bgCard,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            duration: const Duration(seconds: 4),
-          ),
-        );
+          );
+        }
       }
       return;
     }

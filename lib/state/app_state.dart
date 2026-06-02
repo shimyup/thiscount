@@ -24,6 +24,7 @@ import '../core/services/feedback_service.dart';
 import '../core/services/geocoding_service.dart';
 import '../core/services/firestore_service.dart';
 import '../core/services/firebase_auth_service.dart';
+import '../core/services/auth_service.dart';
 import '../core/services/brand_zone_service.dart';
 import '../core/services/purchase_service.dart';
 import '../core/services/secure_clock.dart';
@@ -3604,6 +3605,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     }
     // 내 프로필을 Firestore에 저장 (다른 테스터가 지도에서 볼 수 있도록)
     _saveUserToFirestore();
+    // Build 415 (sim50 P1): 인증 확립 후 이전 탈퇴의 미완료 GDPR 삭제 재시도
+    //   (best-effort). 성공분은 큐에서 제거.
+    unawaited(AuthService.processPendingGdprDeletions());
     // 서버에서 다른 유저들의 편지 가져와서 지도에 표시
     await syncWorldLettersFromServer();
     // 30초마다 서버 편지 동기화 (다른 테스터가 보낸 새 편지를 반영)
@@ -4806,6 +4810,20 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       _brandExtraMonthlyQuota = 0;
       _inviteRewardCredits = 0;
       _welcomeTrialClaimedAt = null;
+      // Build 415 (sim50 P1/P2): 계정 전환 시 게임화/할당량 카운터 in-memory
+      //   reset. 이전엔 streak/주간챌린지/월간·이미지·익스프레스 발송 카운트와
+      //   누적 거리(XP 원천)가 다음 계정으로 그대로 넘어가 레벨/한도 누수.
+      //   activityScore 본체는 아래 UserProfile 재생성에서 fresh 로 교체.
+      _sentSinceLastUnlock = 0;
+      _monthlySentCount = 0;
+      _dailyImageSentCount = 0;
+      _dailyPremiumExpressSentCount = 0;
+      _currentStreak = 0;
+      _weeklyChallengeCountries.clear();
+      _weeklyChallengeWeekKey = '';
+      _weeklyChallengeClaimed = false;
+      _sumPickupKm = 0.0;
+      _sumSentKm = 0.0;
       // Build 409 (sim P1.44): 이전 사용자 프로필 사진이 다음 계정으로 넘어가지
       //   않도록 null. 아래 UserProfile 재생성이 _currentUser.profileImagePath 를
       //   복사하므로 여기서 끊어야 함.
@@ -4843,7 +4861,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       //   fallback 처리 (자연스러운 글로벌).
       latitude: latitude ?? 0.0,
       longitude: longitude ?? 0.0,
-      activityScore: _currentUser.activityScore, // 기존 점수 유지 (초기값 하드코딩 제거)
+      // Build 415 (sim50 P1): 계정 전환(isNewUser)이면 fresh ActivityScore —
+      //   이전 사용자의 레벨/XP/발송·픽업 카운트 상속 차단. 같은 사용자 갱신은 유지.
+      activityScore: isNewUser ? ActivityScore() : _currentUser.activityScore,
       phoneNumber: phoneNumber,
       verifyMethod: verifyMethod ?? 'email',
     );
@@ -8821,12 +8841,22 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     //   _newCampaignId() 로 자기만의 id 를 만들어 brandUniquePerUser dedup
     //   (같은 campaignId 1개만 픽업)이 깨졌음. null 이면 기존처럼 자체 생성.
     String? campaignId,
+    // Build 415 (sim50 P1): express+bulk 도 매장 코드 발급 지원. 이전엔 이 파라미터
+    //   자체가 없어 _attachRedemptionCode 토글이 무시되고 코드 없이 발송 →
+    //   손님이 영구히 redeem 불가했음. 호출자(compose)가 캠페인 공통 코드를
+    //   explicitRedemptionCode 로 주입(여러 blast 호출이 1개 코드 공유).
+    bool attachRedemptionCode = false,
+    String? explicitRedemptionCode,
   }) async {
     if (!_currentUser.isBrand) return 0;
     // Build 409 (sim P2 보안 L7948): 차단된 Brand 도 express+bulk 발송 차단.
     if (_currentUser.isBanned) return 0;
 
     const expressTotalMin = 5; // 특송: 5분 즉시 배송
+    // Build 415 (sim50 P1): 이 blast 가 부여할 매장 코드. 호출자 주입(캠페인
+    //   공통) 우선, 없으면 토글 ON 시 1회 생성. 같은 blast 내 모든 letter 공유.
+    final blastRedemptionCode = explicitRedemptionCode ??
+        (attachRedemptionCode ? RedemptionCode.generate() : null);
     final now = DateTime.now();
     // Build 324: brandUniquePerUser=true 면 이 blast 전체에 공통 campaignId.
     // Build 409 (sim P1.22): 주입된 campaignId 우선 (멀티콜 캠페인 공유).
@@ -8952,6 +8982,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         redemptionExpiresAt: category != LetterCategory.general
             ? redemptionExpiresAt
             : null,
+        // Build 415 (sim50 P1): 매장 사용코드 — blast 공통 코드. 이전 누락으로
+        //   express+bulk 쿠폰이 코드 없이 발송돼 손님 redeem 불가했음.
+        redemptionCode: blastRedemptionCode,
       );
 
       _worldLetters.add(letter);
