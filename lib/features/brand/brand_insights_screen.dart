@@ -149,7 +149,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
                 child: Text(
                   noData
                       ? l.koEn('🆕 데이터 수집 중', '🆕 Collecting data')
-                      : '${i.healthEmoji} ${i.healthLabel}',
+                      : '${i.healthEmoji} ${i.healthLabelL10n(l)}',
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 13,
