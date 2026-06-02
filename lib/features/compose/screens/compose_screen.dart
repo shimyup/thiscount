@@ -5460,148 +5460,45 @@ class _ComposeScreenState extends State<ComposeScreen>
           const SizedBox(height: 12),
           // Build 415 (item 5·14): '오늘의 혜택 자동 발송' zone 섹션 제거 —
           //   compose 는 즉시 발송만. (자동 발송은 별도 화면으로 분리 예정)
-          // ── 1 아이디당 1 편지 ──
-          GestureDetector(
-            onTap: () => setState(() => _brandUniquePerUser = !_brandUniquePerUser),
-            child: Row(
-              children: [
-                Icon(
-                  _brandUniquePerUser ? Icons.check_circle : Icons.circle_outlined,
-                  color: _brandUniquePerUser ? AppColors.teal : AppColors.textMuted,
-                  size: 18,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.composeBrandUniquePerUser,
-                        style: TextStyle(
-                          color: _brandUniquePerUser ? AppColors.teal : AppColors.textPrimary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      // Build 324: ON/OFF 상태별 desc 분기 — Brand 사장이
-                      //   토글 의미를 즉시 이해 (시뮬레이션 발견).
-                      Text(
-                        _brandUniquePerUser
-                            ? l10n.composeBrandUniquePerUserDesc
-                            : l10n.composeBrandUniquePerUserOffDesc,
-                        style: const TextStyle(
-                          color: AppColors.textMuted,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          // Build 415 (item 7·8): 길게 늘어지던 3-행 토글(1인1회·답장·코드발급)을
+          //   컴팩트 버튼(Wrap)으로 — 한눈에 보이고 활성/비활성 색으로 구분.
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _optionToggleButton(
+                active: _brandUniquePerUser,
+                label: l10n.composeBrandUniquePerUser,
+                onTap: () =>
+                    setState(() => _brandUniquePerUser = !_brandUniquePerUser),
+              ),
+              _optionToggleButton(
+                active: _brandAcceptsReplies,
+                label: l10n.composeBrandAcceptsReplies,
+                onTap: () =>
+                    setState(() => _brandAcceptsReplies = !_brandAcceptsReplies),
+              ),
+              _optionToggleButton(
+                active: _attachRedemptionCode,
+                label: l10n.redemptionToggleLabel,
+                onTap: () async {
+                  if (!_attachRedemptionCode) {
+                    final ok = await _showRedemptionCodeGuide();
+                    if (ok != true) return;
+                  }
+                  setState(() {
+                    _attachRedemptionCode = !_attachRedemptionCode;
+                    // 코드 발급 ON 시 general → coupon 자동 전환(POS 흐름 일관성).
+                    if (_attachRedemptionCode &&
+                        _brandCategory == LetterCategory.general) {
+                      _brandCategory = LetterCategory.coupon;
+                    }
+                  });
+                },
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-          // ── 답장 받기 (브랜드 전용 — 기본 on) ──
-          // 이 캠페인에 답장을 받을지 발신 시점에 결정. Off 면 수신자에게
-          // 답장 버튼이 숨겨지고 "답장 미수락" 안내 카드가 대신 뜬다.
-          GestureDetector(
-            onTap: () => setState(() => _brandAcceptsReplies = !_brandAcceptsReplies),
-            child: Row(
-              children: [
-                Icon(
-                  _brandAcceptsReplies ? Icons.check_circle : Icons.circle_outlined,
-                  color: _brandAcceptsReplies ? AppColors.teal : AppColors.textMuted,
-                  size: 18,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.composeBrandAcceptsReplies,
-                        style: TextStyle(
-                          color: _brandAcceptsReplies ? AppColors.teal : AppColors.textPrimary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        l10n.composeBrandAcceptsRepliesDesc,
-                        style: const TextStyle(
-                          color: AppColors.textMuted,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          // ── Build 331 (PR-S1): 사용 코드 발급 토글 ──
-          //   ON 시 letter 마다 (또는 bulk 캠페인마다) 8자 영숫자 코드 자동
-          //   발급. 손님이 "사용 진행" 탭 시 reveal → 매장 POS 가 바코드 스캔
-          //   또는 코드 수동 입력으로 할인 적용.
-          GestureDetector(
-            onTap: () async {
-              if (!_attachRedemptionCode) {
-                final ok = await _showRedemptionCodeGuide();
-                if (ok != true) return;
-              }
-              setState(() {
-                _attachRedemptionCode = !_attachRedemptionCode;
-                // Build 337 (PR-S8 시뮬레이션 P1 #13): general letter 에 코드 발급
-                //   은 매장 POS 흐름과 어울리지 않음. 토글 ON 시 category 가
-                //   general 이면 coupon 으로 자동 전환 → 가이드 dialog 메시지
-                //   ("쿠폰/할인") 와 일관성 + 손님 카테고리 필터 정확도 ↑.
-                if (_attachRedemptionCode &&
-                    _brandCategory == LetterCategory.general) {
-                  _brandCategory = LetterCategory.coupon;
-                }
-              });
-            },
-            child: Row(
-              children: [
-                Icon(
-                  _attachRedemptionCode
-                      ? Icons.check_circle
-                      : Icons.circle_outlined,
-                  color: _attachRedemptionCode
-                      ? AppColors.teal
-                      : AppColors.textMuted,
-                  size: 18,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.redemptionToggleLabel,
-                        style: TextStyle(
-                          color: _attachRedemptionCode
-                              ? AppColors.teal
-                              : AppColors.textPrimary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        l10n.redemptionToggleDesc,
-                        style: const TextStyle(
-                          color: AppColors.textMuted,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           // ── 자동 삭제 기간 ──
           Text(
             l10n.composeBrandAutoExpire,
@@ -5653,6 +5550,54 @@ class _ComposeScreenState extends State<ComposeScreen>
             }).toList(),
           ),
         ],
+      ),
+    );
+  }
+
+  // Build 415 (item 7): 컴팩트 on/off 버튼 — 라벨이 버튼 안에 들어가고,
+  //   활성(채워진 teal)/비활성(외곽선 muted)이 명확히 구분된다. 긴 설명 줄 없이
+  //   한 줄 pill 로 Wrap 배치 가능.
+  Widget _optionToggleButton({
+    required bool active,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        decoration: BoxDecoration(
+          color: active
+              ? AppColors.teal.withValues(alpha: 0.16)
+              : AppColors.bgSurface,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: active
+                ? AppColors.teal.withValues(alpha: 0.7)
+                : AppColors.textMuted.withValues(alpha: 0.18),
+            width: active ? 1.4 : 1.0,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              active ? Icons.check_circle_rounded : Icons.add_circle_outline_rounded,
+              size: 15,
+              color: active ? AppColors.teal : AppColors.textMuted,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: active ? AppColors.teal : AppColors.textSecondary,
+                fontSize: 12,
+                fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
