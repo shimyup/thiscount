@@ -1322,7 +1322,13 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                           ),
                         ],
                       ),
-                      child: Center(
+                      // Build 415 (런타임 점검): emoji+flag 2줄 Column 이 고정 크기
+                      //   아바타 원(avatarSize)을 ~2px 초과(RenderFlex overflow)하던
+                      //   문제 — FittedBox(scaleDown)로 어떤 scale 에서도 원 안에 맞게
+                      //   축소(필요할 때만, 확대는 안 함). 지도 줌아웃 시 다수 마커가
+                      //   노란 overflow 줄무늬를 띄우던 표면 닫음.
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           mainAxisSize: MainAxisSize.min,
