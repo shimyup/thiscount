@@ -108,6 +108,7 @@
 - [x] P2 Connectivity in-flight 가드 + SecureLocation heuristic OR + 레벨업 배너 구분 `8b21c48`
 - [x] P3 SecureClock(ETA/도착마커) + 내타워(0,0) 가드 + totalRedemptions 필터 + 코치마크 누수 + 지오코딩 타임스탬프 + user_progress 문서 + admin ban 가드 `d28b982`
 - [x] P3 데드코드(TranslationService/penpal_tier) 제거 + AI 429 안내 `cc51c9c`
+- TestFlight **Build 422 = VALID + Internal** (Delivery `df4d6d1b-571e-4b99-bd17-e1effb8ead8b`). 다음 빌드 423.
 - **미적용(보류, 사유)**: #9 admin special msg 한국어(admin=개발자 전용, 비-end-user) / #16 위치거부 UI 피드백(heuristic 은 #14 적용, 다중 launch 경로 UI 는 silent fail-safe 허용) / #24 온보딩 투어 한국어(비-ko 는 이미 자동 skip, 14언어 번역은 별도 大작업).
 
 ## Sim-fresh 라운드 (2026-06-04) — Build 421
