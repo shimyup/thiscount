@@ -2135,7 +2135,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    xpLevelLabel(floor == 0 ? 1 : floor),
+                                    xpLevelLabel(floor == 0 ? 1 : floor,
+                                        langCode: l.languageCode),
                                     style: TextStyle(
                                       color: isCurrent
                                           ? AppColors.gold.withValues(

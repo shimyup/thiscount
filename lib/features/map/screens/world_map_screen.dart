@@ -646,6 +646,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   right: 16,
                   child: _BrandRecentPickupBanner(
                     letter: picked,
+                    l10n: AppL10n.of(
+                      ctx.read<AppState>().currentUser.languageCode,
+                    ),
                     onTap: () {
                       HapticFeedback.lightImpact();
                       final target = ll.LatLng(
@@ -5270,9 +5273,12 @@ class _PointedRoofPainter extends CustomPainter {
 class _BrandRecentPickupBanner extends StatelessWidget {
   final Letter letter;
   final VoidCallback onTap;
+  // Build 421 (sim-fresh P2): 하드코딩 한국어(헤더+상대시간) 제거 위해 l10n 주입.
+  final AppL10n l10n;
   const _BrandRecentPickupBanner({
     required this.letter,
     required this.onTap,
+    required this.l10n,
   });
 
   @override
@@ -5319,7 +5325,7 @@ class _BrandRecentPickupBanner extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      '캠페인이 픽업됐어요',
+                      l10n.koEn('캠페인이 픽업됐어요', 'A campaign was picked up'),
                       style: TextStyle(
                         color: AppColors.coupon,
                         fontSize: 11,
@@ -5355,10 +5361,10 @@ class _BrandRecentPickupBanner extends StatelessWidget {
   }
 
   String _relativeTime(Duration d) {
-    if (d.inMinutes < 1) return '방금 전';
-    if (d.inMinutes < 60) return '${d.inMinutes}분 전';
-    if (d.inHours < 24) return '${d.inHours}시간 전';
-    if (d.inDays < 7) return '${d.inDays}일 전';
-    return '${d.inDays ~/ 7}주 전';
+    if (d.inMinutes < 1) return l10n.koEn('방금 전', 'just now');
+    if (d.inMinutes < 60) return l10n.letterReadMinutesAgo(d.inMinutes);
+    if (d.inHours < 24) return l10n.letterReadHoursAgo(d.inHours);
+    if (d.inDays < 7) return l10n.letterReadDaysAgo(d.inDays);
+    return l10n.koEn('${d.inDays ~/ 7}주 전', '${d.inDays ~/ 7}w ago');
   }
 }

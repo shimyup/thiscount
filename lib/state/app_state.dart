@@ -579,8 +579,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   /// 레벨 라벨 — UI 에서 직접 이 문자열만 렌더.
   String get levelLabel {
-    if (_currentUser.isBrand) return '👑 공식 발송인';
-    return xpLevelLabel(currentLevel);
+    // Build 421 (sim-fresh P1): 레벨 라벨 언어별 — 비-ko 사용자 한국어 노출 차단.
+    final isKo = _currentUser.languageCode == 'ko';
+    if (_currentUser.isBrand) {
+      return isKo ? '👑 공식 발송인' : '👑 Official Sender';
+    }
+    return xpLevelLabel(currentLevel, langCode: _currentUser.languageCode);
   }
 
   /// 레벨업 일회성 플래그를 소비. UI 에서 축하 배너 표시 후 호출.

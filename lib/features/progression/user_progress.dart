@@ -86,10 +86,26 @@ const Map<int, String> _levelNameByFloor = {
   45: '👑 전설의 혜택 헌터',
 };
 
-String xpLevelLabel(int level) {
+// Build 421 (sim-fresh P1): 비-한국어 사용자에게 레벨 라벨이 한국어로 노출되던
+//   문제 → 영어 매핑 추가(ko 외엔 영어). UI 표시 전용.
+const Map<int, String> _levelNameByFloorEn = {
+  0: '🎟 Rookie Explorer',
+  5: '🎫 Novice Hunter',
+  10: '🏷️ Skilled Hunter',
+  15: '🛍 Town Shopper',
+  20: '🎯 City Scout',
+  25: '💎 Treasure Finder',
+  30: '🏆 Deal Master',
+  35: '⭐ Super Hunter',
+  40: '🌍 Global Pickup Leader',
+  45: '👑 Legendary Deal Hunter',
+};
+
+String xpLevelLabel(int level, {String langCode = 'ko'}) {
+  final table = langCode == 'ko' ? _levelNameByFloor : _levelNameByFloorEn;
   // 가장 가까운 하위 floor 찾기 (45 ≤ level ≤ 50 → "전설의 혜택 헌터")
   for (final floor in [45, 40, 35, 30, 25, 20, 15, 10, 5, 0]) {
-    if (level >= floor) return _levelNameByFloor[floor]!;
+    if (level >= floor) return table[floor]!;
   }
-  return _levelNameByFloor[0]!;
+  return table[0]!;
 }
