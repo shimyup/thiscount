@@ -16027,15 +16027,34 @@ class AppL10n {
   //   (예: "$4.99" / "₩4,900")이 로케일/통화로 자동 포맷되므로, 여기서는 "/월"
   //   접미사만 언어별로 붙인다. 하드코딩 KRW fallback 의 i18n 대체.
   String premiumPricePerMonth(String price) {
+    // Build 417 (sim100 P2): 월 접미사 전 언어 현지화 (이전엔 ko/ja/zh/ar 만 →
+    //   나머지 9언어 영어 '/ mo' 노출).
     switch (languageCode) {
       case 'ko':
         return '$price / 월';
       case 'ja':
-        return '$price / 月';
       case 'zh':
         return '$price / 月';
       case 'ar':
         return '$price / شهر';
+      case 'fr':
+        return '$price / mois';
+      case 'de':
+        return '$price / Monat';
+      case 'es':
+        return '$price / mes';
+      case 'pt':
+        return '$price / mês';
+      case 'ru':
+        return '$price / мес';
+      case 'tr':
+        return '$price / ay';
+      case 'it':
+        return '$price / mese';
+      case 'hi':
+        return '$price / माह';
+      case 'th':
+        return '$price / เดือน';
       default:
         return '$price / mo';
     }

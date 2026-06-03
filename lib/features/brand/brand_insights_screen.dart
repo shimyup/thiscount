@@ -184,11 +184,18 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
     final l = AppL10n.of(
       context.read<AppState>().currentUser.languageCode,
     );
+    // Build 417 (sim100 P3): mixed-source 집계로 redeemed>pickup 같은 비논리적
+    //   절대수치가 그대로 노출되던 것 보정 — 각 단계는 직전 단계를 넘지 못하게
+    //   clamp(퍼널은 단조감소). 표시 전용(원본 분석값 불변).
+    final pSent = i.totalSent;
+    final pPickup = i.totalPickup.clamp(0, pSent <= 0 ? i.totalPickup : pSent);
+    final pReveal = i.totalRevealed.clamp(0, pPickup);
+    final pRedeem = i.totalRedeemed.clamp(0, pReveal);
     final stages = <_FunnelStage>[
-      _FunnelStage('📮', l.koEn('발송', 'Sent'), i.totalSent, AppColors.textMuted),
-      _FunnelStage('🎯', l.koEn('픽업', 'Pickup'), i.totalPickup, AppColors.teal),
-      _FunnelStage('🛒', l.koEn('노출', 'Reveal'), i.totalRevealed, AppColors.coupon),
-      _FunnelStage('✅', l.koEn('사용', 'Redeem'), i.totalRedeemed, AppColors.gold),
+      _FunnelStage('📮', l.koEn('발송', 'Sent'), pSent, AppColors.textMuted),
+      _FunnelStage('🎯', l.koEn('픽업', 'Pickup'), pPickup, AppColors.teal),
+      _FunnelStage('🛒', l.koEn('노출', 'Reveal'), pReveal, AppColors.coupon),
+      _FunnelStage('✅', l.koEn('사용', 'Redeem'), pRedeem, AppColors.gold),
     ];
     final maxCount = i.totalSent <= 0 ? 1 : i.totalSent;
     return Container(

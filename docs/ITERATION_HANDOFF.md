@@ -73,3 +73,9 @@
 - [x] P2 inbox _sortFollowedFirst 가 죽은 쿠폰(만료/사용완료) 상단고정 제외 (inbox_screen.dart:878)
 - TestFlight Build 417 = VALID + Internal 그룹 (Delivery 551848eb). 다음 빌드는 418.
 - 남은 후보: '안읽음 점프' 인덱스 정합, premiumPricePerMonth 9언어, 만료판정 SecureClock 일관, compose dead-code 정리(신중), roi 비논리 카운트 보정, send_bulk 스낵바 N×M 수식.
+
+## Iteration 3 (2026-06-03)
+- [x] P2 premiumPricePerMonth 월 접미사 14언어 전체 현지화 (app_localizations.dart:16029)
+- [x] P3 brand_insights 퍼널 절대수치 단조감소 clamp (redeemed>pickup 등 비논리 표시 차단) (brand_insights_screen.dart:187)
+- 누적 8건 → Build 418 빌드 예정.
+- 남은 후보: send_bulk 랜덤모드 스낵바 '0개 나라' 수식, '안읽음 점프' 인덱스, maxRedeems per-device, autozone dedup seen 신호, mustChangePassword(플로우-신중).
