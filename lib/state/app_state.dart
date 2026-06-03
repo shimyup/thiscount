@@ -243,6 +243,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         // Build 414 (sim100 #41): 만료된 auto-drop/letter 가 지도에 ghost 마커로
         //   잔존 + 탭 시 '이미 받았어요' 오안내 → 만료분 사전 제외.
         .where((l) => !l.isExpired)
+        // Build 420 (sim100 iter5): 비-nearby 픽업 경로(소진 판정)와 동일 기준 —
+        //   maxReaders 도달/신고차단(isBlocked) letter 는 지도/리스트에서 제외.
+        .where((l) => l.readCount < l.maxReaders && !l.isBlocked)
         // Build 324: brandUniquePerUser 캠페인의 다른 letter 를 이미 픽업했다면
         //   같은 캠페인의 잔여 letter 는 지도/리스트에서 숨김. 노출 후 탭 시점
         //   "이미 받았어요" 차단보다 사전 차단이 UX 자연스럽다.
@@ -9219,7 +9222,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       // Build 347 (PR-U1 위치 시뮬레이션 P1): GPS 0,0 (권한 거부 / 시동 직후)
       //   인 사용자가 모든 letter 픽업 통과하던 회귀 차단. 위도+경도 둘 다
       //   0 이면 GPS 미가용 — 픽업 거리 검증 불가 → 거절.
-      if (_currentUser.latitude == 0 && _currentUser.longitude == 0) {
+      // Build 420 (sim100 iter5): 부분 초기화(한 좌표만 0) 도 미가용으로 간주 —
+      //   OR 가드 + Null Island(둘 다 |좌표|<0.0001) 도 무효 좌표로 처리.
+      final uLat = _currentUser.latitude;
+      final uLng = _currentUser.longitude;
+      if (uLat == 0 ||
+          uLng == 0 ||
+          (uLat.abs() < 0.0001 && uLng.abs() < 0.0001)) {
         return _l10n.stateDistanceTooFar;
       }
       final dist = letter.destinationLocation.distanceTo(
