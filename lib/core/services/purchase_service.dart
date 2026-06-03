@@ -880,7 +880,7 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
 
   // ── Premium 구매 ────────────────────────────────────────────────────────
   Future<bool> buyPremium() async {
-    _startLoading(PurchaseOperation.premium);
+    if (!_startLoading(PurchaseOperation.premium)) return false;
     if (!_isTestMode &&
         !_isBetaFreePremium &&
         !_isBetaUpgradeSimulator &&
@@ -944,7 +944,7 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
 
   // ── Brand 구매 ──────────────────────────────────────────────────────────
   Future<bool> buyBrand() async {
-    _startLoading(PurchaseOperation.brand);
+    if (!_startLoading(PurchaseOperation.brand)) return false;
 
     // 베타 무료 프리미엄 모드에서는 Brand 구독 불가
     if (_isBetaFreePremium) {
@@ -1031,7 +1031,7 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
     if (!appState.isBrandMember && _isBrand) {
       appState.syncPremiumStatus(isPremium: true, isBrand: true);
     }
-    _startLoading(PurchaseOperation.brandExtra);
+    if (!_startLoading(PurchaseOperation.brandExtra)) return false;
     if (!_isTestMode && !_isRcKeyConfiguredForCurrentPlatform) {
       _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
       return false;
@@ -1135,7 +1135,7 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
         : qty == 500
             ? PurchaseOperation.exactDrop500
             : PurchaseOperation.exactDrop100;
-    _startLoading(op);
+    if (!_startLoading(op)) return false;
     if (!_isTestMode && !_isRcKeyConfiguredForCurrentPlatform) {
       _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
       return false;
@@ -1174,7 +1174,7 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
 
   // ── 구매 복원 ───────────────────────────────────────────────────────────
   Future<bool> restorePurchases() async {
-    _startLoading(PurchaseOperation.restore);
+    if (!_startLoading(PurchaseOperation.restore)) return false;
     if (!_isTestMode &&
         !_isBetaFreePremium &&
         !_isRcKeyConfiguredForCurrentPlatform) {
@@ -1272,7 +1272,7 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
     }
     // Test/beta 모드에서만 시뮬레이션 — production 은 fall-through.
     if (_isTestMode || _isBetaUpgradeSimulator) {
-      _startLoading(PurchaseOperation.brand);
+      if (!_startLoading(PurchaseOperation.brand)) return false;
       return await _fakePurchase(() async {
         final prefs = await _getPrefs();
         _isBrand = true;
@@ -1586,24 +1586,24 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
     return true;
   }
 
-  void _startLoading(PurchaseOperation operation) {
-    // Build 347 (PR-U2 시뮬레이션 P2): 이미 다른 operation 진행 중이면 새
-    //   operation 으로 덮어쓰지 않음 — UI/Race 시점에 두 buy 가 동시 호출돼도
-    //   첫 번째 의 _activeOperation 보존. caller 가 빠르게 두 번 탭해도 두
-    //   번째는 첫 번째의 결과 기다림 (대부분 _isRcKeyConfigured 체크에서 빠른
-    //   return). 완벽한 mutex 는 아니나 UI race 의 90% 가드.
+  /// Build 423 (sim-crosscut P2): 락 획득 성공 여부를 bool 로 반환 — 이전엔 void
+  ///   라, 락이 잡혀 있어도 caller 가 계속 진행해 두 번째 buy 가 _setError 의
+  ///   _loading=false 로 첫 operation 의 락을 풀어버리는 race(중복 grant 포함)가
+  ///   있었음. caller 는 `if (!_startLoading(op)) return false;` 로 즉시 bail.
+  bool _startLoading(PurchaseOperation operation) {
     if (_loading) {
       if (kDebugMode) {
         debugPrint(
           '[purchase] _startLoading skip — busy with $_activeOperation',
         );
       }
-      return;
+      return false;
     }
     _loading = true;
     _activeOperation = operation;
     _errorMessage = null;
     notifyListeners();
+    return true;
   }
 
   void _stopLoading() {
