@@ -112,6 +112,7 @@
 - [x] P1/P2/P3 i18n 하드코딩(공유헤더/프로필카드/카테고리칩/tower편집) + 독·러 문법 `47eb8ff`
 - [x] P3 약관링크 언어기준 + 알림 데드코드 + digest 문서정합 `07119ea`
 - [x] P3 언어 변경 시 일일 리마인더 재예약 `5aecc39`
+- TestFlight **Build 421 = VALID + Internal** (Delivery `094e2ac3-9a90-4d65-b66a-8d7f52ddc128`). 다음 빌드 422.
 - **미적용(보류, 사유 기재)**: #3 timezone IANA(플러그인 의존 — flutter_timezone 추가 필요) / #16 followers 탭 항상 0(백엔드 follow-graph 부재 = 제품결정) / #17 sendExpressLetter ~80줄 데드(기능배선 vs 삭제 결정) / #21 languageCode 서버 미저장(rules 화이트리스트 미포함 → PATCH 403 위험 = 룰 동반) / #23 city-of-month 한국어(데이터모델 14언어화 大) / #29 베타확인 koEn(이미 영어 노출).
 
 ## Iteration 5 (2026-06-03) — Build 420
