@@ -1024,7 +1024,7 @@ class _TowerScreenState extends State<TowerScreen>
                               const SizedBox(width: 3),
                               Text(
                                 l.towerSetNameHint.length > 8
-                                    ? '편집'
+                                    ? l.koEn('편집', 'Edit')
                                     : l.towerSetNameHint,
                                 style: TextStyle(
                                   color: AppColors.gold.withValues(alpha: 0.85),

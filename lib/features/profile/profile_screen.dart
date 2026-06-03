@@ -1063,23 +1063,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       const Text('📊',
                                           style: TextStyle(fontSize: 22)),
                                       const SizedBox(width: 12),
-                                      const Expanded(
+                                      Expanded(
                                         child: Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
+                                            // Build 421 (sim-fresh P2): 하드코딩
+                                            //   한국어 → 언어별 표시.
                                             Text(
-                                              '캠페인 인사이트',
-                                              style: TextStyle(
+                                              _l.koEn('캠페인 인사이트',
+                                                  'Campaign insights'),
+                                              style: const TextStyle(
                                                 color: AppColors.textPrimary,
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w800,
                                               ),
                                             ),
-                                            SizedBox(height: 2),
+                                            const SizedBox(height: 2),
                                             Text(
-                                              '발송 → 픽업 → 사용 전환률 한눈에',
-                                              style: TextStyle(
+                                              _l.koEn(
+                                                  '발송 → 픽업 → 사용 전환률 한눈에',
+                                                  'Sent → pickup → redeem at a glance'),
+                                              style: const TextStyle(
                                                 color: AppColors.textSecondary,
                                                 fontSize: 11,
                                               ),
@@ -3103,10 +3108,11 @@ class _PreferredCategoryCard extends StatelessWidget {
             children: [
               const Text('🎯', style: TextStyle(fontSize: 18)),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  '받고 싶은 혜택 카테고리',
-                  style: TextStyle(
+                  // Build 421 (sim-fresh P2): 하드코딩 한국어 → 언어별.
+                  l.koEn('받고 싶은 혜택 카테고리', 'Benefit category you want'),
+                  style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
@@ -3219,16 +3225,21 @@ class _PreferredCategoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build 421 (sim-fresh P2): 하드코딩 한국어 칩 라벨 → 기존 14언어 카테고리
+    //   getter + 랜덤은 koEn 으로 현지화.
+    final l = AppL10n.of(
+      context.read<AppState>().currentUser.languageCode,
+    );
     final emoji = category == LetterCategory.coupon
         ? '🎟'
         : category == LetterCategory.voucher
         ? '🎁'
         : '✉️';
     final label = category == LetterCategory.coupon
-        ? '할인권'
+        ? l.composeBrandCategoryCoupon
         : category == LetterCategory.voucher
-        ? '교환권'
-        : '랜덤';
+        ? l.composeBrandCategoryVoucher
+        : l.koEn('랜덤', 'Random');
 
     return InkWell(
       onTap: onTap,

@@ -157,7 +157,9 @@ class ShareCardService {
     );
     _drawText(
       canvas,
-      l10n.shareCardHeader(''),
+      // Build 421 (sim-fresh P1): 빈 country 보간으로 '에서 혜택이 도착' 같은
+      //   깨진 문장이 모든 언어에 나오던 문제 → 실제 발신국 전달.
+      l10n.shareCardHeader(letter.senderCountry),
       offset: const Offset(80, 280),
       fontSize: 68,
       color: AppColors.gold,
