@@ -31,8 +31,6 @@ import '../../share/share_card_service.dart';
 import 'letter_context_badge.dart';
 import 'scarcity_indicator.dart';
 import 'sender_moment_line.dart';
-// 펜팔 배지 UI 제거 — import 도 제거. 데이터 통계 로직은 _PenpalStats 내부에서만 사용.
-// import '../../penpal/penpal_tier.dart';
 
 class LetterReadScreen extends StatefulWidget {
   final Letter letter;

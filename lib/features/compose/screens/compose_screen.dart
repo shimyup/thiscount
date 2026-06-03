@@ -1433,8 +1433,15 @@ class _ComposeScreenState extends State<ComposeScreen>
       }
     });
     if (failed && mounted) {
+      // Build 422 (sim-fresh2 P3): rate-limit(429)은 별도 안내 — 일반 실패와 구분.
+      final msg = CouponAIService.lastWasRateLimited
+          ? l10n.koEn(
+              '요청이 많아요. 잠시 후 다시 시도해 주세요',
+              'Too many requests. Please try again shortly.',
+            )
+          : l10n.composeAIFailed;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.composeAIFailed)),
+        SnackBar(content: Text(msg)),
       );
     }
   }

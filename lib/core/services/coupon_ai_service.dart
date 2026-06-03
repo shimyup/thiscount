@@ -33,6 +33,10 @@ class CouponAIService {
 
   static bool get isAvailable => FirebaseConfig.isCouponAIEnabled;
 
+  /// Build 422 (sim-fresh2 P3): 직전 generate() 가 rate-limit(429)로 실패했는지.
+  ///   null 결과만으로는 구분 불가 → 호출처가 '잠시 후 다시 시도' 안내에 사용.
+  static bool lastWasRateLimited = false;
+
   /// 성공 시 AICouponResult, 실패/미설정 시 null (호출처가 에러 메시지 표시).
   static Future<AICouponResult?> generate({
     required String businessName,
@@ -41,6 +45,7 @@ class CouponAIService {
     required String category, // cafe / food / ...
     String langCode = 'en',
   }) async {
+    lastWasRateLimited = false;
     if (!isAvailable) return null;
     try {
       await FirebaseAuthService.ensureValidToken();
@@ -58,6 +63,7 @@ class CouponAIService {
           )
           .timeout(const Duration(seconds: 25));
       if (res.statusCode < 200 || res.statusCode >= 300) {
+        if (res.statusCode == 429) lastWasRateLimited = true;
         assert(() {
           debugPrint('[CouponAI] 실패 ${res.statusCode}: ${res.body}');
           return true;
