@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -2488,6 +2489,10 @@ class _SignupTabState extends State<_SignupTab> {
             controller: _otpCtrl,
             keyboardType: TextInputType.number,
             maxLength: 6,
+            // Build 416 (sim100 P2/P3): iOS 메일/문자 OTP 자동완성 활성 +
+            //   숫자만 허용 → 비숫자 6자가 잘못된 자동검증을 발사하던 경계 차단.
+            autofillHints: const [AutofillHints.oneTimeCode],
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: AppColors.textPrimary,
@@ -2914,6 +2919,15 @@ class _SignupTabState extends State<_SignupTab> {
                           : null,
                       onTap: () {
                         setState(() {
+                          // Build 416 (sim100 P1): 거주국가가 EU(16세)↔비EU(14세)
+                          //   경계를 넘으면 연령 동의 리셋 — 전화 picker 와 동일
+                          //   가드. 이전엔 14세 동의가 16세 동의로 무단 승격(GDPR
+                          //   Art.8 우회)되던 회귀.
+                          final prevIsEu =
+                              _euGdprCountries.contains(_selectedCountry);
+                          final newIsEu =
+                              _euGdprCountries.contains(c['name']);
+                          if (prevIsEu != newIsEu) _agreeAgeAbove14 = false;
                           _selectedCountry = c['name']!;
                           _selectedFlag = c['flag']!;
                           _selectedCountryCode = _countryCodes[c['name']!] ?? '+1';

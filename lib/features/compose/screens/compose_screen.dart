@@ -1464,7 +1464,9 @@ class _ComposeScreenState extends State<ComposeScreen>
       _showError(l10n.composeNoNetwork);
       return;
     }
-    if (!isBrandPromo && content.length < 20) {
+    // Build 416 (sim100 R1): 실제 발송 검증도 10자로 — 버튼/카운터(10자)와
+    //   불일치하던 회귀(10~19자 버튼 활성인데 누르면 '최소 20자' 데드엔드) 수정.
+    if (!isBrandPromo && content.length < 10) {
       _showError(l10n.composeMinLengthError(content.length));
       return;
     }
@@ -5206,22 +5208,17 @@ class _ComposeScreenState extends State<ComposeScreen>
   }
 
   /// 시나리오 1 — 매장 반경 (자동 zone ON / 1인1회 ON / 단건 모드)
+  // Build 416 (sim100 R3): auto-zone 제거로 미사용. _isAutoZoneMode 를 절대
+  //   켜지 않도록 false 로 둠(만에 하나 호출돼도 즉시발송 흐름 유지).
+  // ignore: unused_element
   void _applyScenarioNearby() {
     setState(() {
-      _isAutoZoneMode = true;
+      _isAutoZoneMode = false;
       _isBulkMode = false;
       _isExpressMode = false;
       _isExactDropped = false;
       _brandUniquePerUser = true;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('📍 매장 반경 모드 — 자동 zone + 1인1회 ON'),
-        backgroundColor: AppColors.bgCard,
-        behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 2),
-      ),
-    );
   }
 
   /// 시나리오 2 — 단건 정확 좌표 (ExactDrop ON / 1인1회 ON)
@@ -5440,11 +5437,9 @@ class _ComposeScreenState extends State<ComposeScreen>
             spacing: 6,
             runSpacing: 6,
             children: [
-              _scenarioChip(
-                emoji: '📍',
-                label: l10n.composeScenarioNearbyStore,
-                onTap: _applyScenarioNearby,
-              ),
+              // Build 416 (sim100 R3): '📍 매장 반경'(auto-zone) 칩 제거 —
+              //   auto-zone UI 가 제거됐는데 칩만 남아 _isAutoZoneMode 를 켜고
+              //   즉시발송 대신 zone 캠페인을 무단 생성하던 회귀 차단.
               _scenarioChip(
                 emoji: '🎯',
                 label: l10n.composeScenarioExactDrop,

@@ -3859,6 +3859,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         // Build 415 (#5 레어 드롭, sim50 P1): 서버 letter 의 희귀도 복원.
         rarity: LetterRarityExt.fromJson(data['rarity']),
         redemptionInfo: redInfo,
+        // Build 416 (sim100 P0/R2): 서버 letter 의 매장 사용 코드 복원.
+        redemptionCode: (data['redemptionCode'] as String?)?.isEmpty == true
+            ? null
+            : data['redemptionCode'] as String?,
         redemptionExpiresAt: redExpiresAt,
         acceptsReplies: data['acceptsReplies'] as bool? ?? true,
         senderIsBrand: data['senderIsBrand'] as bool? ?? (tier == LetterSenderTier.brand),
@@ -3945,6 +3949,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         // 주운 수신자가 할인 코드·교환권 이미지·유효기간을 볼 수 없었음.
         'category': letter.category.key,
         'redemptionInfo': letter.redemptionInfo ?? '',
+        // Build 416 (sim100 P0/R2): 매장 사용 코드(redemptionCode) 서버 직렬화.
+        //   이전엔 이 수기 맵에서 누락 → 서버 letter 에 코드 자체가 없어 다른
+        //   기기에서 픽업한 수신자는 코드 null → 모든 쿠폰 POS redeem 불가
+        //   (발신 기기에서만 보여 로컬 데모 착시였음).
+        if (letter.redemptionCode != null)
+          'redemptionCode': letter.redemptionCode,
         if (letter.redemptionExpiresAt != null)
           'redemptionExpiresAt':
               letter.redemptionExpiresAt!.toIso8601String(),
@@ -4664,6 +4674,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         senderIsBrand: senderTier == LetterSenderTier.brand,
         // Build 415 (#5 레어 드롭, sim50 P1): 희귀도 복원 (getDocument 파싱 경로).
         rarity: LetterRarityExt.fromJson(map['rarity']),
+        // Build 416 (sim100 P0/R2): 매장 사용 코드 복원 (getDocument 경로).
+        redemptionCode: (map['redemptionCode'] as String?)?.isEmpty == true
+            ? null
+            : map['redemptionCode'] as String?,
         // Build 409 (sim P1.45): 소진 카운터 복원 — 위 소진 가드 + QQ4 prune 이
         //   정확히 동작하도록. 이전엔 0/default 로 떨어져 over-redemption 가능.
         readCount: (map['readCount'] as num?)?.toInt() ?? 0,
@@ -7851,6 +7865,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         estimatedTotalMinutes: 0,
         senderIsBrand: true,
         senderTier: LetterSenderTier.brand,
+        // Build 416 (sim100 R5): zone auto-drop 쿠폰도 희귀도 roll — 매장 상시
+        //   운영 채널에서도 rare/epic '발견' 가능(이전엔 항상 normal).
+        rarity: _rollLetterRarity(true),
         category: LetterCategory.coupon,
         acceptsReplies: false,
         redemptionInfo: zone.redemptionInfo,
@@ -9465,7 +9482,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         (letter.redemptionInfo == null || letter.redemptionInfo!.isEmpty);
     final needsImage = (letter.category == LetterCategory.voucher) &&
         (letter.imageUrl == null || letter.imageUrl!.isEmpty);
-    if (!needsContent && !needsRedemption && !needsImage) return false;
+    // Build 416 (sim100 P0/R2): 매장 코드도 refetch 트리거. map sync mask 는
+    //   redemptionCode 를 제외(heavy)하므로 픽업 직후 inbox 코드가 null →
+    //   getDocument(full doc)로 채워야 수신자가 매장에서 코드 제시 가능.
+    final needsCode = (letter.category != LetterCategory.general) &&
+        (letter.redemptionCode == null || letter.redemptionCode!.isEmpty);
+    if (!needsContent && !needsRedemption && !needsImage && !needsCode) {
+      return false;
+    }
 
     try {
       final doc = await FirestoreService.getDocument('letters/$letterId');
@@ -9474,6 +9498,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       final serverContent = (map['content'] as String?)?.trim() ?? '';
       final serverRed = (map['redemptionInfo'] as String?)?.trim() ?? '';
       final serverImg = (map['imageUrl'] as String?)?.trim() ?? '';
+      // Build 416 (sim100 P0/R2): 매장 사용 코드도 서버에서 가져옴.
+      final serverCode = (map['redemptionCode'] as String?)?.trim() ?? '';
       // Build 409 (sim P1.2): 서버 doc 의 category 를 진실로 사용. map sync 가
       //   category 를 마스킹했던 시절 픽업된 쿠폰은 local category=general 로
       //   떨어져 redemption 게이트(needsRedemption)가 안 걸려 코드가 영영 빈
@@ -9494,7 +9520,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           serverImg.isNotEmpty &&
           (letter.imageUrl == null || letter.imageUrl!.isEmpty);
       final fixCategory = effectiveCategory != letter.category;
-      if (!fillContent && !fillRed && !fillImg && !fixCategory) return false;
+      // Build 416 (sim100 P0/R2): 서버에 코드 있고 로컬 비어 있으면 채움.
+      final fillCode = serverCode.isNotEmpty &&
+          (letter.redemptionCode == null || letter.redemptionCode!.isEmpty);
+      if (!fillContent && !fillRed && !fillImg && !fixCategory && !fillCode) {
+        return false;
+      }
 
       // Letter 필드 대부분 final — clone 후 신규 인스턴스로 교체. mutate 된
       // inbox 전용 status/readAt 은 유지.
@@ -9551,6 +9582,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         acceptsReplies: letter.acceptsReplies,
         redemptionInfo: fillRed ? serverRed : letter.redemptionInfo,
         redemptionExpiresAt: letter.redemptionExpiresAt,
+        // Build 416 (sim100 P0/R2): 코드 보존/채움 — 이전 재구성은 redemptionCode
+        //   를 누락해 픽업 후 코드가 영구 소실됐음. rarity 도 누락돼 normal 로
+        //   리셋되던 것 같이 보존.
+        redemptionCode: fillCode ? serverCode : letter.redemptionCode,
+        rarity: letter.rarity,
       );
       _inbox[idx] = updated;
       notifyListeners();

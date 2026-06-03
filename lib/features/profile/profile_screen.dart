@@ -431,22 +431,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           TextButton(
             onPressed: () async {
-              if (newCtrl.text.length < 6) {
-                _showSnack(ctx, _pl.profilePasswordMinLength);
+              final lc = ctx.read<AppState>().currentUser.languageCode;
+              // Build 416 (sim100 R4): signUp 과 동일한 비번 규칙(8~20·영문·숫자)
+              //   검증 — 이전 '<6' 검사는 규칙 불일치로 변경 후 로그인 거부 유발.
+              final pwErr = AuthService.validatePassword(newCtrl.text, langCode: lc);
+              if (pwErr != null) {
+                _showSnack(ctx, pwErr);
                 return;
               }
               if (newCtrl.text != confirmCtrl.text) {
                 _showSnack(ctx, _pl.profilePasswordMismatch);
                 return;
               }
-              final user = await AuthService.getCurrentUser();
-              if (user == null) return;
-              final err = await AuthService.login(
-                username: user['username'] ?? '',
-                password: oldCtrl.text,
-                langCode: ctx.read<AppState>().currentUser.languageCode,
-              );
-              if (err != null) {
+              // Build 416 (sim100 R4): login() 으로 현재 비번 검증하면 brute-force
+              //   카운터가 올라 5회 오입력 시 본인 계정이 15분 잠김. settings 처럼
+              //   verifyCurrentPassword(카운터 미증분)로 교체.
+              final ok = await AuthService.verifyCurrentPassword(oldCtrl.text);
+              if (!ok) {
                 if (ctx.mounted)
                   _showSnack(ctx, _pl.profileCurrentPasswordWrong);
                 return;

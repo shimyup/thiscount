@@ -3899,21 +3899,25 @@ class AppL10n {
     'th': 'ID นี้ถูกใช้แล้ว กรุณาเลือก ID อื่น',
   });
 
+  // Build 416 (sim100 P2): hint 가 '6~12자'/예시 'Pass123'(7자) 로 안내했으나
+  //   실제 규칙은 8~20자(validatePassword) → 안내대로 입력하면 거부되던 오안내.
+  //   '8~20자'·예시 'Pass1234'(8자) 로 정정 + fr/it 의 'récompenses/ricompense'
+  //   (보상) 오역을 'lettres/lettere'(글자) 로 교정.
   String get authPasswordHintSignup => _t({
-    'ko': 'Pass123   (영문+숫자 포함 6~12자)',
-    'en': 'Pass123   (letters + numbers, 6-12 chars)',
-    'ja': 'Pass123   (英数字含む6〜12文字)',
-    'zh': 'Pass123   (含字母+数字，6-12位)',
-    'fr': 'Pass123   (récompenses + chiffres, 6-12 car.)',
-    'de': 'Pass123   (Buchstaben + Zahlen, 6-12 Zeichen)',
-    'es': 'Pass123   (letras + números, 6-12 caract.)',
-    'pt': 'Pass123   (letras + números, 6-12 caract.)',
-    'ru': 'Pass123   (буквы + цифры, 6-12 символов)',
-    'tr': 'Pass123   (harf + rakam, 6-12 karakter)',
-    'ar': 'Pass123   (حروف + أرقام، 6-12 حرف)',
-    'it': 'Pass123   (ricompense + numeri, 6-12 car.)',
-    'hi': 'Pass123   (अक्षर + अंक, 6-12 अक्षर)',
-    'th': 'Pass123   (ตัวอักษร + ตัวเลข, 6-12 ตัว)',
+    'ko': 'Pass1234   (영문+숫자 포함 8~20자)',
+    'en': 'Pass1234   (letters + numbers, 8-20 chars)',
+    'ja': 'Pass1234   (英数字含む8〜20文字)',
+    'zh': 'Pass1234   (含字母+数字，8-20位)',
+    'fr': 'Pass1234   (lettres + chiffres, 8-20 car.)',
+    'de': 'Pass1234   (Buchstaben + Zahlen, 8-20 Zeichen)',
+    'es': 'Pass1234   (letras + números, 8-20 caract.)',
+    'pt': 'Pass1234   (letras + números, 8-20 caract.)',
+    'ru': 'Pass1234   (буквы + цифры, 8-20 символов)',
+    'tr': 'Pass1234   (harf + rakam, 8-20 karakter)',
+    'ar': 'Pass1234   (حروف + أرقام، 8-20 حرف)',
+    'it': 'Pass1234   (lettere + numeri, 8-20 car.)',
+    'hi': 'Pass1234   (अक्षर + अंक, 8-20 अक्षर)',
+    'th': 'Pass1234   (ตัวอักษร + ตัวเลข, 8-20 ตัว)',
   });
 
   String get authResidenceCountry => _t({
@@ -4829,20 +4833,20 @@ class AppL10n {
   });
 
   String composeMinLengthError(int current) => _t({
-    'ko': '혜택은 최소 20자 이상 작성해주세요 ✍️ (현재 ${current}자)',
-    'en': 'Please write at least 20 characters ✍️ (currently $current)',
-    'ja': '最低20文字以上書いてください ✍️（現在${current}文字）',
-    'zh': '请至少写20个字符 ✍️（当前${current}字）',
-    'fr': 'Veuillez écrire au moins 20 caractères ✍️ ($current actuellement)',
-    'de': 'Bitte mindestens 20 Zeichen schreiben ✍️ (aktuell $current)',
-    'es': 'Escribe al menos 20 caracteres ✍️ (actualmente $current)',
-    'pt': 'Escreva pelo menos 20 caracteres ✍️ (atualmente $current)',
-    'ru': 'Напишите минимум 20 символов ✍️ (сейчас $current)',
-    'tr': 'En az 20 karakter yazın ✍️ (şu an $current)',
-    'ar': 'يرجى كتابة 20 حرفًا على الأقل ✍️ (حاليًا $current)',
-    'it': 'Scrivi almeno 20 caratteri ✍️ (attualmente $current)',
-    'hi': 'कृपया कम से कम 20 अक्षर लिखें ✍️ (वर्तमान $current)',
-    'th': 'กรุณาเขียนอย่างน้อย 20 ตัวอักษร ✍️ (ตอนนี้ $current)',
+    'ko': '혜택은 최소 10자 이상 작성해주세요 ✍️ (현재 ${current}자)',
+    'en': 'Please write at least 10 characters ✍️ (currently $current)',
+    'ja': '最低10文字以上書いてください ✍️（現在${current}文字）',
+    'zh': '请至少写10个字符 ✍️（当前${current}字）',
+    'fr': 'Veuillez écrire au moins 10 caractères ✍️ ($current actuellement)',
+    'de': 'Bitte mindestens 10 Zeichen schreiben ✍️ (aktuell $current)',
+    'es': 'Escribe al menos 10 caracteres ✍️ (actualmente $current)',
+    'pt': 'Escreva pelo menos 10 caracteres ✍️ (atualmente $current)',
+    'ru': 'Напишите минимум 10 символов ✍️ (сейчас $current)',
+    'tr': 'En az 10 karakter yazın ✍️ (şu an $current)',
+    'ar': 'يرجى كتابة 10 حرفًا على الأقل ✍️ (حاليًا $current)',
+    'it': 'Scrivi almeno 10 caratteri ✍️ (attualmente $current)',
+    'hi': 'कृपया कम से कम 10 अक्षर लिखें ✍️ (वर्तमान $current)',
+    'th': 'กรุณาเขียนอย่างน้อย 10 ตัวอักษร ✍️ (ตอนนี้ $current)',
   });
 
   String get composeBannedWordError => _t({
