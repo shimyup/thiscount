@@ -15,11 +15,11 @@
 
 ## 현재 상태 (2026-06-04 갱신)
 - 브랜치: `launch-readiness-build411` (PR #150). main 아님.
-- 최신 커밋: `0a3676f` (sim-crosscut: i18n+a11y).
-- 빌드: pubspec `1.0.0+423`. TestFlight **417~422 업로드됨**(422=VALID+Internal). **423 빌드 예정**.
+- 최신 커밋: `504167c` (WCAG: tooltip 12개).
+- 빌드: pubspec `1.0.0+424`. TestFlight **417~423 업로드됨**(423=VALID+Internal). **424 빌드 예정**.
 - 검증 게이트(매 수정 후 필수): `flutter analyze lib/` 무경고 + `flutter test` 전체 통과(현재 **139**).
 - ⚠️ flaky 없음.
-- 누적 진행: sim100 + iter1~5 + device + sim-fresh + sim-fresh2 + **sim-crosscut 라운드(8 lens 워크플로우 → 31 확정 → 30 수정)**.
+- 누적 진행: sim100 + iter1~5 + device + sim-fresh + sim-fresh2 + sim-crosscut + **WCAG 라운드(접근성 백로그)**.
 
 ## 루프 절차 (매 iteration)
 1. 이 문서의 "남은 백로그"에서 **코드로 안전히 고칠 수 있는** 상위 항목 1~5개 선택.
@@ -95,6 +95,13 @@
 - [x] P2 '안읽음 점프' 인덱스를 표시리스트(뮤트필터+_sortFollowedFirst)와 동일 계산 (inbox_screen.dart:1391)
 - TestFlight Build 418 = VALID + Internal (Delivery c2702f69).
 - 남은 후보: maxRedeems per-device(구조-검토), autozone dedup seen 신호, roi 카드 redeemed>pickup, send_single auto-zone 5자 카피(auto-zone 제거로 무효일수도), i18n 잔여. 코드-fixable 거의 소진 → 다음 새 sim 고려.
+
+## WCAG 라운드 (2026-06-04) — Build 424
+> 메모리 `wcag_audit_2026_05_25` 백로그(Build 359 시점 280건)에서 코드-fixable·저위험 항목 처리.
+- [x] P0 정적 AppColors.textMuted #5A5A5F(3.3:1 fail)→#7C7C82(≈5.0:1, 동적 팔레트 이미 채택값에 정렬) — **600+ 참조 일괄 대비 통과** `e1884b1`
+- [x] P1 letter_read 첨부 Image.file 2곳 semanticLabel(Image.network 형제 parity) `e1884b1`
+- [x] P0 닫기/뒤로 IconButton tooltip 12개(world_map/letter_detail_map/settings/premium/stamp_album/profile/auth/tower_popup/weekly_reflection/dm×2) `504167c`
+- **미적용(시각검증 필요/보류)**: RTL `EdgeInsets.fromLTRB`→`EdgeInsetsDirectional.fromSTEB` 157곳(ar 레이아웃 — 시뮬레이터 RTL 시각검증 후 일괄) / teal(#B8FF5C)+white 대비 per-site(각 site foreground 개별 확인 필요, 다수는 tealInk 이미 적용).
 
 ## Sim-crosscut 라운드 (2026-06-04) — Build 423
 > 8 교차관심사 lens(dispose누수/async race/firestore정합/error-swallow/null-bounds/계정전환누수/a11y/i18n) finder→적대검증 → **32 보고 / 31 확정 → 30 수정**.
