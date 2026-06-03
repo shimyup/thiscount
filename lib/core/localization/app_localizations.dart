@@ -3882,6 +3882,24 @@ class AppL10n {
     'th': 'เริ่มด้วยตัวอักษร · 2–20 ตัวอักษร/ตัวเลข/_',
   });
 
+  // Build 416 (sim100 P2): OTP 화면 fallback 코드 라벨 — 이전엔 한국어 하드코딩.
+  String get authBetaCodeFallback => _t({
+    'ko': '📬 인증 코드 (이메일 미발송 중)',
+    'en': '📬 Verification code (email not sent)',
+    'ja': '📬 認証コード（メール未送信）',
+    'zh': '📬 验证码（邮件未发送）',
+    'fr': "📬 Code de vérification (e-mail non envoyé)",
+    'de': '📬 Bestätigungscode (E-Mail nicht gesendet)',
+    'es': '📬 Código de verificación (correo no enviado)',
+    'pt': '📬 Código de verificação (e-mail não enviado)',
+    'ru': '📬 Код подтверждения (письмо не отправлено)',
+    'tr': '📬 Doğrulama kodu (e-posta gönderilmedi)',
+    'ar': '📬 رمز التحقق (لم يُرسل البريد)',
+    'it': '📬 Codice di verifica (email non inviata)',
+    'hi': '📬 सत्यापन कोड (ईमेल नहीं भेजा गया)',
+    'th': '📬 รหัสยืนยัน (อีเมลยังไม่ส่ง)',
+  });
+
   String get authUsernameTaken => _t({
     'ko': '이미 사용 중인 아이디입니다. 다른 아이디를 입력해주세요.',
     'en': 'This ID is already taken. Please choose a different one.',

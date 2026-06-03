@@ -2452,7 +2452,7 @@ class _SignupTabState extends State<_SignupTab> {
               child: Column(
                 children: [
                   Text(
-                    '📬 베타 인증 코드 (이메일 미발송 중)',
+                    l10n.authBetaCodeFallback,
                     style: TextStyle(
                       color: AppColors.coupon.withValues(alpha: 0.8),
                       fontSize: 11,
