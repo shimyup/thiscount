@@ -2138,7 +2138,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   int get totalBrandPickups =>
       _inbox.where((l) => l.senderIsBrand).length;
-  int get totalRedemptions => _redeemedLetterIds.length;
+  // Build 422 (sim-fresh2 P3): 사용 가능한(brand 쿠폰/교환권) letter 만 집계 —
+  //   이전엔 raw _redeemedLetterIds.length 라 general 정보성 '사용' 토글까지 세
+  //   지갑 합계가 부풀었음 (markLetterRedeemed 는 general 도 로컬 토글 허용).
+  int get totalRedemptions => _inbox
+      .where((l) =>
+          l.senderIsBrand &&
+          l.category != LetterCategory.general &&
+          _redeemedLetterIds.contains(l.id))
+      .length;
 
   // 주간 (월요일 00:00 부터 현재까지) 픽업 수 — 주간 퀘스트 진행 바용.
   // 로컬 타임존 기준. 일요일 자정에 자동 리셋. Build 116.
@@ -9020,6 +9028,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         // Build 422 (sim-fresh2 P1): 마일스톤 축하 집합 — global 키라 사용자 A 의
         //   달성 레벨이 B 에게 상속돼 B 가 같은 레벨 축하를 못 받던 누수.
         'celebratedMilestones',
+        // Build 422 (sim-fresh2 P3): 첫 픽업 코치마크 플래그도 계정전환 누수 —
+        //   B 가 첫 픽업 안내를 못 받음 (tutorial_letter_placed 와 동일 처리).
+        'map_first_pickup_hint_v1',
       ];
       for (final key in userScopedKeys) {
         await prefs.remove(key);

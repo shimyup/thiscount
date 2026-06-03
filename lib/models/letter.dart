@@ -665,7 +665,8 @@ class Letter {
     }
 
     final days = (remainMin / 1440).ceil();
-    final etaDate = DateTime.now().add(Duration(minutes: remainMin));
+    // Build 422 (sim-fresh2 P3): 모델의 다른 시간원과 일관되게 SecureClock.
+    final etaDate = SecureClock.now().add(Duration(minutes: remainMin));
     return l.arrivalDays(days, _fmtDate(etaDate, langCode));
   }
 

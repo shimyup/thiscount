@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
+import '../../../core/services/secure_clock.dart';
 import '../../../core/services/secure_location.dart';
 import 'package:latlong2/latlong.dart' as ll;
 import 'package:provider/provider.dart';
@@ -922,6 +923,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     // 타워 위치(2km 이내)에 수령 가능한 nearYou 편지 목록
     final towerLat = state.currentUser.latitude;
     final towerLng = state.currentUser.longitude;
+    // Build 422 (sim-fresh2 P3): GPS 미설정(0,0) 사용자는 내 타워 마커를 (0,0)
+    //   기니만 바다 한가운데 표시하지 않음.
+    final hasValidTower = !(towerLat == 0.0 && towerLng == 0.0);
     final overlappingLetters = letters
         .where(
           (l) =>
@@ -933,7 +937,8 @@ class _WorldMapScreenState extends State<WorldMapScreen>
         )
         .toList();
 
-    markers.add(
+    if (hasValidTower) {
+      markers.add(
       Marker(
         point: ll.LatLng(towerLat, towerLng),
         width: 64,
@@ -1014,8 +1019,11 @@ class _WorldMapScreenState extends State<WorldMapScreen>
         ),
       ),
     );
+    }
 
-    final now = DateTime.now();
+    // Build 422 (sim-fresh2 P3): 도착 마커 상태 판정도 SecureClock — 시계 앞당겨
+    //   조기 '도착' 표시 차단.
+    final now = SecureClock.now();
     final viewerIsPremiumOrBrand =
         state.currentUser.isPremium || state.currentUser.isBrand;
 

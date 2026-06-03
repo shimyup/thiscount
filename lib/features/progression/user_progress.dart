@@ -30,12 +30,13 @@ class UserProgress {
 
   /// XP → 레벨. 1 부터 시작, 50 에서 캡.
   ///
-  /// 공식: level = 1 + floor(sqrt(xp / 50))
+  /// 공식: level = 1 + floor(sqrt(xp / 50)), 역 threshold = (level-1)² × 50
+  /// Build 422 (sim-fresh2 P3): 주석 수치를 실제 공식과 일치하게 정정.
   /// - 0 XP → 1
   /// - 50 XP → 2
-  /// - 1,250 → 5
-  /// - 5,000 → 10
-  /// - 125,000 → 50 (이후 cap)
+  /// - 800 → 5
+  /// - 4,050 → 10
+  /// - 120,050 → 50 (이후 cap)
   static int calcLevel(int xp) {
     if (xp <= 0) return 1;
     final raw = 1 + math.sqrt(xp / 50).floor();
@@ -51,7 +52,7 @@ class UserProgress {
   }
 
   /// 특정 레벨 도달에 필요한 최소 XP. calcLevel 의 역함수.
-  /// level 1 = 0 XP, level 2 = 50, level 5 = 1,250, level 50 = 120,050.
+  /// level 1 = 0 XP, level 2 = 50, level 5 = 800, level 50 = 120,050.
   static int xpThresholdForLevel(int level) {
     if (level <= 1) return 0;
     final clamped = level.clamp(1, 50);

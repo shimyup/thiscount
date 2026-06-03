@@ -316,12 +316,17 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   // ── 차단/해제 ───────────────────────────────────────────────────────────────
   Future<void> _toggleBan(AdminUser user) async {
     final l = _l10n(context);
+    // Build 422 (sim-fresh2 P3): tier 변경(_setTier)과 동일한 in-flight 가드 —
+    //   동일 user 에 대한 중복 ban 토글(double-tap/두 admin) race 차단.
+    if (_inflightTierChanges.contains(user.id)) return;
+    _inflightTierChanges.add(user.id);
     final newBanned = !user.isBanned;
-    final ok = await FirestoreService.setDocument('users/${user.id}', {
-      'banned': newBanned,
-    });
-    if (!mounted) return;
-    if (ok) {
+    try {
+      final ok = await FirestoreService.setDocument('users/${user.id}', {
+        'banned': newBanned,
+      });
+      if (!mounted) return;
+      if (ok) {
       final idx = _users.indexWhere((u) => u.id == user.id);
       if (idx != -1) {
         _users[idx] = AdminUser(
@@ -363,6 +368,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         ),
         isError: true,
       );
+    }
+    } finally {
+      _inflightTierChanges.remove(user.id);
     }
   }
 
