@@ -248,6 +248,17 @@ service cloud.firestore {
       allow read, list, update, delete: if false;
     }
 
+    // ── inviteClaims 컬렉션 (Build 416 — 초대 보상 중복방지) ─────────────
+    // applyInviteCode 가 inviteClaims/{claimerId} 에 1회 기록(중복 초대 차단).
+    // 이전엔 룰이 없어 catch-all deny(403) → 초대 보상 기능 전면 불능.
+    // create-only(이미 있으면 Firestore 가 거부 → alreadyUsed). read 차단.
+    match /inviteClaims/{claimerId} {
+      allow create: if isSignedIn()
+          && request.resource.data.claimerId is string
+          && request.resource.data.inviterId is string;
+      allow read, list, update, delete: if false;
+    }
+
     // ── brand_zones 컬렉션 (Build 283 — Brand auto-drop) ───────────────
     // Brand 사용자가 미리 설정한 "쿠폰 zone": 좌표 + 반경 + 쿠폰 내용. 일반
     // 사용자가 zone 반경 안에 들어오면 자동으로 letter 1통이 인박스에 도착.

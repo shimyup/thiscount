@@ -1951,8 +1951,12 @@ class _FeatureCompareTable extends StatelessWidget {
       [
         l10n.premiumCompareMonthlyPrice,
         l10n.premiumCompareFree,
-        '₩4,900',
-        '₩99,000',
+        // Build 416 (sim100 P2): RC 현지화 가격 우선 — 상단 _PlanCard 는 priceString
+        //   인데 이 비교표만 ₩ 하드코딩이라 같은 화면 통화 불일치(심사 리스크)였음.
+        PurchaseService().localizedPriceFor(PurchaseProductIds.premiumMonthly) ??
+            '₩4,900',
+        PurchaseService().localizedPriceFor(PurchaseProductIds.brandMonthly) ??
+            '₩99,000',
       ],
     ];
 
