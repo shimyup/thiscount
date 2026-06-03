@@ -854,7 +854,9 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> grantWelcomeTrial({int days = 3}) async {
     if (_isPremium || _isBrand) return; // 이미 보유 → no-op
     final prefs = await _getPrefs();
-    final expiry = DateTime.now().add(Duration(days: days));
+    // Build 421 (sim-fresh P2): trial 평가가 SecureClock.now() 이므로 부여
+    //   expiry 도 SecureClock 기준 — monotonic clock 보다 뒤로 안 가게 정렬.
+    final expiry = SecureClock.now().add(Duration(days: days));
     // Build 304: trial 부여 시각을 SecureClock watermark 에 박는다.
     // 이후 클럭 되돌리기 시 isTrialActive 가 expiry 보다 앞을 절대 안 봄.
     SecureClock.touch();
@@ -1242,7 +1244,7 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
     if (!_isPremium && !_isBrand) return;
     final prefs = await _getPrefs();
     final effectiveDate =
-        _nextBillingDate ?? DateTime.now().add(const Duration(days: 30));
+        _nextBillingDate ?? SecureClock.now().add(const Duration(days: 30));
 
     _scheduledPlanChangeDate = effectiveDate;
     _scheduledPlanTarget = ScheduledPlanTarget.free;
@@ -1344,7 +1346,7 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> _markBillingCycleRefreshed(SharedPreferences prefs) async {
-    _nextBillingDate = DateTime.now().add(const Duration(days: 30));
+    _nextBillingDate = SecureClock.now().add(const Duration(days: 30));
     await prefs.setInt(
       PrefKeys.purchaseNextBillingDate,
       _nextBillingDate!.millisecondsSinceEpoch,

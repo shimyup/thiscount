@@ -1557,13 +1557,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   bool canChangeNicknameNow() {
     final next = nextNicknameChangeAvailableAt;
     if (next == null) return true;
-    return !DateTime.now().isBefore(next);
+    // Build 421 (sim-fresh P2): 시계 조작으로 닉네임 쿨다운 우회 차단 (SecureClock).
+    return !SecureClock.now().isBefore(next);
   }
 
   int get nicknameChangeRemainingDays {
     final next = nextNicknameChangeAvailableAt;
     if (next == null) return 0;
-    final now = DateTime.now();
+    final now = SecureClock.now();
     if (!now.isBefore(next)) return 0;
     final remaining = next.difference(now);
     return (remaining.inMinutes / Duration.minutesPerDay).ceil();
@@ -2656,7 +2657,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void _rolloverDailyImageCounterIfNeeded() {
-    final todayKey = _dateKey(DateTime.now());
+    // Build 421 (sim-fresh P1): 다른 rollover 헬퍼와 동일하게 SecureClock —
+    //   이전엔 DateTime.now() 라 시계 되돌리기로 일일 이미지 한도 우회 가능.
+    final todayKey = _dateKey(SecureClock.now());
     if (_dailyImageDateKey != todayKey) {
       _dailyImageDateKey = todayKey;
       _dailyImageSentCount = 0;
@@ -5637,7 +5640,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   bool updateUsername(String name) {
     if (!canChangeNicknameNow()) return false;
     _currentUser.username = name;
-    _lastNicknameChangedAt = DateTime.now();
+    // Build 421 (sim-fresh P2): 쿨다운 평가와 동일 시계 — SecureClock.
+    _lastNicknameChangedAt = SecureClock.now();
     _saveToPrefs();
     notifyListeners();
     return true;
