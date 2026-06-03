@@ -583,9 +583,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               : FontWeight.w400,
                         ),
                       ),
-                      onTap: () {
+                      onTap: () async {
                         state.updateProfile(languageCode: code);
-                        Navigator.pop(ctx);
+                        // Build 421 (sim-fresh P3): 일일 리마인더가 켜져 있으면
+                        //   새 언어로 재예약 — 이전엔 옛 언어 본문으로 잔존.
+                        if (_notifyDaily) {
+                          await NotificationService.scheduleDailyLetterReminder(
+                            langCode: code,
+                          );
+                        }
+                        if (ctx.mounted) Navigator.pop(ctx);
                       },
                     );
                   },
