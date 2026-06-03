@@ -9620,6 +9620,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final idx = _inbox.indexWhere((l) => l.id == originalLetterId);
     if (idx < 0) return false;
     final original = _inbox[idx];
+    // Build 417 (sim100 P2): 서버측 답장 수락 가드 — UI 게이트뿐 아니라 여기서도
+    //   acceptsReplies=false letter 답장을 차단(defense-in-depth).
+    if (!original.acceptsReplies) return false;
     final sent = await sendLetter(
       content: content,
       destinationCountry: original.senderCountry,

@@ -61,3 +61,9 @@
 - 빌드/업로드: `./scripts/release_to_testflight.sh` (BETA 모드 자동, .env.local 자동 원복).
 - 그룹 재할당(ASC 처리 지연 시): `python3 scripts/asc_assign_to_internal.py <buildNum>`.
 - 크레덴셜: `~/private_keys/AuthKey_PPC3B3JS5V.p8` (정상).
+
+## Iteration 1 (2026-06-03) — commit 대기
+- [x] P2 compose 카운터/버튼 trim 길이 기준 통일 (compose_screen.dart:567)
+- [x] P2 replyToLetter 서버측 acceptsReplies 가드 (app_state.dart:9622)
+- [x] P3 inbox _industryKeywords 'IT' 단독 키워드 제거 (inbox_screen.dart:271)
+- 남은 코드-fixable 후보(다음): inbox _sortFollowedFirst 죽은쿠폰 정렬, '안읽음 점프' 인덱스, premiumPricePerMonth 9언어, compose dead-code 정리(신중), 만료판정 SecureClock 일관, 계정전환 draft 정리, 오프라인 아웃박스 guest 로그아웃 정리.

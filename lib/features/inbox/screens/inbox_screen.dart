@@ -268,7 +268,10 @@ const Map<LetterFilterType, List<String>> _industryKeywords = {
   ],
   // Build 315: IT/기술 카테고리 — SaaS / 앱 / 디바이스 / 컴퓨터 관련
   LetterFilterType.it: [
-    'IT', 'it서비스', '앱', '소프트웨어', 'SaaS', '구독서비스',
+    // Build 417 (sim100 P3): 'IT' 단독 키워드 제거 — ASCII 단어경계 매칭(\bit\b)이
+    //   영어 일반어 "it"(예: "Grab it now")을 IT 산업으로 오분류. category_inference
+    //   (Build 374)와 동일 정책 — compound('IT 서비스' 등)만 유지.
+    'IT 서비스', 'IT서비스', 'it서비스', '앱', '소프트웨어', 'SaaS', '구독서비스',
     '컴퓨터', '노트북', '맥북', '데스크탑', '스마트폰', '핸드폰',
     '갤럭시', '아이폰', '아이패드', '태블릿', '이어폰', '에어팟',
     '키보드', '마우스', '모니터', '게임', '구글', '애플', '마이크로소프트',

@@ -564,7 +564,10 @@ class _ComposeScreenState extends State<ComposeScreen>
       final allQuotes = _luckyQuotesForLang(langCode);
       final isStillLucky = allQuotes.contains(text.trim());
       setState(() {
-        _charCount = text.length;
+        // Build 417 (sim100 P2): 버튼/카운터도 trim 길이 기준 — 실제 발송검증
+        //   (content.trim().length)과 일치. 앞뒤 공백으로 카운트가 어긋나
+        //   버튼 활성인데 발송 거부되던 불일치 차단.
+        _charCount = text.trim().length;
         if (_isLuckyLetter && !isStillLucky) _isLuckyLetter = false;
       });
       // URL 감지 및 차단
