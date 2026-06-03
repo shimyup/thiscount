@@ -1385,19 +1385,41 @@ class _ComposeScreenState extends State<ComposeScreen>
         ),
       ),
     );
+    // Build 422 (sim-fresh2 P2): 다이얼로그 종료 시점에 입력 캡처 후 컨트롤러 해제
+    //   (이전엔 dispose 누락 → 호출마다 누수).
+    final bizName = nameCtrl.text.trim();
+    final bizDesc = descCtrl.text.trim();
+    nameCtrl.dispose();
+    descCtrl.dispose();
     if (ok != true || !mounted) return;
+    // Build 422 (sim-fresh2 P2): 빈 입력으로 유료 LLM/rate-limit 낭비 방지.
+    if (bizName.isEmpty && bizDesc.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.koEn(
+            '업종명이나 설명을 입력해 주세요',
+            'Enter a business name or description',
+          )),
+        ),
+      );
+      return;
+    }
     setState(() => _isGeneratingAI = true);
     final result = await CouponAIService.generate(
-      businessName: nameCtrl.text.trim(),
-      businessDesc: descCtrl.text.trim(),
+      businessName: bizName,
+      businessDesc: bizDesc,
       type: _brandCategory.key, // general / coupon / voucher
       category: cat,
       langCode: state.currentUser.languageCode,
     );
     if (!mounted) return;
+    // Build 422 (sim-fresh2 P2): title+body 모두 빈 garbage 응답은 실패로 취급 —
+    //   이전엔 빈 문자열로 본문을 무음 덮어쓰기 했음.
+    final failed = result == null ||
+        (result.title.trim().isEmpty && result.body.trim().isEmpty);
     setState(() {
       _isGeneratingAI = false;
-      if (result != null) {
+      if (!failed) {
         final t = result.title.trim();
         final b = result.body.trim();
         _contentController.text = t.isEmpty ? b : '$t\n\n$b';
@@ -1410,7 +1432,7 @@ class _ComposeScreenState extends State<ComposeScreen>
         }
       }
     });
-    if (result == null && mounted) {
+    if (failed && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.composeAIFailed)),
       );

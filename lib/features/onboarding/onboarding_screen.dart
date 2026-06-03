@@ -18,6 +18,9 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageCtrl = PageController();
   int _currentPage = 0;
+  // Build 422 (sim-fresh2 P2): 더블탭/중복 완료 가드 — 이전엔 '시작하기' 연타 시
+  //   중복 완료 + 알림 권한 팝업 2회 + 중복 네비게이션.
+  bool _finishing = false;
 
   // Selected country from page 0.
   // Build 297 (HIGH UX audit): device locale 에서 초기값 추론.
@@ -217,6 +220,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _finish() async {
+    if (_finishing) return;
+    _finishing = true;
     // Map the displayed country name back to Korean for AppState compatibility
     final koreanName = _getKoreanName(_selectedCountry);
     await AuthService.saveOnboardingCountry(
