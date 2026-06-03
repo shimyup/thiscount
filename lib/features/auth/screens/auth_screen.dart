@@ -954,7 +954,8 @@ class _LoginTabState extends State<_LoginTab> {
           ],
         ),
       ),
-    );
+      // Build 423 (sim-crosscut P3): 다이얼로그 종료 시 컨트롤러 해제.
+    ).then((_) => emailCtrl.dispose());
   }
 
   void _showResetPasswordDialog() {
@@ -1115,7 +1116,11 @@ class _LoginTabState extends State<_LoginTab> {
           ),
         ],
       ),
-    );
+      // Build 423 (sim-crosscut P3): 다이얼로그 종료 시 2 컨트롤러 해제.
+    ).then((_) {
+      usernameCtrl.dispose();
+      emailCtrl.dispose();
+    });
   }
 }
 

@@ -1031,7 +1031,12 @@ class _AdminScreenState extends State<AdminScreen> {
           ),
         ),
       ),
-    );
+      // Build 423 (sim-crosscut P3): 시트 종료 시 3 컨트롤러 해제.
+    ).then((_) {
+      numberCtrl.dispose();
+      docCtrl.dispose();
+      phoneCtrl.dispose();
+    });
   }
 
   Widget _verificationField({
@@ -1323,7 +1328,8 @@ class _AdminScreenState extends State<AdminScreen> {
           ),
         ],
       ),
-    );
+      // Build 423 (sim-crosscut P3): 다이얼로그 종료 시 컨트롤러 해제.
+    ).then((_) => ctrl.dispose());
   }
 
   // ── 신고된 편지 목록 ────────────────────────────────────────────────────────

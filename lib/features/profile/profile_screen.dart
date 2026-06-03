@@ -185,7 +185,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-    );
+      // Build 423 (sim-crosscut P2): 다이얼로그 종료 시 컨트롤러 해제.
+    ).then((_) => ctrl.dispose());
   }
 
   Future<void> _changeProfileImage(BuildContext ctx, AppState state) async {
@@ -465,7 +466,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-    );
+      // Build 423 (sim-crosscut P2): 다이얼로그 종료 시 3 컨트롤러 해제.
+    ).then((_) {
+      oldCtrl.dispose();
+      newCtrl.dispose();
+      confirmCtrl.dispose();
+    });
   }
 
   Widget _pwField(TextEditingController ctrl, String hint) {

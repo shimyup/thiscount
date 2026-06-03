@@ -485,6 +485,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
     String? selectedReason;
     final customCtrl = TextEditingController();
 
+    // Build 423 (sim-crosscut P2): 다이얼로그 종료 시 컨트롤러 해제(매 신고마다 누수).
     showDialog(
       context: ctx,
       builder: (dialogCtx) => StatefulBuilder(
@@ -700,7 +701,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
           ],
         ),
       ),
-    );
+    ).then((_) => customCtrl.dispose());
   }
 
   Widget _buildReactionBar(BuildContext ctx, Letter letter) {

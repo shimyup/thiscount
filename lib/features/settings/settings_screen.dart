@@ -156,7 +156,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
-    );
+    ).then((_) => ctrl.dispose());
   }
 
   // ── 비밀번호 변경 ──────────────────────────────────────────────────────────
@@ -166,6 +166,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final oldCtrl = TextEditingController();
     final newCtrl = TextEditingController();
     final confirmCtrl = TextEditingController();
+    // Build 423 (sim-crosscut P2): 다이얼로그 종료 시 3 컨트롤러 해제(매 호출 누수).
     showDialog(
       context: ctx,
       builder: (_) => AlertDialog(
@@ -234,7 +235,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
-    );
+    ).then((_) {
+      oldCtrl.dispose();
+      newCtrl.dispose();
+      confirmCtrl.dispose();
+    });
   }
 
   Widget _pwField(TextEditingController ctrl, String hint) {
@@ -744,7 +749,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
       ),
-    );
+    ).then((_) => confirmCtrl.dispose());
   }
 
   @override
