@@ -2518,6 +2518,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
           !(status == DeliveryStatus.delivered && !l.isReadByRecipient)) {
         continue;
       }
+      // Build 421 (sim-fresh P2): 마커 빌드/nearbyLetters 와 동일한 소진 가드 —
+      //   이전엔 만료/소진/차단 쿠폰을 나침반이 가리켜 죽은 안내가 떴음.
+      if (_isLetterConsumed(l)) continue;
       final d = l.destinationLocation.distanceTo(me);
       if (d < radius) continue; // 반경 안에 있으면 이미 줍기 가능 — 스킵
       if (d < nearestDist) {

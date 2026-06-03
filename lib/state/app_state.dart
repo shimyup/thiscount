@@ -3259,11 +3259,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // 레거시 테스터: 거리 기록이 없을 때, 기존 활동량 기반으로 초기 추정 XP 를
     // 확보해 레벨 라벨이 신규 유저처럼 보이지 않도록 한다. 정확한 누적값은
     // 앞으로의 픽업·발송부터 실측이 덮어쓴다.
+    // Build 421 (sim-fresh P2): 백필 추정 거리를 실측 누적(picKm = distanceTo/1000,
+    //   동네 반경이라 통당 km 단위)과 같은 스케일로 — 이전 4000/6000km 는 통당
+    //   대륙횡단급(~1000배)이라 레거시 테스터 레벨이 비현실적으로 부풀었음.
     if (_sumPickupKm == 0.0 && _currentUser.activityScore.receivedCount > 0) {
-      _sumPickupKm = _currentUser.activityScore.receivedCount * 4000.0;
+      _sumPickupKm = _currentUser.activityScore.receivedCount * 4.0;
     }
     if (_sumSentKm == 0.0 && _currentUser.activityScore.sentCount > 0) {
-      _sumSentKm = _currentUser.activityScore.sentCount * 6000.0;
+      _sumSentKm = _currentUser.activityScore.sentCount * 6.0;
     }
     _previousXpLevel = currentLevel;
 

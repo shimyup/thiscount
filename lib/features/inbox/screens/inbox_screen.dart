@@ -4367,7 +4367,16 @@ class _DMTab extends StatelessWidget {
                       s.status == ChatStatus.pendingAgreement,
                 )
                 .toList()
-              ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+              // Build 421 (sim-fresh P2): 마지막 메시지 시각 기준 정렬 — 이전엔
+              //   세션 생성 시각(createdAt) 고정이라 새 메시지가 와도 스레드가
+              //   위로 안 올라왔음. 메시지 없는 스레드는 createdAt 으로 폴백.
+              ..sort((a, b) {
+                final am = state.getDMConversation(a.partnerId);
+                final bm = state.getDMConversation(b.partnerId);
+                final at = am.isNotEmpty ? am.last.sentAt : a.createdAt;
+                final bt = bm.isNotEmpty ? bm.last.sentAt : b.createdAt;
+                return bt.compareTo(at);
+              });
 
         if (sessions.isEmpty) {
           return Center(

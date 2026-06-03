@@ -63,7 +63,8 @@ class _DmConversationScreenState extends State<DmConversationScreen> {
       return;
     }
 
-    _controller.clear();
+    // Build 421 (sim-fresh P2): 전송 성공 후에만 입력창 비우기 — 이전엔 clear 를
+    //   먼저 해, 쿼터 부족으로 sendDM 이 false 면 작성한 메시지가 그대로 유실됐음.
     final success = state.sendDM(widget.partnerId, text);
     if (!success) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -77,6 +78,7 @@ class _DmConversationScreenState extends State<DmConversationScreen> {
       );
       return;
     }
+    _controller.clear();
     HapticFeedback.lightImpact();
     Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
   }

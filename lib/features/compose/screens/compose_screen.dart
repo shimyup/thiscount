@@ -967,6 +967,13 @@ class _ComposeScreenState extends State<ComposeScreen>
       _showError(l10n.zoneCampaignMaxRedeemsHint);
       return;
     }
+    // Build 421 (sim-fresh P1): auto-zone 분기가 일반 compose 의 일일/월간 발송
+    //   쿼터 게이트를 건너뛰어, 한도 소진 브랜드도 zone 을 무제한 생성하던 우회
+    //   차단. 일반 send 와 동일 게이트 적용.
+    if (!state.hasRemainingDailyQuota) {
+      _showError(state.dailyLimitExceededMessage);
+      return;
+    }
     setState(() => _isSending = true);
     // Build 364 (PR-BB3): try/finally 로 _isSending 항상 reset.
     //   이전엔 success 후 Navigator.pop 만 호출, error 경로 일부에서만 reset

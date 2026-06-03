@@ -260,7 +260,11 @@ class ShareCardService {
     String? langCode,
   }) {
     final raw = letter.content.trim().replaceAll('\n', ' ');
-    final snippet = raw.length > 70 ? '${raw.substring(0, 70)}…' : raw;
+    // Build 421 (sim-fresh P3): grapheme 단위 자르기 — substring(0,70) 은 UTF-16
+    //   code unit 기준이라 70 이 이모지 surrogate pair 중간이면 '�' 깨짐 발생.
+    final graphemes = raw.characters;
+    final snippet =
+        graphemes.length > 70 ? '${graphemes.take(70)}…' : raw;
     _drawText(
       canvas,
       '"$snippet"',
@@ -482,7 +486,7 @@ class ShareCardService {
       canvas,
       x: 640, y: 440,
       emoji: '🌍',
-      value: '${stats.countriesFrom + stats.countriesTo}',
+      value: '${stats.countriesTotal}',
       label: l10n.journeyStatCountries,
     );
 
