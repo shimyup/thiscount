@@ -1666,6 +1666,17 @@ class _ComposeScreenState extends State<ComposeScreen>
         }
         return;
       }
+      // Build 423 (sim-crosscut P1): 0통 발송(월간/이미지 쿼터 소진으로 첫 루프
+      //   break) 을 성공처럼 처리하던 버그 — _clearDraft/햅틱/pop/코드reveal 전에
+      //   차단해 가짜 성공 + phantom POS 코드 노출 방지.
+      if (totalSent == 0) {
+        if (mounted) {
+          setState(() => _isSending = false);
+          _sendController.reset();
+          _showError(state.dailyLimitExceededMessage);
+        }
+        return;
+      }
       if (mounted) {
         _clearDraft();
         FeedbackService.onLetterSend();
@@ -1747,6 +1758,15 @@ class _ComposeScreenState extends State<ComposeScreen>
         return;
       }
 
+      // Build 423 (sim-crosscut P1): 0통 발송을 성공처럼 처리하던 버그 차단.
+      if (totalSent == 0) {
+        if (mounted) {
+          setState(() => _isSending = false);
+          _sendController.reset();
+          _showError(state.dailyLimitExceededMessage);
+        }
+        return;
+      }
       if (mounted) {
         _clearDraft();
         FeedbackService.onLetterSend();

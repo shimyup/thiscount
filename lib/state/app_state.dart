@@ -5005,6 +5005,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       _previousXpLevel = 1;
       _celebratedMilestones.clear();
       _challengeRewardBalance = 0;
+      // Build 423 (sim-crosscut P2): 첫 픽업 축하 1회 플래그 / AI letter 날짜키도
+      //   in-memory reset — 이전엔 B 가 첫 픽업 축하를 못 받거나, 전환 당일 AI
+      //   letter 를 못 받던 누수.
+      _hasCelebratedFirstPickup = false;
+      _lastAiLetterDateKey = '';
       // Build 415 (sim50 P1): 이전 사용자의 오프라인 업로드 아웃박스도 정리
       //   (그 letter 들은 _sent 와 함께 제거됨).
       _pendingLetterUploadIds.clear();
@@ -9031,6 +9036,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         // Build 422 (sim-fresh2 P3): 첫 픽업 코치마크 플래그도 계정전환 누수 —
         //   B 가 첫 픽업 안내를 못 받음 (tutorial_letter_placed 와 동일 처리).
         'map_first_pickup_hint_v1',
+        // Build 423 (sim-crosscut P1/P2/P3): 계정전환 prefs 누수 잔존 키 —
+        //   브랜드 compose 초안/마지막 발송본문(본문 노출), 첫픽업 축하, AI letter
+        //   날짜키, 주간회고 dismissal, 프리미엄 welcome 1회 플래그.
+        'compose_draft_brand',
+        'last_sent_content',
+        'hasCelebratedFirstPickup',
+        'lastAiLetterDateKey',
+        'weekly_reflection_dismissed',
+        'premium_welcome_shown',
       ];
       for (final key in userScopedKeys) {
         await prefs.remove(key);
