@@ -407,6 +407,8 @@ class _LoginTabState extends State<_LoginTab> {
   }
 
   Future<void> _login() async {
+    // Build 423 (sim-crosscut P3): 재진입 가드 — 더블탭 시 중복 로그인/네비 차단.
+    if (_isLoading) return;
     setState(() {
       _isLoading = true;
       _error = null;

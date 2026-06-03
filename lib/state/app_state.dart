@@ -3725,6 +3725,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           'isAnonymous', 'senderName', 'senderTier', 'senderIsBrand',
           'category', 'brandUniquePerUser', 'campaignId', 'deliveryEmoji',
           'socialLink', 'acceptsReplies', 'redemptionExpiresAt',
+          // Build 423 (sim-crosscut P2): letterType — 누락 시 수신 letter 가 항상
+          //   normal 로 렌더(express/brandExpress 구분 손실).
+          'letterType',
           // Build 415 (#5 레어 드롭, sim50 P1): 지도 마커 글로우/배지에 필요한
           //   희귀도. 누락 시 서버 letter 가 항상 normal 로 렌더(작은 scalar).
           'rarity',
@@ -3877,6 +3880,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       } else if (tierStr == 'premium') {
         tier = LetterSenderTier.premium;
       }
+      // Build 423 (sim-crosscut P2): letterType 복원 — 누락/미파싱 시 normal.
+      final ltStr = data['letterType'] as String?;
+      final letterType = LetterType.values.firstWhere(
+        (e) => e.name == ltStr,
+        orElse: () => LetterType.normal,
+      );
       final catKey = data['category'] as String?;
       final category = LetterCategoryExt.fromKey(catKey);
       final redInfoRaw = data['redemptionInfo'] as String?;
@@ -3907,7 +3916,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         status: status,
         sentAt: sentAt,
         arrivalTime: arrivalTime,
-        socialLink: data['socialLink'] as String?,
+        // Build 423 (sim-crosscut P3): 빈 socialLink 를 null 로 정규화 — 발신측이
+        //   null→'' 로 저장해, 수신측이 빈 SNS 링크를 '있는 것'처럼 표시하던 문제.
+        socialLink: (data['socialLink'] as String?)?.isEmpty == true
+            ? null
+            : data['socialLink'] as String?,
+        letterType: letterType,
         estimatedTotalMinutes: totalMin,
         paperStyle: (data['paperStyle'] as num?)?.toInt() ?? 0,
         fontStyle: (data['fontStyle'] as num?)?.toInt() ?? 0,

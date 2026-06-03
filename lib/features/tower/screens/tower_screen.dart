@@ -2724,8 +2724,13 @@ class _TowerScreenState extends State<TowerScreen>
 
     // ── 미니 타워 프리뷰 위젯 ──
     Widget buildMiniPreview(StateSetter setS) {
+      // Build 423 (sim-crosscut P2): 손상/비정상 hex 에 int.parse 가 throw 해
+      //   프리뷰가 크래시하던 것 방어 — 유효한 6자리 hex 만 파싱, 아니면 회색.
       final hexClean = selectedColor.replaceFirst('#', '');
-      final previewColor = Color(int.parse('0xFF$hexClean'));
+      Color previewColor;
+      final parsed =
+          hexClean.length == 6 ? int.tryParse('0xFF$hexClean') : null;
+      previewColor = parsed != null ? Color(parsed) : const Color(0xFF888888);
       const floors = 5;
       return Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),

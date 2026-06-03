@@ -347,7 +347,9 @@ class BrandZoneService {
     if (v is! Map<String, dynamic>) return v;
     if (v.containsKey('stringValue')) return v['stringValue'];
     if (v.containsKey('integerValue')) {
-      return int.parse(v['integerValue'] as String);
+      // Build 423 (sim-crosscut P2): FirestoreService 와 동일하게 방어적 파싱 —
+      //   integerValue 가 비-String(예: num)으로 와도 zone 전체가 드롭되지 않게.
+      return int.tryParse(v['integerValue'].toString()) ?? 0;
     }
     if (v.containsKey('doubleValue')) return (v['doubleValue'] as num).toDouble();
     if (v.containsKey('booleanValue')) return v['booleanValue'] as bool;

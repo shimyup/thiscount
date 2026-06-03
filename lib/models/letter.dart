@@ -10,6 +10,13 @@ import '../core/services/secure_clock.dart';
 const String kBorderCheckpointSentinel = '__border_checkpoint__';
 const String kBorderCheckpointLegacyKo = '국경 검문소';
 
+// Build 423 (sim-crosscut P2): enum index 안전 조회 — 손상/구버전 JSON 의 범위 밖
+//   index 가 RangeError 를 던져 fromJson 전체가 실패(캐시 letter 손실)하던 것 방지.
+T _safeEnum<T>(List<T> values, dynamic raw, [int def = 0]) {
+  final i = raw is int ? raw : (raw is num ? raw.toInt() : def);
+  return (i >= 0 && i < values.length) ? values[i] : values[def];
+}
+
 // ── 편지 타입 ──────────────────────────────────────────────────────────────────
 enum LetterType { normal, express, brandExpress }
 
@@ -277,11 +284,11 @@ class RouteSegment {
   static RouteSegment fromJson(Map<String, dynamic> j) => RouteSegment(
     from: LatLng.fromJson(j['from'] as Map<String, dynamic>),
     to: LatLng.fromJson(j['to'] as Map<String, dynamic>),
-    mode: TransportMode.values[j['mode'] as int],
+    mode: _safeEnum(TransportMode.values, j['mode']),
     fromName: j['fromName'] as String,
     toName: j['toName'] as String,
-    fromType: HubType.values[j['fromType'] as int],
-    toType: HubType.values[j['toType'] as int],
+    fromType: _safeEnum(HubType.values, j['fromType']),
+    toType: _safeEnum(HubType.values, j['toType']),
     estimatedMinutes: j['estimatedMinutes'] as int,
     progress: (j['progress'] as num).toDouble(),
   );
@@ -834,7 +841,7 @@ class Letter {
         .map((s) => RouteSegment.fromJson(s as Map<String, dynamic>))
         .toList(),
     currentSegmentIndex: j['currentSegmentIndex'] as int,
-    status: DeliveryStatus.values[j['status'] as int],
+    status: _safeEnum(DeliveryStatus.values, j['status']),
     sentAt: DateTime.fromMillisecondsSinceEpoch(j['sentAt'] as int),
     arrivedAt: j['arrivedAt'] != null
         ? DateTime.fromMillisecondsSinceEpoch(j['arrivedAt'] as int)
@@ -849,7 +856,7 @@ class Letter {
     socialLink: j['socialLink'] as String?,
     estimatedTotalMinutes: j['estimatedTotalMinutes'] as int,
     isReadByRecipient: j['isReadByRecipient'] as bool? ?? false,
-    letterType: LetterType.values[j['letterType'] as int? ?? 0],
+    letterType: _safeEnum(LetterType.values, j['letterType']),
     reportCount: j['reportCount'] as int? ?? 0,
     reportedBy: Set<String>.from(j['reportedBy'] as List? ?? []),
     likeCount: j['likeCount'] as int? ?? 0,
@@ -861,7 +868,7 @@ class Letter {
     hasReplied: j['hasReplied'] as bool? ?? false,
     imageUrl: j['imageUrl'] as String?,
     senderIsBrand: j['senderIsBrand'] as bool? ?? false,
-    senderTier: LetterSenderTier.values[j['senderTier'] as int? ?? 0],
+    senderTier: _safeEnum(LetterSenderTier.values, j['senderTier']),
     brandUniquePerUser: j['brandUniquePerUser'] as bool? ?? false,
     category: LetterCategoryExt.fromKey(j['category'] as String?),
     // Build 415 (#5): int(index) / string(key) 양쪽 안전 파싱 + 누락 시 normal.
