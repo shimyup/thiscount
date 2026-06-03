@@ -30,10 +30,7 @@ class MainScaffold extends StatefulWidget {
 
 class _MainScaffoldState extends State<MainScaffold> {
   late int _currentIndex = widget.initialIndex;
-  // Build 408 (QQ9): 비-지도 탭에서 지도가 상단으로 노출되는 peek 높이(px).
-  //   "하단 탭 눌러도 내 위치 지도가 일부 보임" 요구. 너무 크면 콘텐츠 영역
-  //   손실, 너무 작으면 의미 없음 → 96px 절충 (지도 핀 1–2개 보이는 정도).
-  static const double _kMapPeek = 96;
+  // Build 418 (사용자 device): 비-지도 탭 지도 peek 제거 — 탭 콘텐츠 전체화면.
   // Build 205: 마지막으로 광고 모달을 trigger 시도한 promo letter id. 같은
   // id 가 다시 build 되면 무시 — id 가 바뀌면(새 광고 도착) 다시 trigger.
   String? _lastTriggeredAdId;
@@ -300,32 +297,24 @@ class _MainScaffoldState extends State<MainScaffold> {
                         ),
                       ),
                     ),
-                    // 비-지도 탭 시트 — 상단 peek 만큼 내려 지도 노출.
-                    Positioned(
-                      top: _kMapPeek,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
+                    // Build 418 (사용자 device): 비-지도 탭은 지도 peek 없이 화면
+                    //   전체를 채운다(상단 _kMapPeek 노출 제거) — 탭 콘텐츠만 전체로.
+                    Positioned.fill(
                       child: Offstage(
                         offstage: _currentIndex == 0,
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(20),
-                          ),
-                          // 시트가 이미 status bar 아래라 top inset 중복 제거.
-                          child: MediaQuery.removePadding(
-                            context: context,
-                            removeTop: true,
-                            child: IndexedStack(
-                              index: (_currentIndex - 1).clamp(0, 1),
-                              children: [
-                                if (isBrand)
-                                  const BrandCampaignScreen()
-                                else
-                                  const InboxScreen(),
-                                const ProfileScreen(),
-                              ],
-                            ),
+                        // 시트가 이미 status bar 아래라 top inset 중복 제거.
+                        child: MediaQuery.removePadding(
+                          context: context,
+                          removeTop: true,
+                          child: IndexedStack(
+                            index: (_currentIndex - 1).clamp(0, 1),
+                            children: [
+                              if (isBrand)
+                                const BrandCampaignScreen()
+                              else
+                                const InboxScreen(),
+                              const ProfileScreen(),
+                            ],
                           ),
                         ),
                       ),

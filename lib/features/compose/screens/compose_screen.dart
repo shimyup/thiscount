@@ -690,10 +690,16 @@ class _ComposeScreenState extends State<ComposeScreen>
         'brandCategory': _brandCategory.key,
         'redemptionInfo': _redemptionInfoController.text,
       };
+      // Build 418 (사용자 device): 기본 선택 국가(_selectedCountry 는 거의 항상
+      //   비어있지 않음)만으로 brand draft 를 저장하면, 빈 메세지에도 다음 진입
+      //   시 "이어쓰기" 다이얼로그가 떠 '버리기' 해도 계속 재출현. 실제 의미있는
+      //   상태(대량/특송/타깃/특정국가 선택/혜택정보)만 draft 로 간주 —
+      //   닫기 확인의 hasContent 와 동일 기준.
       final hasState = _isBulkMode ||
           _isExpressMode ||
           _bulkTargets.isNotEmpty ||
-          _selectedCountry.isNotEmpty;
+          (_selectedCountry.isNotEmpty && !_isRandom) ||
+          _redemptionInfoController.text.trim().isNotEmpty;
       if (hasState) {
         try {
           prefs.setString('compose_draft_brand', jsonEncode(snapshot));

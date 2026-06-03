@@ -85,3 +85,8 @@
 - [x] P2 '안읽음 점프' 인덱스를 표시리스트(뮤트필터+_sortFollowedFirst)와 동일 계산 (inbox_screen.dart:1391)
 - TestFlight Build 418 = VALID + Internal (Delivery c2702f69).
 - 남은 후보: maxRedeems per-device(구조-검토), autozone dedup seen 신호, roi 카드 redeemed>pickup, send_single auto-zone 5자 카피(auto-zone 제거로 무효일수도), i18n 잔여. 코드-fixable 거의 소진 → 다음 새 sim 고려.
+
+## 사용자 device 보고 수정 (2026-06-03) — 우선 처리
+- [x] 비-지도 탭에서 지도 96px peek 노출 제거 → 탭 콘텐츠 전체화면 (main_scaffold.dart:304, _kMapPeek 제거)
+- [x] 작성 메세지 '버리기' 후 재출현 — _saveDraft hasState 가 기본 선택국가만으로 brand draft 저장 → 빈 메세지도 '이어쓰기' 무한 재출현. hasState 를 닫기확인 hasContent 기준(대량/특송/타깃/특정국가/혜택정보)으로 정정 (compose_screen.dart:693)
+- Build 419 빌드.
