@@ -954,9 +954,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       icon: Icons.shield_outlined,
                       label: l.settingsPrivacy,
                       onTap: () async {
-                        // 사용자 나라에 맞는 언어 버전 오픈
-                        final url = AppLinks.privacyPolicyForCountry(
-                          user.country,
+                        // Build 421 (sim-fresh P3): 위치약관 타일과 동일하게 앱
+                        //   언어 기준 — 나라 기준은 비-한국 거주 한국어 사용자가
+                        //   영문 문서를 보던 불일치.
+                        final url = AppLinks.privacyPolicyForLanguage(
+                          user.languageCode,
                         );
                         final uri = Uri.parse(url);
                         try {
@@ -976,7 +978,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       icon: Icons.description_outlined,
                       label: l.settingsTerms,
                       onTap: () async {
-                        final url = AppLinks.termsForCountry(user.country);
+                        final url =
+                            AppLinks.termsForLanguage(user.languageCode);
                         final uri = Uri.parse(url);
                         try {
                           await launchUrl(

@@ -465,51 +465,8 @@ class NotificationService {
     }
   }
 
-  // ── Localized channel metadata ─────────────────────────────────────────────
-  static const _channelNames = <String, Map<String, String>>{
-    'nearby_letter': {
-      'ko': '근처 편지 알림',
-      'en': 'Nearby Letter Alerts',
-      'ja': '近くの手紙通知',
-      'zh': '附近信件通知',
-    },
-    'nearby_letter_desc': {
-      'ko': '500m 이내에 편지가 도착했을 때 알림',
-      'en': 'Alerts when a letter arrives within 500m',
-      'ja': '500m以内に手紙が届いた時の通知',
-      'zh': '当信件到达500米以内时通知',
-    },
-    'letter_arrived': {
-      'ko': '혜택 도착 알림',
-      'en': 'Letter Arrival Alerts',
-      'ja': '手紙到着通知',
-      'zh': '信件到达通知',
-    },
-    'letter_arrived_desc': {
-      'ko': '새 편지가 도착했을 때 알림',
-      'en': 'Alerts when a new letter arrives',
-      'ja': '新しい手紙が届いた時の通知',
-      'zh': '新信件到达时通知',
-    },
-    'dm_arrived': {
-      'ko': 'DM 도착 알림',
-      'en': 'DM Alerts',
-      'ja': 'DMの通知',
-      'zh': 'DM通知',
-    },
-    'dm_arrived_desc': {
-      'ko': '새 DM이 도착했을 때 알림',
-      'en': 'Alerts when a new direct message arrives',
-      'ja': '新しいDMが届いた時の通知',
-      'zh': '新私信到达时通知',
-    },
-  };
-
-  static String _ch(String key, String langCode) {
-    final entry = _channelNames[key];
-    if (entry == null) return key;
-    return entry[langCode] ?? entry['ko']!;
-  }
+  // Build 421 (sim-fresh P3): 미사용 _channelNames/_ch 데드 코드 제거 — 실제
+  //   채널 생성은 별도 경로를 쓰며 이 테이블은 어디서도 참조되지 않았음.
 
   static final Random _rng = Random();
 
@@ -907,10 +864,14 @@ class NotificationService {
     }
   }
 
-  /// Build 324 (Q3): 매일 아침 9시 만료 임박 daily digest push.
+  /// Build 324 (Q3): 만료 임박 daily digest push.
   ///   "오늘 만료 N개 · 총 ₩XXX 절약 가능" — 일상 retention loop.
   ///   호출 측 (AppState.loadFromPrefs 또는 daily hook) 이 expiringSoonLetters
-  ///   카운트 + 절약 합계 전달. 9AM 단일 알림 (id=999).
+  ///   카운트 + 절약 합계 전달.
+  /// Build 421 (sim-fresh P2): 의도적 **one-shot**(다음 9AM 1회)이다. count/절약
+  ///   문구가 스냅샷 값이라 matchDateTimeComponents 로 매일 반복하면 다음날부터
+  ///   stale 표시 → 매 호출(앱 진입/인박스 변경)마다 cancel 후 재예약하는 현
+  ///   방식이 정확. id=999 단일 알림.
   static const int _dailyExpiryDigestId = 999;
 
   static Future<void> scheduleDailyExpiryDigest({
