@@ -4,12 +4,22 @@
 > 새 세션은 **이 파일을 먼저 읽고** → 다음 미완 항목을 수정 → 검증 → 커밋 →
 > 이 문서를 갱신하라. 목표: 실 배포 전까지 실기기 테스트 무오류.
 
+## 🆕 새 창(새 세션) 진입 방법
+> 이 저장소(`/Users/shimyup/Documents/New project/Lettergo`)에서 새 Claude Code
+> 창을 열고 아래 한 줄만 입력하면 동일 루프가 이어진다:
+>
+> **"docs/ITERATION_HANDOFF.md 읽고 루프 절차대로 반복 수정·검증·커밋·빌드 계속 진행"**
+>
+> (클라우드/원격 스케줄은 불가 — flutter test·git push·TestFlight 빌드가 이 Mac +
+>  Xcode + 서명키를 요구하므로 반드시 **로컬 새 세션**이어야 함.)
+
 ## 현재 상태 (2026-06-03 갱신)
 - 브랜치: `launch-readiness-build411` (PR #150). main 아님.
-- 최신 커밋: `b2655ea` (sim100 inviteClaims 룰 + premium 비교표 i18n)
-- 빌드: pubspec `1.0.0+416`. **다음 TestFlight 빌드는 417 로 bump 후** `./scripts/release_to_testflight.sh`.
+- 최신 커밋: `5552639` (device 수정: 비-지도 탭 전체화면 + 메세지 버리기 재출현).
+- 빌드: pubspec `1.0.0+419`. TestFlight **417·418·419 업로드됨**(417/418 Internal 그룹 확인, 419 업로드 성공·그룹 재확인 중). **다음 빌드는 420 로 bump**.
 - 검증 게이트(매 수정 후 필수): `flutter analyze lib/` 무경고 + `flutter test` 전체 통과(현재 **143**).
 - ⚠️ flaky 없음(이전 redemption flaky 는 `58c73e2` 에서 근본 수정).
+- 누적 진행: sim100 배치(`5fb1557`·`b2655ea`) + iter1~4(`988fb1b`·`bee0d10`·`13cd521`·`0adc0d5`) + device(`5552639`) = 15+건 수정.
 
 ## 루프 절차 (매 iteration)
 1. 이 문서의 "남은 백로그"에서 **코드로 안전히 고칠 수 있는** 상위 항목 1~5개 선택.
