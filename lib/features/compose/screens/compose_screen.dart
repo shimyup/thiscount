@@ -1628,7 +1628,12 @@ class _ComposeScreenState extends State<ComposeScreen>
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                l10n.composeExpressBulkSent(_bulkTargets.length, _sendPerCountry, totalSent),
+                // Build 417 (sim100 P2): 랜덤 모드는 _bulkTargets 가 비어 '0개 나라
+                //   × N' 으로 표시되던 수식 오류 → count-only 메세지(일반 bulk 와 동일).
+                _isBulkRandom
+                    ? '🎲 ${l10n.composeBulkSent(totalSent, totalSent)}'
+                    : l10n.composeExpressBulkSent(
+                        _bulkTargets.length, _sendPerCountry, totalSent),
                 style: const TextStyle(color: Colors.white),
               ),
               backgroundColor: AppColors.bgCard,

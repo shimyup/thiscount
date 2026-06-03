@@ -1390,8 +1390,20 @@ class _InboxScreenState extends State<InboxScreen>
                 GestureDetector(
                   onTap: () {
                     _tabController.animateTo(0);
+                    // Build 417 (sim100 P2): 표시 리스트와 동일하게 뮤트필터 +
+                    //   _sortFollowedFirst 적용 — 이전엔 미적용 리스트로 인덱스를
+                    //   계산해 잘못된 위치로 스크롤됐음.
                     final letters = _applyFilter(
-                      _sortByArrivedDesc(state, state.inbox.toList()),
+                      _sortFollowedFirst(
+                        state,
+                        _sortByArrivedDesc(
+                          state,
+                          state.inbox
+                              .where((l) => !(l.senderIsBrand &&
+                                  state.isBrandMuted(l.senderId)))
+                              .toList(),
+                        ),
+                      ),
                       filter: _inboxFilter,
                       isInbox: true,
                     );

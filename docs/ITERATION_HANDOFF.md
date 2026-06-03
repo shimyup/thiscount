@@ -79,3 +79,9 @@
 - [x] P3 brand_insights 퍼널 절대수치 단조감소 clamp (redeemed>pickup 등 비논리 표시 차단) (brand_insights_screen.dart:187)
 - 누적 8건 → Build 418 빌드 예정.
 - 남은 후보: send_bulk 랜덤모드 스낵바 '0개 나라' 수식, '안읽음 점프' 인덱스, maxRedeems per-device, autozone dedup seen 신호, mustChangePassword(플로우-신중).
+
+## Iteration 4 (2026-06-03)
+- [x] P2 express+bulk 랜덤모드 성공 스낵바 '0개 나라' 수식 → count-only (compose_screen.dart:1631)
+- [x] P2 '안읽음 점프' 인덱스를 표시리스트(뮤트필터+_sortFollowedFirst)와 동일 계산 (inbox_screen.dart:1391)
+- TestFlight Build 418 = VALID + Internal (Delivery c2702f69).
+- 남은 후보: maxRedeems per-device(구조-검토), autozone dedup seen 신호, roi 카드 redeemed>pickup, send_single auto-zone 5자 카피(auto-zone 제거로 무효일수도), i18n 잔여. 코드-fixable 거의 소진 → 다음 새 sim 고려.
