@@ -16,7 +16,7 @@
 ## 현재 상태 (2026-06-03 갱신)
 - 브랜치: `launch-readiness-build411` (PR #150). main 아님.
 - 최신 커밋: `c5e8ea2` (iter5d: 픽업 rollback 캠페인 dedup 복원).
-- 빌드: pubspec `1.0.0+420`. TestFlight **417·418·419 업로드됨**. **420 빌드 예정**.
+- 빌드: pubspec `1.0.0+420`. TestFlight **417·418·419·420 업로드됨**(420 = VALID + Internal). **다음 빌드는 421**.
 - 검증 게이트(매 수정 후 필수): `flutter analyze lib/` 무경고 + `flutter test` 전체 통과(현재 **143**).
 - ⚠️ flaky 없음(이전 redemption flaky 는 `58c73e2` 에서 근본 수정).
 - 누적 진행: sim100 배치(`5fb1557`·`b2655ea`) + iter1~5(`988fb1b`·`bee0d10`·`13cd521`·`0adc0d5`·`957a7e6`·`fd21869`·`b9137b5`·`c5e8ea2`) + device(`5552639`) = 23+건 수정.
@@ -104,6 +104,7 @@
 - [x] P3 만료 카운트다운 DateTime.now()→SecureClock 4곳 통일 (letter_read_screen×2 / brand_insights×2) `b9137b5`
 - [x] P3 inbox 혜택 빅텍스트 퍼센트 정규식 \d{1,2}→\d{1,3}, n<=100 (100% 무료 누락) `b9137b5`
 - [x] P3 픽업 claim rollback 시 _pickedUpCampaignIds 복원 (latent 영구차단) `c5e8ea2`
+- TestFlight **Build 420 = VALID + Internal** (Delivery `53a69722-38d3-4e2f-b5a9-469b3635e89f`). 다음 빌드는 421.
 - 남은 후보: maxRedeems per-device(구조-검토), autozone dedup seen 신호, mustChangePassword(플로우-신중), findId/resetPassword enumeration 통일(서버연계), phone OTP dead branch. 코드-fixable 거의 소진 → 다음 새 sim 워크플로우 고려.
 
 ## 사용자 device 보고 수정 (2026-06-03) — 우선 처리
