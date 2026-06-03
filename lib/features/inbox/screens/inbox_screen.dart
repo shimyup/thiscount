@@ -878,10 +878,17 @@ class _InboxScreenState extends State<InboxScreen>
   List<Letter> _sortFollowedFirst(AppState state, List<Letter> letters) {
     if (_sortMode == InboxSortMode.aiRecommend) return letters;
     if (state.followedBrandIds.isEmpty) return letters;
+    // Build 417 (sim100 P2): 죽은 쿠폰(만료/사용완료)은 팔로우 브랜드라도 상단
+    //   고정에서 제외 — '죽은 쿠폰 하단' 정렬 의도가 무력화되던 문제. rest 는
+    //   들어온 순서(죽은 쿠폰이 이미 하단)를 보존.
+    bool isDead(Letter l) =>
+        l.redeemedAt != null || l.isExpired || l.isRedemptionExpired;
     final followed = <Letter>[];
     final rest = <Letter>[];
     for (final l in letters) {
-      if (l.senderIsBrand && state.isBrandFollowed(l.senderId)) {
+      if (l.senderIsBrand &&
+          state.isBrandFollowed(l.senderId) &&
+          !isDead(l)) {
         followed.add(l);
       } else {
         rest.add(l);

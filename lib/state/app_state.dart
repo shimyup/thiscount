@@ -8903,6 +8903,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'followedBrandIds',
         'redeemedLetterIds',
         'brandExactDropCredits',
+        // Build 417 (sim100 P2): 작성 중 draft 가 계정 전환/guest 로그아웃 후
+        //   다음 사용자에게 노출되던 cross-account 본문 누수 차단.
+        'compose_draft',
+        // Build 417 (sim100 P2): 오프라인 발송 아웃박스 — guest 로그아웃 경로에선
+        //   isNewUser 블록을 안 타 이전 사용자 미발송 letter id 가 잔존(유실/누수).
+        'pending_letter_uploads',
       ];
       for (final key in userScopedKeys) {
         await prefs.remove(key);

@@ -67,3 +67,9 @@
 - [x] P2 replyToLetter 서버측 acceptsReplies 가드 (app_state.dart:9622)
 - [x] P3 inbox _industryKeywords 'IT' 단독 키워드 제거 (inbox_screen.dart:271)
 - 남은 코드-fixable 후보(다음): inbox _sortFollowedFirst 죽은쿠폰 정렬, '안읽음 점프' 인덱스, premiumPricePerMonth 9언어, compose dead-code 정리(신중), 만료판정 SecureClock 일관, 계정전환 draft 정리, 오프라인 아웃박스 guest 로그아웃 정리.
+
+## Iteration 2 (2026-06-03)
+- [x] P2 compose_draft + pending_letter_uploads 를 _clearUserScopedPrefs 에 추가 (계정전환/guest 로그아웃 cross-account 본문 누수 + 아웃박스 유실) (app_state.dart)
+- [x] P2 inbox _sortFollowedFirst 가 죽은 쿠폰(만료/사용완료) 상단고정 제외 (inbox_screen.dart:878)
+- TestFlight Build 417 = VALID + Internal 그룹 (Delivery 551848eb). 다음 빌드는 418.
+- 남은 후보: '안읽음 점프' 인덱스 정합, premiumPricePerMonth 9언어, 만료판정 SecureClock 일관, compose dead-code 정리(신중), roi 비논리 카운트 보정, send_bulk 스낵바 N×M 수식.
