@@ -9397,9 +9397,19 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   ///   "다른 사용자가 먼저 가져갔어요" 안내.
   void _rollbackPickedUpLetter(String letterId) {
     final before = _inbox.length;
+    // Build 420 (sim100 iter5): 캠페인 dedup 도 rollback — claim 패배 시
+    //   _pickedUpCampaignIds 에 남으면 받지도 못한 캠페인을 영구 픽업 차단.
+    //   inbox 제거 전에 campaignId 확보(제거 후엔 letter 객체 소실).
+    final rolled = _inbox.where((l) => l.id == letterId).toList();
     _inbox.removeWhere((l) => l.id == letterId);
     if (_inbox.length == before) return; // 이미 없음 (사용자가 삭제 등) — no-op
     _myPickedUpLetterIds.remove(letterId);
+    if (rolled.isNotEmpty) {
+      final cid = rolled.first.campaignId;
+      if (rolled.first.brandUniquePerUser && cid != null) {
+        _pickedUpCampaignIds.remove(cid);
+      }
+    }
     // Build 409 (sim P1.4): rollback 시 픽업 쿨다운 해제. 이전엔 optimistic
     //   픽업 때 _lastNearbyPickupAt 가 찍혀, claim 패배(못 받음)에도 사용자가
     //   60분 쿨다운에 묶여 "받지도 못한 편지" 때문에 다음 픽업이 막혔음.
