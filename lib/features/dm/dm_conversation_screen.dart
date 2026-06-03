@@ -30,13 +30,22 @@ class _DmConversationScreenState extends State<DmConversationScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AppState>().markDMsRead(widget.partnerId);
+      final state = context.read<AppState>();
+      // Build 421 (sim-fresh P3): 이 대화를 보는 동안 자동응답이 배지/푸시를
+      //   띄우지 않도록 활성 상대 등록.
+      state.setActiveDmPartner(widget.partnerId);
+      state.markDMsRead(widget.partnerId);
       _scrollToBottom();
     });
   }
 
   @override
   void dispose() {
+    // 화면을 떠나면 활성 상대 해제 (자기 자신일 때만 — 중첩 진입 방지).
+    final state = context.read<AppState>();
+    if (state.activeDmPartnerId == widget.partnerId) {
+      state.setActiveDmPartner(null);
+    }
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();

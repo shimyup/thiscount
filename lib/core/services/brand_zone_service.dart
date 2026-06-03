@@ -132,7 +132,10 @@ class BrandZoneService {
   Future<List<BrandZone>> triggerForUser({
     required String userId,
     required LatLng userPos,
-    required Future<void> Function(BrandZone zone, LatLng destination)
+    // Build 421 (sim-fresh P2): 콜백이 실제 letter 생성 여부를 bool 로 보고 —
+    //   false(만료/본인zone/예외)면 seen 마킹을 보류해, 잠깐 zone 을 스쳐도
+    //   영구히 '받음' 처리돼 진짜 도착 시 letter 를 못 받던 문제 차단.
+    required Future<bool> Function(BrandZone zone, LatLng destination)
         onZoneEnter,
     DateTime? now,
     math.Random? rng,
@@ -155,9 +158,12 @@ class BrandZoneService {
       //   못 받는 회귀. 10m 면 사용자가 200m 이동해도 안전 margin 확보.
       final dest = randomOffset(userPos, maxMeters: 10, rng: r);
       try {
-        await onZoneEnter(zone, dest);
-        await _markSeen(userId, zone.id);
-        picked.add(zone);
+        final delivered = await onZoneEnter(zone, dest);
+        // letter 가 실제로 생성된 경우에만 seen 마킹 (재시도 여지 보존).
+        if (delivered) {
+          await _markSeen(userId, zone.id);
+          picked.add(zone);
+        }
       } catch (e, st) {
         if (kDebugMode) debugPrint('[BrandZone] trigger err ${zone.id}: $e\n$st');
       }

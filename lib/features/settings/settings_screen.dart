@@ -77,14 +77,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _setNotifyDaily(bool value) async {
+    // Build 421 (sim-fresh P2): OS 권한 거부 시 토글이 ON 으로 남던 오안내 수정 —
+    //   profile_screen 과 동일하게 requestPermissions 결과를 토글/저장에 반영.
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('notify_daily_letter', value);
-    setState(() => _notifyDaily = value);
-    final lang = context.read<AppState>().currentUser.languageCode;
     if (value) {
-      await NotificationService.requestPermissions();
+      final granted = await NotificationService.requestPermissions();
+      await prefs.setBool('notify_daily_letter', granted);
+      if (!mounted) return;
+      setState(() => _notifyDaily = granted);
+      if (!granted) return;
+      final lang = context.read<AppState>().currentUser.languageCode;
       await NotificationService.scheduleDailyLetterReminder(langCode: lang);
     } else {
+      await prefs.setBool('notify_daily_letter', false);
+      if (mounted) setState(() => _notifyDaily = false);
       await NotificationService.cancelDailyLetterReminder();
     }
   }

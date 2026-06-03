@@ -1424,10 +1424,13 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
   ///   로케일/통화로 자동 포맷됨. 캐시 또는 offering 에서 조회, 없으면 null →
   ///   호출자가 하드코딩 KRW fallback. (offerings 미로드 시 null)
   String? localizedPriceFor(String productId) {
-    final cached = _storeProductsById[productId];
-    if (cached != null) return cached.priceString;
-    final pkg = _findPackage(productId);
-    return pkg?.storeProduct.priceString;
+    // Build 421 (sim-fresh P3): 빈 문자열 priceString 은 null 로 정규화 — 호출자
+    //   `?? '₩4,900'` fallback 이 null 에서만 동작하므로, RC 가 빈 가격을 주면
+    //   가격이 공란으로 표시되던 위험 차단.
+    final cached = _storeProductsById[productId]?.priceString;
+    if (cached != null && cached.trim().isNotEmpty) return cached;
+    final pkg = _findPackage(productId)?.storeProduct.priceString;
+    return (pkg != null && pkg.trim().isNotEmpty) ? pkg : null;
   }
 
   /// Offering에서 productId에 맞는 Package 찾기

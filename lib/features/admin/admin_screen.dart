@@ -450,7 +450,7 @@ class _AdminScreenState extends State<AdminScreen> {
           // 메시지 + 시간 + 수량 입력 → Firestore brand_zones 컬렉션에
           // brandId='admin' 으로 POST. 일반 사용자가 zone 안에 들어오면
           // BrandZoneService.triggerForUser 가 letter 자동 발급, 지도에
-          // AutoDropMarker (gold 핀+%) 로 차별 표시.
+          // brand 마커로 차별 표시.
           _actionTile(
             icon: Icons.campaign_rounded,
             iconColor: AppColors.premium,

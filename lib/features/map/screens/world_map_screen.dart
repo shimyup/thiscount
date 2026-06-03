@@ -278,6 +278,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                       //   만 보고 표시 → 소진된 쿠폰이 잔존했음.
                       !_isLetterConsumed(l) &&
                       !inboxIds.contains(l.id) &&
+                      // Build 421 (sim-fresh P3): nearbyLetters 와 동일 — 이미
+                      //   픽업한 brandUniquePerUser 캠페인의 잔여 마커 숨김.
+                      !state.hasPickedUpCampaign(l.campaignId) &&
                       (l.status == DeliveryStatus.inTransit ||
                           l.status == DeliveryStatus.nearYou ||
                           // 수령 대기 (목적지 도착, 500m 밖): 지도에서 계속 표시

@@ -264,6 +264,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     return list;
   }
 
+  // Build 421 (sim-fresh P3): 월드 뷰 마커 필터가 nearbyLetters 와 동일하게
+  //   이미 픽업한 brandUniquePerUser 캠페인을 숨기도록 공개 헬퍼 제공.
+  bool hasPickedUpCampaign(String? campaignId) =>
+      campaignId != null && _pickedUpCampaignIds.contains(campaignId);
+
   // ── 카테고리 선호 (Premium Lv11+ 전용) ──────────────────────────────────
   /// 선호 카테고리 잠금 해제 조건 — Brand 가 아니고 Premium Level 11 이상.
   bool get isCategoryPreferenceUnlocked =>
@@ -7850,7 +7855,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       userId: userId,
       userPos: userPos,
       onZoneEnter: (zone, destination) async {
-        _handleAutoBrandDrop(zone, destination, triggerNotification: notify);
+        return _handleAutoBrandDrop(zone, destination,
+            triggerNotification: notify);
       },
     ).catchError((e, st) {
       if (kDebugMode) debugPrint('[BrandZone] trigger err: $e\n$st');
@@ -7864,7 +7870,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// Firestore POST 는 본 letter 가 "이 사용자만의 것" 이라 skip (다른 device
   /// 가 봐도 의미 없음). 영구 dedup 은 SharedPreferences (BrandZoneService 가
   /// 책임). 사용자가 letter 를 읽거나 만료되면 자연스럽게 inbox 에서 정리.
-  void _handleAutoBrandDrop(
+  /// Build 421 (sim-fresh P2): letter 가 실제 생성됐으면 true, early-return/예외면
+  ///   false 반환 — 호출자(BrandZoneService)가 false 면 seen 마킹을 보류.
+  bool _handleAutoBrandDrop(
     BrandZone zone,
     LatLng destination, {
     bool triggerNotification = true,
@@ -7874,11 +7882,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       // 가 추가로 발급되지 않도록. 서비스 layer 의 trigger 와 별개로
       // 마지막 라인의 안전망. 시계 우회로 만료 회피도 차단.
       final secureNow = SecureClock.now();
-      if (!zone.isActive(secureNow)) return;
+      if (!zone.isActive(secureNow)) return false;
       // Build 344 (PR-S15 4차 시뮬레이션 P1): Brand 본인이 자기 zone 들어와
       //   pickup 하면 revealedCount / redeemedCount 인플레이션. 본인 zone 은
       //   skip — 매장에서 사장이 자기 캠페인 self-redeem 차단.
-      if (zone.brandId == _currentUser.id) return;
+      if (zone.brandId == _currentUser.id) return false;
       final now = DateTime.now();
       // Build 344 (PR-S15 4차 시뮬레이션 P2): zone letter ID 에 random suffix
       //   추가 — 같은 ms 안 두 사용자 진입 시 id collision 차단.
@@ -7960,9 +7968,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       }
 
       notifyListeners();
+      return true;
     } catch (e, st) {
       if (kDebugMode) debugPrint('[BrandZone] auto-drop err: $e\n$st');
     }
+    return false;
   }
 
   // ── AI 자동 편지 발송 (하루 3통, 랜덤 3개국 → 유저 나라 랜덤 주소) ──────────
@@ -9860,12 +9870,19 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           isRead: false,
         );
         _dmMessages[partnerId]!.add(reply);
-        session.unreadCount++;
-        NotificationService.showDMArrivedNotification(
-          senderName: session.partnerName,
-          message: reply.content,
-          langCode: _currentUser.languageCode,
-        );
+        // Build 421 (sim-fresh P3): 사용자가 바로 그 대화를 보고 있으면 안읽음
+        //   배지/푸시를 띄우지 않고 즉시 읽음 처리 — 이전엔 화면 보는 중에도
+        //   배지 증가 + 푸시가 떠 오안내.
+        if (_activeDmPartnerId == partnerId) {
+          reply.isRead = true;
+        } else {
+          session.unreadCount++;
+          NotificationService.showDMArrivedNotification(
+            senderName: session.partnerName,
+            message: reply.content,
+            langCode: _currentUser.languageCode,
+          );
+        }
         notifyListeners();
         _saveDMToPrefs();
       }
@@ -9878,6 +9895,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   List<DirectMessage> getDMConversation(String partnerId) {
     return List.unmodifiable(_dmMessages[partnerId] ?? []);
+  }
+
+  // Build 421 (sim-fresh P3): 현재 열려있는 DM 상대 — 자동응답이 이 대화면
+  //   배지/푸시 생략. DmConversationScreen 이 initState/dispose 에서 설정/해제.
+  String? _activeDmPartnerId;
+  String? get activeDmPartnerId => _activeDmPartnerId;
+  void setActiveDmPartner(String? partnerId) {
+    _activeDmPartnerId = partnerId;
   }
 
   void markDMsRead(String partnerId) {

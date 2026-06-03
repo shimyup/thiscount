@@ -217,7 +217,10 @@ void main() {
       final picked = await svc.triggerForUser(
         userId: 'user1',
         userPos: origin,
-        onZoneEnter: (z, dest) async => triggered.add(z.id),
+        onZoneEnter: (z, dest) async {
+          triggered.add(z.id);
+          return true;
+        },
         now: now,
         rng: math.Random(1),
       );
@@ -230,7 +233,10 @@ void main() {
       final picked2 = await svc.triggerForUser(
         userId: 'user1',
         userPos: origin,
-        onZoneEnter: (z, dest) async => triggered.add(z.id),
+        onZoneEnter: (z, dest) async {
+          triggered.add(z.id);
+          return true;
+        },
         now: now,
         rng: math.Random(1),
       );
@@ -249,6 +255,7 @@ void main() {
         userPos: origin,
         onZoneEnter: (z, dest) async {
           captured = dest;
+          return true;
         },
         now: DateTime(2026, 5, 14, 12),
         rng: math.Random(777),
@@ -267,7 +274,7 @@ void main() {
       final r = await svc.triggerForUser(
         userId: '',
         userPos: const LatLng(0, 0),
-        onZoneEnter: (z, dest) async {},
+        onZoneEnter: (z, dest) async => true,
       );
       expect(r, isEmpty);
     });
