@@ -3057,7 +3057,8 @@ class _ComposeScreenState extends State<ComposeScreen>
   Widget _buildCityOfMonthHint(AppState state) {
     final city = CityOfMonth.forThisMonth();
     final accent = Color(city.accentColor);
-    final l10n = AppL10n.of(state.currentUser.languageCode);
+    final lang = state.currentUser.languageCode;
+    final l10n = AppL10n.of(lang);
     // 이미 해당 국가로 설정되어 있으면 배너 숨김 (노이즈 방지)
     if (_selectedCountry == city.country) return const SizedBox.shrink();
     return GestureDetector(
@@ -3069,7 +3070,7 @@ class _ComposeScreenState extends State<ComposeScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${city.themeEmoji}  ${city.cityName} · ${city.country}',
+              '${city.themeEmoji}  ${city.cityNameL(lang)} · ${city.countryL(lang)}',
               style: const TextStyle(color: Colors.white),
             ),
             backgroundColor: accent.withValues(alpha: 0.9),
@@ -3115,7 +3116,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${city.cityName} · ${city.country}',
+                    '${city.cityNameL(lang)} · ${city.countryL(lang)}',
                     style: const TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 13,
