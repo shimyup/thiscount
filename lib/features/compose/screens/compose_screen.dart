@@ -5327,12 +5327,16 @@ class _ComposeScreenState extends State<ComposeScreen>
       _isExpressMode = false;
       _brandUniquePerUser = true;
     });
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('🌍 글로벌 대량 모드 — 선택 국가 N건 발송'),
+      SnackBar(
+        content: Text(l10n.koEn(
+          '🌍 글로벌 대량 모드 — 선택 국가로 발송',
+          '🌍 Global bulk mode — send to selected countries',
+        )),
         backgroundColor: AppColors.bgCard,
         behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 2),
+        duration: const Duration(seconds: 2),
       ),
     );
   }

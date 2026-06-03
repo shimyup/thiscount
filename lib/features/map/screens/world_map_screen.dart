@@ -2853,7 +2853,12 @@ class _MyLocationButtonState extends State<_MyLocationButton> {
   @override
   Widget build(BuildContext context) {
     final timeColors = AppTimeColors.of(context);
-    return GestureDetector(
+    // Build 423 (sim-crosscut P2): a11y — 아이콘 전용 버튼 라벨.
+    final lang = context.read<AppState>().currentUser.languageCode;
+    return Semantics(
+      button: true,
+      label: AppL10n.of(lang).koEn('내 위치로 이동', 'Go to my location'),
+      child: GestureDetector(
       onTap: () => _goToMyLocation(context),
       child: Container(
         width: 46,
@@ -2897,6 +2902,7 @@ class _MyLocationButtonState extends State<_MyLocationButton> {
                 size: 22,
               ),
       ),
+    ),
     );
   }
 }

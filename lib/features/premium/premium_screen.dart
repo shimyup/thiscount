@@ -247,7 +247,8 @@ class _PremiumScreenState extends State<PremiumScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            '베타 · 결제 없이 즉시 활성화',
+                            l.koEn('베타 · 결제 없이 즉시 활성화',
+                                'Beta · activate instantly, no payment'),
                             style: TextStyle(
                               color: AppColors.gold,
                               fontSize: 12.5,

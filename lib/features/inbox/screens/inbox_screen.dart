@@ -1490,6 +1490,8 @@ class _InboxScreenState extends State<InboxScreen>
                         ),
                         suffixIcon: _searchQuery.isNotEmpty
                             ? IconButton(
+                                // Build 423 (sim-crosscut P3): a11y 라벨.
+                                tooltip: l10n.koEn('검색어 지우기', 'Clear search'),
                                 icon: const Icon(
                                   Icons.clear_rounded,
                                   color: AppColors.textMuted,
@@ -2353,7 +2355,7 @@ class _LetterCard extends StatelessWidget {
                         : l10n.labelBrand,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 8,
+                  fontSize: 10, // Build 423 (sim-crosscut P3): a11y 최소 가독 크기
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0.5,
                 ),
@@ -2387,7 +2389,7 @@ class _LetterCard extends StatelessWidget {
                 l10n.inboxBadgePromo,
                 style: const TextStyle(
                   color: Color(0xFF1A1300),
-                  fontSize: 8,
+                  fontSize: 10, // Build 423 (sim-crosscut P3): a11y 최소 가독 크기
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0.5,
                 ),
@@ -2415,7 +2417,7 @@ class _LetterCard extends StatelessWidget {
                 l10n.labelAiCurated,
                 style: const TextStyle(
                   color: AppColors.textMuted,
-                  fontSize: 8,
+                  fontSize: 10, // Build 423 (sim-crosscut P3): a11y 최소 가독 크기
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.4,
                 ),
@@ -3150,7 +3152,7 @@ class _BrandSentSummaryView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '📮 총 발송 캠페인',
+                l.koEn('📮 총 발송 캠페인', '📮 Total campaigns'),
                 style: TextStyle(
                   color: AppColors.coupon,
                   fontSize: 11.5,

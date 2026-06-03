@@ -459,6 +459,10 @@ class _LoginTabState extends State<_LoginTab> {
             icon: Icons.lock_rounded,
             obscureText: _obscurePass,
             suffixIcon: IconButton(
+              // Build 423 (sim-crosscut P2): a11y — 상태 반영 tooltip.
+              tooltip: _obscurePass
+                  ? l10n.koEn('비밀번호 표시', 'Show password')
+                  : l10n.koEn('비밀번호 숨기기', 'Hide password'),
               onPressed: () => setState(() => _obscurePass = !_obscurePass),
               icon: Icon(
                 _obscurePass
@@ -471,7 +475,12 @@ class _LoginTabState extends State<_LoginTab> {
           ),
           const SizedBox(height: 14),
           // ── 아이디/비번 기억하기 ───────────────────────────────────────────
-          GestureDetector(
+          // Build 423 (sim-crosscut P2): a11y — 토글 역할/상태/라벨 노출.
+          Semantics(
+            container: true,
+            checked: _rememberMe,
+            label: l10n.koEn('아이디/비밀번호 기억하기', 'Remember me'),
+            child: GestureDetector(
             onTap: () => setState(() => _rememberMe = !_rememberMe),
             child: Row(
               children: [
@@ -507,6 +516,7 @@ class _LoginTabState extends State<_LoginTab> {
                 ),
               ],
             ),
+          ),
           ),
           const SizedBox(height: 20),
           _AuthButton(
@@ -1983,6 +1993,10 @@ class _SignupTabState extends State<_SignupTab> {
             icon: Icons.lock_rounded,
             obscureText: _obscurePass,
             suffixIcon: IconButton(
+              // Build 423 (sim-crosscut P2): a11y — 상태 반영 tooltip.
+              tooltip: _obscurePass
+                  ? l10n.koEn('비밀번호 표시', 'Show password')
+                  : l10n.koEn('비밀번호 숨기기', 'Hide password'),
               onPressed: () => setState(() => _obscurePass = !_obscurePass),
               icon: Icon(
                 _obscurePass
@@ -2479,7 +2493,8 @@ class _SignupTabState extends State<_SignupTab> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '위 코드를 아래 입력란에 넣어주세요',
+                    l10n.koEn('위 코드를 아래 입력란에 넣어주세요',
+                        'Enter the code above into the field below'),
                     style: TextStyle(
                       color: AppColors.coupon.withValues(alpha: 0.7),
                       fontSize: 10,
