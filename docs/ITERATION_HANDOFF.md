@@ -104,6 +104,7 @@
 - [x] P2 Letter enum index 안전(_safeEnum)+tower hex 가드+BrandZone tryParse+letterType sync/parse+socialLink 정규화+login 재진입 `70ea415`
 - [x] P2 구매 락 race — _startLoading bool + 6 buy 메서드 bail(ExactDrop 중복 grant/이중결제 차단) `22f6c35`
 - [x] P2/P3 i18n 하드코딩 4건(koEn) + a11y(비번토글/내위치/기억하기/검색지우기 라벨 + 뱃지 가독) `0a3676f`
+- TestFlight **Build 423 = VALID + Internal** (Delivery `a84aea82-c422-4f07-94ca-d86d429897be`). 다음 빌드 424.
 - **미적용**: #29 닫기버튼 tooltip(보고 line 4157 stale — 파일 3555줄, 위치 불명확 → skip).
 
 ## Sim-fresh2 라운드 (2026-06-04) — Build 422
