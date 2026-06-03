@@ -15,11 +15,11 @@
 
 ## 현재 상태 (2026-06-04 갱신)
 - 브랜치: `launch-readiness-build411` (PR #150). main 아님.
-- 최신 커밋: `5aecc39` (sim-fresh: 언어 변경 리마인더 재예약).
-- 빌드: pubspec `1.0.0+421`. TestFlight **417~420 업로드됨**. **421 빌드 예정**.
-- 검증 게이트(매 수정 후 필수): `flutter analyze lib/` 무경고 + `flutter test` 전체 통과(현재 **139** — sim-fresh 에서 데드위젯 테스트 4건 제거).
+- 최신 커밋: `cc51c9c` (sim-fresh2 P3: 데드코드 정리 + AI 429 안내).
+- 빌드: pubspec `1.0.0+422`. TestFlight **417~421 업로드됨**(421=VALID+Internal). **422 빌드 예정**.
+- 검증 게이트(매 수정 후 필수): `flutter analyze lib/` 무경고 + `flutter test` 전체 통과(현재 **139**).
 - ⚠️ flaky 없음.
-- 누적 진행: sim100 + iter1~5 + device + **sim-fresh 라운드(9도메인 워크플로우 → 46 확정 → 37 수정)**.
+- 누적 진행: sim100 + iter1~5 + device + sim-fresh 라운드 + **sim-fresh2 라운드(10도메인 워크플로우 → 36 확정 → 33 수정)**.
 
 ## 루프 절차 (매 iteration)
 1. 이 문서의 "남은 백로그"에서 **코드로 안전히 고칠 수 있는** 상위 항목 1~5개 선택.
@@ -95,6 +95,20 @@
 - [x] P2 '안읽음 점프' 인덱스를 표시리스트(뮤트필터+_sortFollowedFirst)와 동일 계산 (inbox_screen.dart:1391)
 - TestFlight Build 418 = VALID + Internal (Delivery c2702f69).
 - 남은 후보: maxRedeems per-device(구조-검토), autozone dedup seen 신호, roi 카드 redeemed>pickup, send_single auto-zone 5자 카피(auto-zone 제거로 무효일수도), i18n 잔여. 코드-fixable 거의 소진 → 다음 새 sim 고려.
+
+## Sim-fresh2 라운드 (2026-06-04) — Build 422
+> 10-도메인 워크플로우(admin/onboarding/recommendation/geocoding/coupon-ai/storage-location/letter-model/map-camera/tower-streak-journey/penpal-progression) finder→적대검증 → **49 보고 / 36 확정 → 33 수정**.
+- [x] P1 계정전환 누수 4건: admin Event Mode·속도/XP baseline/마일스톤집합/챌린지보상 `30f54c8`
+- [x] P1 AI 추천 extraSignalCount category.key 정합 + score/topReason/extra SecureClock `30f54c8`
+- [x] P1 지오코딩 null 캐시오염 차단 + 바우처 업로드 race + 발송게이트 업로드중 차단 `b756bb0`
+- [x] P1 지도 '내 타워' 매칭 5.5km→500m + GPS(0,0) 차단 `b756bb0`
+- [x] P2 Letter.fromJson expiresAt/redemptionExpiresAt _parseDateTime + 국경검문소 i18n `d7cb7bf`
+- [x] P2 JourneyCard 합집합 + Hunt wallet redeemedAt 기준 사용집계 `d7cb7bf`
+- [x] P2 AI 다이얼로그 controller 해제/빈입력 가드/garbage 응답 + 온보딩 더블탭 `fa5c572`
+- [x] P2 Connectivity in-flight 가드 + SecureLocation heuristic OR + 레벨업 배너 구분 `8b21c48`
+- [x] P3 SecureClock(ETA/도착마커) + 내타워(0,0) 가드 + totalRedemptions 필터 + 코치마크 누수 + 지오코딩 타임스탬프 + user_progress 문서 + admin ban 가드 `d28b982`
+- [x] P3 데드코드(TranslationService/penpal_tier) 제거 + AI 429 안내 `cc51c9c`
+- **미적용(보류, 사유)**: #9 admin special msg 한국어(admin=개발자 전용, 비-end-user) / #16 위치거부 UI 피드백(heuristic 은 #14 적용, 다중 launch 경로 UI 는 silent fail-safe 허용) / #24 온보딩 투어 한국어(비-ko 는 이미 자동 skip, 14언어 번역은 별도 大작업).
 
 ## Sim-fresh 라운드 (2026-06-04) — Build 421
 > 9-도메인 워크플로우(dm/notifications/social/settings/progression/map/brand_zone/premium/profile/share) finder→적대검증 → **53 보고 / 46 확정 code-fixable** → **37 수정**.
