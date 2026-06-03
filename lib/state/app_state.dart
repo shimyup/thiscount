@@ -2108,12 +2108,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           l.arrivedAt!.isAfter(_startOfMonth))
       .length;
 
+  // Build 422 (sim-fresh2 P2): '이번 달 사용' 은 사용(redeemedAt) 시점 기준이어야
+  //   함 — 이전엔 픽업(arrivedAt) 시점으로 scoping 해, 지난달 픽업→이번달 사용한
+  //   쿠폰이 누락되고 이번달 픽업→미사용도 카운트 흐름이 어긋났음.
   int get redemptionsThisMonth => _inbox
       .where((l) =>
           l.senderIsBrand &&
-          l.arrivedAt != null &&
-          l.arrivedAt!.isAfter(_startOfMonth) &&
-          _redeemedLetterIds.contains(l.id))
+          l.redeemedAt != null &&
+          l.redeemedAt!.isAfter(_startOfMonth))
       .length;
 
   int get totalBrandPickups =>

@@ -4,6 +4,12 @@ import '../core/data/country_cities.dart';
 import '../core/localization/app_localizations.dart';
 import '../core/services/secure_clock.dart';
 
+// Build 422 (sim-fresh2 P2): 육로 배송 '국경 검문소' segment 명을 언어중립 sentinel
+//   로 저장하고 렌더 시 현지화 — 이전엔 한국어 리터럴이 전 언어에 노출됐음.
+//   레거시 캐시(리터럴 '국경 검문소')도 렌더 매핑에서 함께 처리.
+const String kBorderCheckpointSentinel = '__border_checkpoint__';
+const String kBorderCheckpointLegacyKo = '국경 검문소';
+
 // ── 편지 타입 ──────────────────────────────────────────────────────────────────
 enum LetterType { normal, express, brandExpress }
 
@@ -242,6 +248,19 @@ class RouteSegment {
   );
 
   bool get isComplete => progress >= 1.0;
+
+  // Build 422 (sim-fresh2 P2): 표시용 현지화 — 국경 검문소 sentinel/레거시 리터럴
+  //   을 언어별 라벨로, 그 외(실 도시명)는 그대로. 모든 segment 렌더 사이트가 사용.
+  static String localizeHubName(String name, String langCode) {
+    if (name == kBorderCheckpointSentinel ||
+        name == kBorderCheckpointLegacyKo) {
+      return langCode == 'ko' ? '국경 검문소' : 'Border checkpoint';
+    }
+    return name;
+  }
+
+  String displayFromName(String langCode) => localizeHubName(fromName, langCode);
+  String displayToName(String langCode) => localizeHubName(toName, langCode);
 
   Map<String, dynamic> toJson() => {
     'from': from.toJson(),
@@ -599,10 +618,13 @@ class Letter {
     }
     final seg = currentSegment;
     final isLastSeg = currentSegmentIndex >= segments.length - 1;
-    final toDisplay = (isLastSeg && destinationDisplayAddress != null)
+    final rawTo = (isLastSeg && destinationDisplayAddress != null)
         ? destinationDisplayAddress!
         : seg.toName;
-    return '${seg.mode.emoji}  ${seg.fromName} → $toDisplay';
+    // Build 422 (sim-fresh2 P2): 국경 검문소 sentinel/레거시 리터럴을 현지화.
+    final fromLoc = RouteSegment.localizeHubName(seg.fromName, langCode);
+    final toLoc = RouteSegment.localizeHubName(rawTo, langCode);
+    return '${seg.mode.emoji}  $fromLoc → $toLoc';
   }
 
   // ── 현실적인 배송 예상 시간 ─────────────────────────────────────────────────
@@ -845,11 +867,10 @@ class Letter {
     rarity: LetterRarityExt.fromJson(j['rarity']),
     acceptsReplies: j['acceptsReplies'] as bool? ?? true,
     redemptionInfo: j['redemptionInfo'] as String?,
-    redemptionExpiresAt: j['redemptionExpiresAt'] != null
-        ? DateTime.fromMillisecondsSinceEpoch(
-            j['redemptionExpiresAt'] as int,
-          )
-        : null,
+    // Build 422 (sim-fresh2 P2): redeemedAt/codeRevealedAt 과 동일하게 안전 파싱 —
+    //   Firestore fetch 후 ISO string 으로 오면 `as int` cast 가 throw → fromJson
+    //   실패 → 캐시 letter 손실. _parseDateTime 은 ms epoch/ISO 양쪽 처리.
+    redemptionExpiresAt: _parseDateTime(j['redemptionExpiresAt']),
     brandZoneId: j['brandZoneId'] as String?,
     categoryTag: j['categoryTag'] as String?,
     // Build 340 (PR-S11 시뮬레이션 P1 Firestore timestamp): redeemedAt /
@@ -863,9 +884,7 @@ class Letter {
     //   _sanitizeRedemptionCode 가 형식 검사 → 불일치 시 null fallback.
     redemptionCode: _sanitizeRedemptionCode(j['redemptionCode']),
     codeRevealedAt: _parseDateTime(j['codeRevealedAt']),
-    expiresAt: j['expiresAt'] != null
-        ? DateTime.fromMillisecondsSinceEpoch(j['expiresAt'] as int)
-        : null,
+    expiresAt: _parseDateTime(j['expiresAt']),
     readCount: j['readCount'] as int? ?? 0,
     maxReaders: j['maxReaders'] as int? ?? Letter.maxReadersDefault,
   );
@@ -1790,7 +1809,7 @@ class LogisticsHubs {
         to: borderPoint,
         mode: TransportMode.truck,
         fromName: fromCityLabel,
-        toName: '국경 검문소',
+        toName: kBorderCheckpointSentinel,
         fromType: HubType.city,
         toType: HubType.localHub,
         estimatedMinutes: halfMin,
@@ -1799,7 +1818,7 @@ class LogisticsHubs {
         from: borderPoint,
         to: toCity,
         mode: TransportMode.truck,
-        fromName: '국경 검문소',
+        fromName: kBorderCheckpointSentinel,
         toName: toCityLabel,
         fromType: HubType.localHub,
         toType: HubType.destination,

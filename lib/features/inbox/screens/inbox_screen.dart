@@ -4290,6 +4290,8 @@ class _RouteStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build 422 (sim-fresh2 P2): segment 명(국경 검문소 sentinel) 현지화용 langCode.
+    final lang = context.read<AppState>().currentUser.languageCode;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -4323,7 +4325,7 @@ class _RouteStep extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              '${segment.fromName} → ${(isLastSegment && destinationDisplayAddress != null) ? destinationDisplayAddress! : segment.toName}',
+              '${segment.displayFromName(lang)} → ${(isLastSegment && destinationDisplayAddress != null) ? destinationDisplayAddress! : segment.displayToName(lang)}',
               style: TextStyle(
                 color: isCurrent
                     ? AppColors.gold

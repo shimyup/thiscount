@@ -104,7 +104,9 @@ class JourneyCard extends StatelessWidget {
                   _divider(),
                   _statCell(
                     emoji: '🌍',
-                    value: '${stats.countriesFrom + stats.countriesTo}',
+                    // Build 422 (sim-fresh2 P2): 합집합(countriesTotal) — 공유카드와
+                    //   동일. 이전엔 from+to 로 중복국가 이중계산.
+                    value: '${stats.countriesTotal}',
                     label: l10n.journeyStatCountries,
                   ),
                 ],

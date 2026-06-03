@@ -4564,7 +4564,7 @@ class _TransitInfoSheet extends StatelessWidget {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        '${l10n.mapCurrent}: ${seg.fromName} → ${(seg == letter.segments.last && letter.destinationDisplayAddress != null) ? letter.destinationDisplayAddress! : seg.toName}',
+                        '${l10n.mapCurrent}: ${seg.displayFromName(l10n.languageCode)} → ${(seg == letter.segments.last && letter.destinationDisplayAddress != null) ? letter.destinationDisplayAddress! : seg.displayToName(l10n.languageCode)}',
                         style: const TextStyle(
                           color: AppColors.textMuted,
                           fontSize: 12,
@@ -4683,7 +4683,7 @@ class _TransitInfoSheet extends StatelessWidget {
                         children: [
                           const SizedBox(height: 3),
                           Text(
-                            '${s.fromName} → ${(s == letter.segments.last && letter.destinationDisplayAddress != null) ? letter.destinationDisplayAddress! : s.toName}',
+                            '${s.displayFromName(l10n.languageCode)} → ${(s == letter.segments.last && letter.destinationDisplayAddress != null) ? letter.destinationDisplayAddress! : s.displayToName(l10n.languageCode)}',
                             style: TextStyle(
                               color: isActive
                                   ? AppColors.textPrimary
