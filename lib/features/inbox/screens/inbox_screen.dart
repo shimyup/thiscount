@@ -382,10 +382,12 @@ LetterFilterType? _filterTypeFromName(String name) {
 String? _extractBenefitBigText(Letter letter) {
   final hay = '${letter.content} ${letter.redemptionInfo ?? ''}';
   // 1) 퍼센트
-  final pct = RegExp(r'(\d{1,2})\s*%').firstMatch(hay);
+  // Build 420 (sim100 iter5): 100% 무료 혜택도 빅텍스트 노출 — 2자리(<=99)
+  //   제한으로 '100%' 가 누락돼 FREE/이모지 fallback 되던 회귀 수정.
+  final pct = RegExp(r'(\d{1,3})\s*%').firstMatch(hay);
   if (pct != null) {
     final n = int.tryParse(pct.group(1) ?? '');
-    if (n != null && n > 0 && n <= 99) return '$n%';
+    if (n != null && n > 0 && n <= 100) return '$n%';
   }
   // 2) 1+1 / 2+1
   final plus = RegExp(r'([123])\s*\+\s*([123])').firstMatch(hay);

@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../core/services/feedback_service.dart';
+import '../../../core/services/secure_clock.dart';
 import 'package:gal/gal.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
@@ -2327,7 +2328,8 @@ class _LetterReadScreenState extends State<LetterReadScreen>
       final pendingStartedAt = state.pendingRedemptionStartedAt(letter.id);
       // 만료 임박(3일 이내) — 노란 경고 톤으로 카운트다운 강조.
       final expiresAt = letter.redemptionExpiresAt;
-      final daysLeft = expiresAt?.difference(DateTime.now()).inDays;
+      // Build 420 (sim100 iter5): isRedemptionExpired(SecureClock) 와 시계 일관.
+      final daysLeft = expiresAt?.difference(SecureClock.now()).inDays;
       final expiringSoon =
           !expired && daysLeft != null && daysLeft <= 3;
       return Container(
@@ -2604,7 +2606,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   ) {
     final dateStr =
         '${expiresAt.year}.${expiresAt.month.toString().padLeft(2, '0')}.${expiresAt.day.toString().padLeft(2, '0')}';
-    final daysLeft = expiresAt.difference(DateTime.now()).inDays;
+    final daysLeft = expiresAt.difference(SecureClock.now()).inDays;
     final color = expired
         ? AppColors.textMuted
         : expiringSoon

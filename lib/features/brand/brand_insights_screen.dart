@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/localization/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/services/secure_clock.dart';
 import '../../core/utils/redemption_code.dart';
 import '../../core/utils/secure_clipboard.dart';
 import '../../models/brand_insights.dart';
@@ -405,7 +406,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
   Widget _buildCodeCard(_CodeAggregate g) {
     final formatted = RedemptionCode.formatForDisplay(g.code);
     final expired = g.expiresAt != null &&
-        DateTime.now().isAfter(g.expiresAt!);
+        SecureClock.now().isAfter(g.expiresAt!);
     final accent = expired ? AppColors.textMuted : AppColors.teal;
     final l = AppL10n.of(
       context.read<AppState>().currentUser.languageCode,
@@ -532,7 +533,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
   }
 
   String _formatExpiry(DateTime exp, AppL10n l) {
-    final d = exp.difference(DateTime.now());
+    final d = exp.difference(SecureClock.now());
     if (d.inDays >= 1) return l.expiresDaysShort(d.inDays);
     if (d.inHours >= 1) return l.expiresHoursShort(d.inHours);
     return l.expiresMinutesShort(d.inMinutes);
