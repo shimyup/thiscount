@@ -2973,6 +2973,8 @@ class _LetterReadScreenState extends State<LetterReadScreen>
           file,
           width: double.infinity,
           fit: BoxFit.cover,
+          // Build 424 (WCAG P1): Image.network 형제와 동일하게 스크린리더 라벨.
+          semanticLabel: 'letter image',
           errorBuilder: (_, __, ___) => _imagePlaceholder(),
         );
       }
@@ -3261,6 +3263,8 @@ class _FullscreenImageViewerState extends State<_FullscreenImageViewer> {
                       : Image.file(
                           File(widget.imageUrl),
                           fit: BoxFit.contain,
+                          // Build 424 (WCAG P1): 스크린리더 라벨(zoom 형제와 동일).
+                          semanticLabel: 'letter image (zoom)',
                           errorBuilder: (_, __, ___) => const Icon(
                             Icons.broken_image_rounded,
                             color: Colors.white54,
