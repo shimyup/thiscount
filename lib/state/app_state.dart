@@ -1874,12 +1874,19 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // Build 414 (sim200 P3): SecureClock — 시계 조작 시 redeemedAt 분석/표시 왜곡 차단.
     final now = SecureClock.now();
     // inbox 안의 letter object 에도 redeemedAt 직접 set — UI 즉시 반영.
+    Letter? matched;
     for (final l in _inbox) {
       if (l.id == letterId) {
         l.redeemedAt = now;
+        matched = l;
         break;
       }
     }
+    // Build 420 (sim100 iter5): 비-쿠폰(general 정보성) letter 는 '사용' 개념이
+    //   없으므로 브랜드 redeemedCount 집계에서 제외 — 정보성 letter 를 '사용 완료'
+    //   토글해도 브랜드 conversion 분석이 오염되지 않도록 한다(로컬 토글은 유지).
+    final isRedeemable =
+        matched == null || matched.category != LetterCategory.general;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(
       'redeemedLetterIds',
@@ -1890,7 +1897,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // Build 138: 브랜드 편지 사용 완료 집계 — 브랜드 대시보드 conversion
     // 계산 원천. 로컬 `_redeemedLetterIds` 와 별도로 서버에도 기록.
     // Build 322: redeemedAt timestamp 도 PATCH — 일자별 conversion rate 분석.
-    if (FirebaseConfig.kFirebaseEnabled) {
+    if (FirebaseConfig.kFirebaseEnabled && isRedeemable) {
       unawaited(
         FirestoreService.incrementField(
           path: 'letters/$letterId',

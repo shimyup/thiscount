@@ -541,6 +541,11 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
   Widget _buildCampaignCard(CampaignInsight c) {
     final hasMetric = c.pickup > 0;
     final pct = (c.redeemRate * 100).toStringAsFixed(0);
+    // Build 420 (sim100 iter5): 캠페인 카드도 메인 퍼널과 동일하게 단조감소 clamp.
+    //   mixed-source 집계로 redeemed>revealed>pickup 같은 비논리 표시 차단(표시 전용).
+    final cPickup = c.pickup.clamp(0, c.sent <= 0 ? c.pickup : c.sent);
+    final cReveal = c.revealed.clamp(0, cPickup);
+    final cRedeem = c.redeemed.clamp(0, cReveal);
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
@@ -584,7 +589,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
           const SizedBox(height: 6),
           Text(
             // Build 331 (PR-S3): 4단계 표시 — 노출 (🛒) 추가.
-            '📮 ${c.sent} · 🎯 ${c.pickup} · 🛒 ${c.revealed} · ✅ ${c.redeemed}',
+            '📮 ${c.sent} · 🎯 $cPickup · 🛒 $cReveal · ✅ $cRedeem',
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 11,
@@ -594,11 +599,11 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
           //   비율을 얇은 막대 3개로 시각화. 어느 단계에서 빠지는지 카드에서 즉시 인지.
           if (c.sent > 0) ...[
             const SizedBox(height: 8),
-            _miniFunnelBar(c.pickup, c.sent, AppColors.teal),
+            _miniFunnelBar(cPickup, c.sent, AppColors.teal),
             const SizedBox(height: 3),
-            _miniFunnelBar(c.revealed, c.sent, AppColors.coupon),
+            _miniFunnelBar(cReveal, c.sent, AppColors.coupon),
             const SizedBox(height: 3),
-            _miniFunnelBar(c.redeemed, c.sent, AppColors.gold),
+            _miniFunnelBar(cRedeem, c.sent, AppColors.gold),
           ],
           Builder(builder: (ctx) {
             final l = AppL10n.of(

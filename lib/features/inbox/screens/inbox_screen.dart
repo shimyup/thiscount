@@ -1979,6 +1979,22 @@ class _InboxTab extends StatelessWidget {
                           );
                           return false;
                         }
+                        // Build 420 (sim100 iter5): 만료된 쿠폰을 '사용 완료'
+                        //   토글하면 브랜드 redeemedCount 분석이 오염되므로 차단.
+                        if (letter.isRedemptionExpired) {
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            SnackBar(
+                              content:
+                                  Text(l10n.letterReadRedemptionExpiredHeader),
+                              backgroundColor: AppColors.bgCard,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          );
+                          return false;
+                        }
                         ctx.read<AppState>().markLetterRedeemed(letter.id);
                         ScaffoldMessenger.of(ctx).showSnackBar(
                           SnackBar(
