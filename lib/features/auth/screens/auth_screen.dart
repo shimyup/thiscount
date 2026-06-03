@@ -2873,6 +2873,7 @@ class _SignupTabState extends State<_SignupTab> {
                       ),
                     ),
                     IconButton(
+                      tooltip: l10n.authClose,
                       onPressed: () => Navigator.pop(ctx),
                       icon: const Icon(
                         Icons.close,

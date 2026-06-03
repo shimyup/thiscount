@@ -778,6 +778,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             leading: widget.embedded
                 ? null
                 : IconButton(
+                    tooltip: l.koEn('뒤로', 'Back'),
                     onPressed: () => Navigator.pop(ctx),
                     icon: const Icon(
                       Icons.arrow_back_ios_new_rounded,

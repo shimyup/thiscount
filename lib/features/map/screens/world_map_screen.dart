@@ -4161,6 +4161,8 @@ class _MapHelpButton extends StatelessWidget {
                     ),
                   ),
                   IconButton(
+                    // Build 424 (WCAG P0): 닫기 버튼 a11y tooltip.
+                    tooltip: l10n.authClose,
                     icon: const Icon(
                       Icons.close_rounded,
                       color: AppColors.textMuted,

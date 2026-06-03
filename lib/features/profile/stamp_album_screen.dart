@@ -57,6 +57,7 @@ class StampAlbumScreen extends StatelessWidget {
         backgroundColor: AppColors.bgDeep,
         elevation: 0,
         leading: IconButton(
+          tooltip: l.koEn('뒤로', 'Back'),
           icon: const Icon(
             Icons.arrow_back_ios_rounded,
             color: AppColors.textPrimary,

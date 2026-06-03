@@ -88,6 +88,7 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
             appBar: AppBar(
               backgroundColor: AppColors.bgDeep,
               leading: IconButton(
+                tooltip: l10n.koEn('뒤로', 'Back'),
                 icon: const Icon(
                   Icons.arrow_back_rounded,
                   color: AppColors.gold,
@@ -135,6 +136,7 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
       backgroundColor: AppColors.bgDeep,
       elevation: 0,
       leading: IconButton(
+        tooltip: l10n.koEn('뒤로', 'Back'),
         icon: const Icon(Icons.arrow_back_rounded, color: AppColors.gold),
         onPressed: () => Navigator.pop(context),
       ),

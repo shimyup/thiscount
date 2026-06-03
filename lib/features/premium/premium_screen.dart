@@ -175,6 +175,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                     ),
                   )
                 : IconButton(
+                    tooltip: l.koEn('뒤로', 'Back'),
                     icon: const Icon(
                       Icons.arrow_back_ios_new_rounded,
                       color: AppColors.textSecondary,

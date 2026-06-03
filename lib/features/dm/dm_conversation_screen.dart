@@ -310,6 +310,7 @@ class _DmConversationScreenState extends State<DmConversationScreen> {
             backgroundColor: AppColors.bgCard,
             elevation: 0,
             leading: IconButton(
+              tooltip: l.koEn('뒤로', 'Back'),
               onPressed: () => Navigator.pop(context),
               icon: const Icon(
                 Icons.arrow_back_ios_new_rounded,
@@ -487,6 +488,7 @@ class _DmConversationScreenState extends State<DmConversationScreen> {
         backgroundColor: AppColors.bgCard,
         elevation: 0,
         leading: IconButton(
+          tooltip: l.koEn('뒤로', 'Back'),
           onPressed: () => Navigator.pop(context),
           icon: const Icon(
             Icons.arrow_back_ios_new_rounded,

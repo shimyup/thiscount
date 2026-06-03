@@ -112,6 +112,7 @@ class _WeeklyReflectionCardState extends State<WeeklyReflectionCard> {
                     ),
                   ),
                   IconButton(
+                    tooltip: l10n.koEn('닫기', 'Dismiss'),
                     onPressed: _dismiss,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(
