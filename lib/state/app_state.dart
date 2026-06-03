@@ -3409,6 +3409,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         } catch (_) {}
       }
     }
+    // Build 421 (sim-fresh P1): 팔로우 그래프 복원 (위 _saveDMToPrefs 와 짝).
+    final followingList = prefs.getStringList('followingIds');
+    if (followingList != null) {
+      _currentUser.followingIds
+        ..clear()
+        ..addAll(followingList);
+    }
 
     if (kDebugMode) {
       await _checkAndDeliverDailyLetter();
@@ -4934,6 +4941,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       _dailyImageSentCount = 0;
       _dailyPremiumExpressSentCount = 0;
       _currentStreak = 0;
+      // Build 421 (sim-fresh P1): streak 부속 상태·DM 누적·팔로우 그래프도 reset —
+      //   이전엔 _currentStreak 만 0 으로 해 longestStreak/마지막체크인/freeze 토큰과
+      //   _pendingDMCount(DM→letter quota 차감), followingIds 가 다음 계정으로 누수.
+      _longestStreak = 0;
+      _lastStreakCheckinDate = '';
+      _streakFreezeTokens = 0;
+      _streakFreezeLastRefill = '';
+      _pendingDMCount = 0;
       _weeklyChallengeCountries.clear();
       _weeklyChallengeWeekKey = '';
       _weeklyChallengeClaimed = false;
@@ -5687,6 +5702,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // Build 409 (sim P1.43): 로그아웃 시 모든 서버 sync timer 정지 — 이전엔
     //   타이머가 계속 돌아 로그아웃된 사용자 컨텍스트로 fetch/PATCH 가 발생.
     stopServerSync();
+    // Build 421 (sim-fresh P1): 예약된 모든 로컬 알림 취소 — 이전엔 한 곳도
+    //   cancelAll 을 안 불러, 사용자 A 가 픽업한 쿠폰의 만료 리마인더/도착
+    //   카운트다운/일일 다이제스트가 B 로그인 후에도 B 디바이스에서 발화
+    //   (A 발신자명 노출 = 프라이버시 누수). 다음 사용자 load 가 일일 리마인더·
+    //   도착·다이제스트를 재예약하므로 일괄 취소가 안전.
+    try {
+      await NotificationService.cancelAll();
+    } catch (_) {/* 알림 취소 실패는 무시 — 로그아웃 진행 */}
     // Build 307: PurchaseService 도 같은 흐름에서 reset → 다음 사용자가 잔존
     // Premium 을 잠시라도 보지 않게. 그리고 prefs flush 완료까지 대기.
     try {
@@ -8919,6 +8942,32 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         // Build 417 (sim100 P2): 오프라인 발송 아웃박스 — guest 로그아웃 경로에선
         //   isNewUser 블록을 안 타 이전 사용자 미발송 letter id 가 잔존(유실/누수).
         'pending_letter_uploads',
+        // Build 421 (sim-fresh P1/P2): 계정 전환 누수 잔존 키 일괄 추가 — DM 누적
+        //   카운터, 게임화(streak 부속/주간챌린지/누적거리/sentSinceLastUnlock),
+        //   타워 커스터마이즈, 선호 카테고리, activityScore, 닉네임 쿨다운,
+        //   픽업 쿨다운, 알림 토글, merchant CTA, 팔로우 그래프.
+        'pendingDMCount',
+        'sentSinceLastUnlock',
+        'sum_pickup_km',
+        'sum_sent_km',
+        'challenge_week_countries',
+        'challenge_week_key',
+        'challenge_week_claimed',
+        'towerRoofStyle',
+        'towerWindowStyle',
+        'customTowerName',
+        'preferredCategoryKey',
+        'activityScore',
+        'nicknameChangedAtEpochMs',
+        'lastNearbyPickupAtMs',
+        'notify_nearby',
+        'notify_daily_letter',
+        'push_mode',
+        'merchant_interest_registered_v1',
+        'merchant_interest_at',
+        'merchant_interest_city',
+        'followingIds',
+        'followerIds',
       ];
       for (final key in userScopedKeys) {
         await prefs.remove(key);
@@ -9680,6 +9729,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     String flag = '🌍',
   }) {
     if (_currentUser.followingIds.contains(userId)) return;
+    // Build 421 (sim-fresh P2): 차단/자기자신 팔로우 차단 — 이전엔 가드 없이
+    //   차단한 사용자도 팔로우 + chat 세션 생성돼 차단 우회.
+    if (userId.isEmpty ||
+        userId == _currentUser.id ||
+        _blockedSenderIds.contains(userId) ||
+        _tempBlockedSenderIds.contains(userId)) {
+      return;
+    }
     _currentUser.followingIds.add(userId);
 
     // Create or update chat session
@@ -9732,6 +9789,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   bool sendDM(String partnerId, String content) {
     // ① 권한 체크: 프리미엄만 가능
     if (!canUseDM) return false;
+    // Build 421 (sim-fresh P1): banned/차단 상대 DM 차단 — sendLetter 와 동일
+    //   defense-in-depth. DM 은 sendLetter 를 안 거치므로 별도 가드 필요(이전엔
+    //   admin-banned 프리미엄 사용자가 DM 으로 계속 발송 가능).
+    if (_currentUser.isBanned) return false;
+    if (_blockedSenderIds.contains(partnerId) ||
+        _tempBlockedSenderIds.contains(partnerId)) {
+      return false;
+    }
 
     // ② 발송 가능 여부 체크 (DM 10회 = 편지 1통 쿼터 차감 시점)
     // 이번 DM이 10의 배수가 되면 편지 쿼터 1통 차감
@@ -9835,6 +9900,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           ),
         ),
       );
+      // Build 421 (sim-fresh P1): 팔로우 그래프 영속 — 이전엔 followingIds 가
+      //   어디에도 저장 안 돼 앱 재시작마다 팔로우 목록 전부 소실.
+      prefs.setStringList('followingIds', _currentUser.followingIds);
     });
   }
 
