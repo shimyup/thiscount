@@ -15,11 +15,11 @@
 
 ## 현재 상태 (2026-06-04 갱신)
 - 브랜치: `launch-readiness-build411` (PR #150). main 아님.
-- 최신 커밋: `cc51c9c` (sim-fresh2 P3: 데드코드 정리 + AI 429 안내).
-- 빌드: pubspec `1.0.0+422`. TestFlight **417~421 업로드됨**(421=VALID+Internal). **422 빌드 예정**.
+- 최신 커밋: `0a3676f` (sim-crosscut: i18n+a11y).
+- 빌드: pubspec `1.0.0+423`. TestFlight **417~422 업로드됨**(422=VALID+Internal). **423 빌드 예정**.
 - 검증 게이트(매 수정 후 필수): `flutter analyze lib/` 무경고 + `flutter test` 전체 통과(현재 **139**).
 - ⚠️ flaky 없음.
-- 누적 진행: sim100 + iter1~5 + device + sim-fresh 라운드 + **sim-fresh2 라운드(10도메인 워크플로우 → 36 확정 → 33 수정)**.
+- 누적 진행: sim100 + iter1~5 + device + sim-fresh + sim-fresh2 + **sim-crosscut 라운드(8 lens 워크플로우 → 31 확정 → 30 수정)**.
 
 ## 루프 절차 (매 iteration)
 1. 이 문서의 "남은 백로그"에서 **코드로 안전히 고칠 수 있는** 상위 항목 1~5개 선택.
@@ -95,6 +95,16 @@
 - [x] P2 '안읽음 점프' 인덱스를 표시리스트(뮤트필터+_sortFollowedFirst)와 동일 계산 (inbox_screen.dart:1391)
 - TestFlight Build 418 = VALID + Internal (Delivery c2702f69).
 - 남은 후보: maxRedeems per-device(구조-검토), autozone dedup seen 신호, roi 카드 redeemed>pickup, send_single auto-zone 5자 카피(auto-zone 제거로 무효일수도), i18n 잔여. 코드-fixable 거의 소진 → 다음 새 sim 고려.
+
+## Sim-crosscut 라운드 (2026-06-04) — Build 423
+> 8 교차관심사 lens(dispose누수/async race/firestore정합/error-swallow/null-bounds/계정전환누수/a11y/i18n) finder→적대검증 → **32 보고 / 31 확정 → 30 수정**.
+- [x] P1 bulk/express 0통 발송 가짜성공 + phantom POS 코드 차단 (totalSent==0 가드 2곳) `48ff1c3`
+- [x] P1 계정전환 prefs 누수 6키(compose_draft_brand/last_sent_content/축하/AI날짜/회고/welcome) + in-mem reset `48ff1c3`
+- [x] P2 다이얼로그 TextEditingController 누수 7화면(신고/비번/SNS/계정삭제/아이디찾기/사업자등록 등) `d55b09d`
+- [x] P2 Letter enum index 안전(_safeEnum)+tower hex 가드+BrandZone tryParse+letterType sync/parse+socialLink 정규화+login 재진입 `70ea415`
+- [x] P2 구매 락 race — _startLoading bool + 6 buy 메서드 bail(ExactDrop 중복 grant/이중결제 차단) `22f6c35`
+- [x] P2/P3 i18n 하드코딩 4건(koEn) + a11y(비번토글/내위치/기억하기/검색지우기 라벨 + 뱃지 가독) `0a3676f`
+- **미적용**: #29 닫기버튼 tooltip(보고 line 4157 stale — 파일 3555줄, 위치 불명확 → skip).
 
 ## Sim-fresh2 라운드 (2026-06-04) — Build 422
 > 10-도메인 워크플로우(admin/onboarding/recommendation/geocoding/coupon-ai/storage-location/letter-model/map-camera/tower-streak-journey/penpal-progression) finder→적대검증 → **49 보고 / 36 확정 → 33 수정**.
