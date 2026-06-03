@@ -15,11 +15,11 @@
 
 ## 현재 상태 (2026-06-03 갱신)
 - 브랜치: `launch-readiness-build411` (PR #150). main 아님.
-- 최신 커밋: `5552639` (device 수정: 비-지도 탭 전체화면 + 메세지 버리기 재출현).
-- 빌드: pubspec `1.0.0+419`. TestFlight **417·418·419 업로드됨**(417/418 Internal 그룹 확인, 419 업로드 성공·그룹 재확인 중). **다음 빌드는 420 로 bump**.
+- 최신 커밋: `c5e8ea2` (iter5d: 픽업 rollback 캠페인 dedup 복원).
+- 빌드: pubspec `1.0.0+420`. TestFlight **417·418·419 업로드됨**. **420 빌드 예정**.
 - 검증 게이트(매 수정 후 필수): `flutter analyze lib/` 무경고 + `flutter test` 전체 통과(현재 **143**).
 - ⚠️ flaky 없음(이전 redemption flaky 는 `58c73e2` 에서 근본 수정).
-- 누적 진행: sim100 배치(`5fb1557`·`b2655ea`) + iter1~4(`988fb1b`·`bee0d10`·`13cd521`·`0adc0d5`) + device(`5552639`) = 15+건 수정.
+- 누적 진행: sim100 배치(`5fb1557`·`b2655ea`) + iter1~5(`988fb1b`·`bee0d10`·`13cd521`·`0adc0d5`·`957a7e6`·`fd21869`·`b9137b5`·`c5e8ea2`) + device(`5552639`) = 23+건 수정.
 
 ## 루프 절차 (매 iteration)
 1. 이 문서의 "남은 백로그"에서 **코드로 안전히 고칠 수 있는** 상위 항목 1~5개 선택.
@@ -95,6 +95,16 @@
 - [x] P2 '안읽음 점프' 인덱스를 표시리스트(뮤트필터+_sortFollowedFirst)와 동일 계산 (inbox_screen.dart:1391)
 - TestFlight Build 418 = VALID + Internal (Delivery c2702f69).
 - 남은 후보: maxRedeems per-device(구조-검토), autozone dedup seen 신호, roi 카드 redeemed>pickup, send_single auto-zone 5자 카피(auto-zone 제거로 무효일수도), i18n 잔여. 코드-fixable 거의 소진 → 다음 새 sim 고려.
+
+## Iteration 5 (2026-06-03) — Build 420
+- [x] P2 인박스 '사용 완료' 가 만료쿠폰/general 정보성 letter 에도 markLetterRedeemed → 브랜드 redeemedCount 오염: UI 만료차단 스낵바 + general 서버 증분 제외 (inbox_screen / app_state markLetterRedeemed) `957a7e6`
+- [x] P3 brand_insights 캠페인 카드 퍼널 단조감소 clamp (메인 퍼널과 통일) `957a7e6`
+- [x] P3 nearbyLetters getter 가 maxReaders 도달/isBlocked 제외 (비-nearby 소진판정과 일관) `fd21869`
+- [x] P3 픽업 거리검증 GPS 0,0 가드 OR + Null Island(<0.0001) 강화 (부분초기화 우회 차단) `fd21869`
+- [x] P3 만료 카운트다운 DateTime.now()→SecureClock 4곳 통일 (letter_read_screen×2 / brand_insights×2) `b9137b5`
+- [x] P3 inbox 혜택 빅텍스트 퍼센트 정규식 \d{1,2}→\d{1,3}, n<=100 (100% 무료 누락) `b9137b5`
+- [x] P3 픽업 claim rollback 시 _pickedUpCampaignIds 복원 (latent 영구차단) `c5e8ea2`
+- 남은 후보: maxRedeems per-device(구조-검토), autozone dedup seen 신호, mustChangePassword(플로우-신중), findId/resetPassword enumeration 통일(서버연계), phone OTP dead branch. 코드-fixable 거의 소진 → 다음 새 sim 워크플로우 고려.
 
 ## 사용자 device 보고 수정 (2026-06-03) — 우선 처리
 - [x] 비-지도 탭에서 지도 96px peek 노출 제거 → 탭 콘텐츠 전체화면 (main_scaffold.dart:304, _kMapPeek 제거)
