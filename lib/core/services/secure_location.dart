@@ -51,11 +51,18 @@ class SecureLocation {
       }
       return true;
     }
-    // iOS heuristic — release 빌드 + accuracy=0 (real GPS 는 최소 3m)
-    //   + altitude.isNaN (시뮬레이터) → spoofing 의심.
-    if (kReleaseMode && pos.accuracy == 0.0 && pos.altitude.isNaN) {
+    // Build 422 (sim-fresh2 P2): iOS heuristic 를 OR 로 — 이전엔 accuracy==0 AND
+    //   altitude.isNaN 둘 다여야 발화해 사실상 죽은 검사였음(실 시뮬레이터는 보통
+    //   한쪽만 비정상). 실제 iOS fix 에선 절대 안 나오는 값들만 OR 로 검사:
+    //   accuracy<=0 / accuracy.isNaN / altitude.isNaN. (정지 사용자에서 흔히 음수가
+    //   되는 speedAccuracy 는 false-positive 위험이라 제외.)
+    if (kReleaseMode &&
+        (pos.accuracy <= 0.0 ||
+            pos.accuracy.isNaN ||
+            pos.altitude.isNaN)) {
       if (kDebugMode) {
-        debugPrint('[SecureLocation] iOS heuristic rejected (accuracy=0 + altitude NaN)');
+        debugPrint('[SecureLocation] iOS heuristic rejected '
+            '(accuracy=${pos.accuracy} altitude=${pos.altitude})');
       }
       return false;
     }

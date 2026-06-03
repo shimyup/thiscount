@@ -595,21 +595,32 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     return userLevel;
   }
 
+  /// Build 422 (sim-fresh2 P2): 마지막 레벨업이 5단계 UserLevel 진급이었는지
+  ///   (true) 아니면 XP 1~50 진급만이었는지(false). XP-only 진급에서 5단계
+  ///   welcome 메시지를 띄우면 사용자가 이미 본 메시지가 또 떠 stale → 배너가
+  ///   이 플래그로 구분해 XP 진급엔 XP 레벨 라벨을 보여준다.
+  bool _lastLevelUpWasStage = false;
+  bool get lastLevelUpWasStageChange => _lastLevelUpWasStage;
+
   /// 레벨 변화 감지 — `sendLetter` 성공, 답장 수신, 체크인, 픽업 등 주요 이벤트
   /// 이후 호출. UserLevel (5단계 호환) 또는 XP 레벨 (1~50) 중 어느 쪽이든
   /// 올랐으면 `_justLeveledUp = true`.
   void _detectLevelUp() {
     // 기존 UserLevel 5단계 진급
     final current = userLevel;
+    bool stageUp = false;
     if (_previousUserLevel != null &&
         current.rank > _previousUserLevel!.rank) {
       _justLeveledUp = true;
+      stageUp = true;
     }
     _previousUserLevel = current;
     // XP 기반 1~50 레벨 진급 (Brand 는 currentLevel 이 항상 0 이라 트리거 안 됨)
     final xpLevel = currentLevel;
+    bool xpUp = false;
     if (xpLevel > 0 && xpLevel > _previousXpLevel) {
       _justLeveledUp = true;
+      xpUp = true;
       // Build 120: 마일스톤 레벨(2/5/10/25/50) 도달 시 별도 플래그 — UI 에서
       // 축하 모달 트리거용. 단순 레벨업 배너보다 무거운 축하 모먼트.
       if (_milestoneLevels.contains(xpLevel) &&
@@ -618,6 +629,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       }
     }
     _previousXpLevel = xpLevel;
+    // 이번 호출에서 무엇이 진급했는지 기록 — 5단계 진급이 우선(welcome 메시지가
+    //   더 의미 있음), 둘 다 아니면 직전 값 유지.
+    if (stageUp) {
+      _lastLevelUpWasStage = true;
+    } else if (xpUp) {
+      _lastLevelUpWasStage = false;
+    }
   }
 
   // ── 레벨 마일스톤 축하 (Build 120, Build 126 재분배) ─────────────────────
