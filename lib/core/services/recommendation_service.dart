@@ -1,5 +1,6 @@
 import '../../models/letter.dart';
 import '../../models/user_profile.dart';
+import 'secure_clock.dart';
 
 /// Build 324: AI 추천 정렬 모드의 핵심 scoring 엔진.
 ///
@@ -37,7 +38,7 @@ class RecommendationService {
     Map<String, int> historyByCategory = const {},
     DateTime? now,
   }) {
-    final t = now ?? DateTime.now();
+    final t = now ?? SecureClock.now(); // Build 422: 시계 조작 방어
 
     // Build 324 fix: letter.isExpired/isRedemptionExpired 는 자체 DateTime.now() 를
     //   호출해 score 의 t 와 drift 가능. 여기서는 직접 t 와 비교 — 단일 호출 내
@@ -172,7 +173,7 @@ class RecommendationService {
     required Set<String> followedBrandIds,
     DateTime? now,
   }) {
-    final t = now ?? DateTime.now();
+    final t = now ?? SecureClock.now(); // Build 422: 시계 조작 방어
 
     // 만료된 letter 는 이유 표시 안 함.
     final couponExp = letter.redemptionExpiresAt;
@@ -240,7 +241,7 @@ class RecommendationService {
     required Set<String> followedBrandIds,
     DateTime? now,
   }) {
-    final t = now ?? DateTime.now();
+    final t = now ?? SecureClock.now(); // Build 422: 시계 조작 방어
 
     final couponExp = letter.redemptionExpiresAt;
     final autoExp = letter.expiresAt;
@@ -270,9 +271,12 @@ class RecommendationService {
     }
 
     // 3) 선호 카테고리 매치
-    final tag = letter.categoryTag;
+    // Build 422 (sim-fresh2 P1): score()/topReason() 과 동일하게 명시 선호는
+    //   letter.category.key 와 비교 — 이전엔 categoryTag(content 태그)와 비교해
+    //   영영 불일치 → '+N' 신호 배지가 카테고리 매치를 못 세고, topReason 의
+    //   top-1 차감(matched-1)과도 어긋났음.
     final pref = user.preferredCategoryKey;
-    if (tag != null && pref != null && pref.isNotEmpty && tag == pref) {
+    if (pref != null && pref.isNotEmpty && letter.category.key == pref) {
       matched++;
     }
 

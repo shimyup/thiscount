@@ -4969,6 +4969,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       _weeklyChallengeClaimed = false;
       _sumPickupKm = 0.0;
       _sumSentKm = 0.0;
+      // Build 422 (sim-fresh2 P1/P3): 추가 in-memory 누수 reset —
+      //   admin Event Mode/속도(프리미엄 한도·애니메이션 누수), XP 레벨업 baseline,
+      //   마일스톤 축하 집합, 챌린지 보상 잔량.
+      _adminEventMode = false;
+      _adminSpeedMultiplier = 1.0;
+      _previousXpLevel = 1;
+      _celebratedMilestones.clear();
+      _challengeRewardBalance = 0;
       // Build 415 (sim50 P1): 이전 사용자의 오프라인 업로드 아웃박스도 정리
       //   (그 letter 들은 _sent 와 함께 제거됨).
       _pendingLetterUploadIds.clear();
@@ -8989,6 +8997,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'merchant_interest_city',
         'followingIds',
         'followerIds',
+        // Build 422 (sim-fresh2 P1): 마일스톤 축하 집합 — global 키라 사용자 A 의
+        //   달성 레벨이 B 에게 상속돼 B 가 같은 레벨 축하를 못 받던 누수.
+        'celebratedMilestones',
       ];
       for (final key in userScopedKeys) {
         await prefs.remove(key);
