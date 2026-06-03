@@ -13,13 +13,13 @@
 > (클라우드/원격 스케줄은 불가 — flutter test·git push·TestFlight 빌드가 이 Mac +
 >  Xcode + 서명키를 요구하므로 반드시 **로컬 새 세션**이어야 함.)
 
-## 현재 상태 (2026-06-03 갱신)
+## 현재 상태 (2026-06-04 갱신)
 - 브랜치: `launch-readiness-build411` (PR #150). main 아님.
-- 최신 커밋: `c5e8ea2` (iter5d: 픽업 rollback 캠페인 dedup 복원).
-- 빌드: pubspec `1.0.0+420`. TestFlight **417·418·419·420 업로드됨**(420 = VALID + Internal). **다음 빌드는 421**.
-- 검증 게이트(매 수정 후 필수): `flutter analyze lib/` 무경고 + `flutter test` 전체 통과(현재 **143**).
-- ⚠️ flaky 없음(이전 redemption flaky 는 `58c73e2` 에서 근본 수정).
-- 누적 진행: sim100 배치(`5fb1557`·`b2655ea`) + iter1~5(`988fb1b`·`bee0d10`·`13cd521`·`0adc0d5`·`957a7e6`·`fd21869`·`b9137b5`·`c5e8ea2`) + device(`5552639`) = 23+건 수정.
+- 최신 커밋: `5aecc39` (sim-fresh: 언어 변경 리마인더 재예약).
+- 빌드: pubspec `1.0.0+421`. TestFlight **417~420 업로드됨**. **421 빌드 예정**.
+- 검증 게이트(매 수정 후 필수): `flutter analyze lib/` 무경고 + `flutter test` 전체 통과(현재 **139** — sim-fresh 에서 데드위젯 테스트 4건 제거).
+- ⚠️ flaky 없음.
+- 누적 진행: sim100 + iter1~5 + device + **sim-fresh 라운드(9도메인 워크플로우 → 46 확정 → 37 수정)**.
 
 ## 루프 절차 (매 iteration)
 1. 이 문서의 "남은 백로그"에서 **코드로 안전히 고칠 수 있는** 상위 항목 1~5개 선택.
@@ -95,6 +95,24 @@
 - [x] P2 '안읽음 점프' 인덱스를 표시리스트(뮤트필터+_sortFollowedFirst)와 동일 계산 (inbox_screen.dart:1391)
 - TestFlight Build 418 = VALID + Internal (Delivery c2702f69).
 - 남은 후보: maxRedeems per-device(구조-검토), autozone dedup seen 신호, roi 카드 redeemed>pickup, send_single auto-zone 5자 카피(auto-zone 제거로 무효일수도), i18n 잔여. 코드-fixable 거의 소진 → 다음 새 sim 고려.
+
+## Sim-fresh 라운드 (2026-06-04) — Build 421
+> 9-도메인 워크플로우(dm/notifications/social/settings/progression/map/brand_zone/premium/profile/share) finder→적대검증 → **53 보고 / 46 확정 code-fixable** → **37 수정**.
+- [x] P1 계정전환 in-memory 누수: _pendingDMCount/streak 부속/followingIds reset `d965825`
+- [x] P1/P2 _clearUserScopedPrefs 키 대량 추가(pendingDMCount/tower/preferred/activityScore/notify_*/merchant_interest_*/following·followerIds 등) `d965825`
+- [x] P1 followingIds 영속 (저장/복원) `d965825`
+- [x] P1 로그아웃 시 NotificationService.cancelAll (A 알림 B 디바이스 발화 차단) `d965825`
+- [x] P1 sendDM banned/차단 가드 + followUser 차단/자기자신 가드 `d965825`
+- [x] P1/P2 SecureClock: 이미지한도/trial expiry/닉네임 쿨다운/빌링 fallback `340cc21`
+- [x] P1 auto-zone 발송 쿼터 게이트 + Hunt wallet brand-scoped + XP km 백필 4/6 `4c01374`
+- [x] P2 나침반 _isLetterConsumed + journey 합집합 + DM 텍스트보존/정렬 + 공유 grapheme `4c01374`
+- [x] P2 설정 일일알림 권한반영 + zone seen-without-letter(bool 콜백) + DM 자동응답 배지 `aae5e35`
+- [x] P3 월드뷰 마커 hasPickedUpCampaign + localizedPriceFor 빈문자 + 데드마커2 삭제 `aae5e35`
+- [x] P1 XP 레벨 라벨 영어 매핑 + 지도 brand 배너 i18n `3246379`
+- [x] P1/P2/P3 i18n 하드코딩(공유헤더/프로필카드/카테고리칩/tower편집) + 독·러 문법 `47eb8ff`
+- [x] P3 약관링크 언어기준 + 알림 데드코드 + digest 문서정합 `07119ea`
+- [x] P3 언어 변경 시 일일 리마인더 재예약 `5aecc39`
+- **미적용(보류, 사유 기재)**: #3 timezone IANA(플러그인 의존 — flutter_timezone 추가 필요) / #16 followers 탭 항상 0(백엔드 follow-graph 부재 = 제품결정) / #17 sendExpressLetter ~80줄 데드(기능배선 vs 삭제 결정) / #21 languageCode 서버 미저장(rules 화이트리스트 미포함 → PATCH 403 위험 = 룰 동반) / #23 city-of-month 한국어(데이터모델 14언어화 大) / #29 베타확인 koEn(이미 영어 노출).
 
 ## Iteration 5 (2026-06-03) — Build 420
 - [x] P2 인박스 '사용 완료' 가 만료쿠폰/general 정보성 letter 에도 markLetterRedeemed → 브랜드 redeemedCount 오염: UI 만료차단 스낵바 + general 서버 증분 제외 (inbox_screen / app_state markLetterRedeemed) `957a7e6`
