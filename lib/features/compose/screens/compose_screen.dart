@@ -1438,6 +1438,15 @@ class _ComposeScreenState extends State<ComposeScreen>
       _showError(l10n.composeBannedAccount);
       return;
     }
+    // Build 422 (sim-fresh2 P1): 이미지/바우처 업로드·압축 진행 중 발송 차단 —
+    //   canSend 게이트 외 최종 안전망. 로컬 경로가 발송되는 것을 막는다.
+    if (_isUploadingVoucher || _isCompressingImage) {
+      _showError(l10n.koEn(
+        '이미지 업로드가 끝날 때까지 기다려 주세요',
+        'Please wait for the image upload to finish',
+      ));
+      return;
+    }
     // Build 321: Brand + 자동 zone 모드 → createZone 분기.
     // 별도 화면 (BrandZoneSetupScreen) 으로 분리됐던 흐름을 compose 통합.
     if (_isAutoZoneMode && state.currentUser.isBrand) {
@@ -4378,10 +4387,15 @@ class _ComposeScreenState extends State<ComposeScreen>
       if (!mounted) return;
       setState(() {
         _isUploadingVoucher = false;
-        if (url != null) {
+        // Build 422 (sim-fresh2 P1): 업로드 완료 시점에 사용자가 이미지를 제거/교체
+        //   했으면 (로컬 경로 불일치) URL 을 되살리지 않음 — 제거한 바우처 URL 이
+        //   redemptionInfo 로 부활하던 race 차단.
+        if (url != null && _voucherImageLocalPath == compressedPath) {
           // HTTPS URL 로 교체 — 미리보기는 여전히 로컬 경로에서 그려
           // (네트워크 왕복 생략). 발송 시점엔 redemptionInfo=URL.
           _redemptionInfoController.text = url;
+        } else if (url != null) {
+          // 업로드는 성공했지만 이미 제거/교체됨 — 무시(되살리지 않음).
         } else {
           // Build 414 (sim100 #12): 업로드 실패 시에도 로컬 경로 저장 차단.
           _voucherImageLocalPath = null;
@@ -7082,8 +7096,14 @@ class _ComposeScreenState extends State<ComposeScreen>
     // Build 409 (sim P1.8): 일간뿐 아니라 월간 한도까지 본 canSendByQuota 사용.
     //   이전엔 hasRemainingDailyQuota 만 봐서 월간 소진 시 버튼 활성 → 발송
     //   실패 friction.
-    final canSend =
-        !_isSending && _charCount >= minChars && state.canSendByQuota;
+    // Build 422 (sim-fresh2 P1): 이미지/바우처 업로드·압축 중에는 발송 차단 —
+    //   이전엔 in-flight 중 로컬 /data 경로가 redemptionInfo/imageUrl 로 발송될 수
+    //   있었음(HTTPS URL 은 업로드 완료 후 swap).
+    final canSend = !_isSending &&
+        !_isUploadingVoucher &&
+        !_isCompressingImage &&
+        _charCount >= minChars &&
+        state.canSendByQuota;
     final expressQuotaSuffix =
         (!_isReply &&
             _isExpressMode &&

@@ -313,8 +313,12 @@ class GeocodingService {
       await Future.delayed(const Duration(seconds: 1));
       final addr = await _reverseRequest(lat, lng, languageCode: languageCode);
       final result = addr != null ? _buildDisplayAddress(addr) : null;
-      _evictDisplayIfNeeded();
-      _displayCache[key] = result;
+      // Build 422 (sim-fresh2 P1): 일시적 네트워크 실패(null)를 캐시에 박지 않음 —
+      //   이전엔 null 을 캐싱해 이후 호출이 영구히 빈 주소를 반환했음(1차와 통일).
+      if (result != null) {
+        _evictDisplayIfNeeded();
+        _displayCache[key] = result;
+      }
       return result;
     } catch (_) {
       return null;

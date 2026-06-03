@@ -1186,8 +1186,13 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     double lat,
     double lng,
   ) {
+    // Build 422 (sim-fresh2 P1): GPS 미설정(0,0) 사용자는 '내 타워' 매칭 불가 —
+    //   (0,0) 근처 타인 클러스터를 내 것으로 오인해 타인 정보 화면이 뜨던 문제.
+    if (lat == 0 && lng == 0) return null;
     List<MapUser>? best;
-    double bestDist = 0.05 * 0.05; // 최대 5km
+    // Build 422 (sim-fresh2 P1): 5.5km → ~500m 로 좁힘 — 이전엔 5km 내 아무 타인
+    //   클러스터나 '내 타워' 탭으로 가로채 본인 정보 화면 도달 불가/타인 노출.
+    double bestDist = 0.005 * 0.005; // 최대 ~500m
     for (final cluster in clusters) {
       for (final u in cluster) {
         final dLat = u.lat - lat;
