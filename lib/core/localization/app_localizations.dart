@@ -10391,20 +10391,20 @@ class AppL10n {
 
   // Build 150: Premium Gate 가격 카드 안심 문구.
   String get premiumGateAssurance => _t({
-    'ko': '언제든 해지 · 광고 없음',
-    'en': 'Cancel anytime · No ads',
-    'ja': 'いつでも解約可能 · 広告なし',
-    'zh': '随时取消 · 无广告',
-    'fr': 'Annulation à tout moment · Sans pub',
-    'de': 'Jederzeit kündbar · Keine Werbung',
-    'es': 'Cancela cuando quieras · Sin anuncios',
-    'pt': 'Cancela quando quiseres · Sem anúncios',
-    'ru': 'Отмена в любое время · Без рекламы',
-    'tr': 'İstediğin zaman iptal · Reklamsız',
-    'ar': 'إلغاء في أي وقت · بدون إعلانات',
-    'it': 'Cancella quando vuoi · Senza pubblicità',
-    'hi': 'कभी भी रद्द · बिना विज्ञापन',
-    'th': 'ยกเลิกเมื่อใดก็ได้ · ไม่มีโฆษณา',
+    'ko': '3일 무료 체험 · 언제든 해지',
+    'en': '3-day free trial · cancel anytime',
+    'ja': '3日間無料体験 · いつでも解約',
+    'zh': '3天免费试用 · 随时取消',
+    'fr': 'Essai gratuit 3 jours · annulation à tout moment',
+    'de': '3 Tage gratis · jederzeit kündbar',
+    'es': 'Prueba gratis 3 días · cancela cuando quieras',
+    'pt': 'Teste grátis 3 dias · cancela quando quiseres',
+    'ru': '3 дня бесплатно · отмена в любое время',
+    'tr': '3 gün ücretsiz · istediğin zaman iptal',
+    'ar': 'تجربة مجانية 3 أيام · إلغاء في أي وقت',
+    'it': 'Prova gratis 3 giorni · disdici quando vuoi',
+    'hi': '3-दिन मुफ़्त ट्रायल · कभी भी रद्द',
+    'th': 'ทดลองฟรี 3 วัน · ยกเลิกได้ทุกเมื่อ',
   });
 
   String get premiumGatePriceLabel => _t({
@@ -16007,20 +16007,20 @@ class AppL10n {
   // Build 415 (런타임 점검 #1): 조작 카운터(premiumSocialProof) 대체 — 사실
   //   기반 신뢰 문구. 숫자/통계 주장 없음 → 허위·과장 표시 리스크 제거.
   String get premiumTrustLine => _t({
-    'ko': '3일 무료 체험 · 언제든 해지 · 광고 없음',
-    'en': '3-day free trial · cancel anytime · no ads',
-    'ja': '3日間無料体験 · いつでも解約 · 広告なし',
-    'zh': '3天免费试用 · 随时取消 · 无广告',
-    'fr': "Essai gratuit 3 jours · annulez à tout moment · sans pub",
-    'de': '3 Tage gratis · jederzeit kündbar · werbefrei',
-    'es': 'Prueba gratis 3 días · cancela cuando quieras · sin anuncios',
-    'pt': 'Teste grátis 3 dias · cancele quando quiser · sem anúncios',
-    'ru': '3 дня бесплатно · отмена в любой момент · без рекламы',
-    'tr': '3 gün ücretsiz · istediğin zaman iptal · reklamsız',
-    'ar': 'تجربة مجانية 3 أيام · إلغاء في أي وقت · بدون إعلانات',
-    'it': 'Prova gratis 3 giorni · disdici quando vuoi · senza pubblicità',
-    'hi': '3-दिन मुफ़्त ट्रायल · कभी भी रद्द करें · कोई विज्ञापन नहीं',
-    'th': 'ทดลองฟรี 3 วัน · ยกเลิกได้ทุกเมื่อ · ไม่มีโฆษณา',
+    'ko': '3일 무료 체험 · 언제든 해지',
+    'en': '3-day free trial · cancel anytime',
+    'ja': '3日間無料体験 · いつでも解約',
+    'zh': '3天免费试用 · 随时取消',
+    'fr': "Essai gratuit 3 jours · annulez à tout moment",
+    'de': '3 Tage gratis · jederzeit kündbar',
+    'es': 'Prueba gratis 3 días · cancela cuando quieras',
+    'pt': 'Teste grátis 3 dias · cancele quando quiser',
+    'ru': '3 дня бесплатно · отмена в любой момент',
+    'tr': '3 gün ücretsiz · istediğin zaman iptal',
+    'ar': 'تجربة مجانية 3 أيام · إلغاء في أي وقت',
+    'it': 'Prova gratis 3 giorni · disdici quando vuoi',
+    'hi': '3-दिन मुफ़्त ट्रायल · कभी भी रद्द करें',
+    'th': 'ทดลองฟรี 3 วัน · ยกเลิกได้ทุกเมื่อ',
   });
 
   // Build 415 (런타임 점검 #2): RC 현지화 가격 + 기간 접미사 결합. RC priceString
@@ -17136,20 +17136,20 @@ class AppL10n {
   });
 
   String get onboardingPremiumFeat4 => _t({
-    'ko': '특급 배송 3통/일 · 광고 제거',
-    'en': '3 express deliveries/day · ad-free',
-    'ja': '特急配送 3/日 · 広告なし',
-    'zh': '特快配送 3/日 · 无广告',
-    'fr': '3 livraisons express/jour · sans pub',
-    'de': '3 Express-Lieferungen/Tag · werbefrei',
-    'es': '3 entregas exprés/día · sin anuncios',
-    'pt': '3 entregas expressas/dia · sem anúncios',
-    'ru': '3 экспресса/день · без рекламы',
-    'tr': '3 ekspres/gün · reklamsız',
-    'ar': '3 توصيلات سريعة/يوم · بدون إعلانات',
-    'it': '3 espressi/giorno · senza pubblicità',
-    'hi': '3 एक्सप्रेस/दिन · बिना विज्ञापन',
-    'th': 'ด่วน 3/วัน · ไม่มีโฆษณา',
+    'ko': '특급 배송 3통/일 · 캐릭터 커스터마이즈',
+    'en': '3 express deliveries/day · character customize',
+    'ja': '特急配送 3/日 · キャラカスタム',
+    'zh': '特快配送 3/日 · 角色定制',
+    'fr': '3 livraisons express/jour · personnalisation du Letter',
+    'de': '3 Express-Lieferungen/Tag · Letter anpassen',
+    'es': '3 entregas exprés/día · personaliza tu Letter',
+    'pt': '3 entregas expressas/dia · personaliza o teu Letter',
+    'ru': '3 экспресса/день · кастомизация Letter',
+    'tr': '3 ekspres/gün · Letter özelleştirme',
+    'ar': '3 توصيلات سريعة/يوم · تخصيص شخصية Letter',
+    'it': '3 espressi/giorno · personalizza la ricompensa',
+    'hi': '3 एक्सप्रेस/दिन · Letter कस्टमाइज़',
+    'th': 'ด่วน 3/วัน · ปรับแต่ง Letter',
   });
 
   // ── 사용법 (Build 257: 온보딩 Premium 페이지의 "하루 타임라인" 대체) ─────

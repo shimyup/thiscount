@@ -2237,20 +2237,25 @@ class _ComposeScreenState extends State<ComposeScreen>
                             if (!_isReply) _buildBrandCategoryPanel(state),
                             if (!_isReply) const SizedBox(height: 8),
 
-                            // ── 대량 발송 (Brand) ──
-                            // Build 204: 활성 모드 배너 제거 — 토글 자체에 ON/OFF
-                            // 가 명확히 표시되어 두 곳에서 끄기 버튼이 중복.
-                            if (!_isReply && isBrand) ...[
-                              _buildBulkModeToggle(),
+                            // ── 발송 모드 (대량 발송 / 특급 배송) ──
+                            // Build 425 (device 보고 #2): 대량·특급 토글을 brand
+                            //   옵션 pill 과 동일 스타일로 Wrap 배치해 한눈에 통일.
+                            //   대량은 Brand 만, 특급은 모든 비-답장(Free=잠금 업셀).
+                            if (!_isReply) ...[
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  if (isBrand) _buildBulkModeToggle(),
+                                  _buildExpressToggle(state, hasPremium),
+                                ],
+                              ),
                               const SizedBox(height: 8),
-                              if (_isBulkMode) ...[
+                              if (isBrand && _isBulkMode) ...[
                                 _buildBulkSendPanel(state),
                                 const SizedBox(height: 8),
                               ],
                             ],
-                            // ── 특급 배송 — 대량 밑 ──
-                            if (!_isReply) _buildExpressToggle(state, hasPremium),
-                            if (!_isReply) const SizedBox(height: 8),
 
                             // ── 더 많은 옵션 (접히는 섹션) — 편지지 위쪽 ──
                             // Build 238: Premium(비-Brand)는 홍보 배지 카드 CTA 의
@@ -3402,149 +3407,59 @@ class _ComposeScreenState extends State<ComposeScreen>
   Widget _buildExpressToggle(AppState state, bool hasPremium) {
     final l10n = AppL10n.of(state.currentUser.languageCode);
     if (hasPremium) {
-      // Build 189.1: 특급 한도 0 일 때 토글 비활성 시각 상태 (Premium only).
-      // 이전엔 토글이 켜져 보이나 탭하면 에러 뜨고 원복 — 사용자에게 이유 불명확.
-      final expressExhausted = !state.currentUser.isBrand &&
+      final isBrand = state.currentUser.isBrand;
+      // Build 189.1: 특급 한도 0 일 때 비활성 시각 상태(opacity)로 표현.
+      final expressExhausted = !isBrand &&
           state.remainingPremiumExpressCount == 0 &&
           !_isExpressMode;
-      return GestureDetector(
+      final label = isBrand
+          ? (_isExpressMode
+              ? l10n.composeBrandExpressOn
+              : l10n.composeBrandExpress)
+          : (_isExpressMode
+              ? l10n.composePremiumExpressOn(
+                  state.todayPremiumExpressSentCount,
+                  state.premiumExpressDailyLimit,
+                )
+              : l10n.composePremiumExpress(state.premiumExpressDailyLimit));
+      return _modeToggleButton(
+        active: _isExpressMode,
+        emoji: '⚡',
+        label: label,
+        activeColor: AppColors.gold,
+        opacity: expressExhausted ? 0.55 : 1.0,
         onTap: () {
-          final canEnable =
-              state.currentUser.isBrand || state.canUsePremiumExpress;
+          if (expressExhausted) {
+            _showError(state.premiumExpressLimitExceededMessage);
+            return;
+          }
+          final canEnable = isBrand || state.canUsePremiumExpress;
           if (!canEnable && !_isExpressMode) {
             _showError(state.premiumExpressLimitExceededMessage);
             return;
           }
           setState(() => _isExpressMode = !_isExpressMode);
         },
-        child: Opacity(
-          opacity: expressExhausted ? 0.55 : 1.0,
-          child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: _isExpressMode
-                ? AppColors.gold.withValues(alpha: 0.12)
-                : AppColors.bgSurface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: _isExpressMode
-                  ? AppColors.gold.withValues(alpha: 0.65)
-                  : AppColors.textMuted.withValues(alpha: 0.24),
-              width: _isExpressMode ? 1.4 : 1.0,
-            ),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.bolt_rounded,
-                size: 18,
-                color: _isExpressMode ? AppColors.gold : AppColors.textMuted,
-              ),
-              const SizedBox(width: 8),
-              // Build 186: Premium 유저가 오늘 특급 배송을 모두 쓰면 "내일 00:00
-              // 리필" 보조 라인으로 리셋 시각을 명시. 기존엔 "X/3" 만 보여서
-              // "언제 리필?" 혼선.
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      state.currentUser.isBrand
-                          ? (_isExpressMode
-                                ? '⚡ ${l10n.composeBrandExpressOn}'
-                                : '⚡ ${l10n.composeBrandExpress}')
-                          : (_isExpressMode
-                                ? '⚡ ${l10n.composePremiumExpressOn(state.todayPremiumExpressSentCount, state.premiumExpressDailyLimit)}'
-                                : '⚡ ${l10n.composePremiumExpress(state.premiumExpressDailyLimit)}'),
-                      style: TextStyle(
-                        color: _isExpressMode
-                            ? AppColors.gold
-                            : AppColors.textSecondary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    if (!state.currentUser.isBrand &&
-                        state.remainingPremiumExpressCount == 0) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        l10n.composePremiumExpressResetAt,
-                        style: TextStyle(
-                          color: AppColors.textMuted,
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              Switch(
-                value: _isExpressMode,
-                onChanged: expressExhausted
-                    ? null
-                    : (v) {
-                        final canEnable = state.currentUser.isBrand ||
-                            state.canUsePremiumExpress;
-                        if (v && !canEnable) {
-                          _showError(state.premiumExpressLimitExceededMessage);
-                          return;
-                        }
-                        setState(() => _isExpressMode = v);
-                      },
-                activeColor: AppColors.gold,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-            ],
-          ),
-        ),
-        ),
       );
     }
-    return GestureDetector(
+    // Free — 잠금 업셀 pill (탭 시 페이월).
+    return _modeToggleButton(
+      active: false,
+      emoji: '⚡',
+      label: l10n.composeExpressLocked,
+      activeColor: AppColors.gold,
       onTap: () => PremiumGateSheet.show(
         context,
         featureName: '⚡ ${l10n.composeExpressDelivery}',
         featureEmoji: '⚡',
         description: l10n.composeExpressDeliveryDesc,
       ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: AppColors.bgSurface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: AppColors.textMuted.withValues(alpha: 0.24),
-          ),
-        ),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.lock_rounded,
-              size: 16,
-              color: AppColors.textMuted,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                '⚡ ${l10n.composeExpressLocked}',
-                style: const TextStyle(
-                  color: AppColors.textMuted,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const Text(
-              '👑 PRO',
-              style: TextStyle(
-                color: AppColors.gold,
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ],
+      trailing: const Text(
+        '👑 PRO',
+        style: TextStyle(
+          color: AppColors.gold,
+          fontSize: 10,
+          fontWeight: FontWeight.w800,
         ),
       ),
     );
@@ -5686,14 +5601,82 @@ class _ComposeScreenState extends State<ComposeScreen>
     );
   }
 
+  // Build 425 (device 보고 #2): 대량발송·특급배송 토글을 브랜드 옵션 pill 과
+  //   동일한 시각 언어로 통일. 이전엔 full-width Switch 행이라 brand 3종 토글
+  //   (1인1회·답장·코드발급) pill 과 따로 놀았다. emoji + 라벨 + 활성 체크로
+  //   Wrap 배치해 "한눈에" 구성. activeColor 로 bulk(coupon/gold)·express(gold)
+  //   를 구분.
+  Widget _modeToggleButton({
+    required bool active,
+    required String emoji,
+    required String label,
+    required Color activeColor,
+    required VoidCallback onTap,
+    double opacity = 1.0,
+    Widget? trailing,
+  }) {
+    return Opacity(
+      opacity: opacity,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+          decoration: BoxDecoration(
+            color: active
+                ? activeColor.withValues(alpha: 0.16)
+                : AppColors.bgSurface,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: active
+                  ? activeColor.withValues(alpha: 0.7)
+                  : AppColors.textMuted.withValues(alpha: 0.18),
+              width: active ? 1.4 : 1.0,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(emoji, style: const TextStyle(fontSize: 13)),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: active ? activeColor : AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              trailing ??
+                  Icon(
+                    active
+                        ? Icons.check_circle_rounded
+                        : Icons.circle_outlined,
+                    size: 15,
+                    color: active ? activeColor : AppColors.textMuted,
+                  ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   // ── 브랜드 대량 발송 토글 ────────────────────────────────────────────────
   Widget _buildBulkModeToggle() {
     final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
-    // 특송 ON이면 gold, 대량만 ON이면 orange, OFF면 기본
+    // 특송+대량 동시 ON 이면 gold, 대량만 ON 이면 coupon.
     final activeColor = (_isBulkMode && _isExpressMode)
         ? AppColors.gold
         : AppColors.coupon;
-    return GestureDetector(
+    return _modeToggleButton(
+      active: _isBulkMode,
+      emoji: '🌍',
+      label: _isBulkMode ? l10n.composeBulkOn : l10n.composeBulkBrandOnly,
+      activeColor: activeColor,
       onTap: () => setState(() {
         _isBulkMode = !_isBulkMode;
         if (!_isBulkMode) {
@@ -5701,80 +5684,6 @@ class _ComposeScreenState extends State<ComposeScreen>
           _isExpressMode = false;
         }
       }),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: _isBulkMode
-              ? activeColor.withValues(alpha: 0.12)
-              : AppColors.bgCard,
-          borderRadius: BorderRadius.circular(13),
-          border: Border.all(
-            color: _isBulkMode
-                ? activeColor.withValues(alpha: 0.5)
-                : AppColors.textMuted.withValues(alpha: 0.2),
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              _isBulkMode ? Icons.public_rounded : Icons.public_off_rounded,
-              color: _isBulkMode ? activeColor : AppColors.textMuted,
-              size: 18,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Row(
-                children: [
-                  Text(
-                    _isBulkMode ? '🌍 ${l10n.composeBulkOn}' : '🌍 ${l10n.composeBulkBrandOnly}',
-                    style: TextStyle(
-                      color: _isBulkMode ? activeColor : AppColors.textMuted,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  if (_isBulkMode && _isExpressMode) ...[
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.gold.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(
-                          color: AppColors.gold.withValues(alpha: 0.6),
-                        ),
-                      ),
-                      child: Text(
-                        '⚡ ${l10n.composeWithin5Min}',
-                        style: TextStyle(
-                          color: AppColors.gold,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            Switch(
-              value: _isBulkMode,
-              onChanged: (v) => setState(() {
-                _isBulkMode = v;
-                if (!v) {
-                  _bulkTargets.clear();
-                  _isExpressMode = false;
-                }
-              }),
-              activeColor: activeColor,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -7210,22 +7119,41 @@ class _ComposeScreenState extends State<ComposeScreen>
             height: 54,
             child: ElevatedButton(
               onPressed: canSend ? () => _onSend(state) : null,
+              // Build 425 (device 보고 #3): 활성/비활성 시각 구분 강화.
+              //   이전엔 onPressed==null 일 때 Flutter 가 backgroundColor 대신
+              //   테마 기본 disabled 색(흐린 회색)을 써서 의도한 muted 색이 적용
+              //   안 됐다 → 활성/비활성 구분이 약함. disabled* 색을 명시 + 비활성
+              //   외곽선 + 활성 그림자(elevation)로 또렷하게.
               style: ElevatedButton.styleFrom(
-                backgroundColor: canSend ? AppColors.gold : AppColors.bgSurface,
-                foregroundColor: canSend
-                    ? AppColors.bgDeep
-                    : AppColors.textMuted,
+                backgroundColor: AppColors.gold,
+                foregroundColor: AppColors.bgDeep,
+                disabledBackgroundColor: AppColors.bgSurface.withValues(
+                  alpha: 0.55,
+                ),
+                disabledForegroundColor: AppColors.textMuted.withValues(
+                  alpha: 0.7,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
+                  side: canSend
+                      ? BorderSide.none
+                      : BorderSide(
+                          color: AppColors.textMuted.withValues(alpha: 0.3),
+                          width: 1.2,
+                        ),
                 ),
-                elevation: 0,
+                elevation: canSend ? 3 : 0,
+                shadowColor: AppColors.gold.withValues(alpha: 0.5),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    _isReply ? '💌' : '✈️',
-                    style: const TextStyle(fontSize: 20),
+                  Opacity(
+                    opacity: canSend ? 1.0 : 0.45,
+                    child: Text(
+                      _isReply ? '💌' : '✈️',
+                      style: const TextStyle(fontSize: 20),
+                    ),
                   ),
                   const SizedBox(width: 10),
                   Text(

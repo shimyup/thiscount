@@ -295,7 +295,7 @@ class V5PremiumScreen extends StatelessWidget {
             ),
           ),
           Text(
-            '광고 없음',
+            '3일 무료 체험',
             style: V5Text.meta.copyWith(
               color: V5Colors.tx3,
               fontSize: 12,

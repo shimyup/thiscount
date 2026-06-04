@@ -168,7 +168,7 @@ class PremiumGateSheet extends StatelessWidget {
 
           // Build 150: 가격 카드 전면 개편 — 두 줄 구성으로 가치 제안 명확화.
           // 1) 큰 글씨 가격 ("₩4,900 / 월")
-          // 2) 안심 문구 ("언제든 해지 · 광고 없음")
+          // 2) 안심 문구 ("3일 무료 체험 · 언제든 해지")
           // 기존 작은 뱃지는 한 줄이라 눈에 잘 안 띈다는 페르소나 4 지적 반영.
           Container(
             width: double.infinity,
