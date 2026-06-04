@@ -163,3 +163,21 @@
 - [x] 비-지도 탭에서 지도 96px peek 노출 제거 → 탭 콘텐츠 전체화면 (main_scaffold.dart:304, _kMapPeek 제거)
 - [x] 작성 메세지 '버리기' 후 재출현 — _saveDraft hasState 가 기본 선택국가만으로 brand draft 저장 → 빈 메세지도 '이어쓰기' 무한 재출현. hasState 를 닫기확인 hasContent 기준(대량/특송/타깃/특정국가/혜택정보)으로 정정 (compose_screen.dart:693)
 - Build 419 빌드.
+
+## 🔴 사용자 device 보고 추가 (2026-06-03, 최우선 — 다음 iteration 먼저 처리)
+> Build 419 실기기 확인 후 보고된 3건. 코드-fixable. ⛔ 영역 아님.
+
+1. **[device] 프리미엄 '홍보 메세지 안 보냄' 문구 — 온보딩 + 회원 설명에서 수정/삭제**
+   - 증상: "프리미엄은 홍보 메세지 안 보내는" 식의 등급 제한 문구가 온보딩과 회원(등급) 설명에 남아 일관성 깨짐. (Free=줍기 / Premium·Brand=홍보·발송 가능 으로 통일돼야 함)
+   - 위치 후보: `lib/features/onboarding/onboarding_screen.dart` 티어 소개 페이지(_PremiumPage / 티어 비교) + `app_localizations.dart` onboardingPremium*/티어설명 문자열(~1172 주석 'Free 는 줍기, Premium 은 홍보, Brand 는 캠페인') + `profile_screen.dart`/`settings_screen.dart` 회원종류 설명.
+   - 할 일: `grep -rn "프리미엄\|Premium\|홍보" lib/features/onboarding lib/features/profile lib/features/settings` 로 정확한 문구 특정 → 등급 차별 framing 제거/통일. 14언어 동기 수정.
+
+2. **[device] 브랜드 메세지 작성 — 대량발송/특급배송 버튼화 (안 바뀜)**
+   - 증상: 이전 buttonize 는 brand 3종 토글(1인1회·답장·코드발급)만 적용됐고, **대량발송(_isBulkMode)·특급배송(express)** 토글은 여전히 옛 switch/row 형식.
+   - 위치: `compose_screen.dart` `_buildBulkModeToggle()` (~grep) + 특급/express 토글 빌더.
+   - 할 일: `_optionToggleButton` 동일 스타일 pill 버튼으로 변경 + Wrap 으로 한눈에. brand 옵션 영역과 시각 통일.
+
+3. **[device] 버튼 활성/비활성 구분 UI/UX (안 바뀜)**
+   - 증상: 발송 버튼/토글의 활성·비활성 시각 구분이 약해 실기기에서 구분 안 됨.
+   - 위치: `compose_screen.dart` `_buildSendButton()` (canSend 분기) + 토글 active/inactive 색.
+   - 할 일: 비활성 = 명확히 다른 색/투명도/외곽선(예: muted bg + 회색 텍스트), 활성 = gold/teal 강조. 발송 가능/불가가 또렷하게.
