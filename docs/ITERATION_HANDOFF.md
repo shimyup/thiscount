@@ -17,7 +17,7 @@
 - 브랜치: `launch-readiness-build411` (PR #150). main 아님.
 - 최신 커밋: `c845eac` (UX 개선 스윕: DM 탭 발견성 + UI 대비 + draft 검증 + 데드코드).
 - 백업 태그: `v427-pre-ux-overhaul` (`98a0716`, origin). 되돌리기 `git reset --hard v427-pre-ux-overhaul`.
-- 빌드: pubspec `1.0.0+427`. TestFlight **417~427 업로드됨**(427=VALID+Internal, Delivery `5515c465-3346-498f-aedc-20af35fb68f7`). 다음 빌드 428.
+- 빌드: pubspec `1.0.0+428`. TestFlight **417~428 업로드됨**(428=VALID+Internal, Delivery `06310a94-7257-4e57-9e08-8fe518fc38ef`). 다음 빌드 429.
 - 검증 게이트(매 수정 후 필수): `flutter analyze lib/` 무경고 + `flutter test` 전체 통과(현재 **139**).
 - ⚠️ flaky 없음.
 - 누적 진행: sim100 + iter1~5 + device + sim-fresh + sim-fresh2 + sim-crosscut + **WCAG 라운드(접근성 백로그)**.
