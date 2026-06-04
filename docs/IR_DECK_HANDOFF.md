@@ -9,7 +9,11 @@
 
 ## 현재 상태 (2026-06-04)
 - ✅ IR 슬라이드 콘텐츠 완성: **`docs/IR_DECK_CONTENT.md`** (한국어, 15장, 슬라이드별 스크립트 + 톤/디자인 가이드 + 클로드 챗 프롬프트)
-- ⏳ 아직 **실제 `.pptx` 파일은 미생성** — 콘텐츠(텍스트)만 준비됨
+- ✅ **실제 `.pptx` 생성 완료**: **`docs/Thiscount_IR_Deck_KO.pptx`** (16:9, 15장, 딥블랙+라임그린+골드 다크 테마, 한국어)
+  - 생성 스크립트: `docs/ir_deck_build/build_deck.js` (pptxgenjs + react-icons). 수정 시 `NODE_PATH="$(npm root -g)" node build_deck.js` 로 재생성.
+  - 플레이스홀더(`[투자금액]`·`[팀]`·`[시장규모]`·[베타지표])는 **대괄호 그대로 유지** (사용자 요청). 슬라이드 8/11/14 에 위치.
+  - 폰트: Apple SD Gothic Neo (macOS 네이티브). 시각 QA 통과 (카드 클리핑/제목 em-dash 미렌더/캡션 italic 스크립트폰트 3건 수정 완료).
+- ⏳ 미진행: 플레이스홀더 실데이터 교체 · 영문(EN) 버전 · 3분 피치 스크립트
 - 앱 정체성: **Thiscount** — 위치기반 발견형 쿠폰 플랫폼("포켓몬 고 × 쿠폰"), Flutter, Firebase/RevenueCat/Gemini AI, 14개 언어, 출시 전 TestFlight 베타(Build 424)
 
 ## 다음 작업 후보 (사용자가 고르면 진행)

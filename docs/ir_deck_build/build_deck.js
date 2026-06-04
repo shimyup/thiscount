@@ -190,7 +190,7 @@ async function main() {
       { text: "“노출”은 팔지만 ", options: { color: MUTED } },
       { text: "“방문”은 못 파는", options: { color: GOLD, bold: true } },
       { text: " 광고 시장", options: { color: MUTED } },
-    ], { x: 0.55, y: 6.35, w: 12.25, h: 0.4, fontFace: BODY, fontSize: 15, italic: true, align: "center", margin: 0 });
+    ], { x: 0.55, y: 6.35, w: 12.25, h: 0.4, fontFace: BODY, fontSize: 15, align: "center", margin: 0 });
     pageFoot(s, 3);
   }
 
@@ -220,7 +220,7 @@ async function main() {
       s.addText(c.t, { x: x + 0.35, y: cy + 1.6, w: cw - 0.7, h: 0.5, fontFace: HEAD, fontSize: 24, color: WHITE, bold: true, align: "left", margin: 0 });
       s.addText(c.d, { x: x + 0.35, y: cy + 2.2, w: cw - 0.7, h: 1.1, fontFace: BODY, fontSize: 14, color: MUTED, align: "left", valign: "top", margin: 0 });
     });
-    s.addText("광고비를 “방문 · 사용”이라는 결과로 전환", { x: 0.55, y: 6.3, w: 12.25, h: 0.4, fontFace: BODY, fontSize: 15, italic: true, color: LIME, align: "center", margin: 0 });
+    s.addText("광고비를 “방문 · 사용”이라는 결과로 전환", { x: 0.55, y: 6.3, w: 12.25, h: 0.4, fontFace: BODY, fontSize: 15, color: LIME, align: "center", margin: 0 });
     pageFoot(s, 4);
   }
 
@@ -237,7 +237,7 @@ async function main() {
       { n: "2", ic: ic.hand, t: "사용자 픽업", d: "지도에서 발견 →\n200m 안으로 걸어가 픽업" },
       { n: "3", ic: ic.ticket, t: "매장 사용", d: "코드 제시 → 사용 →\n브랜드 ROI에 집계" },
     ];
-    const cw = 3.7, gap = 0.85, x0 = 0.75, cy = 2.75, ch = 3.1;
+    const cw = 3.6, gap = 0.7, x0 = 0.55, cy = 2.75, ch = 3.1;
     steps.forEach((st, i) => {
       const x = x0 + i * (cw + gap);
       card(s, x, cy, cw, ch);
@@ -251,7 +251,7 @@ async function main() {
         s.addText("›", { x: x + cw + 0.05, y: cy + 0.9, w: gap - 0.1, h: 0.9, fontFace: HEAD, fontSize: 40, color: LIME, bold: true, align: "center", valign: "middle", margin: 0 });
       }
     });
-    s.addText("발송 → 픽업 → 사용까지 끊김 없는 단일 흐름", { x: 0.55, y: 6.35, w: 12.25, h: 0.4, fontFace: BODY, fontSize: 15, italic: true, color: MUTED, align: "center", margin: 0 });
+    s.addText("발송 → 픽업 → 사용까지 끊김 없는 단일 흐름", { x: 0.55, y: 6.35, w: 12.25, h: 0.4, fontFace: BODY, fontSize: 15, color: MUTED, align: "center", margin: 0 });
     pageFoot(s, 5);
   }
 
@@ -311,7 +311,7 @@ async function main() {
     s.addText([
       { text: "데이터가 쌓일수록 추천·매칭 정확도 강화 — ", options: { color: MUTED } },
       { text: "네트워크 효과", options: { color: LIME, bold: true } },
-    ], { x: 0.55, y: 6.5, w: 12.25, h: 0.35, fontFace: BODY, fontSize: 14, italic: true, align: "center", margin: 0 });
+    ], { x: 0.55, y: 6.5, w: 12.25, h: 0.35, fontFace: BODY, fontSize: 14, align: "center", margin: 0 });
     pageFoot(s, 7);
   }
 
@@ -350,7 +350,7 @@ async function main() {
       s.addText(d.v, { x: 7.95, y: y + 0.62, w: 4.7, h: 0.35, fontFace: BODY, fontSize: 12, color: GOLD, bold: true, align: "left", margin: 0 });
       y += 1.2;
     });
-    s.addText("시장 규모는 출처 있는 수치로 교체 예정 (현재 플레이스홀더)", { x: 6.6, y: 6.45, w: 6.2, h: 0.3, fontFace: BODY, fontSize: 11, italic: true, color: MUTED, align: "left", margin: 0 });
+    s.addText("시장 규모는 출처 있는 수치로 교체 예정 (현재 플레이스홀더)", { x: 6.6, y: 6.45, w: 6.2, h: 0.3, fontFace: BODY, fontSize: 11, color: MUTED, align: "left", margin: 0 });
     pageFoot(s, 8);
   }
 
@@ -361,7 +361,7 @@ async function main() {
     const s = newSlide();
     kicker(s, "Business Model");
     title(s, [
-      { text: "양면 수익 — ", options: { color: WHITE } },
+      { text: "양면 수익 : ", options: { color: WHITE } },
       { text: "구독 + 성과형 광고", options: { color: LIME } },
     ]);
 
@@ -380,7 +380,7 @@ async function main() {
       s.addText(c.items.map((t, j) => ({ text: t, options: { bullet: { code: "2022" }, breakLine: true, paraSpaceAfter: 8, color: TXT } })),
         { x: x + 0.4, y: cy + 1.45, w: cw - 0.75, h: 1.7, fontFace: BODY, fontSize: 13.5, align: "left", valign: "top", margin: 0 });
     });
-    s.addText("결제 인프라(구독·크레딧) 구현 완료 — 정식 상품 등록 단계", { x: 0.55, y: 6.25, w: 12.25, h: 0.35, fontFace: BODY, fontSize: 13, italic: true, color: GOLD, align: "center", margin: 0 });
+    s.addText("결제 인프라(구독·크레딧) 구현 완료 — 정식 상품 등록 단계", { x: 0.55, y: 6.25, w: 12.25, h: 0.35, fontFace: BODY, fontSize: 13, color: GOLD, align: "center", margin: 0 });
     pageFoot(s, 9);
   }
 
@@ -450,7 +450,7 @@ async function main() {
       { text: "[픽업 / 사용 전환율]", options: {} },
     ], { x: 8.6, y: 5.4, w: 4.0, h: 1.1, fontFace: BODY, fontSize: 13.5, color: MUTED, align: "left", valign: "top", margin: 0 });
 
-    s.addText("실사용·매출 지표는 출시 후 — 위 [   ] 항목은 추정·목표로 표기 예정", { x: 0.55, y: 6.85, w: 12.25, h: 0.3, fontFace: BODY, fontSize: 10.5, italic: true, color: MUTED, align: "center", margin: 0 });
+    s.addText("실사용·매출 지표는 출시 후 — 위 [   ] 항목은 추정·목표로 표기 예정", { x: 0.55, y: 6.85, w: 12.25, h: 0.3, fontFace: BODY, fontSize: 10.5, color: MUTED, align: "center", margin: 0 });
     pageFoot(s, 11);
   }
 
@@ -518,7 +518,7 @@ async function main() {
     const s = newSlide();
     kicker(s, "Team · The Ask");
     title(s, [
-      { text: "출시 직전 — 자본은 ", options: { color: WHITE } },
+      { text: "출시 직전, 자본은 ", options: { color: WHITE } },
       { text: "상권 점화", options: { color: LIME } },
       { text: "에", options: { color: WHITE } },
     ]);
