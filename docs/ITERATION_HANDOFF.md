@@ -15,7 +15,8 @@
 
 ## 현재 상태 (2026-06-04 갱신)
 - 브랜치: `launch-readiness-build411` (PR #150). main 아님.
-- 최신 커밋: `552dd9b`+ (sim100-build426: Premium-발송제거 회귀/가드/카피 18건 + 시뮬레이터 런타임).
+- 최신 커밋: `c845eac` (UX 개선 스윕: DM 탭 발견성 + UI 대비 + draft 검증 + 데드코드).
+- 백업 태그: `v427-pre-ux-overhaul` (`98a0716`, origin). 되돌리기 `git reset --hard v427-pre-ux-overhaul`.
 - 빌드: pubspec `1.0.0+427`. TestFlight **417~427 업로드됨**(427=VALID+Internal, Delivery `5515c465-3346-498f-aedc-20af35fb68f7`). 다음 빌드 428.
 - 검증 게이트(매 수정 후 필수): `flutter analyze lib/` 무경고 + `flutter test` 전체 통과(현재 **139**).
 - ⚠️ flaky 없음.
@@ -163,6 +164,16 @@
 - [x] 비-지도 탭에서 지도 96px peek 노출 제거 → 탭 콘텐츠 전체화면 (main_scaffold.dart:304, _kMapPeek 제거)
 - [x] 작성 메세지 '버리기' 후 재출현 — _saveDraft hasState 가 기본 선택국가만으로 brand draft 저장 → 빈 메세지도 '이어쓰기' 무한 재출현. hasState 를 닫기확인 hasContent 기준(대량/특송/타깃/특정국가/혜택정보)으로 정정 (compose_screen.dart:693)
 - Build 419 빌드.
+
+## UX 개선 스윕 (2026-06-04) — Build 428, commits `09f5b64`·`5645202`·`c845eac`
+> sim100 의 UX 44 + 잔여 codeFixable 중 안전·고가치 항목 구현. 백업 태그 `v427-pre-ux-overhaul`.
+- [x] **[핵심] Premium 인박스 DM 탭 노출** — 기구현 `_DMTab` 미배선이던 것을 [받은/보낸/DM] 3탭으로 배선(canUseDM). 이전엔 편지 열어야만 DM 진입(발견성 0). `09f5b64`
+- [x] 받은 인박스 빈 상태 CTA '작성'→'지도에서 줍기'(비-Brand 막다른 진입 제거) + _isHuntFilter 제거 `09f5b64`
+- [x] UI: 필터칩 라벨 ellipsis(#41) / 통계 화살표 어포던스 14pt(#38) / 통계 라벨 11pt textSecondary 대비(#39) `5645202`
+- [x] draft 복원 시 비-Brand brand상태 무력화(#25, 다운그레이드 방어) `5645202`
+- [x] 데드 파일 brand_comparison_sheet.dart 제거 `c845eac`
+- **백로그(시각검증/대형/위험 — 미적용)**: 쿨다운 pill top:180 충돌(#13·#14, 시뮬 RTL/오버레이 시각검증 필요) / 통합 버튼 컴포넌트(#40, 大리팩터) / logout AppState.reset(#35, setUser isNewUser 로 이미 완화) / 지도 double move(#12)·arrivedAt 영속(#18, write 증폭 위험)·privacy toggle await revert(#33) / DM 홈/프로필 추가 진입점(인박스 탭으로 1차 해소) / express 토글 Free 분기 dead(무해).
+- TestFlight Build 428 빌드 예정.
 
 ## Sim100-build426 풀스윕 (2026-06-04) — Build 427, commits `0432603`·`552dd9b`·이후
 > 14-도메인 100-시나리오 워크플로우(task `w4uib6v4c`) + **시뮬레이터 런타임 실행(iPhone17)**.
