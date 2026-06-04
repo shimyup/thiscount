@@ -297,7 +297,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                     // Build 118: Free 플랜도 픽업 제약 (반경·쿨다운) 부터
                     // 노출해 Premium 업그레이드 동기를 시각적으로 만든다.
                     '📍  ${l.premiumFreeFeature1}',
-                    '✉️  ${l.premiumFreeFeature2}',
+                    '🗺️  ${l.premiumFreeFeature2}',
                   ],
                   // Build 215: 현재 Free 사용자면 active 로 표시 → "현재 사용 중"
                   // 라벨이 뜨고 "해지 예약" 버튼이 안 뜸. 이전엔 항상 false 라

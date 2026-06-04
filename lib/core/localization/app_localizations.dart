@@ -1187,34 +1187,36 @@ class AppL10n {
     'hi': '📸 अपने प्रचार बिखेरें',
     'th': '📸 ส่งโปรของคุณ',
   });
+  // Build 425 (device): Premium=줍기 전용 재포지셔닝 — '홍보/발송'은 Brand 만.
+  //   Free·Premium 은 줍기에 집중(Premium 은 더 넓은 반경·빠른 쿨다운).
   String get onboarding4Body => _t({
     'ko':
-        'Premium은 📸 사진과 🔗 채널 링크로 나를 홍보하고, Brand는 🎟 할인권·🎁 교환권 캠페인으로 비즈니스를 알려요. Free는 줍는 데 집중!',
+        'Brand는 🎟 할인권·🎁 교환권 캠페인으로 비즈니스를 알려요. Free·Premium은 줍는 데 집중 — Premium은 더 넓은 반경·빠른 쿨다운!',
     'en':
-        'Premium promotes you with 📸 photos and 🔗 channel links. Brand runs 🎟 coupon & 🎁 voucher campaigns. Free focuses on picking up.',
+        'Brand runs 🎟 coupon & 🎁 voucher campaigns. Free & Premium focus on picking up — Premium with a wider radius & faster cooldown.',
     'ja':
-        'Premium は 📸 写真と 🔗 チャンネルリンクで自己PR。Brand は 🎟 割引券・🎁 交換券キャンペーン。Free は拾うことに集中！',
-    'zh': 'Premium 用 📸 照片和 🔗 频道链接自我推广。Brand 开展 🎟 优惠券·🎁 代金券活动。Free 专注拾取！',
+        'Brand は 🎟 割引券・🎁 交換券キャンペーンでビジネスを宣伝。Free・Premium は拾うことに集中 — Premium はより広い範囲と速いクールダウン！',
+    'zh': 'Brand 用 🎟 优惠券·🎁 代金券活动推广业务。Free·Premium 专注拾取 — Premium 范围更大、冷却更快！',
     'fr':
-        'Premium te met en avant avec 📸 photos et 🔗 liens. Brand lance 🎟 coupons & 🎁 bons. Free se concentre sur le ramassage.',
+        'Brand lance des campagnes 🎟 coupons & 🎁 bons. Free & Premium se concentrent sur le ramassage — Premium avec un rayon plus large et une recharge plus rapide.',
     'de':
-        'Premium präsentiert dich mit 📸 Fotos und 🔗 Kanal-Links. Brand schaltet 🎟 Coupon- & 🎁 Gutschein-Kampagnen. Free sammelt auf.',
+        'Brand schaltet 🎟 Coupon- & 🎁 Gutschein-Kampagnen. Free & Premium sammeln auf — Premium mit größerem Radius und schnellerer Abklingzeit.',
     'es':
-        'Premium te promociona con 📸 fotos y 🔗 enlaces. Brand lanza campañas 🎟 cupones & 🎁 vales. Free se dedica a recoger.',
+        'Brand lanza campañas 🎟 cupones & 🎁 vales. Free & Premium se dedican a recoger — Premium con mayor radio y enfriamiento más rápido.',
     'pt':
-        'Premium promove-te com 📸 fotos e 🔗 links. Brand lança campanhas 🎟 cupons & 🎁 vales. Free foca-se em apanhar.',
+        'Brand lança campanhas 🎟 cupons & 🎁 vales. Free & Premium focam-se em apanhar — Premium com raio maior e recarga mais rápida.',
     'ru':
-        'Premium продвигает вас через 📸 фото и 🔗 ссылки на канал. Brand запускает кампании 🎟 купонов и 🎁 ваучеров. Free собирает.',
+        'Brand запускает кампании 🎟 купонов и 🎁 ваучеров. Free и Premium собирают — Premium с большим радиусом и быстрой перезарядкой.',
     'tr':
-        "Premium seni 📸 fotoğraf ve 🔗 kanal bağlantılarıyla tanıtır. Brand 🎟 kupon ve 🎁 çeki kampanyaları yayınlar. Free toplamaya odaklanır.",
+        "Brand 🎟 kupon ve 🎁 çeki kampanyaları yayınlar. Free ve Premium toplamaya odaklanır — Premium daha geniş alan ve hızlı bekleme ile.",
     'ar':
-        'Premium يروج لك بـ 📸 الصور و 🔗 روابط القناة. Brand يطلق حملات 🎟 القسائم و 🎁 الكوبونات. Free يركز على الالتقاط.',
+        'Brand يطلق حملات 🎟 القسائم و 🎁 الكوبونات. Free و Premium يركزان على الالتقاط — Premium بنطاق أوسع وتبريد أسرع.',
     'it':
-        'Premium ti promuove con 📸 foto e 🔗 link. Brand lancia campagne 🎟 coupon & 🎁 buoni. Free si concentra sulla raccolta.',
+        'Brand lancia campagne 🎟 coupon & 🎁 buoni. Free e Premium si concentrano sulla raccolta — Premium con raggio più ampio e cooldown più veloce.',
     'hi':
-        'Premium आपको 📸 फ़ोटो और 🔗 चैनल लिंक से प्रमोट करता है. Brand 🎟 कूपन & 🎁 वाउचर अभियान चलाता है. Free उठाने पर केंद्रित.',
+        'Brand 🎟 कूपन & 🎁 वाउचर अभियान चलाता है. Free व Premium उठाने पर केंद्रित — Premium बड़े दायरे व तेज़ कूलडाउन के साथ.',
     'th':
-        'Premium โปรโมตคุณด้วย 📸 รูปและ 🔗 ลิงก์ช่อง. Brand จัดแคมเปญ 🎟 คูปอง·🎁 วาวเชอร์. Free เน้นเก็บ!',
+        'Brand จัดแคมเปญ 🎟 คูปอง·🎁 วาวเชอร์. Free·Premium เน้นเก็บ — Premium รัศมีกว้างกว่าและคูลดาวน์เร็วกว่า!',
   });
 
   String get onboarding5Title => _t({
@@ -10530,73 +10532,74 @@ class AppL10n {
     'th': 'ซื้อไม่สำเร็จ กรุณาลองใหม่ภายหลัง',
   });
 
+  // Build 425 (device): Premium = 줍기 부스터 재포지셔닝 — 발송 기반 셀링
+  //   문구를 줍기 반경·쿨다운·DM·커스터마이즈 가치로 전면 교체.
   String get premiumValueFeature1 => _t({
-    'ko': '하루 3통 제한 해제 → 최대 30통 발송',
-    'en': 'Remove 3/day limit → send up to 30/day',
-    'ja': '1日3通制限解除 → 最大30通送信',
-    'zh': '解除每日3封限制 → 最多发送30封',
-    'fr': 'Supprimez la limite de 3/jour → envoyez jusqu\'à 30/jour',
-    'de': '3/Tag-Limit aufheben → bis zu 30/Tag senden',
-    'es': 'Elimina el límite de 3/día → envía hasta 30/día',
-    'pt': 'Remova o limite de 3/dia → envie até 30/dia',
-    'ru': 'Снимите лимит 3/день → отправляйте до 30/день',
-    'tr': 'Günlük 3 sınırını kaldır → günde 30\'a kadar gönder',
-    'ar': 'إزالة حد 3/يوم → إرسال حتى 30/يوم',
-    'it': 'Rimuovi il limite di 3/giorno → invia fino a 30/giorno',
-    'hi': '3/दिन की सीमा हटाएं → 30/दिन तक भेजें',
-    'th': 'ยกเลิกจำกัด 3/วัน → ส่งได้สูงสุด 30/วัน',
+    'ko': '줍기 반경 5배 — Free 200m → 1km',
+    'en': 'Pickup radius 5× — 200 m → 1 km',
+    'ja': '拾える範囲5倍 — 200m → 1km',
+    'zh': '拾取范围5倍 — 200m → 1km',
+    'fr': 'Rayon de ramassage 5× — 200 m → 1 km',
+    'de': 'Aufsammelradius 5× — 200 m → 1 km',
+    'es': 'Radio de recogida 5× — 200 m → 1 km',
+    'pt': 'Raio de recolha 5× — 200 m → 1 km',
+    'ru': 'Радиус подбора в 5× — 200 м → 1 км',
+    'tr': 'Toplama yarıçapı 5× — 200 m → 1 km',
+    'ar': 'نطاق الالتقاط 5 أضعاف — 200 م → 1 كم',
+    'it': 'Raggio di raccolta 5× — 200 m → 1 km',
+    'hi': 'पिकअप रेडियस 5× — 200 मी → 1 किमी',
+    'th': 'รัศมีเก็บ 5 เท่า — 200 ม. → 1 กม.',
   });
 
   String get premiumValueFeature2 => _t({
-    'ko': '더 많이 보내고 답장 기회 최대 10배 확장',
-    'en': 'Send more and expand reply chances up to 10x',
-    'ja': 'もっと送信して返信チャンスを最大10倍に',
-    'zh': '发送更多，回复机会扩大10倍',
-    'fr': 'Envoyez plus et multipliez par 10 les chances de réponse',
-    'de': 'Mehr senden und Antwortchancen bis zu 10x erhöhen',
-    'es': 'Envía más y amplía las oportunidades de respuesta hasta 10x',
-    'pt': 'Envie mais e expanda as chances de resposta até 10x',
-    'ru': 'Отправляйте больше и увеличьте шансы на ответ в 10 раз',
-    'tr': 'Daha fazla gönder ve yanıt şansını 10 kata kadar artır',
-    'ar': 'أرسل أكثر ووسّع فرص الرد حتى 10 أضعاف',
-    'it': 'Invia di più e moltiplica le possibilità di risposta fino a 10x',
-    'hi': 'अधिक भेजें और उत्तर के अवसर 10 गुना तक बढ़ाएं',
-    'th': 'ส่งมากขึ้นและเพิ่มโอกาสตอบกลับสูงสุด 10 เท่า',
+    'ko': '쿨다운 6배 빠르게 — 60분 → 10분',
+    'en': 'Cooldown 6× faster — 60 min → 10 min',
+    'ja': 'クールダウン6倍速 — 60分 → 10分',
+    'zh': '冷却快6倍 — 60分钟 → 10分钟',
+    'fr': 'Recharge 6× plus rapide — 60 min → 10 min',
+    'de': 'Abklingzeit 6× schneller — 60 min → 10 min',
+    'es': 'Enfriamiento 6× más rápido — 60 min → 10 min',
+    'pt': 'Recarga 6× mais rápida — 60 min → 10 min',
+    'ru': 'Перезарядка в 6× быстрее — 60 мин → 10 мин',
+    'tr': 'Bekleme 6× hızlı — 60 dk → 10 dk',
+    'ar': 'تبريد أسرع 6 أضعاف — 60 دقيقة → 10 دقائق',
+    'it': 'Cooldown 6× più veloce — 60 min → 10 min',
+    'hi': 'कूलडाउन 6× तेज़ — 60 मिनट → 10 मिनट',
+    'th': 'คูลดาวน์เร็ว 6 เท่า — 60 นาที → 10 นาที',
   });
 
   String get premiumValueFeature3 => _t({
-    'ko': '이미지+링크 혜택으로 응답률 강화 (하루 20통)',
-    'en': 'Boost response rate with image+link promos (20/day)',
-    'ja': '画像+リンク付き特典で応答率アップ（1日20通）',
-    'zh': '图片+链接优惠券提高回复率（每日20封）',
-    'fr': 'Boostez le taux de réponse avec des récompenses image+lien (20/jour)',
-    'de': 'Antwortrate mit Bild+Link-Belohnungen steigern (20/Tag)',
-    'es': 'Aumenta la tasa de respuesta con recompensas con imagen+enlace (20/día)',
-    'pt': 'Aumente a taxa de resposta com recompensas com imagem+link (20/dia)',
-    'ru': 'Повысьте отклик с наградами с фото+ссылкой (20/день)',
-    'tr': 'Resim+link ödüllerla yanıt oranını artır (günde 20)',
-    'ar': 'عزز معدل الاستجابة بمكافآت صور+روابط (20/يوم)',
-    'it': 'Aumenta il tasso di risposta con ricompense immagine+link (20/giorno)',
-    'hi': 'छवि+लिंक पुरस्कारों से प्रतिक्रिया दर बढ़ाएं (20/दिन)',
-    'th': 'เพิ่มอัตราตอบกลับด้วยรางวัลภาพ+ลิงก์ (20/วัน)',
+    'ko': '발송인과 1:1 채팅(DM)으로 직접 소통',
+    'en': 'Chat 1:1 (DM) directly with senders',
+    'ja': '送信者と1:1チャット(DM)で直接やり取り',
+    'zh': '与发送者1:1聊天(DM)直接沟通',
+    'fr': 'Discutez en 1:1 (DM) avec les expéditeurs',
+    'de': 'Chatte 1:1 (DM) direkt mit Absendern',
+    'es': 'Chatea 1:1 (DM) directamente con remitentes',
+    'pt': 'Converse 1:1 (DM) diretamente com remetentes',
+    'ru': 'Личный чат (DM) с отправителями',
+    'tr': 'Gönderenlerle birebir (DM) sohbet',
+    'ar': 'محادثة فردية (DM) مباشرة مع المُرسِلين',
+    'it': 'Chatta 1:1 (DM) direttamente con i mittenti',
+    'hi': 'भेजने वालों से 1:1 चैट (DM)',
+    'th': 'แชท 1:1 (DM) กับผู้ส่งโดยตรง',
   });
 
   String get premiumValueFeature4 => _t({
-    'ko': '특급 배송 하루 3통 + 커스텀 타워로 존재감 강화',
-    'en': 'Express delivery 3/day + custom tower for visibility',
-    'ja': '特急配送1日3通 + カスタムタワーで存在感アップ',
-    'zh': '特快配送每日3封 + 自定义塔楼提升存在感',
-    'fr': 'Livraison express 3/jour + tour personnalisée pour la visibilité',
-    'de':
-        'Express-Zustellung 3/Tag + benutzerdefinierter Turm für Sichtbarkeit',
-    'es': 'Entrega exprés 3/día + torre personalizada para visibilidad',
-    'pt': 'Entrega expressa 3/dia + torre personalizada para visibilidade',
-    'ru': 'Экспресс-доставка 3/день + кастомная башня для заметности',
-    'tr': 'Ekspres teslimat günde 3 + özel kule ile görünürlük',
-    'ar': 'توصيل سريع 3/يوم + برج مخصص للظهور',
-    'it': 'Consegna espressa 3/giorno + torre personalizzata per visibilità',
-    'hi': 'एक्सप्रेस डिलीवरी 3/दिन + कस्टम टावर से दृश्यता बढ़ाएं',
-    'th': 'จัดส่งด่วน 3/วัน + หอคอยกำหนดเองเพิ่มการมองเห็น',
+    'ko': '카운터 캐릭터 + 커스텀 타워 꾸미기',
+    'en': 'Customize your counter character + tower',
+    'ja': 'カウンターキャラ + カスタムタワー',
+    'zh': '定制角色 + 自定义塔楼',
+    'fr': 'Personnalisez votre personnage + tour',
+    'de': 'Charakter + Turm individuell anpassen',
+    'es': 'Personaliza tu personaje + torre',
+    'pt': 'Personaliza o teu personagem + torre',
+    'ru': 'Кастомизация персонажа + башни',
+    'tr': 'Karakter + kule özelleştirme',
+    'ar': 'تخصيص الشخصية + البرج',
+    'it': 'Personalizza personaggio + torre',
+    'hi': 'अपना कैरेक्टर + टावर कस्टमाइज़ करें',
+    'th': 'ปรับแต่งตัวละคร + หอคอย',
   });
 
   // Build 118: 기능 리스트 재배치 — 발송 중심 → 픽업 중심. 마케팅 기획서
@@ -10636,41 +10639,41 @@ class AppL10n {
     'th': 'คูลดาวน์ 10 นาที · เร็วกว่าฟรี 6 เท่า',
   });
 
+  // Build 425 (device): Premium=줍기 전용 → 발송(30통 홍보) 대신 DM(1:1 채팅).
   String get premiumFeature3 => _t({
-    'ko': '📸 사진 + 🔗 채널 링크 홍보 메시지 · 하루 30통',
-    'en': '📸 Photo + 🔗 channel-link promo messages · 30/day',
-    'ja': '📸 写真 + 🔗 チャンネルリンクPR特典 · 1日30通',
-    'zh': '📸 照片 + 🔗 频道链接推广优惠券 · 每日 30 封',
-    'fr': '📸 Photo + 🔗 lien de chaîne promo · 30/jour',
-    'de': '📸 Foto + 🔗 Kanal-Link Promo-Belohnungen · 30/Tag',
-    'es': '📸 Foto + 🔗 enlace canal promo · 30/día',
-    'pt': '📸 Foto + 🔗 link de canal promo · 30/dia',
-    'ru': '📸 Фото + 🔗 ссылка на канал · 30/день',
-    'tr': '📸 Fotoğraf + 🔗 kanal bağlantısı · 30/gün',
-    'ar': '📸 صور + 🔗 روابط قناة ترويجية · 30/يوم',
-    'it': '📸 Foto + 🔗 link canale promo · 30/giorno',
-    'hi': '📸 फ़ोटो + 🔗 चैनल लिंक प्रोमो · 30/दिन',
-    'th': '📸 รูป + 🔗 ลิงก์ช่อง · 30/วัน',
+    'ko': '💬 발송인과 1:1 채팅(DM)으로 직접 소통',
+    'en': '💬 Chat 1:1 (DM) directly with senders',
+    'ja': '💬 送信者と1:1チャット(DM)',
+    'zh': '💬 与发送者1:1聊天(DM)',
+    'fr': '💬 Discutez en 1:1 (DM) avec les expéditeurs',
+    'de': '💬 Chatte 1:1 (DM) mit Absendern',
+    'es': '💬 Chatea 1:1 (DM) con remitentes',
+    'pt': '💬 Conversa 1:1 (DM) com remetentes',
+    'ru': '💬 Личный чат (DM) с отправителями',
+    'tr': '💬 Gönderenlerle birebir (DM) sohbet',
+    'ar': '💬 محادثة فردية (DM) مع المُرسِلين',
+    'it': '💬 Chatta 1:1 (DM) con i mittenti',
+    'hi': '💬 भेजने वालों से 1:1 चैट (DM)',
+    'th': '💬 แชท 1:1 (DM) กับผู้ส่ง',
   });
 
-  // Build 185: Premium 혜택에서 타워 언급 제거 — Premium = 레터 트랙.
-  // 캐릭터 커스터마이즈(컴패니언/악세사리)는 Build 125 이후 Premium 전용,
-  // 특급 배송은 이전부터 유지.
+  // Build 425 (device): 특급 배송(발송 기능)은 Premium 에서 제거 — 캐릭터·타워
+  //   커스터마이즈만 유지.
   String get premiumFeature4 => _t({
-    'ko': '🎨 카운터 캐릭터 커스터마이즈 · 특급 배송 3통/일',
-    'en': '🎨 Counter character customize · 3 express deliveries/day',
-    'ja': '🎨 Counter キャラカスタム · 特急配送 3/日',
-    'zh': '🎨 Letter 角色定制 · 特快配送 3/日',
-    'fr': '🎨 Personnalisation du Letter · 3 livraisons express/jour',
-    'de': '🎨 Letter-Charakter anpassen · 3 Express-Lieferungen/Tag',
-    'es': '🎨 Personaliza tu Letter · 3 entregas exprés/día',
-    'pt': '🎨 Personaliza o teu Letter · 3 entregas expressas/dia',
-    'ru': '🎨 Кастомизация Letter · 3 экспресса/день',
-    'tr': '🎨 Letter karakter özelleştirme · 3 ekspres/gün',
-    'ar': '🎨 تخصيص شخصية Letter · 3 توصيلات سريعة/يوم',
-    'it': '🎨 Personalizza la ricompensa · 3 espressi/giorno',
-    'hi': '🎨 Letter कस्टमाइज़ · 3 एक्सप्रेस/दिन',
-    'th': '🎨 ปรับแต่ง Letter · ด่วน 3/วัน',
+    'ko': '🎨 카운터 캐릭터 + 커스텀 타워 꾸미기',
+    'en': '🎨 Counter character + custom tower',
+    'ja': '🎨 カウンターキャラ + カスタムタワー',
+    'zh': '🎨 角色定制 + 自定义塔楼',
+    'fr': '🎨 Personnage + tour personnalisée',
+    'de': '🎨 Charakter + eigener Turm',
+    'es': '🎨 Personaje + torre personalizada',
+    'pt': '🎨 Personagem + torre personalizada',
+    'ru': '🎨 Персонаж + кастомная башня',
+    'tr': '🎨 Karakter + özel kule',
+    'ar': '🎨 الشخصية + برج مخصص',
+    'it': '🎨 Personaggio + torre personalizzata',
+    'hi': '🎨 कैरेक्टर + कस्टम टावर',
+    'th': '🎨 ตัวละคร + หอคอยกำหนดเอง',
   });
 
   // Build 118: Free 플랜 카드도 픽업 중심으로 재배치 — 반경·쿨다운 제약을
@@ -10692,21 +10695,23 @@ class AppL10n {
     'th': 'รัศมี 200 ม. · คูลดาวน์ 60 นาที',
   });
 
+  // Build 425 (device): Free 도 줍기 전용(발송 Brand 한정) → '3통 발송' 대신
+  //   줍기/수집 혜택으로 교체.
   String get premiumFreeFeature2 => _t({
-    'ko': '하루 3통 발송 · 월 100통',
-    'en': '3 promos/day · 100/month',
-    'ja': '1日3通 · 月100通',
-    'zh': '每日3封 · 每月100封',
-    'fr': '3 récompenses/jour · 100/mois',
-    'de': '3 Belohnungen/Tag · 100/Monat',
-    'es': '3 recompensas/día · 100/mes',
-    'pt': '3 recompensas/dia · 100/mês',
-    'ru': '3 награды/день · 100/месяц',
-    'tr': 'Günde 3 · ayda 100',
-    'ar': '3 مكافآت/يوم · 100/شهر',
-    'it': '3 ricompense/giorno · 100/mese',
-    'hi': '3 पुरस्कार/दिन · 100/माह',
-    'th': '3 ฉบับ/วัน · 100/เดือน',
+    'ko': '세계 지도 열람 · 수집첩 보관',
+    'en': 'World map access · saved in collection',
+    'ja': '世界地図の閲覧 · コレクション保存',
+    'zh': '浏览世界地图 · 收藏保存',
+    'fr': 'Carte du monde · sauvegarde collection',
+    'de': 'Weltkarte · in Sammlung gespeichert',
+    'es': 'Mapa mundial · guardado en colección',
+    'pt': 'Mapa mundial · guardado na coleção',
+    'ru': 'Мировая карта · хранение в коллекции',
+    'tr': 'Dünya haritası · koleksiyonda saklama',
+    'ar': 'خريطة العالم · حفظ في المجموعة',
+    'it': 'Mappa mondiale · salvato in collezione',
+    'hi': 'विश्व मानचित्र · संग्रह में सहेजें',
+    'th': 'แผนที่โลก · เก็บในคอลเลกชัน',
   });
 
   String get premiumSwitchToFree => _t({
@@ -17086,21 +17091,22 @@ class AppL10n {
     'th': 'รัศมี 200 ม. · คูลดาวน์ 60 นาที',
   });
 
+  // Build 425 (device): Free=줍기 전용 → '3통 발송' 대신 줍기/수집 혜택.
   String get onboardingFreeFeat2 => _t({
-    'ko': '하루 3통 홍보 발송 · 월 100통',
-    'en': '3 promos/day · 100/month',
-    'ja': '1日3件のプロモ · 月100件',
-    'zh': '每天 3 条推广 · 每月 100 条',
-    'fr': '3 promos/jour · 100/mois',
-    'de': '3 Promos/Tag · 100/Monat',
-    'es': '3 promos/día · 100/mes',
-    'pt': '3 promos/dia · 100/mês',
-    'ru': '3 промо/день · 100/месяц',
-    'tr': 'Günde 3 promo · ayda 100',
-    'ar': '3 عروض ترويجية/يوم · 100/شهر',
-    'it': '3 promo/giorno · 100/mese',
-    'hi': '3 प्रोमो/दिन · 100/माह',
-    'th': 'โปรโมชัน 3 ครั้ง/วัน · 100 ครั้ง/เดือน',
+    'ko': '세계 지도 열람 · 수집첩 보관',
+    'en': 'World map access · saved in collection',
+    'ja': '世界地図の閲覧 · コレクション保存',
+    'zh': '浏览世界地图 · 收藏保存',
+    'fr': 'Carte du monde · sauvegarde collection',
+    'de': 'Weltkarte · in Sammlung gespeichert',
+    'es': 'Mapa mundial · guardado en colección',
+    'pt': 'Mapa mundial · guardado na coleção',
+    'ru': 'Мировая карта · хранение в коллекции',
+    'tr': 'Dünya haritası · koleksiyonda saklama',
+    'ar': 'خريطة العالم · حفظ في المجموعة',
+    'it': 'Mappa mondiale · salvato in collezione',
+    'hi': 'विश्व मानचित्र · संग्रह में सहेजें',
+    'th': 'แผนที่โลก · เก็บในคอลเลกชัน',
   });
 
   String get onboardingFreeFeat3 => _t({
@@ -17171,38 +17177,40 @@ class AppL10n {
     'th': 'คูลดาวน์ 10 นาที · เร็วกว่าฟรี 6 เท่า',
   });
 
+  // Build 425 (device): Premium=줍기 전용 → 발송(30통) 대신 DM(1:1 채팅).
   String get onboardingPremiumFeat3 => _t({
-    'ko': '하루 30통 발송 + 이미지·링크 홍보',
-    'en': '30 promos/day + image & link promos',
-    'ja': '1日30通発送 + 画像・リンク付き特典',
-    'zh': '每日 30 封发送 + 图片·链接优惠券',
-    'fr': '30 récompenses/jour + image & lien',
-    'de': '30 Belohnungen/Tag + Bild & Link',
-    'es': '30 recompensas/día + imagen y enlace',
-    'pt': '30 recompensas/dia + imagem e link',
-    'ru': '30 наград/день + фото и ссылки',
-    'tr': 'Günde 30 ödül + resim & link',
-    'ar': '30 مكافأة/يوم + صور وروابط',
-    'it': '30 ricompense/giorno + immagine e link',
-    'hi': '30 पुरस्कार/दिन + छवि व लिंक',
-    'th': '30 ฉบับ/วัน + ภาพ·ลิงก์',
+    'ko': '발송인과 1:1 채팅(DM)',
+    'en': '1:1 chat (DM) with senders',
+    'ja': '送信者と1:1チャット(DM)',
+    'zh': '与发送者1:1聊天(DM)',
+    'fr': 'Chat 1:1 (DM) avec les expéditeurs',
+    'de': '1:1-Chat (DM) mit Absendern',
+    'es': 'Chat 1:1 (DM) con remitentes',
+    'pt': 'Chat 1:1 (DM) com remetentes',
+    'ru': 'Чат 1:1 (DM) с отправителями',
+    'tr': 'Gönderenlerle 1:1 sohbet (DM)',
+    'ar': 'محادثة فردية (DM) مع المُرسِلين',
+    'it': 'Chat 1:1 (DM) con i mittenti',
+    'hi': 'भेजने वालों से 1:1 चैट (DM)',
+    'th': 'แชท 1:1 (DM) กับผู้ส่ง',
   });
 
+  // Build 425 (device): 특급 배송(발송) 제거 → 캐릭터·타워 커스터마이즈.
   String get onboardingPremiumFeat4 => _t({
-    'ko': '특급 배송 3통/일 · 캐릭터 커스터마이즈',
-    'en': '3 express deliveries/day · character customize',
-    'ja': '特急配送 3/日 · キャラカスタム',
-    'zh': '特快配送 3/日 · 角色定制',
-    'fr': '3 livraisons express/jour · personnalisation du Letter',
-    'de': '3 Express-Lieferungen/Tag · Letter anpassen',
-    'es': '3 entregas exprés/día · personaliza tu Letter',
-    'pt': '3 entregas expressas/dia · personaliza o teu Letter',
-    'ru': '3 экспресса/день · кастомизация Letter',
-    'tr': '3 ekspres/gün · Letter özelleştirme',
-    'ar': '3 توصيلات سريعة/يوم · تخصيص شخصية Letter',
-    'it': '3 espressi/giorno · personalizza la ricompensa',
-    'hi': '3 एक्सप्रेस/दिन · Letter कस्टमाइज़',
-    'th': 'ด่วน 3/วัน · ปรับแต่ง Letter',
+    'ko': '카운터 캐릭터 + 커스텀 타워 꾸미기',
+    'en': 'Counter character + custom tower',
+    'ja': 'カウンターキャラ + カスタムタワー',
+    'zh': '角色定制 + 自定义塔楼',
+    'fr': 'Personnage + tour personnalisée',
+    'de': 'Charakter + eigener Turm',
+    'es': 'Personaje + torre personalizada',
+    'pt': 'Personagem + torre personalizada',
+    'ru': 'Персонаж + кастомная башня',
+    'tr': 'Karakter + özel kule',
+    'ar': 'الشخصية + برج مخصص',
+    'it': 'Personaggio + torre personalizzata',
+    'hi': 'कैरेक्टर + कस्टम टावर',
+    'th': 'ตัวละคร + หอคอยกำหนดเอง',
   });
 
   // ── 사용법 (Build 257: 온보딩 Premium 페이지의 "하루 타임라인" 대체) ─────

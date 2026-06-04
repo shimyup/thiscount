@@ -525,10 +525,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 title: _l.onboarding4Title,
                 body: _l.onboarding4Body,
                 gradient: const [AppColors.bgDeep, AppColors.bgCard],
-                // Build 186: 편지 뿌리기는 Premium + Brand 만. Free 배제를
-                // 시각적으로 명시해 gate 시 혼선 예방.
+                // Build 425 (device): 발송/홍보는 Brand 전용으로 전환 → 뱃지도
+                //   Brand 만 노출(Premium 제거). Premium 은 줍기 슬라이드에 포함.
                 tiers: [
-                  _TierBadge(_l.tierLabelPremium, AppColors.gold),
                   _TierBadge(_l.tierLabelBrand, AppColors.coupon),
                 ],
               ),
@@ -986,8 +985,8 @@ class _PremiumPage extends StatelessWidget {
       l.onboardingFreeFeat4,
     ];
 
-    // Build 119: 픽업-퍼스트 리오더. 반경 📍 → 쿨다운 ⏱ → 발송 묶음 ✈️ →
-    // 꾸미기 묶음 🎨 순서로 페이월(premium_screen) 과 통일.
+    // Build 119/425: 픽업-퍼스트. 반경 📍 → 쿨다운 ⏱ → DM 💬 → 꾸미기 🎨.
+    //   (발송 ✈️ 은 Brand 전용으로 이동, Premium feat3 은 DM 으로 교체)
     final premiumFeatures = [
       {
         'emoji': '📍',
@@ -996,7 +995,7 @@ class _PremiumPage extends StatelessWidget {
       },
       {'emoji': '⏱', 'text': l.onboardingPremiumFeat2, 'color': AppColors.teal},
       {
-        'emoji': '✈️',
+        'emoji': '💬',
         'text': l.onboardingPremiumFeat3,
         'color': AppColors.gold,
       },

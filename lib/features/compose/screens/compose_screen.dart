@@ -528,21 +528,36 @@ class _ComposeScreenState extends State<ComposeScreen>
       vsync: this,
     );
     _sendAnim = CurvedAnimation(parent: _sendController, curve: Curves.easeOut);
-    // Build 324 (positioning): Free 사용자는 "줍기 전용" — compose 진입 자체를
-    //   차단. main_scaffold / inbox_screen / letter_read_screen 등 모든 진입점
-    //   에 가드를 흩뿌리는 대신 ComposeScreen 자체에서 한 번에 처리 (defense-
-    //   in-depth). 진입 시 즉시 pop + PremiumGateSheet 노출.
+    // Build 425 (device): 발송 정책 변경 — 신규 발송(새 편지/캠페인)은 Brand
+    //   계정 전용. 답장(_isReply)은 Premium·Brand 가 그대로 가능(픽업 상호작용).
+    //   모든 진입점 대신 ComposeScreen 에서 한 번에 처리(defense-in-depth):
+    //   진입 시 즉시 pop + 적절한 안내 시트.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final state = context.read<AppState>();
-      if (!state.currentUser.isPremium && !state.currentUser.isBrand) {
-        final l = AppL10n.of(state.currentUser.languageCode);
+      final l = AppL10n.of(state.currentUser.languageCode);
+      if (_isReply) {
+        // 답장: Premium·Brand 허용, Free 만 차단.
+        if (!state.currentUser.isPremium && !state.currentUser.isBrand) {
+          Navigator.of(context).pop();
+          PremiumGateSheet.show(
+            context,
+            featureName: l.composeGateFeatureName,
+            featureEmoji: '📣',
+            description: l.composeGateDesc,
+          );
+        }
+        return;
+      }
+      // 신규 발송: Brand 전용.
+      if (!state.currentUser.isBrand) {
         Navigator.of(context).pop();
-        PremiumGateSheet.show(
+        BrandOnlyGateSheet.show(
           context,
-          featureName: l.composeGateFeatureName,
+          featureName: l.navCampaign,
           featureEmoji: '📣',
-          description: l.composeGateDesc,
+          description: l.categoryHelpBrandOnlyNote,
+          viewerIsPremium: state.currentUser.isPremium,
         );
       }
     });

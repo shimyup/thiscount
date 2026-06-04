@@ -7,9 +7,8 @@ import '../core/services/purchase_service.dart';
 import '../state/app_state.dart';
 import '../features/map/screens/world_map_screen.dart';
 import '../features/compose/screens/compose_screen.dart';
-import '../features/premium/premium_gate_sheet.dart';
+import '../features/premium/brand_only_gate_sheet.dart';
 import '../features/premium/premium_screen.dart';
-import '../features/premium/brand_comparison_sheet.dart';
 import '../features/brand/brand_campaign_screen.dart';
 import '../features/inbox/screens/inbox_screen.dart';
 import '../features/profile/profile_screen.dart';
@@ -153,42 +152,19 @@ class _MainScaffoldState extends State<MainScaffold> {
       );
       return;
     }
-    if (!state.currentUser.isPremium && !state.currentUser.isBrand) {
+    // Build 425 (device): 발송은 Brand(광고주) 계정 전용. Free·Premium 은 발송 탭
+    //   자체가 숨겨져 여기 도달하지 않지만(다른 진입점 대비) 안전망으로 Brand
+    //   전용 안내 시트를 띄운다. Premium 의 답장·DM 은 별도 경로로 유지.
+    if (!state.currentUser.isBrand) {
       final l = AppL10n.of(state.currentUser.languageCode);
-      // Build 403 (PR-LL4): newcomer (가입 후 5분 이내) 에게는 paywall sheet
-      //   대신 가벼운 SnackBar coachmark. 첫 진입에서 결제 압박을 받으면
-      //   drop-off → 일단 픽업 흐름 안내만. trial 받은 사용자는 isPremium=true
-      //   이므로 이 분기 안 옴 (자유 발송 가능).
-      if (state.currentUser.isNewcomer) {
-        ScaffoldMessenger.of(ctx).showSnackBar(
-          SnackBar(
-            backgroundColor: AppColors.bgCard,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 4),
-            content: Text(
-              l.koEn(
-                '👋 먼저 지도에서 근처 쿠폰을 픽업해보세요. 발송은 픽업 후 안내드릴게요.',
-                '👋 Try picking up a nearby coupon on the map first. We\'ll guide you to sending after.',
-              ),
-              style: const TextStyle(color: AppColors.textPrimary),
-            ),
-          ),
-        );
-        return;
-      }
-      PremiumGateSheet.show(
+      BrandOnlyGateSheet.show(
         ctx,
-        featureName: l.composeGateFeatureName,
+        featureName: l.navCampaign,
         featureEmoji: '📣',
-        description: l.composeGateDesc,
+        description: l.categoryHelpBrandOnlyNote,
+        viewerIsPremium: state.currentUser.isPremium,
       );
       return;
-    }
-    // Build 238: Premium(비-Brand) 회원이 발송 진입 시 한 번 Brand 비교 시트 노출.
-    // 자기 홍보 메시지 (사진+링크) 와 광고주 트랙 (쿠폰/대량/ExactDrop) 차이 환기.
-    if (state.currentUser.isPremium && !state.currentUser.isBrand) {
-      await BrandComparisonSheet.showOncePerSession(ctx);
-      if (!ctx.mounted) return;
     }
     final result = await Navigator.push<bool>(
       ctx,
@@ -421,26 +397,20 @@ class _MainScaffoldState extends State<MainScaffold> {
                             onTap: () => setState(() => _currentIndex = 1),
                           ),
                   ),
-                  Expanded(
-                    // Build 281: Free 회원에게 잠긴 "홍보" 보다 "업그레이드" 를
-                    // 먼저 보여줘 이 탭의 성격을 즉시 이해하게 한다.
-                    //   Free    → 💎 업그레이드 (잠금 🔒) · 탭 시 PremiumGateSheet
-                    //   Premium → 📣 홍보 · 탭 시 compose 진입
-                    //   Brand   → 📣 캠페인 · 탭 시 compose 진입
-                    child: _ComposeNavItem(
-                      label: isBrand
-                          ? l.navCampaign
-                          : (isPremium ? l.navSend : l.navUpgradeShort),
-                      icon: isBrand
-                          ? Icons.campaign_rounded
-                          : (isPremium
-                                ? Icons.campaign_outlined
-                                : Icons.workspace_premium_rounded),
-                      accent: isBrand ? AppColors.coupon : AppColors.gold,
-                      isLocked: !isBrand && !isPremium,
-                      onTap: () => _openCompose(ctx),
+                  // Build 425 (device): 발송은 Brand(광고주) 계정 전용으로 전환 —
+                  //   Free·Premium 은 줍기 중심이라 발송 탭 자체를 숨긴다(이전엔
+                  //   Free=업그레이드 / Premium=홍보 노출). Premium 은 답장·DM 으로
+                  //   여전히 상호작용 가능.
+                  if (isBrand)
+                    Expanded(
+                      child: _ComposeNavItem(
+                        label: l.navCampaign,
+                        icon: Icons.campaign_rounded,
+                        accent: AppColors.coupon,
+                        isLocked: false,
+                        onTap: () => _openCompose(ctx),
+                      ),
                     ),
-                  ),
                   // Build 324 (positioning): 4탭 → 3탭. 타워 탭 격리 →
                   //   ProfileScreen 의 "내 등급" 진입 카드로 통합. 첫 화면의
                   //   nav 인지 부하 -25% + 등급/타워 시스템은 진성 사용자만
