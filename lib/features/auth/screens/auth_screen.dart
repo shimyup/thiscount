@@ -3054,16 +3054,24 @@ class _AuthButton extends StatelessWidget {
       height: 54,
       child: ElevatedButton(
         onPressed: active ? onTap : null,
+        // Build 426 (sim100 #37): 활성/비활성 명확 구분 — disabled* 색 명시 +
+        //   비활성 외곽선 + 활성 그림자(compose 발송버튼과 동일 패턴).
         style: ElevatedButton.styleFrom(
-          backgroundColor: active
-              ? AppColors.gold
-              : AppColors.gold.withValues(alpha: 0.3),
+          backgroundColor: AppColors.gold,
           foregroundColor: AppColors.bgDeep,
-          disabledBackgroundColor: AppColors.gold.withValues(alpha: 0.25),
+          disabledBackgroundColor: AppColors.bgSurface.withValues(alpha: 0.55),
+          disabledForegroundColor: AppColors.textMuted.withValues(alpha: 0.7),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
+            side: active
+                ? BorderSide.none
+                : BorderSide(
+                    color: AppColors.textMuted.withValues(alpha: 0.3),
+                    width: 1.2,
+                  ),
           ),
-          elevation: 0,
+          elevation: active ? 3 : 0,
+          shadowColor: AppColors.gold.withValues(alpha: 0.5),
         ),
         child: isLoading
             ? const SizedBox(

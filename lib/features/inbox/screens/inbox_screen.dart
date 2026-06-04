@@ -3839,7 +3839,8 @@ class _FilterChipInline extends StatelessWidget {
           onTap: onTap,
           onLongPress: onLongPress,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            // Build 426 (sim100 #36): 터치 타깃 ≥44pt (WCAG 2.5.5) — vertical 7→10.
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [

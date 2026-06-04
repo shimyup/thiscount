@@ -1333,6 +1333,17 @@ class _LetterReadScreenState extends State<LetterReadScreen>
               Expanded(
                 child: GestureDetector(
                   onTap: () {
+                    // Build 426 (sim100 #20·#22): DM 자격 없으면(=Free) 채팅 진입
+                    //   대신 Premium 안내 — 이전엔 게이트 화면으로 빈 진입했음.
+                    if (!state.canUseDM) {
+                      PremiumGateSheet.show(
+                        ctx,
+                        featureName: l10n.letterReadStartChat,
+                        featureEmoji: '💬',
+                        description: l10n.dmPremiumOnly,
+                      );
+                      return;
+                    }
                     state.acceptChatInvite(letter.senderId);
                     Navigator.push(
                       ctx,

@@ -5027,6 +5027,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       _previousXpLevel = 1;
       _celebratedMilestones.clear();
       _challengeRewardBalance = 0;
+      // Build 426 (sim100 #6): 레벨업 축하 플래그도 reset — 이전엔 A 의 미소비
+      //   level-up 플래그가 남아 B 진입 시 가짜 축하 배너가 떴음.
+      _justLeveledUp = false;
+      _previousUserLevel = null;
       // Build 423 (sim-crosscut P2): 첫 픽업 축하 1회 플래그 / AI letter 날짜키도
       //   in-memory reset — 이전엔 B 가 첫 픽업 축하를 못 받거나, 전환 당일 AI
       //   letter 를 못 받던 누수.
@@ -9797,6 +9801,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     required String originalLetterId,
     required String content,
   }) async {
+    // Build 426 (sim100 #48): 답장은 Premium·Brand 만 — UI 게이트 외 state 단
+    //   defense-in-depth (Free 가 대체 경로로 답장 발송하는 것 차단).
+    if (!_currentUser.isPremium && !_currentUser.isBrand) return false;
     final idx = _inbox.indexWhere((l) => l.id == originalLetterId);
     if (idx < 0) return false;
     final original = _inbox[idx];
@@ -9867,6 +9874,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   ChatStatus? getChatStatus(String userId) => _chatSessions[userId]?.status;
 
   void acceptChatInvite(String partnerId) {
+    // Build 426 (sim100 #22·#23): DM 자격(Premium·비-Brand) 없으면 채팅 세션
+    //   생성 차단 — Free 가 상호팔로우 카드로 chatting 상태를 만드는 것 방지.
+    if (!canUseDM) return;
     if (_chatSessions.containsKey(partnerId)) {
       _chatSessions[partnerId]!.status = ChatStatus.chatting;
       if (!_dmMessages.containsKey(partnerId)) {

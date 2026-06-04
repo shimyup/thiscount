@@ -2115,6 +2115,9 @@ class _ComposeScreenState extends State<ComposeScreen>
     final state = context.read<AppState>();
     final langCode = state.currentUser.languageCode;
     final l = AppL10n.of(langCode);
+    // Build 426 (sim100 #26): ExactDrop 은 Brand 전용 — 비-Brand 진입 차단
+    //   (compose 자체가 Brand 전용이지만 다운그레이드 race 등 defense-in-depth).
+    if (!state.currentUser.isBrand) return;
 
     // Build 189 → 408 (QQ6): 디버그뿐 아니라 모든 beta/TestFlight 빌드에서
     //   크레딧 0 인 Brand 가 ExactDrop 진입 시 자동 충전 10통. 테스터가

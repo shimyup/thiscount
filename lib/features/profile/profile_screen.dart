@@ -1736,6 +1736,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
           ),
+          // Build 426 (sim100 #1): '오늘 발송 잔여' 카드는 Brand 만 — 발송이
+          //   Brand 전용이라 Free·Premium 에겐 쓸 수 없는 숫자라 혼선. 비-Brand
+          //   는 구독 카드만 전체폭으로.
+          if (isBrand) ...[
           const SizedBox(width: 10),
           // 오늘 발송 잔여 — 큰 숫자 v5
           Expanded(
@@ -1796,6 +1800,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
           ),
+          ],
         ],
       ),
     );

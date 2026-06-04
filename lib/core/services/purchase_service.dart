@@ -415,7 +415,8 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
       id: PurchaseProductIds.premiumMonthly,
       title: 'Premium',
       price: '₩4,900',
-      description: '하루 30통 발송 · 사진 첨부 · 타워 커스텀',
+      // Build 426: Premium 발송 제거 → 줍기 부스터·DM·커스터마이즈로 정정.
+      description: '줍기 반경 1km · 쿨다운 10분 · 1:1 채팅(DM) · 타워 커스텀',
     ),
     ProductInfo(
       id: PurchaseProductIds.brandMonthly,

@@ -4782,32 +4782,34 @@ class AppL10n {
     'th': 'แนบรูปภาพ',
   });
 
+  // Build 426 (sim100 #46): 발송은 Brand 전용 → '프리미엄 20통 발송' 문구 제거,
+  //   Brand 일반 홍보 발송 안내로 정정.
   String get composePhotoAttachDesc => _t({
-    'ko': '홍보에 사진 1장을 첨부할 수 있어요.\n프리미엄 회원은 하루 20통까지 이미지 홍보 발송 가능.',
+    'ko': '홍보에 사진 1장을 첨부할 수 있어요.\nBrand(광고주) 계정의 일반 홍보 발송에 사용됩니다.',
     'en':
-        'Attach 1 photo to your promo.\nPremium members can send up to 20 image promos per day.',
-    'ja': '特典に写真を1枚添付できます。\nプレミアム会員は1日20通まで画像付き特典を送れます。',
-    'zh': '可以给信附上1张照片。\n高级会员每天最多可发送20封带图片的优惠券。',
+        'Attach 1 photo to your promo.\nAvailable for Brand accounts\' general promos.',
+    'ja': '特典に写真を1枚添付できます。\nBrand(広告主)アカウントの一般PR送信で使えます。',
+    'zh': '可以给宣传附上1张照片。\n用于 Brand(广告主)账号的普通推广发送。',
     'fr':
-        'Joignez 1 photo à votre coupon.\nLes membres Premium peuvent envoyer jusqu\'à 20 coupons avec image par jour.',
+        'Joignez 1 photo à votre promo.\nDisponible pour les promos générales des comptes Brand.',
     'de':
-        'Fügen Sie 1 Foto an Ihren Coupon an.\nPremium-Mitglieder können bis zu 20 Bildcoupons pro Tag senden.',
+        'Fügen Sie Ihrer Promo 1 Foto hinzu.\nVerfügbar für allgemeine Promos von Brand-Konten.',
     'es':
-        'Adjunta 1 foto a tu cupón.\nLos miembros Premium pueden enviar hasta 20 cupones con imagen al día.',
+        'Adjunta 1 foto a tu promo.\nDisponible para promos generales de cuentas Brand.',
     'pt':
-        'Anexe 1 foto ao seu cupom.\nMembros Premium podem enviar até 20 cupons com imagem por dia.',
+        'Anexe 1 foto à sua promo.\nDisponível para promos gerais de contas Brand.',
     'ru':
-        'Прикрепите 1 фото к купону.\nПремиум-участники могут отправлять до 20 купонов с изображениями в день.',
+        'Прикрепите 1 фото к промо.\nДоступно для обычных промо аккаунтов Brand.',
     'tr':
-        'Kuponunuza 1 fotoğraf ekleyin.\nPremium üyeler günde 20 resimli kupon gönderebilir.',
+        'Promonuza 1 fotoğraf ekleyin.\nBrand hesaplarının genel promoları için kullanılır.',
     'ar':
-        'أرفق صورة واحدة بقسيمتك.\nيمكن للأعضاء المميزين إرسال حتى 20 قسيمة مصورة يوميًا.',
+        'أرفق صورة واحدة بإعلانك.\nمتاح للإعلانات العامة لحسابات Brand.',
     'it':
-        'Allega 1 foto al tuo coupon.\nI membri Premium possono inviare fino a 20 coupon con immagine al giorno.',
+        'Allega 1 foto alla tua promo.\nDisponibile per le promo generali degli account Brand.',
     'hi':
-        'अपने कूपन में 1 फोटो संलग्न करें।\nप्रीमियम सदस्य प्रतिदिन 20 छवि कूपन भेज सकते हैं।',
+        'अपने प्रचार में 1 फोटो संलग्न करें।\nBrand (विज्ञापनदाता) खातों के सामान्य प्रचार के लिए।',
     'th':
-        'แนบรูปภาพ 1 รูปกับคูปอง\nสมาชิก Premium ส่งคูปองพร้อมรูปได้วันละ 20 ฉบับ',
+        'แนบรูปภาพ 1 รูปกับโปรโมชัน\nใช้ได้กับการส่งโปรทั่วไปของบัญชี Brand',
   });
 
   String get composeImageLimitReached => _t({
@@ -12028,6 +12030,24 @@ class AppL10n {
     'th': 'ฟีเจอร์',
   });
 
+  // Build 426 (sim100 #31): Premium 고유 강점 — 1:1 채팅(DM) 비교 행.
+  String get premiumCompareDM => _t({
+    'ko': '1:1 채팅 (DM)',
+    'en': '1:1 chat (DM)',
+    'ja': '1:1チャット (DM)',
+    'zh': '1:1 聊天 (DM)',
+    'fr': 'Chat 1:1 (DM)',
+    'de': '1:1-Chat (DM)',
+    'es': 'Chat 1:1 (DM)',
+    'pt': 'Chat 1:1 (DM)',
+    'ru': 'Чат 1:1 (DM)',
+    'tr': 'Birebir sohbet (DM)',
+    'ar': 'محادثة 1:1 (DM)',
+    'it': 'Chat 1:1 (DM)',
+    'hi': '1:1 चैट (DM)',
+    'th': 'แชท 1:1 (DM)',
+  });
+
   String get premiumCompareDailyLetters => _t({
     'ko': '일일 혜택',
     'en': 'Daily rewards',
@@ -15214,21 +15234,23 @@ class AppL10n {
     'th': 'เริ่มทดลองใช้ฟรี 3 วัน!',
   });
 
+  // Build 426 (sim100 #45): Premium 발송 제거 → trial 카피에서 '홍보 발송' 제거,
+  //   실제 Premium 혜택(넓은 줍기 반경 · 1:1 채팅 DM · 무제한 답장 · AI 정렬)으로.
   String get welcomeTrialBody => _t({
-    'ko': '카드 등록 없이 3일 동안 Premium 기능을 모두 써볼 수 있어요. AI 추천 정렬 · 자기 홍보 발송 · 무제한 답장 — 만료되면 자동으로 Free 로 돌아가요.',
-    'en': 'Try all Premium features for 3 days — no card required. AI Picks sort, promo sending, unlimited replies. Auto-returns to Free when it ends.',
-    'ja': 'カード登録不要で3日間プレミアム機能を体験。AIおすすめ並び替え・宣伝送信・無制限返信 — 終了後は自動で無料に戻ります。',
-    'zh': '无需绑卡，3 天免费体验所有 Premium 功能。AI 推荐排序、推广发送、无限回复 — 到期自动回到免费版。',
-    'fr': 'Essayez toutes les fonctions Premium pendant 3 jours — sans carte. Tri par IA, envoi promo, réponses illimitées. Retour auto au gratuit.',
-    'de': 'Alle Premium-Funktionen 3 Tage testen — ohne Karte. KI-Sortierung, Promo-Versand, unbegrenzte Antworten. Endet automatisch.',
-    'es': 'Prueba todas las funciones Premium por 3 días — sin tarjeta. Orden con IA, envío promo, respuestas ilimitadas. Vuelve auto a gratis.',
-    'pt': 'Teste todos os recursos Premium por 3 dias — sem cartão. Ordenação por IA, envio promo, respostas ilimitadas. Volta auto ao grátis.',
-    'ru': 'Все функции Premium 3 дня — без карты. ИИ-сортировка, отправка промо, безлимитные ответы. Авто-возврат на Free.',
-    'tr': 'Kart gerekmez — Premium\'u 3 gün dene. AI sıralama, promo gönderim, sınırsız yanıt. Süre sonunda otomatik Free.',
-    'ar': 'جرّب جميع ميزات Premium لمدة 3 أيام — بدون بطاقة. فرز AI، إرسال ترويجي، ردود غير محدودة. عودة تلقائية للمجاني.',
-    'it': 'Prova tutte le funzioni Premium per 3 giorni — senza carta. Ordina con IA, invio promo, risposte illimitate. Torna auto al gratuito.',
-    'hi': '3 दिन तक Premium सुविधाएँ — कार्ड के बिना। AI सुझाव, प्रचार भेजना, असीमित जवाब। बाद में Free पर वापस।',
-    'th': 'ทดลอง Premium ฟรี 3 วัน — ไม่ต้องผูกบัตร AI แนะนำ · ส่งโปร · ตอบกลับไม่จำกัด หมดเวลาแล้วกลับเป็น Free อัตโนมัติ',
+    'ko': '카드 등록 없이 3일 동안 Premium 기능을 모두 써볼 수 있어요. AI 추천 정렬 · 넓은 줍기 반경 · 1:1 채팅(DM) · 무제한 답장 — 만료되면 자동으로 Free 로 돌아가요.',
+    'en': 'Try all Premium features for 3 days — no card required. AI Picks sort, wider pickup radius, 1:1 chat (DM), unlimited replies. Auto-returns to Free when it ends.',
+    'ja': 'カード登録不要で3日間プレミアム機能を体験。AIおすすめ並び替え・広い拾える範囲・1:1チャット(DM)・無制限返信 — 終了後は自動で無料に戻ります。',
+    'zh': '无需绑卡，3 天免费体验所有 Premium 功能。AI 推荐排序、更大拾取范围、1:1 聊天(DM)、无限回复 — 到期自动回到免费版。',
+    'fr': 'Essayez toutes les fonctions Premium pendant 3 jours — sans carte. Tri par IA, rayon de ramassage plus large, chat 1:1 (DM), réponses illimitées. Retour auto au gratuit.',
+    'de': 'Alle Premium-Funktionen 3 Tage testen — ohne Karte. KI-Sortierung, größerer Aufsammelradius, 1:1-Chat (DM), unbegrenzte Antworten. Endet automatisch.',
+    'es': 'Prueba todas las funciones Premium por 3 días — sin tarjeta. Orden con IA, mayor radio de recogida, chat 1:1 (DM), respuestas ilimitadas. Vuelve auto a gratis.',
+    'pt': 'Teste todos os recursos Premium por 3 dias — sem cartão. Ordenação por IA, maior raio de recolha, chat 1:1 (DM), respostas ilimitadas. Volta auto ao grátis.',
+    'ru': 'Все функции Premium 3 дня — без карты. ИИ-сортировка, больший радиус подбора, чат 1:1 (DM), безлимитные ответы. Авто-возврат на Free.',
+    'tr': 'Kart gerekmez — Premium\'u 3 gün dene. AI sıralama, daha geniş toplama yarıçapı, 1:1 sohbet (DM), sınırsız yanıt. Süre sonunda otomatik Free.',
+    'ar': 'جرّب جميع ميزات Premium لمدة 3 أيام — بدون بطاقة. فرز AI، نطاق التقاط أوسع، محادثة 1:1 (DM)، ردود غير محدودة. عودة تلقائية للمجاني.',
+    'it': 'Prova tutte le funzioni Premium per 3 giorni — senza carta. Ordina con IA, raggio di raccolta più ampio, chat 1:1 (DM), risposte illimitate. Torna auto al gratuito.',
+    'hi': '3 दिन तक Premium सुविधाएँ — कार्ड के बिना। AI सुझाव, बड़ा पिकअप रेडियस, 1:1 चैट (DM), असीमित जवाब। बाद में Free पर वापस।',
+    'th': 'ทดลอง Premium ฟรี 3 วัน — ไม่ต้องผูกบัตร AI แนะนำ · รัศมีเก็บกว้างขึ้น · แชท 1:1 (DM) · ตอบกลับไม่จำกัด หมดเวลาแล้วกลับเป็น Free อัตโนมัติ',
   });
 
   String get welcomeTrialCta => _t({
@@ -20709,53 +20731,54 @@ class AppL10n {
     'th': '5 ประเทศยอดนิยม (เก็บ)',
   });
 
+  // Build 426 (sim100 #0·#3): 발송이 Brand 전용이 되며 이 게이트는 이제 '답장'
+  //   진입(Free→Premium)에만 쓰인다 → 발송/홍보 문구를 답장 문구로 교체.
   String get composeGateFeatureName => _t({
-    'ko': '홍보 발송',
-    'en': 'Promo sending',
-    'ja': 'プロモ特典の送信',
-    'zh': '推广优惠券发送',
-    'fr': 'Envoi de récompenses promo',
-    'de': 'Promo-Belohnung-Versand',
-    'es': 'Envío de recompensas promo',
-    'pt': 'Envio de recompensas promo',
-    'ru': 'Отправка промо-наград',
-    'tr': 'Promo ödül gönderimi',
-    'ar': 'إرسال المكافآت الترويجية',
-    'it': 'Invio ricompense promo',
-    'hi': 'प्रोमो पुरस्कार भेजना',
-    'th': 'ส่งรางวัลโปรโมต',
+    'ko': '답장',
+    'en': 'Reply',
+    'ja': '返信',
+    'zh': '回复',
+    'fr': 'Réponse',
+    'de': 'Antwort',
+    'es': 'Responder',
+    'pt': 'Responder',
+    'ru': 'Ответ',
+    'tr': 'Yanıt',
+    'ar': 'الرد',
+    'it': 'Risposta',
+    'hi': 'जवाब',
+    'th': 'ตอบกลับ',
   });
 
-  // Build 240: 14개 언어 letter/편지/クーポン 잔존 → promos/rewards 통일
   String get composeGateDesc => _t({
     'ko':
-        '혜택을 세계에 뿌리고 싶다면 Premium 으로 업그레이드하세요.\n📸 사진 첨부 · 🔗 채널/SNS 링크로 나를 홍보할 수 있어요.\n무료 회원은 지도에서 혜택을 주워 사용할 수 있어요.',
+        'Premium 으로 업그레이드하면 받은 혜택의 발송인에게 직접 답장할 수 있어요.\n무료 회원은 지도에서 혜택을 주워 사용할 수 있어요.',
     'en':
-        'Upgrade to Premium to drop your own promos worldwide.\n📸 Attach photos · 🔗 Add channel/SNS links to promote yourself.\nFree members keep picking up rewards and claiming benefits.',
+        'Upgrade to Premium to reply directly to the senders of rewards you receive.\nFree members keep picking up rewards on the map.',
     'ja':
-        'Premium にアップグレードして、自分のプロモを世界に届けましょう。\n📸 写真添付 · 🔗 チャンネル/SNS リンクで自己PR。\n無料会員は地図で特典を拾って活用できます。',
+        'Premium にアップグレードすると、受け取った特典の送信者に直接返信できます。\n無料会員は地図で特典を拾って活用できます。',
     'zh':
-        '升级 Premium 将你的促销发送到世界各地。\n📸 附加照片 · 🔗 添加频道/社交链接自我宣传。\n免费会员可以继续在地图上拾取奖励。',
+        '升级 Premium 即可直接回复给你发送奖励的人。\n免费会员可以继续在地图上拾取奖励。',
     'fr':
-        'Passe à Premium pour envoyer tes promos dans le monde entier.\n📸 Joins des photos · 🔗 Ajoute des liens de chaîne / réseaux.\nLes membres gratuits continuent de ramasser des récompenses.',
+        'Passe à Premium pour répondre directement aux expéditeurs des récompenses reçues.\nLes membres gratuits continuent de ramasser des récompenses sur la carte.',
     'de':
-        'Mit Premium sendest du eigene Promos weltweit.\n📸 Fotos anhängen · 🔗 Kanal-/Social-Links für Selbstvermarktung.\nFreie Mitglieder sammeln weiterhin Belohnungen auf der Karte.',
+        'Mit Premium antwortest du direkt den Absendern erhaltener Belohnungen.\nFreie Mitglieder sammeln weiterhin Belohnungen auf der Karte.',
     'es':
-        'Actualiza a Premium para lanzar tus promos al mundo.\n📸 Adjunta fotos · 🔗 Añade enlaces de canal/redes.\nLos miembros gratuitos siguen recogiendo recompensas.',
+        'Actualiza a Premium para responder directamente a quienes te envían recompensas.\nLos miembros gratuitos siguen recogiendo recompensas en el mapa.',
     'pt':
-        'Atualiza para Premium e lança as tuas promoções ao mundo.\n📸 Anexa fotos · 🔗 Adiciona links de canal/redes.\nMembros gratuitos continuam a apanhar recompensas.',
+        'Atualiza para Premium e responde diretamente a quem te envia recompensas.\nMembros gratuitos continuam a apanhar recompensas no mapa.',
     'ru':
-        'Перейдите на Premium, чтобы отправлять промо по всему миру.\n📸 Прикрепляйте фото · 🔗 Добавляйте ссылки на канал/соцсети.\nБесплатные пользователи продолжают собирать награды.',
+        'Перейдите на Premium, чтобы отвечать напрямую отправителям полученных наград.\nБесплатные пользователи продолжают собирать награды на карте.',
     'tr':
-        "Premium'a yükselt ve promolarını dünyaya bırak.\n📸 Fotoğraf ekle · 🔗 Kanal/SNS bağlantısıyla kendini tanıt.\nÜcretsiz üyeler haritadan ödül toplamaya devam eder.",
+        "Premium'a yükselt ve aldığın ödüllerin gönderenlerine doğrudan yanıt ver.\nÜcretsiz üyeler haritadan ödül toplamaya devam eder.",
     'ar':
-        'ارتقِ إلى Premium لإرسال عروضك للعالم.\n📸 أرفق الصور · 🔗 أضف روابط قناتك/وسائلك.\nالأعضاء المجانيون يواصلون التقاط المكافآت.',
+        'ارتقِ إلى Premium للرد مباشرة على مُرسِلي المكافآت التي تتلقاها.\nالأعضاء المجانيون يواصلون التقاط المكافآت على الخريطة.',
     'it':
-        'Passa a Premium per lanciare le tue promo nel mondo.\n📸 Allega foto · 🔗 Aggiungi link canale/social.\nI membri gratuiti continuano a raccogliere ricompense.',
+        'Passa a Premium per rispondere direttamente ai mittenti delle ricompense ricevute.\nI membri gratuiti continuano a raccogliere ricompense sulla mappa.',
     'hi':
-        'Premium में अपग्रेड करें और अपनी प्रोमो दुनिया में भेजें।\n📸 फ़ोटो संलग्न करें · 🔗 चैनल/SNS लिंक जोड़ें।\nमुफ़्त सदस्य मानचित्र पर पुरस्कार उठाते रहें।',
+        'मिलने वाले इनामों के भेजने वालों को सीधे जवाब देने के लिए Premium में अपग्रेड करें।\nमुफ़्त सदस्य मानचित्र पर पुरस्कार उठाते रहें।',
     'th':
-        'อัปเกรด Premium เพื่อส่งโปรโมไปทั่วโลก\n📸 แนบรูป · 🔗 ใส่ลิงก์ช่อง/โซเชียล\nสมาชิกฟรียังเก็บรางวัลบนแผนที่ได้',
+        'อัปเกรด Premium เพื่อตอบกลับผู้ส่งรางวัลที่คุณได้รับโดยตรง\nสมาชิกฟรียังเก็บรางวัลบนแผนที่ได้',
   });
 
   String get letterReadRedemptionTodayOnly => _t({
@@ -27735,38 +27758,40 @@ class AppL10n {
     'th': 'รับ 1km + 10นาที',
   });
 
+  // Build 426 (sim100 #44): Premium 발송 제거 → 타워 혜택 팝업도 발송(사진/링크/
+  //   30·500통) 대신 DM·커스터마이즈로 정정.
   String get towerBenefitsPremiumFeat2 => _t({
-    'ko': '📸 사진 첨부 + 🔗 채널/SNS 링크 발송',
-    'en': '📸 Photo + 🔗 social link sending',
-    'ja': '📸 写真 + 🔗 SNSリンク送信',
-    'zh': '📸 照片 + 🔗 社交链接发送',
-    'fr': '📸 Photo + 🔗 lien social',
-    'de': '📸 Foto + 🔗 Social Link',
-    'es': '📸 Foto + 🔗 enlace social',
-    'pt': '📸 Foto + 🔗 link social',
-    'ru': '📸 Фото + 🔗 ссылка',
-    'tr': '📸 Fotoğraf + 🔗 sosyal bağlantı',
-    'ar': '📸 صورة + 🔗 رابط',
-    'it': '📸 Foto + 🔗 link social',
-    'hi': '📸 फोटो + 🔗 लिंक',
-    'th': '📸 รูป + 🔗 ลิงก์',
+    'ko': '💬 발송인과 1:1 채팅(DM)',
+    'en': '💬 1:1 chat (DM) with senders',
+    'ja': '💬 送信者と1:1チャット(DM)',
+    'zh': '💬 与发送者1:1聊天(DM)',
+    'fr': '💬 Chat 1:1 (DM) avec les expéditeurs',
+    'de': '💬 1:1-Chat (DM) mit Absendern',
+    'es': '💬 Chat 1:1 (DM) con remitentes',
+    'pt': '💬 Chat 1:1 (DM) com remetentes',
+    'ru': '💬 Чат 1:1 (DM) с отправителями',
+    'tr': '💬 Gönderenlerle 1:1 sohbet (DM)',
+    'ar': '💬 محادثة 1:1 (DM) مع المُرسِلين',
+    'it': '💬 Chat 1:1 (DM) con i mittenti',
+    'hi': '💬 भेजने वालों से 1:1 चैट (DM)',
+    'th': '💬 แชท 1:1 (DM) กับผู้ส่ง',
   });
 
   String get towerBenefitsPremiumFeat3 => _t({
-    'ko': '일 30통 / 월 500통 발송',
-    'en': '30/day · 500/month send quota',
-    'ja': '日30通 / 月500通',
-    'zh': '日30 / 月500',
-    'fr': '30/jour · 500/mois',
-    'de': '30/Tag · 500/Monat',
-    'es': '30/día · 500/mes',
-    'pt': '30/dia · 500/mês',
-    'ru': '30/день · 500/мес',
-    'tr': '30/gün · 500/ay',
-    'ar': '30/يوم · 500/شهر',
-    'it': '30/giorno · 500/mese',
-    'hi': '30/दिन · 500/माह',
-    'th': '30/วัน · 500/เดือน',
+    'ko': '🎨 카운터 캐릭터 + 커스텀 타워',
+    'en': '🎨 Counter character + custom tower',
+    'ja': '🎨 カウンターキャラ + カスタムタワー',
+    'zh': '🎨 角色定制 + 自定义塔楼',
+    'fr': '🎨 Personnage + tour personnalisée',
+    'de': '🎨 Charakter + eigener Turm',
+    'es': '🎨 Personaje + torre personalizada',
+    'pt': '🎨 Personagem + torre personalizada',
+    'ru': '🎨 Персонаж + кастомная башня',
+    'tr': '🎨 Karakter + özel kule',
+    'ar': '🎨 الشخصية + برج مخصص',
+    'it': '🎨 Personaggio + torre personalizzata',
+    'hi': '🎨 कैरेक्टर + कस्टम टावर',
+    'th': '🎨 ตัวละคร + หอคอยกำหนดเอง',
   });
 
   String get towerBenefitsBrandFeat1 => _t({

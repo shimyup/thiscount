@@ -1919,22 +1919,25 @@ class _FeatureCompareTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    // Build 426 (sim100 #31): 발송은 Brand 전용 → 발송 기반 행은 Free·Premium
+    //   모두 ✗, Brand 만 수치. Premium 고유 강점(1:1 DM) 행 추가.
     final rows = [
       [l10n.premiumCompareFeature, 'Free', 'Premium', 'Brand'],
-      [l10n.premiumCompareDailyLetters, '3', '30', '200'],
-      [l10n.premiumCompareMonthlyLetters, '100', '500', '10,000'],
+      [l10n.premiumCompareDailyLetters, '✗', '✗', '200'],
+      [l10n.premiumCompareMonthlyLetters, '✗', '✗', '10,000'],
       [
         l10n.premiumCompareImageLink,
         '✗',
-        l10n.premiumCompare20PerDay,
+        '✗',
         l10n.premiumCompareAllIncluded,
       ],
       [
         l10n.premiumCompareExpress,
         '✗',
-        l10n.premiumCompare3PerDay,
+        '✗',
         l10n.premiumCompareInstantBulk,
       ],
+      [l10n.premiumCompareDM, '✗', '✓', '✗'],
       [
         l10n.premiumCompareStyle,
         l10n.premiumCompareBasic,
