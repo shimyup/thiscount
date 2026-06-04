@@ -16,7 +16,7 @@
 ## 현재 상태 (2026-06-04 갱신)
 - 브랜치: `launch-readiness-build411` (PR #150). main 아님.
 - 최신 커밋: `253af18` (device 보고 3건: 광고문구 제거 + 토글 pill화 + 발송버튼 구분).
-- 빌드: pubspec `1.0.0+424`. TestFlight **417~423 업로드됨**(423=VALID+Internal). **424 빌드 예정**.
+- 빌드: pubspec `1.0.0+424`. TestFlight **417~424 업로드됨**(424=VALID+Internal, Delivery `121a9bbf-e148-46e1-9813-9877d337a9af`). 다음 빌드 425.
 - 검증 게이트(매 수정 후 필수): `flutter analyze lib/` 무경고 + `flutter test` 전체 통과(현재 **139**).
 - ⚠️ flaky 없음.
 - 누적 진행: sim100 + iter1~5 + device + sim-fresh + sim-fresh2 + sim-crosscut + **WCAG 라운드(접근성 백로그)**.
