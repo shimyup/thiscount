@@ -480,13 +480,8 @@ String _emptyEmojiForFilter(LetterFilterType f) {
 }
 
 // 필터가 "헌트 모드"인지 판정. 할인권 · 교환권 · 브랜드 편지는 유저가
-// 지도에서 주워야 얻는 것이므로 빈 상태 CTA를 "편지 쓰기"가 아닌
-// "지도에서 찾기"로 바꾼다.
-bool _isHuntFilter(LetterFilterType f) {
-  return f == LetterFilterType.coupon ||
-      f == LetterFilterType.voucher ||
-      f == LetterFilterType.brand;
-}
+// Build 428 (UX): _isHuntFilter 제거 — 받은 인박스 빈 상태 CTA 를 항상 '줍기'
+//   로 통일하면서 미사용.
 
 // 필터별 이름. inboxEmptyForFilter() 에 전달해 "아직 받은 할인권이 없어요"
 // 식으로 쓰인다. 사용자가 어떤 필터를 켜놨는지 empty state 제목에서 즉시 인지.
@@ -584,7 +579,10 @@ class _InboxScreenState extends State<InboxScreen>
     super.initState();
     // Build 217: Brand 는 [보낸/받은] 순서로 탭 자체가 재배치되어 0번이 이미
     // sent. 별도 자동 전환 불필요.
-    _tabController = TabController(length: 2, vsync: this);
+    // Build 428 (UX): Premium(DM 자격) 은 [받은/보낸/DM] 3탭 — DM 발견성 확보
+    //   (이전엔 편지를 열어야만 DM 진입 가능 = 발견성 0, 전환 절벽).
+    final canDM = context.read<AppState>().canUseDM;
+    _tabController = TabController(length: canDM ? 3 : 2, vsync: this);
     // Build 271: 푸시 알림 deep link 로 진입 시 해당 편지 자동 오픈.
     // main.dart 의 onNotificationTap 에서 AppState.pendingDeepLinkLetterId 를
     // 채우고 인박스로 이동 → 첫 프레임 후 1회 소비.
@@ -1170,6 +1168,8 @@ class _InboxScreenState extends State<InboxScreen>
                                 setState(() => _sentFilter = next);
                               },
                             ),
+                            // Build 428 (UX): Premium DM 탭 — 발견성 확보.
+                            if (state.canUseDM) const _DMTab(),
                           ],
                   ),
                 ),
@@ -1531,6 +1531,7 @@ class _InboxScreenState extends State<InboxScreen>
 
   Widget _buildTabBar() {
     final isBrand = context.read<AppState>().currentUser.isBrand;
+    final canDM = context.read<AppState>().canUseDM;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       padding: const EdgeInsets.all(4),
@@ -1568,6 +1569,7 @@ class _InboxScreenState extends State<InboxScreen>
             : [
                 Tab(text: _l10n(context).inboxTabReceived),
                 Tab(text: _l10n(context).inboxTabSent),
+                if (canDM) Tab(text: _l10n(context).inboxTabDM),
               ],
       ),
     );
@@ -1831,14 +1833,14 @@ class _InboxTab extends StatelessWidget {
                               _filterName(activeFilter, l10n),
                             ),
                       subtitle: sub,
-                      ctaLabel: _isHuntFilter(activeFilter)
-                          ? l10n.emptyStateExploreCta
-                          : l10n.emptyStateWriteCta,
-                      onCtaTap: () => _isHuntFilter(activeFilter)
-                          ? Navigator.of(
-                              context,
-                            ).pushNamedAndRemoveUntil('/home', (route) => false)
-                          : Navigator.of(context).pushNamed('/compose'),
+                      // Build 428 (UX): 받은 인박스는 '줍기'로 채워지므로 빈 상태
+                      //   CTA 를 항상 '지도에서 줍기'로 — 이전엔 '작성'(/compose)
+                      //   유도라 발송 불가한 Free/Premium 이 BrandOnly 게이트로
+                      //   막다른 진입했음.
+                      ctaLabel: l10n.emptyStateExploreCta,
+                      onCtaTap: () => Navigator.of(
+                        context,
+                      ).pushNamedAndRemoveUntil('/home', (route) => false),
                     ),
                     // Build 242: 빈 상태 하단에 가맹점 영입 CTA — Cold-start
                     // 양방향 마켓 부트스트랩의 핵심. Free/Premium 사용자에게
