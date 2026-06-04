@@ -15,7 +15,7 @@
 
 ## 현재 상태 (2026-06-04 갱신)
 - 브랜치: `launch-readiness-build411` (PR #150). main 아님.
-- 최신 커밋: `504167c` (WCAG: tooltip 12개).
+- 최신 커밋: `253af18` (device 보고 3건: 광고문구 제거 + 토글 pill화 + 발송버튼 구분).
 - 빌드: pubspec `1.0.0+424`. TestFlight **417~423 업로드됨**(423=VALID+Internal). **424 빌드 예정**.
 - 검증 게이트(매 수정 후 필수): `flutter analyze lib/` 무경고 + `flutter test` 전체 통과(현재 **139**).
 - ⚠️ flaky 없음.
@@ -164,20 +164,13 @@
 - [x] 작성 메세지 '버리기' 후 재출현 — _saveDraft hasState 가 기본 선택국가만으로 brand draft 저장 → 빈 메세지도 '이어쓰기' 무한 재출현. hasState 를 닫기확인 hasContent 기준(대량/특송/타깃/특정국가/혜택정보)으로 정정 (compose_screen.dart:693)
 - Build 419 빌드.
 
-## 🔴 사용자 device 보고 추가 (2026-06-03, 최우선 — 다음 iteration 먼저 처리)
-> Build 419 실기기 확인 후 보고된 3건. 코드-fixable. ⛔ 영역 아님.
+## ✅ 사용자 device 보고 추가 (2026-06-04 처리완료, commit `253af18`)
+> Build 419 실기기 보고 3건. 모두 코드-fixable, 처리 완료.
 
-1. **[device] 프리미엄 '홍보 메세지 안 보냄' 문구 — 온보딩 + 회원 설명에서 수정/삭제**
-   - 증상: "프리미엄은 홍보 메세지 안 보내는" 식의 등급 제한 문구가 온보딩과 회원(등급) 설명에 남아 일관성 깨짐. (Free=줍기 / Premium·Brand=홍보·발송 가능 으로 통일돼야 함)
-   - 위치 후보: `lib/features/onboarding/onboarding_screen.dart` 티어 소개 페이지(_PremiumPage / 티어 비교) + `app_localizations.dart` onboardingPremium*/티어설명 문자열(~1172 주석 'Free 는 줍기, Premium 은 홍보, Brand 는 캠페인') + `profile_screen.dart`/`settings_screen.dart` 회원종류 설명.
-   - 할 일: `grep -rn "프리미엄\|Premium\|홍보" lib/features/onboarding lib/features/profile lib/features/settings` 로 정확한 문구 특정 → 등급 차별 framing 제거/통일. 14언어 동기 수정.
-
-2. **[device] 브랜드 메세지 작성 — 대량발송/특급배송 버튼화 (안 바뀜)**
-   - 증상: 이전 buttonize 는 brand 3종 토글(1인1회·답장·코드발급)만 적용됐고, **대량발송(_isBulkMode)·특급배송(express)** 토글은 여전히 옛 switch/row 형식.
-   - 위치: `compose_screen.dart` `_buildBulkModeToggle()` (~grep) + 특급/express 토글 빌더.
-   - 할 일: `_optionToggleButton` 동일 스타일 pill 버튼으로 변경 + Wrap 으로 한눈에. brand 옵션 영역과 시각 통일.
-
-3. **[device] 버튼 활성/비활성 구분 UI/UX (안 바뀜)**
-   - 증상: 발송 버튼/토글의 활성·비활성 시각 구분이 약해 실기기에서 구분 안 됨.
-   - 위치: `compose_screen.dart` `_buildSendButton()` (canSend 분기) + 토글 active/inactive 색.
-   - 할 일: 비활성 = 명확히 다른 색/투명도/외곽선(예: muted bg + 회색 텍스트), 활성 = gold/teal 강조. 발송 가능/불가가 또렷하게.
+1. [x] **[device] '광고 없음/제거/ad-free' 문구 제거** — 실측 결과 문구의 실체는 "홍보 안 보냄"이 아니라 **'광고 없음/제거' (ad-free)** 였음. 앱은 광고 SDK 미사용(REST-only)이라 공허·모순(쿠폰=콘텐츠) 문구 → 4곳 제거:
+   - `onboardingPremiumFeat4` (app_localizations:17139) "광고 제거" → 페이월 정본 정렬 "캐릭터 커스터마이즈" (14언어)
+   - `premiumGateAssurance` (10394) "언제든 해지 · 광고 없음" → "3일 무료 체험 · 언제든 해지" (14언어)
+   - `premiumTrustLine` (16010) 끝 "· 광고 없음" 제거 (14언어)
+   - `v5_premium.dart:298` '광고 없음'→'3일 무료 체험' + premium_gate_sheet 주석 정정
+2. [x] **[device] 대량발송/특급배송 토글 pill화** — 신규 `_modeToggleButton`(brand 옵션 `_optionToggleButton` 와 동일 시각언어) 추가 → `_buildBulkModeToggle`/`_buildExpressToggle` 전면 재작성(full-width Switch 행 제거) → 호출부 Wrap 배치. 대량=Brand 만, 특급=비-답장 전체(Free=잠금 PRO 업셀 pill, 한도소진=opacity 0.55).
+3. [x] **[device] 발송버튼 활성/비활성 구분 강화** — **근본원인 발견**: `onPressed==null` 일 때 Flutter 가 `backgroundColor` 대신 테마 기본 disabled 색을 써서 의도한 muted 색 미적용 → 약함. `disabledBackgroundColor`/`disabledForegroundColor` 명시 + 비활성 외곽선(1.2px) + 활성 elevation 3 그림자 + 이모지 dim(0.45).
