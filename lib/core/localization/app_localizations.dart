@@ -10819,27 +10819,29 @@ class AppL10n {
     'th': '/เดือน',
   });
 
+  // Build 426 (sim100 #5): Premium 발송 제거 → 페이월 플랜 카드 설명도 줍기·DM·
+  //   커스터마이즈로 정정(발송/특급 제거).
   String get premiumPremiumTestDesc => _t({
-    'ko': '하루 30통 발송 · 이미지+링크 홍보\n타워 커스텀 · 특급 배송',
-    'en': '30 promos/day · image+link promos\nCustom tower · express delivery',
-    'ja': '1日30通 · 画像+リンク特典\nタワーカスタム · 特急配送',
-    'zh': '每日30封 · 图片+链接优惠券\n自定义塔楼 · 特快配送',
+    'ko': '줍기 반경 1km · 쿨다운 10분\n1:1 채팅(DM) · 타워 커스텀',
+    'en': '1 km pickup · 10-min cooldown\n1:1 chat (DM) · custom tower',
+    'ja': '拾える範囲1km · クールダウン10分\n1:1チャット(DM) · タワーカスタム',
+    'zh': '拾取范围1km · 冷却10分钟\n1:1聊天(DM) · 自定义塔楼',
     'fr':
-        '30 coupons/jour · coupons image+lien\nTour personnalisée · livraison express',
+        'Ramassage 1 km · recharge 10 min\nChat 1:1 (DM) · tour personnalisée',
     'de':
-        '30 Coupons/Tag · Bild+Link-Coupons\nBenutzerdefinierter Turm · Express-Zustellung',
+        '1 km Aufsammeln · 10 min Abklingzeit\n1:1-Chat (DM) · eigener Turm',
     'es':
-        '30 cupones/día · cupones imagen+enlace\nTorre personalizada · entrega exprés',
+        'Recogida 1 km · enfriamiento 10 min\nChat 1:1 (DM) · torre personalizada',
     'pt':
-        '30 cupons/dia · cupons imagem+link\nTorre personalizada · entrega expressa',
+        'Recolha 1 km · recarga 10 min\nChat 1:1 (DM) · torre personalizada',
     'ru':
-        '30 купонов/день · купоны с фото+ссылкой\nКастомная башня · экспресс-доставка',
-    'tr': 'Günde 30 · resim+link ödüller\nÖzel kule + ekspres teslimat',
-    'ar': '30 مكافأة/يوم · مكافآت صور+روابط\nبرج مخصص · توصيل سريع',
+        'Подбор 1 км · перезарядка 10 мин\nЧат 1:1 (DM) · кастомная башня',
+    'tr': '1 km toplama · 10 dk bekleme\n1:1 sohbet (DM) · özel kule',
+    'ar': 'التقاط 1 كم · تبريد 10 دقائق\nمحادثة 1:1 (DM) · برج مخصص',
     'it':
-        '30 coupon/giorno · coupon immagine+link\nTorre personalizzata · consegna espressa',
-    'hi': '30 पुरस्कार/दिन · छवि+लिंक पुरस्कार\nकस्टम टावर · एक्सप्रेस डिलीवरी',
-    'th': '30 ฉบับ/วัน · รางวัลภาพ+ลิงก์\nหอคอยกำหนดเอง · จัดส่งด่วน',
+        'Raccolta 1 km · cooldown 10 min\nChat 1:1 (DM) · torre personalizzata',
+    'hi': '1 किमी पिकअप · 10 मिनट कूलडाउन\n1:1 चैट (DM) · कस्टम टावर',
+    'th': 'เก็บ 1 กม. · คูลดาวน์ 10 นาที\nแชท 1:1 (DM) · หอคอยกำหนดเอง',
   });
 
   String get premiumNoDowngrade => _t({
@@ -14446,34 +14448,36 @@ class AppL10n {
     'th': 'บัญชีแบรนด์ไม่สามารถใช้ DM ได้\nกรุณาสื่อสารกับผู้รับผ่านรางวัล',
   });
 
+  // Build 426 (sim100 #5): Premium 발송 제거 → DM 안내에서 '발송' 부분 제거.
+  //   premiumLimit 파라미터는 호환 위해 유지(미사용).
   String stateDmUnavailableFree(int premiumLimit) => _t({
     'ko':
-        '빠른 메시지(DM)는 프리미엄 회원 전용이에요.\n프리미엄으로 업그레이드하면 DM 이용 및 하루 $premiumLimit통 발송이 가능해요.',
+        '1:1 채팅(DM)은 프리미엄 회원 전용이에요.\n프리미엄으로 업그레이드하면 발송인과 직접 대화할 수 있어요.',
     'en':
-        'Quick Message (DM) is for premium members only.\nUpgrade to Premium for DM access and $premiumLimit promos/day.',
+        'Quick Message (DM) is for premium members only.\nUpgrade to Premium to chat directly with senders.',
     'ja':
-        'クイックレター（DM）はプレミアム会員限定です。\nプレミアムにアップグレードするとDMと1日${premiumLimit}通の送信が可能です。',
-    'zh': '快速发送（私信）仅限高级会员使用。\n升级高级版即可使用私信功能，每日发送$premiumLimit封。',
+        'クイックメッセージ（DM）はプレミアム会員限定です。\nプレミアムにアップグレードすると送信者と直接やり取りできます。',
+    'zh': '快速消息（私信）仅限高级会员使用。\n升级高级版即可与发送者直接聊天。',
     'fr':
-        'Le coupon express (MP) est réservée aux membres premium.\nPassez au Premium pour les MP et $premiumLimit coupons/jour.',
+        'Le message rapide (MP) est réservé aux membres premium.\nPassez au Premium pour discuter directement avec les expéditeurs.',
     'de':
-        'Express-Coupon (DM) ist nur für Premium-Mitglieder.\nUpgrade auf Premium für DMs und $premiumLimit Coupons/Tag.',
+        'Schnellnachricht (DM) ist nur für Premium-Mitglieder.\nUpgrade auf Premium, um direkt mit Absendern zu chatten.',
     'es':
-        'Cupón express (MD) es solo para miembros premium.\nActualiza a Premium para MD y $premiumLimit cupones/día.',
+        'El mensaje rápido (MD) es solo para miembros premium.\nActualiza a Premium para chatear directamente con remitentes.',
     'pt':
-        'Cupom express (MD) é exclusivo para membros premium.\nAtualize para Premium para MD e $premiumLimit cupons/dia.',
+        'A mensagem rápida (MD) é exclusiva para membros premium.\nAtualize para Premium para conversar diretamente com remetentes.',
     'ru':
-        'Быстрое купон (ЛС) — только для премиум-участников.\nОформите подписку Premium для ЛС и $premiumLimit купонов/день.',
+        'Быстрое сообщение (ЛС) — только для премиум-участников.\nОформите Premium, чтобы общаться напрямую с отправителями.',
     'tr':
-        'Hızlı kupon (DM) yalnızca premium üyelere özeldir.\nPremium\'a yükselterek DM ve günde $premiumLimit kupon gönderebilirsiniz.',
+        'Hızlı mesaj (DM) yalnızca premium üyelere özeldir.\nGönderenlerle doğrudan sohbet için Premium\'a yükselt.',
     'ar':
-        'القسيمة السريعة (DM) مخصصة للأعضاء المميزين فقط.\nقم بالترقية إلى Premium للوصول إلى DM و$premiumLimit قسيمة/يوم.',
+        'الرسالة السريعة (DM) مخصصة للأعضاء المميزين فقط.\nقم بالترقية إلى Premium للدردشة مباشرة مع المُرسِلين.',
     'it':
-        'Coupon express (MD) è solo per membri premium.\nPassa a Premium per MD e $premiumLimit coupon/giorno.',
+        'Il messaggio rapido (MD) è solo per membri premium.\nPassa a Premium per chattare direttamente con i mittenti.',
     'hi':
-        'क्विक लेटर (DM) केवल प्रीमियम सदस्यों के लिए है।\nDM और प्रतिदिन $premiumLimit कूपन भेजने के लिए प्रीमियम में अपग्रेड करें।',
+        'क्विक मैसेज (DM) केवल प्रीमियम सदस्यों के लिए है।\nभेजने वालों से सीधे चैट के लिए प्रीमियम में अपग्रेड करें।',
     'th':
-        'คูปองด่วน (DM) สำหรับสมาชิกพรีเมียมเท่านั้น\nอัปเกรดเป็น Premium เพื่อใช้ DM และส่งวันละ $premiumLimit ฉบับ',
+        'ข้อความด่วน (DM) สำหรับสมาชิกพรีเมียมเท่านั้น\nอัปเกรดเป็น Premium เพื่อแชทกับผู้ส่งโดยตรง',
   });
 
   String statePremiumExpressLimitExceeded(int limit) => _t({
