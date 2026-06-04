@@ -88,6 +88,9 @@ class _ComposeScreenState extends State<ComposeScreen>
   }
 
   bool _isRandom = true;
+  // Build 425 (device #3): 목적지 선택 전엔 어떤 버튼도 활성 강조색을 띄지 않음
+  //   (초기 random 자동 하이라이트 제거). 사용자가 나라/랜덤을 누르면 true.
+  bool _destinationTouched = false;
   bool _isAnonymous = true;
   bool _attachSocial = false;
   // Build 229: 사진+링크 첨부 카드 onTap → 첨부 영역으로 스크롤 + 토글 활성화.
@@ -814,6 +817,8 @@ class _ComposeScreenState extends State<ComposeScreen>
                         snap['attachRedemptionCode'] as bool? ?? false;
                     _brandUniquePerUser =
                         snap['brandUniquePerUser'] as bool? ?? false;
+                    // Build 425 (device #3): draft 복원 = 목적지 선택 이력 있음.
+                    _destinationTouched = true;
                   } catch (_) {}
                 }
               });
@@ -2225,12 +2230,14 @@ class _ComposeScreenState extends State<ComposeScreen>
                 ? (cityData['lng'] as num).toDouble()
                 : lng;
             _isRandom = false;
+            _destinationTouched = true;
           });
           Navigator.pop(context);
         },
         onRandom: () {
           final state = context.read<AppState>();
           _pickRandomDestination(excludeCountry: state.currentUser.country);
+          setState(() => _destinationTouched = true);
           Navigator.pop(context);
         },
       ),
@@ -2322,7 +2329,14 @@ class _ComposeScreenState extends State<ComposeScreen>
                                   const SizedBox(height: 10),
                                   _buildBrandOptions(state),
                                 ],
-                                if (!(hasPremium && !isBrand)) ...[
+                                // Build 425 (device #7): 본문 사진 첨부는 '일반'
+                                //   혜택일 때만 노출 — 할인권/교환권 선택 시엔
+                                //   교환권 이미지(redemptionInfo)가 별도라 중복·
+                                //   혼선 → 숨김. (답장은 카테고리 없음 → 기존 유지)
+                                if (!(hasPremium && !isBrand) &&
+                                    (_isReply ||
+                                        _brandCategory ==
+                                            LetterCategory.general)) ...[
                                   const SizedBox(height: 10),
                                   Container(
                                     key: _attachAreaKey,
@@ -2882,12 +2896,16 @@ class _ComposeScreenState extends State<ComposeScreen>
                 horizontal: 14,
               ),
               decoration: BoxDecoration(
-                color: !_isRandom
+                // Build 425 (device #3): 목적지 선택 전(_destinationTouched=false)
+                //   엔 활성 강조색 없이 중립. 나라를 고르면 gold 강조.
+                color: (_destinationTouched && !_isRandom)
                     ? AppColors.gold.withValues(alpha: 0.18)
                     : AppColors.bgSurface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: !_isRandom ? AppColors.gold : Colors.transparent,
+                  color: (_destinationTouched && !_isRandom)
+                      ? AppColors.gold
+                      : Colors.transparent,
                   width: 1.5,
                 ),
               ),
@@ -2954,6 +2972,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                   onTap: () {
                     setState(() {
                       _isRandom = true;
+                      _destinationTouched = true;
                       // Build 205.1: 랜덤으로 전환하면 대량 발송 타깃도 비움.
                       // 안 비우면 다시 country 모드로 전환했을 때 이전 나라가
                       // 살아 있어 사용자 의도와 어긋난다.
@@ -2963,13 +2982,14 @@ class _ComposeScreenState extends State<ComposeScreen>
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(vertical: 10),
+                    // Build 425 (device #3): 선택 전엔 랜덤도 활성 강조 없음.
                     decoration: BoxDecoration(
-                      color: _isRandom
+                      color: (_destinationTouched && _isRandom)
                           ? AppColors.gold.withValues(alpha: 0.14)
                           : AppColors.bgSurface,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: _isRandom
+                        color: (_destinationTouched && _isRandom)
                             ? AppColors.gold.withValues(alpha: 0.7)
                             : AppColors.textMuted.withValues(alpha: 0.25),
                         width: 1.2,
@@ -2981,7 +3001,9 @@ class _ComposeScreenState extends State<ComposeScreen>
                         Text(
                           '🎲',
                           style: TextStyle(
-                            fontSize: _isRandom ? 17 : 15,
+                            fontSize: (_destinationTouched && _isRandom)
+                                ? 17
+                                : 15,
                           ),
                         ),
                         const SizedBox(width: 6),
@@ -2989,7 +3011,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                           child: Text(
                             l10n.composeRandom,
                             style: TextStyle(
-                              color: _isRandom
+                              color: (_destinationTouched && _isRandom)
                                   ? AppColors.gold
                                   : AppColors.textSecondary,
                               fontSize: 12,
@@ -3335,23 +3357,19 @@ class _ComposeScreenState extends State<ComposeScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        const Text('✉️', style: TextStyle(fontSize: 13)),
-                        const SizedBox(width: 8),
-                        Text(
-                          _isReply
-                              ? l10n.composeReplyTo(widget.replyToName ?? '')
-                              : l10n.composeLetterFlows,
-                          style: TextStyle(
-                            color: paper.inkColor.withValues(alpha: 0.5),
-                            fontSize: 12,
-                            fontStyle: FontStyle.italic,
-                          ),
+                    // Build 425 (device #4): 편지지 헤더 간소화 — 장식 태그라인
+                    //   (✉️ + 흘림체 문구) 제거. 답장 시엔 수신자 표기만 유지.
+                    if (_isReply) ...[
+                      Text(
+                        l10n.composeReplyTo(widget.replyToName ?? ''),
+                        style: TextStyle(
+                          color: paper.inkColor.withValues(alpha: 0.5),
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -4605,6 +4623,19 @@ class _ComposeScreenState extends State<ComposeScreen>
   // 단일 배지로 단순화. Premium 은 어차피 general 만 발송 가능하므로 칩
   // 선택 UI 가 의미 없고, "내 발송은 자동으로 홍보 편지" 라는 정체성을 더
   // 직관적으로 전달. 일반 편지 발송 경로 축소 + 홍보 가치 강조.
+  // Build 425 (device #2): 카테고리별 활성 강조색 구분 — 일반(teal)/할인권(gold)/
+  //   교환권(pink). 이전엔 셋 다 teal 이라 선택 종류가 색으로 구분 안 됐음.
+  Color _categoryAccent(LetterCategory c) {
+    switch (c) {
+      case LetterCategory.coupon:
+        return AppColors.gold;
+      case LetterCategory.voucher:
+        return const Color(0xFFFF6B9D);
+      default:
+        return AppColors.teal;
+    }
+  }
+
   Widget _buildBrandCategoryPanel(AppState state) {
     final l10n = AppL10n.of(state.currentUser.languageCode);
     final isBrand = state.currentUser.isBrand;
@@ -4686,12 +4717,12 @@ class _ComposeScreenState extends State<ComposeScreen>
                         ),
                         decoration: BoxDecoration(
                           color: _brandCategory == c && isBrand
-                              ? AppColors.teal.withValues(alpha: 0.16)
+                              ? _categoryAccent(c).withValues(alpha: 0.16)
                               : AppColors.bgSurface,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
                             color: _brandCategory == c && isBrand
-                                ? AppColors.teal
+                                ? _categoryAccent(c)
                                 : AppColors.textMuted.withValues(alpha: 0.3),
                             width: _brandCategory == c && isBrand ? 1.3 : 1,
                           ),
@@ -4720,7 +4751,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     color: _brandCategory == c && isBrand
-                                        ? AppColors.teal
+                                        ? _categoryAccent(c)
                                         : AppColors.textSecondary,
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.w700,
@@ -5215,90 +5246,9 @@ class _ComposeScreenState extends State<ComposeScreen>
     );
   }
 
-  // Build 321: 자동 발송 zone 토글 + 옵션. compose 통합 — 작성 본문 + 옵션
-  // 동시 입력 후 한 번에 등록. inbox FAB 진입점 제거됨.
-  /// Build 324: compose 시나리오 칩 — Brand 사장이 "어떤 캠페인?" 한 번에 선택.
-  Widget _scenarioChip({
-    required String emoji,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: AppColors.bgSurface,
-      borderRadius: BorderRadius.circular(999),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(emoji, style: const TextStyle(fontSize: 13)),
-              const SizedBox(width: 4),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// 시나리오 1 — 매장 반경 (자동 zone ON / 1인1회 ON / 단건 모드)
-  // Build 416 (sim100 R3): auto-zone 제거로 미사용. _isAutoZoneMode 를 절대
-  //   켜지 않도록 false 로 둠(만에 하나 호출돼도 즉시발송 흐름 유지).
-  // ignore: unused_element
-  void _applyScenarioNearby() {
-    setState(() {
-      _isAutoZoneMode = false;
-      _isBulkMode = false;
-      _isExpressMode = false;
-      _isExactDropped = false;
-      _brandUniquePerUser = true;
-    });
-  }
-
-  /// 시나리오 2 — 단건 정확 좌표 (ExactDrop ON / 1인1회 ON)
-  void _applyScenarioExactDrop() {
-    setState(() {
-      _isAutoZoneMode = false;
-      _isBulkMode = false;
-      _isExpressMode = false;
-      _brandUniquePerUser = true;
-    });
-    // ExactDrop 진입은 별도 호출 (paywall 검사 포함).
-    _selectExactDrop();
-  }
-
-  /// 시나리오 3 — 글로벌 대량 (Bulk ON / 1인1회 ON)
-  void _applyScenarioBulk() {
-    setState(() {
-      _isBulkMode = true;
-      _isAutoZoneMode = false;
-      _isExactDropped = false;
-      _isExpressMode = false;
-      _brandUniquePerUser = true;
-    });
-    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(l10n.koEn(
-          '🌍 글로벌 대량 모드 — 선택 국가로 발송',
-          '🌍 Global bulk mode — send to selected countries',
-        )),
-        backgroundColor: AppColors.bgCard,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
+  // Build 425 (device #5·#6): compose 시나리오 칩(_scenarioChip /
+  //   _applyScenarioNearby / _applyScenarioExactDrop / _applyScenarioBulk)
+  //   제거 — ExactDrop·대량 진입점이 목적지 카드·상단 토글과 중복이라 삭제.
 
   Widget _buildAutoZoneSection(AppL10n l10n) {
     return Column(
@@ -5469,38 +5419,9 @@ class _ComposeScreenState extends State<ComposeScreen>
             ],
           ),
           const SizedBox(height: 12),
-          // Build 324: "어떤 캠페인?" 시나리오 칩 3개 — Brand 시뮬레이션의
-          //   "토글 4개 (대량/특송/zone/ExactDrop/1인1회) 중 어느 조합?" 인지
-          //   부하 해소. 칩 1개 탭으로 4개 토글 자동 세팅.
-          Text(
-            l10n.composeScenarioLabel,
-            style: const TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 10.5,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              // Build 416 (sim100 R3): '📍 매장 반경'(auto-zone) 칩 제거 —
-              //   auto-zone UI 가 제거됐는데 칩만 남아 _isAutoZoneMode 를 켜고
-              //   즉시발송 대신 zone 캠페인을 무단 생성하던 회귀 차단.
-              _scenarioChip(
-                emoji: '🎯',
-                label: l10n.composeScenarioExactDrop,
-                onTap: _applyScenarioExactDrop,
-              ),
-              _scenarioChip(
-                emoji: '🌍',
-                label: l10n.composeScenarioBulk,
-                onTap: _applyScenarioBulk,
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
+          // Build 425 (device #5·#6): 시나리오 칩(🎯 정확좌표 / 🌍 글로벌 대량)
+          //   제거 — 🎯 ExactDrop 은 목적지 카드, 🌍 대량은 상단 발송모드 토글과
+          //   중복이라 사용자 혼선. 해당 진입점만 단일화.
           // Build 415 (item 5·14): '오늘의 혜택 자동 발송' zone 섹션 제거 —
           //   compose 는 즉시 발송만. (자동 발송은 별도 화면으로 분리 예정)
           // Build 415 (item 7·8): 길게 늘어지던 3-행 토글(1인1회·답장·코드발급)을
