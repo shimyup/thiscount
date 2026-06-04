@@ -689,6 +689,11 @@ class _ComposeScreenState extends State<ComposeScreen>
         'socialLink': _socialLinkController.text,
         'brandCategory': _brandCategory.key,
         'redemptionInfo': _redemptionInfoController.text,
+        // Build 425 (sim-fresh3 #1·#2): 코드발급·1인1회 토글도 draft 에 보존 —
+        //   이전엔 저장 안 돼 재진입 시 false 로 복원되어 POS 코드 미발급 /
+        //   캠페인 dedup 깨짐.
+        'attachRedemptionCode': _attachRedemptionCode,
+        'brandUniquePerUser': _brandUniquePerUser,
       };
       // Build 418 (사용자 device): 기본 선택 국가(_selectedCountry 는 거의 항상
       //   비어있지 않음)만으로 brand draft 를 저장하면, 빈 메세지에도 다음 진입
@@ -699,7 +704,9 @@ class _ComposeScreenState extends State<ComposeScreen>
           _isExpressMode ||
           _bulkTargets.isNotEmpty ||
           (_selectedCountry.isNotEmpty && !_isRandom) ||
-          _redemptionInfoController.text.trim().isNotEmpty;
+          _redemptionInfoController.text.trim().isNotEmpty ||
+          _attachRedemptionCode ||
+          _brandUniquePerUser;
       if (hasState) {
         try {
           prefs.setString('compose_draft_brand', jsonEncode(snapshot));
@@ -788,6 +795,10 @@ class _ComposeScreenState extends State<ComposeScreen>
                     if (ri.isNotEmpty) {
                       _redemptionInfoController.text = ri;
                     }
+                    _attachRedemptionCode =
+                        snap['attachRedemptionCode'] as bool? ?? false;
+                    _brandUniquePerUser =
+                        snap['brandUniquePerUser'] as bool? ?? false;
                   } catch (_) {}
                 }
               });
@@ -819,6 +830,12 @@ class _ComposeScreenState extends State<ComposeScreen>
     _destLat = 0.0;
     _destLng = 0.0;
     _isExactDropped = false;
+    // Build 425 (sim-fresh3 #0·#3): 첨부 이미지·바우처 경로 + 브랜드 토글도
+    //   clear — 이전엔 남아서 재진입/새 작성 시 옛 이미지가 새 발송에 누수.
+    _imageFilePath = null;
+    _voucherImageLocalPath = null;
+    _attachRedemptionCode = false;
+    _brandUniquePerUser = false;
     SharedPreferences.getInstance().then((prefs) {
       prefs.remove('compose_draft');
       prefs.remove('compose_draft_brand');
@@ -970,8 +987,14 @@ class _ComposeScreenState extends State<ComposeScreen>
     // Build 421 (sim-fresh P1): auto-zone 분기가 일반 compose 의 일일/월간 발송
     //   쿼터 게이트를 건너뛰어, 한도 소진 브랜드도 zone 을 무제한 생성하던 우회
     //   차단. 일반 send 와 동일 게이트 적용.
-    if (!state.hasRemainingDailyQuota) {
-      _showError(state.dailyLimitExceededMessage);
+    // Build 425 (sim-fresh3 #35·#36): 일간뿐 아니라 월간 한도까지 보는
+    //   canSendByQuota 로 통일 — 이전엔 월간 소진(일간/초대크레딧 남음) 브랜드가
+    //   auto-zone 생성·단건 발송 게이트를 우회. 버튼 활성 게이트(canSendByQuota)
+    //   와 일치.
+    if (!state.canSendByQuota) {
+      _showError(!state.hasRemainingMonthlyQuota && state.hasRemainingDailyQuota
+          ? state.monthlyLimitExceededMessage
+          : state.dailyLimitExceededMessage);
       return;
     }
     setState(() => _isSending = true);
@@ -1535,8 +1558,14 @@ class _ComposeScreenState extends State<ComposeScreen>
       final proceed = await _confirmPiiBeforeSend(piiHit);
       if (!proceed) return;
     }
-    if (!state.hasRemainingDailyQuota) {
-      _showError(state.dailyLimitExceededMessage);
+    // Build 425 (sim-fresh3 #35·#36): 일간뿐 아니라 월간 한도까지 보는
+    //   canSendByQuota 로 통일 — 이전엔 월간 소진(일간/초대크레딧 남음) 브랜드가
+    //   auto-zone 생성·단건 발송 게이트를 우회. 버튼 활성 게이트(canSendByQuota)
+    //   와 일치.
+    if (!state.canSendByQuota) {
+      _showError(!state.hasRemainingMonthlyQuota && state.hasRemainingDailyQuota
+          ? state.monthlyLimitExceededMessage
+          : state.dailyLimitExceededMessage);
       return;
     }
     // Build 246: ExactDrop 가드 — _isExactDropped 플래그만 켜진 상태에서

@@ -698,9 +698,9 @@ class Letter {
 
     final totalMin = segments.fold<int>(
       0,
-      (s, seg) => s + seg.estimatedMinutes,
+      (s, seg) => s + (seg.estimatedMinutes > 0 ? seg.estimatedMinutes : 0),
     );
-    if (totalMin == 0) return destinationLocation;
+    if (totalMin <= 0) return destinationLocation;
 
     double targetMin = t * totalMin;
     double accMin = 0;
@@ -849,9 +849,10 @@ class Letter {
     readAt: j['readAt'] != null
         ? DateTime.fromMillisecondsSinceEpoch(j['readAt'] as int)
         : null,
-    arrivalTime: j['arrivalTime'] != null
-        ? DateTime.fromMillisecondsSinceEpoch(j['arrivalTime'] as int)
-        : null,
+    // Build 425 (sim-fresh3 #13): arrivalTime 도 _parseDateTime 으로 — 이전엔
+    //   `as int` 라 String/double 로 오면 letter 전체 fromJson 이 throw →
+    //   캐시 letter 손실 + 도착 애니메이션 깨짐.
+    arrivalTime: _parseDateTime(j['arrivalTime']),
     isAnonymous: j['isAnonymous'] as bool? ?? true,
     socialLink: j['socialLink'] as String?,
     estimatedTotalMinutes: j['estimatedTotalMinutes'] as int,

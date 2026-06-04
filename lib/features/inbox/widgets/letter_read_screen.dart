@@ -160,7 +160,13 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   ///   까지 자동 스크롤. 본문 긴 letter 에서 사용자가 직접 스크롤 다운하지
   ///   않으면 버튼 못 찾던 UX 회귀 해소.
   void _maybeAutoScrollToRedemption() {
-    if (widget.letter.redemptionCode == null) return;
+    // Build 425 (sim-fresh3 #7): redemption box 렌더 조건과 일치 — 이전엔
+    //   redemptionCode 있는 letter 만 auto-scroll 해서, redemptionInfo(이미지/
+    //   텍스트 교환권)만 있는 letter 는 사용자가 직접 스크롤해야 했음.
+    final hasRedemptionBox = widget.letter.senderIsBrand &&
+        ((widget.letter.redemptionInfo ?? '').trim().isNotEmpty ||
+            widget.letter.redemptionCode != null);
+    if (!hasRedemptionBox) return;
     if (_autoScrolledLetterIds.contains(widget.letter.id)) return;
     _autoScrolledLetterIds.add(widget.letter.id);
     final ctx = _redemptionBoxKey.currentContext;
@@ -360,7 +366,12 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                                       state,
                                     );
                                   }
-                                  if (status == ChatStatus.chatting) {
+                                  // Build 425 (sim-fresh3 #44): DM 버튼은 DM 자격
+                                  //   (Premium & 비-Brand)일 때만 노출 — Brand 가
+                                  //   chatting 상태에 도달해도 진입 차단(sendDM
+                                  //   가드와 defense-in-depth, 죽은 버튼 회피).
+                                  if (status == ChatStatus.chatting &&
+                                      state.canUseDM) {
                                     return _buildDMButton(ctx, letter);
                                   }
                                   return const SizedBox.shrink();

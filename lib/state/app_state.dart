@@ -1628,8 +1628,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   // ── 알림 ─────────────────────────────────────────────────────────────────
   // computed getter — 항상 실제 inbox 상태 기준
-  int get unreadCount =>
-      _inbox.where((l) => l.status == DeliveryStatus.delivered).length;
+  // Build 425 (sim-fresh3 #6·#9): 뮤트 브랜드 편지는 인박스 리스트에서 숨겨지므로
+  //   뱃지 카운트도 동일하게 제외 — 이전엔 뱃지(N) 와 표시 리스트(N-뮤트)가
+  //   불일치해 '안읽음 점프' 스크롤 위치가 어긋났음.
+  int get unreadCount => _inbox
+      .where((l) =>
+          l.status == DeliveryStatus.delivered &&
+          !(l.senderIsBrand && isBrandMuted(l.senderId)))
+      .length;
 
   bool _hasNearbyAlert = false;
   bool get hasNearbyAlert => _hasNearbyAlert;
@@ -2069,6 +2075,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> toggleBrandFollow(String senderId) async {
     if (senderId.isEmpty) return;
+    // Build 425 (sim-fresh3 #46): 자기 자신(브랜드 계정) 팔로우 차단.
+    if (senderId == _currentUser.id) return;
     final prefs = await SharedPreferences.getInstance();
     if (_followedBrandIds.contains(senderId)) {
       _followedBrandIds.remove(senderId);
@@ -9884,6 +9892,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     //   defense-in-depth. DM 은 sendLetter 를 안 거치므로 별도 가드 필요(이전엔
     //   admin-banned 프리미엄 사용자가 DM 으로 계속 발송 가능).
     if (_currentUser.isBanned) return false;
+    // Build 425 (sim-fresh3 #45): 자기 자신에게 DM 차단 (자기 대화 생성 방지).
+    if (partnerId == _currentUser.id) return false;
     if (_blockedSenderIds.contains(partnerId) ||
         _tempBlockedSenderIds.contains(partnerId)) {
       return false;

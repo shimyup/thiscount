@@ -933,7 +933,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   (l.status == DeliveryStatus.delivered &&
                       !l.isReadByRecipient)) &&
               l.destinationLocation.distanceTo(LatLng(towerLat, towerLng)) <
-                  200,
+                  state.pickupRadiusMeters,
         )
         .toList();
 

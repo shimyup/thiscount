@@ -593,9 +593,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               : FontWeight.w400,
                         ),
                       ),
-                      onTap: () {
+                      onTap: () async {
                         state.updateProfile(languageCode: code);
-                        Navigator.pop(ctx);
+                        // Build 425 (sim-fresh3 #19): SettingsScreen 과 동일하게,
+                        //   일일 리마인더가 켜져 있으면 새 언어로 재예약 — 이전엔
+                        //   ProfileScreen 경로만 누락돼 옛 언어 본문으로 잔존.
+                        final prefs = await SharedPreferences.getInstance();
+                        if (prefs.getBool('notify_daily_letter') ?? false) {
+                          await NotificationService.scheduleDailyLetterReminder(
+                            langCode: code,
+                          );
+                        }
+                        if (ctx.mounted) Navigator.pop(ctx);
                       },
                     );
                   },

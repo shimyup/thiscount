@@ -1985,7 +1985,10 @@ class _InboxTab extends StatelessWidget {
                         }
                         // Build 420 (sim100 iter5): 만료된 쿠폰을 '사용 완료'
                         //   토글하면 브랜드 redeemedCount 분석이 오염되므로 차단.
-                        if (letter.isRedemptionExpired) {
+                        // Build 425 (sim-fresh3 #8): redemption 기한뿐 아니라
+                        //   letter 자체 만료(expiresAt)도 차단 — 둘 중 하나라도
+                        //   지났으면 사용처리 불가.
+                        if (letter.isRedemptionExpired || letter.isExpired) {
                           ScaffoldMessenger.of(ctx).showSnackBar(
                             SnackBar(
                               content:

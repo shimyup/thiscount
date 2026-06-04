@@ -7720,44 +7720,97 @@ class AppL10n {
     'th': 'ส่งโปร $count ฉบับไปยังประเทศแบบสุ่ม',
   });
 
-  // Build 414: AI 쿠폰 생성 (Brand). _t 가 미정의 언어는 en 으로 fallback.
+  // Build 414: AI 쿠폰 생성 (Brand). Build 425 (sim-fresh3 #29): 4언어만 정의돼
+  //   나머지 10언어가 en fallback 이던 것을 14언어 전부 채움.
   String get composeAIGenerate => _t({
     'ko': '✨ AI 생성', 'en': '✨ AI Generate', 'ja': '✨ AI 生成', 'zh': '✨ AI 生成',
+    'fr': '✨ Générer par IA', 'de': '✨ Mit KI erstellen', 'es': '✨ Generar con IA',
+    'pt': '✨ Gerar com IA', 'ru': '✨ Создать ИИ', 'tr': '✨ AI ile oluştur',
+    'ar': '✨ إنشاء بالذكاء الاصطناعي', 'it': '✨ Genera con IA',
+    'hi': '✨ AI से बनाएं', 'th': '✨ สร้างด้วย AI',
   });
   String get composeAIGenerateTitle => _t({
     'ko': 'AI 쿠폰 생성', 'en': 'Generate with AI',
     'ja': 'AI クーポン生成', 'zh': 'AI 优惠券生成',
+    'fr': "Générer avec l'IA", 'de': 'Mit KI generieren', 'es': 'Generar con IA',
+    'pt': 'Gerar com IA', 'ru': 'Создать с ИИ', 'tr': 'AI ile oluştur',
+    'ar': 'إنشاء بالذكاء الاصطناعي', 'it': 'Genera con IA',
+    'hi': 'AI से जनरेट करें', 'th': 'สร้างด้วย AI',
   });
   String get composeAIBusinessName => _t({
     'ko': '매장명', 'en': 'Business name', 'ja': '店舗名', 'zh': '店铺名',
+    'fr': 'Nom du commerce', 'de': 'Geschäftsname', 'es': 'Nombre del negocio',
+    'pt': 'Nome do negócio', 'ru': 'Название заведения', 'tr': 'İşletme adı',
+    'ar': 'اسم المتجر', 'it': 'Nome attività', 'hi': 'व्यवसाय का नाम',
+    'th': 'ชื่อร้าน',
   });
   String get composeAIBusinessDesc => _t({
     'ko': '설명·목표 (예: 신메뉴 홍보, 점심 손님 유치)',
     'en': 'Description / goal (e.g., promote new menu)',
     'ja': '説明・目標 (例: 新メニュー宣伝)', 'zh': '描述/目标 (如: 推广新菜单)',
+    'fr': 'Description / objectif (ex. promouvoir un nouveau menu)',
+    'de': 'Beschreibung / Ziel (z. B. neues Menü bewerben)',
+    'es': 'Descripción / objetivo (p. ej., promocionar menú nuevo)',
+    'pt': 'Descrição / objetivo (ex.: promover novo menu)',
+    'ru': 'Описание / цель (напр., реклама нового меню)',
+    'tr': 'Açıklama / hedef (örn. yeni menüyü tanıt)',
+    'ar': 'الوصف / الهدف (مثل الترويج لقائمة جديدة)',
+    'it': 'Descrizione / obiettivo (es. promuovere nuovo menu)',
+    'hi': 'विवरण / लक्ष्य (जैसे नया मेन्यू प्रचार)',
+    'th': 'คำอธิบาย/เป้าหมาย (เช่น โปรโมเมนูใหม่)',
   });
   String get composeAIFailed => _t({
     'ko': 'AI 생성에 실패했어요. 잠시 후 다시 시도해주세요.',
     'en': 'AI generation failed. Please try again.',
     'ja': 'AI 生成に失敗しました。後でもう一度お試しください。',
     'zh': 'AI 生成失败，请稍后重试。',
+    'fr': 'Échec de la génération IA. Réessayez plus tard.',
+    'de': 'KI-Generierung fehlgeschlagen. Bitte später erneut versuchen.',
+    'es': 'Falló la generación con IA. Inténtalo de nuevo.',
+    'pt': 'Falha na geração por IA. Tente novamente.',
+    'ru': 'Не удалось создать с ИИ. Повторите позже.',
+    'tr': 'AI oluşturma başarısız. Lütfen tekrar deneyin.',
+    'ar': 'فشل الإنشاء بالذكاء الاصطناعي. حاول مرة أخرى.',
+    'it': 'Generazione IA fallita. Riprova più tardi.',
+    'hi': 'AI जनरेशन विफल। कृपया पुनः प्रयास करें।',
+    'th': 'สร้างด้วย AI ไม่สำเร็จ ลองใหม่อีกครั้ง',
   });
   String composeAICategoryLabel(String key) {
     switch (key) {
       case 'cafe':
-        return _t({'ko': '카페', 'en': 'Cafe', 'ja': 'カフェ', 'zh': '咖啡'});
+        return _t({'ko': '카페', 'en': 'Cafe', 'ja': 'カフェ', 'zh': '咖啡',
+          'fr': 'Café', 'de': 'Café', 'es': 'Café', 'pt': 'Café', 'ru': 'Кафе',
+          'tr': 'Kafe', 'ar': 'مقهى', 'it': 'Caffè', 'hi': 'कैफ़े', 'th': 'คาเฟ่'});
       case 'food':
-        return _t({'ko': '식당/음식', 'en': 'Restaurant', 'ja': '飲食店', 'zh': '餐饮'});
+        return _t({'ko': '식당/음식', 'en': 'Restaurant', 'ja': '飲食店', 'zh': '餐饮',
+          'fr': 'Restaurant', 'de': 'Restaurant', 'es': 'Restaurante',
+          'pt': 'Restaurante', 'ru': 'Ресторан', 'tr': 'Restoran', 'ar': 'مطعم',
+          'it': 'Ristorante', 'hi': 'रेस्तरां', 'th': 'ร้านอาหาร'});
       case 'beauty':
-        return _t({'ko': '뷰티/미용', 'en': 'Beauty', 'ja': 'ビューティー', 'zh': '美容'});
+        return _t({'ko': '뷰티/미용', 'en': 'Beauty', 'ja': 'ビューティー', 'zh': '美容',
+          'fr': 'Beauté', 'de': 'Beauty', 'es': 'Belleza', 'pt': 'Beleza',
+          'ru': 'Красота', 'tr': 'Güzellik', 'ar': 'تجميل', 'it': 'Bellezza',
+          'hi': 'ब्यूटी', 'th': 'ความงาม'});
       case 'fashion':
-        return _t({'ko': '패션/의류', 'en': 'Fashion', 'ja': 'ファッション', 'zh': '时尚'});
+        return _t({'ko': '패션/의류', 'en': 'Fashion', 'ja': 'ファッション', 'zh': '时尚',
+          'fr': 'Mode', 'de': 'Mode', 'es': 'Moda', 'pt': 'Moda', 'ru': 'Мода',
+          'tr': 'Moda', 'ar': 'أزياء', 'it': 'Moda', 'hi': 'फ़ैशन', 'th': 'แฟชั่น'});
       case 'it':
-        return _t({'ko': 'IT/전자', 'en': 'IT/Electronics', 'ja': 'IT/電子', 'zh': 'IT/电子'});
+        return _t({'ko': 'IT/전자', 'en': 'IT/Electronics', 'ja': 'IT/電子', 'zh': 'IT/电子',
+          'fr': 'Informatique', 'de': 'IT/Elektronik', 'es': 'TI/Electrónica',
+          'pt': 'TI/Eletrônica', 'ru': 'IT/электроника', 'tr': 'BT/Elektronik',
+          'ar': 'تقنية/إلكترونيات', 'it': 'IT/Elettronica',
+          'hi': 'IT/इलेक्ट्रॉनिक्स', 'th': 'ไอที/อิเล็กทรอนิกส์'});
       case 'event':
-        return _t({'ko': '행사/이벤트', 'en': 'Event', 'ja': 'イベント', 'zh': '活动'});
+        return _t({'ko': '행사/이벤트', 'en': 'Event', 'ja': 'イベント', 'zh': '活动',
+          'fr': 'Événement', 'de': 'Event', 'es': 'Evento', 'pt': 'Evento',
+          'ru': 'Событие', 'tr': 'Etkinlik', 'ar': 'فعالية', 'it': 'Evento',
+          'hi': 'इवेंट', 'th': 'อีเวนต์'});
       default:
-        return _t({'ko': '기타', 'en': 'Other', 'ja': 'その他', 'zh': '其他'});
+        return _t({'ko': '기타', 'en': 'Other', 'ja': 'その他', 'zh': '其他',
+          'fr': 'Autre', 'de': 'Sonstiges', 'es': 'Otro', 'pt': 'Outro',
+          'ru': 'Другое', 'tr': 'Diğer', 'ar': 'أخرى', 'it': 'Altro',
+          'hi': 'अन्य', 'th': 'อื่นๆ'});
     }
   }
 
