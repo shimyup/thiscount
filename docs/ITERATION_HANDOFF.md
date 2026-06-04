@@ -15,7 +15,7 @@
 
 ## 현재 상태 (2026-06-04 갱신)
 - 브랜치: `launch-readiness-build411` (PR #150). main 아님.
-- 최신 커밋: `253af18` (device 보고 3건: 광고문구 제거 + 토글 pill화 + 발송버튼 구분).
+- 최신 커밋: `423f1a2` (sim-fresh3 code-fixable 13건).
 - 빌드: pubspec `1.0.0+424`. TestFlight **417~424 업로드됨**(424=VALID+Internal, Delivery `121a9bbf-e148-46e1-9813-9877d337a9af`). 다음 빌드 425.
 - 검증 게이트(매 수정 후 필수): `flutter analyze lib/` 무경고 + `flutter test` 전체 통과(현재 **139**).
 - ⚠️ flaky 없음.
@@ -163,6 +163,30 @@
 - [x] 비-지도 탭에서 지도 96px peek 노출 제거 → 탭 콘텐츠 전체화면 (main_scaffold.dart:304, _kMapPeek 제거)
 - [x] 작성 메세지 '버리기' 후 재출현 — _saveDraft hasState 가 기본 선택국가만으로 brand draft 저장 → 빈 메세지도 '이어쓰기' 무한 재출현. hasState 를 닫기확인 hasContent 기준(대량/특송/타깃/특정국가/혜택정보)으로 정정 (compose_screen.dart:693)
 - Build 419 빌드.
+
+## Sim-fresh3 라운드 (2026-06-04) — Build 425, commit `423f1a2`
+> 10-도메인 finder→적대검증 워크플로우 (task `we4r1mv70`). **68 보고 / 50 확정 code-fixable** → 안전·고가치 **13건 수정** + false-positive 3 제외.
+- [x] #1·#2 compose draft 에 attachRedemptionCode·brandUniquePerUser 보존 + hasState 반영
+- [x] #0·#3 _clearDraft 에 _imageFilePath·_voucherImageLocalPath·브랜드 토글 clear
+- [x] #35·#36 compose 엔트리 게이트(auto-zone·단건) `hasRemainingDailyQuota`→`canSendByQuota`
+- [x] #6·#9 unreadCount 뮤트 브랜드 필터(뱃지 vs 리스트 일치)
+- [x] #19 ProfileScreen 언어 변경→일일 리마인더 재예약
+- [x] #44 DM 버튼 canUseDM 렌더 게이트 / #45 sendDM 자기차단 / #46 follow 자기차단
+- [x] #11 letter currentPositionAt 음수/0 div 강화 / #13 arrivalTime _parseDateTime
+- [x] #10 world_map 오버랩 반경 200m→pickupRadiusMeters
+- [x] #7 redemption auto-scroll box 렌더조건 일치 / #8 '사용완료' letter 만료도 차단
+- [x] #29 AI 쿠폰 생성 6키 4→14언어
+- **false-positive 제외**: #4(voucher 실패경로 이미 null 처리·Build414) / #43(방어권 증가스낵바 중복방지=의도) / #49(presetColors=const)
+- **잔여 백로그(다음 iteration / 신중·구조·검증필요)**:
+  - #14 reconcileLetterStatuses _sent ghost — worldLetters 미완전 로드 시 활성 letter 오인 위험 → **신중**(거짓 reconcile 주의)
+  - #16 PremiumGateSheet 가격 비반응(offerings late load) / #17 다운그레이드 스케줄 후 피드백 / #18 비교표 stale fallback — premium **display**, 검토 후 가능
+  - #20 로그아웃 후 프로필 이미지 in-mem 잔존 / #21 lastKnownLocation 계정전환 / #22 계정삭제 부분실패 / #23 GDPR export 필드 — profile/settings, 일부 **배포·GDPR** 연관
+  - #24·#25 OTP resend 에러표시/fallback 코드 — auth **신중**(검증 필요)
+  - #30 v5_preview 한국어 하드코딩 — **dev 라우트(/v5_preview)**, end-user 비노출 → 저우선
+  - #31 brand_insights koEn 255곳 / #34 캠페인 redeem count 본인만 — **대규모/구조**
+  - #37~#42 brand_insights/ExactDrop 표시 정합(clamp 이미 적용분 多) — 검토 후 선별
+  - #47 _DMTab 미배선 — **제품 결정**(인박스 DM 탭 노출 여부) = 사용자 판단
+  - #5 bulk 토글 OFF 시 express 동반 OFF — 의도적 방어(현 동작 defensible)
 
 ## ✅ 사용자 device 보고 추가 (2026-06-04 처리완료, commit `253af18`)
 > Build 419 실기기 보고 3건. 모두 코드-fixable, 처리 완료.
