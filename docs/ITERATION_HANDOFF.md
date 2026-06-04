@@ -16,7 +16,7 @@
 ## 현재 상태 (2026-06-04 갱신)
 - 브랜치: `launch-readiness-build411` (PR #150). main 아님.
 - 최신 커밋: `0755910` (device 2차: Premium 발송제거 재포지셔닝 + compose UX 5건).
-- 빌드: pubspec `1.0.0+425`. TestFlight **417~425 업로드됨**(425=VALID+Internal, Delivery `e655c75b-6a6b-4063-b9af-f0a13323b7c8`). 다음 빌드 426.
+- 빌드: pubspec `1.0.0+426`. TestFlight **417~426 업로드됨**(426=VALID+Internal, Delivery `ba1ce89a-5032-46c1-b8a2-3d70496ac9eb`). 다음 빌드 427.
 - 검증 게이트(매 수정 후 필수): `flutter analyze lib/` 무경고 + `flutter test` 전체 통과(현재 **139**).
 - ⚠️ flaky 없음.
 - 누적 진행: sim100 + iter1~5 + device + sim-fresh + sim-fresh2 + sim-crosscut + **WCAG 라운드(접근성 백로그)**.
