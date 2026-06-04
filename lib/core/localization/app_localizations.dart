@@ -16228,33 +16228,33 @@ class AppL10n {
 
   String get gpsSkipWarningBody => _t({
     'ko':
-        'GPS 동의 없이는 다음 기능을 사용할 수 없어요:\n\n• 📍 주변 혜택 줍기 불가\n• ✉️ 홍보 발송 불가 (Premium/Brand)\n• 🗺 내 위치 마커 표시 불가\n\n설정에서 언제든지 다시 허용할 수 있지만, 지금 동의하는 것을 강력히 권장합니다.',
+        'GPS 동의 없이는 다음 기능을 사용할 수 없어요:\n\n• 📍 주변 혜택 줍기 불가\n• ✉️ 홍보 발송 불가 (Brand)\n• 🗺 내 위치 마커 표시 불가\n\n설정에서 언제든지 다시 허용할 수 있지만, 지금 동의하는 것을 강력히 권장합니다.',
     'en':
-        'Without GPS consent the following are disabled:\n\n• 📍 Pick up nearby rewards\n• 📣 Send promos (Premium/Brand)\n• 🗺 Show your location marker\n\nYou can enable it later in Settings, but we strongly recommend consenting now.',
+        'Without GPS consent the following are disabled:\n\n• 📍 Pick up nearby rewards\n• 📣 Send promos (Brand)\n• 🗺 Show your location marker\n\nYou can enable it later in Settings, but we strongly recommend consenting now.',
     'ja':
-        'GPS 同意なしでは次の機能が使えません:\n\n• 📍 周辺のクーポンを拾う\n• ✉️ クーポンを送る (Premium/Brand)\n• 🗺 自分の位置マーカー\n\n設定から後で許可できますが、今すぐ同意することを強くお勧めします。',
+        'GPS 同意なしでは次の機能が使えません:\n\n• 📍 周辺のクーポンを拾う\n• ✉️ クーポンを送る (Brand)\n• 🗺 自分の位置マーカー\n\n設定から後で許可できますが、今すぐ同意することを強くお勧めします。',
     'zh':
-        '没有 GPS 同意将无法使用:\n\n• 📍 拾起附近优惠券\n• ✉️ 发送优惠券 (Premium/Brand)\n• 🗺 显示我的位置\n\n可在设置中重新允许，但强烈建议现在同意。',
+        '没有 GPS 同意将无法使用:\n\n• 📍 拾起附近优惠券\n• ✉️ 发送优惠券 (Brand)\n• 🗺 显示我的位置\n\n可在设置中重新允许，但强烈建议现在同意。',
     'fr':
-        'Sans consentement GPS, désactivé:\n\n• 📍 Ramasser des coupons\n• ✉️ Envoyer (Premium/Brand)\n• 🗺 Marqueur de position\n\nActivable plus tard dans Paramètres, mais nous recommandons fortement maintenant.',
+        'Sans consentement GPS, désactivé:\n\n• 📍 Ramasser des coupons\n• ✉️ Envoyer (Brand)\n• 🗺 Marqueur de position\n\nActivable plus tard dans Paramètres, mais nous recommandons fortement maintenant.',
     'de':
-        'Ohne GPS deaktiviert:\n\n• 📍 Coupons aufsammeln\n• ✉️ Coupons senden (Premium/Brand)\n• 🗺 Eigene Position\n\nSpäter in Einstellungen aktivierbar, jetzt empfohlen.',
+        'Ohne GPS deaktiviert:\n\n• 📍 Coupons aufsammeln\n• ✉️ Coupons senden (Brand)\n• 🗺 Eigene Position\n\nSpäter in Einstellungen aktivierbar, jetzt empfohlen.',
     'es':
-        'Sin GPS estará deshabilitado:\n\n• 📍 Recoger cupones\n• ✉️ Enviar (Premium/Brand)\n• 🗺 Tu marcador\n\nActívalo luego en Ajustes, pero ahora es recomendable.',
+        'Sin GPS estará deshabilitado:\n\n• 📍 Recoger cupones\n• ✉️ Enviar (Brand)\n• 🗺 Tu marcador\n\nActívalo luego en Ajustes, pero ahora es recomendable.',
     'pt':
-        'Sem GPS fica desativado:\n\n• 📍 Apanhar cupons\n• ✉️ Enviar (Premium/Brand)\n• 🗺 Teu marcador\n\nPodes ativar depois, mas recomendamos agora.',
+        'Sem GPS fica desativado:\n\n• 📍 Apanhar cupons\n• ✉️ Enviar (Brand)\n• 🗺 Teu marcador\n\nPodes ativar depois, mas recomendamos agora.',
     'ru':
-        'Без GPS недоступно:\n\n• 📍 Подбор купонов\n• ✉️ Отправка (Premium/Brand)\n• 🗺 Ваш маркер\n\nМожно включить позже в настройках, но рекомендуем сейчас.',
+        'Без GPS недоступно:\n\n• 📍 Подбор купонов\n• ✉️ Отправка (Brand)\n• 🗺 Ваш маркер\n\nМожно включить позже в настройках, но рекомендуем сейчас.',
     'tr':
-        'GPS onayı olmadan kapalı:\n\n• 📍 Kupon toplama\n• ✉️ Gönderme (Premium/Brand)\n• 🗺 Konumun\n\nSonra ayarlardan açabilirsin, şimdi öneriyoruz.',
+        'GPS onayı olmadan kapalı:\n\n• 📍 Kupon toplama\n• ✉️ Gönderme (Brand)\n• 🗺 Konumun\n\nSonra ayarlardan açabilirsin, şimdi öneriyoruz.',
     'ar':
-        'دون GPS معطل:\n\n• 📍 التقاط القسائم\n• ✉️ الإرسال (Premium/Brand)\n• 🗺 موقعك\n\nيمكن تفعيله لاحقًا من الإعدادات، ولكن يُنصح الآن.',
+        'دون GPS معطل:\n\n• 📍 التقاط القسائم\n• ✉️ الإرسال (Brand)\n• 🗺 موقعك\n\nيمكن تفعيله لاحقًا من الإعدادات، ولكن يُنصح الآن.',
     'it':
-        'Senza GPS disabilitato:\n\n• 📍 Raccogli coupon\n• ✉️ Invia (Premium/Brand)\n• 🗺 Tuo marcatore\n\nAttivabile poi in Impostazioni, ma consigliato ora.',
+        'Senza GPS disabilitato:\n\n• 📍 Raccogli coupon\n• ✉️ Invia (Brand)\n• 🗺 Tuo marcatore\n\nAttivabile poi in Impostazioni, ma consigliato ora.',
     'hi':
-        'GPS बिना अक्षम:\n\n• 📍 कूपन उठाना\n• ✉️ भेजना (Premium/Brand)\n• 🗺 आपका मार्कर\n\nसेटिंग्स में बाद में चालू करें, अभी सुझावित.',
+        'GPS बिना अक्षम:\n\n• 📍 कूपन उठाना\n• ✉️ भेजना (Brand)\n• 🗺 आपका मार्कर\n\nसेटिंग्स में बाद में चालू करें, अभी सुझावित.',
     'th':
-        'ไม่มี GPS จะปิดใช้:\n\n• 📍 เก็บคูปอง\n• ✉️ ส่ง (Premium/Brand)\n• 🗺 ตำแหน่งของคุณ\n\nเปิดภายหลังในตั้งค่าได้ แต่แนะนำตอนนี้',
+        'ไม่มี GPS จะปิดใช้:\n\n• 📍 เก็บคูปอง\n• ✉️ ส่ง (Brand)\n• 🗺 ตำแหน่งของคุณ\n\nเปิดภายหลังในตั้งค่าได้ แต่แนะนำตอนนี้',
   });
 
   String get gpsSkipBack => _t({
