@@ -15,7 +15,7 @@
 
 ## 현재 상태 (2026-06-04 갱신)
 - 브랜치: `launch-readiness-build411` (PR #150). main 아님.
-- 최신 커밋: `423f1a2` (sim-fresh3 code-fixable 13건).
+- 최신 커밋: `0755910` (device 2차: Premium 발송제거 재포지셔닝 + compose UX 5건).
 - 빌드: pubspec `1.0.0+425`. TestFlight **417~425 업로드됨**(425=VALID+Internal, Delivery `e655c75b-6a6b-4063-b9af-f0a13323b7c8`). 다음 빌드 426.
 - 검증 게이트(매 수정 후 필수): `flutter analyze lib/` 무경고 + `flutter test` 전체 통과(현재 **139**).
 - ⚠️ flaky 없음.
@@ -163,6 +163,16 @@
 - [x] 비-지도 탭에서 지도 96px peek 노출 제거 → 탭 콘텐츠 전체화면 (main_scaffold.dart:304, _kMapPeek 제거)
 - [x] 작성 메세지 '버리기' 후 재출현 — _saveDraft hasState 가 기본 선택국가만으로 brand draft 저장 → 빈 메세지도 '이어쓰기' 무한 재출현. hasState 를 닫기확인 hasContent 기준(대량/특송/타깃/특정국가/혜택정보)으로 정정 (compose_screen.dart:693)
 - Build 419 빌드.
+
+## 🔴 사용자 device 2차 보고 (2026-06-04) — Build 426, commit `1cad767`+`0755910`
+> 실기기 스크린샷 피드백 + 사용자 결정(AskUserQuestion 2회).
+> **⚠️ 큰 제품 변경: Premium 신규 발송 기능 완전 제거 → 줍기 전용 재포지셔닝.**
+- **사용자 결정**: ① Premium 발송 = 신규 발송만 제거(답장·DM 은 Premium 유지) ② Free/Premium 에는 발송 탭 숨김(발송=Brand 전용).
+- [x] [게이팅] main_scaffold 하단 발송/캠페인 탭 Brand 에게만 노출 + `_openCompose` Brand 게이트(BrandOnlyGateSheet). compose initState: 신규발송=Brand전용/답장=Premium·Brand.
+- [x] [카피 14언어] onboarding4Body(Premium 홍보 제거)·뱃지 Brand 만 / onboardingPremiumFeat3 발송→DM·Feat4 특급배송→커스터마이즈(이모지 ✈️→💬) / onboardingFreeFeat2 발송→줍기 / premiumValueFeature1~4 발송셀링→반경·쿨다운·DM·커스터마이즈 / premiumFeature3 발송→DM·Feature4 특급제거 / premiumFreeFeature2 발송→지도·수집(이모지 ✉️→🗺️).
+- [x] [compose UX] #2 카테고리 활성색 구분(_categoryAccent: 일반teal/할인권gold/교환권pink) / #3 목적지 초기 활성색 제거(_destinationTouched) / #4 편지지 헤더 태그라인 제거 / #5·#6 '더많은옵션' 시나리오칩(정확좌표·글로벌대량) 중복 제거(_scenarioChip/_applyScenario* 삭제) / #7 사진첨부 일반 카테고리만.
+- 또한 1차 device(`253af18`)의 '광고없음' 제거는 그대로 유지.
+- **검증 후속 권장**: 실기기에서 (a) Free/Premium nav 에 발송 탭 사라졌는지 (b) Premium 답장·DM 정상 (c) Brand compose 5건 UX (d) 온보딩/페이월 카피 일관성.
 
 ## Sim-fresh3 라운드 (2026-06-04) — Build 425, commit `423f1a2`
 > 10-도메인 finder→적대검증 워크플로우 (task `we4r1mv70`). **68 보고 / 50 확정 code-fixable** → 안전·고가치 **13건 수정** + false-positive 3 제외.
