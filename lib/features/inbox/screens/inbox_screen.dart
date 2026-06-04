@@ -1196,7 +1196,8 @@ class _InboxScreenState extends State<InboxScreen>
         const SizedBox(height: 2),
         Text(
           label,
-          style: const TextStyle(color: AppColors.textMuted, fontSize: 10),
+          // Build 428 (sim100 #39): 10pt textMuted 대비 미달 → 11pt textSecondary.
+          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
         ),
       ],
     );
@@ -3533,9 +3534,10 @@ class _BrandStatBlock extends StatelessWidget {
                   Text(emoji, style: const TextStyle(fontSize: 18)),
                   const Spacer(),
                   Icon(
+                    // Build 428 (sim100 #38): 어포던스 가시성 강화(11→14, 대비↑).
                     Icons.arrow_forward_ios_rounded,
-                    color: AppColors.textMuted.withValues(alpha: 0.5),
-                    size: 11,
+                    color: AppColors.textSecondary.withValues(alpha: 0.6),
+                    size: 14,
                   ),
                 ],
               ),
@@ -3848,6 +3850,9 @@ class _FilterChipInline extends StatelessWidget {
               children: [
                 Text(
                   label,
+                  // Build 428 (sim100 #41): 긴 번역 라벨 오버플로우 방지.
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: selected
                         ? const Color(0xFF1A1300)

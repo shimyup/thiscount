@@ -819,6 +819,18 @@ class _ComposeScreenState extends State<ComposeScreen>
                         snap['brandUniquePerUser'] as bool? ?? false;
                     // Build 425 (device #3): draft 복원 = 목적지 선택 이력 있음.
                     _destinationTouched = true;
+                    // Build 428 (sim100 #25): 발송은 Brand 전용 → 비-Brand 가
+                    //   (다운그레이드 등으로) 옛 brand draft 를 복원해도 brand
+                    //   전용 상태는 무력화(서버 가드와 UI 정합).
+                    if (!context.read<AppState>().currentUser.isBrand) {
+                      _isBulkMode = false;
+                      _isExpressMode = false;
+                      _bulkTargets.clear();
+                      _isExactDropped = false;
+                      _attachRedemptionCode = false;
+                      _brandUniquePerUser = false;
+                      _brandCategory = LetterCategory.general;
+                    }
                   } catch (_) {}
                 }
               });
