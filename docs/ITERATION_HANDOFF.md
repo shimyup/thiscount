@@ -15,7 +15,7 @@
 
 ## 현재 상태 (2026-06-04 갱신)
 - 브랜치: `launch-readiness-build411` (PR #150). main 아님.
-- 최신 커밋: `0755910` (device 2차: Premium 발송제거 재포지셔닝 + compose UX 5건).
+- 최신 커밋: `552dd9b`+ (sim100-build426: Premium-발송제거 회귀/가드/카피 18건 + 시뮬레이터 런타임).
 - 빌드: pubspec `1.0.0+426`. TestFlight **417~426 업로드됨**(426=VALID+Internal, Delivery `ba1ce89a-5032-46c1-b8a2-3d70496ac9eb`). 다음 빌드 427.
 - 검증 게이트(매 수정 후 필수): `flutter analyze lib/` 무경고 + `flutter test` 전체 통과(현재 **139**).
 - ⚠️ flaky 없음.
@@ -163,6 +163,22 @@
 - [x] 비-지도 탭에서 지도 96px peek 노출 제거 → 탭 콘텐츠 전체화면 (main_scaffold.dart:304, _kMapPeek 제거)
 - [x] 작성 메세지 '버리기' 후 재출현 — _saveDraft hasState 가 기본 선택국가만으로 brand draft 저장 → 빈 메세지도 '이어쓰기' 무한 재출현. hasState 를 닫기확인 hasContent 기준(대량/특송/타깃/특정국가/혜택정보)으로 정정 (compose_screen.dart:693)
 - Build 419 빌드.
+
+## Sim100-build426 풀스윕 (2026-06-04) — Build 427, commits `0432603`·`552dd9b`·이후
+> 14-도메인 100-시나리오 워크플로우(task `w4uib6v4c`) + **시뮬레이터 런타임 실행(iPhone17)**.
+> **115 보고 / 96 확정** (error 38 · ux 44 · ui 8 · member-flow 6). 대부분 Build 426 Premium-발송제거 회귀.
+> 시뮬레이터: 앱 예외 0건 정상 부팅·온보딩 렌더 확인(/tmp/sim426_home.png).
+- [x] **티어 가드**: replyToLetter Premium·Brand(#48) / acceptChatInvite+letter_read 'Start Chat' canUseDM 게이트(#20·#22·#23) / _selectExactDrop Brand 전용(#26)
+- [x] **P0/P1 카피 모순(14언어)**: composeGate→답장(#0·#3) / welcomeTrialBody(#45) / towerBenefitsPremiumFeat2·3(#44) / composePhotoAttachDesc(#46) / purchase_service fallback(#29) / premium 비교표 발송행+DM행(#31) / premiumPremiumTestDesc·stateDmUnavailableFree(#5) / gpsSkipWarningBody (Premium/Brand)→(Brand)
+- [x] **계정전환**: _justLeveledUp/_previousUserLevel reset(#6)
+- [x] **UI**: 프로필 '오늘 발송' 카드 Brand 만(#1) / inbox 필터칩 터치타깃 44pt(#36) / auth 버튼 disabled 구분(#37)
+- **false-positive/skip**: #7(_celebratedMilestones 이미 clear) / #42·#43(Free/Premium/Brand=영문 제품명) / #47(presetColors const) / #24(sendLetter Brand-only 화 시 답장 깨짐 → compose 게이트로 충분)
+- **🟡 UX 개선 백로그 (44건, 사용자 우선순위 결정 필요 — '체크' 결과)**:
+  - **핵심 테마 (P1·반복 다수)**: Free/Premium 의 발송 탭이 사라졌는데 **그들이 뭘 할 수 있는지(줍기/답장/DM) 안내 부재** + **Premium DM 발견성 제로**(편지 열기 전엔 노출 안 됨 = 전환 절벽). → 권장: 빈 인박스 상태에 "줍기·답장·DM" 안내 / 홈/프로필에 DM 진입점 / Free nav 가 비어 보이는 것 설명.
+  - **구조/디자인 (기능 신설)**: DM 홈 화면 진입점, Premium screen 에 BrandOnlyGate 안내 상시 노출, 온보딩에 Premium XP/줍기 가치 설명.
+  - **잔여 코드-fixable 후보(다음 iteration)**: brand_comparison_sheet(현 미사용=dead) 정리 / express 토글 premium 분기 dead 정리 / 일부 BrandInsights 주석 stale / map P2(쿨다운 pill 위치 top:180 충돌·경계 사라짐) / SNS URL 검증(#P3) / benefit 텍스트 복합포맷(#P3).
+  - 전체 원본: task `w4uib6v4c` output (codeFixable 49·ux 44·restricted 3).
+- TestFlight Build 427 빌드 예정.
 
 ## 🔴 사용자 device 2차 보고 (2026-06-04) — Build 426, commit `1cad767`+`0755910`
 > 실기기 스크린샷 피드백 + 사용자 결정(AskUserQuestion 2회).
