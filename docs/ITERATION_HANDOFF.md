@@ -17,7 +17,7 @@
 - 브랜치: `launch-readiness-build411` (PR #150). main 아님.
 - 최신 커밋: `aa48c01` (실기기 피드백 8건: 쿨다운 제거·온보딩·캠페인 UX·ExactDrop).
 - 백업 태그: `v427-pre-ux-overhaul` (`98a0716`, origin). 되돌리기 `git reset --hard v427-pre-ux-overhaul`.
-- 빌드: pubspec `1.0.0+429`. TestFlight **417~429 업로드됨**(429=VALID+Internal, Delivery `1059b875-9909-43d2-b84f-f7d1b79e006a`). 다음 빌드 430.
+- 빌드: pubspec `1.0.0+430`. TestFlight **417~430 업로드됨**(430=VALID+Internal, Delivery `b4c219bb-a0ea-410c-a289-2050b07f21ea`). 다음 빌드 431.
 - 검증 게이트(매 수정 후 필수): `flutter analyze lib/` 무경고 + `flutter test` 전체 통과(현재 **139**).
 - ⚠️ flaky 없음.
 - 누적 진행: sim100 + iter1~5 + device + sim-fresh + sim-fresh2 + sim-crosscut + **WCAG 라운드(접근성 백로그)**.
