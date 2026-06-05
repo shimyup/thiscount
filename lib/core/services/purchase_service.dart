@@ -58,6 +58,9 @@ class PurchaseProductIds {
   // Build 325 (T4): 50통 (₩6,000) / 500통 (₩40,000) 가격 티어.
   static const String _exactDrop50Legacy = 'letter_go_exact_drop_50';
   static const String _exactDrop500Legacy = 'letter_go_exact_drop_500';
+  // Build 429 (device): 1000통 대용량 티어 (₩10,000) — 기존 100통 슬롯 대체.
+  //   🔴 ASC 등록 필요: thiscount_exact_drop_1000_ios (소모성, ₩10,000).
+  static const String _exactDrop1000Legacy = 'letter_go_exact_drop_1000';
 
   // iOS (App Store Connect)
   static const String _premiumMonthlyIos = 'thiscount_premium_monthly_ios';
@@ -67,6 +70,7 @@ class PurchaseProductIds {
   static const String _exactDrop100Ios = 'thiscount_exact_drop_100_ios';
   static const String _exactDrop50Ios = 'thiscount_exact_drop_50_ios';
   static const String _exactDrop500Ios = 'thiscount_exact_drop_500_ios';
+  static const String _exactDrop1000Ios = 'thiscount_exact_drop_1000_ios';
 
   // Android (Google Play Billing / RevenueCat import 결과)
   static const String _premiumMonthlyAndroid =
@@ -77,6 +81,7 @@ class PurchaseProductIds {
   static const String _exactDrop100Android = _exactDrop100Legacy;
   static const String _exactDrop50Android = _exactDrop50Legacy;
   static const String _exactDrop500Android = _exactDrop500Legacy;
+  static const String _exactDrop1000Android = _exactDrop1000Legacy;
 
   static String _forPlatform({
     required String ios,
@@ -132,6 +137,11 @@ class PurchaseProductIds {
     android: _exactDrop500Android,
     fallback: _exactDrop500Legacy,
   );
+  static String get exactDrop1000 => _forPlatform(
+    ios: _exactDrop1000Ios,
+    android: _exactDrop1000Android,
+    fallback: _exactDrop1000Legacy,
+  );
 
   static List<String> premiumMonthlyCandidates() => _orderedUnique([
     premiumMonthly,
@@ -179,18 +189,26 @@ class PurchaseProductIds {
     _exactDrop500Android,
     _exactDrop500Legacy,
   ]);
+  static List<String> exactDrop1000Candidates() => _orderedUnique([
+    exactDrop1000,
+    _exactDrop1000Ios,
+    _exactDrop1000Android,
+    _exactDrop1000Legacy,
+  ]);
 
-  /// Build 325 (T4): 패키지 수량에 따른 candidates 조회 (50 / 100 / 500).
+  /// Build 325/429: 패키지 수량별 candidates (50 / 500 / 1000, 기본 100).
   static List<String> exactDropCandidates(int qty) {
     if (qty == 50) return exactDrop50Candidates();
     if (qty == 500) return exactDrop500Candidates();
+    if (qty == 1000) return exactDrop1000Candidates();
     return exactDrop100Candidates();
   }
 
-  /// Build 325 (T4): 로그/에러 메시지용 대표 ID.
+  /// Build 325/429: 로그/에러 메시지용 대표 ID.
   static String exactDropProductId(int qty) {
     if (qty == 50) return exactDrop50;
     if (qty == 500) return exactDrop500;
+    if (qty == 1000) return exactDrop1000;
     return exactDrop100;
   }
 }

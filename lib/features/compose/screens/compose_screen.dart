@@ -2700,10 +2700,10 @@ class _ComposeScreenState extends State<ComposeScreen>
             ),
             const SizedBox(height: 8),
             _ExactDropTierButton(
-              // Build 429 (device): 중간 티어 100→1000개. 상품 슬롯(exactDrop100)
-              //   은 유지하되 1000 크레딧 grant. 가격 ₩10,000 유지.
+              // Build 429 (device): 중간 티어 100→1000개. 전용 상품(exactDrop1000)
+              //   으로 등록. 가격 ₩10,000.
               qty: 1000,
-              priceLabel: priceFor(PurchaseProductIds.exactDrop100, '₩10,000'),
+              priceLabel: priceFor(PurchaseProductIds.exactDrop1000, '₩10,000'),
               unitLabel: l.koEn('정밀 발송 1000회', '1000 ExactDrops'),
               best: true,
               onTap: () => _purchaseExactDropTier(dCtx, 1000),

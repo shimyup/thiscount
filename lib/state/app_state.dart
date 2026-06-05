@@ -238,6 +238,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // 리스트 앞쪽으로 오도록 정렬 부스트 (UI · 알림 · 가장 가까운 편지 추천에서
   // 선호 카테고리 우선 노출).
   List<Letter> get nearbyLetters {
+    // Build 429 (device): Brand 는 픽업 불가 트랙 → 근처 줍기 대상도 비움
+    //   ('근처 N통' 칩·픽업 마커 하이라이트 미노출). 발송/캠페인 화면 중심.
+    if (_currentUser.isBrand) return const [];
     final list = _worldLetters
         .where((l) => l.status == DeliveryStatus.nearYou)
         // Build 414 (sim100 #41): 만료된 auto-drop/letter 가 지도에 ghost 마커로
@@ -9308,11 +9311,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// 반환값: null = 성공, 非non-null = 실패 사유 메시지
   /// [distanceCheck] false로 설정하면 거리 검증 없이 습득 (테스트/관리자용)
   String? pickUpLetter(String letterId, {bool distanceCheck = true}) {
-    // 브랜드 픽업 차단은 포지셔닝 변경으로 해제 — 모든 등급이 줍기 가능.
-    // (Free 200m / Premium 1km / Brand 1km — 브랜드는 발송 중심이지만
-    //  본인도 다른 발신자의 쿠폰/이벤트 편지를 주울 수 있음.)
+    // Build 429 (device): 브랜드 픽업 차단 — Brand 는 발송(캠페인) 전용 트랙.
+    //   줍기는 Free·Premium 회원만. (defense-in-depth: 지도 UI 도 별도 차단)
+    if (_currentUser.isBrand) {
+      return _l10n.statePickupBrandBlocked;
+    }
     //
-    // ① 쿨다운 체크 (무료: 1시간, 프리미엄/브랜드: 10분)
+    // ① 쿨다운 체크 (무료: 1시간, 프리미엄: 10분 — 현재 Premium 쿨다운 0)
     final remaining = nearbyPickupRemainingCooldown;
     if (remaining != null) {
       final mins = remaining.inMinutes;
