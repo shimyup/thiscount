@@ -18,7 +18,8 @@
 - 최신 커밋: 베타 투어 제거(splash 라우팅 → /onboarding 직진). 이전: `0a62ccb`(Brand 반경링 숨김+UX문서), `c86a4b3`(브랜드 픽업차단+ExactDrop1000).
 - **UX 빠른후보 #1~#4 실측 결과 이미 구현됨**(반경원/나침반힌트/코드밝기/곧만료배너). #5 온보딩 단축=베타 투어 제거 적용. 상세 `docs/UX_BENCHMARK_RECOMMENDATIONS.md`.
 - 백업 태그: `v427-pre-ux-overhaul` (`98a0716`, origin). 되돌리기 `git reset --hard v427-pre-ux-overhaul`.
-- 빌드: pubspec `1.0.0+433`. TestFlight **417~432 업로드됨**(432=VALID+Internal, Delivery `1753722a-f859-4ddc-8d04-27b247533b38`). **433 빌드 예정**(베타 투어 제거).
+- 빌드: pubspec `1.0.0+433`. TestFlight **417~433 업로드됨**(433=VALID+Internal, Delivery `fc2a12f0-fd8a-4c66-824f-c7d60dd1448c`). 다음 빌드 434.
+  - Build 433 내용: 베타 투어 제거 + 업종 카테고리/도착 이모지 + 발송 재개 fix + 프로필 streak stat.
 - 검증 게이트(매 수정 후 필수): `flutter analyze lib/` 무경고 + `flutter test` 전체 통과(현재 **139**).
 - ⚠️ flaky 없음.
 - 누적 진행: sim100 + iter1~5 + device + sim-fresh + sim-fresh2 + sim-crosscut + **WCAG 라운드(접근성 백로그)**.
