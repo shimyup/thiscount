@@ -404,7 +404,7 @@ class _PickupHowToPage extends StatelessWidget {
             number: 2,
             emoji: '🎯',
             title: '가까이 가기',
-            desc: '내 반경 100m (Premium 1km) 안의 핀이 활성화',
+            desc: '내 반경 200m (Premium 1km) 안의 핀이 활성화',
             accent: 0xFFFFD60A,
           ),
           const _StepRow(

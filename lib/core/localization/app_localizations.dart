@@ -16162,34 +16162,35 @@ class AppL10n {
     'th': 'ยินยอม GPS',
   });
 
+  // Build 428 (런타임): 발송은 Brand 전용 → GPS 동의 안내를 줍기(전 티어) 중심으로.
   String get gpsTermsBody => _t({
     'ko':
-        '• 내 위치 주변의 혜택을 주울 수 있어요\n• 내가 보낸 혜택의 출발 지점을 기록해요\n• 위치 정보는 서비스 제공 외에 사용하지 않아요\n\n❗ 동의하지 않으면 홍보를 보내거나 줍을 수 없어요.',
+        '• 내 위치 주변의 혜택을 주울 수 있어요\n• 내 위치를 지도에 표시해요\n• 위치 정보는 서비스 제공 외에 사용하지 않아요\n\n❗ 동의하지 않으면 주변 혜택을 주울 수 없어요.',
     'en':
-        '• Pick up rewards dropped near you\n• Mark the origin of promos you send\n• Location is used only for this service\n\n❗ Without consent you cannot pick up or send rewards.',
+        '• Pick up rewards dropped near you\n• Show your location on the map\n• Location is used only for this service\n\n❗ Without consent you cannot pick up nearby rewards.',
     'ja':
-        '• 周辺にある特典を拾えます\n• 送ったプロモの出発地点を記録します\n• 位置情報はサービス提供以外に使用しません\n\n❗ 同意しないと特典を拾ったり送ったりできません。',
-    'zh': '• 拾取你附近的优惠\n• 记录你发送的推广内容起点\n• 位置信息仅用于本服务\n\n❗ 不同意将无法拾取或发送优惠。',
+        '• 周辺にある特典を拾えます\n• 自分の位置を地図に表示します\n• 位置情報はサービス提供以外に使用しません\n\n❗ 同意しないと周辺の特典を拾えません。',
+    'zh': '• 拾取你附近的优惠\n• 在地图上显示你的位置\n• 位置信息仅用于本服务\n\n❗ 不同意将无法拾取附近优惠。',
     'fr':
-        '• Récupérer les avantages déposés près de vous\n• Marquer l\'origine des promos que vous envoyez\n• Utilisé uniquement pour ce service\n\n❗ Sans consentement, impossible d\'envoyer ou de récupérer des avantages.',
+        '• Récupérer les avantages déposés près de vous\n• Afficher votre position sur la carte\n• Utilisé uniquement pour ce service\n\n❗ Sans consentement, impossible de récupérer les avantages à proximité.',
     'de':
-        '• Belohnungen in deiner Nähe einsammeln\n• Den Startpunkt deiner gesendeten Promos markieren\n• Nur für diesen Dienst verwendet\n\n❗ Ohne Zustimmung kannst du keine Belohnungen senden oder einsammeln.',
+        '• Belohnungen in deiner Nähe einsammeln\n• Deinen Standort auf der Karte anzeigen\n• Nur für diesen Dienst verwendet\n\n❗ Ohne Zustimmung kannst du keine Belohnungen in der Nähe einsammeln.',
     'es':
-        '• Recoge recompensas cerca de ti\n• Marca el origen de las promos que envías\n• Solo se usa para este servicio\n\n❗ Sin consentimiento no puedes enviar ni recoger recompensas.',
+        '• Recoge recompensas cerca de ti\n• Muestra tu ubicación en el mapa\n• Solo se usa para este servicio\n\n❗ Sin consentimiento no puedes recoger recompensas cercanas.',
     'pt':
-        '• Recolha recompensas perto de você\n• Marque a origem das promos que enviar\n• Usado apenas para este serviço\n\n❗ Sem consentimento não é possível enviar nem recolher recompensas.',
+        '• Recolha recompensas perto de você\n• Mostre a sua localização no mapa\n• Usado apenas para este serviço\n\n❗ Sem consentimento não é possível recolher recompensas próximas.',
     'ru':
-        '• Подбирайте награды рядом с вами\n• Отмечайте место отправки своих промо\n• Используется только для этого сервиса\n\n❗ Без согласия нельзя отправлять или подбирать награды.',
+        '• Подбирайте награды рядом с вами\n• Показывайте своё местоположение на карте\n• Используется только для этого сервиса\n\n❗ Без согласия нельзя подбирать награды поблизости.',
     'tr':
-        '• Yakınındaki ödülleri topla\n• Gönderdiğin promoların başlangıç noktasını işaretle\n• Yalnızca bu hizmet için kullanılır\n\n❗ İzin vermeden ödül gönderemez veya toplayamazsın.',
+        '• Yakınındaki ödülleri topla\n• Konumunu haritada göster\n• Yalnızca bu hizmet için kullanılır\n\n❗ İzin vermeden yakındaki ödülleri toplayamazsın.',
     'ar':
-        '• التقط المكافآت القريبة منك\n• سجّل نقطة انطلاق العروض التي ترسلها\n• تُستخدم بيانات الموقع لهذه الخدمة فقط\n\n❗ بدون الموافقة لا يمكنك إرسال أو التقاط المكافآت.',
+        '• التقط المكافآت القريبة منك\n• أظهر موقعك على الخريطة\n• تُستخدم بيانات الموقع لهذه الخدمة فقط\n\n❗ بدون الموافقة لا يمكنك التقاط المكافآت القريبة.',
     'it':
-        '• Raccogli i premi vicino a te\n• Segna il punto di partenza delle promo che invii\n• Usata solo per questo servizio\n\n❗ Senza consenso non puoi inviare o raccogliere premi.',
+        '• Raccogli i premi vicino a te\n• Mostra la tua posizione sulla mappa\n• Usata solo per questo servizio\n\n❗ Senza consenso non puoi raccogliere premi nelle vicinanze.',
     'hi':
-        '• अपने पास के रिवॉर्ड उठाएँ\n• भेजे गए प्रोमो का शुरुआती स्थान दर्ज करें\n• लोकेशन केवल इस सेवा के लिए उपयोग होती है\n\n❗ सहमति के बिना आप रिवॉर्ड भेज या उठा नहीं सकते।',
+        '• अपने पास के रिवॉर्ड उठाएँ\n• मानचित्र पर अपना स्थान दिखाएँ\n• लोकेशन केवल इस सेवा के लिए उपयोग होती है\n\n❗ सहमति के बिना आप आस-पास के रिवॉर्ड नहीं उठा सकते।',
     'th':
-        '• เก็บรางวัลที่อยู่ใกล้ตัวคุณ\n• บันทึกจุดเริ่มต้นของโปรโมชันที่คุณส่ง\n• ใช้ข้อมูลตำแหน่งเพื่อบริการนี้เท่านั้น\n\n❗ หากไม่ยินยอม คุณจะส่งหรือเก็บรางวัลไม่ได้',
+        '• เก็บรางวัลที่อยู่ใกล้ตัวคุณ\n• แสดงตำแหน่งของคุณบนแผนที่\n• ใช้ข้อมูลตำแหน่งเพื่อบริการนี้เท่านั้น\n\n❗ หากไม่ยินยอม คุณจะเก็บรางวัลใกล้เคียงไม่ได้',
   });
 
   String get gpsAgreeAndContinue => _t({
@@ -17118,21 +17119,22 @@ class AppL10n {
   });
 
   // Build 425 (device): Free=줍기 전용 → '3통 발송' 대신 줍기/수집 혜택.
+  // Build 428 (런타임): Feat3(세계 지도 열람)과 중복 → '수집첩 보관'으로 분리.
   String get onboardingFreeFeat2 => _t({
-    'ko': '세계 지도 열람 · 수집첩 보관',
-    'en': 'World map access · saved in collection',
-    'ja': '世界地図の閲覧 · コレクション保存',
-    'zh': '浏览世界地图 · 收藏保存',
-    'fr': 'Carte du monde · sauvegarde collection',
-    'de': 'Weltkarte · in Sammlung gespeichert',
-    'es': 'Mapa mundial · guardado en colección',
-    'pt': 'Mapa mundial · guardado na coleção',
-    'ru': 'Мировая карта · хранение в коллекции',
-    'tr': 'Dünya haritası · koleksiyonda saklama',
-    'ar': 'خريطة العالم · حفظ في المجموعة',
-    'it': 'Mappa mondiale · salvato in collezione',
-    'hi': 'विश्व मानचित्र · संग्रह में सहेजें',
-    'th': 'แผนที่โลก · เก็บในคอลเลกชัน',
+    'ko': '줍은 쿠폰 수집첩 보관',
+    'en': 'Saved in your collection',
+    'ja': 'コレクションに保存',
+    'zh': '收藏到收集册',
+    'fr': 'Sauvegardé dans ta collection',
+    'de': 'In deiner Sammlung gespeichert',
+    'es': 'Guardado en tu colección',
+    'pt': 'Guardado na tua coleção',
+    'ru': 'Хранение в коллекции',
+    'tr': 'Koleksiyonunda saklanır',
+    'ar': 'محفوظ في مجموعتك',
+    'it': 'Salvato nella tua collezione',
+    'hi': 'आपके संग्रह में सहेजा गया',
+    'th': 'เก็บในคอลเลกชันของคุณ',
   });
 
   String get onboardingFreeFeat3 => _t({
