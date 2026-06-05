@@ -15,7 +15,7 @@
 
 ## 현재 상태 (2026-06-04 갱신)
 - 브랜치: `launch-readiness-build411` (PR #150). main 아님.
-- 최신 커밋: `e40c2ac` (시뮬레이터 실기기 테스트 발견 3건 수정).
+- 최신 커밋: `aa48c01` (실기기 피드백 8건: 쿨다운 제거·온보딩·캠페인 UX·ExactDrop).
 - 백업 태그: `v427-pre-ux-overhaul` (`98a0716`, origin). 되돌리기 `git reset --hard v427-pre-ux-overhaul`.
 - 빌드: pubspec `1.0.0+429`. TestFlight **417~429 업로드됨**(429=VALID+Internal, Delivery `1059b875-9909-43d2-b84f-f7d1b79e006a`). 다음 빌드 430.
 - 검증 게이트(매 수정 후 필수): `flutter analyze lib/` 무경고 + `flutter test` 전체 통과(현재 **139**).
@@ -164,6 +164,18 @@
 - [x] 비-지도 탭에서 지도 96px peek 노출 제거 → 탭 콘텐츠 전체화면 (main_scaffold.dart:304, _kMapPeek 제거)
 - [x] 작성 메세지 '버리기' 후 재출현 — _saveDraft hasState 가 기본 선택국가만으로 brand draft 저장 → 빈 메세지도 '이어쓰기' 무한 재출현. hasState 를 닫기확인 hasContent 기준(대량/특송/타깃/특정국가/혜택정보)으로 정정 (compose_screen.dart:693)
 - Build 419 빌드.
+
+## 🔴 사용자 device 3차 보고 (2026-06-04) — Build 430, commit `aa48c01`
+> 실기기 피드백 8건. 모순 2건은 AskUserQuestion 으로 확정.
+- [x] ① 온보딩 '혜택 주워쓰세요' 뱃지 FREE+PREMIUM 만(BRAND 제거)
+- [x] ② **Premium/Brand 줍기 쿨다운 완전 제거**(`_nearbyPickupCooldown`=Duration.zero, 즉시 연속) + 전 문구 '쿨다운 없음'으로 14언어(onboardingPremiumSubtitle/Feat2·premiumFeature2·premiumValueFeature2·premiumPremiumTestDesc·benefitCooldown·towerBenefitsPremiumFeat1·mapHelpTierPremiumBody·purchase fallback). Free 60분 유지.
+- [x] ③ 목적지 버튼(나라/랜덤/ExactDrop) 모두 초기 활성색 없음 — ExactDrop 도 _isExactDropped 시에만 gold.
+- [x] ④ 랜덤 버튼 재탭 → 비활성(토글).
+- [x] ⑤ '더 많은 옵션' 기본 펼침(_expanded=true).
+- [x] ⑥ 캠페인 화면 '진행 중'/'종료된' 섹션 분리(만료 기준, brandCampaignActive/Ended).
+- [x] ⑦ ExactDrop '추가 구매' 베타 동작 — buyExactDrop 에 _isBetaUpgradeSimulator 가짜결제 + RC-key 가드 베타 예외(원인=이전 _isTestMode 디버그 한정).
+- [x] ⑧ ExactDrop 중간 티어 100→1000개(상품 슬롯 유지, 1000 grant).
+- TestFlight Build 430 빌드 예정.
 
 ## 시뮬레이터 실기기 테스트 (2026-06-04) — Build 429, commit `e40c2ac`
 > iPhone17 시뮬레이터 부팅 + cliclick 으로 전 화면 워크스루(온보딩 투어→5p 인트로→GPS→auth→메인→인박스→프로필).
