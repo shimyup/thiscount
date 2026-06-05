@@ -404,30 +404,28 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 // 원" 을 매일 느끼게 하는 핵심 앵커.
                 // - Free: teal (200m + 레벨 보너스)
                 // - Premium: gold (1km + 레벨 보너스)
-                // - Brand: orange (1km)
-                CircleLayer(
-                  circles: [
-                    CircleMarker(
-                      point: ll.LatLng(
-                        state.currentUser.latitude,
-                        state.currentUser.longitude,
+                // Build 429 (device): Brand 는 픽업 불가 → 줍기 반경 링 미표시
+                //   (떠 있으면 "주울 수 있다" 오해). Brand 는 발송/캠페인 트랙.
+                if (!state.currentUser.isBrand)
+                  CircleLayer(
+                    circles: [
+                      CircleMarker(
+                        point: ll.LatLng(
+                          state.currentUser.latitude,
+                          state.currentUser.longitude,
+                        ),
+                        radius: state.pickupRadiusMeters,
+                        useRadiusInMeter: true,
+                        color: state.currentUser.isPremium
+                            ? AppColors.gold.withValues(alpha: 0.20)
+                            : AppColors.teal.withValues(alpha: 0.22),
+                        borderColor: state.currentUser.isPremium
+                            ? AppColors.gold.withValues(alpha: 0.98)
+                            : AppColors.teal.withValues(alpha: 0.98),
+                        borderStrokeWidth: 3.0,
                       ),
-                      radius: state.pickupRadiusMeters,
-                      useRadiusInMeter: true,
-                      color: state.currentUser.isBrand
-                          ? AppColors.coupon.withValues(alpha: 0.18)
-                          : state.currentUser.isPremium
-                              ? AppColors.gold.withValues(alpha: 0.20)
-                              : AppColors.teal.withValues(alpha: 0.22),
-                      borderColor: state.currentUser.isBrand
-                          ? AppColors.coupon.withValues(alpha: 0.95)
-                          : state.currentUser.isPremium
-                              ? AppColors.gold.withValues(alpha: 0.98)
-                              : AppColors.teal.withValues(alpha: 0.98),
-                      borderStrokeWidth: 3.0,
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
                 // ── 모든 마커 (단일 레이어 — 히트 테스팅 정확도 보장) ──
                 // 순서: 클러스터 타워 → 내 타워 + 편지 (뒤쪽이 위에 렌더링)
                 ValueListenableBuilder<int>(
