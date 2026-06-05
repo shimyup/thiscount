@@ -3004,29 +3004,27 @@ class _LetterReadScreenState extends State<LetterReadScreen>
     }
   }
 
+  // Build 433 (design): 깨진 이미지 아이콘 대신 업종 이모지 + 그라데이션
+  //   플레이스홀더 — 실패가 '의도된 브랜드 비주얼' 처럼 보이게(트렌디).
   Widget _imagePlaceholder() {
     return Container(
       height: 120,
       decoration: BoxDecoration(
-        color: AppColors.bgCard,
+        gradient: LinearGradient(
+          colors: [
+            AppColors.bgSurface,
+            AppColors.bgCard,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.textMuted.withValues(alpha: 0.2)),
+        border: Border.all(color: AppColors.textMuted.withValues(alpha: 0.15)),
       ),
       child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.image_not_supported_outlined,
-              color: AppColors.textMuted,
-              size: 28,
-            ),
-            const SizedBox(height: 6),
-            Text(
-              AppL10n.of(context.read<AppState>().currentUser.languageCode).letterReadImageLoadFailed,
-              style: TextStyle(color: AppColors.textMuted, fontSize: 11),
-            ),
-          ],
+        child: Text(
+          bizCategoryEmoji(widget.letter.categoryTag),
+          style: const TextStyle(fontSize: 44),
         ),
       ),
     );
