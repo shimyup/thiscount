@@ -17,7 +17,7 @@
 - 브랜치: `launch-readiness-build411` (PR #150). main 아님.
 - 최신 커밋: `e40c2ac` (시뮬레이터 실기기 테스트 발견 3건 수정).
 - 백업 태그: `v427-pre-ux-overhaul` (`98a0716`, origin). 되돌리기 `git reset --hard v427-pre-ux-overhaul`.
-- 빌드: pubspec `1.0.0+428`. TestFlight **417~428 업로드됨**(428=VALID+Internal, Delivery `06310a94-7257-4e57-9e08-8fe518fc38ef`). 다음 빌드 429.
+- 빌드: pubspec `1.0.0+429`. TestFlight **417~429 업로드됨**(429=VALID+Internal, Delivery `1059b875-9909-43d2-b84f-f7d1b79e006a`). 다음 빌드 430.
 - 검증 게이트(매 수정 후 필수): `flutter analyze lib/` 무경고 + `flutter test` 전체 통과(현재 **139**).
 - ⚠️ flaky 없음.
 - 누적 진행: sim100 + iter1~5 + device + sim-fresh + sim-fresh2 + sim-crosscut + **WCAG 라운드(접근성 백로그)**.
