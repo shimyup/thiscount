@@ -149,6 +149,28 @@ extension LetterCategoryExt on LetterCategory {
   }
 }
 
+/// Build 433 (device): 업종 카테고리(categoryTag) → 도착 마커/칩 이모지.
+///   Brand 발송 시 선택, 또는 픽업 시 자동 추론된 7-way 태그 기준.
+///   compose 칩 · 지도 도착 마커가 공유해 시각 일관성 유지.
+String bizCategoryEmoji(String? tag) {
+  switch (tag) {
+    case 'food':
+      return '🍔';
+    case 'cafe':
+      return '☕';
+    case 'beauty':
+      return '💄';
+    case 'fashion':
+      return '👗';
+    case 'event':
+      return '🎉';
+    case 'it':
+      return '💻';
+    default:
+      return '🎁'; // other / null
+  }
+}
+
 // ── 배송 상태 ──────────────────────────────────────────────────────────────────
 enum DeliveryStatus {
   composing,

@@ -452,6 +452,14 @@ class _ComposeScreenState extends State<ComposeScreen>
   // 으로 분리 표시되므로 브랜드 운영자가 발송 의도를 명확히 지정한다.
   LetterCategory _brandCategory = LetterCategory.general;
 
+  // Build 433 (device): Brand 발송 업종 카테고리 (발송 종류와 별개 축).
+  //   food/cafe/beauty/fashion/event/other — 도착 마커 이모지·인박스 필터에
+  //   사용. null 이면 픽업 시 본문 기반 자동 추론(기존 호환).
+  String? _brandBizCategory;
+  static const List<String> _bizCategoryKeys = [
+    'food', 'cafe', 'beauty', 'fashion', 'event', 'other',
+  ];
+
   // Build 321: 자동 발송 zone 모드 — 사용자가 반경 안에 들어오면 자동 letter.
   // compose 화면에서 토글로 활성화. send 버튼이 createZone 호출로 변경.
   // 이전 별도 BrandZoneSetupScreen 으로 분리됐던 UX 를 같은 작성 화면 통합.
@@ -1668,6 +1676,7 @@ class _ComposeScreenState extends State<ComposeScreen>
             brandAutoExpireHours: _brandAutoExpireHours,
             imageUrl: _imageFilePath,
             category: _brandCategory,
+            categoryTag: _brandBizCategory,
             acceptsReplies: _brandAcceptsReplies,
             redemptionInfo: _redemptionInfoController.text.trim().isEmpty
                 ? null
@@ -1706,6 +1715,7 @@ class _ComposeScreenState extends State<ComposeScreen>
             brandAutoExpireHours: _brandAutoExpireHours,
             imageUrl: _imageFilePath,
             category: _brandCategory,
+            categoryTag: _brandBizCategory,
             acceptsReplies: _brandAcceptsReplies,
             redemptionInfo: _redemptionInfoController.text.trim().isEmpty
                 ? null
@@ -1803,6 +1813,7 @@ class _ComposeScreenState extends State<ComposeScreen>
           brandUniquePerUser: _brandUniquePerUser,
           brandAutoExpireHours: _brandAutoExpireHours,
           category: _brandCategory,
+            categoryTag: _brandBizCategory,
           acceptsReplies: _brandAcceptsReplies,
           redemptionInfo: _redemptionInfoController.text.trim().isEmpty
               ? null
@@ -1943,6 +1954,7 @@ class _ComposeScreenState extends State<ComposeScreen>
           brandUniquePerUser: _brandUniquePerUser,
           brandAutoExpireHours: _brandAutoExpireHours,
           category: _brandCategory,
+            categoryTag: _brandBizCategory,
           acceptsReplies: _brandAcceptsReplies,
           redemptionInfo: _redemptionInfoController.text.trim().isEmpty
               ? null
@@ -4667,6 +4679,47 @@ class _ComposeScreenState extends State<ComposeScreen>
     }
   }
 
+  // Build 433 (device): 업종 카테고리 칩 — 이모지(공유 헬퍼) + 라벨(AI 카테고리
+  //   라벨 재사용). 선택 시 _brandBizCategory 설정 → 발송 letter.categoryTag.
+  Widget _bizCategoryChip(String key, AppL10n l10n) {
+    final selected = _brandBizCategory == key;
+    return GestureDetector(
+      onTap: () => setState(() =>
+          _brandBizCategory = selected ? null : key),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.teal.withValues(alpha: 0.16)
+              : AppColors.bgSurface,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: selected
+                ? AppColors.teal.withValues(alpha: 0.7)
+                : AppColors.textMuted.withValues(alpha: 0.2),
+            width: selected ? 1.3 : 1.0,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(bizCategoryEmoji(key), style: const TextStyle(fontSize: 13)),
+            const SizedBox(width: 5),
+            Text(
+              l10n.composeAICategoryLabel(key),
+              style: TextStyle(
+                color: selected ? AppColors.teal : AppColors.textSecondary,
+                fontSize: 11.5,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildBrandCategoryPanel(AppState state) {
     final l10n = AppL10n.of(state.currentUser.languageCode);
     final isBrand = state.currentUser.isBrand;
@@ -4719,7 +4772,35 @@ class _ComposeScreenState extends State<ComposeScreen>
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          // Build 433 (device): 업종 카테고리 선택(발송 종류와 별개 축).
+          //   도착 마커 이모지·인박스 필터에 반영. 음식/카페/뷰티/패션/행사/기타.
+          const SizedBox(height: 12),
+          Text(
+            l10n.koEn('업종 (도착 마커 표시)', 'Category (arrival marker)'),
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: _bizCategoryKeys
+                .map((k) => _bizCategoryChip(k, l10n))
+                .toList(),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            l10n.koEn('발송 종류', 'Send type'),
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 6),
           Row(
             children: [
               for (final c in LetterCategory.values) ...[

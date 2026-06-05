@@ -2922,12 +2922,13 @@ class _ArrivedWaitingMarker extends StatelessWidget {
   //   eat (food+cafe) = 🍴 / shop (beauty+fashion) = 🛍️ /
   //   etc (it+event+other) = 🎁 / categoryTag null = 📬 (기본).
   //   FOMO 시 빨강 ring 은 별개 — 긴급성 시각화는 유지.
+  // Build 433 (device): 업종 카테고리별 도착 이모지 — 공유 헬퍼(bizCategoryEmoji)
+  //   로 카페☕/음식🍔/뷰티💄/패션👗/행사🎉/기타🎁 구분. categoryTag null 이면
+  //   📬(일반 편지).
   String get _categoryEmoji {
     final tag = letter.categoryTag;
-    if (tag == 'food' || tag == 'cafe') return '🍴';
-    if (tag == 'beauty' || tag == 'fashion') return '🛍️';
-    if (tag == 'it' || tag == 'event' || tag == 'other') return '🎁';
-    return '📬';
+    if (tag == null) return '📬';
+    return bizCategoryEmoji(tag);
   }
 
   /// Build 415 (#5 레어 드롭): 희귀도별 글로우 색. normal 은 null (강조 없음).

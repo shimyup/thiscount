@@ -1567,7 +1567,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       child: Row(
         children: [
-          _stat4V5('${score.sentCount}', _fsl.profileSentLetters),
+          // Build 433 (device): 비-Brand 는 발송 불가라 '보낸' 이 항상 0 = 노이즈.
+          //   대신 🔥 연속일(streak) 노출(리텐션 지표). Brand 만 '보낸'(캠페인).
+          if (user.isBrand)
+            _stat4V5('${score.sentCount}', _fsl.profileSentLetters)
+          else
+            _stat4V5(
+              '${state.currentStreak}',
+              _fsl.koEn('연속일', 'Streak'),
+              color: AppColors.coupon,
+            ),
           _stat4Divider(),
           _stat4V5('${score.receivedCount}', _fsl.profileReceivedLetters),
           _stat4Divider(),

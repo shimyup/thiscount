@@ -2556,6 +2556,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       }
       // 서버 사용자/편지 동기화 재개 (비용 최적화)
       resumeServerSyncFromBackground();
+      // Build 433 (device): 발송 도중 앱 백그라운드/종료로 Firestore 업로드가
+      //   끊긴 letter(아웃박스 잔존)를 재개 즉시 재업로드 — "발송되다 멈춤" 해소.
+      //   이전엔 주기 sync/auth 시점에만 flush 돼 재개 직후 미전송 상태로 보였음.
+      unawaited(_flushPendingLetterUploads());
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
       // 백그라운드 진입 → 타이머 정지 + 주소 캐시 저장
@@ -8478,6 +8482,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // Build 331 (PR-S1): bulk send 가 동일 코드를 모든 letter 에 부여하기 위한
     //   override. null + attachRedemptionCode=true 면 새 코드 자동 생성.
     String? explicitRedemptionCode,
+    // Build 433 (device): Brand 가 발송 시 직접 고른 업종 카테고리
+    //   (food/cafe/beauty/fashion/event/it/other). 도착 마커 이모지·인박스
+    //   필터에 사용. 미지정 시 픽업 때 inferCategoryTag 로 자동 추론(기존 호환).
+    String? categoryTag,
   }) async {
     // Build 324 (positioning): Free 사용자는 "줍기 전용". 발송 기능은
     //   Premium/Brand 만 가능. UI 측 가드 (main_scaffold compose 진입,
@@ -8715,6 +8723,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       // coupon/voucher 카테고리는 브랜드만 선택할 수 있도록 서버 사이드 가드
       // 일반·프리미엄 유저가 어떤 방식으로 category 를 전달해도 general 로 강제.
       category: _currentUser.isBrand ? category : LetterCategory.general,
+      // Build 433 (device): Brand 가 고른 업종 카테고리를 발송 시 저장 →
+      //   도착 마커 이모지가 업종별로 표시. 비-Brand 는 null(픽업 시 추론).
+      categoryTag: _currentUser.isBrand ? categoryTag : null,
       // Build 415 (#5 레어 드롭): 브랜드 발송이면 낮은 확률로 rare/epic 부여.
       //   일반·프리미엄 유저 편지는 항상 normal (게임화는 브랜드 쿠폰 한정).
       rarity: _rollLetterRarity(_currentUser.isBrand),
@@ -8809,6 +8820,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // Build 331 (PR-S1): bulk send 가 동일 redemptionCode 를 모든 letter 에
     //   부여 — 매장 POS 는 한 캠페인당 1개 코드만 등록하면 끝.
     bool attachRedemptionCode = false,
+    // Build 433 (device): 업종 카테고리 — bulk 의 모든 letter 에 동일 적용.
+    String? categoryTag,
   }) async {
     if (!_currentUser.isBrand) return 0;
     int sent = 0;
@@ -8848,6 +8861,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           campaignId: campaignId,
           attachRedemptionCode: attachRedemptionCode,
           explicitRedemptionCode: bulkRedemptionCode,
+          categoryTag: categoryTag,
         );
         if (ok) sent++;
       }
@@ -8876,6 +8890,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             campaignId: campaignId,
             attachRedemptionCode: attachRedemptionCode,
             explicitRedemptionCode: bulkRedemptionCode,
+            categoryTag: categoryTag,
           );
           if (ok) sent++;
         }
@@ -9131,6 +9146,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     //   explicitRedemptionCode 로 주입(여러 blast 호출이 1개 코드 공유).
     bool attachRedemptionCode = false,
     String? explicitRedemptionCode,
+    // Build 433 (device): 업종 카테고리 — blast 의 모든 letter 에 동일 적용.
+    String? categoryTag,
   }) async {
     if (!_currentUser.isBrand) return 0;
     // Build 409 (sim P2 보안 L7948): 차단된 Brand 도 express+bulk 발송 차단.
@@ -9258,6 +9275,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             ? now.add(Duration(minutes: expressTotalMin) + Duration(hours: brandAutoExpireHours))
             : null,
         category: category,
+        // Build 433 (device): blast 전체에 동일 업종 카테고리(도착 마커 이모지).
+        categoryTag: categoryTag,
         // Build 415 (#5 레어 드롭): express blast 도 letter 마다 독립 희귀도 roll
         //   (블라스트는 항상 브랜드) — 한 캠페인 안에서도 일부만 rare/epic.
         rarity: _rollLetterRarity(true),
