@@ -15,7 +15,7 @@
 
 ## 현재 상태 (2026-06-04 갱신)
 - 브랜치: `launch-readiness-build411` (PR #150). main 아님.
-- 최신 커밋: `aa48c01` (실기기 피드백 8건: 쿨다운 제거·온보딩·캠페인 UX·ExactDrop).
+- 최신 커밋: `c86a4b3` (브랜드 픽업 차단 + ExactDrop 1000 상품 정비) + UX 벤치마크 문서.
 - 백업 태그: `v427-pre-ux-overhaul` (`98a0716`, origin). 되돌리기 `git reset --hard v427-pre-ux-overhaul`.
 - 빌드: pubspec `1.0.0+430`. TestFlight **417~430 업로드됨**(430=VALID+Internal, Delivery `b4c219bb-a0ea-410c-a289-2050b07f21ea`). 다음 빌드 431.
 - 검증 게이트(매 수정 후 필수): `flutter analyze lib/` 무경고 + `flutter test` 전체 통과(현재 **139**).
@@ -164,6 +164,12 @@
 - [x] 비-지도 탭에서 지도 96px peek 노출 제거 → 탭 콘텐츠 전체화면 (main_scaffold.dart:304, _kMapPeek 제거)
 - [x] 작성 메세지 '버리기' 후 재출현 — _saveDraft hasState 가 기본 선택국가만으로 brand draft 저장 → 빈 메세지도 '이어쓰기' 무한 재출현. hasState 를 닫기확인 hasContent 기준(대량/특송/타깃/특정국가/혜택정보)으로 정정 (compose_screen.dart:693)
 - Build 419 빌드.
+
+## 🔴 사용자 device 4차 (2026-06-04) — Build 431, commit `c86a4b3`
+- [x] **브랜드 픽업 차단** — pickUpLetter isBrand 가드(statePickupBrandBlocked) + nearbyLetters Brand 빈 리스트(근처 칩/마커 미노출). Brand=발송 전용.
+- [x] **ExactDrop 1000 상품 정비** — exactDrop1000 상품군 신설(ios/android/legacy + getter + candidates + qty 매핑). 중간 티어가 전용 `thiscount_exact_drop_1000_ios` 사용. 🔴 **ASC 등록 필요**: thiscount_exact_drop_1000_ios(소모성 ₩10,000) + 기존 50/500 상품도 미등록 시 등록(운영).
+- [x] **UI/UX 벤치마크 추천 문서** `docs/UX_BENCHMARK_RECOMMENDATIONS.md` — Pokémon GO/당근/토스/캐시워크/스타벅스/Duolingo 등 참조, 화면별 매핑 + 우선순위. 빠른 후보 5건(반경 원·근접 칩·코드 밝기·곧만료 섹션·권한지연).
+- TestFlight Build 431 빌드 예정.
 
 ## 🔴 사용자 device 3차 보고 (2026-06-04) — Build 430, commit `aa48c01`
 > 실기기 피드백 8건. 모순 2건은 AskUserQuestion 으로 확정.
