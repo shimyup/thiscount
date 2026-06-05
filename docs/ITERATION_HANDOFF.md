@@ -15,7 +15,7 @@
 
 ## 현재 상태 (2026-06-04 갱신)
 - 브랜치: `launch-readiness-build411` (PR #150). main 아님.
-- 최신 커밋: `c845eac` (UX 개선 스윕: DM 탭 발견성 + UI 대비 + draft 검증 + 데드코드).
+- 최신 커밋: `e40c2ac` (시뮬레이터 실기기 테스트 발견 3건 수정).
 - 백업 태그: `v427-pre-ux-overhaul` (`98a0716`, origin). 되돌리기 `git reset --hard v427-pre-ux-overhaul`.
 - 빌드: pubspec `1.0.0+428`. TestFlight **417~428 업로드됨**(428=VALID+Internal, Delivery `06310a94-7257-4e57-9e08-8fe518fc38ef`). 다음 빌드 429.
 - 검증 게이트(매 수정 후 필수): `flutter analyze lib/` 무경고 + `flutter test` 전체 통과(현재 **139**).
@@ -164,6 +164,13 @@
 - [x] 비-지도 탭에서 지도 96px peek 노출 제거 → 탭 콘텐츠 전체화면 (main_scaffold.dart:304, _kMapPeek 제거)
 - [x] 작성 메세지 '버리기' 후 재출현 — _saveDraft hasState 가 기본 선택국가만으로 brand draft 저장 → 빈 메세지도 '이어쓰기' 무한 재출현. hasState 를 닫기확인 hasContent 기준(대량/특송/타깃/특정국가/혜택정보)으로 정정 (compose_screen.dart:693)
 - Build 419 빌드.
+
+## 시뮬레이터 실기기 테스트 (2026-06-04) — Build 429, commit `e40c2ac`
+> iPhone17 시뮬레이터 부팅 + cliclick 으로 전 화면 워크스루(온보딩 투어→5p 인트로→GPS→auth→메인→인박스→프로필).
+- **정상 확인**: 앱 예외 0건 부팅 / 온보딩 티어 카피(홍보 슬라이드 Brand 뱃지만·Free·Premium 줍기·Premium 페이지 1:1 DM+커스텀, 발송 문구 없음) / 비-Brand 하단 3탭(발송 탭 없음) / 프로필 발송쿼터 카드 없음(픽업 통계) / 인박스 필터칩 ellipsis(먹기···).
+- **발견·수정 3건**: ① 투어 '내 반경 100m'→200m(Free 반경 불일치) ② GPS 동의 gpsTermsBody 발송 문구→줍기 중심 14언어 ③ onboardingFreeFeat2 가 Feat3(세계 지도 열람)과 중복→'수집첩 보관'.
+- **미검증(테스트 계정=Free)**: Premium 인박스 DM 탭(canUseDM 필요)·Brand compose 5건 UX — 실 Premium/Brand 계정 또는 admin 등급변경으로 후속 확인 권장.
+- 캡처: /tmp/s428_*.png. TestFlight Build 429 빌드 예정.
 
 ## UX 개선 스윕 (2026-06-04) — Build 428, commits `09f5b64`·`5645202`·`c845eac`
 > sim100 의 UX 44 + 잔여 codeFixable 중 안전·고가치 항목 구현. 백업 태그 `v427-pre-ux-overhaul`.
