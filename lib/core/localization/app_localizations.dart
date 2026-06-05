@@ -457,6 +457,21 @@ class AppL10n {
     'tr': 'Son kampanyalar', 'ar': 'الحملات الأخيرة', 'it': 'Campagne recenti',
     'hi': 'हाल के अभियान', 'th': 'แคมเปญล่าสุด',
   });
+  // Build 429 (device): 캠페인을 진행 중 / 종료 섹션으로 분리.
+  String get brandCampaignActive => _t({
+    'ko': '진행 중인 캠페인', 'en': 'Active campaigns', 'ja': '進行中のキャンペーン',
+    'zh': '进行中的活动', 'fr': 'Campagnes actives', 'de': 'Aktive Kampagnen',
+    'es': 'Campañas activas', 'pt': 'Campanhas ativas', 'ru': 'Активные кампании',
+    'tr': 'Aktif kampanyalar', 'ar': 'الحملات النشطة', 'it': 'Campagne attive',
+    'hi': 'सक्रिय अभियान', 'th': 'แคมเปญที่ใช้งานอยู่',
+  });
+  String get brandCampaignEnded => _t({
+    'ko': '종료된 캠페인', 'en': 'Ended campaigns', 'ja': '終了したキャンペーン',
+    'zh': '已结束的活动', 'fr': 'Campagnes terminées', 'de': 'Beendete Kampagnen',
+    'es': 'Campañas finalizadas', 'pt': 'Campanhas terminadas', 'ru': 'Завершённые кампании',
+    'tr': 'Biten kampanyalar', 'ar': 'الحملات المنتهية', 'it': 'Campagne terminate',
+    'hi': 'समाप्त अभियान', 'th': 'แคมเปญที่สิ้นสุด',
+  });
   // Build 406 (PR-OO7): Brand 가 픽업한 letter 섹션 — invisible 누수 방지.
   String get brandCampaignReceived => _t({
     'ko': '받은 쿠폰', 'en': 'Received coupons', 'ja': '受け取ったクーポン',
@@ -10554,20 +10569,20 @@ class AppL10n {
   });
 
   String get premiumValueFeature2 => _t({
-    'ko': '쿨다운 6배 빠르게 — 60분 → 10분',
-    'en': 'Cooldown 6× faster — 60 min → 10 min',
-    'ja': 'クールダウン6倍速 — 60分 → 10分',
-    'zh': '冷却快6倍 — 60分钟 → 10分钟',
-    'fr': 'Recharge 6× plus rapide — 60 min → 10 min',
-    'de': 'Abklingzeit 6× schneller — 60 min → 10 min',
-    'es': 'Enfriamiento 6× más rápido — 60 min → 10 min',
-    'pt': 'Recarga 6× mais rápida — 60 min → 10 min',
-    'ru': 'Перезарядка в 6× быстрее — 60 мин → 10 мин',
-    'tr': 'Bekleme 6× hızlı — 60 dk → 10 dk',
-    'ar': 'تبريد أسرع 6 أضعاف — 60 دقيقة → 10 دقائق',
-    'it': 'Cooldown 6× più veloce — 60 min → 10 min',
-    'hi': 'कूलडाउन 6× तेज़ — 60 मिनट → 10 मिनट',
-    'th': 'คูลดาวน์เร็ว 6 เท่า — 60 นาที → 10 นาที',
+    'ko': '쿨다운 없음 — 즉시 연속 픽업 (Free 60분)',
+    'en': 'No cooldown — pick up back-to-back (Free 60 min)',
+    'ja': 'クールダウンなし — 連続で拾える（無料60分）',
+    'zh': '无冷却 — 可连续拾取（免费 60 分钟）',
+    'fr': 'Sans recharge — ramassage en continu (gratuit 60 min)',
+    'de': 'Keine Abklingzeit — ohne Pause sammeln (kostenlos 60 min)',
+    'es': 'Sin enfriamiento — recoge sin pausa (gratis 60 min)',
+    'pt': 'Sem recarga — apanha sem pausa (grátis 60 min)',
+    'ru': 'Без перезарядки — подбор без пауз (Free 60 мин)',
+    'tr': 'Bekleme yok — arka arkaya topla (ücretsiz 60 dk)',
+    'ar': 'بدون تبريد — التقاط متتالٍ (مجاني 60 دقيقة)',
+    'it': 'Nessun cooldown — raccolta continua (gratis 60 min)',
+    'hi': 'कोई कूलडाउन नहीं — लगातार उठाएँ (मुफ्त 60 मिनट)',
+    'th': 'ไม่มีคูลดาวน์ — เก็บต่อเนื่อง (ฟรี 60 นาที)',
   });
 
   String get premiumValueFeature3 => _t({
@@ -10625,20 +10640,20 @@ class AppL10n {
   });
 
   String get premiumFeature2 => _t({
-    'ko': '10분 쿨다운 · Free 60분 대비 6배 빠른 픽업',
-    'en': '10-min cooldown · 6× faster than free',
-    'ja': '10分クールダウン · 無料60分より6倍速い',
-    'zh': '冷却 10 分钟 · 比免费 60 分钟快 6 倍',
-    'fr': 'Recharge 10 min · 6× plus rapide que le gratuit',
-    'de': '10 min Abklingzeit · 6× schneller als kostenlos',
-    'es': 'Enfriamiento 10 min · 6× más rápido que gratis',
-    'pt': 'Recarga 10 min · 6× mais rápido que o grátis',
-    'ru': 'Перезарядка 10 мин · в 6 раз быстрее бесплатной',
-    'tr': '10 dk bekleme · ücretsizden 6× hızlı',
-    'ar': 'تبريد 10 دقائق · أسرع 6 أضعاف من المجانية',
-    'it': 'Cooldown 10 min · 6× più veloce del gratuito',
-    'hi': '10 मिनट कूलडाउन · मुफ्त से 6× तेज़',
-    'th': 'คูลดาวน์ 10 นาที · เร็วกว่าฟรี 6 เท่า',
+    'ko': '쿨다운 없음 · 즉시 연속 픽업 (Free 60분)',
+    'en': 'No cooldown · pick up back-to-back (Free 60 min)',
+    'ja': 'クールダウンなし · 連続で拾える（無料60分）',
+    'zh': '无冷却 · 可连续拾取（免费 60 分钟）',
+    'fr': 'Sans recharge · ramassage en continu (gratuit 60 min)',
+    'de': 'Keine Abklingzeit · ohne Pause sammeln (kostenlos 60 min)',
+    'es': 'Sin enfriamiento · recoge sin pausa (gratis 60 min)',
+    'pt': 'Sem recarga · apanha sem pausa (grátis 60 min)',
+    'ru': 'Без перезарядки · подбор без пауз (Free 60 мин)',
+    'tr': 'Bekleme yok · arka arkaya topla (ücretsiz 60 dk)',
+    'ar': 'بدون تبريد · التقاط متتالٍ (مجاني 60 دقيقة)',
+    'it': 'Nessun cooldown · raccolta continua (gratis 60 min)',
+    'hi': 'कोई कूलडाउन नहीं · लगातार उठाएँ (मुफ्त 60 मिनट)',
+    'th': 'ไม่มีคูลดาวน์ · เก็บต่อเนื่อง (ฟรี 60 นาที)',
   });
 
   // Build 425 (device): Premium=줍기 전용 → 발송(30통 홍보) 대신 DM(1:1 채팅).
@@ -10822,26 +10837,26 @@ class AppL10n {
   // Build 426 (sim100 #5): Premium 발송 제거 → 페이월 플랜 카드 설명도 줍기·DM·
   //   커스터마이즈로 정정(발송/특급 제거).
   String get premiumPremiumTestDesc => _t({
-    'ko': '줍기 반경 1km · 쿨다운 10분\n1:1 채팅(DM) · 타워 커스텀',
-    'en': '1 km pickup · 10-min cooldown\n1:1 chat (DM) · custom tower',
-    'ja': '拾える範囲1km · クールダウン10分\n1:1チャット(DM) · タワーカスタム',
-    'zh': '拾取范围1km · 冷却10分钟\n1:1聊天(DM) · 自定义塔楼',
+    'ko': '줍기 반경 1km · 쿨다운 없음\n1:1 채팅(DM) · 타워 커스텀',
+    'en': '1 km pickup · no cooldown\n1:1 chat (DM) · custom tower',
+    'ja': '拾える範囲1km · クールダウンなし\n1:1チャット(DM) · タワーカスタム',
+    'zh': '拾取范围1km · 无冷却\n1:1聊天(DM) · 自定义塔楼',
     'fr':
-        'Ramassage 1 km · recharge 10 min\nChat 1:1 (DM) · tour personnalisée',
+        'Ramassage 1 km · sans recharge\nChat 1:1 (DM) · tour personnalisée',
     'de':
-        '1 km Aufsammeln · 10 min Abklingzeit\n1:1-Chat (DM) · eigener Turm',
+        '1 km Aufsammeln · keine Abklingzeit\n1:1-Chat (DM) · eigener Turm',
     'es':
-        'Recogida 1 km · enfriamiento 10 min\nChat 1:1 (DM) · torre personalizada',
+        'Recogida 1 km · sin enfriamiento\nChat 1:1 (DM) · torre personalizada',
     'pt':
-        'Recolha 1 km · recarga 10 min\nChat 1:1 (DM) · torre personalizada',
+        'Recolha 1 km · sem recarga\nChat 1:1 (DM) · torre personalizada',
     'ru':
-        'Подбор 1 км · перезарядка 10 мин\nЧат 1:1 (DM) · кастомная башня',
-    'tr': '1 km toplama · 10 dk bekleme\n1:1 sohbet (DM) · özel kule',
-    'ar': 'التقاط 1 كم · تبريد 10 دقائق\nمحادثة 1:1 (DM) · برج مخصص',
+        'Подбор 1 км · без перезарядки\nЧат 1:1 (DM) · кастомная башня',
+    'tr': '1 km toplama · bekleme yok\n1:1 sohbet (DM) · özel kule',
+    'ar': 'التقاط 1 كم · بدون تبريد\nمحادثة 1:1 (DM) · برج مخصص',
     'it':
-        'Raccolta 1 km · cooldown 10 min\nChat 1:1 (DM) · torre personalizzata',
-    'hi': '1 किमी पिकअप · 10 मिनट कूलडाउन\n1:1 चैट (DM) · कस्टम टावर',
-    'th': 'เก็บ 1 กม. · คูลดาวน์ 10 นาที\nแชท 1:1 (DM) · หอคอยกำหนดเอง',
+        'Raccolta 1 km · nessun cooldown\nChat 1:1 (DM) · torre personalizzata',
+    'hi': '1 किमी पिकअप · कोई कूलडाउन नहीं\n1:1 चैट (DM) · कस्टम टावर',
+    'th': 'เก็บ 1 กม. · ไม่มีคูลดาวน์\nแชท 1:1 (DM) · หอคอยกำหนดเอง',
   });
 
   String get premiumNoDowngrade => _t({
@@ -11317,21 +11332,22 @@ class AppL10n {
     'th': 'รัศมีเก็บ 1 กม. (กว้างกว่า 5 เท่า)',
   });
 
+  // Build 429 (device): Premium 쿨다운 제거.
   String get benefitCooldown => _t({
-    'ko': '쿨다운 10분 (기존 6배 빠름)',
-    'en': 'Cooldown 10min (6× faster)',
-    'ja': 'クールダウン 10分(6倍速)',
-    'zh': '冷却 10 分钟(快 6 倍)',
-    'fr': 'Recharge 10 min (6× plus rapide)',
-    'de': 'Cooldown 10 Min. (6× schneller)',
-    'es': 'Recarga 10 min (6× más rápido)',
-    'pt': 'Recarga 10 min (6× mais rápido)',
-    'ru': 'Перезарядка 10 мин (в 6 раз быстрее)',
-    'tr': 'Bekleme 10 dk (6 kat hızlı)',
-    'ar': 'إعادة الشحن 10 دقائق (أسرع 6 مرات)',
-    'it': 'Cooldown 10 min (6× più veloce)',
-    'hi': 'कूलडाउन 10 मिनट (6× तेज़)',
-    'th': 'คูลดาวน์ 10 นาที (เร็วขึ้น 6 เท่า)',
+    'ko': '쿨다운 없음 (즉시 연속 픽업)',
+    'en': 'No cooldown (back-to-back)',
+    'ja': 'クールダウンなし(連続で拾える)',
+    'zh': '无冷却(可连续拾取)',
+    'fr': 'Sans recharge (en continu)',
+    'de': 'Keine Abklingzeit (ohne Pause)',
+    'es': 'Sin enfriamiento (sin pausa)',
+    'pt': 'Sem recarga (sem pausa)',
+    'ru': 'Без перезарядки (без пауз)',
+    'tr': 'Bekleme yok (arka arkaya)',
+    'ar': 'بدون تبريد (متتالٍ)',
+    'it': 'Nessun cooldown (continuo)',
+    'hi': 'कोई कूलडाउन नहीं (लगातार)',
+    'th': 'ไม่มีคูลดาวน์ (ต่อเนื่อง)',
   });
 
   String get benefitPhoto => _t({
@@ -17073,29 +17089,30 @@ class AppL10n {
     'th': 'เก็บคูปอง\nในรัศมีที่กว้างขึ้น',
   });
 
+  // Build 429 (device): Premium 쿨다운 제거 → '쿨다운 없음 · 즉시 연속 픽업'.
   String get onboardingPremiumSubtitle => _t({
-    'ko': '줍기 반경 1km · 쿨다운 10분\n— Free보다 5배 넓고 6배 빠르게',
+    'ko': '줍기 반경 1km · 쿨다운 없음\n— Free보다 5배 넓고 즉시 연속 픽업',
     'en':
-        '1 km pickup radius · 10-min cooldown\n— 5× wider, 6× faster than Free',
-    'ja': '拾える範囲 1km · クールダウン 10分\n— Freeより5倍広く、6倍速く',
-    'zh': '拾取范围 1km · 冷却 10 分钟\n— 比 Free 大 5 倍、快 6 倍',
+        '1 km pickup radius · no cooldown\n— 5× wider, pick up back-to-back',
+    'ja': '拾える範囲 1km · クールダウンなし\n— Freeより5倍広く、連続で拾える',
+    'zh': '拾取范围 1km · 无冷却\n— 比 Free 大 5 倍、可连续拾取',
     'fr':
-        "Rayon 1 km · recharge 10 min\n— 5× plus large, 6× plus rapide que Free",
+        "Rayon 1 km · sans recharge\n— 5× plus large, ramassage en continu",
     'de':
-        '1 km Radius · 10 min Abklingzeit\n— 5× breiter, 6× schneller als Free',
+        '1 km Radius · keine Abklingzeit\n— 5× breiter, ohne Pause sammeln',
     'es':
-        'Radio 1 km · enfriamiento 10 min\n— 5× más amplio y 6× más rápido que Free',
-    'pt': 'Raio 1 km · recarga 10 min\n— 5× maior e 6× mais rápido que Free',
+        'Radio 1 km · sin enfriamiento\n— 5× más amplio, recoge sin pausa',
+    'pt': 'Raio 1 km · sem recarga\n— 5× maior, apanha sem pausa',
     'ru':
-        'Радиус 1 км · перезарядка 10 мин\n— в 5 раз шире и в 6 раз быстрее Free',
-    'tr': '1 km yarıçap · 10 dk bekleme\n— Freeden 5× geniş, 6× hızlı',
+        'Радиус 1 км · без перезарядки\n— в 5 раз шире, подбор без пауз',
+    'tr': '1 km yarıçap · bekleme yok\n— Freeden 5× geniş, arka arkaya topla',
     'ar':
-        'نطاق 1 كم · تبريد 10 دقائق\n— أوسع بـ 5 أضعاف وأسرع بـ 6 أضعاف من Free',
+        'نطاق 1 كم · بدون تبريد\n— أوسع بـ 5 أضعاف، التقاط متتالٍ',
     'it':
-        'Raggio 1 km · cooldown 10 min\n— 5× più ampio, 6× più veloce di Free',
-    'hi': '1 किमी रेडियस · 10 मिनट कूलडाउन\n— Free से 5× बड़ा, 6× तेज़',
+        'Raggio 1 km · nessun cooldown\n— 5× più ampio, raccolta continua',
+    'hi': '1 किमी रेडियस · कोई कूलडाउन नहीं\n— Free से 5× बड़ा, लगातार उठाएँ',
     'th':
-        'รัศมี 1 กม. · คูลดาวน์ 10 นาที\n— กว้างกว่า 5 เท่า เร็วกว่า 6 เท่าของ Free',
+        'รัศมี 1 กม. · ไม่มีคูลดาวน์\n— กว้างกว่า 5 เท่า เก็บต่อเนื่องได้',
   });
 
   // Build 119: 온보딩 Free/Premium feature 리스트 재배치 — 양쪽 모두 픽업
@@ -17188,21 +17205,22 @@ class AppL10n {
     'th': 'รัศมีเก็บ 1 กม. · 5 เท่าของ 200 ม. ฟรี',
   });
 
+  // Build 429 (device): Premium 쿨다운 제거 → '쿨다운 없음 · 즉시 연속'.
   String get onboardingPremiumFeat2 => _t({
-    'ko': '10분 쿨다운 · Free 60분 대비 6배',
-    'en': '10-min cooldown · 6× faster than free',
-    'ja': '10分クールダウン · 無料 60分 より6倍速',
-    'zh': '冷却 10 分钟 · 比免费 60 分钟快 6 倍',
-    'fr': 'Recharge 10 min · 6× plus rapide que le gratuit',
-    'de': '10 min Abklingzeit · 6× schneller als kostenlos',
-    'es': 'Enfriamiento 10 min · 6× más rápido que gratis',
-    'pt': 'Recarga 10 min · 6× mais rápido que o grátis',
-    'ru': 'Перезарядка 10 мин · в 6× быстрее бесплатной',
-    'tr': '10 dk bekleme · ücretsizden 6× hızlı',
-    'ar': 'تبريد 10 دقائق · أسرع 6× من المجانية',
-    'it': 'Cooldown 10 min · 6× più veloce del gratuito',
-    'hi': '10 मिनट कूलडाउन · मुफ्त से 6× तेज़',
-    'th': 'คูลดาวน์ 10 นาที · เร็วกว่าฟรี 6 เท่า',
+    'ko': '쿨다운 없음 · 즉시 연속 픽업',
+    'en': 'No cooldown · pick up back-to-back',
+    'ja': 'クールダウンなし · 連続で拾える',
+    'zh': '无冷却 · 可连续拾取',
+    'fr': 'Sans recharge · ramassage en continu',
+    'de': 'Keine Abklingzeit · ohne Pause sammeln',
+    'es': 'Sin enfriamiento · recoge sin pausa',
+    'pt': 'Sem recarga · apanha sem pausa',
+    'ru': 'Без перезарядки · подбор без пауз',
+    'tr': 'Bekleme yok · arka arkaya topla',
+    'ar': 'بدون تبريد · التقاط متتالٍ',
+    'it': 'Nessun cooldown · raccolta continua',
+    'hi': 'कोई कूलडाउन नहीं · लगातार उठाएँ',
+    'th': 'ไม่มีคูลดาวน์ · เก็บต่อเนื่อง',
   });
 
   // Build 425 (device): Premium=줍기 전용 → 발송(30통) 대신 DM(1:1 채팅).
@@ -20274,34 +20292,35 @@ class AppL10n {
     'hi': 'Premium — 📣 अपनी प्रोमो बिखेरें',
     'th': 'Premium — 📣 ปล่อยโปรโมของคุณ',
   });
+  // Build 429 (device): Premium 발송 제거 + 쿨다운 제거 → 줍기·DM 중심으로.
   String get mapHelpTierPremiumBody => _t({
     'ko':
-        '1km 반경으로 주우면서 📸 사진 · 🔗 링크가 달린 내 홍보를 세계 지도에 떨어뜨릴 수 있어요. 내 카운터가 빠르게 성장합니다. 쿨다운 10분.',
+        '1km 넓은 반경으로 혜택을 주울 수 있어요. 쿨다운 없이 즉시 연속 픽업 + 발송인과 1:1 채팅(DM). 내 카운터가 빠르게 성장합니다.',
     'en':
-        '1 km pickup radius + drop your own Promos with 📸 photos and 🔗 links on the map. Your Counter levels up faster. 10-min cooldown.',
+        '1 km wide pickup radius. No cooldown — pick up back-to-back + 1:1 chat (DM) with senders. Your Counter levels up faster.',
     'ja':
-        '1km 圏で拾いつつ、📸 写真・🔗 リンクを添えた自分のプロモを世界に配れます。Counter の成長が早まります。クールダウン 10 分。',
-    'zh': '1 公里范围内拾取 + 投放带 📸 照片和 🔗 链接的自己的促销。Counter 成长更快。冷却 10 分钟。',
+        '1km の広い範囲で拾えます。クールダウンなしで連続ピックアップ + 送信者と1:1チャット(DM)。Counter の成長が早まります。',
+    'zh': '1 公里宽范围拾取。无冷却可连续拾取 + 与发送者 1:1 聊天(DM)。Counter 成长更快。',
     'fr':
-        'Rayon 1 km · dépose tes promos avec photos et liens. Ton Counter grandit plus vite. Cooldown 10 min.',
+        'Rayon de ramassage 1 km. Sans recharge — ramassage en continu + chat 1:1 (DM) avec les expéditeurs. Ton Counter grandit plus vite.',
     'de':
-        '1 km · verteile eigene Promos mit Fotos & Links weltweit. Dein Counter wächst schneller. 10 min Cooldown.',
+        '1 km Aufsammelradius. Keine Abklingzeit — ohne Pause sammeln + 1:1-Chat (DM) mit Absendern. Dein Counter wächst schneller.',
     'es':
-        '1 km · lanza tus promos con fotos y enlaces. Tu Counter crece más rápido. Cooldown 10 min.',
+        'Radio de recogida 1 km. Sin enfriamiento — recoge sin pausa + chat 1:1 (DM) con remitentes. Tu Counter crece más rápido.',
     'pt':
-        '1 km · lança as tuas promos com fotos e links. O teu Counter cresce mais rápido. Cooldown 10 min.',
+        'Raio de recolha 1 km. Sem recarga — apanha sem pausa + chat 1:1 (DM) com remetentes. O teu Counter cresce mais rápido.',
     'ru':
-        'Радиус 1 км · раскладывайте свои промо с фото и ссылками. Ваш Counter растёт быстрее. Перезарядка 10 мин.',
+        'Радиус подбора 1 км. Без перезарядки — подбор без пауз + чат 1:1 (DM) с отправителями. Ваш Counter растёт быстрее.',
     'tr':
-        '1 km · kendi promolarını fotoğraf ve linklerle dağıt. Counter\'ın daha hızlı büyür. 10 dk cooldown.',
+        '1 km geniş toplama yarıçapı. Bekleme yok — arka arkaya topla + gönderenlerle 1:1 sohbet (DM). Counter\'ın daha hızlı büyür.',
     'ar':
-        'نطاق 1 كم · وزّع عروضك بصور وروابط. ينمو Counter أسرع. تبريد 10 دقائق.',
+        'نطاق التقاط واسع 1 كم. بدون تبريد — التقاط متتالٍ + محادثة 1:1 (DM) مع المُرسِلين. ينمو Counter أسرع.',
     'it':
-        '1 km · rilascia le tue promo con foto e link. Il tuo Counter cresce più velocemente. Cooldown 10 min.',
+        'Raggio di raccolta 1 km. Nessun cooldown — raccolta continua + chat 1:1 (DM) con i mittenti. Il tuo Counter cresce più velocemente.',
     'hi':
-        '1 किमी · अपनी प्रोमो फ़ोटो और लिंक सहित बिखेरें। आपका Counter तेज़ी से बढ़ता है। कूलडाउन 10 मिनट।',
+        '1 किमी चौड़ा पिकअप रेडियस। कोई कूलडाउन नहीं — लगातार उठाएँ + भेजने वालों से 1:1 चैट (DM)। आपका Counter तेज़ी से बढ़ता है।',
     'th':
-        'รัศมี 1 กม. · ปล่อยโปรโมพร้อมรูปและลิงก์ Counter เติบโตเร็วขึ้น คูลดาวน์ 10 นาที',
+        'รัศมีเก็บกว้าง 1 กม. ไม่มีคูลดาวน์ — เก็บต่อเนื่อง + แชท 1:1 (DM) กับผู้ส่ง Counter เติบโตเร็วขึ้น',
   });
 
   String get mapHelpTierBrandTitle => _t({
@@ -27747,21 +27766,22 @@ class AppL10n {
     'th': 'ตอบรางวัลได้',
   });
 
+  // Build 429 (device): Premium 쿨다운 제거.
   String get towerBenefitsPremiumFeat1 => _t({
-    'ko': '혜택 줍기 1km 반경 + 10분 쿨다운',
-    'en': '1km pickup radius + 10min cooldown',
-    'ja': '1kmピックアップ + 10分クールダウン',
-    'zh': '1km半径 + 10分钟冷却',
-    'fr': 'Ramassage 1km, 10min',
-    'de': '1km Abholung + 10min',
-    'es': 'Recogida 1km + 10min',
-    'pt': 'Coleta 1km + 10min',
-    'ru': 'Подбор 1км + 10мин',
-    'tr': '1km alma + 10dk',
-    'ar': 'نطاق 1كم + 10د',
-    'it': 'Raccolta 1km + 10min',
-    'hi': '1km पिकअप + 10मि',
-    'th': 'รับ 1km + 10นาที',
+    'ko': '혜택 줍기 1km 반경 + 쿨다운 없음',
+    'en': '1km pickup radius + no cooldown',
+    'ja': '1kmピックアップ + クールダウンなし',
+    'zh': '1km半径 + 无冷却',
+    'fr': 'Ramassage 1km, sans recharge',
+    'de': '1km Abholung + keine Abklingzeit',
+    'es': 'Recogida 1km + sin enfriamiento',
+    'pt': 'Coleta 1km + sem recarga',
+    'ru': 'Подбор 1км + без перезарядки',
+    'tr': '1km alma + bekleme yok',
+    'ar': 'نطاق 1كم + بدون تبريد',
+    'it': 'Raccolta 1km + nessun cooldown',
+    'hi': '1km पिकअप + कोई कूलडाउन नहीं',
+    'th': 'รับ 1km + ไม่มีคูลดาวน์',
   });
 
   // Build 426 (sim100 #44): Premium 발송 제거 → 타워 혜택 팝업도 발송(사진/링크/

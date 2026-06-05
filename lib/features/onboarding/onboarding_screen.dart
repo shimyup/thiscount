@@ -511,11 +511,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 title: _l.onboarding3Title,
                 body: _l.onboarding3Body,
                 gradient: const [AppColors.bgDeep, AppColors.bgCard],
-                // Build 186: 줍기는 모든 티어 가능 — "Free + Premium + Brand".
+                // Build 429 (device): 줍기 페이지 뱃지를 Free + Premium 만 —
+                //   줍기/수집은 Free·Premium 의 핵심 활동(Brand 는 발송 트랙이라
+                //   다음 슬라이드에서 별도 강조). Brand 뱃지 제거.
                 tiers: [
                   _TierBadge(_l.tierLabelFree, AppColors.teal),
                   _TierBadge(_l.tierLabelPremium, AppColors.gold),
-                  _TierBadge(_l.tierLabelBrand, AppColors.coupon),
                 ],
               ),
               _IntroPage(

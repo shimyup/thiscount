@@ -416,7 +416,7 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
       title: 'Premium',
       price: '₩4,900',
       // Build 426: Premium 발송 제거 → 줍기 부스터·DM·커스터마이즈로 정정.
-      description: '줍기 반경 1km · 쿨다운 10분 · 1:1 채팅(DM) · 타워 커스텀',
+      description: '줍기 반경 1km · 쿨다운 없음 · 1:1 채팅(DM) · 타워 커스텀',
     ),
     ProductInfo(
       id: PurchaseProductIds.brandMonthly,
@@ -1137,13 +1137,18 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
             ? PurchaseOperation.exactDrop500
             : PurchaseOperation.exactDrop100;
     if (!_startLoading(op)) return false;
-    if (!_isTestMode && !_isRcKeyConfiguredForCurrentPlatform) {
+    if (!_isTestMode &&
+        !_isBetaUpgradeSimulator &&
+        !_isRcKeyConfiguredForCurrentPlatform) {
       _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
       return false;
     }
 
-    // 디버그 / RC 미연동 → 테스트 모드 (즉시 qty grant).
-    if (_isTestMode) {
+    // 디버그 / RC 미연동 / 베타 시뮬레이터 → 테스트 모드 (즉시 qty grant).
+    // Build 429 (device): 베타(TestFlight)에서도 ExactDrop '추가 구매' 가 동작하도록
+    //   _isBetaUpgradeSimulator 추가 — 이전엔 _isTestMode(디버그 한정)만이라
+    //   실 IAP 미등록 베타에서 구매가 항상 실패했음.
+    if (_isTestMode || _isBetaUpgradeSimulator) {
       return await _fakePurchase(() async {
         await appState.adminGrantExactDropCredits(qty);
       });

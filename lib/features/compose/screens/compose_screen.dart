@@ -2700,11 +2700,13 @@ class _ComposeScreenState extends State<ComposeScreen>
             ),
             const SizedBox(height: 8),
             _ExactDropTierButton(
-              qty: 100,
+              // Build 429 (device): 중간 티어 100→1000개. 상품 슬롯(exactDrop100)
+              //   은 유지하되 1000 크레딧 grant. 가격 ₩10,000 유지.
+              qty: 1000,
               priceLabel: priceFor(PurchaseProductIds.exactDrop100, '₩10,000'),
-              unitLabel: l.koEn('정밀 발송 100회', '100 ExactDrops'),
+              unitLabel: l.koEn('정밀 발송 1000회', '1000 ExactDrops'),
               best: true,
-              onTap: () => _purchaseExactDropTier(dCtx, 100),
+              onTap: () => _purchaseExactDropTier(dCtx, 1000),
             ),
             const SizedBox(height: 8),
             _ExactDropTierButton(
@@ -2986,8 +2988,14 @@ class _ComposeScreenState extends State<ComposeScreen>
                 child: GestureDetector(
                   onTap: () {
                     setState(() {
-                      _isRandom = true;
-                      _destinationTouched = true;
+                      // Build 429 (device): 랜덤이 이미 선택(활성)된 상태에서 다시
+                      //   누르면 해제(중립) — 토글 동작. 그 외엔 랜덤 선택.
+                      if (_destinationTouched && _isRandom) {
+                        _destinationTouched = false;
+                      } else {
+                        _isRandom = true;
+                        _destinationTouched = true;
+                      }
                       // Build 205.1: 랜덤으로 전환하면 대량 발송 타깃도 비움.
                       // 안 비우면 다시 country 모드로 전환했을 때 이전 나라가
                       // 살아 있어 사용자 의도와 어긋난다.
@@ -3049,13 +3057,19 @@ class _ComposeScreenState extends State<ComposeScreen>
                 Expanded(
                   child: GestureDetector(
                     onTap: _selectExactDrop,
+                    // Build 429 (device): ExactDrop 도 선택 전엔 중립색, 선택
+                    //   (_isExactDropped) 시에만 gold 활성 — 나라/랜덤 버튼과 일관.
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
-                        color: AppColors.gold.withValues(alpha: 0.1),
+                        color: _isExactDropped
+                            ? AppColors.gold.withValues(alpha: 0.1)
+                            : AppColors.bgSurface,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: AppColors.gold.withValues(alpha: 0.45),
+                          color: _isExactDropped
+                              ? AppColors.gold.withValues(alpha: 0.45)
+                              : AppColors.textMuted.withValues(alpha: 0.25),
                           width: 1.2,
                         ),
                       ),
@@ -3067,8 +3081,10 @@ class _ComposeScreenState extends State<ComposeScreen>
                           Flexible(
                             child: Text(
                               l10n.composeExactDropToggle,
-                              style: const TextStyle(
-                                color: AppColors.gold,
+                              style: TextStyle(
+                                color: _isExactDropped
+                                    ? AppColors.gold
+                                    : AppColors.textSecondary,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -7255,7 +7271,9 @@ class _ComposeOptionsSection extends StatefulWidget {
 }
 
 class _ComposeOptionsSectionState extends State<_ComposeOptionsSection> {
-  bool _expanded = false;
+  // Build 429 (device): '더 많은 옵션' 기본 펼침 — 사용자가 접힌 줄 모르고
+  //   사진/브랜드옵션을 못 찾던 문제 해소.
+  bool _expanded = true;
 
   @override
   Widget build(BuildContext context) {

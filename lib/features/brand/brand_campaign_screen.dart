@@ -31,6 +31,9 @@ class BrandCampaignScreen extends StatelessWidget {
     // 가장 최근 발송 → 가장 오래된 순으로 정렬한 사본.
     final sentByNewest = [...state.sent]
       ..sort((a, b) => b.sentAt.compareTo(a.sentAt));
+    // Build 429 (device): 진행 중(만료 전) / 종료된(만료) 캠페인 분리.
+    final activeSent = sentByNewest.where((l) => !l.isExpired).toList();
+    final endedSent = sentByNewest.where((l) => l.isExpired).toList();
     final mostRecentlyPickedUp = state.brandMostRecentlyPickedUpLetter;
     // Build 406 (PR-OO7 시뮬레이션 P1 #1): Brand 사용자가 zone letter 등 픽업
     //   시 _inbox 에 들어가지만 BrandCampaignScreen 미노출 → invisible 누수.
@@ -84,17 +87,37 @@ class BrandCampaignScreen extends StatelessWidget {
             _RecentPickupHighlight(letter: mostRecentlyPickedUp, l: l),
             const SizedBox(height: 16),
           ],
-          _SectionHeader(title: l.brandCampaignRecentSent),
-          const SizedBox(height: 8),
+          // Build 429 (device): '최근 발송' 한 덩어리 스크롤 → 진행 중 / 종료된
+          //   캠페인 섹션으로 분리해 한눈에 보기 좋게.
           if (sentByNewest.isEmpty)
-            _EmptySentCampaigns(l: l)
-          else
-            ...sentByNewest.take(20).map(
-                  (letter) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: _CampaignRow(letter: letter, l: l),
+            ...[
+              _SectionHeader(title: l.brandCampaignRecentSent),
+              const SizedBox(height: 8),
+              _EmptySentCampaigns(l: l),
+            ]
+          else ...[
+            if (activeSent.isNotEmpty) ...[
+              _SectionHeader(title: l.brandCampaignActive),
+              const SizedBox(height: 8),
+              ...activeSent.take(20).map(
+                    (letter) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _CampaignRow(letter: letter, l: l),
+                    ),
                   ),
-                ),
+            ],
+            if (endedSent.isNotEmpty) ...[
+              if (activeSent.isNotEmpty) const SizedBox(height: 24),
+              _SectionHeader(title: l.brandCampaignEnded),
+              const SizedBox(height: 8),
+              ...endedSent.take(20).map(
+                    (letter) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _CampaignRow(letter: letter, l: l),
+                    ),
+                  ),
+            ],
+          ],
           // Build 406 (PR-OO7): Brand 도 zone letter 픽업 가능 → 받은 letter
           //   섹션을 별도로 노출. 비어있으면 hide (Brand 대부분 케이스).
           if (receivedByNewest.isNotEmpty) ...[

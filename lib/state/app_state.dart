@@ -298,11 +298,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     return true;
   }
 
-  // ── 주변 편지 줍기 제한 (무료: 1시간, 프리미엄: 10분, 선착순) ─────────────
-  /// 티어별 쿨다운: 프리미엄/브랜드 10분, 무료 60분
+  // ── 주변 편지 줍기 제한 (무료: 1시간, 프리미엄/브랜드: 없음, 선착순) ───────
+  /// Build 429 (device): Premium/Brand 쿨다운 완전 제거(즉시 연속 픽업).
+  ///   무료만 60분 유지. (이전엔 Premium/Brand 10분)
   Duration get _nearbyPickupCooldown =>
       (_currentUser.isPremium || _currentUser.isBrand)
-      ? const Duration(minutes: 10)
+      ? Duration.zero
       : const Duration(minutes: 60);
 
   // ── 등급별 픽업 반경 ──────────────────────────────────────────────────
