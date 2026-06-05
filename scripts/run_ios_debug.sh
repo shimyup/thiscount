@@ -77,10 +77,55 @@ fi
 
 cd "$ROOT_DIR"
 
-DEVICE_ID="${1:-}"
-if [[ -n "$DEVICE_ID" ]]; then
+DEVICE_ID=""
+if [[ $# -gt 0 && "$1" != --* ]]; then
+  DEVICE_ID="$1"
   shift
-  flutter run -d "$DEVICE_ID" --debug "${DART_DEFINES[@]}" "$@"
+fi
+if [[ -n "$DEVICE_ID" ]]; then
+  FLUTTER_ARGS=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --route)
+        if [[ $# -lt 2 ]]; then
+          echo "[ios-debug] --route requires a route value" >&2
+          exit 1
+        fi
+        DART_DEFINES+=("--dart-define=APP_INITIAL_ROUTE=$2")
+        shift 2
+        ;;
+      --route=*)
+        DART_DEFINES+=("--dart-define=APP_INITIAL_ROUTE=${1#--route=}")
+        shift
+        ;;
+      *)
+        FLUTTER_ARGS+=("$1")
+        shift
+        ;;
+    esac
+  done
+  flutter run -d "$DEVICE_ID" --debug "${DART_DEFINES[@]}" "${FLUTTER_ARGS[@]}"
 else
-  flutter run --debug "${DART_DEFINES[@]}" "$@"
+  FLUTTER_ARGS=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --route)
+        if [[ $# -lt 2 ]]; then
+          echo "[ios-debug] --route requires a route value" >&2
+          exit 1
+        fi
+        DART_DEFINES+=("--dart-define=APP_INITIAL_ROUTE=$2")
+        shift 2
+        ;;
+      --route=*)
+        DART_DEFINES+=("--dart-define=APP_INITIAL_ROUTE=${1#--route=}")
+        shift
+        ;;
+      *)
+        FLUTTER_ARGS+=("$1")
+        shift
+        ;;
+    esac
+  done
+  flutter run --debug "${DART_DEFINES[@]}" "${FLUTTER_ARGS[@]}"
 fi

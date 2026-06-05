@@ -692,7 +692,8 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   },
                 ),
               ),
-            if (!state.currentUser.isBrand &&
+            if (!_locationPermissionDenied &&
+                !state.currentUser.isBrand &&
                 state.nearbyLetters.isEmpty &&
                 state.worldLetters.isNotEmpty)
               Builder(builder: (ctx) {

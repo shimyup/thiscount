@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// 시계 되돌리기 (clock rewind) 우회 차단용 high-watermark clock.
@@ -67,6 +68,7 @@ class SecureClock {
   }
 
   static Future<void> _persist() async {
+    if (!_hasServicesBinding) return;
     try {
       await _secure.write(key: _key, value: '$_watermarkMs');
     } catch (e) {
@@ -74,6 +76,15 @@ class SecureClock {
         debugPrint('[SecureClock] persist failed: $e');
         return true;
       }());
+    }
+  }
+
+  static bool get _hasServicesBinding {
+    try {
+      ServicesBinding.instance;
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 }
