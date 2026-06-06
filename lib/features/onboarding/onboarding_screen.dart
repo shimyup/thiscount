@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../core/localization/language_config.dart';
+import '../../core/widgets/radius_compare_viz.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/purchase_service.dart';
@@ -1070,7 +1071,12 @@ class _PremiumPage extends StatelessWidget {
                   letterSpacing: -0.15,
                 ),
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 24),
+
+              // Build 435 (design): 반경 비교 시각화 — 200m vs 1km 동심원으로
+              //   "5배 넓다" 를 한 스캔에 전달 (텍스트 카드 위 conversion 부스터).
+              RadiusCompareViz(l: l),
+              const SizedBox(height: 24),
 
               // ── 플랜 비교 카드 ──
               Row(

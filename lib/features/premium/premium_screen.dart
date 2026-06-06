@@ -12,6 +12,7 @@ import '../../core/utils/secure_clipboard.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../core/config/app_links.dart';
 import '../../state/app_state.dart';
+import '../../core/widgets/radius_compare_viz.dart';
 
 class PremiumScreen extends StatefulWidget {
   /// [isWelcomeMode] : 최초 가입 후 플랜 선택 화면으로 열릴 때 true.
@@ -226,6 +227,14 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 ] else
                   _PremiumHeroBanner(),
                 const SizedBox(height: 20),
+
+                // Build 435 (design): Free 사용자에게 줍기 반경(200m vs 1km)을
+                //   지도 동심원으로 시각화 — 텍스트 비교보다 "5배 넓다" 를 한 스캔에
+                //   전달해 전환 동기 강화 (Premium = 줍기 부스터 포지셔닝).
+                if (isFree) ...[
+                  RadiusCompareViz(l: l),
+                  const SizedBox(height: 20),
+                ],
 
                 // Build 215: 베타 시뮬레이터 안내. Build 271: 두 줄 → 한 줄로.
                 if (purchase.isBetaUpgradeSimulator && !isPremium && !isBrand)
