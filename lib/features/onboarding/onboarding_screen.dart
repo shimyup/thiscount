@@ -1049,34 +1049,34 @@ class _PremiumPage extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               Text(
                 l.onboardingPremiumTitle,
                 style: const TextStyle(
                   color: AppColors.textPrimary,
-                  fontSize: 32,
+                  fontSize: 26,
                   fontWeight: FontWeight.w800,
-                  letterSpacing: -1.2,
-                  height: 1.1,
+                  letterSpacing: -1.0,
+                  height: 1.12,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Text(
                 l.onboardingPremiumSubtitle,
                 style: const TextStyle(
                   color: AppColors.textSecondary,
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  height: 1.45,
+                  height: 1.4,
                   letterSpacing: -0.15,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 14),
 
-              // Build 435 (design): 반경 비교 시각화 — 200m vs 1km 동심원으로
-              //   "5배 넓다" 를 한 스캔에 전달 (텍스트 카드 위 conversion 부스터).
-              RadiusCompareViz(l: l),
-              const SizedBox(height: 24),
+              // Build 435/437 (design): 반경 비교 시각화 — 한 화면에 카드/사용법까지
+              //   들어오도록 컴팩트 높이(150)로 노출. 200m vs 1km 동심원.
+              RadiusCompareViz(l: l, height: 132),
+              const SizedBox(height: 14),
 
               // ── 플랜 비교 카드 ──
               Row(
@@ -1084,7 +1084,7 @@ class _PremiumPage extends StatelessWidget {
                   // 무료 플랜
                   Expanded(
                     child: Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(13),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.04),
                         borderRadius: BorderRadius.circular(16),
@@ -1109,14 +1109,14 @@ class _PremiumPage extends StatelessWidget {
                             '₩0',
                             style: TextStyle(
                               color: AppColors.textPrimary,
-                              fontSize: 22,
+                              fontSize: 20,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
                           const SizedBox(height: 12),
                           ...freeFeatures.map(
                             (f) => Padding(
-                              padding: const EdgeInsets.only(bottom: 6),
+                              padding: const EdgeInsets.only(bottom: 4),
                               child: Row(
                                 children: [
                                   const Icon(
@@ -1147,7 +1147,7 @@ class _PremiumPage extends StatelessWidget {
                   // 프리미엄 플랜
                   Expanded(
                     child: Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(13),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
@@ -1207,7 +1207,7 @@ class _PremiumPage extends StatelessWidget {
                                   text: premiumPrice,
                                   style: const TextStyle(
                                     color: AppColors.gold,
-                                    fontSize: 22,
+                                    fontSize: 20,
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),
@@ -1225,7 +1225,7 @@ class _PremiumPage extends StatelessWidget {
                           ...premiumFeatures.map((f) {
                             final color = f['color'] as Color;
                             return Padding(
-                              padding: const EdgeInsets.only(bottom: 6),
+                              padding: const EdgeInsets.only(bottom: 4),
                               child: Row(
                                 children: [
                                   Text(
@@ -1254,11 +1254,13 @@ class _PremiumPage extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 14),
 
-              // ── 간단 사용법 (Build 257: "하루 타임라인" 대체) ──
+              // ── 간단 사용법 (Build 437: 한 화면에 들어오도록 컴팩트화 —
+              //   스텝 간격 축소, divider/신뢰문구 제거, 하단 무료 안내는 박스
+              //   하단에 한 줄로 통합) ──
               Container(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(13),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.04),
                   borderRadius: BorderRadius.circular(14),
@@ -1277,20 +1279,20 @@ class _PremiumPage extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 10),
                     for (final entry in [
                       {'n': '1', 'text': l.onboardingHowToStep1},
                       {'n': '2', 'text': l.onboardingHowToStep2},
                       {'n': '3', 'text': l.onboardingHowToStep3},
                     ])
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.only(bottom: 7),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
-                              width: 22,
-                              height: 22,
+                              width: 20,
+                              height: 20,
                               alignment: Alignment.center,
                               decoration: BoxDecoration(
                                 color: AppColors.gold.withValues(alpha: 0.2),
@@ -1304,7 +1306,7 @@ class _PremiumPage extends StatelessWidget {
                                 entry['n']!,
                                 style: const TextStyle(
                                   color: AppColors.gold,
-                                  fontSize: 11,
+                                  fontSize: 10.5,
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
@@ -1312,14 +1314,14 @@ class _PremiumPage extends StatelessWidget {
                             const SizedBox(width: 10),
                             Expanded(
                               child: Padding(
-                                padding: const EdgeInsets.only(top: 2),
+                                padding: const EdgeInsets.only(top: 1),
                                 child: Text(
                                   entry['text']!,
                                   style: const TextStyle(
                                     color: AppColors.textPrimary,
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
-                                    height: 1.4,
+                                    height: 1.35,
                                   ),
                                 ),
                               ),
@@ -1327,52 +1329,14 @@ class _PremiumPage extends StatelessWidget {
                           ],
                         ),
                       ),
-                    const Divider(
-                      color: AppColors.textMuted,
-                      height: 16,
-                      thickness: 0.3,
-                    ),
-                    // Build 415 (sim50 P1): 조작된 가짜 후기(onboardingReview1/2)
-                    //   제거 — 실사용자 없는 출시 전 앱의 인용형 후기는 기만광고
-                    //   소지(App Store 2.3.1/표시광고법). 사실 기반 신뢰 문구로 교체.
+                    const SizedBox(height: 3),
+                    // 무료 시작 안내 — 별도 박스 대신 한 줄로 통합(공간 절약).
                     Text(
-                      '✨ ${l.premiumTrustLine}',
+                      '✨ ${l.onboardingFreeStartHint}',
                       style: const TextStyle(
                         color: AppColors.textSecondary,
-                        fontSize: 11,
-                        height: 1.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // ── 안내 문구 ──
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.03),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppColors.textMuted.withValues(alpha: 0.15),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Text('💡', style: TextStyle(fontSize: 16)),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        l.onboardingFreeStartHint,
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
-                          height: 1.6,
-                        ),
+                        fontSize: 11.5,
+                        height: 1.45,
                       ),
                     ),
                   ],

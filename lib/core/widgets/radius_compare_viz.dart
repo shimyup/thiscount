@@ -7,28 +7,40 @@ import '../localization/app_localizations.dart';
 /// 200m(Free, 라임) vs 1km(Premium, 골드) 를 지도 동심원으로 보여줘 "5배 넓다" 를
 /// 한 스캔에 전달하는 conversion 부스터. 페이월(PremiumScreen)·온보딩 환영 페이월
 /// 양쪽에서 공유. Premium = 줍기 부스터 포지셔닝(발송 문구 없음).
+///
+/// Build 437: [height] 파라미터화 — 온보딩은 한 화면에 카드/사용법까지 들어오도록
+/// 작게(예: 150), PremiumScreen 은 기본 212. 원·라벨·이모지 모두 height 비례.
 class RadiusCompareViz extends StatelessWidget {
   final AppL10n l;
-  const RadiusCompareViz({super.key, required this.l});
-
-  Widget _emoji(String e,
-      {double? left, double? right, double? top, double? bottom}) {
-    return Positioned(
-      left: left,
-      right: right,
-      top: top,
-      bottom: bottom,
-      child: Opacity(
-        opacity: 0.85,
-        child: Text(e, style: const TextStyle(fontSize: 17)),
-      ),
-    );
-  }
+  final double height;
+  const RadiusCompareViz({super.key, required this.l, this.height = 212});
 
   @override
   Widget build(BuildContext context) {
+    final h = height;
+    final s = h / 212.0; // 기준 디자인(212) 대비 스케일
+    final goldD = h * 0.925; // 큰 원(1km)
+    final limeD = h * 0.368; // 작은 원(200m)
+    final dotD = (13 * s).clamp(9.0, 13.0);
+    final emojiSize = (17 * s).clamp(12.0, 17.0);
+    final freeLabelTop = h * 0.70;
+    final labelFont = (12 * s).clamp(9.5, 12.0);
+    final chipFont = (11 * s).clamp(9.0, 11.0);
+
+    Widget emoji(String e, {double? left, double? right, double? top}) {
+      return Positioned(
+        left: left == null ? null : left * s,
+        right: right == null ? null : right * s,
+        top: top == null ? null : top * s,
+        child: Opacity(
+          opacity: 0.9,
+          child: Text(e, style: TextStyle(fontSize: emojiSize)),
+        ),
+      );
+    }
+
     return Container(
-      height: 212,
+      height: h,
       decoration: BoxDecoration(
         gradient: const RadialGradient(
           radius: 0.95,
@@ -41,14 +53,14 @@ class RadiusCompareViz extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           // 업종 이모지 — 두 원 사이 고리 윗부분에만 정돈 배치(중심/라벨과 미충돌).
-          _emoji('☕', left: 58, top: 44),
-          _emoji('🍔', right: 70, top: 62),
-          _emoji('💄', left: 48, top: 96),
-          _emoji('🎉', right: 52, top: 104),
+          emoji('☕', left: 58, top: 44),
+          emoji('🍔', right: 70, top: 62),
+          emoji('💄', left: 48, top: 96),
+          emoji('🎉', right: 52, top: 104),
           // Premium 1km 원 (골드, 큰 원)
           Container(
-            width: 196,
-            height: 196,
+            width: goldD,
+            height: goldD,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: RadialGradient(
@@ -67,8 +79,8 @@ class RadiusCompareViz extends StatelessWidget {
           ),
           // Free 200m 원 (라임, 작은 원)
           Container(
-            width: 78,
-            height: 78,
+            width: limeD,
+            height: limeD,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppColors.teal.withValues(alpha: 0.14),
@@ -80,8 +92,8 @@ class RadiusCompareViz extends StatelessWidget {
           ),
           // 중심 점 (내 위치)
           Container(
-            width: 13,
-            height: 13,
+            width: dotD,
+            height: dotD,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppColors.textPrimary,
@@ -95,34 +107,34 @@ class RadiusCompareViz extends StatelessWidget {
           ),
           // Free 라벨 (작은 원 아래)
           Positioned(
-            top: 150,
+            top: freeLabelTop,
             child: Text(
               'Free · 200m',
               style: TextStyle(
                 color: AppColors.teal,
-                fontSize: 11,
+                fontSize: labelFont,
                 fontWeight: FontWeight.w800,
               ),
             ),
           ),
           // Premium 라벨 (하단)
           Positioned(
-            bottom: 14,
+            bottom: 12 * s,
             child: Text(
               l.koEn('👑 Premium · 1km 반경', '👑 Premium · 1km radius'),
               style: TextStyle(
                 color: AppColors.gold,
-                fontSize: 12,
+                fontSize: labelFont + 0.5,
                 fontWeight: FontWeight.w800,
               ),
             ),
           ),
           // 부스터 칩 (우상단)
           Positioned(
-            top: 12,
-            right: 12,
+            top: 11 * s,
+            right: 11 * s,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: EdgeInsets.symmetric(horizontal: 9 * s, vertical: 3 * s),
               decoration: BoxDecoration(
                 color: AppColors.gold.withValues(alpha: 0.16),
                 borderRadius: BorderRadius.circular(12),
@@ -132,7 +144,7 @@ class RadiusCompareViz extends StatelessWidget {
                 l.koEn('✦ 줍기 부스터', '✦ Pickup boost'),
                 style: TextStyle(
                   color: AppColors.gold,
-                  fontSize: 11,
+                  fontSize: chipFont,
                   fontWeight: FontWeight.w800,
                 ),
               ),
