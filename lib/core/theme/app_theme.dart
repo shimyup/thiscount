@@ -281,6 +281,10 @@ class AppTheme {
   static ThemeData get darkTheme {
     return ThemeData(
       brightness: Brightness.dark,
+      // Build 444 (design): 2026 트렌드 — 앱 전체 기본 폰트를 Pretendard 로.
+      //   시스템 폰트(Apple SD Gothic Neo) 대비 한/영/숫자 균형·가독·모던. 개별
+      //   TextStyle 에 fontFamily 미지정 시 전부 이 패밀리 상속.
+      fontFamily: 'Pretendard',
       scaffoldBackgroundColor: AppColors.bgDeep,
       colorScheme: const ColorScheme.dark(
         primary: AppColors.gold,

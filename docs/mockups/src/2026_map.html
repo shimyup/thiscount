@@ -1,0 +1,99 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<link rel="stylesheet" href="common2026.css">
+<style>
+.screen{background:#0c1014}
+/* 다크 맵 */
+.map{position:absolute;inset:0;overflow:hidden;background:linear-gradient(180deg,#0e1318,#0b0f13)}
+.block{position:absolute;background:#141b21;border-radius:7px}
+.park{position:absolute;background:radial-gradient(circle at 40% 40%,#16302a,#11231f);border-radius:14px}
+.water{position:absolute;background:linear-gradient(135deg,#10283a,#0d1f2e);border-radius:10px}
+.road{position:absolute;background:#1b242c}
+.roadc{position:absolute;background:#222e38}
+/* 반경 원 (라임) */
+.radius{position:absolute;left:50%;top:47%;width:300px;height:300px;border-radius:50%;transform:translate(-50%,-50%);
+  background:radial-gradient(circle,rgba(184,255,92,.13),rgba(184,255,92,.04) 60%,transparent 72%);
+  border:2px solid rgba(184,255,92,.55);box-shadow:0 0 60px rgba(184,255,92,.2) inset}
+.me{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);z-index:6}
+.me .pulse{position:absolute;left:50%;top:50%;width:54px;height:54px;border-radius:50%;transform:translate(-50%,-50%);background:rgba(184,255,92,.22)}
+.me .dot{width:26px;height:26px;border-radius:50%;background:var(--lime);border:3px solid #06120f;box-shadow:0 4px 14px rgba(184,255,92,.6)}
+/* 글래스 마커 */
+.pin{position:absolute;z-index:5;display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-100%)}
+.pin .head{width:46px;height:46px;border-radius:50% 50% 50% 6px;transform:rotate(45deg);
+  background:rgba(255,255,255,.10);backdrop-filter:blur(16px);border:1.5px solid rgba(255,255,255,.22);
+  display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.5)}
+.pin .head .e{transform:rotate(-45deg);font-size:21px}
+.pin.rare .head{border-color:var(--gold);box-shadow:0 0 0 4px rgba(255,214,10,.25),0 6px 18px rgba(0,0,0,.5)}
+.pin.epic .head{border-color:#b97bff;box-shadow:0 0 0 5px rgba(185,123,255,.3),0 6px 18px rgba(0,0,0,.5)}
+.pin .tag{margin-top:6px;height:21px;padding:0 9px;border-radius:11px;font-size:10.5px;font-weight:800;white-space:nowrap;
+  background:rgba(10,12,14,.66);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1)}
+.pin.rare .tag{color:var(--gold)}.pin.epic .tag{color:#cba6ff}
+
+/* 상단 글래스 근접 pill */
+.topbar{position:absolute;top:58px;left:16px;right:16px;display:flex;gap:10px;z-index:10}
+.prox{flex:1;height:54px;border-radius:22px;padding:0 8px 0 14px;display:flex;align-items:center;gap:11px}
+.prox .arrow{width:30px;height:30px;border-radius:50%;background:var(--coupon);display:flex;align-items:center;justify-content:center;transform:rotate(38deg)}
+.prox .pm{display:flex;flex-direction:column;flex:1}
+.prox .pt{font-size:14px;font-weight:800;letter-spacing:-.2px}
+.prox .ps{font-size:11.5px;font-weight:700;color:var(--coupon)}
+.prox .cnt{height:34px;padding:0 13px;border-radius:17px;display:flex;align-items:center;gap:4px;font-size:13px;font-weight:850;color:var(--lime);background:rgba(184,255,92,.14)}
+.help{width:44px;height:44px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:17px;align-self:center}
+
+/* 우측 글래스 컨트롤 */
+.ctrls{position:absolute;right:16px;bottom:118px;z-index:10;display:flex;flex-direction:column;gap:9px}
+.cbtn{width:46px;height:46px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:21px;color:#fff}
+.cbtn.zoom{font-weight:800;font-size:24px}
+</style></head>
+<body><div class="screen">
+  <div class="map">
+    <div class="road" style="left:0;top:300px;width:393px;height:26px"></div>
+    <div class="road" style="left:0;top:560px;width:393px;height:20px;transform:rotate(-4deg)"></div>
+    <div class="roadc" style="left:120px;top:0;width:24px;height:852px"></div>
+    <div class="roadc" style="left:270px;top:0;width:18px;height:852px;transform:rotate(3deg)"></div>
+    <div class="road" style="left:0;top:130px;width:393px;height:14px"></div>
+    <div class="block" style="left:16px;top:150px;width:88px;height:130px"></div>
+    <div class="block" style="left:160px;top:150px;width:96px;height:130px"></div>
+    <div class="block" style="left:300px;top:150px;width:80px;height:130px"></div>
+    <div class="park" style="left:16px;top:340px;width:90px;height:190px"></div>
+    <div class="block" style="left:160px;top:345px;width:92px;height:185px"></div>
+    <div class="water" style="left:300px;top:600px;width:90px;height:230px"></div>
+    <div class="block" style="left:20px;top:600px;width:84px;height:150px"></div>
+    <div class="block" style="left:160px;top:605px;width:96px;height:150px"></div>
+    <div class="radius"></div>
+    <div class="pin epic" style="left:300px;top:230px"><div class="head"><span class="e">🎉</span></div><div class="tag">EPIC · 행사</div></div>
+    <div class="pin rare" style="left:96px;top:248px"><div class="head"><span class="e">☕</span></div><div class="tag">RARE · 1+1</div></div>
+    <div class="pin" style="left:268px;top:420px"><div class="head"><span class="e">🍔</span></div><div class="tag">음식 · 80m</div></div>
+    <div class="pin" style="left:312px;top:512px"><div class="head"><span class="e">👗</span></div><div class="tag">패션 · 190m</div></div>
+    <div class="me"><div class="pulse"></div><div class="dot"></div></div>
+  </div>
+
+  <div class="statusbar"><span class="time">9:41</span>
+    <span class="icons">
+      <svg width="18" height="12" viewBox="0 0 18 12"><g fill="#fff"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="4.5" width="3" height="7.5" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></g></svg>
+      <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 2.3C10.7 2.3 12.7 3.2 14.2 4.6L15.6 3.1C13.7 1.3 11.2 .2 8.5 .2S3.3 1.3 1.4 3.1L2.8 4.6C4.3 3.2 6.3 2.3 8.5 2.3Z" fill="#fff"/><path d="M8.5 6C9.6 6 10.6 6.4 11.3 7.1L8.5 10 5.7 7.1C6.4 6.4 7.4 6 8.5 6Z" fill="#fff"/></svg>
+      <svg width="27" height="13" viewBox="0 0 27 13"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" stroke="#fff" stroke-opacity=".5" fill="none"/><rect x="2" y="2" width="18" height="9" rx="2" fill="#fff"/><rect x="24" y="4" width="2" height="5" rx="1" fill="#fff" fill-opacity=".5"/></svg>
+    </span>
+  </div>
+
+  <div class="topbar">
+    <div class="prox glass-strong">
+      <div class="arrow"><svg width="15" height="15" viewBox="0 0 15 15"><path d="M7.5 1L13 13L7.5 10L2 13L7.5 1Z" fill="#fff"/></svg></div>
+      <div class="pm"><span class="pt">가장 가까운 혜택</span><span class="ps">☕ 카페 · 80m 북동쪽</span></div>
+      <div class="cnt tnum">🎯 5</div>
+    </div>
+    <div class="help glass">?</div>
+  </div>
+
+  <div class="ctrls">
+    <div class="cbtn zoom glass">＋</div>
+    <div class="cbtn zoom glass">－</div>
+    <div class="cbtn glass">🧭</div>
+    <div class="cbtn glass">◎</div>
+  </div>
+
+  <div class="tabbar glass-strong">
+    <div class="tab on lime"><span class="pill"></span><div class="ic">🧭</div>탐험</div>
+    <div class="tab"><span class="pill"></span><div class="ic">🗂️</div>수집첩<span class="badge">9</span></div>
+    <div class="tab"><span class="pill"></span><div class="ic">👤</div>프로필</div>
+  </div>
+  <div class="home-ind"></div>
+</div></body></html>
