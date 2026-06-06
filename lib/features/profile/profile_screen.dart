@@ -1170,10 +1170,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           // 뒤로 숨겨 프로필 스캔을 가볍게. 탭하면 아래 계정/
                           // 공개/알림/화면/앱정보/계정관리 전체가 펼쳐진다.
                           // 기존 섹션 구조는 유지 → 필요할 때만 꺼냄.
-                          _SettingsCollapseButton(
+                          // Build 437 (device #6): 계정/공개/알림/화면/앱정보/계정관리 설정을
+                          //   프로필에서 분리 → 톱니 진입 별도 SettingsScreen 으로 이동.
+                          _SettingsEntryTile(
                             label: _l.profileSettingsCollapseLabel,
                             sublabel: _l.profileSettingsCollapseSublabel,
-                            children: [
+                            onTap: () => _openSettingsScreen(ctx),
+                          ),
+                          const SizedBox(height: 60),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+        );
+      },
+    );
+  }
+
+  // Build 437 (device #6): 계정/공개/알림/화면/앱정보/계정관리 설정 섹션을
+  //   프로필 본문에서 분리해 별도 SettingsScreen 에서 재사용하도록 추출.
+  //   파라미터로 받은 state/user 로 빌드 → SettingsScreen 의 Consumer 가 호출하므로
+  //   스위치 토글 반응성 보존(서버/로컬 변경 즉시 반영).
+  List<Widget> _buildSettingsSections(
+    BuildContext ctx,
+    AppState state,
+    UserProfile user,
+    AppL10n _l,
+  ) {
+    final _lc = user.languageCode;
+    return [
                               // ── 계정 ──
                               _settingsGroup(_l.profileAccountSection, [
                                 _groupTile(
@@ -1368,16 +1394,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   isLast: true,
                                 ),
                               ]),
-                            ],
-                          ),
-                          const SizedBox(height: 60),
-                        ],
-                      ),
-                    ),
-                  ],
+    ];
+  }
+
+  // Build 437 (device #6): 프로필 톱니/진입 타일 → 설정 별도 화면 오픈.
+  void _openSettingsScreen(BuildContext ctx) {
+    Navigator.of(ctx).push(
+      MaterialPageRoute(
+        builder: (_) => Consumer<AppState>(
+          builder: (sCtx, state, __) {
+            final l = AppL10n.of(state.currentUser.languageCode);
+            return Scaffold(
+              backgroundColor: AppTimeColors.of(sCtx).bgDeep,
+              appBar: AppBar(
+                backgroundColor: AppTimeColors.of(sCtx).bgDeep,
+                elevation: 0,
+                iconTheme: const IconThemeData(color: AppColors.textPrimary),
+                title: Text(
+                  l.profileSettingsCollapseLabel,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-        );
-      },
+              ),
+              body: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
+                children: _buildSettingsSections(
+                  sCtx,
+                  state,
+                  state.currentUser,
+                  l,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -1434,6 +1488,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: AppTimeColors.of(ctx).bgDeep,
       elevation: 0,
       automaticallyImplyLeading: false,
+      // Build 437 (device #6): 설정 별도 화면 진입 — 헤더 우상단 톱니.
+      actions: [
+        IconButton(
+          tooltip: _al.profileSettingsCollapseLabel,
+          icon: const Icon(Icons.settings_rounded, color: AppColors.textPrimary),
+          onPressed: () => _openSettingsScreen(ctx),
+        ),
+        const SizedBox(width: 4),
+      ],
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           color: AppTimeColors.of(ctx).bgDeep,
@@ -2922,6 +2985,7 @@ class _ExpandableSettingsGroupState extends State<_ExpandableSettingsGroup> {
   }
 }
 
+// ignore: unused_element
 class _SettingsCollapseButton extends StatefulWidget {
   final String label;
   final String sublabel;
@@ -3361,6 +3425,86 @@ class _PreferredCategoryChip extends StatelessWidget {
                     ),
                   ),
                 ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Build 437 (device #6): 프로필 본문의 '설정' 진입 타일 — 탭 시 SettingsScreen push.
+class _SettingsEntryTile extends StatelessWidget {
+  final String label;
+  final String sublabel;
+  final VoidCallback onTap;
+  const _SettingsEntryTile({
+    required this.label,
+    required this.sublabel,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          decoration: BoxDecoration(
+            color: AppColors.bgCard,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.textMuted.withValues(alpha: 0.12),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.bgSurface,
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: const Icon(
+                  Icons.settings_rounded,
+                  color: AppColors.textSecondary,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      sublabel,
+                      style: const TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.textMuted,
+                size: 22,
+              ),
             ],
           ),
         ),
