@@ -1,0 +1,109 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<link rel="stylesheet" href="common.css">
+<style>
+.screen{background:#0c1014}
+/* fake dark map */
+.map{position:absolute;inset:0;background:
+  linear-gradient(180deg,#0e1318 0%,#0b0f13 100%);overflow:hidden}
+.block{position:absolute;background:#141b21;border-radius:7px}
+.park{position:absolute;background:radial-gradient(circle at 40% 40%,#16302a,#11231f);border-radius:14px}
+.water{position:absolute;background:linear-gradient(135deg,#10283a,#0d1f2e);border-radius:10px}
+.road{position:absolute;background:#1b242c}
+.roadc{position:absolute;background:#222e38}
+/* radius circle (Free teal 200m) */
+.radius{position:absolute;left:50%;top:48%;width:300px;height:300px;border-radius:50%;transform:translate(-50%,-50%);
+  background:radial-gradient(circle,rgba(47,217,196,.12) 0%,rgba(47,217,196,.05) 60%,transparent 72%);
+  border:2px solid rgba(47,217,196,.5);box-shadow:0 0 50px rgba(47,217,196,.18) inset}
+.radius .ring2{position:absolute;inset:0;border-radius:50%;border:1px dashed rgba(47,217,196,.28);animation:none}
+.radlabel{position:absolute;left:50%;top:calc(48% + 152px);transform:translate(-50%,-50%);
+  background:rgba(47,217,196,.16);border:1px solid rgba(47,217,196,.4);color:#9bf0e4;font-size:11px;font-weight:800;
+  height:22px;padding:0 10px;border-radius:11px;display:flex;align-items:center;gap:4px;letter-spacing:.3px}
+/* user marker */
+.me{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);z-index:6}
+.me .pulse{position:absolute;left:50%;top:50%;width:54px;height:54px;border-radius:50%;transform:translate(-50%,-50%);background:rgba(47,217,196,.22)}
+.me .dot{width:26px;height:26px;border-radius:50%;background:#2FD9C4;border:3px solid #06120f;box-shadow:0 4px 12px rgba(47,217,196,.5);position:relative}
+/* pins */
+.pin{position:absolute;z-index:5;display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-100%)}
+.pin .head{width:48px;height:48px;border-radius:50% 50% 50% 6px;transform:rotate(45deg);
+  background:var(--surface2);border:2px solid var(--line2);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,.5)}
+.pin .head .e{transform:rotate(-45deg);font-size:22px}
+.pin.rare .head{border-color:var(--gold);box-shadow:0 0 0 4px rgba(243,196,76,.22),0 6px 18px rgba(0,0,0,.5)}
+.pin.epic .head{border-color:#b97bff;background:linear-gradient(145deg,#2a1f3a,#1c1528);box-shadow:0 0 0 5px rgba(185,123,255,.25),0 6px 18px rgba(0,0,0,.5)}
+.pin .sparkle{position:absolute;top:-9px;right:-5px;font-size:14px}
+.pin .tag{margin-top:6px;background:rgba(10,12,14,.9);border:1px solid var(--line);height:22px;padding:0 9px;border-radius:11px;font-size:11px;font-weight:800;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.pin.rare .tag{color:var(--gold)}
+.pin.epic .tag{color:#cba6ff}
+
+/* top proximity chip */
+.topbar{position:absolute;top:58px;left:0;right:0;display:flex;justify-content:center;z-index:10}
+.prox{background:rgba(18,20,24,.86);backdrop-filter:blur(14px);border:1px solid var(--line2);border-radius:20px;
+  height:52px;padding:0 8px 0 16px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-lg)}
+.prox .arrow{width:30px;height:30px;border-radius:50%;background:var(--coupon);display:flex;align-items:center;justify-content:center;transform:rotate(38deg)}
+.prox .pmain{display:flex;flex-direction:column}
+.prox .pt{font-size:14px;font-weight:800;letter-spacing:-.2px}
+.prox .ps{font-size:11.5px;font-weight:700;color:var(--coupon)}
+.prox .pcount{background:var(--surface2);height:34px;padding:0 13px;border-radius:17px;display:flex;align-items:center;gap:5px;font-size:13px;font-weight:800;color:var(--teal)}
+
+/* brand header pill top-left */
+.brandpill{position:absolute;top:60px;left:16px;z-index:9;display:flex;align-items:center;gap:7px;font-size:16px;font-weight:800;letter-spacing:-.3px;opacity:.85}
+.brandpill .lg{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#FF7A45,#ff9a6d);display:flex;align-items:center;justify-content:center;font-size:14px}
+</style></head>
+<body><div class="screen">
+  <div class="map">
+    <!-- roads -->
+    <div class="road" style="left:0;top:300px;width:393px;height:26px"></div>
+    <div class="road" style="left:0;top:560px;width:393px;height:20px;transform:rotate(-4deg)"></div>
+    <div class="roadc" style="left:120px;top:0;width:24px;height:852px"></div>
+    <div class="roadc" style="left:270px;top:0;width:18px;height:852px;transform:rotate(3deg)"></div>
+    <div class="road" style="left:0;top:130px;width:393px;height:14px"></div>
+    <!-- blocks -->
+    <div class="block" style="left:16px;top:150px;width:88px;height:130px"></div>
+    <div class="block" style="left:160px;top:150px;width:96px;height:130px"></div>
+    <div class="block" style="left:300px;top:150px;width:80px;height:130px"></div>
+    <div class="park" style="left:16px;top:340px;width:90px;height:190px"></div>
+    <div class="block" style="left:160px;top:345px;width:92px;height:185px"></div>
+    <div class="water" style="left:300px;top:600px;width:90px;height:230px"></div>
+    <div class="block" style="left:20px;top:600px;width:84px;height:150px"></div>
+    <div class="block" style="left:160px;top:605px;width:96px;height:150px"></div>
+    <div class="block" style="left:16px;top:30px;width:88px;height:90px"></div>
+    <div class="block" style="left:300px;top:30px;width:80px;height:90px"></div>
+
+    <!-- radius -->
+    <div class="radius"><div class="ring2"></div></div>
+    <div class="radlabel">📍 내 반경 200m · Free</div>
+
+    <!-- pins -->
+    <div class="pin epic" style="left:300px;top:235px"><div class="head"><span class="e">🎉</span></div><span class="sparkle">💎</span><div class="tag">EPIC · 행사</div></div>
+    <div class="pin rare" style="left:96px;top:250px"><div class="head"><span class="e">☕</span></div><span class="sparkle">✦</span><div class="tag">RARE · 1+1</div></div>
+    <div class="pin" style="left:268px;top:430px"><div class="head"><span class="e">🍔</span></div><div class="tag">음식 · 80m</div></div>
+    <div class="pin" style="left:90px;top:550px"><div class="head"><span class="e">💄</span></div><div class="tag">뷰티 · 140m</div></div>
+    <div class="pin" style="left:312px;top:512px"><div class="head"><span class="e">👗</span></div><div class="tag">패션 · 190m</div></div>
+
+    <!-- user -->
+    <div class="me"><div class="pulse"></div><div class="dot"></div></div>
+  </div>
+
+  <div class="statusbar"><span class="time">9:41</span>
+    <span class="icons">
+      <svg width="18" height="12" viewBox="0 0 18 12"><g fill="#F4F4F7"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="4.5" width="3" height="7.5" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></g></svg>
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M8.5 2.3C10.7 2.3 12.7 3.2 14.2 4.6L15.6 3.1C13.7 1.3 11.2 .2 8.5 .2S3.3 1.3 1.4 3.1L2.8 4.6C4.3 3.2 6.3 2.3 8.5 2.3Z" fill="#F4F4F7"/><path d="M8.5 6C9.6 6 10.6 6.4 11.3 7.1L8.5 10 5.7 7.1C6.4 6.4 7.4 6 8.5 6Z" fill="#F4F4F7"/></svg>
+      <svg width="27" height="13" viewBox="0 0 27 13"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" stroke="#F4F4F7" stroke-opacity=".5" fill="none"/><rect x="2" y="2" width="18" height="9" rx="2" fill="#F4F4F7"/><rect x="24" y="4" width="2" height="5" rx="1" fill="#F4F4F7" fill-opacity=".5"/></svg>
+    </span>
+  </div>
+
+  <div class="topbar">
+    <div class="prox">
+      <div class="arrow"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 1L13 13L7.5 10L2 13L7.5 1Z" fill="#fff"/></svg></div>
+      <div class="pmain"><span class="pt">가장 가까운 혜택</span><span class="ps">☕ 카페 · 80m 북동쪽</span></div>
+      <div class="pcount">🎯 5</div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab active teal"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9.2" stroke="#2FD9C4" stroke-width="1.9"/><path d="M15.5 8.5L13.2 13.2L8.5 15.5L10.8 10.8L15.5 8.5Z" fill="#2FD9C4"/></svg></div>탐험</div>
+    <div class="tab"><div class="ic"><svg width="24" height="22" viewBox="0 0 24 22" fill="none"><rect x="2.5" y="5" width="19" height="14.5" rx="3.2" stroke="#62626E" stroke-width="1.9"/><path d="M2.5 10H21.5" stroke="#62626E" stroke-width="1.9"/></svg></div>수집첩
+      <span class="badge">9</span></div>
+    <div class="tab"><div class="ic"><svg width="22" height="24" viewBox="0 0 22 24" fill="none"><circle cx="11" cy="8" r="4.3" stroke="#62626E" stroke-width="1.8"/><path d="M3 21C3 16.6 6.6 14 11 14C15.4 14 19 16.6 19 21" stroke="#62626E" stroke-width="1.8" stroke-linecap="round"/></svg></div>프로필</div>
+  </div>
+  <div class="home-ind"></div>
+</div></body></html>

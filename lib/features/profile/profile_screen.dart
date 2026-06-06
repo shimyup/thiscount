@@ -1427,7 +1427,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final planColor = isBrand ? AppColors.coupon : AppColors.gold;
 
     return SliverAppBar(
-      expandedHeight: 270,
+      // Build 435 (design): 아바타 히어로를 toolbar 아래로 분리해 pinned title
+      //   "프로필" 과 아바타가 겹쳐 깨져 보이던 버그 해소 (expandedHeight 도 동반 ↑).
+      expandedHeight: 318,
       pinned: true,
       backgroundColor: AppTimeColors.of(ctx).bgDeep,
       elevation: 0,
@@ -1440,7 +1442,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(height: 12),
+                // Build 435 (design): pinned title 영역(kToolbarHeight)만큼 내려
+                //   아바타와 "프로필" 타이틀이 겹치지 않도록 분리.
+                const SizedBox(height: kToolbarHeight),
                 // v5: 클린 솔리드 아바타
                 GestureDetector(
                   onTap: () => _changeProfileImage(ctx, state),

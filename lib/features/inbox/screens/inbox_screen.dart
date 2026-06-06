@@ -283,13 +283,44 @@ const Map<LetterFilterType, List<String>> _industryKeywords = {
   ],
   // Build 315: 행사/이벤트 카테고리 — 공연 / 전시 / 페스티벌 / 컨퍼런스
   LetterFilterType.event: [
-    '행사', '이벤트', '공연', '콘서트', '뮤지컬', '연극',
-    '전시', '전시회', '박람회', '페스티벌', '축제', '팝업',
-    '팝업스토어', '워크샵', '워크숍', '세미나', '컨퍼런스', '강연',
-    '클래스', '체험', '체험학습', '관람', '티켓', '입장권',
-    'event', 'concert', 'festival', 'exhibition', 'expo',
-    'show', 'popup', 'workshop', 'seminar', 'conference',
-    'class', 'ticket', 'admission', 'performance',
+    '행사',
+    '이벤트',
+    '공연',
+    '콘서트',
+    '뮤지컬',
+    '연극',
+    '전시',
+    '전시회',
+    '박람회',
+    '페스티벌',
+    '축제',
+    '팝업',
+    '팝업스토어',
+    '워크샵',
+    '워크숍',
+    '세미나',
+    '컨퍼런스',
+    '강연',
+    '클래스',
+    '체험',
+    '체험학습',
+    '관람',
+    '티켓',
+    '입장권',
+    'event',
+    'concert',
+    'festival',
+    'exhibition',
+    'expo',
+    'show',
+    'popup',
+    'workshop',
+    'seminar',
+    'conference',
+    'class',
+    'ticket',
+    'admission',
+    'performance',
   ],
   // Build 315: 기타 — 위 카테고리 명시 매칭 안 되면 fallback 으로 처리
   // (heuristic 만으로는 비어있음; 키워드 매칭 안 되는 letter 는 자동으로 기타).
@@ -411,7 +442,10 @@ String? _extractBenefitBigText(Letter letter) {
 /// Build 324: AI 추천 모드 letter 카드 칩용 — RecommendationService.topReason
 ///   결과를 i18n 라벨 + emoji 조합 문자열로 반환. null 이면 칩 미노출.
 /// Build 325 (T2): top 외 추가 매칭 신호 수도 함께 반환 (다신호 letter 가시화).
-({String text, int extra})? _resolveAiReasonChip(BuildContext ctx, Letter letter) {
+({String text, int extra})? _resolveAiReasonChip(
+  BuildContext ctx,
+  Letter letter,
+) {
   final state = ctx.read<AppState>();
   final reason = RecommendationService.topReason(
     letter,
@@ -779,7 +813,8 @@ class _InboxScreenState extends State<InboxScreen>
     // Build 414 (sim100 #56): aiRecommend 는 Premium 전용 — 선택 후 다운그레이드
     //   하면 모드가 남아 비-Premium 에게도 적용됐다. inbox 경로에서도 비-Premium
     //   이면 latest 로 fallback (선택 시점 게이팅 + 적용 시점 게이팅 이중화).
-    final effectiveMode = (_sortMode == InboxSortMode.aiRecommend &&
+    final effectiveMode =
+        (_sortMode == InboxSortMode.aiRecommend &&
             (!isInbox || !state.currentUser.isPremium))
         ? InboxSortMode.latest
         : _sortMode;
@@ -790,10 +825,10 @@ class _InboxScreenState extends State<InboxScreen>
         //   좌절하던 버그 (복귀 사용자 시뮬레이션). 사용/만료 letter 는
         //   chronological 우선순위를 잃고 별도 그룹으로 하단 배치.
         sorted.sort((a, b) {
-          final aExpired = a.isExpired || a.isRedemptionExpired ||
-              a.redeemedAt != null;
-          final bExpired = b.isExpired || b.isRedemptionExpired ||
-              b.redeemedAt != null;
+          final aExpired =
+              a.isExpired || a.isRedemptionExpired || a.redeemedAt != null;
+          final bExpired =
+              b.isExpired || b.isRedemptionExpired || b.redeemedAt != null;
           if (aExpired != bExpired) {
             return aExpired ? 1 : -1; // expired → 하단
           }
@@ -886,9 +921,7 @@ class _InboxScreenState extends State<InboxScreen>
     final followed = <Letter>[];
     final rest = <Letter>[];
     for (final l in letters) {
-      if (l.senderIsBrand &&
-          state.isBrandFollowed(l.senderId) &&
-          !isDead(l)) {
+      if (l.senderIsBrand && state.isBrandFollowed(l.senderId) && !isDead(l)) {
         followed.add(l);
       } else {
         rest.add(l);
@@ -920,40 +953,11 @@ class _InboxScreenState extends State<InboxScreen>
             child: Column(
               children: [
                 _buildHeader(context, state),
-                // 포지셔닝 힌트 — "주변에서 할인·이벤트 편지를 주우면 혜택이
-                // 있어요" 메시지 한 줄. 브랜드 포지셔닝 변경으로 브랜드도
-                // 줍기 가능해졌기에 모든 등급에 표시.
-                Container(
-                  margin: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 9,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.teal.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: AppColors.teal.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      const Text('🎟', style: TextStyle(fontSize: 15)),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          AppL10n.of(
-                            state.currentUser.languageCode,
-                          ).inboxHuntHint,
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 11,
-                            height: 1.35,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                _InboxQuickStatusCard(
+                  state: state,
+                  onExploreTap: () => Navigator.of(
+                    context,
+                  ).pushNamedAndRemoveUntil('/home', (route) => false),
                 ),
                 // 만료 사이렌 (Build 115, Build 116 에서 탭 가능) — 24h 이내
                 // 만료되는 쿠폰/교환권이 있을 때만 붉은 배너 노출. 탭 시
@@ -974,7 +978,12 @@ class _InboxScreenState extends State<InboxScreen>
                       //   .active. urgency 시각은 동일 색상(coupon) + active
                       //   variant 의 더 진한 border 로 표현. 코드 50줄 → 15줄.
                       child: Padding(
-                        padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                          16,
+                          8,
+                          16,
+                          0,
+                        ),
                         child: AppCard.active(
                           color: AppColors.coupon,
                           padding: const EdgeInsets.symmetric(
@@ -1010,63 +1019,6 @@ class _InboxScreenState extends State<InboxScreen>
                     );
                   },
                 ),
-                // Build 179: 3-stat card (new/transit/total) 을 한 줄 compact
-                // pill 로 축소. 수직 공간 ~60px 회수.
-                Builder(
-                  builder: (ctx) {
-                    final newCount = state.inbox
-                        .where((l) => l.status == DeliveryStatus.delivered)
-                        .length;
-                    final transitCount = state.inbox
-                        .where(
-                          (l) =>
-                              l.status == DeliveryStatus.inTransit ||
-                              l.status == DeliveryStatus.nearYou,
-                        )
-                        .length;
-                    final l10n = AppL10n.of(state.currentUser.languageCode);
-                    if (newCount == 0 && transitCount == 0) {
-                      return const SizedBox(height: 6);
-                    }
-                    return Padding(
-                      padding: const EdgeInsetsDirectional.fromSTEB(20, 6, 20, 0),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (newCount > 0) ...[
-                            Text(
-                              '📩 ${l10n.inboxStatNew} $newCount',
-                              style: AppText.caption.copyWith(
-                                color: AppColors.gold,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            if (transitCount > 0) ...[
-                              const SizedBox(width: 10),
-                              Container(
-                                width: 2,
-                                height: 2,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.textMuted,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                            ],
-                          ],
-                          if (transitCount > 0)
-                            Text(
-                              '🚀 ${l10n.inboxStatTransit} $transitCount',
-                              style: AppText.caption.copyWith(
-                                color: AppColors.teal,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
                 _buildTabBar(),
                 Expanded(
                   child: TabBarView(
@@ -1097,8 +1049,11 @@ class _InboxScreenState extends State<InboxScreen>
                                     state,
                                     state.inbox
                                         .where(
-                                          (l) => !(l.senderIsBrand &&
-                                              state.isBrandMuted(l.senderId)),
+                                          (l) =>
+                                              !(l.senderIsBrand &&
+                                                  state.isBrandMuted(
+                                                    l.senderId,
+                                                  )),
                                         )
                                         .toList(),
                                   ),
@@ -1133,7 +1088,9 @@ class _InboxScreenState extends State<InboxScreen>
                                         .where(
                                           (l) =>
                                               !(l.senderIsBrand &&
-                                                  state.isBrandMuted(l.senderId)),
+                                                  state.isBrandMuted(
+                                                    l.senderId,
+                                                  )),
                                         )
                                         .toList(),
                                   ),
@@ -1219,313 +1176,343 @@ class _InboxScreenState extends State<InboxScreen>
     return Padding(
       // Build 179: 세로 패딩 축소 (16→12), 내부 구조 단일화.
       padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 20, 4),
-      child: Column(
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Build 179: title fontSize 26→22, subtitle caps 제거.
-                    // 전체 수집 수가 제목 옆에 "· 30" 형식으로 바로 노출.
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        ShaderMask(
-                          shaderCallback: (b) => const LinearGradient(
-                            colors: [AppColors.goldLight, AppColors.gold],
-                          ).createShader(b),
-                          child: Text(
-                            l10n.navCollection,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -0.4,
+      child: Container(
+        padding: const EdgeInsetsDirectional.fromSTEB(14, 13, 10, 12),
+        decoration: BoxDecoration(
+          color: AppColors.bgCard.withValues(alpha: 0.86),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.gold.withValues(alpha: 0.14)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.20),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Build 179: title fontSize 26→22, subtitle caps 제거.
+                      // 전체 수집 수가 제목 옆에 "· 30" 형식으로 바로 노출.
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          ShaderMask(
+                            shaderCallback: (b) => const LinearGradient(
+                              colors: [AppColors.goldLight, AppColors.gold],
+                            ).createShader(b),
+                            child: Text(
+                              l10n.navCollection,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 22,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.4,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '· ${state.inbox.length}',
-                          style: AppText.small.copyWith(
-                            color: AppColors.textMuted,
-                            fontWeight: FontWeight.w700,
+                          const SizedBox(width: 8),
+                          Text(
+                            '· ${state.inbox.length}',
+                            style: AppText.small.copyWith(
+                              color: AppColors.textMuted,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    // Build 179: Monthly progress 만 남김 (subtitle caps + total 수 제거 — title 옆으로 흡수).
-                    _MonthlyProgressBar(
-                      collected: _countThisMonth(state.inbox),
-                      target: 50,
-                      l10n: l10n,
-                    ),
-                  ],
-                ),
-              ),
-              // Build 295: 정렬 모드 선택 (유효기간 / 최신 / 중요도).
-              // Build 315: 아이콘만 → 현재 모드 텍스트+icon 칩으로 가시성 강화.
-              //   "🕐 최신순 ▾" 같이 사용자가 어떤 정렬인지 즉시 인지.
-              // Build 324: aiRecommend 옵션 추가 (Premium 전용). Free 사용자가
-              //   선택 시 PremiumGateSheet 노출 + 모드는 변경하지 않음.
-              PopupMenuButton<InboxSortMode>(
-                tooltip: l10n.inboxSortTooltip,
-                color: AppColors.bgCard,
-                onSelected: (mode) {
-                  if (mode == InboxSortMode.aiRecommend &&
-                      !state.currentUser.isPremium) {
-                    PremiumGateSheet.show(
-                      context,
-                      featureName: l10n.aiRecommendSortName,
-                      featureEmoji: '✨',
-                      description: l10n.aiRecommendUpsellDesc,
-                    );
-                    return;
-                  }
-                  setState(() => _sortMode = mode);
-                },
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.bgCard,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: AppColors.textMuted.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.sort_rounded,
-                        color: AppColors.textSecondary,
-                        size: 16,
+                        ],
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        () {
-                          switch (_sortMode) {
-                            case InboxSortMode.latest:
-                              return l10n.inboxSortLatest;
-                            case InboxSortMode.expiry:
-                              return l10n.inboxSortExpiry;
-                            case InboxSortMode.importance:
-                              return l10n.inboxSortImportance;
-                            case InboxSortMode.aiRecommend:
-                              return l10n.inboxSortAiRecommend;
-                          }
-                        }(),
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const Icon(
-                        Icons.arrow_drop_down_rounded,
-                        color: AppColors.textSecondary,
-                        size: 18,
+                      const SizedBox(height: 6),
+                      // Build 179: Monthly progress 만 남김 (subtitle caps + total 수 제거 — title 옆으로 흡수).
+                      _MonthlyProgressBar(
+                        collected: _countThisMonth(state.inbox),
+                        target: 50,
+                        l10n: l10n,
                       ),
                     ],
                   ),
                 ),
-                itemBuilder: (_) => [
-                  CheckedPopupMenuItem(
-                    value: InboxSortMode.latest,
-                    checked: _sortMode == InboxSortMode.latest,
-                    child: Text(l10n.inboxSortLatest,
-                        style: const TextStyle(color: AppColors.textPrimary)),
-                  ),
-                  CheckedPopupMenuItem(
-                    value: InboxSortMode.expiry,
-                    checked: _sortMode == InboxSortMode.expiry,
-                    child: Text(l10n.inboxSortExpiry,
-                        style: const TextStyle(color: AppColors.textPrimary)),
-                  ),
-                  CheckedPopupMenuItem(
-                    value: InboxSortMode.importance,
-                    checked: _sortMode == InboxSortMode.importance,
-                    child: Text(l10n.inboxSortImportance,
-                        style: const TextStyle(color: AppColors.textPrimary)),
-                  ),
-                  // Build 324: AI 추천 (Premium 전용). 잠긴 상태는 트레일링 🔒
-                  //   배지로 명시 — Free 사용자가 탭하면 PremiumGateSheet 으로
-                  //   넘어가고 모드는 변경되지 않음.
-                  CheckedPopupMenuItem(
-                    value: InboxSortMode.aiRecommend,
-                    checked: _sortMode == InboxSortMode.aiRecommend,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(l10n.inboxSortAiRecommend,
-                            style: const TextStyle(
-                                color: AppColors.textPrimary)),
-                        if (!state.currentUser.isPremium) ...[
-                          const SizedBox(width: 6),
-                          const Text('🔒',
-                              style: TextStyle(fontSize: 11)),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              // 검색 버튼
-              IconButton(
-                onPressed: _toggleSearch,
-                tooltip: l10n.a11ySearch,
-                icon: Icon(
-                  _searchMode ? Icons.search_off_rounded : Icons.search_rounded,
-                  color: _searchMode ? AppColors.gold : AppColors.textSecondary,
-                  size: 22,
-                ),
-              ),
-              if (!_searchMode && state.unreadCount > 0)
-                GestureDetector(
-                  onTap: () {
-                    _tabController.animateTo(0);
-                    // Build 417 (sim100 P2): 표시 리스트와 동일하게 뮤트필터 +
-                    //   _sortFollowedFirst 적용 — 이전엔 미적용 리스트로 인덱스를
-                    //   계산해 잘못된 위치로 스크롤됐음.
-                    final letters = _applyFilter(
-                      _sortFollowedFirst(
-                        state,
-                        _sortByArrivedDesc(
-                          state,
-                          state.inbox
-                              .where((l) => !(l.senderIsBrand &&
-                                  state.isBrandMuted(l.senderId)))
-                              .toList(),
-                        ),
-                      ),
-                      filter: _inboxFilter,
-                      isInbox: true,
-                    );
-                    _scrollToFirstUnread(letters);
+                // Build 295: 정렬 모드 선택 (유효기간 / 최신 / 중요도).
+                // Build 315: 아이콘만 → 현재 모드 텍스트+icon 칩으로 가시성 강화.
+                //   "🕐 최신순 ▾" 같이 사용자가 어떤 정렬인지 즉시 인지.
+                // Build 324: aiRecommend 옵션 추가 (Premium 전용). Free 사용자가
+                //   선택 시 PremiumGateSheet 노출 + 모드는 변경하지 않음.
+                PopupMenuButton<InboxSortMode>(
+                  tooltip: l10n.inboxSortTooltip,
+                  color: AppColors.bgCard,
+                  onSelected: (mode) {
+                    if (mode == InboxSortMode.aiRecommend &&
+                        !state.currentUser.isPremium) {
+                      PremiumGateSheet.show(
+                        context,
+                        featureName: l10n.aiRecommendSortName,
+                        featureEmoji: '✨',
+                        description: l10n.aiRecommendUpsellDesc,
+                      );
+                      return;
+                    }
+                    setState(() => _sortMode = mode);
                   },
                   child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.gold.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(20),
+                      color: AppColors.bgCard,
+                      borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: AppColors.gold.withValues(alpha: 0.4),
+                        color: AppColors.textMuted.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('📩', style: TextStyle(fontSize: 13)),
+                        const Icon(
+                          Icons.sort_rounded,
+                          color: AppColors.textSecondary,
+                          size: 16,
+                        ),
                         const SizedBox(width: 4),
                         Text(
-                          '${state.unreadCount}',
+                          () {
+                            switch (_sortMode) {
+                              case InboxSortMode.latest:
+                                return l10n.inboxSortLatest;
+                              case InboxSortMode.expiry:
+                                return l10n.inboxSortExpiry;
+                              case InboxSortMode.importance:
+                                return l10n.inboxSortImportance;
+                              case InboxSortMode.aiRecommend:
+                                return l10n.inboxSortAiRecommend;
+                            }
+                          }(),
                           style: const TextStyle(
-                            color: AppColors.gold,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(width: 2),
                         const Icon(
-                          Icons.arrow_downward_rounded,
-                          color: AppColors.gold,
-                          size: 12,
+                          Icons.arrow_drop_down_rounded,
+                          color: AppColors.textSecondary,
+                          size: 18,
                         ),
                       ],
                     ),
                   ),
-                ),
-            ],
-          ),
-          // 검색 바 (검색 모드일 때만 표시)
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            transitionBuilder: (child, anim) => SizeTransition(
-              sizeFactor: anim,
-              axisAlignment: -1,
-              child: child,
-            ),
-            child: _searchMode
-                ? Padding(
-                    key: const ValueKey('searchbar'),
-                    padding: const EdgeInsets.only(top: 8, bottom: 4),
-                    child: TextField(
-                      controller: _searchController,
-                      autofocus: true,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 14,
+                  itemBuilder: (_) => [
+                    CheckedPopupMenuItem(
+                      value: InboxSortMode.latest,
+                      checked: _sortMode == InboxSortMode.latest,
+                      child: Text(
+                        l10n.inboxSortLatest,
+                        style: const TextStyle(color: AppColors.textPrimary),
                       ),
-                      onChanged: (v) {
-                        _searchDebounce?.cancel();
-                        _searchDebounce = Timer(
-                          const Duration(milliseconds: 200),
-                          () {
-                            if (!mounted) return;
-                            setState(() => _searchQuery = v);
-                          },
-                        );
-                      },
-                      decoration: InputDecoration(
-                        hintText: l10n.inboxSearchHint,
-                        hintStyle: const TextStyle(
-                          color: AppColors.textMuted,
-                          fontSize: 13,
+                    ),
+                    CheckedPopupMenuItem(
+                      value: InboxSortMode.expiry,
+                      checked: _sortMode == InboxSortMode.expiry,
+                      child: Text(
+                        l10n.inboxSortExpiry,
+                        style: const TextStyle(color: AppColors.textPrimary),
+                      ),
+                    ),
+                    CheckedPopupMenuItem(
+                      value: InboxSortMode.importance,
+                      checked: _sortMode == InboxSortMode.importance,
+                      child: Text(
+                        l10n.inboxSortImportance,
+                        style: const TextStyle(color: AppColors.textPrimary),
+                      ),
+                    ),
+                    // Build 324: AI 추천 (Premium 전용). 잠긴 상태는 트레일링 🔒
+                    //   배지로 명시 — Free 사용자가 탭하면 PremiumGateSheet 으로
+                    //   넘어가고 모드는 변경되지 않음.
+                    CheckedPopupMenuItem(
+                      value: InboxSortMode.aiRecommend,
+                      checked: _sortMode == InboxSortMode.aiRecommend,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            l10n.inboxSortAiRecommend,
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          if (!state.currentUser.isPremium) ...[
+                            const SizedBox(width: 6),
+                            const Text('🔒', style: TextStyle(fontSize: 11)),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                // 검색 버튼
+                IconButton(
+                  onPressed: _toggleSearch,
+                  tooltip: l10n.a11ySearch,
+                  icon: Icon(
+                    _searchMode
+                        ? Icons.search_off_rounded
+                        : Icons.search_rounded,
+                    color: _searchMode
+                        ? AppColors.gold
+                        : AppColors.textSecondary,
+                    size: 22,
+                  ),
+                ),
+                if (!_searchMode && state.unreadCount > 0)
+                  GestureDetector(
+                    onTap: () {
+                      _tabController.animateTo(0);
+                      // Build 417 (sim100 P2): 표시 리스트와 동일하게 뮤트필터 +
+                      //   _sortFollowedFirst 적용 — 이전엔 미적용 리스트로 인덱스를
+                      //   계산해 잘못된 위치로 스크롤됐음.
+                      final letters = _applyFilter(
+                        _sortFollowedFirst(
+                          state,
+                          _sortByArrivedDesc(
+                            state,
+                            state.inbox
+                                .where(
+                                  (l) =>
+                                      !(l.senderIsBrand &&
+                                          state.isBrandMuted(l.senderId)),
+                                )
+                                .toList(),
+                          ),
                         ),
-                        prefixIcon: const Icon(
-                          Icons.search_rounded,
-                          color: AppColors.textMuted,
-                          size: 20,
+                        filter: _inboxFilter,
+                        isInbox: true,
+                      );
+                      _scrollToFirstUnread(letters);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.gold.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: AppColors.gold.withValues(alpha: 0.4),
                         ),
-                        suffixIcon: _searchQuery.isNotEmpty
-                            ? IconButton(
-                                // Build 423 (sim-crosscut P3): a11y 라벨.
-                                tooltip: l10n.koEn('검색어 지우기', 'Clear search'),
-                                icon: const Icon(
-                                  Icons.clear_rounded,
-                                  color: AppColors.textMuted,
-                                  size: 18,
-                                ),
-                                onPressed: () => setState(() {
-                                  _searchController.clear();
-                                  _searchQuery = '';
-                                }),
-                              )
-                            : null,
-                        filled: true,
-                        fillColor: AppColors.bgCard,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('📩', style: TextStyle(fontSize: 13)),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${state.unreadCount}',
+                            style: const TextStyle(
+                              color: AppColors.gold,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          const Icon(
+                            Icons.arrow_downward_rounded,
+                            color: AppColors.gold,
+                            size: 12,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            // 검색 바 (검색 모드일 때만 표시)
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              transitionBuilder: (child, anim) => SizeTransition(
+                sizeFactor: anim,
+                axisAlignment: -1,
+                child: child,
+              ),
+              child: _searchMode
+                  ? Padding(
+                      key: const ValueKey('searchbar'),
+                      padding: const EdgeInsets.only(top: 8, bottom: 4),
+                      child: TextField(
+                        controller: _searchController,
+                        autofocus: true,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 14,
                         ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: AppColors.gold.withValues(alpha: 0.5),
+                        onChanged: (v) {
+                          _searchDebounce?.cancel();
+                          _searchDebounce = Timer(
+                            const Duration(milliseconds: 200),
+                            () {
+                              if (!mounted) return;
+                              setState(() => _searchQuery = v);
+                            },
+                          );
+                        },
+                        decoration: InputDecoration(
+                          hintText: l10n.inboxSearchHint,
+                          hintStyle: const TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 13,
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.search_rounded,
+                            color: AppColors.textMuted,
+                            size: 20,
+                          ),
+                          suffixIcon: _searchQuery.isNotEmpty
+                              ? IconButton(
+                                  // Build 423 (sim-crosscut P3): a11y 라벨.
+                                  tooltip: l10n.koEn('검색어 지우기', 'Clear search'),
+                                  icon: const Icon(
+                                    Icons.clear_rounded,
+                                    color: AppColors.textMuted,
+                                    size: 18,
+                                  ),
+                                  onPressed: () => setState(() {
+                                    _searchController.clear();
+                                    _searchQuery = '';
+                                  }),
+                                )
+                              : null,
+                          filled: true,
+                          fillColor: AppColors.bgCard,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: AppColors.gold.withValues(alpha: 0.5),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  )
-                : const SizedBox.shrink(key: ValueKey('nosearch')),
-          ),
-        ],
+                    )
+                  : const SizedBox.shrink(key: ValueKey('nosearch')),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1732,6 +1719,224 @@ void _confirmDelete(
       ],
     ),
   );
+}
+
+class _InboxQuickStatusCard extends StatelessWidget {
+  final AppState state;
+  final VoidCallback onExploreTap;
+
+  const _InboxQuickStatusCard({
+    required this.state,
+    required this.onExploreTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(state.currentUser.languageCode);
+    final newCount = state.inbox
+        .where((l) => l.status == DeliveryStatus.delivered)
+        .length;
+    final transitCount = state.inbox
+        .where(
+          (l) =>
+              l.status == DeliveryStatus.inTransit ||
+              l.status == DeliveryStatus.nearYou,
+        )
+        .length;
+    final nearbyCount = state.nearbyLetters.length;
+
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 2),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(18),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onExploreTap,
+          child: Ink(
+            padding: const EdgeInsetsDirectional.fromSTEB(14, 13, 14, 12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppColors.bgSurface,
+                  AppColors.bgCard,
+                  AppColors.teal.withValues(alpha: 0.09),
+                ],
+                stops: const [0.0, 0.62, 1.0],
+              ),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppColors.teal.withValues(alpha: 0.24)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.26),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppColors.teal.withValues(alpha: 0.16),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.teal.withValues(alpha: 0.28),
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.local_offer_rounded,
+                        color: AppColors.teal,
+                        size: 19,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        l10n.inboxHuntHint,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppText.small.copyWith(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w700,
+                          height: 1.32,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.gold,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '$nearbyCount',
+                            style: const TextStyle(
+                              color: Color(0xFF1A1300),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              height: 1.0,
+                            ),
+                          ),
+                          const SizedBox(width: 3),
+                          const Icon(
+                            Icons.near_me_rounded,
+                            color: Color(0xFF1A1300),
+                            size: 14,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _QuickMetricTile(
+                        icon: Icons.mark_email_unread_rounded,
+                        label: l10n.inboxStatNew,
+                        value: '$newCount',
+                        color: AppColors.gold,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _QuickMetricTile(
+                        icon: Icons.flight_takeoff_rounded,
+                        label: l10n.inboxStatTransit,
+                        value: '$transitCount',
+                        color: AppColors.teal,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _QuickMetricTile(
+                        icon: Icons.explore_rounded,
+                        label: l10n.navExplore,
+                        value: '$nearbyCount',
+                        color: AppColors.aiSignal,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickMetricTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+
+  const _QuickMetricTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 48),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.bgDeep.withValues(alpha: 0.34),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.18)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: 7),
+          Expanded(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
+                height: 1.0,
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              height: 1.0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // ── 받은 편지 탭 ──────────────────────────────────────────────────────────────
@@ -1994,8 +2199,9 @@ class _InboxTab extends StatelessWidget {
                         if (letter.isRedemptionExpired || letter.isExpired) {
                           ScaffoldMessenger.of(ctx).showSnackBar(
                             SnackBar(
-                              content:
-                                  Text(l10n.letterReadRedemptionExpiredHeader),
+                              content: Text(
+                                l10n.letterReadRedemptionExpiredHeader,
+                              ),
                               backgroundColor: AppColors.bgCard,
                               behavior: SnackBarBehavior.floating,
                               shape: RoundedRectangleBorder(
@@ -2086,12 +2292,6 @@ class _InboxTab extends StatelessWidget {
                           ? _resolveAiReasonChip(ctx, letter)
                           : null,
                       onTap: () => onTap(letter),
-                      onDelete: () => _confirmDelete(
-                        ctx,
-                        ctx.read<AppState>(),
-                        letter.id,
-                        isInbox: true,
-                      ),
                     ),
                   );
                 },
@@ -2259,12 +2459,6 @@ class _SentTab extends StatelessWidget {
                     letter: letter,
                     isInbox: false,
                     onTap: () => _showSentDetail(ctx, letter),
-                    onDelete: () => _confirmDelete(
-                      ctx,
-                      ctx.read<AppState>(),
-                      letter.id,
-                      isInbox: false,
-                    ),
                   ),
                 );
               },
@@ -2302,7 +2496,6 @@ class _LetterCard extends StatelessWidget {
   final bool isInbox;
   final bool isLocked;
   final VoidCallback onTap;
-  final VoidCallback? onDelete;
   // Build 324: AI 추천 모드 시 "왜 이 순서?" 1줄 이유 칩. null 이면 미노출.
   //   형식 예: "🏷 팔로우한 브랜드" / "⏰ 곧 만료" / "🎯 내 선호 카테고리".
   // Build 325 (T2): top 외 추가 매칭 신호 수 (extraSignals) — 1+ 이면 "+N"
@@ -2314,7 +2507,6 @@ class _LetterCard extends StatelessWidget {
     required this.isInbox,
     this.isLocked = false,
     required this.onTap,
-    this.onDelete,
     this.aiReasonChip,
   });
 
@@ -2324,14 +2516,14 @@ class _LetterCard extends StatelessWidget {
   ///   기존 3개 뱃지 동시 노출을 1개로 압축 (5요소 룰).
   ///   반환 list 은 Row.children spread 가능한 [SizedBox + Container] (또는 빈 list).
   List<Widget> _buildSingleContextBadge(Letter letter, AppL10n l10n) {
-    if (letter.senderIsBrand ||
-        letter.letterType == LetterType.brandExpress) {
+    if (letter.senderIsBrand || letter.letterType == LetterType.brandExpress) {
       return [
         const SizedBox(width: 4),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
           decoration: BoxDecoration(
-            gradient: (letter.category == LetterCategory.coupon ||
+            gradient:
+                (letter.category == LetterCategory.coupon ||
                     letter.category == LetterCategory.voucher)
                 ? const LinearGradient(
                     colors: [AppColors.teal, Color(0xFF4DD0E1)],
@@ -2348,8 +2540,8 @@ class _LetterCard extends StatelessWidget {
                 letter.category == LetterCategory.coupon
                     ? '🎟'
                     : letter.category == LetterCategory.voucher
-                        ? '🎁'
-                        : '🏢',
+                    ? '🎁'
+                    : '🏢',
                 style: const TextStyle(fontSize: 9),
               ),
               const SizedBox(width: 2),
@@ -2357,8 +2549,8 @@ class _LetterCard extends StatelessWidget {
                 letter.category == LetterCategory.coupon
                     ? l10n.inboxFilterCoupon
                     : letter.category == LetterCategory.voucher
-                        ? l10n.inboxFilterVoucher
-                        : l10n.labelBrand,
+                    ? l10n.inboxFilterVoucher
+                    : l10n.labelBrand,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 10, // Build 423 (sim-crosscut P3): a11y 최소 가독 크기
@@ -2467,8 +2659,7 @@ class _LetterCard extends StatelessWidget {
     if (user.latitude != 0 || user.longitude != 0) {
       final dest = letter.destinationLocation;
       if (dest.latitude != 0 || dest.longitude != 0) {
-        final distM = LatLng(user.latitude, user.longitude)
-            .distanceTo(dest);
+        final distM = LatLng(user.latitude, user.longitude).distanceTo(dest);
         if (distM < 1000) return '📍 ${distM.round()}m';
         return '📍 ${(distM / 1000).toStringAsFixed(1)}km';
       }
@@ -2487,7 +2678,7 @@ class _LetterCard extends StatelessWidget {
           benefit,
           style: TextStyle(
             color: AppColors.coupon,
-            fontSize: benefit.length >= 4 ? 16 : 22,
+            fontSize: benefit.length >= 4 ? 17 : 24,
             fontWeight: FontWeight.w900,
             letterSpacing: -0.5,
             height: 1.0,
@@ -2502,15 +2693,10 @@ class _LetterCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            letter.senderIsBrand
-                ? '🏢'
-                : personEmojiForId(letter.senderId),
+            letter.senderIsBrand ? '🏢' : personEmojiForId(letter.senderId),
             style: const TextStyle(fontSize: 16),
           ),
-          Text(
-            letter.senderCountryFlag,
-            style: const TextStyle(fontSize: 14),
-          ),
+          Text(letter.senderCountryFlag, style: const TextStyle(fontSize: 14)),
         ],
       );
     }
@@ -2563,76 +2749,76 @@ class _LetterCard extends StatelessWidget {
       label: semanticsLabel,
       child: GestureDetector(
         onTap: onTap,
-        child: Stack(
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            margin: const EdgeInsets.only(bottom: 10),
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              gradient: isInbox && !isLocked
-                  ? LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      colors: [
-                        accent.withValues(alpha: highlight ? 0.16 : 0.08),
-                        AppColors.bgCard,
-                      ],
-                      stops: const [0.0, 0.45],
-                    )
-                  : null,
-              color: isInbox && !isLocked
-                  ? null
-                  : (isLocked
-                        ? AppColors.bgCard.withValues(alpha: 0.4)
-                        : AppColors.bgCard),
-              borderRadius: BorderRadius.circular(22),
-              // 모든 inbox 카드에 4px 좌측 accent stripe + unread 시 전체 테두리.
-              border: Border(
-                left: BorderSide(
-                  color: isInbox && !isLocked
-                      ? accent.withValues(alpha: highlight ? 1.0 : 0.7)
-                      : Colors.transparent,
-                  width: 4,
-                ),
-                top: BorderSide(
-                  color: highlight
-                      ? accent.withValues(alpha: 0.5)
-                      : Colors.transparent,
-                  width: 1,
-                ),
-                right: BorderSide(
-                  color: highlight
-                      ? accent.withValues(alpha: 0.5)
-                      : Colors.transparent,
-                  width: 1,
-                ),
-                bottom: BorderSide(
-                  color: highlight
-                      ? accent.withValues(alpha: 0.5)
-                      : Colors.transparent,
-                  width: 1,
-                ),
-              ),
-              boxShadow: highlight
-                  ? [
-                      BoxShadow(
-                        color: accent.withValues(alpha: 0.18),
-                        blurRadius: 16,
-                        offset: const Offset(0, 4),
-                      ),
-                    ]
-                  : [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            gradient: isInbox && !isLocked
+                ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      accent.withValues(alpha: highlight ? 0.18 : 0.10),
+                      AppColors.bgCard,
+                      AppColors.bgDeep.withValues(alpha: 0.36),
                     ],
+                    stops: const [0.0, 0.58, 1.0],
+                  )
+                : null,
+            color: isInbox && !isLocked
+                ? null
+                : (isLocked
+                      ? AppColors.bgCard.withValues(alpha: 0.4)
+                      : AppColors.bgCard),
+            borderRadius: BorderRadius.circular(20),
+            // Build 435 (fix): 비균일 Border(좌 4px + 나머지 1px) + borderRadius 는
+            //   Flutter paint 단언 위반("borderRadius can only be given on borders
+            //   with uniform colors") → 카드 본문(매장/혜택/만료/코드)이 그려지지
+            //   않고 '빈 그라데이션 블록' 으로만 보이던 버그의 근본 원인. 테두리는
+            //   균일 1px 로 통일하고, 좌측 accent stripe 는 아래 Stack 으로 분리 렌더.
+            border: Border.all(
+              color: highlight
+                  ? accent.withValues(alpha: 0.48)
+                  : AppColors.textMuted.withValues(alpha: 0.10),
+              width: 1,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+            boxShadow: highlight
+                ? [
+                    BoxShadow(
+                      color: accent.withValues(alpha: 0.18),
+                      blurRadius: 18,
+                      offset: const Offset(0, 8),
+                    ),
+                  ]
+                : [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.26),
+                      blurRadius: 16,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Stack(
               children: [
+                // Build 435: 좌측 accent stripe (letter 종류 색상) — 비균일 Border
+                //   대신 분리 렌더해 borderRadius paint 단언 회피.
+                if (isInbox && !isLocked)
+                  PositionedDirectional(
+                    start: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: 4,
+                    child: ColoredBox(
+                      color: accent.withValues(alpha: highlight ? 1.0 : 0.7),
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
               // Build 324: AI 추천 모드 시 "왜 이 순서?" 이유 칩 노출 — 사용자
               //   신뢰 확보 + 추천 알고리즘 투명성. aiReasonChip null 이면 미노출.
               // Build 325 (T1): gold → violet (AppColors.aiSignal) — gold 가 FOMO
@@ -2646,13 +2832,14 @@ class _LetterCard extends StatelessWidget {
                     children: [
                       Flexible(
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.aiSignalBg,
                             borderRadius: BorderRadius.circular(999),
-                            border: Border.all(
-                              color: AppColors.aiSignalBorder,
-                            ),
+                            border: Border.all(color: AppColors.aiSignalBorder),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -2680,7 +2867,10 @@ class _LetterCard extends StatelessWidget {
                       if (aiReasonChip!.extra > 0) ...[
                         const SizedBox(width: 4),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.aiSignal,
                             borderRadius: BorderRadius.circular(999),
@@ -2702,263 +2892,181 @@ class _LetterCard extends StatelessWidget {
                 ),
               ],
               Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Build 324 (Q2): leading 영역 — Brand letter 면 할인율 big text
-                //   (사용자가 0.5초에 "얼마 이득" 인지 → 픽업/사용 결정 가속).
-                //   추출 실패 또는 일반 letter 면 이전 인물+국기 stack 유지.
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    gradient: (isInbox && letter.senderIsBrand &&
-                            _extractBenefitBigText(letter) != null)
-                        ? LinearGradient(
-                            colors: [
-                              AppColors.coupon.withValues(alpha: 0.25),
-                              AppColors.coupon.withValues(alpha: 0.10),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          )
-                        : null,
-                    color: (isInbox && letter.senderIsBrand &&
-                            _extractBenefitBigText(letter) != null)
-                        ? null
-                        : AppColors.bgSurface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: (isInbox && letter.senderIsBrand &&
-                            _extractBenefitBigText(letter) != null)
-                        ? Border.all(
-                            color: AppColors.coupon.withValues(alpha: 0.5),
-                            width: 1,
-                          )
-                        : null,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Build 324 (Q2): leading 영역 — Brand letter 면 할인율 big text
+                  //   (사용자가 0.5초에 "얼마 이득" 인지 → 픽업/사용 결정 가속).
+                  //   추출 실패 또는 일반 letter 면 이전 인물+국기 stack 유지.
+                  Container(
+                    width: 62,
+                    height: 62,
+                    decoration: BoxDecoration(
+                      gradient:
+                          (isInbox &&
+                              letter.senderIsBrand &&
+                              _extractBenefitBigText(letter) != null)
+                          ? LinearGradient(
+                              colors: [
+                                AppColors.coupon.withValues(alpha: 0.25),
+                                AppColors.coupon.withValues(alpha: 0.10),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            )
+                          : null,
+                      color:
+                          (isInbox &&
+                              letter.senderIsBrand &&
+                              _extractBenefitBigText(letter) != null)
+                          ? null
+                          : AppColors.bgSurface,
+                      borderRadius: BorderRadius.circular(16),
+                      border:
+                          (isInbox &&
+                              letter.senderIsBrand &&
+                              _extractBenefitBigText(letter) != null)
+                          ? Border.all(
+                              color: AppColors.coupon.withValues(alpha: 0.5),
+                              width: 1,
+                            )
+                          : null,
+                    ),
+                    child: Center(child: _buildLetterLeading(letter, isInbox)),
                   ),
-                  child: Center(
-                    child: _buildLetterLeading(letter, isInbox),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              isInbox
-                                  ? (letter.isAnonymous
-                                        ? l10n.inboxAnonymousLetter
-                                        : letter.senderName)
-                                  : '→ ${CountryL10n.localizedName(letter.destinationCountry, l10n.languageCode)}',
-                              style: TextStyle(
-                                color: _isUnread
-                                    ? AppColors.textPrimary
-                                    : AppColors.textSecondary,
-                                fontWeight: _isUnread
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                                fontSize: 15,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          // Build 325 (T5): 5요소 룰 — Brand / Premium / AI 다중
-                          //   뱃지 중복 노출 (3) 을 **단일** 뱃지 priority 로직
-                          //   으로 통합. Brand > Premium promo > AI curated.
-                          ..._buildSingleContextBadge(letter, l10n),
-                          if (_isUnread)
-                            Container(
-                              width: 8,
-                              height: 8,
-                              margin: const EdgeInsets.only(left: 4),
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: AppColors.gold,
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        letter.content,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: _isUnread
-                              ? AppColors.textSecondary
-                              : AppColors.textMuted,
-                          fontSize: 13,
-                          height: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          // Build 325 (T5): 5요소 룰 — 발송지 (국기+국명) 대신
-                          //   "거리 or 만료" smart indicator. 만료 ≤ 24h 이면
-                          //   "⏰ Nh", 그 외 거리 가능 시 "📍 Nm/km", fallback
-                          //   원래 발송지.
-                          Text(
-                            _buildSmartContextLabel(context, letter, l10n),
-                            style: const TextStyle(
-                              color: AppColors.textMuted,
-                              fontSize: 11,
-                            ),
-                          ),
-                          const Spacer(),
-                          // 보낸 편지 읽음 여부
-                          if (!isInbox && letter.isReadByRecipient)
-                            Container(
-                              margin: const EdgeInsets.only(right: 6),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.teal.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
                               child: Text(
-                                '✓ ${l10n.inboxRead}',
-                                style: const TextStyle(
-                                  color: AppColors.teal,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
+                                isInbox
+                                    ? (letter.isAnonymous
+                                          ? l10n.inboxAnonymousLetter
+                                          : letter.senderName)
+                                    : '→ ${CountryL10n.localizedName(letter.destinationCountry, l10n.languageCode)}',
+                                style: TextStyle(
+                                  color: _isUnread
+                                      ? AppColors.textPrimary
+                                      : AppColors.textSecondary,
+                                  fontWeight: _isUnread
+                                      ? FontWeight.w700
+                                      : FontWeight.w500,
+                                  fontSize: 15,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            // Build 325 (T5): 5요소 룰 — Brand / Premium / AI 다중
+                            //   뱃지 중복 노출 (3) 을 **단일** 뱃지 priority 로직
+                            //   으로 통합. Brand > Premium promo > AI curated.
+                            ..._buildSingleContextBadge(letter, l10n),
+                            if (_isUnread)
+                              Container(
+                                width: 8,
+                                height: 8,
+                                margin: const EdgeInsets.only(left: 4),
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: AppColors.gold,
                                 ),
                               ),
-                            ),
-                          // 상태
-                          _StatusBadge(status: letter.status, isInbox: isInbox),
-                        ],
-                      ),
-                      // 배송 게이지 (보낸 편지 + 배송 중)
-                      if (!isInbox &&
-                          letter.status == DeliveryStatus.inTransit) ...[
-                        const SizedBox(height: 8),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: letter.overallProgress,
-                            backgroundColor: AppColors.bgSurface,
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                              AppColors.teal,
-                            ),
-                            minHeight: 4,
-                          ),
+                          ],
                         ),
-                        const SizedBox(height: 3),
+                        const SizedBox(height: 4),
                         Text(
-                          '${letter.currentTransport.emoji} ${(letter.overallProgress * 100).toStringAsFixed(0)}% · ${letter.etaLabel} ${l10n.inboxEta}',
-                          style: const TextStyle(
-                            color: AppColors.teal,
-                            fontSize: 10,
+                          letter.content,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: _isUnread
+                                ? AppColors.textSecondary
+                                : AppColors.textMuted,
+                            fontSize: 13,
+                            height: 1.4,
                           ),
                         ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            // Build 325 (T5): 5요소 룰 — 발송지 (국기+국명) 대신
+                            //   "거리 or 만료" smart indicator. 만료 ≤ 24h 이면
+                            //   "⏰ Nh", 그 외 거리 가능 시 "📍 Nm/km", fallback
+                            //   원래 발송지.
+                            Text(
+                              _buildSmartContextLabel(context, letter, l10n),
+                              style: const TextStyle(
+                                color: AppColors.textMuted,
+                                fontSize: 11,
+                              ),
+                            ),
+                            const Spacer(),
+                            // 보낸 편지 읽음 여부
+                            if (!isInbox && letter.isReadByRecipient)
+                              Container(
+                                margin: const EdgeInsets.only(right: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.teal.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  '✓ ${l10n.inboxRead}',
+                                  style: const TextStyle(
+                                    color: AppColors.teal,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            // 상태
+                            _StatusBadge(
+                              status: letter.status,
+                              isInbox: isInbox,
+                            ),
+                          ],
+                        ),
+                        // 배송 게이지 (보낸 편지 + 배송 중)
+                        if (!isInbox &&
+                            letter.status == DeliveryStatus.inTransit) ...[
+                          const SizedBox(height: 8),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: letter.overallProgress,
+                              backgroundColor: AppColors.bgSurface,
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                AppColors.teal,
+                              ),
+                              minHeight: 4,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            '${letter.currentTransport.emoji} ${(letter.overallProgress * 100).toStringAsFixed(0)}% · ${letter.etaLabel} ${l10n.inboxEta}',
+                            style: const TextStyle(
+                              color: AppColors.teal,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
+                  ),
+                ],
+              ),
+                    ], // Column.children close (Build 324: AI 추천 칩 + Row 카드 본문)
                   ),
                 ),
               ],
             ),
-              ], // Column.children close (Build 324: AI 추천 칩 + Row 카드 본문)
-            ),
           ),
-          // 잠금 오버레이 (chain rule)
-          if (isLocked)
-            Positioned.fill(
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.bgDeep.withValues(alpha: 0.6),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('🔒', style: TextStyle(fontSize: 24)),
-                      const SizedBox(height: 4),
-                      Text(
-                        l10n.inboxSend3ToOpen,
-                        style: const TextStyle(
-                          color: AppColors.gold,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          // 삭제 버튼 (우상단)
-          if (onDelete != null && !isLocked)
-            Positioned(
-              top: 6,
-              right: 6,
-              child: GestureDetector(
-                onTap: onDelete,
-                child: Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: AppColors.bgDeep.withValues(alpha: 0.8),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: AppColors.error.withValues(alpha: 0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: const Icon(
-                    Icons.delete_outline_rounded,
-                    color: AppColors.error,
-                    size: 15,
-                  ),
-                ),
-              ),
-            ),
-          // 현지 수령 필요 오버레이 (deliveredFar)
-          if (letter.status == DeliveryStatus.deliveredFar)
-            Positioned.fill(
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.bgDeep.withValues(alpha: 0.7),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // 브랜드 편지는 카테고리 맞춤 이모지(✉️/🎟/🎁), Premium 발신자는
-                      // 📣 (홍보 편지), 그 외는 📬 (일반).
-                      Text(
-                        letter.senderIsBrand
-                            ? letter.category.brandEmoji
-                            : letter.senderTier == LetterSenderTier.premium
-                            ? '📣'
-                            : '📬',
-                        style: const TextStyle(fontSize: 24),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        l10n.inboxLocalOnly,
-                        style: const TextStyle(
-                          color: AppColors.warning,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
+        ),
       ),
     );
   }
@@ -3415,7 +3523,9 @@ class _BrandSentSummaryView extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    tooltip: AppL10n.of(context.read<AppState>().currentUser.languageCode).authClose,
+                    tooltip: AppL10n.of(
+                      context.read<AppState>().currentUser.languageCode,
+                    ).authClose,
                     icon: const Icon(
                       Icons.close_rounded,
                       color: AppColors.textMuted,
@@ -3769,9 +3879,9 @@ class _LetterFilterBar extends StatelessWidget {
     // 가로 스크롤 + 우측 fade 로 화면 폭 부족할 때 시각 cue.
     // BottomSheet 제거 — 모든 선택이 1탭 (이전엔 BottomSheet 열고 닫는 추가 2탭).
     return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(8, 6, 8, 4),
+      padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 4),
       child: SizedBox(
-        height: 34,
+        height: 46,
         child: ShaderMask(
           shaderCallback: (bounds) {
             return const LinearGradient(
@@ -3836,9 +3946,17 @@ class _FilterChipInline extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: 6),
       child: Material(
-        color: selected ? AppColors.gold : AppColors.bgCard,
-        borderRadius: BorderRadius.circular(999),
+        color: selected
+            ? AppColors.gold
+            : AppColors.bgSurface.withValues(alpha: 0.72),
         clipBehavior: Clip.antiAlias,
+        shape: StadiumBorder(
+          side: BorderSide(
+            color: selected
+                ? AppColors.gold.withValues(alpha: 0.95)
+                : AppColors.textMuted.withValues(alpha: 0.18),
+          ),
+        ),
         child: InkWell(
           onTap: onTap,
           onLongPress: onLongPress,
