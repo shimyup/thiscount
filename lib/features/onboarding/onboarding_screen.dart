@@ -1054,7 +1054,7 @@ class _PremiumPage extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     color: AppColors.gold,
-                                    fontSize: 10.5,
+                                    fontSize: 9.5,
                                     fontWeight: FontWeight.w800,
                                     letterSpacing: 0.5,
                                   ),
@@ -1068,10 +1068,10 @@ class _PremiumPage extends StatelessWidget {
                           l.onboardingPremiumTitle,
                           style: const TextStyle(
                             color: AppColors.textPrimary,
-                            fontSize: 22,
+                            fontSize: 18,
                             fontWeight: FontWeight.w800,
                             letterSpacing: -0.8,
-                            height: 1.15,
+                            height: 1.18,
                           ),
                         ),
                         const SizedBox(height: 7),
@@ -1079,7 +1079,7 @@ class _PremiumPage extends StatelessWidget {
                           l.onboardingPremiumSubtitle,
                           style: const TextStyle(
                             color: AppColors.textSecondary,
-                            fontSize: 12.5,
+                            fontSize: 11,
                             fontWeight: FontWeight.w500,
                             height: 1.4,
                             letterSpacing: -0.15,
@@ -1088,11 +1088,11 @@ class _PremiumPage extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   // 반경 비교 시각화 — 텍스트 옆 정사각 band.
                   SizedBox(
-                    width: 142,
-                    child: RadiusCompareViz(l: l, height: 142),
+                    width: 128,
+                    child: RadiusCompareViz(l: l, height: 128),
                   ),
                 ],
               ),
