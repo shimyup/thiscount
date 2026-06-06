@@ -1877,33 +1877,13 @@ class _ComposeScreenState extends State<ComposeScreen>
     bool sent = false;
     await _refreshCurrentLocationIfAvailable(state);
 
-    // Build 281 (P0 Brand 약속 보장): 발송 직전 2차 거리 검증.
-    // _refreshCurrentLocationIfAvailable 가 위치를 갱신했으므로 picker 시점
-    // 보다 더 정확. 사용자가 picker 후 100m 이상 이동했어도 막힘.
-    if (_isExactDropped && !_isReply) {
-      final myLat = state.currentUser.latitude;
-      final myLng = state.currentUser.longitude;
-      if (myLat != 0 || myLng != 0) {
-        final distM = LatLng(
-          myLat,
-          myLng,
-        ).distanceTo(LatLng(_destLat, _destLng));
-        if (distM > 100.0) {
-          setState(() => _isSending = false);
-          _sendController.reset();
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(l10n.composeExactDropOutOfRange),
-                backgroundColor: AppColors.error,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          }
-          return;
-        }
-      }
-    }
+    // Build 445 (device): ExactDrop 발송 직전 100m 거리 가드 제거.
+    //   _selectExactDrop(Build 317)은 이미 "Brand 가 본사에서 매장 위치 같은
+    //   다른 좌표로 발송 가능"하도록 선택 단계 100m 강제를 해제했는데, 발송 단계의
+    //   2차 100m 가드(Build 281)가 남아 있어 '매장 위치 고정' 후 현재 위치가
+    //   매장에서 100m 넘으면 발송이 차단되던 모순(사용자 보고: 매장 위치 고정
+    //   안됨). ExactDrop 은 유료 '원하는 좌표 정밀 발송' 기능이므로 송신자 현재
+    //   위치와 무관하게 지정 좌표로 발송돼야 함 → 가드 제거.
 
     // ExactDrop 사용 편지는 1 크레딧 차감. 부족 시 발송 중단.
     if (_isExactDropped && !_isReply) {
