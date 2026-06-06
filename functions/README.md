@@ -97,3 +97,23 @@ firebase deploy --only functions:generateCoupon
 - client: `CouponAIService.generate(...)` → 결과로 content/redemptionInfo 채움.
 - **ko→Solar(국산) 도입(선택)**: index.js 상단 주석의 4단계 참고 (SOLAR_API_KEY
   defineSecret 복원 + secrets 배열 추가 + callSolar 복원 + ko 라우팅 분기).
+
+## revenueCatWebhook — 구독 tier set/revoke (Build 442/443, 매출 무결성 #2/#6)
+기존 consumable 크레딧 grant 에 더해, **구독 만료/환불 시 서버 권위 강등**을 추가.
+- SET(INITIAL_PURCHASE/RENEWAL/PRODUCT_CHANGE/UNCANCELLATION): 구독 tier
+  (brand⊃premium) `isBrand/isPremium=true` + `*EntitlementRevokedAt` 마커 삭제
+  (재구독 시 client 오강등 방지) + consumable 크레딧 grant.
+- REVOKE(EXPIRATION): `isBrand/isPremium=false` + `*EntitlementRevokedAt` 마커 기록.
+  client `_restoreProfileFromServer` 가 **마커 존재 시에만** 로컬 tier 강등 수용
+  → 환불/외부취소/재설치 후 Brand 권한 영구 고착(일 1만통·ExactDrop) 해소.
+- CANCELLATION(자동갱신 OFF)은 만료 전까지 접근 유지 → 무시(EXPIRATION 후행).
+- event.id 멱등 유지.
+
+배포:
+```bash
+firebase deploy --only functions:revenueCatWebhook   # RC_WEBHOOK_AUTH secret 선설정
+```
+⚠️ **RC 대시보드 → Integrations → Webhooks 에서 다음 이벤트 전송 활성 필요**:
+INITIAL_PURCHASE, RENEWAL, PRODUCT_CHANGE, UNCANCELLATION, **EXPIRATION**,
+NON_RENEWING_PURCHASE. (EXPIRATION 미전송 시 강등이 동작하지 않음.)
+배포 후 실기기 결제→환불/만료로 server isBrand=false + 다음 cold-start client 강등 검증.

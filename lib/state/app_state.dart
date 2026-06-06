@@ -4276,6 +4276,22 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         _currentUser.isPremium = true;
         updated = true;
       }
+      // Build 442 (sim100 #2/#6): revenueCatWebhook 의 서버 권위 '강등' 수용.
+      //   구독 만료/환불 시 webhook 이 서버 isBrand/isPremium=false +
+      //   *EntitlementRevokedAt 마커를 기록한다. 마커가 존재할 때만(=RC 가 실제
+      //   만료/환불 통보) 로컬 true 를 강등 → admin grant·신규 Brand cold-start
+      //   OR-fallback 과 충돌하지 않는다(재구독 시 webhook 이 마커를 지우고
+      //   tier=true 로 되돌리므로 오강등 없음). grant-only 복원의 비대칭 해소.
+      final brandRevoked = map['brandEntitlementRevokedAt'] != null;
+      if (brandRevoked && serverIsBrand == false && _currentUser.isBrand) {
+        _currentUser.isBrand = false;
+        updated = true;
+      }
+      final premiumRevoked = map['premiumEntitlementRevokedAt'] != null;
+      if (premiumRevoked && serverIsPremium == false && _currentUser.isPremium) {
+        _currentUser.isPremium = false;
+        updated = true;
+      }
       final serverBrandName = map['brandName'];
       if (serverBrandName is String &&
           serverBrandName.isNotEmpty &&

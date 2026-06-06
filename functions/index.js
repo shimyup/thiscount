@@ -445,7 +445,24 @@ function grantForProduct(productId) {
   if (p.includes("exact_drop_100")) return { field: "brandExactDropCredits", amount: 100 };
   if (p.includes("exact_drop_50")) return { field: "brandExactDropCredits", amount: 50 };
   if (p.includes("brand_extra_1000")) return { field: "brandExtraMonthlyQuota", amount: 1000 };
-  return null; // premium/brand 구독은 entitlement(RC)로 처리 — 크레딧 grant 아님.
+  return null; // premium/brand 구독은 아래 subTierForEvent 로 tier set/revoke 처리.
+}
+
+// Build 442 (sim100 #2/#6): 구독 product/entitlement → tier('brand'|'premium').
+//   RC v2 webhook 의 entitlement_ids(배열) 우선, 없으면 product_id substring.
+//   매출 무결성: Brand 구독 만료/환불 시 서버 isBrand=false 권위 강등을 위해 필요.
+function subTierForEvent(productId, entitlementIds, entitlementId) {
+  const ents = [];
+  if (Array.isArray(entitlementIds)) {
+    for (const e of entitlementIds) ents.push(String(e || "").toLowerCase());
+  }
+  if (typeof entitlementId === "string") ents.push(entitlementId.toLowerCase());
+  if (ents.includes("brand")) return "brand";
+  if (ents.includes("premium")) return "premium";
+  const p = String(productId || "").toLowerCase();
+  if (p.includes("brand")) return "brand";
+  if (p.includes("premium")) return "premium";
+  return null;
 }
 
 exports.revenueCatWebhook = onRequest(
@@ -463,12 +480,7 @@ exports.revenueCatWebhook = onRequest(
     const appUserId = event.app_user_id;
     const eventId = event.id;
 
-    // 2) consumable 결제 이벤트만 grant. 구독/취소/환불 등은 무시(RC entitlement).
-    const GRANT_TYPES = ["INITIAL_PURCHASE", "NON_RENEWING_PURCHASE", "RENEWAL"];
-    if (!GRANT_TYPES.includes(type)) return res.json({ ok: true, skipped: type });
-
-    const grant = grantForProduct(productId);
-    if (!grant) return res.json({ ok: true, skipped: "no-credit-product" });
+    // uid/event id 가드 (공통).
     if (typeof appUserId !== "string" || appUserId.length < 3 ||
         appUserId.startsWith("$RCAnonymousID")) {
       return res.json({ ok: true, skipped: "anon-or-bad-uid" });
@@ -477,24 +489,76 @@ exports.revenueCatWebhook = onRequest(
       return bad(res, 400, "missing event id");
     }
 
+    // 2) 이벤트 분류.
+    //   SET: 구매/갱신/상품변경/취소철회 → 구독 tier 활성 + revoke 마커 삭제,
+    //        consumable 크레딧 grant.
+    //   REVOKE: 만료 → 구독 tier 강등 + revoke 마커 기록(환불은 EXPIRATION 후행).
+    //   CANCELLATION(자동갱신 OFF)은 만료 전까지 접근 유지 → tier 무변경.
+    const SET_TYPES = [
+      "INITIAL_PURCHASE", "NON_RENEWING_PURCHASE", "RENEWAL",
+      "PRODUCT_CHANGE", "UNCANCELLATION",
+    ];
+    const REVOKE_TYPES = ["EXPIRATION"];
+    const grant = grantForProduct(productId);
+    const tier = subTierForEvent(
+      productId, event.entitlement_ids, event.entitlement_id,
+    );
+    const isSet = SET_TYPES.includes(type);
+    const isRevoke = REVOKE_TYPES.includes(type);
+    if (!isSet && !isRevoke) return res.json({ ok: true, skipped: type });
+
     try {
       const db = admin.firestore();
+      const FV = admin.firestore.FieldValue;
       // 3) 멱등성 — 이미 처리한 event.id 면 skip.
       const claimRef = db.collection("purchaseClaims").doc(eventId);
       const userRef = db.collection("users").doc(appUserId);
-      const granted = await db.runTransaction(async (tx) => {
+      const result = await db.runTransaction(async (tx) => {
         const claim = await tx.get(claimRef);
-        if (claim.exists) return false; // 중복 webhook
+        if (claim.exists) return { dup: true }; // 중복 webhook
+        const patch = {};
+        const actions = [];
+        // (a) consumable 크레딧 grant — 구매성 이벤트만.
+        if (grant && isSet) {
+          patch[grant.field] = FV.increment(grant.amount);
+          actions.push(`grant:${grant.field}+${grant.amount}`);
+        }
+        // (b) 구독 tier 활성(재구독/갱신/업그레이드) — revoke 마커 삭제로 client
+        //     오강등 방지. Brand 는 Premium 포함.
+        if (tier && isSet) {
+          if (tier === "brand") {
+            patch.isBrand = true;
+            patch.isPremium = true;
+            patch.brandEntitlementRevokedAt = FV.delete();
+            patch.premiumEntitlementRevokedAt = FV.delete();
+          } else {
+            patch.isPremium = true;
+            patch.premiumEntitlementRevokedAt = FV.delete();
+          }
+          actions.push(`set:${tier}`);
+        }
+        // (c) 구독 tier 강등(만료/환불) — 서버 권위 false + revoke 마커. client
+        //     _restoreProfileFromServer 가 마커 존재 시에만 로컬 강등 수용.
+        if (tier && isRevoke) {
+          const now = FV.serverTimestamp();
+          if (tier === "brand") {
+            patch.isBrand = false;
+            patch.brandEntitlementRevokedAt = now;
+          } else {
+            patch.isPremium = false;
+            patch.premiumEntitlementRevokedAt = now;
+          }
+          actions.push(`revoke:${tier}`);
+        }
+        if (Object.keys(patch).length === 0) return { skipped: "no-op" };
         tx.set(claimRef, {
-          appUserId, productId, field: grant.field, amount: grant.amount,
-          type, at: admin.firestore.FieldValue.serverTimestamp(),
+          appUserId, productId, type, actions,
+          at: FV.serverTimestamp(),
         });
-        tx.set(userRef, {
-          [grant.field]: admin.firestore.FieldValue.increment(grant.amount),
-        }, { merge: true });
-        return true;
+        tx.set(userRef, patch, { merge: true });
+        return { actions };
       });
-      return res.json({ ok: true, granted, field: grant.field, amount: grant.amount });
+      return res.json({ ok: true, ...result });
     } catch (e) {
       logger.error("revenueCatWebhook error", e);
       return bad(res, 500, "internal");
