@@ -253,6 +253,16 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
       // RC 서버에서 발생해도 사용자가 백그라운드 → 포어그라운드 복귀 시
       // 즉시 entitlement 동기화. 이전엔 cold-start 까지 stale Premium 유지.
       _refreshCustomerInfoIfReady();
+      // Build 441 (sim100 P2): 예약 다운그레이드 재평가도 resume 훅에 추가.
+      //   기존엔 _refreshCustomerInfoIfReady 가 베타(_isTestMode/freePremium/
+      //   upgradeSimulator) early-return 이라, 베타·TestFlight 에서 effectiveDate
+      //   를 foreground 로 넘기면 cold-start 전까지 예약 강등이 미발효됐다.
+      //   SecureClock 가드를 가진 _loadAndApplyScheduledPlanChange 를 베타 무관
+      //   직접 호출(due 아니면 no-op, 적용 후 schedule clear 라 멱등).
+      unawaited(() async {
+        final prefs = await _getPrefs();
+        await _loadAndApplyScheduledPlanChange(prefs);
+      }());
     }
   }
 
@@ -419,8 +429,12 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
   DateTime? get trialExpiry => _trialExpiry;
   // Build 304: SecureClock.now() 로 시계 되돌리기 우회 차단. 사용자가
   // 디바이스 시각을 과거로 되돌려도 trial 이 영원히 활성화되지 않는다.
+  // Build 441 (sim100 P2): `&& !_isBrand` 이중방어 — Brand 정식 결제 후에도
+  //   trialExpiry 잔존 시 '체험 곧 종료' 배너가 잘못 노출되던 비대칭 차단.
   bool get isTrialActive =>
-      _trialExpiry != null && SecureClock.now().isBefore(_trialExpiry!);
+      _trialExpiry != null &&
+      !_isBrand &&
+      SecureClock.now().isBefore(_trialExpiry!);
   int get trialHoursRemaining {
     if (_trialExpiry == null) return 0;
     final diff = _trialExpiry!.difference(SecureClock.now());
@@ -858,6 +872,12 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
       if (target == ScheduledPlanTarget.free) {
         _isPremium = false;
         _isBrand = false;
+        // Build 441 (sim100 P1/#2-b): cold-start 에서 예약 free 다운그레이드가
+        //   발효될 때도 '확정 강등' flag 를 세운다(런타임 _reapplyScheduledPlan
+        //   ChangeIfDue 와 대칭). 누락 시 AppState.syncPremiumStatus 의 OR-fallback
+        //   (resolvedIsBrand=isBrand||_currentUser.isBrand)이 재시작 후 prefs/서버
+        //   의 stale isBrand=true 로 Brand 권한을 부활시켜 강등이 미반영됐음.
+        _pendingAuthoritativeDowngrade = true;
         await _saveSecurePremiumState(isPremium: false, isBrand: false);
       } else if (target == ScheduledPlanTarget.brand &&
           _isPremium &&
@@ -997,6 +1017,9 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
         _isBrand = true;
         _isPremium = true;
         await _saveSecurePremiumState(isPremium: true, isBrand: true);
+        // Build 441 (sim100 P2): Brand 결제 시 trial 정리(buyPremium 과 대칭).
+        _trialExpiry = null;
+        await prefs.remove(PrefKeys.purchaseGiftExpiry);
         await _markBillingCycleRefreshed(prefs);
       });
     }
@@ -1019,6 +1042,12 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
       final prefs = await _getPrefs();
       await _persistBillingDateToPrefs();
       await _clearScheduledPlanChange(prefs);
+      // Build 441 (sim100 P2): Brand 정식 결제 성공 시 trial 잔여 정리
+      //   (buyPremium 과 대칭) — ambiguous trial+paid 상태 차단.
+      if (_isBrand) {
+        _trialExpiry = null;
+        await prefs.remove(PrefKeys.purchaseGiftExpiry);
+      }
       _stopLoading();
       return _isBrand;
     } on PlatformException catch (e) {
