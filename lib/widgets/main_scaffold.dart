@@ -769,16 +769,17 @@ class _TrialCountdownBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final purchase = context.watch<PurchaseService>();
-    final isPremium = context.select<AppState, bool>(
-      (s) => s.currentUser.isPremium,
-    );
     // 본 결제 완료 (Brand 또는 정식 Premium) 시 배너 숨김 — trial 만 노출.
+    // Build 441 (sim100 P1): trial 사용자는 isPremium=true 이므로, 기존
+    //   `if (isPremium && !beta...)` 가드가 production 빌드(beta flag 전부 false)
+    //   에서 trial 사용자까지 배너를 영구 숨겨 Build 288 anti-friction 을
+    //   무력화하던 회귀. isTrialActive(776) 통과 시점이면 정식 결제자는 이미
+    //   trialExpiry=null 로 걸러졌으므로(buyPremium 이 clear) 추가 isPremium
+    //   가드는 잉여 + 유해 → 제거. trial 사용자는 항상 카운트다운 노출.
     if (!purchase.isTrialActive) return const SizedBox.shrink();
     if (purchase.trialExpiry == null) return const SizedBox.shrink();
-    // Premium 정식 결제 완료 사용자가 trial 잔여기 있는 케이스는 잠재적 — 노출 X.
-    if (isPremium && !purchase.isBetaFreePremium && !purchase.isTestMode) {
-      return const SizedBox.shrink();
-    }
+    // Brand 정식 결제자(trial 잔여 동시 보유 잠재 케이스)만 방어적으로 숨김.
+    if (purchase.isBrand) return const SizedBox.shrink();
     final hours = purchase.trialHoursRemaining;
     final langCode = context.select<AppState, String>(
       (s) => s.currentUser.languageCode,

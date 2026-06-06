@@ -1103,6 +1103,26 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// Build 302 (MED audit): 파라미터 명 `emailHash` → `email` (raw email 받는
   /// 다는 사실 명확화). 함수 내부에서 sha256 으로 해싱. 호출자가 "이미 해시된"
   /// 값을 전달하는 오해 차단.
+  // Build 441 (sim100 P1): Gmail/Googlemail 메일박스 정규화 — '+' 태그 제거 +
+  //   local-part 점(.) 제거 + domain 통일. Gmail 은 점/대소문자 무시 + plus-tag 가
+  //   같은 받은편지함이라 별칭으로 trial_claims 를 우회할 수 있어 canonical 키로
+  //   합친다. 비-Gmail 도메인은 plus/dot 처리가 제공자마다 달라(literal 가능)
+  //   정상 사용자 오차단을 피하려 원본 유지.
+  String _canonicalizeEmailForClaim(String normalized) {
+    final at = normalized.lastIndexOf('@');
+    if (at <= 0) return normalized;
+    var local = normalized.substring(0, at);
+    final domain = normalized.substring(at + 1);
+    if (domain == 'gmail.com' || domain == 'googlemail.com') {
+      final plus = local.indexOf('+');
+      if (plus >= 0) local = local.substring(0, plus);
+      local = local.replaceAll('.', '');
+      if (local.isEmpty) return normalized; // 비정상 입력 방어
+      return '$local@gmail.com';
+    }
+    return normalized;
+  }
+
   Future<bool> tryClaimWelcomeTrial({
     required String email,
     required Future<void> Function() grant,
@@ -1114,8 +1134,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // 이전엔 '@' 만 검증 → 'a@' 같은 무효 값도 통과 → 의미 없는 claim doc 누적.
     final emailRe = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
     if (normalized.isEmpty || !emailRe.hasMatch(normalized)) return false;
+    // Build 441 (sim100 P1): Gmail/Googlemail 별칭 canonicalize 후 해싱 — 정규화
+    //   누락 시 user+1@gmail / u.s.er@gmail 이 서로 다른 해시 → trial_claims 우회
+    //   무제한 3일 Premium farming. 동일 메일박스는 같은 claim 키를 갖게 한다.
+    final canonical = _canonicalizeEmailForClaim(normalized);
     // Build 299: 이메일 sha256 — 평문 이메일을 인덱스 키로 노출하지 않도록.
-    final hash = sha256.convert(utf8.encode(normalized)).toString();
+    final hash = sha256.convert(utf8.encode(canonical)).toString();
     final claimPath = 'trial_claims/$hash';
 
     if (FirebaseConfig.kFirebaseEnabled) {

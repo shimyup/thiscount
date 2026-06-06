@@ -1473,12 +1473,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final tierClr = _tierColor(tier);
     final isBrand = purchase.isBrand || user.isBrand;
     final isPrem = isBrand || purchase.isPremium || user.isPremium;
+    // Build 441 (sim100 P2): trial 사용자가 정식 결제자와 동일한 '👑 Premium'
+    //   배지로 표기돼 만료/체험 단서가 프로필에 전무하던 투명성 결함 → trial 중
+    //   에는 '체험' 배지 + teal 색으로 구분(카운트다운은 상단 trial 배너가 담당).
+    final isTrial = purchase.isTrialActive && !isBrand;
     final planLabel = isBrand
         ? '🏷️ Brand'
+        : isTrial
+        ? '👑 ${_al.koEn('체험', 'Trial')}'
         : isPrem
         ? '👑 Premium'
         : null;
-    final planColor = isBrand ? AppColors.coupon : AppColors.gold;
+    final planColor = isBrand
+        ? AppColors.coupon
+        : (isTrial ? AppColors.teal : AppColors.gold);
 
     return SliverAppBar(
       // Build 435 (design): 아바타 히어로를 toolbar 아래로 분리해 pinned title

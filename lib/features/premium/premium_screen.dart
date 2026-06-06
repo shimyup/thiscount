@@ -412,11 +412,18 @@ class _PremiumScreenState extends State<PremiumScreen> {
                           PurchaseProductIds.premiumMonthly) ??
                       '₩4,900',
                   period: l.premiumPerMonth,
-                  badge: isPremium && !isBrand ? l.premiumCurrentPlan : '',
+                  // Build 441 (sim100 P1): trial 사용자(isPremium=true via trial)가
+                  //   '현재 사용 중'으로 잠겨 만료 전 정식 결제 전환이 불가했음
+                  //   (전환 막다른 길). trial 중에는 '체험 중' 배지 + 결제 CTA 유지.
+                  badge: purchase.isTrialActive
+                      ? l.koEn('체험 중', 'On trial')
+                      : (isPremium && !isBrand ? l.premiumCurrentPlan : ''),
                   badgeColor: AppColors.teal,
                   features: premiumFeatures,
-                  isActive: isPremium && !isBrand,
-                  onTap: (isBrand || isPremium || purchase.loading)
+                  isActive: isPremium && !isBrand && !purchase.isTrialActive,
+                  onTap: (isBrand ||
+                          (isPremium && !purchase.isTrialActive) ||
+                          purchase.loading)
                       ? null
                       : () async {
                           if (purchase.isTestMode) {

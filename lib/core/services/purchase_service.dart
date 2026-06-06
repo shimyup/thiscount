@@ -440,7 +440,7 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
       id: PurchaseProductIds.brandMonthly,
       title: 'Brand / Creator',
       price: '₩99,000',
-      description: '인증 배지 · 하루 200통 · 대량 발송 · Premium 포함',
+      description: '인증 배지 · 월 10,000통 · 대량 발송 · Premium 포함',
     ),
     ProductInfo(
       id: PurchaseProductIds.giftCard,
@@ -621,6 +621,18 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
     _applyCustomerInfo(info);
     await _persistBillingDateToPrefs();
     final prefs = await _getPrefs();
+    // Build 441 (sim100 P1): production cold-start 는 _applyCustomerInfo(RC
+    //   entitlement 기반)만 타서 로컬 grant trial(gift)을 _isPremium=false 로
+    //   덮고 secure 까지 오염 → trial 이 1세션만 동작하던 회귀(베타 경로는
+    //   _initFromPrefs 가 giftExpiry 평가해 정상이라 베타 QA 에서 미검출).
+    //   여기서 giftExpiry 를 평가해 미만료 trial 이면 Premium OR-병합 + secure
+    //   복구. 매 cold-start 복원이라 _applyCustomerInfo 의 secure(false) write 와
+    //   race 가 나도 다음 cold-start 에서 self-heal.
+    await _evaluateGiftExpiryFromPrefs(prefs);
+    if (_trialExpiry != null && !_isBrand && !_isPremium) {
+      _isPremium = true;
+      await _saveSecurePremiumState(isPremium: true, isBrand: _isBrand);
+    }
     await _loadAndApplyScheduledPlanChange(prefs);
 
     try {

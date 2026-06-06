@@ -10877,7 +10877,7 @@ class AppL10n {
   });
 
   String get premiumBrandFeature1 => _t({
-    'ko': '하루 200통 발송 · 월 10,000통',
+    'ko': '월 10,000통 발송 · 대량 발송',
     'en': '200 promos/day · 10,000/month',
     'ja': '1日200通 · 月10,000通',
     'zh': '每日200封 · 每月10,000封',
@@ -10979,8 +10979,8 @@ class AppL10n {
   });
 
   String get premiumBrandTestDesc => _t({
-    'ko': '하루 200통 · 인증 배지 · 대량 발송\nPremium 모든 기능 포함',
-    'en': '200/day · verified badge · bulk send\nAll Premium features included',
+    'ko': '월 10,000통 · 인증 배지 · 대량 발송\nPremium 모든 기능 포함',
+    'en': '10K/month · verified badge · bulk send\nAll Premium features included',
     'ja': '1日200通 · 認証バッジ · 大量送信\nPremium全機能含む',
     'zh': '每日200封 · 认证徽章 · 批量发送\n包含所有Premium功能',
     'fr':
@@ -27855,8 +27855,8 @@ class AppL10n {
   });
 
   String get towerBenefitsBrandFeat3 => _t({
-    'ko': '일 200통 / 월 10,000통 + ROI 분석',
-    'en': '200/day · 10K/month + ROI analytics',
+    'ko': '월 10,000통 + ROI 분석',
+    'en': '10K/month + ROI analytics',
     'ja': '日200 / 月10,000 + ROI分析',
     'zh': '日200 / 月10K + ROI分析',
     'fr': '200/jour · 10K/mois + ROI',
