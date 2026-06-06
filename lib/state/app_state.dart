@@ -1198,8 +1198,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('brandExactDropCredits', _brandExactDropCredits);
     // Build 296 (P0 audit): Firestore 즉시 동기화 — 충전 직후 다른 기기/재설치
-    // 에서도 즉시 복구 가능. await 으로 묶어 결제 → 충전 → 다음 액션 일관성.
-    await _saveUserToFirestore();
+    // 에서도 즉시 복구 가능.
+    // Build 437 (device #4): best-effort 로 격리. 이전엔 await 가 throw 하면
+    //   호출측(_selectExactDrop / buyExactDrop)까지 전파 → ExactDrop picker 가
+    //   안 열리고 '자동 구매/충전이 안 됨' 회귀. 로컬+prefs 는 이미 반영됐고
+    //   베타는 exactDropFreeForBeta 로 무료 사용되므로 서버 저장 실패는 비치명적.
+    try {
+      await _saveUserToFirestore();
+    } catch (_) {
+      // 서버 저장 실패해도 로컬 크레딧은 유지 — 흐름 차단 금지.
+    }
     notifyListeners();
   }
 

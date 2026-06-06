@@ -99,7 +99,7 @@ class BrandCampaignScreen extends StatelessWidget {
             if (activeSent.isNotEmpty) ...[
               _SectionHeader(title: l.brandCampaignActive),
               const SizedBox(height: 8),
-              ...activeSent.take(20).map(
+              ...activeSent.take(50).map(
                     (letter) => Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: _CampaignRow(letter: letter, l: l),
@@ -110,7 +110,7 @@ class BrandCampaignScreen extends StatelessWidget {
               if (activeSent.isNotEmpty) const SizedBox(height: 24),
               _SectionHeader(title: l.brandCampaignEnded),
               const SizedBox(height: 8),
-              ...endedSent.take(20).map(
+              ...endedSent.take(50).map(
                     (letter) => Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: _CampaignRow(letter: letter, l: l),
@@ -421,50 +421,78 @@ class _CampaignRow extends StatelessWidget {
     // 우선 readCount 만 표시. 후속 PR (Cloud Function) 에서 redeem 집계 추가.
     final pickedUp = letter.readCount;
     final redeemed = letter.redeemedAt != null ? 1 : 0;
+    // Build 437 (device #2): 캠페인 카드 compact 가로형 — 업종 이모지 + 1줄 내용
+    //   + 인라인 통계. 이전 세로 2줄+칩 카드(~100pt)는 한 화면에 몇 개 못 보여
+    //   "스크롤만 되고 보기 어렵다" 회귀 → 높이 ~절반(화면당 ~2배 노출).
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.bgSurface),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(
-            letter.content,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              height: 1.4,
+          Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.bgSurface,
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: Text(
+              bizCategoryEmoji(letter.categoryTag),
+              style: const TextStyle(fontSize: 20),
             ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              _StatChip(
-                icon: Icons.local_mall_outlined,
-                label: '$pickedUp',
-                tooltip: l.brandCampaignPicked,
-              ),
-              const SizedBox(width: 8),
-              _StatChip(
-                icon: Icons.check_circle_outline_rounded,
-                label: '$redeemed',
-                tooltip: l.brandCampaignRedeemed,
-              ),
-              const Spacer(),
-              Text(
-                _shortAge(letter.sentAt),
-                style: const TextStyle(
-                  color: AppColors.textMuted,
-                  fontSize: 11,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  letter.content,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 5),
+                Row(
+                  children: [
+                    Text(
+                      '🛍 $pickedUp',
+                      style: const TextStyle(
+                        color: AppColors.teal,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      '✅ $redeemed',
+                      style: const TextStyle(
+                        color: AppColors.gold,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      _shortAge(letter.sentAt),
+                      style: const TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -481,6 +509,8 @@ class _CampaignRow extends StatelessWidget {
   }
 }
 
+// Build 437 (device #2): compact 카드 전환으로 현재 미사용 — 향후 재사용 대비 보존.
+// ignore: unused_element
 class _StatChip extends StatelessWidget {
   final IconData icon;
   final String label;

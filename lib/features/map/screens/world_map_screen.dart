@@ -781,6 +781,34 @@ class _WorldMapScreenState extends State<WorldMapScreen>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Build 437 (device #7): 지도 위 줌 +/- 버튼 복원(Build 271 에서
+                  //   제거됐었음). 핀치 외 명시적 줌 컨트롤 요구. min/max 3~18 clamp.
+                  _MapQuickActionButton(
+                    icon: Icons.add_rounded,
+                    tooltip: l10n.koEn('확대', 'Zoom in'),
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      final cam = _mapController.camera;
+                      _mapController.move(
+                        cam.center,
+                        (cam.zoom + 1).clamp(3.0, 18.0),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  _MapQuickActionButton(
+                    icon: Icons.remove_rounded,
+                    tooltip: l10n.koEn('축소', 'Zoom out'),
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      final cam = _mapController.camera;
+                      _mapController.move(
+                        cam.center,
+                        (cam.zoom - 1).clamp(3.0, 18.0),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 14),
                   _MapQuickActionButton(
                     icon: Icons.public_rounded,
                     tooltip: l10n.mapViewAll,

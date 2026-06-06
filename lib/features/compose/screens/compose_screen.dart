@@ -3543,7 +3543,21 @@ class _ComposeScreenState extends State<ComposeScreen>
             _showError(state.premiumExpressLimitExceededMessage);
             return;
           }
-          setState(() => _isExpressMode = !_isExpressMode);
+          setState(() {
+            _isExpressMode = !_isExpressMode;
+            // Build 437 (device #3): Brand 특급발송 선택 시 '나라당 발송 수 +
+            //   랜덤 국가' 설정 패널이 함께 노출되도록 대량 모드를 동반 토글한다
+            //   (사용자: 특급 켜도 국가/횟수 옵션이 안 보임). 검증된 express+bulk
+            //   발송 경로 재사용. 끌 때는 대량도 해제 + 타깃 정리.
+            if (isBrand) {
+              _isBulkMode = _isExpressMode;
+              if (_isExpressMode) {
+                if (_bulkTargets.isEmpty) _isRandom = true;
+              } else {
+                _bulkTargets.clear();
+              }
+            }
+          });
         },
       );
     }

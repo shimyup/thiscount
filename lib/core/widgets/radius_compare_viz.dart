@@ -40,12 +40,11 @@ class RadiusCompareViz extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // 산재 업종 이모지 (반경 안에 더 많은 혜택이 잡힌다는 신호)
-          _emoji('☕', left: 44, top: 36),
-          _emoji('🍔', right: 50, top: 52),
-          _emoji('💄', left: 56, bottom: 44),
-          _emoji('🎉', right: 52, bottom: 54),
-          _emoji('👗', right: 96, top: 116),
+          // 업종 이모지 — 두 원 사이 고리 윗부분에만 정돈 배치(중심/라벨과 미충돌).
+          _emoji('☕', left: 58, top: 44),
+          _emoji('🍔', right: 70, top: 62),
+          _emoji('💄', left: 48, top: 96),
+          _emoji('🎉', right: 52, top: 104),
           // Premium 1km 원 (골드, 큰 원)
           Container(
             width: 196,

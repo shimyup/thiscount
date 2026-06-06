@@ -1429,7 +1429,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return SliverAppBar(
       // Build 435 (design): 아바타 히어로를 toolbar 아래로 분리해 pinned title
       //   "프로필" 과 아바타가 겹쳐 깨져 보이던 버그 해소 (expandedHeight 도 동반 ↑).
-      expandedHeight: 318,
+      expandedHeight: 352,
       pinned: true,
       backgroundColor: AppTimeColors.of(ctx).bgDeep,
       elevation: 0,
@@ -1529,9 +1529,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const StreakBadge(compact: true),
                   ],
                 ),
+                // Build 437 (device #5): Brand '공식 발송인' 표시를 이름 바로 밑
+                //   전용 배지로 승격(이전엔 @handle 부제목에 묻혀 안 보임).
+                if (isBrand) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.coupon.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: AppColors.coupon.withValues(alpha: 0.42),
+                      ),
+                    ),
+                    child: Text(
+                      '👑 ${user.activityScore.reputationTitleL(user.languageCode)}',
+                      style: const TextStyle(
+                        color: AppColors.coupon,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 4),
                 Text(
-                  '@${user.username.toLowerCase()} · ${user.activityScore.reputationTitleL(user.languageCode)}',
+                  isBrand
+                      ? '@${user.username.toLowerCase()}'
+                      : '@${user.username.toLowerCase()} · ${user.activityScore.reputationTitleL(user.languageCode)}',
                   style: const TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 13,
