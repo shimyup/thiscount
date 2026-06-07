@@ -1402,6 +1402,36 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     return remainingPremiumExpressCount > 0;
   }
 
+  // ── Build 448: Brand 고정 매장 위치 ─────────────────────────────────────────
+  /// 자동 발송(zone)·정밀 발송의 중심으로 재사용할 매장 좌표. 기기 로컬 영속
+  /// (SharedPreferences) — 매번 위치를 다시 지정할 필요 없음. 미설정 시 null.
+  double? _fixedStoreLat;
+  double? _fixedStoreLng;
+  double? get fixedStoreLat => _fixedStoreLat;
+  double? get fixedStoreLng => _fixedStoreLng;
+  bool get hasFixedStoreLocation =>
+      _fixedStoreLat != null && _fixedStoreLng != null;
+
+  /// 고정 매장 위치 저장. (lat/lng 둘 다 필요)
+  Future<void> setFixedStoreLocation(double lat, double lng) async {
+    _fixedStoreLat = lat;
+    _fixedStoreLng = lng;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('brand_fixed_store_lat', lat);
+    await prefs.setDouble('brand_fixed_store_lng', lng);
+  }
+
+  /// 고정 매장 위치 해제.
+  Future<void> clearFixedStoreLocation() async {
+    _fixedStoreLat = null;
+    _fixedStoreLng = null;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('brand_fixed_store_lat');
+    await prefs.remove('brand_fixed_store_lng');
+  }
+
   // ── DM 권한 ────────────────────────────────────────────────────────────────
   /// DM 은 유료 등급(프리미엄 또는 브랜드) 사용 가능. 무료 계정은 불가.
   /// Build 446: 브랜드도 고객 문의를 받을 수 있도록 DM 허용(캠페인 화면 '받은 DM'
@@ -3343,6 +3373,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         prefs.getString('streak_freeze_last_refill') ?? '';
     _sumPickupKm = prefs.getDouble('sum_pickup_km') ?? 0.0;
     _sumSentKm = prefs.getDouble('sum_sent_km') ?? 0.0;
+    // Build 448: Brand 고정 매장 위치 (자동 발송 zone 중심으로 사용). 기기 로컬
+    //   영속 — 백엔드 rules 변경 없이 동작. 미설정 시 null.
+    _fixedStoreLat = prefs.getDouble('brand_fixed_store_lat');
+    _fixedStoreLng = prefs.getDouble('brand_fixed_store_lng');
     // 레거시 테스터: 거리 기록이 없을 때, 기존 활동량 기반으로 초기 추정 XP 를
     // 확보해 레벨 라벨이 신규 유저처럼 보이지 않도록 한다. 정확한 누적값은
     // 앞으로의 픽업·발송부터 실측이 덮어쓴다.

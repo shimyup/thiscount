@@ -5643,8 +5643,8 @@ class AppL10n {
     'th': 'ประเภทรางวัล',
   });
   String get composeBrandCategoryGeneral => _t({
-    'ko': '일반',
-    'en': 'Regular',
+    'ko': '일반홍보',
+    'en': 'Promo',
     'ja': '通常',
     'zh': '普通',
     'fr': 'Ordinaire',
@@ -10093,6 +10093,84 @@ class AppL10n {
     'it': 'Registra come zona auto',
     'hi': 'ऑटो-ज़ोन के रूप में पंजीकृत करें',
     'th': 'ลงทะเบียนเป็นโซนอัตโนมัติ',
+  });
+
+  // Build 448: 고정 매장 위치 (자동 발송 중심).
+  String get zoneFixedLocationTitle => _t({
+    'ko': '고정 매장 위치', 'en': 'Fixed store location', 'ja': '店舗位置を固定',
+    'zh': '固定门店位置', 'fr': 'Emplacement fixe', 'de': 'Fester Standort',
+    'es': 'Ubicación fija', 'pt': 'Local fixo', 'ru': 'Фикс. локация',
+    'tr': 'Sabit konum', 'ar': 'موقع ثابت', 'it': 'Posizione fissa',
+    'hi': 'निश्चित स्टोर स्थान', 'th': 'ตำแหน่งร้านคงที่',
+  });
+  String get zoneFixedLocationNone => _t({
+    'ko': '저장된 위치가 없어요. 지정하면 매번 GPS 없이 이 좌표로 자동 발송됩니다.',
+    'en': 'No saved location. Set one to auto-send from this point without GPS each time.',
+    'ja': '保存された位置がありません。設定すると毎回GPSなしでこの座標から自動配信。',
+    'zh': '尚无保存位置。设置后每次无需GPS即可从此坐标自动投放。',
+    'fr': 'Aucun lieu enregistré. Définissez-le pour envoyer depuis ce point sans GPS.',
+    'de': 'Kein Standort gespeichert. Festlegen, um ohne GPS von hier zu senden.',
+    'es': 'Sin ubicación guardada. Defínela para enviar desde aquí sin GPS.',
+    'pt': 'Sem local guardado. Defina para enviar deste ponto sem GPS.',
+    'ru': 'Локация не сохранена. Задайте, чтобы отправлять отсюда без GPS.',
+    'tr': 'Kayıtlı konum yok. Ayarlayın, her seferinde GPS\'siz buradan gönderin.',
+    'ar': 'لا يوجد موقع محفوظ. عيّنه للإرسال من هنا دون GPS.',
+    'it': 'Nessuna posizione salvata. Impostala per inviare da qui senza GPS.',
+    'hi': 'कोई सहेजा स्थान नहीं। सेट करें ताकि बिना GPS यहाँ से ऑटो-भेजें।',
+    'th': 'ยังไม่มีตำแหน่งที่บันทึก ตั้งค่าเพื่อส่งจากจุดนี้โดยไม่ต้องใช้ GPS',
+  });
+  String zoneFixedLocationOn(String lat, String lng) => _t({
+    'ko': '✅ 이 좌표로 자동 발송 ($lat, $lng)',
+    'en': '✅ Auto-send from ($lat, $lng)',
+    'ja': '✅ この座標から自動配信 ($lat, $lng)',
+    'zh': '✅ 从该坐标自动投放 ($lat, $lng)',
+    'fr': '✅ Envoi auto depuis ($lat, $lng)',
+    'de': '✅ Auto-Versand von ($lat, $lng)',
+    'es': '✅ Envío auto desde ($lat, $lng)',
+    'pt': '✅ Envio auto de ($lat, $lng)',
+    'ru': '✅ Авто-отправка из ($lat, $lng)',
+    'tr': '✅ ($lat, $lng) konumundan otomatik',
+    'ar': '✅ إرسال تلقائي من ($lat, $lng)',
+    'it': '✅ Invio auto da ($lat, $lng)',
+    'hi': '✅ ($lat, $lng) से ऑटो-भेजें',
+    'th': '✅ ส่งอัตโนมัติจาก ($lat, $lng)',
+  });
+  String get zoneFixedLocationOff => _t({
+    'ko': '저장됨 — 사용하려면 토글을 켜세요. (꺼짐: 현재 GPS 사용)',
+    'en': 'Saved — turn on the toggle to use it. (Off: current GPS)',
+    'ja': '保存済み — 使うにはトグルをオン。(オフ: 現在のGPS)',
+    'zh': '已保存 — 打开开关以使用。(关闭: 当前GPS)',
+    'fr': 'Enregistré — activez pour l\'utiliser. (Off : GPS actuel)',
+    'de': 'Gespeichert — zum Nutzen einschalten. (Aus: aktuelles GPS)',
+    'es': 'Guardado — actívalo para usarlo. (Off: GPS actual)',
+    'pt': 'Guardado — ative para usar. (Off: GPS atual)',
+    'ru': 'Сохранено — включите, чтобы использовать. (Выкл: текущий GPS)',
+    'tr': 'Kaydedildi — kullanmak için aç. (Kapalı: mevcut GPS)',
+    'ar': 'محفوظ — فعّله لاستخدامه. (إيقاف: GPS الحالي)',
+    'it': 'Salvato — attivalo per usarlo. (Off: GPS attuale)',
+    'hi': 'सहेजा गया — उपयोग हेतु टॉगल ऑन करें। (ऑफ: वर्तमान GPS)',
+    'th': 'บันทึกแล้ว — เปิดสวิตช์เพื่อใช้ (ปิด: GPS ปัจจุบัน)',
+  });
+  String get zoneFixedLocationSetBtn => _t({
+    'ko': '매장 위치 지정', 'en': 'Set location', 'ja': '位置を設定',
+    'zh': '设置位置', 'fr': 'Définir le lieu', 'de': 'Standort setzen',
+    'es': 'Definir ubicación', 'pt': 'Definir local', 'ru': 'Задать локацию',
+    'tr': 'Konum belirle', 'ar': 'تحديد الموقع', 'it': 'Imposta posizione',
+    'hi': 'स्थान सेट करें', 'th': 'ตั้งตำแหน่ง',
+  });
+  String get zoneFixedLocationChange => _t({
+    'ko': '위치 변경', 'en': 'Change', 'ja': '位置変更',
+    'zh': '更改位置', 'fr': 'Modifier', 'de': 'Ändern',
+    'es': 'Cambiar', 'pt': 'Alterar', 'ru': 'Изменить',
+    'tr': 'Değiştir', 'ar': 'تغيير', 'it': 'Cambia',
+    'hi': 'बदलें', 'th': 'เปลี่ยน',
+  });
+  String get zoneFixedLocationClear => _t({
+    'ko': '해제', 'en': 'Clear', 'ja': '解除',
+    'zh': '清除', 'fr': 'Effacer', 'de': 'Entfernen',
+    'es': 'Quitar', 'pt': 'Limpar', 'ru': 'Сбросить',
+    'tr': 'Kaldır', 'ar': 'مسح', 'it': 'Rimuovi',
+    'hi': 'हटाएं', 'th': 'ล้าง',
   });
 
   /// 카테고리 필터 섹션 헤더 (이전 "산업군" → Build 315 명칭 변경).
@@ -19170,7 +19248,7 @@ class AppL10n {
 
   // Build 446: '사용 코드 발급' 옵션 ON 시 수동 코드 입력란을 대체하는 안내.
   String get composeBrandCouponAutoCodeNote => _t({
-    'ko': "'사용 코드 발급' 옵션이 켜져 코드가 자동 발급됩니다. 여기에 코드를 따로 입력하지 않아도 돼요.",
+    'ko': "'할인코드 발급' 옵션이 켜져 코드가 자동 발급됩니다. 여기에 코드를 따로 입력하지 않아도 돼요.",
     'en': "Code is auto-issued by the 'Issue discount code' option. No need to type a code here.",
     'ja': "「使用コード発行」オプションでコードが自動発行されます。ここにコードを入力する必要はありません。",
     'zh': "已开启'发放使用代码'选项，代码会自动发放。无需在此输入代码。",
@@ -29450,7 +29528,7 @@ class AppL10n {
   //   coachingTip / compose 가이드 / sent dialog / reveal panel / BrandInsights.
 
   String get redemptionGuideTitle => _t({
-    'ko': '사용 코드 발급 안내',
+    'ko': '할인코드 발급 안내',
     'en': 'Discount code guide',
     'ja': '使用コード発行案内',
     'zh': '使用代码发放说明',
@@ -29535,7 +29613,7 @@ class AppL10n {
   });
 
   String get redemptionToggleLabel => _t({
-    'ko': '🛒 사용 코드 발급 (매장 POS 연동)',
+    'ko': '🏷️ 할인코드 발급 (매장 POS 연동)',
     'en': '🛒 Issue discount code (POS)',
     'ja': '🛒 使用コード発行 (POS連動)',
     'zh': '🛒 发放使用代码 (POS联动)',
@@ -29570,7 +29648,7 @@ class AppL10n {
 
   // Build 446: 발송 전 미리보기 카드 — 발급될 코드를 작성 화면에서 바로 노출.
   String get redemptionPreviewHeader => _t({
-    'ko': '이 캠페인 사용 코드 (자동 발급)',
+    'ko': '이 캠페인 할인코드 (자동 발급)',
     'en': 'This campaign\'s code (auto-issued)',
     'ja': 'このキャンペーンの使用コード (自動発行)',
     'zh': '本活动使用代码 (自动发放)',
@@ -29638,7 +29716,7 @@ class AppL10n {
   });
 
   String get redemptionSentDialogTitle => _t({
-    'ko': '발급된 사용 코드',
+    'ko': '발급된 할인코드',
     'en': 'Issued discount code',
     'ja': '発行された使用コード',
     'zh': '已发放代码',

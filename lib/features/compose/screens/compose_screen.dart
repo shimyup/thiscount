@@ -472,6 +472,8 @@ class _ComposeScreenState extends State<ComposeScreen>
   bool _isAutoZoneMode = false;
   double _zoneRadius = 300; // 300m / 2km
   bool _zoneUnlimited = true;
+  // Build 448: 자동 발송 시 고정 매장 위치(저장된 좌표)를 zone 중심으로 사용.
+  bool _useFixedStoreLocation = false;
   final TextEditingController _zoneMaxRedeemsCtrl =
       TextEditingController(text: '100');
 
@@ -553,6 +555,10 @@ class _ComposeScreenState extends State<ComposeScreen>
       if (!mounted) return;
       final state = context.read<AppState>();
       final l = AppL10n.of(state.currentUser.languageCode);
+      // Build 448: 이미 저장된 고정 매장 위치가 있으면 자동 발송 시 기본 사용.
+      if (state.hasFixedStoreLocation && !_useFixedStoreLocation) {
+        setState(() => _useFixedStoreLocation = true);
+      }
       if (_isReply) {
         // 답장: Premium·Brand 허용, Free 만 차단.
         if (!state.currentUser.isPremium && !state.currentUser.isBrand) {
@@ -1020,7 +1026,9 @@ class _ComposeScreenState extends State<ComposeScreen>
       _showError(l10n.composeBannedAccount);
       return;
     }
-    if (user.latitude == 0 && user.longitude == 0) {
+    // Build 448: 고정 매장 위치 사용 시 현재 GPS 가 없어도 OK(고정 좌표로 발송).
+    final useFixed = _useFixedStoreLocation && state.hasFixedStoreLocation;
+    if (!useFixed && user.latitude == 0 && user.longitude == 0) {
       _showError(l10n.composeNoLocation);
       return;
     }
@@ -1064,7 +1072,10 @@ class _ComposeScreenState extends State<ComposeScreen>
       createdId = await BrandZoneService.instance.createZone(
         brandId: user.id,
         brandName: user.username,
-        center: LatLng(user.latitude, user.longitude),
+        // Build 448: 고정 매장 위치 사용 시 그 좌표를 zone 중심으로.
+        center: useFixed
+            ? LatLng(state.fixedStoreLat!, state.fixedStoreLng!)
+            : LatLng(user.latitude, user.longitude),
         radiusM: _zoneRadius,
         content: content,
         redemptionInfo: _redemptionInfoController.text.trim().isEmpty
@@ -2139,6 +2150,37 @@ class _ComposeScreenState extends State<ComposeScreen>
   // Free / Premium 은 이 진입점을 볼 수 없다.
   // Build 106: 유료 크레딧 필요 (100통 = 10,000원). 크레딧 0 이면 "관리자 문의"
   // 다이얼로그 안내 후 진입 차단.
+  // Build 448: 고정 매장 위치 지정 — 지도 picker(ExactDropPicker 재사용)로 좌표를
+  //   골라 영속 저장. ExactDrop 크레딧과 무관(발송이 아니라 위치 설정).
+  Future<void> _pickFixedStoreLocation() async {
+    final state = context.read<AppState>();
+    if (!state.currentUser.isBrand) return;
+    final langCode = state.currentUser.languageCode;
+    final initial = ll.LatLng(
+      state.fixedStoreLat ??
+          (state.currentUser.latitude != 0.0
+              ? state.currentUser.latitude
+              : 37.5665),
+      state.fixedStoreLng ??
+          (state.currentUser.longitude != 0.0
+              ? state.currentUser.longitude
+              : 126.9780),
+    );
+    final picked = await Navigator.of(context).push<ll.LatLng>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => ExactDropPicker(
+          initial: initial,
+          langCode: langCode,
+          recommendations: const [],
+        ),
+      ),
+    );
+    if (!mounted || picked == null) return;
+    await state.setFixedStoreLocation(picked.latitude, picked.longitude);
+    if (mounted) setState(() => _useFixedStoreLocation = true);
+  }
+
   Future<void> _selectExactDrop() async {
     final state = context.read<AppState>();
     final langCode = state.currentUser.languageCode;
@@ -4832,7 +4874,16 @@ class _ComposeScreenState extends State<ComposeScreen>
                         _showBrandOnlyCategorySheet(context, l10n, c);
                         return;
                       }
-                      setState(() => _brandCategory = c);
+                      setState(() {
+                        _brandCategory = c;
+                        // Build 448: 할인코드는 할인권 전용 → 다른 카테고리로 바꾸면
+                        //   발급 옵션 해제 + 미리보기 코드 제거(stale 코드 발송 방지).
+                        if (c != LetterCategory.coupon &&
+                            _attachRedemptionCode) {
+                          _attachRedemptionCode = false;
+                          _previewRedemptionCode = null;
+                        }
+                      });
                     },
                     borderRadius: BorderRadius.circular(8),
                     child: Opacity(
@@ -5444,6 +5495,10 @@ class _ComposeScreenState extends State<ComposeScreen>
         ),
         if (_isAutoZoneMode) ...[
           const SizedBox(height: 10),
+          // Build 448: 고정 매장 위치 — 자동 발송 중심으로 사용. 저장 좌표가 있으면
+          //   매번 GPS 없이 이 좌표로 발송.
+          _buildFixedLocationCard(l10n),
+          const SizedBox(height: 10),
           // 반경 선택
           Row(
             children: [
@@ -5483,6 +5538,120 @@ class _ComposeScreenState extends State<ComposeScreen>
           ],
         ],
       ],
+    );
+  }
+
+  // Build 448: 고정 매장 위치 카드 — 좌표 저장/변경/해제 + 사용 토글.
+  Widget _buildFixedLocationCard(AppL10n l10n) {
+    final state = context.watch<AppState>();
+    final hasFixed = state.hasFixedStoreLocation;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.bgSurface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: (hasFixed && _useFixedStoreLocation)
+              ? AppColors.gold.withValues(alpha: 0.5)
+              : AppColors.textMuted.withValues(alpha: 0.18),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.push_pin_rounded,
+                size: 16,
+                color: (hasFixed && _useFixedStoreLocation)
+                    ? AppColors.gold
+                    : AppColors.textMuted,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.zoneFixedLocationTitle,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              if (hasFixed)
+                Transform.scale(
+                  scale: 0.8,
+                  child: Switch(
+                    value: _useFixedStoreLocation,
+                    activeColor: AppColors.gold,
+                    onChanged: (v) =>
+                        setState(() => _useFixedStoreLocation = v),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(
+            hasFixed
+                ? (_useFixedStoreLocation
+                    ? l10n.zoneFixedLocationOn(
+                        state.fixedStoreLat!.toStringAsFixed(5),
+                        state.fixedStoreLng!.toStringAsFixed(5),
+                      )
+                    : l10n.zoneFixedLocationOff)
+                : l10n.zoneFixedLocationNone,
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 10.5,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              OutlinedButton.icon(
+                onPressed: _pickFixedStoreLocation,
+                icon: const Icon(Icons.map_rounded, size: 14),
+                label: Text(
+                  hasFixed
+                      ? l10n.zoneFixedLocationChange
+                      : l10n.zoneFixedLocationSetBtn,
+                  style: const TextStyle(
+                      fontSize: 11.5, fontWeight: FontWeight.w700),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.gold,
+                  side: BorderSide(color: AppColors.gold.withValues(alpha: 0.5)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  minimumSize: const Size(0, 36),
+                ),
+              ),
+              if (hasFixed) ...[
+                const SizedBox(width: 8),
+                TextButton(
+                  onPressed: () async {
+                    await context.read<AppState>().clearFixedStoreLocation();
+                    if (mounted) {
+                      setState(() => _useFixedStoreLocation = false);
+                    }
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.textMuted,
+                    minimumSize: const Size(0, 36),
+                  ),
+                  child: Text(
+                    l10n.zoneFixedLocationClear,
+                    style: const TextStyle(
+                        fontSize: 11.5, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -5608,35 +5777,31 @@ class _ComposeScreenState extends State<ComposeScreen>
                 onTap: () =>
                     setState(() => _brandAcceptsReplies = !_brandAcceptsReplies),
               ),
-              _optionToggleButton(
-                active: _attachRedemptionCode,
-                label: l10n.redemptionToggleLabel,
-                onTap: () async {
-                  if (!_attachRedemptionCode) {
-                    final ok = await _showRedemptionCodeGuide();
-                    if (ok != true) return;
-                  }
-                  setState(() {
-                    _attachRedemptionCode = !_attachRedemptionCode;
-                    if (_attachRedemptionCode) {
-                      // Build 446: 토글 ON 즉시 코드 1개 발급 → 미리보기 카드 노출.
-                      _previewRedemptionCode ??= RedemptionCode.generate();
-                      // 코드 발급 ON 시 general → coupon 자동 전환(POS 흐름 일관성).
-                      if (_brandCategory == LetterCategory.general) {
-                        _brandCategory = LetterCategory.coupon;
-                      }
-                      // Build 446: 옵션 버튼이 코드 발급을 담당 → 수동 코드 입력란
-                      //   불필요. 쿠폰 카테고리면 기존 입력 코드를 비워 중복 코드
-                      //   노출 차단(교환권 이미지 경로는 보존).
-                      if (_brandCategory == LetterCategory.coupon) {
-                        _redemptionInfoController.clear();
-                      }
-                    } else {
-                      _previewRedemptionCode = null;
+              // Build 448: 할인코드 발급은 '할인권' 카테고리에서만 노출 — 할인코드는
+              //   할인권 전용 개념이므로 일반홍보/교환권에는 표시하지 않는다.
+              if (_brandCategory == LetterCategory.coupon)
+                _optionToggleButton(
+                  active: _attachRedemptionCode,
+                  label: l10n.redemptionToggleLabel,
+                  onTap: () async {
+                    if (!_attachRedemptionCode) {
+                      final ok = await _showRedemptionCodeGuide();
+                      if (ok != true) return;
                     }
-                  });
-                },
-              ),
+                    setState(() {
+                      _attachRedemptionCode = !_attachRedemptionCode;
+                      if (_attachRedemptionCode) {
+                        // 토글 ON 즉시 코드 1개 발급 → 미리보기 카드 노출.
+                        _previewRedemptionCode ??= RedemptionCode.generate();
+                        // 옵션 버튼이 코드 발급을 담당 → 수동 코드 입력란 불필요.
+                        //   기존 입력 코드를 비워 중복 코드 노출 차단.
+                        _redemptionInfoController.clear();
+                      } else {
+                        _previewRedemptionCode = null;
+                      }
+                    });
+                  },
+                ),
             ],
           ),
           // Build 446: 코드 발급 토글 ON 시 발급될 코드를 발송 전에 미리 노출 →
@@ -5696,6 +5861,15 @@ class _ComposeScreenState extends State<ComposeScreen>
               );
             }).toList(),
           ),
+          // Build 448: 자동 발송(zone) 섹션 재노출 — 사용자가 반경 안에 들어오면
+          //   자동 발송 + 고정 매장 위치 사용. (이전 빌드에서 숨겨졌던 섹션 복원)
+          const SizedBox(height: 14),
+          Divider(
+            height: 1,
+            color: AppColors.textMuted.withValues(alpha: 0.12),
+          ),
+          const SizedBox(height: 12),
+          _buildAutoZoneSection(l10n),
         ],
       ),
     );

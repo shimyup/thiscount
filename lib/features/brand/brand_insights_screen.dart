@@ -66,22 +66,18 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
     final body = ListView(
       padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 32),
       children: [
-        // 1) 헤드라인 — 사용 전환률 + 평가
-        _buildHeadline(insights, l),
-        const SizedBox(height: 20),
-        // 2) 단계별 funnel
-        _buildFunnel(insights),
-        const SizedBox(height: 20),
-        // Build 334 (PR-S4): "발급된 매장 코드" dedup 섹션 — 사장이 POS 에
-        //   등록할 코드를 한 화면에서 확인. campaigns 가 같은 코드를 공유하면
-        //   하나로 합쳐 letter 수 / 노출 / 사용 stat 합산.
+        // Build 448: ROI 전환율 + 단계 퍼널을 한 카드로 통합 → 스크롤 없이 핵심
+        //   지표를 한눈에. (이전엔 헤드라인 카드 + 퍼널 카드 분리로 스크롤 길었음)
+        _buildSummaryCard(insights, l),
+        const SizedBox(height: 14),
+        // "발급된 매장 코드" dedup 섹션.
         ..._buildActiveCodesSection(insights),
-        // 3) 캠페인 list
+        // 캠페인 list
         if (insights.campaigns.isEmpty)
           _buildEmpty(l)
         else
           ...insights.campaigns.take(10).map(_buildCampaignCard),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
         _buildHelpFooter(l),
       ],
     );
@@ -106,129 +102,90 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
     );
   }
 
-  Widget _buildHeadline(BrandInsights i, AppL10n l) {
+  // Build 448: ROI 전환율 헤드라인 + 4단계 퍼널을 한 카드로 통합.
+  Widget _buildSummaryCard(BrandInsights i, AppL10n l) {
     final pct = (i.redeemRate * 100).toStringAsFixed(1);
-    // Build 409 (sim P2 L99): 데이터 0 인 신규 Brand 에게 빨간 '개선 필요 0.0%'
-    //   verdict 는 부정확·위축감. 발송 0 또는 픽업 0 이면 중립 안내로 대체.
     final noData = i.totalSent == 0 || i.totalPickup == 0;
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.gold.withValues(alpha: 0.18),
-            AppColors.gold.withValues(alpha: 0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.gold.withValues(alpha: 0.35)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l.koEn('최근 30일', 'Last 30 days'),
-            style: const TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                noData ? '—' : '$pct%',
-                style: const TextStyle(
-                  color: AppColors.gold,
-                  fontSize: 36,
-                  fontWeight: FontWeight.w900,
-                  height: 1.0,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text(
-                  noData
-                      ? l.koEn('🆕 데이터 수집 중', '🆕 Collecting data')
-                      : '${i.healthEmoji} ${i.healthLabelL10n(l)}',
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            noData
-                ? l.koEn('첫 픽업이 발생하면 사용 전환율이 표시돼요',
-                    'Redemption rate appears once you get your first pickup')
-                : l.koEn('픽업한 사람 중 매장 사용 비율',
-                    'In-store redemption rate among pickups'),
-            style: const TextStyle(
-                color: AppColors.textSecondary, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFunnel(BrandInsights i) {
-    // Build 331 (PR-S3): 4단계 funnel — 발송 → 픽업 → 코드 노출 → 사용.
-    //   코드 노출 (revealedCount) = 매장 도착 의도 신호. 노출→사용 drop 큰
-    //   캠페인은 POS 등록 누락 가능성 → 코칭 메시지로 알림.
-    // Build 415 (#8 ROI 퍼널 대시보드): KPI 4-up 카드 → 세로 퍼널로 시각화.
-    //   각 단계의 막대 폭 = 발송 대비 비율, 단계 간 전환율 (% 와 ↓ drop) 을
-    //   막대 옆에 표기해 "어디서 빠지는지" 한눈에 보이게 한다.
-    final l = AppL10n.of(
-      context.read<AppState>().currentUser.languageCode,
-    );
-    // Build 417 (sim100 P3): mixed-source 집계로 redeemed>pickup 같은 비논리적
-    //   절대수치가 그대로 노출되던 것 보정 — 각 단계는 직전 단계를 넘지 못하게
-    //   clamp(퍼널은 단조감소). 표시 전용(원본 분석값 불변).
+    // 퍼널 단계 — 단조감소 clamp(표시 전용).
     final pSent = i.totalSent;
     final pPickup = i.totalPickup.clamp(0, pSent <= 0 ? i.totalPickup : pSent);
     final pReveal = i.totalRevealed.clamp(0, pPickup);
     final pRedeem = i.totalRedeemed.clamp(0, pReveal);
     final stages = <_FunnelStage>[
-      _FunnelStage('📮', l.koEn('발송', 'Sent'), pSent, AppColors.textMuted),
-      _FunnelStage('🎯', l.koEn('픽업', 'Pickup'), pPickup, AppColors.teal),
-      _FunnelStage('🛒', l.koEn('노출', 'Reveal'), pReveal, AppColors.coupon),
-      _FunnelStage('✅', l.koEn('사용', 'Redeem'), pRedeem, AppColors.gold),
+      _FunnelStage('\u{1F4EE}', l.koEn('발송', 'Sent'), pSent, AppColors.textMuted),
+      _FunnelStage('\u{1F3AF}', l.koEn('픽업', 'Pickup'), pPickup, AppColors.teal),
+      _FunnelStage('\u{1F6D2}', l.koEn('노출', 'Reveal'), pReveal, AppColors.coupon),
+      _FunnelStage('\u2705', l.koEn('사용', 'Redeem'), pRedeem, AppColors.gold),
     ];
     final maxCount = i.totalSent <= 0 ? 1 : i.totalSent;
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
       decoration: BoxDecoration(
-        color: AppColors.bgCard,
+        gradient: LinearGradient(
+          colors: [
+            AppColors.gold.withValues(alpha: 0.16),
+            AppColors.gold.withValues(alpha: 0.04),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.gold.withValues(alpha: 0.32)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ── ROI 전환율 헤드라인 ──
           Text(
-            l.koEn('전환 퍼널', 'Conversion funnel'),
+            l.koEn('최근 30일 · 사용 전환율', 'Last 30 days · Redemption'),
             style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
+              color: AppColors.textMuted,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
               letterSpacing: 0.3,
             ),
           ),
+          const SizedBox(height: 4),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                noData ? '\u2014' : '$pct%',
+                style: const TextStyle(
+                  color: AppColors.gold,
+                  fontSize: 30,
+                  fontWeight: FontWeight.w900,
+                  height: 1.0,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 3),
+                  child: Text(
+                    noData
+                        ? l.koEn('\u{1F195} 데이터 수집 중', '\u{1F195} Collecting data')
+                        : '${i.healthEmoji} ${i.healthLabelL10n(l)}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
+          Divider(height: 1, color: AppColors.gold.withValues(alpha: 0.18)),
+          const SizedBox(height: 12),
+          // ── 4단계 전환 퍼널 ──
           for (int s = 0; s < stages.length; s++)
             _funnelRow(
               stages[s],
               maxCount,
-              // 단계 간 전환율 — 직전 단계 대비. 첫 단계(발송)는 기준점 → null.
               s == 0 ? null : _stepRate(stages[s].count, stages[s - 1].count),
             ),
         ],
@@ -247,7 +204,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
     final raw = maxCount <= 0 ? 0.0 : stage.count / maxCount;
     final widthFactor = stage.count == 0 ? 0.0 : (raw < 0.06 ? 0.06 : raw);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
           // 라벨 (이모지 + 단계명)

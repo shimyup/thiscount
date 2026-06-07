@@ -1237,7 +1237,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 16),
           _buildFollowSection(ctx, state, user),
           const SizedBox(height: 16),
-          ..._buildSettingsSections(ctx, state, user, _l),
+          ..._buildSettingsSections(ctx, state, user, _l, expanded: true),
         ],
       ),
     );
@@ -1347,9 +1347,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     BuildContext ctx,
     AppState state,
     UserProfile user,
-    AppL10n _l,
-  ) {
+    AppL10n _l, {
+    bool expanded = false,
+  }) {
     final _lc = user.languageCode;
+    // Build 448: 이 호출의 그룹 펼침 기본값 지정 (Brand 프로필 탭 = true).
+    _settingsGroupsExpanded = expanded;
     return [
                               // ── 계정 ──
                               _settingsGroup(_l.profileAccountSection, [
@@ -2758,8 +2761,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // ── 카드형 설정 그룹 (Build 271: 그룹별 collapsible) ──────────────────
   // 이전엔 모든 그룹 (6개) 이 한꺼번에 펼쳐져 항목이 즉시 노출됐다.
   // 사용자가 원하는 그룹만 펼쳐서 보도록 변경 — 1차 스캔 시 그룹 헤더만.
+  // Build 448: Brand 프로필 탭에서는 펼친 상태로(접지 않고) 노출.
+  bool _settingsGroupsExpanded = false;
   Widget _settingsGroup(String title, List<Widget> children) {
-    return _ExpandableSettingsGroup(title: title, children: children);
+    return _ExpandableSettingsGroup(
+      title: title,
+      initiallyExpanded: _settingsGroupsExpanded,
+      children: children,
+    );
   }
 
   // ── 그룹 내 일반 타일 ────────────────────────────────────────────────────
@@ -3066,8 +3075,14 @@ class _BrandExactDropCreditsCard extends StatelessWidget {
 class _ExpandableSettingsGroup extends StatefulWidget {
   final String title;
   final List<Widget> children;
+  // Build 448: 펼친 상태로 시작 (Brand 프로필 탭은 접지 않고 노출).
+  final bool initiallyExpanded;
 
-  const _ExpandableSettingsGroup({required this.title, required this.children});
+  const _ExpandableSettingsGroup({
+    required this.title,
+    required this.children,
+    this.initiallyExpanded = false,
+  });
 
   @override
   State<_ExpandableSettingsGroup> createState() =>
@@ -3075,7 +3090,7 @@ class _ExpandableSettingsGroup extends StatefulWidget {
 }
 
 class _ExpandableSettingsGroupState extends State<_ExpandableSettingsGroup> {
-  bool _expanded = false;
+  late bool _expanded = widget.initiallyExpanded;
 
   @override
   Widget build(BuildContext context) {

@@ -261,9 +261,9 @@ class _CategoryFilterRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = <(_CampaignCatFilter, String)>[
       (_CampaignCatFilter.all, l.inboxFilterAll),
-      (_CampaignCatFilter.general, l.inboxFilterGeneral),
-      (_CampaignCatFilter.coupon, l.inboxFilterCoupon),
-      (_CampaignCatFilter.voucher, l.inboxFilterVoucher),
+      (_CampaignCatFilter.general, l.composeBrandCategoryGeneral),
+      (_CampaignCatFilter.coupon, l.composeBrandCategoryCoupon),
+      (_CampaignCatFilter.voucher, l.composeBrandCategoryVoucher),
     ];
     return SizedBox(
       height: 34,
