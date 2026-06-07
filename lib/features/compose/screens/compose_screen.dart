@@ -4933,69 +4933,105 @@ class _ComposeScreenState extends State<ComposeScreen>
               ),
             ),
             const SizedBox(height: 4),
-            Text(
-              // Build 127: 카테고리별 설명 · 힌트 · 아이콘 분기.
-              //   할인권 → 코드 형식 설명 (예: LETTERGO20)
-              //   교환권 → 쿠폰 이미지 업로드 안내
-              _brandCategory == LetterCategory.coupon
-                  ? l10n.composeBrandCouponDesc
-                  : l10n.composeBrandVoucherDesc,
-              style: const TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 10,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _redemptionInfoController,
-              maxLength: 200,
-              minLines: 1,
-              maxLines: 3,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 13,
-              ),
-              onChanged: (_) {
-                // 유저가 텍스트를 직접 타이핑하면 이미지 선택 상태 해제.
-                if (_voucherImageLocalPath != null) {
-                  setState(() => _voucherImageLocalPath = null);
-                }
-              },
-              decoration: InputDecoration(
-                hintText: _brandCategory == LetterCategory.coupon
-                    ? l10n.composeBrandCouponHint
-                    : l10n.composeBrandVoucherHint,
-                hintStyle: const TextStyle(
-                  color: AppColors.textMuted,
-                  fontSize: 12,
+            // Build 446: 할인권 + '사용 코드 발급' 옵션 ON 이면 수동 코드 입력란을
+            //   숨기고 안내 노트로 대체 — 코드는 옵션 버튼이 자동 발급하므로 사장이
+            //   여기에 코드를 따로 입력할 필요가 없다(중복 입력 제거).
+            if (_brandCategory == LetterCategory.coupon &&
+                _attachRedemptionCode) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                decoration: BoxDecoration(
+                  color: AppColors.teal.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: AppColors.teal.withValues(alpha: 0.4),
+                  ),
                 ),
-                prefixIcon: Icon(
-                  _brandCategory == LetterCategory.coupon
-                      ? Icons.qr_code_2_rounded
-                      : Icons.image_rounded,
-                  color: AppColors.teal,
-                  size: 18,
+                child: Row(
+                  children: [
+                    const Icon(Icons.check_circle_rounded,
+                        size: 16, color: AppColors.teal),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        l10n.composeBrandCouponAutoCodeNote,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 11,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                filled: true,
-                fillColor: AppColors.bgSurface,
-                counterStyle: const TextStyle(
+              ),
+            ] else ...[
+              Text(
+                // Build 127: 카테고리별 설명 · 힌트 · 아이콘 분기.
+                //   할인권 → 코드 형식 설명 (예: LETTERGO20)
+                //   교환권 → 쿠폰 이미지 업로드 안내
+                _brandCategory == LetterCategory.coupon
+                    ? l10n.composeBrandCouponDesc
+                    : l10n.composeBrandVoucherDesc,
+                style: const TextStyle(
                   color: AppColors.textMuted,
                   fontSize: 10,
                 ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.bgSurface),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _redemptionInfoController,
+                maxLength: 200,
+                minLines: 1,
+                maxLines: 3,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 13,
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.teal, width: 1.4),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.bgSurface),
+                onChanged: (_) {
+                  // 유저가 텍스트를 직접 타이핑하면 이미지 선택 상태 해제.
+                  if (_voucherImageLocalPath != null) {
+                    setState(() => _voucherImageLocalPath = null);
+                  }
+                },
+                decoration: InputDecoration(
+                  hintText: _brandCategory == LetterCategory.coupon
+                      ? l10n.composeBrandCouponHint
+                      : l10n.composeBrandVoucherHint,
+                  hintStyle: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 12,
+                  ),
+                  prefixIcon: Icon(
+                    _brandCategory == LetterCategory.coupon
+                        ? Icons.qr_code_2_rounded
+                        : Icons.image_rounded,
+                    color: AppColors.teal,
+                    size: 18,
+                  ),
+                  filled: true,
+                  fillColor: AppColors.bgSurface,
+                  counterStyle: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 10,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppColors.bgSurface),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide:
+                        const BorderSide(color: AppColors.teal, width: 1.4),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppColors.bgSurface),
+                  ),
                 ),
               ),
-            ),
+            ],
             // Build 130: 교환권일 때 이미지 선택 버튼 + 미리보기. 선택하면 로컬
             // 경로가 `_redemptionInfoController` 에 채워진다 (URL 자리를
             // 로컬 경로가 대신함). 수신자 렌더링은 Build 131 에서 경로 vs URL
@@ -5588,6 +5624,12 @@ class _ComposeScreenState extends State<ComposeScreen>
                       // 코드 발급 ON 시 general → coupon 자동 전환(POS 흐름 일관성).
                       if (_brandCategory == LetterCategory.general) {
                         _brandCategory = LetterCategory.coupon;
+                      }
+                      // Build 446: 옵션 버튼이 코드 발급을 담당 → 수동 코드 입력란
+                      //   불필요. 쿠폰 카테고리면 기존 입력 코드를 비워 중복 코드
+                      //   노출 차단(교환권 이미지 경로는 보존).
+                      if (_brandCategory == LetterCategory.coupon) {
+                        _redemptionInfoController.clear();
                       }
                     } else {
                       _previewRedemptionCode = null;

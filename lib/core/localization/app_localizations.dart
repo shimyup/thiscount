@@ -19090,6 +19090,24 @@ class AppL10n {
     'th': 'ใส่รหัสส่วนลด ผู้รับพิมพ์ตอนชำระ',
   });
 
+  // Build 446: '사용 코드 발급' 옵션 ON 시 수동 코드 입력란을 대체하는 안내.
+  String get composeBrandCouponAutoCodeNote => _t({
+    'ko': "'사용 코드 발급' 옵션이 켜져 코드가 자동 발급됩니다. 여기에 코드를 따로 입력하지 않아도 돼요.",
+    'en': "Code is auto-issued by the 'Issue discount code' option. No need to type a code here.",
+    'ja': "「使用コード発行」オプションでコードが自動発行されます。ここにコードを入力する必要はありません。",
+    'zh': "已开启'发放使用代码'选项，代码会自动发放。无需在此输入代码。",
+    'fr': "Le code est généré par l'option « Émettre code promo ». Inutile de le saisir ici.",
+    'de': "Code wird über die Option „Rabattcode ausgeben“ automatisch erstellt. Hier nicht nötig.",
+    'es': "El código se emite con la opción 'Emitir código'. No hace falta escribirlo aquí.",
+    'pt': "O código é emitido pela opção 'Emitir código'. Não precisa de o escrever aqui.",
+    'ru': "Код выдаётся опцией «Выдать промокод». Здесь вводить не нужно.",
+    'tr': "Kod, 'İndirim kodu oluştur' seçeneğiyle otomatik verilir. Buraya yazmaya gerek yok.",
+    'ar': "يتم إصدار الرمز عبر خيار 'إصدار رمز الخصم'. لا حاجة لكتابته هنا.",
+    'it': "Il codice è emesso dall'opzione 'Emetti codice'. Non serve scriverlo qui.",
+    'hi': "'डिस्काउंट कोड जारी करें' विकल्प से कोड स्वतः जारी होता है। यहाँ लिखने की जरूरत नहीं।",
+    'th': "รหัสออกอัตโนมัติจากตัวเลือก 'ออกรหัสส่วนลด' ไม่ต้องพิมพ์รหัสที่นี่",
+  });
+
   String get composeBrandCouponHint => _t({
     'ko': '예: THISCOUNT20',
     'en': 'e.g. THISCOUNT20',
