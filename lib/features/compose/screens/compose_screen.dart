@@ -5471,6 +5471,11 @@ class _ComposeScreenState extends State<ComposeScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Build 449: 고정 매장 위치 카드를 자동발송 토글 밖으로 노출 — 사용자가
+        //   "위치 고정 활성화가 안 보인다" 피드백. 토글 ON/OFF 와 무관하게 항상
+        //   매장 좌표를 설정/사용할 수 있게 상단 고정.
+        _buildFixedLocationCard(l10n),
+        const SizedBox(height: 12),
         // 토글
         GestureDetector(
           onTap: () => setState(() => _isAutoZoneMode = !_isAutoZoneMode),
@@ -5482,22 +5487,20 @@ class _ComposeScreenState extends State<ComposeScreen>
                 size: 18,
               ),
               const SizedBox(width: 10),
-              Text(
-                '📍 ${l10n.zoneCampaignToggle}',
-                style: TextStyle(
-                  color: _isAutoZoneMode ? AppColors.gold : AppColors.textPrimary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
+              Expanded(
+                child: Text(
+                  '📍 ${l10n.zoneCampaignToggle}',
+                  style: TextStyle(
+                    color: _isAutoZoneMode ? AppColors.gold : AppColors.textPrimary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ],
           ),
         ),
         if (_isAutoZoneMode) ...[
-          const SizedBox(height: 10),
-          // Build 448: 고정 매장 위치 — 자동 발송 중심으로 사용. 저장 좌표가 있으면
-          //   매번 GPS 없이 이 좌표로 발송.
-          _buildFixedLocationCard(l10n),
           const SizedBox(height: 10),
           // 반경 선택
           Row(

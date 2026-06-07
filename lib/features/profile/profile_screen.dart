@@ -1237,7 +1237,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 16),
           _buildFollowSection(ctx, state, user),
           const SizedBox(height: 16),
-          ..._buildSettingsSections(ctx, state, user, _l, expanded: true),
+          ..._buildSettingsSections(ctx, state, user, _l,
+              expanded: true, collapsible: false),
         ],
       ),
     );
@@ -1349,10 +1350,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     UserProfile user,
     AppL10n _l, {
     bool expanded = false,
+    bool collapsible = true,
   }) {
     final _lc = user.languageCode;
     // Build 448: 이 호출의 그룹 펼침 기본값 지정 (Brand 프로필 탭 = true).
     _settingsGroupsExpanded = expanded;
+    // Build 449: Brand 탭은 collapsible=false → 항상 펼침(토글 제거).
+    _settingsGroupsCollapsible = collapsible;
     return [
                               // ── 계정 ──
                               _settingsGroup(_l.profileAccountSection, [
@@ -2763,10 +2767,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // 사용자가 원하는 그룹만 펼쳐서 보도록 변경 — 1차 스캔 시 그룹 헤더만.
   // Build 448: Brand 프로필 탭에서는 펼친 상태로(접지 않고) 노출.
   bool _settingsGroupsExpanded = false;
+  // Build 449: Brand 프로필 탭은 그룹을 접지 않고 항상 펼침(토글 제거) — 사용자가
+  //   "계정 하위 창이 모두 열려 있어야 한다" 피드백. false 면 헤더 토글 없이 상시 노출.
+  bool _settingsGroupsCollapsible = true;
   Widget _settingsGroup(String title, List<Widget> children) {
     return _ExpandableSettingsGroup(
       title: title,
       initiallyExpanded: _settingsGroupsExpanded,
+      collapsible: _settingsGroupsCollapsible,
       children: children,
     );
   }
@@ -3077,11 +3085,14 @@ class _ExpandableSettingsGroup extends StatefulWidget {
   final List<Widget> children;
   // Build 448: 펼친 상태로 시작 (Brand 프로필 탭은 접지 않고 노출).
   final bool initiallyExpanded;
+  // Build 449: false 면 토글(접기) 없이 항상 펼침 — Brand 프로필 탭.
+  final bool collapsible;
 
   const _ExpandableSettingsGroup({
     required this.title,
     required this.children,
     this.initiallyExpanded = false,
+    this.collapsible = true,
   });
 
   @override
@@ -3090,7 +3101,18 @@ class _ExpandableSettingsGroup extends StatefulWidget {
 }
 
 class _ExpandableSettingsGroupState extends State<_ExpandableSettingsGroup> {
-  late bool _expanded = widget.initiallyExpanded;
+  late bool _expanded = widget.initiallyExpanded || !widget.collapsible;
+
+  Widget _content() => Container(
+        decoration: BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: AppColors.textMuted.withValues(alpha: 0.1),
+          ),
+        ),
+        child: Column(children: widget.children),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -3099,60 +3121,68 @@ class _ExpandableSettingsGroupState extends State<_ExpandableSettingsGroup> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => setState(() => _expanded = !_expanded),
-              borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 4,
-                  vertical: 10,
+          // Build 449: collapsible=false → 토글 없는 정적 헤더 + 상시 내용.
+          if (!widget.collapsible) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+              child: Text(
+                widget.title,
+                style: const TextStyle(
+                  color: AppColors.teal,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.2,
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        widget.title,
-                        style: const TextStyle(
-                          color: AppColors.teal,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.2,
+              ),
+            ),
+            _content(),
+          ] else ...[
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => setState(() => _expanded = !_expanded),
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 10,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.title,
+                          style: const TextStyle(
+                            color: AppColors.teal,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.2,
+                          ),
                         ),
                       ),
-                    ),
-                    AnimatedRotation(
-                      turns: _expanded ? 0.5 : 0.0,
-                      duration: const Duration(milliseconds: 220),
-                      child: const Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        size: 20,
-                        color: AppColors.textMuted,
+                      AnimatedRotation(
+                        turns: _expanded ? 0.5 : 0.0,
+                        duration: const Duration(milliseconds: 220),
+                        child: const Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          size: 20,
+                          color: AppColors.textMuted,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          AnimatedCrossFade(
-            firstChild: const SizedBox.shrink(),
-            secondChild: Container(
-              decoration: BoxDecoration(
-                color: AppColors.bgCard,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.textMuted.withValues(alpha: 0.1),
-                ),
-              ),
-              child: Column(children: widget.children),
+            AnimatedCrossFade(
+              firstChild: const SizedBox.shrink(),
+              secondChild: _content(),
+              crossFadeState: _expanded
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
+              duration: const Duration(milliseconds: 240),
             ),
-            crossFadeState: _expanded
-                ? CrossFadeState.showSecond
-                : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 240),
-          ),
+          ],
         ],
       ),
     );

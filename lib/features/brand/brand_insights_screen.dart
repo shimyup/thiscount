@@ -72,11 +72,28 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
         const SizedBox(height: 14),
         // "발급된 매장 코드" dedup 섹션.
         ..._buildActiveCodesSection(insights),
-        // 캠페인 list
+        // 캠페인 list — Build 449: 섹션 헤더로 구분(정리).
         if (insights.campaigns.isEmpty)
           _buildEmpty(l)
-        else
+        else ...[
+          Row(
+            children: [
+              const Text('📊', style: TextStyle(fontSize: 14)),
+              const SizedBox(width: 6),
+              Text(
+                l.koEn('캠페인별 성과', 'Campaign performance'),
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
           ...insights.campaigns.take(10).map(_buildCampaignCard),
+        ],
         const SizedBox(height: 16),
         _buildHelpFooter(l),
       ],
@@ -502,6 +519,9 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
     return l.expiresMinutesShort(d.inMinutes);
   }
 
+  // Build 449: 캠페인 카드 compact — 미니 퍼널 막대 3개 제거(상단 요약 카드의
+  //   퍼널과 중복 + 카드 높이↑로 스크롤 길어짐). 1줄 헤더 + 1줄 stat 으로 압축,
+  //   코칭 팁은 있을 때만. 화면당 노출 ~2배.
   Widget _buildCampaignCard(CampaignInsight c) {
     final hasMetric = c.pickup > 0;
     final pct = (c.redeemRate * 100).toStringAsFixed(0);
@@ -510,9 +530,13 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
     final cPickup = c.pickup.clamp(0, c.sent <= 0 ? c.pickup : c.sent);
     final cReveal = c.revealed.clamp(0, cPickup);
     final cRedeem = c.redeemed.clamp(0, cReveal);
+    final l = AppL10n.of(
+      context.read<AppState>().currentUser.languageCode,
+    );
+    final tip = c.coachingTip(l);
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(12),
@@ -522,10 +546,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
         children: [
           Row(
             children: [
-              Text(
-                c.healthEmoji,
-                style: const TextStyle(fontSize: 16),
-              ),
+              Text(c.healthEmoji, style: const TextStyle(fontSize: 15)),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -544,73 +565,36 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
                   '$pct%',
                   style: const TextStyle(
                     color: AppColors.gold,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           Text(
             // Build 331 (PR-S3): 4단계 표시 — 노출 (🛒) 추가.
             '📮 ${c.sent} · 🎯 $cPickup · 🛒 $cReveal · ✅ $cRedeem',
             style: const TextStyle(
               color: AppColors.textSecondary,
-              fontSize: 11,
+              fontSize: 11.5,
             ),
           ),
-          // Build 415 (#8 ROI 퍼널): 캠페인별 미니 퍼널 — 발송 대비 픽업/노출/사용
-          //   비율을 얇은 막대 3개로 시각화. 어느 단계에서 빠지는지 카드에서 즉시 인지.
-          if (c.sent > 0) ...[
-            const SizedBox(height: 8),
-            _miniFunnelBar(cPickup, c.sent, AppColors.teal),
-            const SizedBox(height: 3),
-            _miniFunnelBar(cReveal, c.sent, AppColors.coupon),
-            const SizedBox(height: 3),
-            _miniFunnelBar(cRedeem, c.sent, AppColors.gold),
-          ],
-          Builder(builder: (ctx) {
-            final l = AppL10n.of(
-              ctx.read<AppState>().currentUser.languageCode,
-            );
-            final tip = c.coachingTip(l);
-            if (tip.isEmpty) return const SizedBox.shrink();
-            return Padding(
-              padding: const EdgeInsets.only(top: 6),
+          if (tip.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 5),
               child: Text(
                 '💡 $tip',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: AppColors.coupon,
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-            );
-          }),
+            ),
         ],
-      ),
-    );
-  }
-
-  /// Build 415 (#8 ROI 퍼널): 캠페인 카드용 얇은 비율 막대. count/total 만큼 채움.
-  Widget _miniFunnelBar(int count, int total, Color color) {
-    final raw = total <= 0 ? 0.0 : count / total;
-    final factor = count == 0 ? 0.0 : (raw < 0.04 ? 0.04 : raw);
-    return Container(
-      height: 5,
-      decoration: BoxDecoration(
-        color: AppColors.bgDeep,
-        borderRadius: BorderRadius.circular(3),
-      ),
-      child: FractionallySizedBox(
-        alignment: Alignment.centerLeft,
-        widthFactor: factor.clamp(0.0, 1.0),
-        child: Container(
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.85),
-            borderRadius: BorderRadius.circular(3),
-          ),
-        ),
       ),
     );
   }

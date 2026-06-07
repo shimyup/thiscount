@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../../core/localization/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/redemption_code.dart';
+import '../../core/utils/secure_clipboard.dart';
 import '../../models/direct_message.dart';
 import '../../models/letter.dart';
 import '../../state/app_state.dart';
@@ -158,14 +160,41 @@ class _BrandCampaignScreenState extends State<BrandCampaignScreen>
     );
   }
 
+  // Build 449: 대량발송 캠페인 그룹화 — 같은 campaignId(1인당1회 ON) 또는
+  //   같은 본문+코드+업종(brandUniquePerUser OFF) letter 들을 1개 캠페인 행으로
+  //   묶고 'N통 발송'으로 집계. 사용자가 "대량발송했는데 1개만 보인다"고 느끼던
+  //   회귀(중복 N행 또는 글로벌 산포)를 한 행 + 정확한 발송 수로 해소.
+  static String _groupKey(Letter l) {
+    if (l.campaignId != null && l.campaignId!.isNotEmpty) return l.campaignId!;
+    return '${l.content}${l.redemptionCode ?? ''}${l.categoryTag ?? ''}';
+  }
+
+  static List<_CampaignGroup> _group(List<Letter> letters) {
+    final map = <String, _CampaignGroup>{};
+    final order = <String>[];
+    for (final l in letters) {
+      final k = _groupKey(l);
+      final g = map.putIfAbsent(k, () {
+        order.add(k);
+        return _CampaignGroup(rep: l);
+      });
+      g.count += 1;
+      g.pickup += l.readCount;
+      if (l.redeemedAt != null) g.redeemed += 1;
+      // 대표 letter 는 가장 최근 발송으로 유지.
+      if (l.sentAt.isAfter(g.rep.sentAt)) g.rep = l;
+    }
+    return [for (final k in order) map[k]!];
+  }
+
   // ── 보낸 캠페인 탭 ──────────────────────────────────────────────────────────
   Widget _buildSentTab(AppState state, AppL10n l) {
     final sentByNewest = [...state.sent]
       ..sort((a, b) => b.sentAt.compareTo(a.sentAt));
     // 카테고리 필터 적용.
     final filtered = sentByNewest.where(_matchesCat).toList();
-    final activeSent = filtered.where((l) => !l.isExpired).toList();
-    final endedSent = filtered.where((l) => l.isExpired).toList();
+    final activeSent = _group(filtered.where((l) => !l.isExpired).toList());
+    final endedSent = _group(filtered.where((l) => l.isExpired).toList());
     final mostRecentlyPickedUp = state.brandMostRecentlyPickedUpLetter;
 
     return ListView(
@@ -199,9 +228,9 @@ class _BrandCampaignScreenState extends State<BrandCampaignScreen>
             _SectionHeader(title: l.brandCampaignActive),
             const SizedBox(height: 8),
             ...activeSent.take(50).map(
-                  (letter) => Padding(
+                  (g) => Padding(
                     padding: const EdgeInsets.only(bottom: 8),
-                    child: _CampaignRow(letter: letter, l: l),
+                    child: _CampaignRow(group: g, l: l),
                   ),
                 ),
           ],
@@ -210,9 +239,9 @@ class _BrandCampaignScreenState extends State<BrandCampaignScreen>
             _SectionHeader(title: l.brandCampaignEnded),
             const SizedBox(height: 8),
             ...endedSent.take(50).map(
-                  (letter) => Padding(
+                  (g) => Padding(
                     padding: const EdgeInsets.only(bottom: 8),
-                    child: _CampaignRow(letter: letter, l: l),
+                    child: _CampaignRow(group: g, l: l),
                   ),
                 ),
           ],
@@ -744,93 +773,159 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
+// Build 449: 대량발송 캠페인 그룹 — 같은 캠페인 letter N통의 대표 + 집계.
+class _CampaignGroup {
+  Letter rep;
+  int count = 0;
+  int pickup = 0;
+  int redeemed = 0;
+  _CampaignGroup({required this.rep});
+}
+
 class _CampaignRow extends StatelessWidget {
-  final Letter letter;
+  final _CampaignGroup group;
   final AppL10n l;
-  const _CampaignRow({required this.letter, required this.l});
+  const _CampaignRow({required this.group, required this.l});
 
   @override
   Widget build(BuildContext context) {
-    // Letter 모델은 readCount (unique 픽업 인원) 와 redeemedAt (본인 사용
-    // 시각, 단건) 만 노출. campaign-level "사용됨" 집계는 별도 path 필요 →
-    // 우선 readCount 만 표시. 후속 PR (Cloud Function) 에서 redeem 집계 추가.
-    final pickedUp = letter.readCount;
-    final redeemed = letter.redeemedAt != null ? 1 : 0;
+    final letter = group.rep;
+    // Build 449: 그룹 집계 — 대량발송 N통을 1행으로 묶어 발송 수/픽업/사용 합산.
+    final sentCount = group.count;
+    final pickedUp = group.pickup;
+    final redeemed = group.redeemed;
+    final hasCode = letter.redemptionCode != null;
     // Build 437 (device #2): 캠페인 카드 compact 가로형 — 업종 이모지 + 1줄 내용
     //   + 인라인 통계. 이전 세로 2줄+칩 카드(~100pt)는 한 화면에 몇 개 못 보여
     //   "스크롤만 되고 보기 어렵다" 회귀 → 높이 ~절반(화면당 ~2배 노출).
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
+    // Build 449: 탭하면 상세 시트 → 발급된 매장 코드(할인코드) 확인/복사.
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.bgSurface),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: AppColors.bgSurface,
-              borderRadius: BorderRadius.circular(11),
-            ),
-            child: Text(
-              bizCategoryEmoji(letter.categoryTag),
-              style: const TextStyle(fontSize: 20),
-            ),
+        onTap: () => _showDetail(context),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: AppColors.bgCard,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.bgSurface),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  letter.content,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w700,
-                  ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.bgSurface,
+                  borderRadius: BorderRadius.circular(11),
                 ),
-                const SizedBox(height: 5),
-                Row(
+                child: Text(
+                  bizCategoryEmoji(letter.categoryTag),
+                  style: const TextStyle(fontSize: 20),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '🛍 $pickedUp',
-                      style: const TextStyle(
-                        color: AppColors.teal,
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            letter.content,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        // Build 449: 대량발송이면 'N통' 발송 수 배지.
+                        if (sentCount > 1) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.coupon.withValues(alpha: 0.16),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              l.composeCountUnit(sentCount),
+                              style: const TextStyle(
+                                color: AppColors.coupon,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                    const SizedBox(width: 10),
-                    Text(
-                      '✅ $redeemed',
-                      style: const TextStyle(
-                        color: AppColors.gold,
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      _shortAge(letter.sentAt),
-                      style: const TextStyle(
-                        color: AppColors.textMuted,
-                        fontSize: 11,
-                      ),
+                    const SizedBox(height: 5),
+                    Row(
+                      children: [
+                        Text(
+                          '🛍 $pickedUp',
+                          style: const TextStyle(
+                            color: AppColors.teal,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          '✅ $redeemed',
+                          style: const TextStyle(
+                            color: AppColors.gold,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          _shortAge(letter.sentAt),
+                          style: const TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
+              ),
+              // 할인코드 발급 표식 + 화살표.
+              if (hasCode) ...[
+                const SizedBox(width: 6),
+                const Icon(Icons.qr_code_2_rounded,
+                    size: 16, color: AppColors.coupon),
+                const SizedBox(width: 4),
               ],
-            ),
+              const Icon(Icons.chevron_right_rounded,
+                  size: 18, color: AppColors.textMuted),
+            ],
           ),
-        ],
+        ),
       ),
+    );
+  }
+
+  // Build 449: 캠페인 상세 — 발급된 할인코드(매장 코드)를 크게 보여주고 복사.
+  void _showDetail(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.bgCard,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => _CampaignDetailSheet(group: group, l: l),
     );
   }
 
@@ -841,6 +936,263 @@ class _CampaignRow extends StatelessWidget {
     if (d.inHours > 0) return '${d.inHours}h';
     if (d.inMinutes > 0) return '${d.inMinutes}m';
     return 'now';
+  }
+}
+
+// Build 449: 캠페인 상세 바텀시트 — 발급된 할인코드(매장 코드)를 크게 노출 + 복사.
+//   사용자 요구: "발급된 매장코드는 내 캠페인에서 보낸 편지를 클릭하면 볼 수 있게".
+class _CampaignDetailSheet extends StatelessWidget {
+  final _CampaignGroup group;
+  final AppL10n l;
+  const _CampaignDetailSheet({required this.group, required this.l});
+
+  @override
+  Widget build(BuildContext context) {
+    final letter = group.rep;
+    final code = letter.redemptionCode;
+    final sentCount = group.count;
+    final pickedUp = group.pickup;
+    final redeemed = group.redeemed;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        20,
+        4,
+        20,
+        20 + MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 업종 이모지 + 카테고리 배지.
+          Row(
+            children: [
+              Text(bizCategoryEmoji(letter.categoryTag),
+                  style: const TextStyle(fontSize: 22)),
+              const SizedBox(width: 8),
+              _catBadge(letter.category),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // 본문.
+          Text(
+            letter.content,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 15,
+              height: 1.45,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 16),
+          // ── 발급된 할인코드 ──
+          if (code != null) ...[
+            Text(
+              l.redemptionPreviewHeader,
+              style: const TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 11.5,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.4,
+              ),
+            ),
+            const SizedBox(height: 8),
+            _CodeBox(code: code, l: l),
+            const SizedBox(height: 8),
+            Text(
+              l.composeBrandCouponAutoCodeNote,
+              style: const TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 11,
+                height: 1.4,
+              ),
+            ),
+          ] else ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.bgSurface,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                l.brandNoCodesYet,
+                style: const TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 12.5,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: 16),
+          // ── 성과 요약 ── Build 449: 발송 수(N통) 포함.
+          Wrap(
+            spacing: 10,
+            runSpacing: 8,
+            children: [
+              _miniStat('📮', '$sentCount', l.koEn('발송', 'Sent')),
+              _miniStat('🛍', '$pickedUp', l.koEn('픽업', 'Pickup')),
+              _miniStat('✅', '$redeemed', l.koEn('사용', 'Used')),
+              if (letter.redemptionExpiresAt != null)
+                _miniStat(
+                  '⏳',
+                  '',
+                  _expiryLabel(letter.redemptionExpiresAt!),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _catBadge(LetterCategory c) {
+    final (label, color) = switch (c) {
+      LetterCategory.coupon => (l.composeBrandCategoryCoupon, AppColors.coupon),
+      LetterCategory.voucher => (l.composeBrandCategoryVoucher, AppColors.gold),
+      _ => (l.composeBrandCategoryGeneral, AppColors.teal),
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 11.5,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+
+  Widget _miniStat(String emoji, String value, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.bgSurface,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 14)),
+          const SizedBox(width: 6),
+          if (value.isNotEmpty) ...[
+            Text(
+              value,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _expiryLabel(DateTime exp) {
+    final d = exp.difference(DateTime.now());
+    if (d.isNegative) return l.koEn('만료됨', 'Expired');
+    if (d.inDays >= 1) return l.expiresDaysShort(d.inDays);
+    if (d.inHours >= 1) return l.expiresHoursShort(d.inHours);
+    return l.expiresMinutesShort(d.inMinutes);
+  }
+}
+
+// Build 449: 코드 박스 — 큰 monospace 코드 + 복사 버튼.
+class _CodeBox extends StatelessWidget {
+  final String code;
+  final AppL10n l;
+  const _CodeBox({required this.code, required this.l});
+
+  @override
+  Widget build(BuildContext context) {
+    final formatted = RedemptionCode.formatForDisplay(code);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.coupon.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.coupon.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              formatted,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                fontFamily: 'monospace',
+                letterSpacing: 2,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () async {
+              await SecureClipboard.copyEphemeral(formatted);
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    l.redemptionCodeCopied,
+                    style: const TextStyle(color: AppColors.tealInk),
+                  ),
+                  backgroundColor: AppColors.teal,
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.coupon.withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(8),
+                border:
+                    Border.all(color: AppColors.coupon.withValues(alpha: 0.6)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.copy_rounded,
+                      size: 14, color: AppColors.coupon),
+                  const SizedBox(width: 5),
+                  Text(
+                    l.redemptionCodeCopy,
+                    style: const TextStyle(
+                      color: AppColors.coupon,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
