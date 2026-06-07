@@ -10,7 +10,6 @@ import '../share/share_card_service.dart';
 import '../progression/user_progress.dart';
 import '../brand/brand_analytics_card.dart';
 import '../brand/brand_checklist_card.dart';
-import '../brand/brand_insights_screen.dart';
 import '../hunt_wallet/hunt_wallet_card.dart';
 import '../journey/journey_card.dart';
 import '../reflection/weekly_reflection_card.dart';
@@ -1195,7 +1194,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // ── Build 446: Brand 프로필 2-탭 (인사이트 / 프로필) ─────────────────────────
+  // ── Build 447: Brand 프로필 = 계정 관리 전용 ────────────────────────────────
+  //   인사이트는 하단 네비 별도 탭(main_scaffold)으로 분리됨 → 여기선 계정 관리만.
   Widget _buildBrandTabbed(
     BuildContext ctx,
     AppState state,
@@ -1204,63 +1204,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
     AppL10n _l,
     String _lc,
   ) {
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
+    return Scaffold(
+      backgroundColor: AppTimeColors.of(ctx).bgDeep,
+      appBar: AppBar(
         backgroundColor: AppTimeColors.of(ctx).bgDeep,
-        appBar: AppBar(
-          backgroundColor: AppTimeColors.of(ctx).bgDeep,
-          elevation: 0,
-          automaticallyImplyLeading: false,
-          title: Text(
-            user.username,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-          actions: [
-            IconButton(
-              tooltip: _l.profileSettingsCollapseLabel,
-              icon: const Icon(Icons.settings_rounded,
-                  color: AppColors.textPrimary),
-              onPressed: () => _openSettingsScreen(ctx),
-            ),
-            const SizedBox(width: 4),
-          ],
-          bottom: TabBar(
-            labelColor: AppColors.coupon,
-            unselectedLabelColor: AppColors.textMuted,
-            indicatorColor: AppColors.coupon,
-            labelStyle:
-                const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800),
-            tabs: [
-              Tab(text: _l.brandProfileInsightsTab),
-              Tab(text: _l.brandProfileAccountTab),
-            ],
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: Text(
+          _l.profile,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 17,
+            fontWeight: FontWeight.w800,
           ),
         ),
-        body: TabBarView(
-          children: [
-            // 인사이트 — 분석 중심(임베드된 ROI 대시보드).
-            const BrandInsightsScreen(embedded: true),
-            // 프로필 — 계정 관리.
-            ListView(
-              padding: const EdgeInsets.fromLTRB(0, 12, 0, 40),
-              children: [
-                _buildBrandProfileHeader(ctx, state, user, _l),
-                const SizedBox(height: 12),
-                _buildFourStatRow(ctx, state, user),
-                const SizedBox(height: 16),
-                _buildFollowSection(ctx, state, user),
-                const SizedBox(height: 16),
-                ..._buildSettingsSections(ctx, state, user, _l),
-              ],
-            ),
-          ],
-        ),
+        actions: [
+          IconButton(
+            tooltip: _l.profileSettingsCollapseLabel,
+            icon: const Icon(Icons.settings_rounded,
+                color: AppColors.textPrimary),
+            onPressed: () => _openSettingsScreen(ctx),
+          ),
+          const SizedBox(width: 4),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(0, 12, 0, 40),
+        children: [
+          _buildBrandProfileHeader(ctx, state, user, _l),
+          const SizedBox(height: 12),
+          _buildFourStatRow(ctx, state, user),
+          const SizedBox(height: 16),
+          _buildFollowSection(ctx, state, user),
+          const SizedBox(height: 16),
+          ..._buildSettingsSections(ctx, state, user, _l),
+        ],
       ),
     );
   }

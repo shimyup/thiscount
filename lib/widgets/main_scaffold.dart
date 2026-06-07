@@ -282,16 +282,25 @@ class _MainScaffoldState extends State<MainScaffold> {
                         child: MediaQuery.removePadding(
                           context: context,
                           removeTop: true,
-                          child: IndexedStack(
-                            index: (_currentIndex - 1).clamp(0, 1),
-                            children: [
-                              if (isBrand)
-                                const BrandCampaignScreen()
-                              else
-                                const InboxScreen(),
-                              const ProfileScreen(),
-                            ],
-                          ),
+                          // Build 447: Brand 는 하단 네비를 4탭(탐험/내캠페인/인사이트
+                          //   /프로필)으로 확장 → 인사이트를 별도 탭으로 승격.
+                          //   비-Brand 는 기존 2페이지(인박스/프로필) 유지.
+                          child: isBrand
+                              ? IndexedStack(
+                                  index: (_currentIndex - 1).clamp(0, 2),
+                                  children: const [
+                                    BrandCampaignScreen(),
+                                    BrandInsightsScreen(),
+                                    ProfileScreen(),
+                                  ],
+                                )
+                              : IndexedStack(
+                                  index: (_currentIndex - 1).clamp(0, 1),
+                                  children: const [
+                                    InboxScreen(),
+                                    ProfileScreen(),
+                                  ],
+                                ),
                         ),
                       ),
                     ),
@@ -411,16 +420,27 @@ class _MainScaffoldState extends State<MainScaffold> {
                         onTap: () => _openCompose(ctx),
                       ),
                     ),
-                  // Build 324 (positioning): 4탭 → 3탭. 타워 탭 격리 →
-                  //   ProfileScreen 의 "내 등급" 진입 카드로 통합. 첫 화면의
-                  //   nav 인지 부하 -25% + 등급/타워 시스템은 진성 사용자만
-                  //   발견하는 "숨겨진 깊이" (포켓몬 GO 의 메달 패턴).
+                  // Build 447: Brand 전용 '인사이트' 탭 — ROI 대시보드를 하단 네비
+                  //   별도 탭으로 분리(이전엔 프로필 안 하위 탭). index 2.
+                  if (isBrand)
+                    Expanded(
+                      child: _NavItem(
+                        icon: Icons.insights_rounded,
+                        label: l.brandProfileInsightsTab,
+                        isSelected: _currentIndex == 2,
+                        onTap: () => setState(() => _currentIndex = 2),
+                      ),
+                    ),
+                  // Build 324 (positioning): 타워 탭 격리 → ProfileScreen 의
+                  //   "내 등급" 진입 카드로 통합. Brand 는 인사이트 탭 추가로
+                  //   프로필이 index 3, 비-Brand 는 index 2.
                   Expanded(
                     child: _NavItem(
                       icon: Icons.person_rounded,
                       label: l.profile,
-                      isSelected: _currentIndex == 2,
-                      onTap: () => setState(() => _currentIndex = 2),
+                      isSelected: _currentIndex == (isBrand ? 3 : 2),
+                      onTap: () =>
+                          setState(() => _currentIndex = isBrand ? 3 : 2),
                     ),
                   ),
                 ],
