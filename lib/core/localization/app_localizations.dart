@@ -480,6 +480,84 @@ class AppL10n {
     'tr': 'Alınan kuponlar', 'ar': 'الكوبونات المستلمة', 'it': 'Coupon ricevuti',
     'hi': 'प्राप्त कूपन', 'th': 'คูปองที่ได้รับ',
   });
+  // Build 446: 캠페인 화면 하위 탭 + 카테고리 필터 + 받은 DM.
+  String get brandCampaignSentTab => _t({
+    'ko': '보낸 캠페인', 'en': 'Sent', 'ja': '送信',
+    'zh': '已发送', 'fr': 'Envoyés', 'de': 'Gesendet',
+    'es': 'Enviadas', 'pt': 'Enviadas', 'ru': 'Отправленные',
+    'tr': 'Gönderilen', 'ar': 'المُرسلة', 'it': 'Inviate',
+    'hi': 'भेजे गए', 'th': 'ที่ส่ง',
+  });
+  String get brandCampaignDmTab => _t({
+    'ko': '받은 DM', 'en': 'DMs', 'ja': '受信DM',
+    'zh': '收到私信', 'fr': 'MP reçus', 'de': 'DMs',
+    'es': 'MD', 'pt': 'MD', 'ru': 'Сообщения',
+    'tr': 'DM', 'ar': 'الرسائل', 'it': 'DM',
+    'hi': 'DM', 'th': 'DM',
+  });
+  String get brandCampaignDmEmptyTitle => _t({
+    'ko': '아직 받은 메시지가 없어요', 'en': 'No messages yet',
+    'ja': 'まだメッセージがありません', 'zh': '还没有收到消息',
+    'fr': 'Aucun message', 'de': 'Noch keine Nachrichten',
+    'es': 'Sin mensajes aún', 'pt': 'Ainda sem mensagens',
+    'ru': 'Пока нет сообщений', 'tr': 'Henüz mesaj yok',
+    'ar': 'لا رسائل بعد', 'it': 'Ancora nessun messaggio',
+    'hi': 'अभी कोई संदेश नहीं', 'th': 'ยังไม่มีข้อความ',
+  });
+  String get brandCampaignDmEmptySub => _t({
+    'ko': '고객이 보낸 문의 메시지가 여기에 표시됩니다.',
+    'en': 'Customer inquiries will appear here.',
+    'ja': 'お客様からの問い合わせがここに表示されます。',
+    'zh': '客户的咨询消息会显示在这里。',
+    'fr': 'Les demandes des clients apparaîtront ici.',
+    'de': 'Kundenanfragen erscheinen hier.',
+    'es': 'Las consultas de clientes aparecerán aquí.',
+    'pt': 'As perguntas dos clientes aparecerão aqui.',
+    'ru': 'Здесь появятся обращения клиентов.',
+    'tr': 'Müşteri soruları burada görünür.',
+    'ar': 'ستظهر استفسارات العملاء هنا.',
+    'it': 'Le richieste dei clienti appariranno qui.',
+    'hi': 'ग्राहक पूछताछ यहाँ दिखेगी।',
+    'th': 'คำถามจากลูกค้าจะแสดงที่นี่',
+  });
+  String get brandCampaignDmNoMessage => _t({
+    'ko': '메시지 없음', 'en': 'No messages', 'ja': 'メッセージなし',
+    'zh': '暂无消息', 'fr': 'Aucun message', 'de': 'Keine Nachrichten',
+    'es': 'Sin mensajes', 'pt': 'Sem mensagens', 'ru': 'Нет сообщений',
+    'tr': 'Mesaj yok', 'ar': 'لا رسائل', 'it': 'Nessun messaggio',
+    'hi': 'कोई संदेश नहीं', 'th': 'ไม่มีข้อความ',
+  });
+  String get brandCampaignFilterEmpty => _t({
+    'ko': '이 카테고리에 해당하는 캠페인이 없어요.',
+    'en': 'No campaigns in this category.',
+    'ja': 'このカテゴリのキャンペーンはありません。',
+    'zh': '此类别下没有活动。',
+    'fr': 'Aucune campagne dans cette catégorie.',
+    'de': 'Keine Kampagnen in dieser Kategorie.',
+    'es': 'No hay campañas en esta categoría.',
+    'pt': 'Nenhuma campanha nesta categoria.',
+    'ru': 'Нет кампаний в этой категории.',
+    'tr': 'Bu kategoride kampanya yok.',
+    'ar': 'لا حملات في هذه الفئة.',
+    'it': 'Nessuna campagna in questa categoria.',
+    'hi': 'इस श्रेणी में कोई अभियान नहीं।',
+    'th': 'ไม่มีแคมเปญในหมวดนี้',
+  });
+  // Build 446: Brand 프로필 2-탭 라벨.
+  String get brandProfileInsightsTab => _t({
+    'ko': '인사이트', 'en': 'Insights', 'ja': 'インサイト',
+    'zh': '洞察', 'fr': 'Analyses', 'de': 'Insights',
+    'es': 'Análisis', 'pt': 'Insights', 'ru': 'Аналитика',
+    'tr': 'Analizler', 'ar': 'تحليلات', 'it': 'Analisi',
+    'hi': 'इनसाइट', 'th': 'อินไซต์',
+  });
+  String get brandProfileAccountTab => _t({
+    'ko': '프로필', 'en': 'Profile', 'ja': 'プロフィール',
+    'zh': '资料', 'fr': 'Profil', 'de': 'Profil',
+    'es': 'Perfil', 'pt': 'Perfil', 'ru': 'Профиль',
+    'tr': 'Profil', 'ar': 'الملف', 'it': 'Profilo',
+    'hi': 'प्रोफ़ाइल', 'th': 'โปรไฟล์',
+  });
   String get brandCampaignPicked => _t({
     'ko': '픽업됨', 'en': 'Picked up', 'ja': 'ピックアップ済み',
     'zh': '已领取', 'fr': 'Récupérés', 'de': 'Aufgenommen',

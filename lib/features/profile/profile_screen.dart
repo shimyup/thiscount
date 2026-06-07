@@ -10,6 +10,7 @@ import '../share/share_card_service.dart';
 import '../progression/user_progress.dart';
 import '../brand/brand_analytics_card.dart';
 import '../brand/brand_checklist_card.dart';
+import '../brand/brand_insights_screen.dart';
 import '../hunt_wallet/hunt_wallet_card.dart';
 import '../journey/journey_card.dart';
 import '../reflection/weekly_reflection_card.dart';
@@ -946,6 +947,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final _lc = user.languageCode;
         final _l = AppL10n.of(_lc);
 
+        // Build 446: Brand 계정은 프로필을 '인사이트'(분석 중심) / '프로필'(계정 관리)
+        //   2개 하위 탭으로 재구성. Free/Premium 은 기존 단일 스크롤 유지.
+        if (user.isBrand && !_loading) {
+          return _buildBrandTabbed(ctx, state, purchase, user, _l, _lc);
+        }
+
         return Scaffold(
           backgroundColor: AppTimeColors.of(ctx).bgDeep,
           body: _loading
@@ -1185,6 +1192,172 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
         );
       },
+    );
+  }
+
+  // ── Build 446: Brand 프로필 2-탭 (인사이트 / 프로필) ─────────────────────────
+  Widget _buildBrandTabbed(
+    BuildContext ctx,
+    AppState state,
+    PurchaseService purchase,
+    UserProfile user,
+    AppL10n _l,
+    String _lc,
+  ) {
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: AppTimeColors.of(ctx).bgDeep,
+        appBar: AppBar(
+          backgroundColor: AppTimeColors.of(ctx).bgDeep,
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          title: Text(
+            user.username,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+          actions: [
+            IconButton(
+              tooltip: _l.profileSettingsCollapseLabel,
+              icon: const Icon(Icons.settings_rounded,
+                  color: AppColors.textPrimary),
+              onPressed: () => _openSettingsScreen(ctx),
+            ),
+            const SizedBox(width: 4),
+          ],
+          bottom: TabBar(
+            labelColor: AppColors.coupon,
+            unselectedLabelColor: AppColors.textMuted,
+            indicatorColor: AppColors.coupon,
+            labelStyle:
+                const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800),
+            tabs: [
+              Tab(text: _l.brandProfileInsightsTab),
+              Tab(text: _l.brandProfileAccountTab),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            // 인사이트 — 분석 중심(임베드된 ROI 대시보드).
+            const BrandInsightsScreen(embedded: true),
+            // 프로필 — 계정 관리.
+            ListView(
+              padding: const EdgeInsets.fromLTRB(0, 12, 0, 40),
+              children: [
+                _buildBrandProfileHeader(ctx, state, user, _l),
+                const SizedBox(height: 12),
+                _buildFourStatRow(ctx, state, user),
+                const SizedBox(height: 16),
+                _buildFollowSection(ctx, state, user),
+                const SizedBox(height: 16),
+                ..._buildSettingsSections(ctx, state, user, _l),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Build 446: 프로필 탭 상단 — 아바타(탭하면 변경) + 닉네임 + 공식 발송인 배지.
+  Widget _buildBrandProfileHeader(
+    BuildContext ctx,
+    AppState state,
+    UserProfile user,
+    AppL10n _l,
+  ) {
+    final tierClr = _tierColor(user.activityScore.tier);
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.coupon.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => _changeProfileImage(ctx, state),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: tierClr,
+                  ),
+                  child: _buildAvatarContent(user),
+                ),
+                Positioned(
+                  right: -2,
+                  bottom: -2,
+                  child: Container(
+                    width: 22,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.textPrimary,
+                      border: Border.all(
+                        color: AppColors.bgCard,
+                        width: 2,
+                      ),
+                    ),
+                    child: const Icon(Icons.edit_rounded,
+                        size: 11, color: AppColors.bgDeep),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  user.username,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.coupon.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: AppColors.coupon.withValues(alpha: 0.42),
+                    ),
+                  ),
+                  child: Text(
+                    '👑 ${user.activityScore.reputationTitleL(user.languageCode)}',
+                    style: const TextStyle(
+                      color: AppColors.coupon,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

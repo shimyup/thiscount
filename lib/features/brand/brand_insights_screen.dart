@@ -25,7 +25,10 @@ import '../../state/app_state.dart';
 ///   다른 회원의 픽업/사용이 카운트 안 돼 ROI 항상 0% 표시되던 critical bug.
 class BrandInsightsScreen extends StatefulWidget {
   static const String routeName = '/brand_insights';
-  const BrandInsightsScreen({super.key});
+  // Build 446: 프로필의 '인사이트' 하위 탭에서 본문만 임베드할 때 true → Scaffold/
+  //   AppBar 없이 ListView 만 반환(상위 탭 AppBar 와 중복 방지).
+  final bool embedded;
+  const BrandInsightsScreen({super.key, this.embedded = false});
 
   @override
   State<BrandInsightsScreen> createState() => _BrandInsightsScreenState();
@@ -60,6 +63,30 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
     // Build 409 (sim P1.24): 비-Korean Brand 가 한국어 고정 문구를 보던 헤드라인/
     //   빈 상태/도움말을 l 로 현지화 (koEn 토글). l 을 helper 들에 전달.
     final l = AppL10n.of(state.currentUser.languageCode);
+    final body = ListView(
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 32),
+      children: [
+        // 1) 헤드라인 — 사용 전환률 + 평가
+        _buildHeadline(insights, l),
+        const SizedBox(height: 20),
+        // 2) 단계별 funnel
+        _buildFunnel(insights),
+        const SizedBox(height: 20),
+        // Build 334 (PR-S4): "발급된 매장 코드" dedup 섹션 — 사장이 POS 에
+        //   등록할 코드를 한 화면에서 확인. campaigns 가 같은 코드를 공유하면
+        //   하나로 합쳐 letter 수 / 노출 / 사용 stat 합산.
+        ..._buildActiveCodesSection(insights),
+        // 3) 캠페인 list
+        if (insights.campaigns.isEmpty)
+          _buildEmpty(l)
+        else
+          ...insights.campaigns.take(10).map(_buildCampaignCard),
+        const SizedBox(height: 24),
+        _buildHelpFooter(l),
+      ],
+    );
+    // Build 446: 임베드 모드면 본문만 반환(상위 탭이 Scaffold/AppBar 보유).
+    if (widget.embedded) return body;
     return Scaffold(
       backgroundColor: AppColors.bgDeep,
       appBar: AppBar(
@@ -75,28 +102,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
         ),
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
       ),
-      body: ListView(
-        padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 32),
-        children: [
-          // 1) 헤드라인 — 사용 전환률 + 평가
-          _buildHeadline(insights, l),
-          const SizedBox(height: 20),
-          // 2) 단계별 funnel
-          _buildFunnel(insights),
-          const SizedBox(height: 20),
-          // Build 334 (PR-S4): "발급된 매장 코드" dedup 섹션 — 사장이 POS 에
-          //   등록할 코드를 한 화면에서 확인. campaigns 가 같은 코드를 공유하면
-          //   하나로 합쳐 letter 수 / 노출 / 사용 stat 합산.
-          ..._buildActiveCodesSection(insights),
-          // 3) 캠페인 list
-          if (insights.campaigns.isEmpty)
-            _buildEmpty(l)
-          else
-            ...insights.campaigns.take(10).map(_buildCampaignCard),
-          const SizedBox(height: 24),
-          _buildHelpFooter(l),
-        ],
-      ),
+      body: body,
     );
   }
 

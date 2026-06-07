@@ -1402,9 +1402,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     return remainingPremiumExpressCount > 0;
   }
 
-  // ── DM 권한 (프리미엄 전용) ─────────────────────────────────────────────────
-  /// DM은 프리미엄 회원만 사용 가능. 무료·브랜드 계정은 불가.
-  bool get canUseDM => _currentUser.isPremium && !_currentUser.isBrand;
+  // ── DM 권한 ────────────────────────────────────────────────────────────────
+  /// DM 은 유료 등급(프리미엄 또는 브랜드) 사용 가능. 무료 계정은 불가.
+  /// Build 446: 브랜드도 고객 문의를 받을 수 있도록 DM 허용(캠페인 화면 '받은 DM'
+  ///   섹션). 이전엔 브랜드 제외였음.
+  bool get canUseDM => _currentUser.isPremium || _currentUser.isBrand;
 
   /// DM 사용 불가 사유 메시지
   String get dmUnavailableMessage {

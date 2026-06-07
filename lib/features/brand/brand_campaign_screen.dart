@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 
 import '../../core/localization/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
+import '../../models/direct_message.dart';
 import '../../models/letter.dart';
 import '../../state/app_state.dart';
 import '../compose/screens/compose_screen.dart';
+import '../dm/dm_conversation_screen.dart';
 import 'brand_insights_screen.dart';
 
 /// Build 405 (PR-NN4): Brand 계정 전용 메인 화면.
@@ -21,30 +23,52 @@ import 'brand_insights_screen.dart';
 /// 일반 회원의 [InboxScreen] 과 데이터/스토리지를 공유 (state.sent 와
 /// state.inbox 같은 source) 하지만 표시 방식이 완전히 다르다. NN5 에서
 /// 공유 시스템 documentation 으로 명확화.
-class BrandCampaignScreen extends StatelessWidget {
+/// Build 446: 보낸 캠페인 카테고리 필터.
+enum _CampaignCatFilter { all, general, coupon, voucher }
+
+class BrandCampaignScreen extends StatefulWidget {
   const BrandCampaignScreen({super.key});
+
+  @override
+  State<BrandCampaignScreen> createState() => _BrandCampaignScreenState();
+}
+
+class _BrandCampaignScreenState extends State<BrandCampaignScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tab;
+  _CampaignCatFilter _cat = _CampaignCatFilter.all;
+
+  @override
+  void initState() {
+    super.initState();
+    _tab = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tab.dispose();
+    super.dispose();
+  }
+
+  bool _matchesCat(Letter l) {
+    switch (_cat) {
+      case _CampaignCatFilter.all:
+        return true;
+      case _CampaignCatFilter.general:
+        return l.category == LetterCategory.general;
+      case _CampaignCatFilter.coupon:
+        return l.category == LetterCategory.coupon;
+      case _CampaignCatFilter.voucher:
+        return l.category == LetterCategory.voucher;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
     final l = AppL10n.of(state.currentUser.languageCode);
-    // 가장 최근 발송 → 가장 오래된 순으로 정렬한 사본.
-    final sentByNewest = [...state.sent]
-      ..sort((a, b) => b.sentAt.compareTo(a.sentAt));
-    // Build 429 (device): 진행 중(만료 전) / 종료된(만료) 캠페인 분리.
-    final activeSent = sentByNewest.where((l) => !l.isExpired).toList();
-    final endedSent = sentByNewest.where((l) => l.isExpired).toList();
-    final mostRecentlyPickedUp = state.brandMostRecentlyPickedUpLetter;
-    // Build 406 (PR-OO7 시뮬레이션 P1 #1): Brand 사용자가 zone letter 등 픽업
-    //   시 _inbox 에 들어가지만 BrandCampaignScreen 미노출 → invisible 누수.
-    //   여기서 최근 5개 받은 letter 도 노출 (picked-up). 일반 회원의 InboxScreen
-    //   과 동일 source (state.inbox) 사용 — 공유 시스템 일관성.
-    final receivedByNewest = [...state.inbox]
-      ..sort((a, b) {
-        final at = a.arrivedAt ?? a.sentAt;
-        final bt = b.arrivedAt ?? b.sentAt;
-        return bt.compareTo(at);
-      });
+    // 받은 DM 미읽음 합계 → 탭 배지.
+    final dmUnread = state.totalDMUnread;
 
     return Scaffold(
       backgroundColor: AppColors.bgDeep,
@@ -73,64 +97,50 @@ class BrandCampaignScreen extends StatelessWidget {
             },
           ),
         ],
+        bottom: TabBar(
+          controller: _tab,
+          labelColor: AppColors.coupon,
+          unselectedLabelColor: AppColors.textMuted,
+          indicatorColor: AppColors.coupon,
+          labelStyle:
+              const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800),
+          tabs: [
+            Tab(text: l.brandCampaignSentTab),
+            Tab(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(l.brandCampaignDmTab),
+                  if (dmUnread > 0) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: AppColors.error,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        dmUnread > 99 ? '99+' : '$dmUnread',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+      body: TabBarView(
+        controller: _tab,
         children: [
-          // Build 407 (PR-QQ7): 구독 플랜 + 남은 발송 가능 수를 캠페인 화면
-          //   최상단에 한눈에. 이전엔 프로필 깊숙이 있어 발송 전 확인 어려움.
-          _QuotaSummaryCard(state: state, l: l),
-          const SizedBox(height: 12),
-          _QuickComposeCard(l: l),
-          const SizedBox(height: 16),
-          if (mostRecentlyPickedUp != null) ...[
-            _RecentPickupHighlight(letter: mostRecentlyPickedUp, l: l),
-            const SizedBox(height: 16),
-          ],
-          // Build 429 (device): '최근 발송' 한 덩어리 스크롤 → 진행 중 / 종료된
-          //   캠페인 섹션으로 분리해 한눈에 보기 좋게.
-          if (sentByNewest.isEmpty)
-            ...[
-              _SectionHeader(title: l.brandCampaignRecentSent),
-              const SizedBox(height: 8),
-              _EmptySentCampaigns(l: l),
-            ]
-          else ...[
-            if (activeSent.isNotEmpty) ...[
-              _SectionHeader(title: l.brandCampaignActive),
-              const SizedBox(height: 8),
-              ...activeSent.take(50).map(
-                    (letter) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: _CampaignRow(letter: letter, l: l),
-                    ),
-                  ),
-            ],
-            if (endedSent.isNotEmpty) ...[
-              if (activeSent.isNotEmpty) const SizedBox(height: 24),
-              _SectionHeader(title: l.brandCampaignEnded),
-              const SizedBox(height: 8),
-              ...endedSent.take(50).map(
-                    (letter) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: _CampaignRow(letter: letter, l: l),
-                    ),
-                  ),
-            ],
-          ],
-          // Build 406 (PR-OO7): Brand 도 zone letter 픽업 가능 → 받은 letter
-          //   섹션을 별도로 노출. 비어있으면 hide (Brand 대부분 케이스).
-          if (receivedByNewest.isNotEmpty) ...[
-            const SizedBox(height: 24),
-            _SectionHeader(title: l.brandCampaignReceived),
-            const SizedBox(height: 8),
-            ...receivedByNewest.take(5).map(
-                  (letter) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: _CampaignRow(letter: letter, l: l),
-                  ),
-                ),
-          ],
+          _buildSentTab(state, l),
+          _buildDmTab(state, l),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -144,6 +154,331 @@ class BrandCampaignScreen extends StatelessWidget {
         onPressed: () => Navigator.of(context).push(MaterialPageRoute(
           builder: (_) => const ComposeScreen(),
         )),
+      ),
+    );
+  }
+
+  // ── 보낸 캠페인 탭 ──────────────────────────────────────────────────────────
+  Widget _buildSentTab(AppState state, AppL10n l) {
+    final sentByNewest = [...state.sent]
+      ..sort((a, b) => b.sentAt.compareTo(a.sentAt));
+    // 카테고리 필터 적용.
+    final filtered = sentByNewest.where(_matchesCat).toList();
+    final activeSent = filtered.where((l) => !l.isExpired).toList();
+    final endedSent = filtered.where((l) => l.isExpired).toList();
+    final mostRecentlyPickedUp = state.brandMostRecentlyPickedUpLetter;
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
+      children: [
+        _QuotaSummaryCard(state: state, l: l),
+        const SizedBox(height: 12),
+        _QuickComposeCard(l: l),
+        const SizedBox(height: 16),
+        if (mostRecentlyPickedUp != null) ...[
+          _RecentPickupHighlight(letter: mostRecentlyPickedUp, l: l),
+          const SizedBox(height: 16),
+        ],
+        // Build 446: 카테고리 필터 칩 — 전체/일반/할인권/교환권.
+        _CategoryFilterRow(
+          selected: _cat,
+          l: l,
+          onSelect: (c) => setState(() => _cat = c),
+        ),
+        const SizedBox(height: 12),
+        if (sentByNewest.isEmpty) ...[
+          _SectionHeader(title: l.brandCampaignRecentSent),
+          const SizedBox(height: 8),
+          _EmptySentCampaigns(l: l),
+        ] else if (filtered.isEmpty) ...[
+          _SectionHeader(title: l.brandCampaignRecentSent),
+          const SizedBox(height: 8),
+          _EmptyFiltered(l: l),
+        ] else ...[
+          if (activeSent.isNotEmpty) ...[
+            _SectionHeader(title: l.brandCampaignActive),
+            const SizedBox(height: 8),
+            ...activeSent.take(50).map(
+                  (letter) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: _CampaignRow(letter: letter, l: l),
+                  ),
+                ),
+          ],
+          if (endedSent.isNotEmpty) ...[
+            if (activeSent.isNotEmpty) const SizedBox(height: 24),
+            _SectionHeader(title: l.brandCampaignEnded),
+            const SizedBox(height: 8),
+            ...endedSent.take(50).map(
+                  (letter) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: _CampaignRow(letter: letter, l: l),
+                  ),
+                ),
+          ],
+        ],
+      ],
+    );
+  }
+
+  // ── 받은 DM 탭 ─────────────────────────────────────────────────────────────
+  Widget _buildDmTab(AppState state, AppL10n l) {
+    // 미읽음 우선 → 최근 생성 순.
+    final sessions = state.chatSessions.values.toList()
+      ..sort((a, b) {
+        if ((a.unreadCount > 0) != (b.unreadCount > 0)) {
+          return a.unreadCount > 0 ? -1 : 1;
+        }
+        return b.createdAt.compareTo(a.createdAt);
+      });
+    if (sessions.isEmpty) {
+      return ListView(
+        padding: const EdgeInsets.fromLTRB(16, 40, 16, 90),
+        children: [_EmptyDm(l: l)],
+      );
+    }
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
+      itemCount: sessions.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      itemBuilder: (_, i) => _DmRow(session: sessions[i], state: state, l: l),
+    );
+  }
+}
+
+// Build 446: 카테고리 필터 칩 행.
+class _CategoryFilterRow extends StatelessWidget {
+  final _CampaignCatFilter selected;
+  final AppL10n l;
+  final ValueChanged<_CampaignCatFilter> onSelect;
+  const _CategoryFilterRow({
+    required this.selected,
+    required this.l,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final items = <(_CampaignCatFilter, String)>[
+      (_CampaignCatFilter.all, l.inboxFilterAll),
+      (_CampaignCatFilter.general, l.inboxFilterGeneral),
+      (_CampaignCatFilter.coupon, l.inboxFilterCoupon),
+      (_CampaignCatFilter.voucher, l.inboxFilterVoucher),
+    ];
+    return SizedBox(
+      height: 34,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: items.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (_, i) {
+          final (cat, label) = items[i];
+          final active = cat == selected;
+          return GestureDetector(
+            onTap: () => onSelect(cat),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              decoration: BoxDecoration(
+                color: active
+                    ? AppColors.coupon.withValues(alpha: 0.16)
+                    : AppColors.bgCard,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: active
+                      ? AppColors.coupon.withValues(alpha: 0.7)
+                      : AppColors.bgSurface,
+                  width: active ? 1.3 : 1.0,
+                ),
+              ),
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: active ? AppColors.coupon : AppColors.textSecondary,
+                  fontSize: 12.5,
+                  fontWeight: active ? FontWeight.w800 : FontWeight.w600,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// Build 446: 받은 DM 한 행 — 상대 닉네임/국기 + 마지막 메시지 미리보기 + 미읽음.
+class _DmRow extends StatelessWidget {
+  final ChatSession session;
+  final AppState state;
+  final AppL10n l;
+  const _DmRow({required this.session, required this.state, required this.l});
+
+  @override
+  Widget build(BuildContext context) {
+    final msgs = state.getDMConversation(session.partnerId);
+    final last = msgs.isNotEmpty ? msgs.last : null;
+    final hasUnread = session.unreadCount > 0;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => DmConversationScreen(
+            partnerId: session.partnerId,
+            partnerName: session.partnerName,
+            partnerFlag: session.partnerFlag,
+          ),
+        )),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+          decoration: BoxDecoration(
+            color: AppColors.bgCard,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: hasUnread
+                  ? AppColors.coupon.withValues(alpha: 0.5)
+                  : AppColors.bgSurface,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.bgSurface,
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Text(session.partnerFlag,
+                    style: const TextStyle(fontSize: 20)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      session.partnerName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      last?.content ?? l.brandCampaignDmNoMessage,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: hasUnread
+                            ? AppColors.textSecondary
+                            : AppColors.textMuted,
+                        fontSize: 12,
+                        fontWeight:
+                            hasUnread ? FontWeight.w600 : FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (hasUnread) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.error,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    session.unreadCount > 99 ? '99+' : '${session.unreadCount}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Build 446: 받은 DM 빈 상태.
+class _EmptyDm extends StatelessWidget {
+  final AppL10n l;
+  const _EmptyDm({required this.l});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.bgSurface),
+      ),
+      child: Column(
+        children: [
+          const Text('💬', style: TextStyle(fontSize: 36)),
+          const SizedBox(height: 10),
+          Text(
+            l.brandCampaignDmEmptyTitle,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l.brandCampaignDmEmptySub,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 12,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Build 446: 필터 결과 없음.
+class _EmptyFiltered extends StatelessWidget {
+  final AppL10n l;
+  const _EmptyFiltered({required this.l});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.bgSurface),
+      ),
+      child: Center(
+        child: Text(
+          l.brandCampaignFilterEmpty,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: AppColors.textMuted,
+            fontSize: 12.5,
+          ),
+        ),
       ),
     );
   }
