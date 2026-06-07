@@ -29472,6 +29472,75 @@ class AppL10n {
     'th': 'ลูกค้าโชว์บาร์โค้ดหรือบอกรหัสที่ร้าน, POS ใช้ส่วนลด. 1 รหัสต่อแคมเปญ',
   });
 
+  // Build 446: 발송 전 미리보기 카드 — 발급될 코드를 작성 화면에서 바로 노출.
+  String get redemptionPreviewHeader => _t({
+    'ko': '이 캠페인 사용 코드 (자동 발급)',
+    'en': 'This campaign\'s code (auto-issued)',
+    'ja': 'このキャンペーンの使用コード (自動発行)',
+    'zh': '本活动使用代码 (自动发放)',
+    'fr': 'Code de cette campagne (auto)',
+    'de': 'Code dieser Kampagne (automatisch)',
+    'es': 'Código de esta campaña (automático)',
+    'pt': 'Código desta campanha (automático)',
+    'ru': 'Код этой кампании (автоматически)',
+    'tr': 'Bu kampanyanın kodu (otomatik)',
+    'ar': 'رمز هذه الحملة (تلقائي)',
+    'it': 'Codice di questa campagna (auto)',
+    'hi': 'इस अभियान का कोड (स्वतः जारी)',
+    'th': 'รหัสแคมเปญนี้ (ออกอัตโนมัติ)',
+  });
+
+  String get redemptionPreviewBody => _t({
+    'ko': '발송 시 이 코드가 손님에게 그대로 발급됩니다. 본문에 코드를 따로 적지 않아도 돼요. 이 코드를 매장 POS의 "쿠폰/할인" 코드에 등록하세요.',
+    'en': 'This exact code is issued to customers on send. No need to type it in your message. Register it in your POS "Coupon/Discount" field.',
+    'ja': '発送時にこのコードがそのままお客様に発行されます。本文にコードを書く必要はありません。POSの「クーポン/割引」に登録してください。',
+    'zh': '发送时此代码会原样发给客户。无需在正文中再写代码。请将其登记到 POS "优惠券/折扣"。',
+    'fr': 'Ce code est remis tel quel au client à l\'envoi. Inutile de l\'écrire dans le message. Enregistrez-le dans "Coupon/Remise" du POS.',
+    'de': 'Dieser Code wird beim Versand genau so ausgegeben. Nicht in die Nachricht schreiben. Im POS-Feld "Gutschein/Rabatt" eintragen.',
+    'es': 'Este código se entrega tal cual al enviar. No hace falta escribirlo en el mensaje. Regístralo en "Cupón/Descuento" del POS.',
+    'pt': 'Este código é entregue tal como está ao enviar. Não precisa de o escrever na mensagem. Registe-o em "Cupão/Desconto" do POS.',
+    'ru': 'Этот код выдаётся клиенту при отправке как есть. Не нужно писать его в тексте. Запишите его в "Купон/Скидка" POS.',
+    'tr': 'Bu kod gönderimde müşteriye aynen verilir. Mesaja yazmanıza gerek yok. POS\'taki "Kupon/İndirim" alanına kaydedin.',
+    'ar': 'يُصدر هذا الرمز للعميل كما هو عند الإرسال. لا حاجة لكتابته في الرسالة. سجّله في حقل POS "كوبون/خصم".',
+    'it': 'Questo codice viene rilasciato così al cliente all\'invio. Non serve scriverlo nel messaggio. Registralo nel POS "Coupon/Sconto".',
+    'hi': 'भेजते समय यही कोड ग्राहक को मिलता है। संदेश में लिखने की जरूरत नहीं। इसे POS के "कूपन/छूट" में रजिस्टर करें।',
+    'th': 'รหัสนี้จะออกให้ลูกค้าตามนี้เมื่อส่ง ไม่ต้องพิมพ์ในข้อความ ลงทะเบียนในช่อง "คูปอง/ส่วนลด" ของ POS',
+  });
+
+  String get redemptionPreviewRegenerate => _t({
+    'ko': '코드 재발급',
+    'en': 'Regenerate code',
+    'ja': 'コード再発行',
+    'zh': '重新生成代码',
+    'fr': 'Régénérer le code',
+    'de': 'Code neu erzeugen',
+    'es': 'Regenerar código',
+    'pt': 'Gerar novo código',
+    'ru': 'Создать новый код',
+    'tr': 'Kodu yenile',
+    'ar': 'إعادة إصدار الرمز',
+    'it': 'Rigenera codice',
+    'hi': 'कोड फिर बनाएं',
+    'th': 'สร้างรหัสใหม่',
+  });
+
+  String get redemptionPreviewGuideLink => _t({
+    'ko': '매장 연동 방법 보기',
+    'en': 'How store linkage works',
+    'ja': '店舗連動の方法を見る',
+    'zh': '查看门店联动方法',
+    'fr': 'Voir la liaison en magasin',
+    'de': 'Laden-Verknüpfung ansehen',
+    'es': 'Ver vinculación en tienda',
+    'pt': 'Ver ligação na loja',
+    'ru': 'Как привязать к магазину',
+    'tr': 'Mağaza bağlantısı nasıl olur',
+    'ar': 'كيف يعمل ربط المتجر',
+    'it': 'Come collegare il negozio',
+    'hi': 'स्टोर लिंकेज कैसे काम करता है',
+    'th': 'วิธีเชื่อมกับร้าน',
+  });
+
   String get redemptionSentDialogTitle => _t({
     'ko': '발급된 사용 코드',
     'en': 'Issued discount code',

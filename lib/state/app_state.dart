@@ -8868,6 +8868,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // Build 331 (PR-S1): bulk send 가 동일 redemptionCode 를 모든 letter 에
     //   부여 — 매장 POS 는 한 캠페인당 1개 코드만 등록하면 끝.
     bool attachRedemptionCode = false,
+    // Build 446: compose 미리보기 카드가 발급한 코드를 그대로 주입 → 발송 전후
+    //   코드 일치. null 이면 기존대로 내부 1회 생성.
+    String? explicitRedemptionCode,
     // Build 433 (device): 업종 카테고리 — bulk 의 모든 letter 에 동일 적용.
     String? categoryTag,
   }) async {
@@ -8880,8 +8883,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
     // Build 331 (PR-S1): bulk 전체 공통 코드 — 1회 생성 후 sendLetter 마다
     //   explicit override 로 전달. 100통 = 동일 코드 → 매장 1회 셋업.
-    final bulkRedemptionCode =
-        attachRedemptionCode ? RedemptionCode.generate() : null;
+    final bulkRedemptionCode = attachRedemptionCode
+        ? (explicitRedemptionCode ?? RedemptionCode.generate())
+        : null;
 
     if (randomMode) {
       // 랜덤 모드: 매 편지마다 198개국 중 랜덤 국가 선택

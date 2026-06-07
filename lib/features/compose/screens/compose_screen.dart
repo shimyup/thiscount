@@ -448,6 +448,12 @@ class _ComposeScreenState extends State<ComposeScreen>
   //   redemptionCode 에 저장. 손님이 "사용 진행" 탭 시 reveal → 매장 POS 가
   //   바코드 스캔 / 코드 수동 입력으로 할인 적용.
   bool _attachRedemptionCode = false;
+  // Build 446: 발송 화면에서 미리 보여줄(그리고 실제 발송에 그대로 주입할) 매장
+  //   코드. 이전엔 코드가 발송 시점에만 생성돼 사장이 발송 전 코드를 못 봤고,
+  //   "본문에 코드 따로 적어야 하나?" 혼선이 있었다. 토글 ON 시 1회 생성 →
+  //   미리보기 카드에 노출 + 모든 발송 경로(sendLetter/Bulk/Express/zone)에
+  //   explicitRedemptionCode 로 주입 → 미리보기 = 실제 발급 코드 보장.
+  String? _previewRedemptionCode;
   // Brand 전용 편지 카테고리 — 일반 / 할인권 / 교환권. 수집첩에서 쿠폰함 섹션
   // 으로 분리 표시되므로 브랜드 운영자가 발송 의도를 명확히 지정한다.
   LetterCategory _brandCategory = LetterCategory.general;
@@ -823,6 +829,10 @@ class _ComposeScreenState extends State<ComposeScreen>
                     }
                     _attachRedemptionCode =
                         snap['attachRedemptionCode'] as bool? ?? false;
+                    // Build 446: 토글 ON 으로 복원되면 미리보기 코드도 확보.
+                    if (_attachRedemptionCode) {
+                      _previewRedemptionCode ??= RedemptionCode.generate();
+                    }
                     _brandUniquePerUser =
                         snap['brandUniquePerUser'] as bool? ?? false;
                     // Build 425 (device #3): draft 복원 = 목적지 선택 이력 있음.
@@ -836,6 +846,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                       _bulkTargets.clear();
                       _isExactDropped = false;
                       _attachRedemptionCode = false;
+                      _previewRedemptionCode = null;
                       _brandUniquePerUser = false;
                       _brandCategory = LetterCategory.general;
                     }
@@ -875,6 +886,7 @@ class _ComposeScreenState extends State<ComposeScreen>
     _imageFilePath = null;
     _voucherImageLocalPath = null;
     _attachRedemptionCode = false;
+    _previewRedemptionCode = null;
     _brandUniquePerUser = false;
     SharedPreferences.getInstance().then((prefs) {
       prefs.remove('compose_draft');
@@ -1045,7 +1057,10 @@ class _ComposeScreenState extends State<ComposeScreen>
     try {
       // Build 360 (PR-AA1): zone 1개 = 코드 1개 (zone 으로 발급되는 모든 letter
       //   가 동일 코드 공유 → 매장 POS 1회 등록). 코드 토글이 ON 이면 생성.
-      final zoneCode = _attachRedemptionCode ? RedemptionCode.generate() : null;
+      // Build 446: 미리보기 카드에 보여준 코드를 그대로 사용 → 발송 전후 일치.
+      final zoneCode = _attachRedemptionCode
+          ? (_previewRedemptionCode ?? RedemptionCode.generate())
+          : null;
       createdId = await BrandZoneService.instance.createZone(
         brandId: user.id,
         brandName: user.username,
@@ -1652,8 +1667,10 @@ class _ComposeScreenState extends State<ComposeScreen>
       // Build 415 (sim50 P1): express+bulk 전체가 공유할 매장 코드 1개. 여러
       //   sendBrandExpressBlast 호출(랜덤/멀티타깃)이 같은 코드를 쓰도록 주입 →
       //   매장 POS 1회 등록. 이전엔 코드 자체가 발급 안 돼 손님 redeem 불가했음.
-      final sharedRedemptionCode =
-          _attachRedemptionCode ? RedemptionCode.generate() : null;
+      // Build 446: 미리보기 카드 코드를 그대로 주입 → 발송 전후 일치.
+      final sharedRedemptionCode = _attachRedemptionCode
+          ? (_previewRedemptionCode ?? RedemptionCode.generate())
+          : null;
       try {
       if (_isBulkRandom) {
         // 랜덤 국가 특송: 매 편지마다 랜덤 국가 선택
@@ -1820,6 +1837,9 @@ class _ComposeScreenState extends State<ComposeScreen>
               : _redemptionInfoController.text.trim(),
           redemptionExpiresAt: _computeRedemptionExpiresAt(),
           attachRedemptionCode: _attachRedemptionCode,
+          // Build 446: 미리보기 카드 코드 주입 → 발송 전후 일치.
+          explicitRedemptionCode:
+              _attachRedemptionCode ? _previewRedemptionCode : null,
         );
       } catch (_) {
         if (mounted) {
@@ -1941,6 +1961,10 @@ class _ComposeScreenState extends State<ComposeScreen>
               : _redemptionInfoController.text.trim(),
           redemptionExpiresAt: _computeRedemptionExpiresAt(),
           attachRedemptionCode: _attachRedemptionCode,
+          // Build 446: 미리보기 카드 코드 주입 → 발송 전후 일치(단건 24h 재사용
+          //   대신 작성 세션당 안정 코드 — 미리보기 정확성 우선).
+          explicitRedemptionCode:
+              _attachRedemptionCode ? _previewRedemptionCode : null,
         );
       }
     } catch (_) {
@@ -5558,16 +5582,27 @@ class _ComposeScreenState extends State<ComposeScreen>
                   }
                   setState(() {
                     _attachRedemptionCode = !_attachRedemptionCode;
-                    // 코드 발급 ON 시 general → coupon 자동 전환(POS 흐름 일관성).
-                    if (_attachRedemptionCode &&
-                        _brandCategory == LetterCategory.general) {
-                      _brandCategory = LetterCategory.coupon;
+                    if (_attachRedemptionCode) {
+                      // Build 446: 토글 ON 즉시 코드 1개 발급 → 미리보기 카드 노출.
+                      _previewRedemptionCode ??= RedemptionCode.generate();
+                      // 코드 발급 ON 시 general → coupon 자동 전환(POS 흐름 일관성).
+                      if (_brandCategory == LetterCategory.general) {
+                        _brandCategory = LetterCategory.coupon;
+                      }
+                    } else {
+                      _previewRedemptionCode = null;
                     }
                   });
                 },
               ),
             ],
           ),
+          // Build 446: 코드 발급 토글 ON 시 발급될 코드를 발송 전에 미리 노출 →
+          //   사장이 본문에 코드를 따로 적을 필요 없음 + 매장 등록 코드를 즉시 확인.
+          if (_attachRedemptionCode && _previewRedemptionCode != null) ...[
+            const SizedBox(height: 12),
+            _buildRedemptionPreviewCard(l10n),
+          ],
           const SizedBox(height: 14),
           // ── 자동 삭제 기간 ──
           Text(
@@ -5668,6 +5703,136 @@ class _ComposeScreenState extends State<ComposeScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // Build 446: 발송 전 매장 코드 미리보기 카드. 토글 ON 시 발급될 실제 코드를
+  //   크게 노출 + 복사/재발급 + "본문에 따로 안 적어도 됨" 안내 + 매장 연동 가이드
+  //   링크. 여기 보이는 코드가 그대로 발송된다(explicitRedemptionCode 주입).
+  Widget _buildRedemptionPreviewCard(AppL10n l10n) {
+    final formatted = RedemptionCode.formatForDisplay(_previewRedemptionCode!);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.teal.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.teal.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('🔑', style: TextStyle(fontSize: 15)),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  l10n.redemptionPreviewHeader,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.bgSurface,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: AppColors.teal.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: Text(
+                    formatted,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      fontFamily: 'monospace',
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              IconButton(
+                onPressed: () async {
+                  await SecureClipboard.copyEphemeral(formatted);
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        l10n.redemptionCodeCopied,
+                        style: const TextStyle(color: AppColors.tealInk),
+                      ),
+                      backgroundColor: AppColors.teal,
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(seconds: 2),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.copy_rounded, size: 18),
+                color: AppColors.teal,
+                tooltip: l10n.redemptionCodeCopy,
+                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+              ),
+              IconButton(
+                onPressed: () => setState(
+                  () => _previewRedemptionCode = RedemptionCode.generate(),
+                ),
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                color: AppColors.textMuted,
+                tooltip: l10n.redemptionPreviewRegenerate,
+                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.redemptionPreviewBody,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 11,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: () => _showRedemptionCodeGuide(),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.storefront_rounded,
+                    size: 13, color: AppColors.teal),
+                const SizedBox(width: 4),
+                Text(
+                  l10n.redemptionPreviewGuideLink,
+                  style: const TextStyle(
+                    color: AppColors.teal,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
