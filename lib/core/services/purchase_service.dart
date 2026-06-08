@@ -1092,17 +1092,23 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
       appState.syncPremiumStatus(isPremium: true, isBrand: true);
     }
     if (!_startLoading(PurchaseOperation.brandExtra)) return false;
-    if (!_isTestMode && !_isRcKeyConfiguredForCurrentPlatform) {
+    if (!_isTestMode &&
+        !_isBetaUpgradeSimulator &&
+        !_isRcKeyConfiguredForCurrentPlatform) {
       _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
       return false;
     }
-    if (!_isTestMode && !appState.isBrandExtraServerVerificationReady) {
+    // Build 449 (sim100 P1): 베타(TestFlight) 시뮬레이터에선 서버검증 불필요 —
+    //   buyExactDrop 과 비대칭이라 추가 발송권 구매가 베타에서 항상 실패하던 회귀.
+    if (!_isTestMode &&
+        !_isBetaUpgradeSimulator &&
+        !appState.isBrandExtraServerVerificationReady) {
       _setError(appState.brandExtraServerVerificationUnavailableMessage);
       return false;
     }
 
-    // 디버그 빌드 or RevenueCat 미연동 → 테스트 모드
-    if (_isTestMode) {
+    // 디버그 빌드 / RC 미연동 / 베타 시뮬레이터 → 테스트 모드 (즉시 grant).
+    if (_isTestMode || _isBetaUpgradeSimulator) {
       return await _fakePurchase(() async {
         await appState.grantBrandExtraQuotaLocally(quotaAmount: 1000);
       });

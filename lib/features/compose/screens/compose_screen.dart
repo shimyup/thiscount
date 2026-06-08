@@ -1037,6 +1037,20 @@ class _ComposeScreenState extends State<ComposeScreen>
       _showError(l10n.composeMinLengthError(content.length));
       return;
     }
+    // Build 449 (sim100 P1): auto-zone 본문도 공개 게시물 — 단건 발송과 동일하게
+    //   금칙어 + PII 검사. 이전엔 zone 분기가 검열을 건너뛰어 무검열 공개됐음.
+    //   redemptionInfo(혜택 안내)도 공개되므로 함께 검사.
+    final zoneCheckText =
+        '$content\n${_redemptionInfoController.text.trim()}';
+    if (_hasBannedWords(zoneCheckText)) {
+      _showError(l10n.composeBannedWordError);
+      return;
+    }
+    final zonePii = _detectPii(zoneCheckText);
+    if (zonePii != null) {
+      final proceed = await _confirmPiiBeforeSend(zonePii);
+      if (!proceed) return;
+    }
     final maxR = _zoneUnlimited
         ? 0
         : int.tryParse(_zoneMaxRedeemsCtrl.text.trim()) ?? 0;
@@ -1780,30 +1794,33 @@ class _ComposeScreenState extends State<ComposeScreen>
         _clearDraft();
         FeedbackService.onLetterSend();
         Navigator.pop(context);
+        // Build 449 (sim100 P1): 요청 통수 대비 부분발송 감지 — 부족 시 경고.
+        final expected =
+            _isBulkRandom ? _sendPerCountry : _bulkTargets.length * _sendPerCountry;
         // Build 415 (sim50 P1): 코드 발급된 경우 reveal 다이얼로그로 노출(일반 bulk
         //   와 parity) → 사장이 POS 등록. 이전엔 코드 자체가 없어 redeem 불가했음.
         final code = state.lastSentRedemptionCode;
         if (code != null && context.mounted) {
           unawaited(_showSentCodeReveal(context, code, totalSent));
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                // Build 417 (sim100 P2): 랜덤 모드는 _bulkTargets 가 비어 '0개 나라
-                //   × N' 으로 표시되던 수식 오류 → count-only 메세지(일반 bulk 와 동일).
-                _isBulkRandom
-                    ? '🎲 ${l10n.composeBulkSent(totalSent, totalSent)}'
-                    : l10n.composeExpressBulkSent(
-                        _bulkTargets.length, _sendPerCountry, totalSent),
-                style: const TextStyle(color: Colors.white),
-              ),
-              backgroundColor: AppColors.bgCard,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              duration: const Duration(seconds: 4),
+        }
+        if (totalSent < expected && context.mounted) {
+          _showBulkResultSnack(
+            context,
+            l10n.koEn(
+              '요청 $expected통 중 $totalSent통만 발송됐어요 (ExactDrop 크레딧/한도 부족)',
+              'Only $totalSent of $expected sent (insufficient ExactDrop credit/quota)',
             ),
+            warn: true,
+          );
+        } else if (code == null && context.mounted) {
+          _showBulkResultSnack(
+            context,
+            // Build 417 (sim100 P2): 랜덤 모드는 _bulkTargets 가 비어 '0개 나라
+            //   × N' 으로 표시되던 수식 오류 → count-only 메세지(일반 bulk 와 동일).
+            _isBulkRandom
+                ? '🎲 ${l10n.composeBulkSent(totalSent, totalSent)}'
+                : l10n.composeExpressBulkSent(
+                    _bulkTargets.length, _sendPerCountry, totalSent),
           );
         }
       }
@@ -1874,27 +1891,30 @@ class _ComposeScreenState extends State<ComposeScreen>
         _clearDraft();
         FeedbackService.onLetterSend();
         Navigator.pop(context);
+        // Build 449 (sim100 P1): 부분발송 감지.
+        final expected =
+            _isBulkRandom ? _sendPerCountry : _bulkTargets.length * _sendPerCountry;
         // Build 334 (PR-S4): 코드 발급된 경우 발송 후 즉시 dialog 로 노출
         //   → 사장이 POS 등록 곧바로 진행. snackbar 만으로는 사라져서 놓침.
         final code = state.lastSentRedemptionCode;
         if (code != null && context.mounted) {
           unawaited(_showSentCodeReveal(context, code, totalSent));
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                _isBulkRandom
-                    ? '🎲 ${l10n.composeBulkSent(totalSent, totalSent)}'
-                    : l10n.composeBulkSent(totalSent, _bulkTargets.length),
-                style: const TextStyle(color: Colors.white),
-              ),
-              backgroundColor: AppColors.bgCard,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              duration: const Duration(seconds: 3),
+        }
+        if (totalSent < expected && context.mounted) {
+          _showBulkResultSnack(
+            context,
+            l10n.koEn(
+              '요청 $expected통 중 $totalSent통만 발송됐어요 (한도 부족)',
+              'Only $totalSent of $expected sent (quota exhausted)',
             ),
+            warn: true,
+          );
+        } else if (code == null && context.mounted) {
+          _showBulkResultSnack(
+            context,
+            _isBulkRandom
+                ? '🎲 ${l10n.composeBulkSent(totalSent, totalSent)}'
+                : l10n.composeBulkSent(totalSent, _bulkTargets.length),
           );
         }
       }
@@ -2142,6 +2162,26 @@ class _ComposeScreenState extends State<ComposeScreen>
         backgroundColor: AppColors.error.withValues(alpha: 0.92),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  // Build 449 (sim100 P1): 대량발송 결과 스낵바 — 성공/부분발송(warn) 공통.
+  //   compose 가 pop 된 뒤 하위 화면 ScaffoldMessenger 로 표시하므로 ctx 전달.
+  void _showBulkResultSnack(BuildContext ctx, String msg, {bool warn = false}) {
+    final messenger = ScaffoldMessenger.maybeOf(ctx);
+    if (messenger == null) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          msg,
+          style: TextStyle(color: warn ? Colors.white : Colors.white),
+        ),
+        backgroundColor:
+            warn ? AppColors.error.withValues(alpha: 0.92) : AppColors.bgCard,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: Duration(seconds: warn ? 5 : 3),
       ),
     );
   }
@@ -4883,6 +4923,13 @@ class _ComposeScreenState extends State<ComposeScreen>
                           _attachRedemptionCode = false;
                           _previewRedemptionCode = null;
                         }
+                        // Build 449 (sim100 P2): 본문 사진 첨부는 '일반홍보'에서만
+                        //   노출되는데, 일반→할인권/교환권 전환 시 숨겨진 첨부가
+                        //   그대로 발송되고 이미지 쿼터를 소진하던 회귀 → 전환 시 해제.
+                        if (c != LetterCategory.general &&
+                            _imageFilePath != null) {
+                          _imageFilePath = null;
+                        }
                       });
                     },
                     borderRadius: BorderRadius.circular(8),
@@ -5511,12 +5558,16 @@ class _ComposeScreenState extends State<ComposeScreen>
             ],
           ),
           const SizedBox(height: 8),
-          // 수량 선택
+          // 수량 선택 — Build 449 (sim100 P2): 하드코딩 한국어 i18n.
           Row(
             children: [
-              Expanded(child: _zoneQuantityChip(true, '상시')),
+              Expanded(
+                  child: _zoneQuantityChip(
+                      true, l10n.koEn('상시', 'Always'))),
               const SizedBox(width: 8),
-              Expanded(child: _zoneQuantityChip(false, '한정')),
+              Expanded(
+                  child: _zoneQuantityChip(
+                      false, l10n.koEn('한정', 'Limited'))),
             ],
           ),
           if (!_zoneUnlimited) ...[
@@ -5526,7 +5577,7 @@ class _ComposeScreenState extends State<ComposeScreen>
               keyboardType: TextInputType.number,
               style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
               decoration: InputDecoration(
-                hintText: '한정 수량 (예: 100)',
+                hintText: l10n.koEn('한정 수량 (예: 100)', 'Limit qty (e.g. 100)'),
                 hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 12),
                 filled: true,
                 fillColor: AppColors.bgSurface,
@@ -6340,10 +6391,13 @@ class _ComposeScreenState extends State<ComposeScreen>
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
             setState(() {
-              // 사용자가 destination 카드에서 정확한 위치(예: 매장 좌표)
-              // 를 골랐다면 country 중심이 아닌 그 좌표 사용. 안 그러면
-              // 대량 발송 시 country 중심으로 풀어져 산포됨.
-              final isPrecise = _destLat != 0 && _destLng != 0;
+              // Build 449 (sim100 P0): precise 판정을 좌표 휴리스틱(_destLat!=0)
+              //   대신 명시 플래그 _isExactDropped 로 교체. 이전엔 일반 국가
+              //   선택도 도시 좌표(비-0)로 _destLat/_destLng 를 채워 precise=true
+              //   로 오인 → 출시 빌드에서 letter 마다 ExactDrop 크레딧 차감(0통
+              //   발송)/단일점 적재. 단건 발송(useExactCoordinates:_isExactDropped)
+              //   과 정책 일치. ExactDrop 을 실제로 고른 경우만 단일 좌표 발송.
+              final isPrecise = _isExactDropped;
               _bulkTargets.add({
                 'country': match['name'],
                 'flag': match['flag'],
@@ -7508,7 +7562,12 @@ class _ComposeScreenState extends State<ComposeScreen>
     //   composeMinLengthError SnackBar 매번 → friction. coupon 토글 분기
     //   (_attachRedemptionCode) 는 매장 코드 발급 letter 라 1자 OK 유지.
     //   Brand 일반 letter 도 20자 enforce — UI 일관성.
-    final isReplyOrCoupon = _isReply || _attachRedemptionCode;
+    // Build 449 (sim100 P2): 할인권/교환권(브랜드 비-일반) 도 발송 검증(isBrandPromo,
+    //   :1593)이 최소 1자만 요구하는데 버튼은 10자를 요구해 짧은 할인권이 데드락
+    //   (버튼 비활성 + 검증은 통과)이던 불일치 해소. 검증과 동일 게이트로 통일.
+    final isBrandPromoBtn = state.currentUser.isBrand &&
+        _brandCategory != LetterCategory.general;
+    final isReplyOrCoupon = _isReply || _attachRedemptionCode || isBrandPromoBtn;
     final minChars = isReplyOrCoupon ? 1 : 10; // Build 415 (item 6): 20→10
     // Build 409 (sim P1.8): 일간뿐 아니라 월간 한도까지 본 canSendByQuota 사용.
     //   이전엔 hasRemainingDailyQuota 만 봐서 월간 소진 시 버튼 활성 → 발송

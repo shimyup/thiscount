@@ -2082,7 +2082,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     int totalPickup = 0;
     int totalRevealed = 0;
     int totalRedeemed = 0;
-    final campaigns = <CampaignInsight>[];
+    // Build 449 (sim100 P2): 캠페인을 campaignId(또는 본문+코드+업종)로 그룹화 —
+    //   이전엔 letter 1통=카드 1개라 대량발송이 N개 중복 카드로 표시됐음. 내 캠페인
+    //   화면 그룹화와 일관. 정렬도 pickup 내림차순→최신순(방금 발송한 신규 캠페인이
+    //   상위10에서 안 밀림).
+    final groups = <String, _InsightAgg>{};
+    final groupOrder = <String>[];
     for (final l in recent) {
       // Build 324 fix: 서버 집계 캐시 우선. 다른 회원의 픽업/사용은 server 만
       //   알 수 있음 (local _inbox 엔 본인이 픽업한 letter 만 존재).
@@ -2094,15 +2099,34 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       totalPickup += p;
       totalRevealed += v;
       totalRedeemed += r;
+      final key = (l.campaignId != null && l.campaignId!.isNotEmpty)
+          ? l.campaignId!
+          : '${l.content}${l.redemptionCode ?? ''}${l.categoryTag ?? ''}';
+      final g = groups.putIfAbsent(key, () {
+        groupOrder.add(key);
+        return _InsightAgg(rep: l);
+      });
+      g.sent += 1;
+      g.pickup += p;
+      g.revealed += v;
+      g.redeemed += r;
+      if (l.sentAt.isAfter(g.rep.sentAt)) g.rep = l;
+    }
+    final campaigns = <CampaignInsight>[];
+    // 최신 발송 순.
+    groupOrder.sort((a, b) => groups[b]!.rep.sentAt.compareTo(groups[a]!.rep.sentAt));
+    for (final key in groupOrder) {
+      final g = groups[key]!;
+      final l = g.rep;
       // Build 414 (sim200 P3): redeemed>pickup 시 카드별 rate '100% 초과' 방지 clamp.
-      final rate = (p == 0 ? 0.0 : r / p).clamp(0.0, 1.0);
+      final rate = (g.pickup == 0 ? 0.0 : g.redeemed / g.pickup).clamp(0.0, 1.0);
       campaigns.add(CampaignInsight(
         letterId: l.id,
         title: l.content.length > 40 ? '${l.content.substring(0, 40)}…' : l.content,
-        sent: 1,
-        pickup: p,
-        revealed: v,
-        redeemed: r,
+        sent: g.sent,
+        pickup: g.pickup,
+        revealed: g.revealed,
+        redeemed: g.redeemed,
         redeemRate: rate,
         // Build 334 (PR-S4): 코드 + 만료 전파 — Brand 가 자기 코드 매장 POS 에
         //   등록·갱신 가능.
@@ -2110,7 +2134,6 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         redemptionExpiresAt: l.redemptionExpiresAt,
       ));
     }
-    campaigns.sort((a, b) => b.pickup.compareTo(a.pickup));
     // Build 335 (PR-S7 시뮬레이션 P2 #20): revealedCount > pickup (한 사용자가
     //   여러 디바이스 / 재시도) 케이스 → rate > 100% 표시 방지. clamp 1.0.
     final pickupRate =
@@ -5089,6 +5112,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       _brandExtraMonthlyQuota = 0;
       _inviteRewardCredits = 0;
       _welcomeTrialClaimedAt = null;
+      // Build 449 (sim100 P1): 고정 매장 위치 in-memory 즉시 reset (prefs 는
+      //   _clearUserScopedPrefs 가 처리하지만 in-memory 잔존 시 다음 사용자가
+      //   이전 매장 좌표로 자동발송하는 누수 차단).
+      _fixedStoreLat = null;
+      _fixedStoreLng = null;
       // Build 415 (sim50 P1/P2): 계정 전환 시 게임화/할당량 카운터 in-memory
       //   reset. 이전엔 streak/주간챌린지/월간·이미지·익스프레스 발송 카운트와
       //   누적 거리(XP 원천)가 다음 계정으로 그대로 넘어가 레벨/한도 누수.
@@ -8956,6 +8984,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     } else {
       // 기존: 선택된 나라에 나라당 sendCount만큼 발송
       for (final target in targets) {
+        // Build 449 (sim100 P1): precise 타깃(ExactDrop/고정 매장 위치)이면
+        //   useExactCoordinates 로 좌표 보존 — 이전엔 sendBulkLetter 가 precise
+        //   플래그를 무시해 매장 좌표를 버리고 랜덤 도시로 산포했음.
+        final isPrecise = target['precise'] == true;
         for (int i = 0; i < sendCount; i++) {
           if (!_canSendLetterByDailyLimit()) break;
           if (imageUrl != null && !_canSendImageLetter()) break;
@@ -8965,6 +8997,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             destinationFlag: target['flag'] as String,
             destLat: (target['lat'] as num).toDouble(),
             destLng: (target['lng'] as num).toDouble(),
+            useExactCoordinates: isPrecise,
             socialLink: socialLink,
             imageUrl: imageUrl,
             paperStyle: paperStyle,
@@ -9086,6 +9119,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'towerAccentEmoji',
         // brand-specific (정식 brand 사용자 데이터)
         'brandExtraMonthlyQuota',
+        // Build 449 (sim100 P1): 고정 매장 위치 — 계정 전환 시 다음 사용자에게
+        //   이전 매장 좌표가 누수돼 엉뚱한 곳으로 자동발송되던 회귀 차단.
+        'brand_fixed_store_lat',
+        'brand_fixed_store_lng',
         // premium 특급 배송 (premium 사용자 전용)
         'dailyPremiumExpressSentCount',
         'dailyPremiumExpressDateKey',
@@ -9295,22 +9332,38 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           usedCityKeys: usedCityKeys,
           languageCode: _currentUser.languageCode,
         );
-        if (cityData == null) {
-          if (usedCityKeys.isEmpty) break; // 해당 국가 도시 데이터 없음
+        if (cityData == null && usedCityKeys.isNotEmpty) {
           usedCityKeys.clear(); // 모든 도시 소진 → 중복 허용으로 재시도
           cityData = CountryCities.randomCityWithOffset(
             destinationCountry,
             usedCityKeys: usedCityKeys,
             languageCode: _currentUser.languageCode,
           );
-          if (cityData == null) break;
         }
-
-        cityName = cityData['name'] as String? ?? '';
-        usedCityKeys.add(CountryCities.cityKey(destinationCountry, cityName));
-
-        cityLat = (cityData['lat'] as num).toDouble();
-        cityLng = (cityData['lng'] as num).toDouble();
+        if (cityData != null) {
+          cityName = cityData['name'] as String? ?? '';
+          usedCityKeys.add(CountryCities.cityKey(destinationCountry, cityName));
+          cityLat = (cityData['lat'] as num).toDouble();
+          cityLng = (cityData['lng'] as num).toDouble();
+        } else {
+          // Build 449 (sim100 P1): cities.json 에 없는 국가에서 break 로 발송이
+          //   1통(또는 0통)에 멈추던 회귀 — 비-특급 bulk(sendLetter)와 동일하게
+          //   bounds 랜덤 좌표로 폴백해 모든 국가 발송 가능. break 제거.
+          final coord = geoSvc.isInitialized
+              ? geoSvc.randomCoordinate(destinationCountry)
+              : null;
+          if (coord != null) {
+            cityName = '';
+            cityLat = coord['lat']!;
+            cityLng = coord['lng']!;
+          } else {
+            final landAddr =
+                LandAddressGenerator.generate(excludeCountry: _currentUser.country);
+            cityName = '';
+            cityLat = (landAddr['lat'] as num).toDouble();
+            cityLng = (landAddr['lng'] as num).toDouble();
+          }
+        }
       }
       final toCity = LatLng(cityLat, cityLng);
 
@@ -10631,4 +10684,15 @@ class BrandAnalytics {
   /// 발송 대비 픽업률 (reach — 얼마나 주워졌는지).
   double get pickupReach =>
       totalSent == 0 ? 0 : (totalPicked / totalSent).clamp(0.0, 1.0);
+}
+
+// Build 449 (sim100 P2): 인사이트 캠페인 그룹 집계 — 대량발송 N통을 1 캠페인
+//   카드로 묶기 위한 임시 누산기 (brandInsights getter 내부 사용).
+class _InsightAgg {
+  Letter rep;
+  int sent = 0;
+  int pickup = 0;
+  int revealed = 0;
+  int redeemed = 0;
+  _InsightAgg({required this.rep});
 }
