@@ -98,6 +98,25 @@ service cloud.firestore {
           && _delta('reportCount') >= 0 && _delta('reportCount') <= 1;
     }
 
+    // Build 450 (sim100 보안 P1 — letters.status IDOR 부분 완화):
+    //   anon-auth(request.auth.uid ≠ 앱 userId) 라 letter 의 owner-binding 이
+    //   불가능 → 타 인증자의 letter PATCH 자체는 Auth Phase 3 cutover 전엔 막을
+    //   수 없다(구조적 BLOCKER, docs/AUTH_PHASE3_CUTOVER_RUNBOOK.md). 그러나
+    //   쿠폰 무결성 핵심 타임스탬프를 write-once 로 잠가, 공격자가 이미 사용·노출된
+    //   쿠폰의 redeemedAt/codeRevealedAt 를 되돌리거나(되팔기) 위조(분석 왜곡)하는
+    //   2차 공격을 차단한다. 정상 픽업 흐름(첫 redeem/reveal 1회 set)은 영향 없음.
+    //   - 기존 값이 null/부재 → set 허용(최초 1회).
+    //   - 이미 값 존재 → 동일 값만 허용(변경/삭제 거부).
+    function _tsWriteOnce(field) {
+      return !(field in resource.data) || resource.data[field] == null
+          || (field in request.resource.data
+              && request.resource.data[field] == resource.data[field]);
+    }
+    function isLetterTamperSafe() {
+      return _tsWriteOnce('redeemedAt')
+          && _tsWriteOnce('codeRevealedAt');
+    }
+
     // ── users 컬렉션 ──────────────────────────────────────────────────
     // Build 297 (P0 security audit): update/delete 를 isSignedIn() 만으로 허용
     // 하면 어떤 인증 사용자든 다른 사용자 doc 을 덮어쓰거나 삭제 (PII 변조 +
@@ -222,9 +241,11 @@ service cloud.firestore {
 
       // update 는 카운터·상태 필드만. 본문/발신자/좌표/카테고리는 immutable.
       // Build 297: 카운터 폭 검증 추가 (review-bombing 차단).
+      // Build 450 (보안 P1): redeemedAt/codeRevealedAt write-once 잠금 추가.
       allow update: if isSignedIn()
                   && isAllowedLetterUpdate()
-                  && isReasonableLetterCounterDelta();
+                  && isReasonableLetterCounterDelta()
+                  && isLetterTamperSafe();
 
       // delete 차단 — admin REST 만 가능.
       allow delete: if false;

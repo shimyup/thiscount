@@ -57,3 +57,25 @@ function isAuthUidBindSafe() {
 // owner-scope 후에도 "본인이 자기 doc 에 self-grant" 가 가능하다 (rules 만으론
 // 불충분). 결제 무결성은 RevenueCat 검증 또는 Cloud Function 권위 부여로 별도
 // 처리 필요 — 본 cutover 범위 밖. (sim MED — 후속 백로그)
+
+// ─────────────────────────────────────────────────────────────────────────
+// Build 450 (sim100 보안 P1) — cutover 시 함께 적용할 두 항목.
+//
+// [보안 #1] isBrand 자가승급 (firestore.rules:isAllowedUserUpdate 의 'isBrand'/
+//   'brandName'). 현 상태: create 는 isBrand=false 강제, update 화이트리스트가
+//   isBrand 허용 → 가입 시 client PATCH 로 브랜드 전환. anon-auth 라 "결제 없이
+//   브랜드 티어" 차단 불가. 단 **베타는 브랜드가 무료 가입 선택지**라 현재 악용
+//   이득 0. 정식 출시(브랜드=유료) 시점에 실위협化. cutover 시:
+//     (a) isAllowedUserUpdate 에서 'isBrand','brandName' 제거.
+//     (b) 정식 승급은 서버 권위로만 — revenueCatWebhook(functions/index.js)에
+//         브랜드 구독 product 매핑 추가 → Admin SDK 로 users/{uid}.isBrand=true
+//         (credit grant 와 동일 패턴, rules 우회).
+//     (c) 무료 베타 가입 브랜드 선택 유지 시 isValidUserCreate 에 isBrand 허용 +
+//         update 는 == resource.data.isBrand 불변 가드.
+//
+// [보안 #2] letters.status world-writable IDOR. 현 live rules 에 Build 450
+//   부분완화 적용됨(redeemedAt/codeRevealedAt write-once = isLetterTamperSafe).
+//   그러나 타 인증자의 최초 status/카운터 PATCH 는 owner-binding 부재로 여전히
+//   가능(구조적). cutover 시 letters 에 senderAuthUid 바인딩 후 status/timestamp
+//   상태전이 write 를 owner(발신자)/정당 수신자로 제한, pickup 카운터(±1)는 공개
+//   유지. 상세: AUTH_MIGRATION_DESIGN.md.
