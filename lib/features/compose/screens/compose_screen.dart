@@ -2155,6 +2155,29 @@ class _ComposeScreenState extends State<ComposeScreen>
     }
   }
 
+  // Build 451: 카테고리별 본문 placeholder. 비-브랜드/답장은 기존 generic.
+  String _brandBodyHint(AppL10n l10n) {
+    final isBrand = context.read<AppState>().currentUser.isBrand;
+    if (!isBrand || _isReply) return l10n.composeHint;
+    switch (_brandCategory) {
+      case LetterCategory.coupon:
+        return l10n.koEn(
+          '할인 내용을 한 줄로 적어주세요 (예: 전 메뉴 20% 할인)\n할인코드는 아래에서 자동 발급돼요',
+          'Describe the discount in a line (e.g. 20% off everything)\nThe code is auto-issued below',
+        );
+      case LetterCategory.voucher:
+        return l10n.koEn(
+          '교환권 내용을 적어주세요 (예: 아메리카노 1잔 무료 교환)\n아래에서 교환권 이미지를 첨부하세요',
+          'Describe the voucher (e.g. free Americano)\nAttach the voucher image below',
+        );
+      default:
+        return l10n.koEn(
+          '홍보 메시지를 적어주세요 — 신메뉴 · 오픈 · 이벤트 소식을 매력적으로!',
+          'Write your promo — new menu, opening, or event news!',
+        );
+    }
+  }
+
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -3569,7 +3592,9 @@ class _ComposeScreenState extends State<ComposeScreen>
                 maxLength: _maxChars,
                 style: font.textStyle.copyWith(color: paper.inkColor),
                 decoration: InputDecoration(
-                  hintText: l10n.composeHint,
+                  // Build 451: 카테고리별 본문 힌트 — 일반=홍보 중심, 할인권=할인
+                  //   안내(코드는 자동), 교환권=교환권 안내. 사장이 무엇을 쓸지 즉시 안내.
+                  hintText: _brandBodyHint(l10n),
                   hintStyle: TextStyle(
                     color: paper.inkColor.withValues(alpha: 0.35),
                     fontSize: 15,
@@ -4922,6 +4947,16 @@ class _ComposeScreenState extends State<ComposeScreen>
                             _attachRedemptionCode) {
                           _attachRedemptionCode = false;
                           _previewRedemptionCode = null;
+                        }
+                        // Build 451: '할인권'은 할인코드 중심 → 선택 즉시 코드 발급
+                        //   기본 ON + 미리보기 코드 생성(수동 토글 부담 제거). 사장이
+                        //   원하면 '더 많은 옵션'에서 끌 수 있다. 수동 코드 입력란은
+                        //   중복이라 비운다.
+                        if (c == LetterCategory.coupon &&
+                            !_attachRedemptionCode) {
+                          _attachRedemptionCode = true;
+                          _previewRedemptionCode ??= RedemptionCode.generate();
+                          _redemptionInfoController.clear();
                         }
                         // Build 449 (sim100 P2): 본문 사진 첨부는 '일반홍보'에서만
                         //   노출되는데, 일반→할인권/교환권 전환 시 숨겨진 첨부가
