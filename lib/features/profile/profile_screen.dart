@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../share/share_card_service.dart';
 
 import '../progression/user_progress.dart';
+import '../admin/admin_screen.dart';
 import '../brand/brand_analytics_card.dart';
 import '../brand/brand_checklist_card.dart';
 import '../hunt_wallet/hunt_wallet_card.dart';
@@ -16,6 +18,7 @@ import '../journey/journey_card.dart';
 import '../reflection/weekly_reflection_card.dart';
 import '../streak/streak_badge.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../core/config/app_keys.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/localization/country_names.dart';
 import '../../../core/localization/language_config.dart';
@@ -1559,6 +1562,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   isLast: true,
                                 ),
                               ]),
+                              // Build 454: 관리자 패널 — 이전엔 설정 화면(톱니)
+                              //   에만 있어 프로필 인라인 섹션(브랜드 탭 항상펼침)
+                              //   에선 admin 진입이 안 보였음. settings_screen 과
+                              //   동일 게이트(permanentAdminEmail 은 모든 빌드 통과).
+                              if ((kDebugMode &&
+                                      user.email?.toLowerCase() ==
+                                          DebugConstants.testBrandEmail) ||
+                                  BetaConstants.isAdmin(user.email))
+                                _settingsGroup('🔐 ${_l.settingsAdmin}', [
+                                  _groupTile(
+                                    icon: Icons.admin_panel_settings_rounded,
+                                    label: _l.settingsAdminPanel,
+                                    iconColor: AppColors.error,
+                                    onTap: () => Navigator.push(
+                                      ctx,
+                                      MaterialPageRoute(
+                                        builder: (_) => const AdminScreen(),
+                                      ),
+                                    ),
+                                    isLast: true,
+                                  ),
+                                ]),
     ];
   }
 

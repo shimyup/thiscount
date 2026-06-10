@@ -4969,16 +4969,9 @@ class _ComposeScreenState extends State<ComposeScreen>
                           _attachRedemptionCode = false;
                           _previewRedemptionCode = null;
                         }
-                        // Build 451: '할인권'은 할인코드 중심 → 선택 즉시 코드 발급
-                        //   기본 ON + 미리보기 코드 생성(수동 토글 부담 제거). 사장이
-                        //   원하면 '더 많은 옵션'에서 끌 수 있다. 수동 코드 입력란은
-                        //   중복이라 비운다.
-                        if (c == LetterCategory.coupon &&
-                            !_attachRedemptionCode) {
-                          _attachRedemptionCode = true;
-                          _previewRedemptionCode ??= RedemptionCode.generate();
-                          _redemptionInfoController.clear();
-                        }
+                        // Build 454: 자동 발급 기본 OFF (사용자 요청 — Build 451
+                        //   의 선택 즉시 ON 을 되돌림). 토글은 할인코드 입력란
+                        //   바로 아래에 노출돼 원할 때만 켠다.
                         // Build 449 (sim100 P2): 본문 사진 첨부는 '일반홍보'에서만
                         //   노출되는데, 일반→할인권/교환권 전환 시 숨겨진 첨부가
                         //   그대로 발송되고 이미지 쿼터를 소진하던 회귀 → 전환 시 해제.
@@ -5192,6 +5185,39 @@ class _ComposeScreenState extends State<ComposeScreen>
                   ),
                 ),
               ),
+            ],
+            // Build 454: 할인코드 자동 발급 토글 — 코드 입력란 바로 아래 노출
+            //   (사용자 요청: 한 시야에서 수동 입력 vs 자동 발급 선택). 기본 OFF.
+            //   ON 시 미리보기 카드가 토글 바로 아래에 뜨고 수동 입력란은 숨김.
+            if (_brandCategory == LetterCategory.coupon) ...[
+              const SizedBox(height: 10),
+              _optionToggleButton(
+                active: _attachRedemptionCode,
+                label: l10n.redemptionToggleLabel,
+                onTap: () async {
+                  if (!_attachRedemptionCode) {
+                    final ok = await _showRedemptionCodeGuide();
+                    if (ok != true) return;
+                  }
+                  setState(() {
+                    _attachRedemptionCode = !_attachRedemptionCode;
+                    if (_attachRedemptionCode) {
+                      // 토글 ON 즉시 코드 1개 발급 → 미리보기 카드 노출.
+                      _previewRedemptionCode ??= RedemptionCode.generate();
+                      // 옵션 버튼이 코드 발급을 담당 → 수동 코드 입력란 불필요.
+                      //   기존 입력 코드를 비워 중복 코드 노출 차단.
+                      _redemptionInfoController.clear();
+                    } else {
+                      _previewRedemptionCode = null;
+                    }
+                  });
+                },
+              ),
+              if (_attachRedemptionCode &&
+                  _previewRedemptionCode != null) ...[
+                const SizedBox(height: 10),
+                _buildRedemptionPreviewCard(l10n),
+              ],
             ],
             // Build 130: 교환권일 때 이미지 선택 버튼 + 미리보기. 선택하면 로컬
             // 경로가 `_redemptionInfoController` 에 채워진다 (URL 자리를
@@ -5599,7 +5625,8 @@ class _ComposeScreenState extends State<ComposeScreen>
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  '📍 ${l10n.zoneCampaignToggle}',
+                  // Build 454: 발송 종류 표기 — 어떤 카테고리의 zone 인지 구분.
+                  '📍 ${l10n.zoneCampaignToggle} · ${_categoryLabel(l10n)}',
                   style: TextStyle(
                     color: _isAutoZoneMode ? AppColors.gold : AppColors.textPrimary,
                     fontSize: 12,
@@ -5658,6 +5685,19 @@ class _ComposeScreenState extends State<ComposeScreen>
     );
   }
 
+  // Build 454: 현재 선택된 발송 종류 라벨 — 고정 위치 카드 제목에 표기해
+  //   일반홍보/할인권/교환권 캠페인을 구분(사용자 요청).
+  String _categoryLabel(AppL10n l10n) {
+    switch (_brandCategory) {
+      case LetterCategory.coupon:
+        return l10n.composeBrandCategoryCoupon;
+      case LetterCategory.voucher:
+        return l10n.composeBrandCategoryVoucher;
+      default:
+        return l10n.composeBrandCategoryGeneral;
+    }
+  }
+
   // Build 448: 고정 매장 위치 카드 — 좌표 저장/변경/해제 + 사용 토글.
   Widget _buildFixedLocationCard(AppL10n l10n) {
     final state = context.watch<AppState>();
@@ -5688,7 +5728,9 @@ class _ComposeScreenState extends State<ComposeScreen>
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  l10n.zoneFixedLocationTitle,
+                  // Build 454: 발송 종류 표기 — '고정 매장 위치 · 할인권' 처럼
+                  //   캠페인 종류별 자동발송을 구분.
+                  '${l10n.zoneFixedLocationTitle} · ${_categoryLabel(l10n)}',
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 12.5,
@@ -5894,39 +5936,10 @@ class _ComposeScreenState extends State<ComposeScreen>
                 onTap: () =>
                     setState(() => _brandAcceptsReplies = !_brandAcceptsReplies),
               ),
-              // Build 448: 할인코드 발급은 '할인권' 카테고리에서만 노출 — 할인코드는
-              //   할인권 전용 개념이므로 일반홍보/교환권에는 표시하지 않는다.
-              if (_brandCategory == LetterCategory.coupon)
-                _optionToggleButton(
-                  active: _attachRedemptionCode,
-                  label: l10n.redemptionToggleLabel,
-                  onTap: () async {
-                    if (!_attachRedemptionCode) {
-                      final ok = await _showRedemptionCodeGuide();
-                      if (ok != true) return;
-                    }
-                    setState(() {
-                      _attachRedemptionCode = !_attachRedemptionCode;
-                      if (_attachRedemptionCode) {
-                        // 토글 ON 즉시 코드 1개 발급 → 미리보기 카드 노출.
-                        _previewRedemptionCode ??= RedemptionCode.generate();
-                        // 옵션 버튼이 코드 발급을 담당 → 수동 코드 입력란 불필요.
-                        //   기존 입력 코드를 비워 중복 코드 노출 차단.
-                        _redemptionInfoController.clear();
-                      } else {
-                        _previewRedemptionCode = null;
-                      }
-                    });
-                  },
-                ),
+              // Build 454: 할인코드 발급 토글은 카테고리 패널의 코드 입력란 바로
+              //   아래로 이동(사용자 요청 — 입력란과 한 시야에서 선택).
             ],
           ),
-          // Build 446: 코드 발급 토글 ON 시 발급될 코드를 발송 전에 미리 노출 →
-          //   사장이 본문에 코드를 따로 적을 필요 없음 + 매장 등록 코드를 즉시 확인.
-          if (_attachRedemptionCode && _previewRedemptionCode != null) ...[
-            const SizedBox(height: 12),
-            _buildRedemptionPreviewCard(l10n),
-          ],
           const SizedBox(height: 14),
           // ── 자동 삭제 기간 ──
           Text(
