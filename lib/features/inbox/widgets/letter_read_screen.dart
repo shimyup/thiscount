@@ -15,6 +15,8 @@ import 'package:screen_brightness/screen_brightness.dart';
 import 'package:screen_protector/screen_protector.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_theme.dart';
+import 'package:share_plus/share_plus.dart';
+import '../../../core/utils/gift_code.dart';
 import '../../../core/utils/redemption_code.dart';
 import '../../../core/utils/secure_clipboard.dart';
 import '../../../core/theme/letter_style.dart';
@@ -2599,6 +2601,39 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
+                  ),
+                ),
+              ),
+            ],
+            // Build 453 (친구 선물): 서버 letter(sent_*) + 미사용/미만료 쿠폰만
+            //   선물 가능. 코드 공유 → 친구가 인박스 🎁 받기에서 입력.
+            if (!disabled && GiftCode.isGiftableId(letter.id)) ...[
+              const SizedBox(height: 6),
+              Center(
+                child: TextButton.icon(
+                  onPressed: () {
+                    final shareText = l10n.koEn(
+                      '🎁 Thiscount 쿠폰 선물이 도착했어요!\n'
+                          '"${letter.content.length > 40 ? '${letter.content.substring(0, 40)}…' : letter.content}"\n'
+                          '앱 수집첩에서 🎁 아이콘을 누르고 아래 코드를 붙여넣으세요.\n'
+                          '선물 코드: ${letter.id}',
+                      '🎁 A Thiscount coupon gift for you!\n'
+                          '"${letter.content.length > 40 ? '${letter.content.substring(0, 40)}…' : letter.content}"\n'
+                          'Tap the 🎁 icon in the app collection and paste this code.\n'
+                          'Gift code: ${letter.id}',
+                    );
+                    Share.share(shareText);
+                  },
+                  icon: const Icon(Icons.card_giftcard_rounded, size: 16),
+                  label: Text(
+                    l10n.koEn('친구에게 선물하기', 'Gift to a friend'),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.gold,
                   ),
                 ),
               ),

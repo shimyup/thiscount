@@ -29,6 +29,7 @@ import '../core/services/auth_service.dart';
 import '../core/services/brand_zone_service.dart';
 import '../core/services/purchase_service.dart';
 import '../core/services/secure_clock.dart';
+import '../core/utils/gift_code.dart';
 import '../features/inbox/utils/category_inference.dart';
 import '../core/utils/redemption_code.dart';
 import '../models/brand_insights.dart';
@@ -2181,6 +2182,84 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     } catch (e) {
       if (kDebugMode) debugPrint('[Stamp] load 실패: $e');
     }
+  }
+
+  // ── 친구 쿠폰 선물 (Build 453) ─────────────────────────────────────────────
+  // 바이럴 루프: 주운 브랜드 쿠폰을 친구에게 선물 코드(letter id)로 공유 →
+  // 친구가 앱에서 코드 입력 → 같은 쿠폰이 친구 수집첩에 도착. 매장은 도달이
+  // 늘어 좋고(코드 동일 = POS 추가 등록 0), 유저는 나눔 동기, 앱은 설치 유입.
+  // letters read 는 public 이라 서버 변경 0. 캠페인 dedup/만료/셀프클레임 가드.
+
+  /// 선물 코드로 쿠폰 받기. 성공 시 null, 실패 시 사용자 표시용 에러 메시지.
+  Future<String?> claimGiftLetter(String rawInput) async {
+    final id = GiftCode.extract(rawInput);
+    if (id == null || id.isEmpty) {
+      return _l10n.koEn('선물 코드를 입력해 주세요', 'Enter a gift code');
+    }
+    if (!GiftCode.isGiftableId(id)) {
+      return _l10n.koEn('유효하지 않은 선물 코드예요', 'Invalid gift code');
+    }
+    // 중복 수령 차단 — 원본 letter id 기준 (픽업 dedup 세트 재사용·영속).
+    if (_myPickedUpLetterIds.contains(id)) {
+      return _l10n.koEn('이미 받은 쿠폰이에요', 'You already claimed this coupon');
+    }
+    if (!FirebaseConfig.kFirebaseEnabled) {
+      return _l10n.koEn('네트워크 설정을 확인해 주세요', 'Check your connection');
+    }
+    final doc = await FirestoreService.getDocument('letters/$id');
+    if (doc == null) {
+      return _l10n.koEn(
+          '쿠폰을 찾을 수 없어요 — 코드를 다시 확인해 주세요',
+          'Coupon not found — check the code');
+    }
+    final map = FirestoreService.fromFirestoreDoc(doc);
+    map['id'] ??= id;
+    final letter = _letterFromFirestore(map);
+    if (letter == null) {
+      return _l10n.koEn('쿠폰 정보를 읽지 못했어요', 'Could not read the coupon');
+    }
+    // 선물 가능 대상: 브랜드 쿠폰/교환권만 (개인 편지/홍보 제외).
+    if (!letter.senderIsBrand || letter.category == LetterCategory.general) {
+      return _l10n.koEn('선물할 수 없는 항목이에요', 'This item cannot be gifted');
+    }
+    if (letter.senderId == _currentUser.id) {
+      return _l10n.koEn('내 매장 쿠폰은 받을 수 없어요', 'Cannot claim your own coupon');
+    }
+    // 사용 기한 만료 가드 (SecureClock — 시계 되감기 우회 차단).
+    final exp = letter.redemptionExpiresAt;
+    if (exp != null && SecureClock.now().isAfter(exp)) {
+      return _l10n.koEn('기한이 지난 쿠폰이에요', 'This coupon has expired');
+    }
+    // 1인당 1회 캠페인 dedup — 정상 픽업과 동일 정책.
+    final campaignId = letter.campaignId;
+    if (letter.brandUniquePerUser &&
+        campaignId != null &&
+        _pickedUpCampaignIds.contains(campaignId)) {
+      return _l10n.koEn(
+          '이 캠페인 쿠폰은 이미 보유 중이에요', 'You already have this campaign coupon');
+    }
+    final now = DateTime.now();
+    // id 는 final — toJson→fromJson 라운드트립으로 새 id 의 사본 생성.
+    final giftJson = letter.toJson();
+    giftJson['id'] = 'gift_${id}_${now.millisecondsSinceEpoch}';
+    final gift = Letter.fromJson(giftJson)
+      ..status = DeliveryStatus.nearYou
+      ..arrivedAt = now;
+    _inbox.add(gift);
+    _myPickedUpLetterIds.add(id);
+    if (letter.brandUniquePerUser && campaignId != null) {
+      _pickedUpCampaignIds.add(campaignId);
+    }
+    _hasNearbyAlert = true;
+    _currentUser.activityScore.receivedCount++;
+    // 브랜드 퍼널에 도달 반영 — 정상 픽업과 동일하게 카운터 +1 (best-effort).
+    unawaited(FirestoreService.incrementField(
+        path: 'letters/$id', field: 'pickupCount'));
+    unawaited(FirestoreService.incrementField(
+        path: 'letters/$id', field: 'readCount'));
+    notifyListeners();
+    _saveToPrefs();
+    return null;
   }
 
   /// 브랜드 대시보드 용 — 내가 보낸 편지 중 몇 통이 사용됐는지 (동일 디바이스 기준).

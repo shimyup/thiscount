@@ -966,6 +966,141 @@ class _InboxScreenState extends State<InboxScreen>
     });
   }
 
+  // Build 453 (친구 선물): 선물 코드 입력 다이얼로그 — 붙여넣기 → claim →
+  //   성공 시 쿠폰이 인박스에 추가(골드 스낵바), 실패 시 사유 표시.
+  Future<void> _showGiftClaimDialog(BuildContext context) async {
+    final state = context.read<AppState>();
+    final l10n = AppL10n.of(state.currentUser.languageCode);
+    final controller = TextEditingController();
+    bool claiming = false;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (dialogCtx, setDialogState) => AlertDialog(
+          backgroundColor: AppColors.bgCard,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          title: Text(
+            l10n.koEn('🎁 선물 받기', '🎁 Claim a gift'),
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.koEn(
+                  '친구가 보낸 선물 코드(또는 메시지 전체)를 붙여넣으세요.',
+                  'Paste the gift code (or the whole message) from your friend.',
+                ),
+                style: const TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 12,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                maxLines: 3,
+                minLines: 1,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 13,
+                ),
+                decoration: InputDecoration(
+                  hintText: l10n.koEn('선물 코드 붙여넣기', 'Paste gift code'),
+                  hintStyle: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 12,
+                  ),
+                  filled: true,
+                  fillColor: AppColors.bgSurface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogCtx).pop(),
+              child: Text(
+                l10n.settingsCancel,
+                style: const TextStyle(color: AppColors.textMuted),
+              ),
+            ),
+            FilledButton(
+              onPressed: claiming
+                  ? null
+                  : () async {
+                      setDialogState(() => claiming = true);
+                      final error =
+                          await state.claimGiftLetter(controller.text);
+                      if (!dialogCtx.mounted) return;
+                      if (error != null) {
+                        setDialogState(() => claiming = false);
+                        ScaffoldMessenger.of(dialogCtx).showSnackBar(
+                          SnackBar(
+                            content: Text(error),
+                            backgroundColor:
+                                AppColors.error.withValues(alpha: 0.92),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+                      Navigator.of(dialogCtx).pop();
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(this.context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            l10n.koEn(
+                              '🎁 선물 쿠폰이 수집첩에 도착했어요!',
+                              '🎁 Gift coupon added to your collection!',
+                            ),
+                            style: const TextStyle(
+                              color: AppColors.bgDeep,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          backgroundColor: AppColors.gold,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      );
+                    },
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.gold,
+                foregroundColor: AppColors.bgDeep,
+              ),
+              child: Text(
+                claiming
+                    ? l10n.koEn('확인 중…', 'Checking…')
+                    : l10n.koEn('받기', 'Claim'),
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    controller.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AppState>(
@@ -1385,6 +1520,16 @@ class _InboxScreenState extends State<InboxScreen>
                       ),
                     ),
                   ],
+                ),
+                // Build 453 (친구 선물): 선물 코드 입력 — 친구가 공유한 쿠폰 받기.
+                IconButton(
+                  onPressed: () => _showGiftClaimDialog(context),
+                  tooltip: l10n.koEn('선물 받기', 'Claim gift'),
+                  icon: const Icon(
+                    Icons.card_giftcard_rounded,
+                    color: AppColors.textSecondary,
+                    size: 22,
+                  ),
                 ),
                 // 검색 버튼
                 IconButton(
