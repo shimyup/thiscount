@@ -2239,11 +2239,24 @@ class _InboxTab extends StatelessWidget {
                           );
                           return false;
                         }
-                        ctx.read<AppState>().markLetterRedeemed(letter.id);
+                        final st = ctx.read<AppState>();
+                        await st.markLetterRedeemed(letter.id);
+                        // Build 453 (단골 스탬프): 완성 시 축하 우선 노출.
+                        final celebrated = st.takeStampCelebration();
+                        if (!ctx.mounted) return false;
                         ScaffoldMessenger.of(ctx).showSnackBar(
                           SnackBar(
-                            content: Text(l10n.inboxMarkedUsed),
-                            backgroundColor: const Color(0xFF1A6B45),
+                            content: Text(
+                              celebrated != null
+                                  ? l10n.koEn(
+                                      '🎉 ${celebrated.brandName} 단골 스탬프 완성! 보상 쿠폰 도착',
+                                      '🎉 ${celebrated.brandName} stamp card complete! Reward arrived',
+                                    )
+                                  : l10n.inboxMarkedUsed,
+                            ),
+                            backgroundColor: celebrated != null
+                                ? AppColors.gold
+                                : const Color(0xFF1A6B45),
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),

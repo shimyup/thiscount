@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../features/progression/user_level.dart';
 import '../features/progression/user_progress.dart';
 import '../features/welcome/welcome_letter.dart';
+import '../models/brand_stamp.dart';
 import '../models/letter.dart';
 import '../models/user_profile.dart';
 import '../core/config/app_keys.dart';
@@ -2023,8 +2024,163 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         ),
       );
     }
+    // Build 453 (단골 스탬프): 브랜드 쿠폰/교환권 사용 = 그 매장 스탬프 +1.
+    //   완성 시 보상 쿠폰 자동 발급 — "헌팅(신규)×스탬프(재방문)" 풀퍼널의
+    //   재방문 루프. general(정보성)과 보상 쿠폰 자체 사용은 제외.
+    if (isRedeemable && matched != null) {
+      _recordStampForRedeem(matched, now);
+    }
     notifyListeners();
     _saveToPrefs();
+  }
+
+  // ── 단골 스탬프 (Build 453) ────────────────────────────────────────────────
+  // 유니크 포지션: 발견(지도 줍기)→방문(코드 사용)→재방문(스탬프→보상)을 한
+  // 루프로. 사장의 핵심 니즈 '단골 만들기'를 측정·보상하는 유일한 표면.
+  // 저장: user-scoped prefs JSON (서버 스키마/룰 변경 0 — 픽업자 디바이스 기준).
+  static const String _stampPrefsKey = 'brand_stamp_cards_v1';
+  static const String _stampRewardIdPrefix = 'stamp_reward_';
+  final Map<String, BrandStampCard> _stampCards = {};
+  // 직전 redeem 으로 완성된 카드(1회성 축하 UI 소비용).
+  BrandStampCard? _pendingStampCelebration;
+
+  /// 스탬프 카드 목록 — 진행 중(스탬프 多) 우선, 그다음 최근 적립순.
+  List<BrandStampCard> get stampCards {
+    final list = _stampCards.values.where((c) => c.brandId.isNotEmpty).toList()
+      ..sort((a, b) {
+        final byStamps = b.stamps.compareTo(a.stamps);
+        if (byStamps != 0) return byStamps;
+        final aT = a.lastStampAt?.millisecondsSinceEpoch ?? 0;
+        final bT = b.lastStampAt?.millisecondsSinceEpoch ?? 0;
+        return bT.compareTo(aT);
+      });
+    return list;
+  }
+
+  /// 직전 redeem 으로 스탬프 카드가 완성됐으면 1회 반환(소비형) — redeem 직후
+  /// 화면이 축하 다이얼로그를 띄우는 데 사용. 없으면 null.
+  BrandStampCard? takeStampCelebration() {
+    final c = _pendingStampCelebration;
+    _pendingStampCelebration = null;
+    return c;
+  }
+
+  void _recordStampForRedeem(Letter letter, DateTime now) {
+    if (!letter.senderIsBrand) return;
+    if (letter.senderId.isEmpty) return;
+    // 보상 쿠폰 자체의 사용은 스탬프 제외(무료 보상으로 다음 보상 적립 방지 —
+    // 커피 스탬프 통념과 동일).
+    if (letter.id.startsWith(_stampRewardIdPrefix)) return;
+    // 브랜드 본인이 자기 쿠폰 self-redeem 시 적립 안 함(zone self-pickup 차단과
+    // 동일 정책).
+    if (letter.senderId == _currentUser.id) return;
+    final card = _stampCards.putIfAbsent(
+      letter.senderId,
+      () => BrandStampCard(
+        brandId: letter.senderId,
+        brandName: letter.senderName,
+      ),
+    );
+    // 매장명 최신화(브랜드가 닉네임 변경했을 수 있음).
+    if (letter.senderName.isNotEmpty) card.brandName = letter.senderName;
+    card.stamps += 1;
+    card.lastStampAt = now;
+    if (card.isComplete) {
+      card.stamps = 0;
+      card.completedCount += 1;
+      _issueStampRewardLetter(card, sourceLetter: letter, now: now);
+      _pendingStampCelebration = card;
+    }
+    unawaited(_saveStampCards());
+  }
+
+  /// 스탬프 완성 보상 쿠폰 — 픽업자 인박스에 로컬 발급(zone auto-drop 패턴).
+  /// 코드는 같은 매장의 최근 코드를 재사용(POS 추가 등록 0). 없으면 화면 제시형.
+  void _issueStampRewardLetter(
+    BrandStampCard card, {
+    required Letter sourceLetter,
+    required DateTime now,
+  }) {
+    // 같은 브랜드 letter 중 가장 최근 redemptionCode 재사용.
+    String? rewardCode = sourceLetter.redemptionCode;
+    if (rewardCode == null) {
+      for (var i = _inbox.length - 1; i >= 0; i--) {
+        final l = _inbox[i];
+        if (l.senderId == card.brandId && l.redemptionCode != null) {
+          rewardCode = l.redemptionCode;
+          break;
+        }
+      }
+    }
+    final id =
+        '$_stampRewardIdPrefix${now.millisecondsSinceEpoch}_${_shortRandHex()}';
+    final reward = Letter(
+      id: id,
+      senderId: card.brandId,
+      senderName: card.brandName,
+      senderCountry: _currentUser.country,
+      senderCountryFlag: _currentUser.countryFlag,
+      content: _l10n.koEn(
+        '🎁 단골 보상이 도착했어요! ${card.brandName}에서 ${card.rewardThreshold}번 사용해 주셔서 감사합니다. 이 쿠폰을 매장에 보여주세요.',
+        '🎁 Loyalty reward! Thanks for redeeming ${card.rewardThreshold} times at ${card.brandName}. Show this coupon at the store.',
+      ),
+      originLocation: sourceLetter.originLocation,
+      destinationLocation: sourceLetter.destinationLocation,
+      destinationCountry: _currentUser.country,
+      destinationCountryFlag: _currentUser.countryFlag,
+      segments: const [],
+      status: DeliveryStatus.nearYou,
+      sentAt: now,
+      arrivedAt: now,
+      isAnonymous: false,
+      estimatedTotalMinutes: 0,
+      senderIsBrand: true,
+      senderTier: LetterSenderTier.brand,
+      // 단골 보상은 그 자체가 '발견의 정점' — epic 고정으로 수집 쾌감 극대화.
+      rarity: LetterRarity.epic,
+      category: LetterCategory.voucher,
+      acceptsReplies: false,
+      redemptionInfo: _l10n.koEn(
+        '단골 ${card.completedCount}회차 보상 — 직원에게 이 화면을 보여주세요.',
+        'Loyalty reward #${card.completedCount} — show this screen to staff.',
+      ),
+      // 보상 사용 기한 30일 — 재방문 유도 윈도우.
+      expiresAt: now.add(const Duration(days: 30)),
+      redemptionExpiresAt: now.add(const Duration(days: 30)),
+      redemptionCode: rewardCode,
+    );
+    _inbox.add(reward);
+    _hasNearbyAlert = true;
+  }
+
+  Future<void> _saveStampCards() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        _stampPrefsKey,
+        jsonEncode(_stampCards.values.map((c) => c.toJson()).toList()),
+      );
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Stamp] save 실패: $e');
+    }
+  }
+
+  void _loadStampCardsFromPrefs(SharedPreferences prefs) {
+    _stampCards.clear();
+    final raw = prefs.getString(_stampPrefsKey);
+    if (raw == null || raw.isEmpty) return;
+    try {
+      final list = jsonDecode(raw);
+      if (list is! List) return;
+      for (final item in list) {
+        if (item is! Map<String, dynamic>) continue;
+        final card = BrandStampCard.fromJson(item);
+        if (card.brandId.isEmpty) continue;
+        _stampCards[card.brandId] = card;
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Stamp] load 실패: $e');
+    }
   }
 
   /// 브랜드 대시보드 용 — 내가 보낸 편지 중 몇 통이 사용됐는지 (동일 디바이스 기준).
@@ -3406,6 +3562,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     //   영속 — 백엔드 rules 변경 없이 동작. 미설정 시 null.
     _fixedStoreLat = prefs.getDouble('brand_fixed_store_lat');
     _fixedStoreLng = prefs.getDouble('brand_fixed_store_lng');
+    // Build 453: 단골 스탬프 카드 복원 (user-scoped — 계정전환 시 정리됨).
+    _loadStampCardsFromPrefs(prefs);
     // 레거시 테스터: 거리 기록이 없을 때, 기존 활동량 기반으로 초기 추정 XP 를
     // 확보해 레벨 라벨이 신규 유저처럼 보이지 않도록 한다. 정확한 누적값은
     // 앞으로의 픽업·발송부터 실측이 덮어쓴다.
@@ -5128,6 +5286,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       //   이전 매장 좌표로 자동발송하는 누수 차단).
       _fixedStoreLat = null;
       _fixedStoreLng = null;
+      // Build 453: 단골 스탬프 in-memory reset (A 의 적립이 B 에게 누수 차단).
+      _stampCards.clear();
+      _pendingStampCelebration = null;
       // Build 415 (sim50 P1/P2): 계정 전환 시 게임화/할당량 카운터 in-memory
       //   reset. 이전엔 streak/주간챌린지/월간·이미지·익스프레스 발송 카운트와
       //   누적 거리(XP 원천)가 다음 계정으로 그대로 넘어가 레벨/한도 누수.
@@ -9142,6 +9303,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         //   이전 매장 좌표가 누수돼 엉뚱한 곳으로 자동발송되던 회귀 차단.
         'brand_fixed_store_lat',
         'brand_fixed_store_lng',
+        // Build 453: 단골 스탬프 — A 의 스탬프가 B 에게 상속되지 않게.
+        'brand_stamp_cards_v1',
         // premium 특급 배송 (premium 사용자 전용)
         'dailyPremiumExpressSentCount',
         'dailyPremiumExpressDateKey',

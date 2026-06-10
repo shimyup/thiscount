@@ -11,6 +11,7 @@ import '../progression/user_progress.dart';
 import '../brand/brand_analytics_card.dart';
 import '../brand/brand_checklist_card.dart';
 import '../hunt_wallet/hunt_wallet_card.dart';
+import '../hunt_wallet/stamp_cards_row.dart';
 import '../journey/journey_card.dart';
 import '../reflection/weekly_reflection_card.dart';
 import '../streak/streak_badge.dart';
@@ -1044,6 +1045,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           // 후속에서 분리.
                           if (!user.isBrand) ...[
                             const HuntWalletCard(
+                              margin: EdgeInsets.symmetric(horizontal: 16),
+                            ),
+                            const SizedBox(height: 12),
+                            // Build 453: 단골 스탬프 — 매장별 적립 진행도.
+                            //   카드 0장이면 위젯이 스스로 사라짐.
+                            const StampCardsRow(
                               margin: EdgeInsets.symmetric(horizontal: 16),
                             ),
                             const SizedBox(height: 12),

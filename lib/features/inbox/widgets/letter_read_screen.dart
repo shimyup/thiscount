@@ -2512,7 +2512,33 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: () async {
-                    await ctx.read<AppState>().markLetterRedeemed(letter.id);
+                    final state = ctx.read<AppState>();
+                    await state.markLetterRedeemed(letter.id);
+                    // Build 453 (단골 스탬프): 이 redeem 으로 스탬프 카드가 완성
+                    //   됐으면 축하 + 보상 쿠폰 도착 안내(1회성 소비).
+                    final celebrated = state.takeStampCelebration();
+                    if (celebrated != null && ctx.mounted) {
+                      ScaffoldMessenger.of(ctx).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            l10n.koEn(
+                              '🎉 ${celebrated.brandName} 단골 스탬프 완성! 보상 쿠폰이 수집첩에 도착했어요',
+                              '🎉 ${celebrated.brandName} stamp card complete! Reward coupon is in your collection',
+                            ),
+                            style: const TextStyle(
+                              color: AppColors.bgDeep,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          backgroundColor: AppColors.gold,
+                          behavior: SnackBarBehavior.floating,
+                          duration: const Duration(seconds: 5),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      );
+                    }
                   },
                   icon: const Icon(Icons.check_circle_outline_rounded, size: 16),
                   label: Text(
