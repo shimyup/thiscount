@@ -5603,19 +5603,62 @@ class _ComposeScreenState extends State<ComposeScreen>
   //   _applyScenarioNearby / _applyScenarioExactDrop / _applyScenarioBulk)
   //   제거 — ExactDrop·대량 진입점이 목적지 카드·상단 토글과 중복이라 삭제.
 
+  // Build 455: 가시성 재구성 — divider 뒤에 묻혀 있던 위치/자동발송을 골드 톤의
+  //   독립 카드 + 섹션 헤더 + 한 줄 설명으로 끌어올림. 카피도 좌표/zone 전문용어
+  //   대신 "매장 기준 발송 / 근처 손님 자동 발송" 평이한 설명으로 교체(l10n).
   Widget _buildAutoZoneSection(AppL10n l10n) {
-    return Column(
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.gold.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.gold.withValues(alpha: 0.35)),
+      ),
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ── 섹션 헤더 + 설명 ──
+        Row(
+          children: [
+            const Text('📍', style: TextStyle(fontSize: 15)),
+            const SizedBox(width: 7),
+            Expanded(
+              child: Text(
+                l10n.koEn('매장 위치 · 자동 발송', 'Store location · Auto-send'),
+                style: const TextStyle(
+                  color: AppColors.gold,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          l10n.koEn(
+            '매장 위치를 한 번 고정해두면, 근처에 온 손님에게 이 혜택을 자동으로 보낼 수 있어요.',
+            'Lock your store location once, and this offer can be auto-sent to customers who come nearby.',
+          ),
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 11,
+            height: 1.45,
+          ),
+        ),
+        const SizedBox(height: 10),
         // Build 449: 고정 매장 위치 카드를 자동발송 토글 밖으로 노출 — 사용자가
         //   "위치 고정 활성화가 안 보인다" 피드백. 토글 ON/OFF 와 무관하게 항상
         //   매장 좌표를 설정/사용할 수 있게 상단 고정.
         _buildFixedLocationCard(l10n),
         const SizedBox(height: 12),
-        // 토글
+        // 토글 — 제목 + 무엇이 일어나는지 한 줄 설명.
         GestureDetector(
           onTap: () => setState(() => _isAutoZoneMode = !_isAutoZoneMode),
+          behavior: HitTestBehavior.opaque,
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(
                 _isAutoZoneMode ? Icons.check_circle : Icons.circle_outlined,
@@ -5624,14 +5667,33 @@ class _ComposeScreenState extends State<ComposeScreen>
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  // Build 454: 발송 종류 표기 — 어떤 카테고리의 zone 인지 구분.
-                  '📍 ${l10n.zoneCampaignToggle} · ${_categoryLabel(l10n)}',
-                  style: TextStyle(
-                    color: _isAutoZoneMode ? AppColors.gold : AppColors.textPrimary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      // Build 454: 발송 종류 표기 — 어떤 카테고리인지 구분.
+                      '${l10n.zoneCampaignToggle} · ${_categoryLabel(l10n)}',
+                      style: TextStyle(
+                        color: _isAutoZoneMode
+                            ? AppColors.gold
+                            : AppColors.textPrimary,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.koEn(
+                        '켜면 손님이 선택한 반경 안에 들어올 때 이 혜택이 자동으로 도착해요',
+                        'When on, this offer arrives automatically when customers enter the radius',
+                      ),
+                      style: const TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 10.5,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -5682,6 +5744,7 @@ class _ComposeScreenState extends State<ComposeScreen>
           ],
         ],
       ],
+      ),
     );
   }
 
@@ -5991,14 +6054,9 @@ class _ComposeScreenState extends State<ComposeScreen>
               );
             }).toList(),
           ),
-          // Build 448: 자동 발송(zone) 섹션 재노출 — 사용자가 반경 안에 들어오면
-          //   자동 발송 + 고정 매장 위치 사용. (이전 빌드에서 숨겨졌던 섹션 복원)
+          // Build 448: 자동 발송(zone) 섹션 재노출. Build 455: divider 에 묻히지
+          //   않게 자체 골드 카드(헤더+설명 포함)로 — divider 제거.
           const SizedBox(height: 14),
-          Divider(
-            height: 1,
-            color: AppColors.textMuted.withValues(alpha: 0.12),
-          ),
-          const SizedBox(height: 12),
           _buildAutoZoneSection(l10n),
         ],
       ),
