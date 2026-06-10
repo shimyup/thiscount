@@ -11,6 +11,7 @@ import '../features/premium/brand_only_gate_sheet.dart';
 import '../features/premium/premium_screen.dart';
 import '../features/brand/brand_campaign_screen.dart';
 import '../features/inbox/screens/inbox_screen.dart';
+import '../features/onboarding/tier_tour_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/streak/streak_badge.dart';
 import '../features/progression/level_up_banner.dart';
@@ -62,6 +63,9 @@ class _MainScaffoldState extends State<MainScaffold> {
     // 스트릭·레벨업 축하 스낵바 — 첫 프레임 이후 1회 표시
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      // Build 456: 로그인 후 티어별 투어 1회 — 가입 전 온보딩에서 옮겨온
+      //   Brand/Premium/Free 맞춤 사용법. 다른 모달보다 우선(첫 진입 교육).
+      TierTourScreen.showIfNeeded(context);
       // Build 324: 신규 가입자 trial 부여 직후 1회 모달 — "결제한 적 없는데 왜
       //   Premium?" 혼란 해소 (Free 신규 시뮬레이션 발견). 다른 banner 보다 우선.
       _maybeShowWelcomeTrialModal();

@@ -629,21 +629,23 @@ class AppL10n {
     'hi': 'अभी कोई अभियान नहीं',
     'th': 'ยังไม่มีแคมเปญ',
   });
+  // Build 456: 실제 버튼 명칭('새 캠페인 발송' FAB)과 일치하도록 카피 정정 —
+  //   이전 '+ 버튼' 은 화면에 없는 UI 를 지칭(시각 리뷰 발견).
   String get brandCampaignEmptySub => _t({
-    'ko': '아래 + 버튼으로 첫 쿠폰을 발송해보세요',
-    'en': 'Tap + below to send your first coupon',
-    'ja': '下の + で初めてのクーポンを送信',
-    'zh': '点击下方 + 发送第一张优惠券',
-    'fr': "Appuyez sur + pour envoyer votre premier coupon",
-    'de': 'Tippe + unten, um den ersten Coupon zu senden',
-    'es': 'Pulsa + abajo para enviar tu primer cupón',
-    'pt': 'Toque em + abaixo para enviar seu primeiro cupom',
-    'ru': 'Нажмите + ниже, чтобы отправить первый купон',
-    'tr': 'İlk kuponu göndermek için aşağıdaki + simgesine dokun',
-    'ar': 'اضغط + بالأسفل لإرسال أول كوبون',
-    'it': 'Tocca + per inviare il primo coupon',
-    'hi': 'पहला कूपन भेजने के लिए नीचे + दबाएँ',
-    'th': 'แตะ + ด้านล่างเพื่อส่งคูปองแรก',
+    'ko': "'새 캠페인 발송' 버튼으로 첫 쿠폰을 보내보세요",
+    'en': "Tap 'New campaign' to send your first coupon",
+    'ja': '「新規キャンペーン」で初めてのクーポンを送信',
+    'zh': '点击"新建活动"发送第一张优惠券',
+    'fr': "Appuyez sur « Nouvelle campagne » pour envoyer votre premier coupon",
+    'de': 'Tippe auf „Neue Kampagne", um den ersten Coupon zu senden',
+    'es': "Pulsa 'Nueva campaña' para enviar tu primer cupón",
+    'pt': "Toque em 'Nova campanha' para enviar seu primeiro cupom",
+    'ru': 'Нажмите «Новая кампания», чтобы отправить первый купон',
+    'tr': "İlk kuponu göndermek için 'Yeni kampanya'ya dokun",
+    'ar': 'اضغط "حملة جديدة" لإرسال أول كوبون',
+    'it': "Tocca 'Nuova campagna' per inviare il primo coupon",
+    'hi': "पहला कूपन भेजने हेतु 'नया कैंपेन' दबाएँ",
+    'th': "แตะ 'แคมเปญใหม่' เพื่อส่งคูปองแรก",
   });
   String get email => _t({
     'ko': '이메일',
@@ -1233,9 +1235,9 @@ class AppL10n {
   // Build 170: "편지 형식의 글로벌 공간 쿠폰 플랫폼" 포지셔닝 강조.
   String get onboarding3Body => _t({
     'ko':
-        '브랜드의 할인쿠폰·교환권·홍보 메시지가 세계 곳곳 지도에 떨어집니다. 당신 주변 200m 안의 혜택을 주워 매장에서 바로 쓰세요. 감성과 실용성이 공존하는 글로벌 공간 쿠폰 플랫폼.',
+        '내 주변 지도에 할인권·교환권이 떨어져요. 200m 안에서 주워 매장에서 바로 쓰세요.',
     'en':
-        'Brand coupons, vouchers, and promo messages drop on the worldwide map. Pick up rewards within 200m of you and redeem them instantly. A global space-based coupon platform.',
+        'Coupons & vouchers drop on the map around you. Pick them up within 200 m and use them right at the store.',
     'ja':
         'ブランドの割引券・引換券・宣伝メッセージが世界中の地図に落ちます。あなたの周り 200m 以内の特典を拾って、お店でその場で使おう。感性と実用性が共存する、グローバル空間クーポンプラットフォーム。',
     'zh': '品牌的折扣券、兑换券和推广讯息落在全球地图上。拾取你身边 200 米内的特惠，即刻在门店使用。情感与实用兼具的全球空间优惠券平台。',

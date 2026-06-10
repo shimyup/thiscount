@@ -9384,6 +9384,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'brand_fixed_store_lng',
         // Build 453: 단골 스탬프 — A 의 스탬프가 B 에게 상속되지 않게.
         'brand_stamp_cards_v1',
+        // Build 456: 티어별 투어 — 계정 전환 시 새 계정이 자기 티어 투어를 봄.
+        'tier_tour_seen_v1',
         // premium 특급 배송 (premium 사용자 전용)
         'dailyPremiumExpressSentCount',
         'dailyPremiumExpressDateKey',

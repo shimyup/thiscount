@@ -95,10 +95,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   AppL10n get _l => AppL10n.of(_langCode);
 
-  // Build 140: intro 슬라이드를 4개 → 2개 로 축약. 새 티어 정체성을
-  // (🎟 줍기 → 📸 홍보 → 🚀 시작) 3 단계로 간결 설명.
+  // Build 456: 가입 전 온보딩 6→3장 축소 — 시각 리뷰에서 2~4장이 빈약한
+  //   콘텐츠(작은 아이콘+긴 텍스트, 60% 공백)로 drop-off 위험. Brand 소개/🚀/
+  //   Premium 페이월은 가입 후 티어별 투어(TierTourScreen)로 이동 — 회원 종류를
+  //   알게 된 뒤 맞는 내용만 노출.
   static const int _totalPages =
-      6; // page 0 = country, 1 = location, 2-4 = intro (🎟 📸 🚀), 5 = premium
+      3; // page 0 = country, 1 = location, 2 = 🎟 핵심 가치(시작 CTA)
 
   static const List<Map<String, String>> _popularCountries = [
     {'name': '대한민국', 'flag': '🇰🇷', 'lang': 'ko'},
@@ -500,47 +502,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 onRequest: _requestLocationPermission,
                 langCode: _langCode,
               ),
-              // Build 140: Intro 슬라이드 3개 — 새 3-티어 정체성을 한 흐름에
-              // 전달.
-              //   Page 2 (🎟) — 줍기 (Free 의 핵심 활동)
-              //   Page 3 (📸) — 홍보 (Premium + Brand 의 가치 제안)
-              //   Page 4 (🚀) — 시작
-              // ✈️ 배송 메커니즘 + 🎁 혜택 설명은 "픽업하면 알아서 보인다"
-              // 로 inline 교육으로 위임 — 온보딩은 짧게.
+              // Build 456: 가입 전엔 핵심 가치 1장만 (🎟 줍기). Brand 홍보(📸)/
+              //   🚀/Premium 페이월은 가입 후 티어별 투어(TierTourScreen)로 이동.
               _IntroPage(
                 emoji: '🎟',
                 title: _l.onboarding3Title,
                 body: _l.onboarding3Body,
                 gradient: const [AppColors.bgDeep, AppColors.bgCard],
-                // Build 429 (device): 줍기 페이지 뱃지를 Free + Premium 만 —
-                //   줍기/수집은 Free·Premium 의 핵심 활동(Brand 는 발송 트랙이라
-                //   다음 슬라이드에서 별도 강조). Brand 뱃지 제거.
                 tiers: [
                   _TierBadge(_l.tierLabelFree, AppColors.teal),
                   _TierBadge(_l.tierLabelPremium, AppColors.gold),
                 ],
               ),
-              _IntroPage(
-                // Build 140: 기존 onboarding4 (🎁 benefits) 슬롯 재활용, 카피
-                // 는 Premium/Brand 의 홍보 편지 발송 가치 제안으로 리프레임.
-                emoji: '📸',
-                title: _l.onboarding4Title,
-                body: _l.onboarding4Body,
-                gradient: const [AppColors.bgDeep, AppColors.bgCard],
-                // Build 425 (device): 발송/홍보는 Brand 전용으로 전환 → 뱃지도
-                //   Brand 만 노출(Premium 제거). Premium 은 줍기 슬라이드에 포함.
-                tiers: [
-                  _TierBadge(_l.tierLabelBrand, AppColors.coupon),
-                ],
-              ),
-              _IntroPage(
-                emoji: '🚀',
-                title: _l.onboarding5Title,
-                body: _l.onboarding5Body,
-                gradient: const [AppColors.bgDeep, AppColors.bgCard],
-              ),
-              // Page 5: Premium 소개
-              _PremiumPage(l: _l),
             ],
           ),
           // Top skip button (only show after page 0)
