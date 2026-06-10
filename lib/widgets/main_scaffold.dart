@@ -205,6 +205,17 @@ class _MainScaffoldState extends State<MainScaffold> {
     final isBrand = context.select<AppState, bool>(
       (s) => s.currentUser.isBrand,
     );
+    // Build 453 (tier-sim P2): 실시간 티어 강등(Brand→하위) 시 _currentIndex 가
+    //   3(프로필) 인데 비-Brand 는 최대 인덱스 2 → 본문/네비 하이라이트 desync.
+    //   표시 가능 최대 인덱스로 clamp(build 중 동기 setState 회피 위해 postFrame).
+    final maxIdx = isBrand ? 3 : 2;
+    if (_currentIndex > maxIdx) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _currentIndex > maxIdx) {
+          setState(() => _currentIndex = maxIdx);
+        }
+      });
+    }
     // Build 205: 새 브랜드 광고 도착 시마다 모달 재trigger.
     // featuredBrandPromo.id 만 select 해 build 폭발 방지.
     final currentAdId = context.select<AppState, String?>(

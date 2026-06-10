@@ -779,6 +779,14 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
 
     await _evaluateGiftExpiryFromPrefs(prefs);
 
+    // Build 453 (tier-sim P2): billingDate 를 무결성 가드보다 먼저 로드 — 이전엔
+    //   가드가 _nextBillingDate(아직 null)로 검사해 정식 결제 Premium 도 RC 폴백
+    //   시 박탈됐음. 가드의 의도(billing/gift 둘 다 없는 위반만 차단)는 유지.
+    _nextBillingDate = _loadDateFromPrefs(
+      prefs,
+      PrefKeys.purchaseNextBillingDate,
+    );
+
     if (_trialExpiry == null && _isPremium && !_isBrand &&
         _nextBillingDate == null) {
       // Build 290 (P0): secure storage 에 _isPremium=true 인데 giftExpiry 도
@@ -788,11 +796,6 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
       _isPremium = false;
       await _saveSecurePremiumState(isPremium: false, isBrand: _isBrand);
     }
-
-    _nextBillingDate = _loadDateFromPrefs(
-      prefs,
-      PrefKeys.purchaseNextBillingDate,
-    );
     await _loadAndApplyScheduledPlanChange(prefs);
     notifyListeners();
   }

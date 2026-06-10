@@ -1627,13 +1627,19 @@ class _ComposeScreenState extends State<ComposeScreen>
       _showError(l10n.composeMinLengthError(content.length));
       return;
     }
-    if (_hasBannedWords(content)) {
+    // Build 453 (tier-sim P2): redemptionInfo(쿠폰 사용방법/혜택 안내)도 공개
+    //   게시물 → 본문과 합쳐 금칙어/PII 검사. 이전엔 단건/특송/대량은 content 만
+    //   검사하고 redemptionInfo 는 zone 경로에서만 검사돼 우회됐음.
+    final redemptionExtra = _redemptionInfoController.text.trim();
+    final moderationText =
+        redemptionExtra.isEmpty ? content : '$content\n$redemptionExtra';
+    if (_hasBannedWords(moderationText)) {
       _showError(l10n.composeBannedWordError);
       return;
     }
     // Build 207: PII 패턴 감지 — 본문은 누구나 읽을 수 있는 공개 데이터이므로
     // 사용자가 실수로 전화번호/주민번호/카드번호를 적어 보내지 않도록 confirm.
-    final piiHit = _detectPii(content);
+    final piiHit = _detectPii(moderationText);
     if (piiHit != null) {
       final proceed = await _confirmPiiBeforeSend(piiHit);
       if (!proceed) return;
@@ -1962,6 +1968,8 @@ class _ComposeScreenState extends State<ComposeScreen>
         sent = await state.replyToLetter(
           originalLetterId: widget.replyToId!,
           content: content,
+          // Build 453 (tier-sim P2): 답장 첨부 이미지 전달(이전엔 누락).
+          imageUrl: _imageFilePath,
         );
       } else {
         sent = await state.sendLetter(
@@ -2153,6 +2161,18 @@ class _ComposeScreenState extends State<ComposeScreen>
         );
       }
     }
+  }
+
+  // Build 453 (tier-sim P2): 본문 글자수 헬퍼 최소치 — 버튼/검증 게이트(:7566,
+  //   isBrandPromo:1593)와 동일하게 답장·할인코드·브랜드 비-일반은 1자, 그 외 10자.
+  //   이전엔 헬퍼만 10자 고정이라 할인권/교환권에서 '10자 미만' 경고가 떠도 버튼은
+  //   활성인 불일치였음.
+  int _helperMinChars() {
+    final isBrand = context.read<AppState>().currentUser.isBrand;
+    final shortForm = _isReply ||
+        _attachRedemptionCode ||
+        (isBrand && _brandCategory != LetterCategory.general);
+    return shortForm ? 1 : 10;
   }
 
   // Build 451: 카테고리별 본문 placeholder. 비-브랜드/답장은 기존 generic.
@@ -3527,7 +3547,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                       children: [
                         AnimatedSwitcher(
                           duration: const Duration(milliseconds: 200),
-                          child: _charCount < 10
+                          child: _charCount < _helperMinChars()
                               ? Row(
                                   key: const ValueKey('under'),
                                   children: [
@@ -3536,7 +3556,8 @@ class _ComposeScreenState extends State<ComposeScreen>
                                       style: TextStyle(fontSize: 11),
                                     ),
                                     Text(
-                                      l10n.composeMinCharsNeeded(10 - _charCount),
+                                      l10n.composeMinCharsNeeded(
+                                          _helperMinChars() - _charCount),
                                       style: const TextStyle(
                                         color: AppColors.warning,
                                         fontSize: 11,
@@ -4964,6 +4985,13 @@ class _ComposeScreenState extends State<ComposeScreen>
                         if (c != LetterCategory.general &&
                             _imageFilePath != null) {
                           _imageFilePath = null;
+                        }
+                        // Build 453 (tier-sim P2): 교환권 이미지(_voucherImageLocalPath)
+                        //   도 할인권/일반으로 전환 시 해제 — 안 지우면 UI엔 첨부됐는데
+                        //   redemptionInfo 가 비워져 발송 안 되는 state desync.
+                        if (c != LetterCategory.voucher &&
+                            _voucherImageLocalPath != null) {
+                          _voucherImageLocalPath = null;
                         }
                       });
                     },

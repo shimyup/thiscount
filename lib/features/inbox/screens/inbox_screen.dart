@@ -575,8 +575,19 @@ class InboxScreen extends StatefulWidget {
 enum InboxSortMode { latest, expiry, importance, aiRecommend }
 
 class _InboxScreenState extends State<InboxScreen>
-    with SingleTickerProviderStateMixin {
+    // Build 453 (tier-sim P1): SingleTicker → Ticker(복수) — 티어 변경 시
+    //   TabController 를 새 length 로 재생성해야 하는데 SingleTicker 는 1 ticker
+    //   만 허용해 재생성이 불가했음.
+    with TickerProviderStateMixin {
   late TabController _tabController;
+
+  // Build 453 (tier-sim P1): 현재 티어 기준 탭 개수 — _buildTabBar/TabBarView 의
+  //   분기(isBrand ? 2 : canDM ? 3 : 2)와 항상 일치시켜 length assertion 크래시 차단.
+  int _wantTabLength() {
+    final state = context.read<AppState>();
+    if (state.currentUser.isBrand) return 2;
+    return state.canUseDM ? 3 : 2;
+  }
   final ScrollController _inboxScrollController = ScrollController();
   LetterFilterType _inboxFilter = LetterFilterType.all;
   LetterFilterType _sentFilter = LetterFilterType.all;
@@ -615,8 +626,7 @@ class _InboxScreenState extends State<InboxScreen>
     // sent. 별도 자동 전환 불필요.
     // Build 428 (UX): Premium(DM 자격) 은 [받은/보낸/DM] 3탭 — DM 발견성 확보
     //   (이전엔 편지를 열어야만 DM 진입 가능 = 발견성 0, 전환 절벽).
-    final canDM = context.read<AppState>().canUseDM;
-    _tabController = TabController(length: canDM ? 3 : 2, vsync: this);
+    _tabController = TabController(length: _wantTabLength(), vsync: this);
     // Build 271: 푸시 알림 deep link 로 진입 시 해당 편지 자동 오픈.
     // main.dart 의 onNotificationTap 에서 AppState.pendingDeepLinkLetterId 를
     // 채우고 인박스로 이동 → 첫 프레임 후 1회 소비.
@@ -625,6 +635,22 @@ class _InboxScreenState extends State<InboxScreen>
       _consumePendingDeepLink();
       _surfaceInboxLoadSkippedIfAny();
     });
+  }
+
+  // Build 453 (tier-sim P1): 인박스가 떠 있는 채 티어 변경(Premium↔Free 업/다운
+  //   그레이드, RC 동기화)으로 canUseDM 이 뒤집히면 TabBar/View 의 탭 수(2↔3)와
+  //   _tabController.length(initState 고정)가 불일치 → length assertion 크래시.
+  //   build 는 Consumer 안에서 매 notifyListeners 마다 재실행되므로, TabBar 구성
+  //   직전에 동기적으로 length 를 맞춰 컨트롤러를 재생성(현재 index clamp)한다.
+  //   (mismatch 일 때만 실행 → 재빌드 루프 없음.)
+  void _ensureTabLength() {
+    final want = _wantTabLength();
+    if (_tabController.length != want) {
+      final prevIndex = _tabController.index.clamp(0, want - 1);
+      _tabController.dispose();
+      _tabController =
+          TabController(length: want, vsync: this, initialIndex: prevIndex);
+    }
   }
 
   /// Build 374 (PR-DD3 audit pickup P1-1): inbox prefs corruption 으로 skip
@@ -944,6 +970,8 @@ class _InboxScreenState extends State<InboxScreen>
   Widget build(BuildContext context) {
     return Consumer<AppState>(
       builder: (context, state, _) {
+        // Build 453 (tier-sim P1): TabBar 구성 전 탭 길이 동기화(티어 변경 크래시 차단).
+        _ensureTabLength();
         return Scaffold(
           backgroundColor: AppTimeColors.of(context).bgDeep,
           // Build 321: 자동 발송 캠페인 등록을 compose 화면에 통합 — inbox FAB 제거.

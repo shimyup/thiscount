@@ -393,7 +393,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // ── 일일 발송 제한 ────────────────────────────────────────────────────────
   static const int _dailyLimitFree = 3;
   static const int _dailyLimitPremium = 30;
-  static const int _dailyLimitBrand = 200;
+  // Build 453 (tier-sim P2): _dailyLimitBrand(=200) 죽은 상수 제거 — Brand 캡은
+  //   dailySendLimit(월간한도+extra)이 실질. 메시지/게이트 모두 그쪽으로 통일.
   static const int _dailyPremiumExpressLimit = 3;
   static const Duration _readLetterRetention = Duration(days: 30);
   static const Duration _unopenedLetterExpiry = Duration(days: 7);
@@ -1597,7 +1598,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       return _l10n.stateDailyLimitFree(_dailyLimitFree, _dailyLimitPremium);
     }
     if (isBrandMember) {
-      return _l10n.stateDailyLimitBrand(_dailyLimitBrand);
+      // Build 453 (tier-sim P2): 죽은 상수 200 대신 실제 캡(dailySendLimit =
+      //   월간한도+extra, 테스트제한 brand 는 premium) 표시.
+      return _l10n.stateDailyLimitBrand(dailySendLimit);
     }
     return _l10n.stateDailyLimitPremium(_dailyLimitPremium);
   }
@@ -2231,6 +2234,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   int get redemptionsThisMonth => _inbox
       .where((l) =>
           l.senderIsBrand &&
+          // Build 453 (tier-sim P2): general(홍보) 제외 — totalRedemptions·서버
+          //   redeemedCount·markLetterRedeemed isRedeemable 게이트와 일관.
+          l.category != LetterCategory.general &&
           l.redeemedAt != null &&
           l.redeemedAt!.isAfter(_startOfMonth))
       .length;
@@ -5112,6 +5118,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       _brandExtraMonthlyQuota = 0;
       _inviteRewardCredits = 0;
       _welcomeTrialClaimedAt = null;
+      // Build 453 (tier-sim P2): 초대코드 상태 in-memory reset — 안 지우면 A 의
+      //   초대코드/보상시각이 B 의 _saveUserToFirestore PATCH 로 B doc 에 기록되고
+      //   hasAppliedInviteCode 가드가 B 의 정당한 초대코드 적용을 차단했음.
+      _appliedInviteCode = null;
+      _lastInviteRewardAt = null;
       // Build 449 (sim100 P1): 고정 매장 위치 in-memory 즉시 reset (prefs 는
       //   _clearUserScopedPrefs 가 처리하지만 in-memory 잔존 시 다음 사용자가
       //   이전 매장 좌표로 자동발송하는 누수 차단).
@@ -8991,6 +9002,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         for (int i = 0; i < sendCount; i++) {
           if (!_canSendLetterByDailyLimit()) break;
           if (imageUrl != null && !_canSendImageLetter()) break;
+          // Build 453 (tier-sim P1): precise(ExactDrop) 타깃은 통당 1크레딧 차감 —
+          //   단건(compose:1940)·특급+대량(sendBrandExpressBlast:9317) 경로와 동일
+          //   정책. 이전엔 비-특급 대량발송만 차감 누락 → ExactDrop 정밀발송 무료
+          //   무제한 우회(출시 매출 손실). 크레딧 부족 시 break(부분발송 경고로 흡수).
+          if (isPrecise) {
+            final ok = await consumeExactDropCredit();
+            if (!ok) break;
+          }
           final ok = await sendLetter(
             content: content,
             destinationCountry: target['country'] as String,
@@ -9966,6 +9985,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   Future<bool> replyToLetter({
     required String originalLetterId,
     required String content,
+    // Build 453 (tier-sim P2): 답장 첨부 이미지 전달 — 이전엔 미전달이라 UI 에서
+    //   사진을 붙여도 조용히 누락됐음. sendLetter 가 _canSendImageLetter 게이트 +
+    //   _consumeImageQuota 를 적용.
+    String? imageUrl,
   }) async {
     // Build 426 (sim100 #48): 답장은 Premium·Brand 만 — UI 게이트 외 state 단
     //   defense-in-depth (Free 가 대체 경로로 답장 발송하는 것 차단).
@@ -9982,6 +10005,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       destinationFlag: original.senderCountryFlag,
       destLat: original.originLocation.latitude,
       destLng: original.originLocation.longitude,
+      imageUrl: imageUrl,
     );
     if (sent) {
       _currentUser.activityScore.replyCount++;
@@ -10085,8 +10109,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         return false; // 쿼터 없으면 DM 차단
       }
       _pendingDMCount = 0;
-      _dailySentCount++;
-      _monthlySentCount++;
+      // Build 453 (tier-sim P2): _consumeDailyQuota 로 통일 — base quota 우선,
+      //   부족 시 초대 크레딧 차감(+서버 영속). 이전엔 base 카운터를 한도 초과로
+      //   증가시키고 크레딧은 소비 안 해 sendLetter 와 불일치했음.
+      _consumeDailyQuota();
       _sentSinceLastUnlock++;
       _saveToPrefs();
     } else {
