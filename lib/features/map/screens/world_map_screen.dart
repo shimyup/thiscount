@@ -23,6 +23,7 @@ import '../../../widgets/app_card.dart';
 import '../../../models/user_profile.dart';
 import '../../../state/app_state.dart';
 import '../../brand/brand_promo_banner.dart';
+import '../../premium/premium_gate_sheet.dart';
 
 // 목업 타워 데이터 제거 → AppState.mapUsers (Firestore 실시간) 사용
 
@@ -293,6 +294,11 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 // 내가 수령했지만 아직 읽지 않은 inbox 편지도 지도에 📮로 표시
                 ...inboxDelivered,
               ];
+        // Build 457: Premium 관심 카테고리 필터 — 브랜드가 업종을 지정한 캠페인만
+        //   대상(미지정·개인 편지는 통과). nearbyOnly/world 양 분기 공통 적용.
+        final filteredLetters = state.interestFilterActive
+            ? letters.where(state.passesInterestFilter).toList()
+            : letters;
         final timeColors = AppTimeColors.of(context);
         final mapLangCode = MapConfig.resolveMapLanguage(
           country: state.currentUser.country,
@@ -379,9 +385,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   ),
                 // ── 배송 경로선 ────────────────────────────────────────────
                 if (_showRouteLines)
-                  PolylineLayer(polylines: _buildRoutePolylines(letters)),
+                  PolylineLayer(polylines: _buildRoutePolylines(filteredLetters)),
                 // ── 허브 마커 ─────────────────────────────────────────────
-                MarkerLayer(markers: _buildHubMarkers(letters)),
+                MarkerLayer(markers: _buildHubMarkers(filteredLetters)),
                 // ── 2km 반경 원 (마커 아래에 배치 → 탭 차단 방지) ──────
                 CircleLayer(
                   circles: [
@@ -443,7 +449,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                             clusters: mapClusters,
                           ),
                         ..._buildLetterMarkers(
-                          letters, state, l10n, langCode,
+                          filteredLetters, state, l10n, langCode,
                           nearestCluster: myNearestCluster,
                         ),
                       ],
@@ -809,6 +815,16 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                     },
                   ),
                   const SizedBox(height: 14),
+                  // Build 457: 관심 카테고리 필터 (Premium 전용) — Free 는 업셀.
+                  _MapQuickActionButton(
+                    icon: state.interestFilterActive
+                        ? Icons.filter_alt_rounded
+                        : Icons.filter_alt_outlined,
+                    tooltip: l10n.koEn('관심 카테고리', 'Interest filter'),
+                    highlighted: state.interestFilterActive,
+                    onTap: () => _openInterestFilter(context, state, l10n),
+                  ),
+                  const SizedBox(height: 8),
                   _MapQuickActionButton(
                     icon: Icons.public_rounded,
                     tooltip: l10n.mapViewAll,
@@ -940,6 +956,36 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   }
 
   // ── 편지 마커 ────────────────────────────────────────────────────────────────
+  // Build 457: 관심 카테고리 필터 — Premium 은 선택 시트, Free 는 업셀.
+  Future<void> _openInterestFilter(
+    BuildContext context,
+    AppState state,
+    AppL10n l10n,
+  ) async {
+    if (!state.canUseInterestFilter) {
+      PremiumGateSheet.show(
+        context,
+        featureName: l10n.koEn('관심 카테고리 필터', 'Interest category filter'),
+        featureEmoji: '🔎',
+        description: l10n.koEn(
+          '관심 있는 업종의 매장 쿠폰만 지도에 보이게 골라낼 수 있어요. Premium 에서 사용할 수 있어요.',
+          'Show only the store categories you care about on the map. Available with Premium.',
+        ),
+      );
+      return;
+    }
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.bgCard,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => _InterestFilterSheet(state: state, l10n: l10n),
+    );
+    if (mounted) setState(() {});
+  }
+
   List<Marker> _buildLetterMarkers(
     List<Letter> letters, AppState state, AppL10n l10n, String langCode, {
     List<MapUser>? nearestCluster,
@@ -2714,16 +2760,20 @@ class _MapQuickActionButton extends StatelessWidget {
   final IconData icon;
   final String tooltip;
   final VoidCallback onTap;
+  // Build 457: 활성 상태 강조 (관심 필터 ON) — gold 톤.
+  final bool highlighted;
 
   const _MapQuickActionButton({
     required this.icon,
     required this.tooltip,
     required this.onTap,
+    this.highlighted = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final timeColors = AppTimeColors.of(context);
+    final accent = highlighted ? AppColors.gold : timeColors.accent;
     // Build 161: Tooltip 은 이미 mouse-hover 라벨 제공, Semantics 는 터치
     // 접근성 (스크린리더) 전용. 동일 텍스트 재사용.
     return Semantics(
@@ -2750,8 +2800,8 @@ class _MapQuickActionButton extends StatelessWidget {
                   ],
                 ),
                 border: Border.all(
-                  color: timeColors.accent.withValues(alpha: 0.42),
-                  width: 1.2,
+                  color: accent.withValues(alpha: highlighted ? 0.8 : 0.42),
+                  width: highlighted ? 1.6 : 1.2,
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -2761,7 +2811,7 @@ class _MapQuickActionButton extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Icon(icon, color: timeColors.accent, size: 22),
+              child: Icon(icon, color: accent, size: 22),
             ),
           ),
         ),
@@ -5415,5 +5465,167 @@ class _BrandRecentPickupBanner extends StatelessWidget {
     if (d.inHours < 24) return l10n.letterReadHoursAgo(d.inHours);
     if (d.inDays < 7) return l10n.letterReadDaysAgo(d.inDays);
     return l10n.koEn('${d.inDays ~/ 7}주 전', '${d.inDays ~/ 7}w ago');
+  }
+}
+
+
+// Build 457: 관심 카테고리 선택 시트 — 업종 다중 선택. 비우면 전체 표시.
+//   "브랜드가 업종을 지정한 캠페인만" 필터 대상이라는 안내 포함.
+class _InterestFilterSheet extends StatefulWidget {
+  final AppState state;
+  final AppL10n l10n;
+  const _InterestFilterSheet({required this.state, required this.l10n});
+
+  @override
+  State<_InterestFilterSheet> createState() => _InterestFilterSheetState();
+}
+
+class _InterestFilterSheetState extends State<_InterestFilterSheet> {
+  late final Set<String> _sel = {...widget.state.interestCategoryKeys};
+
+  static const List<String> _keys = [
+    'food', 'cafe', 'beauty', 'fashion', 'event', 'it', 'other',
+  ];
+
+  String _label(AppL10n l, String key) {
+    switch (key) {
+      case 'food':
+        return l.koEn('식당/음식', 'Food');
+      case 'cafe':
+        return l.koEn('카페', 'Cafe');
+      case 'beauty':
+        return l.koEn('뷰티/미용', 'Beauty');
+      case 'fashion':
+        return l.koEn('패션/의류', 'Fashion');
+      case 'event':
+        return l.koEn('행사/이벤트', 'Events');
+      case 'it':
+        return l.koEn('IT/전자', 'IT');
+      default:
+        return l.koEn('기타', 'Other');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = widget.l10n;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        20, 4, 20, 20 + MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l.koEn('🔎 관심 카테고리', '🔎 Interest categories'),
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l.koEn(
+              '선택한 업종의 매장 쿠폰만 지도에 보여요. 업종을 지정하지 않은 캠페인과 개인 편지는 항상 표시돼요. 모두 해제하면 전체가 보여요.',
+              'Only store coupons in the selected categories appear on the map. Campaigns without a category and personal letters always show. Clear all to see everything.',
+            ),
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 12,
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _keys.map((k) {
+              final on = _sel.contains(k);
+              return GestureDetector(
+                onTap: () => setState(() {
+                  if (on) {
+                    _sel.remove(k);
+                  } else {
+                    _sel.add(k);
+                  }
+                }),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 13, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: on
+                        ? AppColors.gold.withValues(alpha: 0.16)
+                        : AppColors.bgSurface,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: on
+                          ? AppColors.gold.withValues(alpha: 0.75)
+                          : AppColors.textMuted.withValues(alpha: 0.25),
+                      width: on ? 1.4 : 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(bizCategoryEmoji(k),
+                          style: const TextStyle(fontSize: 14)),
+                      const SizedBox(width: 6),
+                      Text(
+                        _label(l, k),
+                        style: TextStyle(
+                          color: on ? AppColors.gold : AppColors.textSecondary,
+                          fontSize: 12.5,
+                          fontWeight: on ? FontWeight.w800 : FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              if (_sel.isNotEmpty)
+                TextButton(
+                  onPressed: () => setState(_sel.clear),
+                  child: Text(
+                    l.koEn('모두 해제', 'Clear all'),
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              const Spacer(),
+              FilledButton(
+                onPressed: () async {
+                  await widget.state.setInterestCategories(_sel);
+                  if (context.mounted) Navigator.of(context).pop();
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.gold,
+                  foregroundColor: AppColors.bgDeep,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 26, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  l.koEn('적용', 'Apply'),
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w800),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
