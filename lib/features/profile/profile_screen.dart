@@ -1267,13 +1267,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
     AppL10n _l,
   ) {
     final tierClr = _tierColor(user.activityScore.tier);
+    // Build 460 (키비주얼): Brand 헤더 히어로화 — 일반 프로필의 히어로(88px
+    //   아바타)와 격차가 컸던 소형 카드(60px)를 그라디언트 + 76px 아바타 +
+    //   coupon 링으로 승격. 매장 이름(brandName)이 메인, 아이디는 보조.
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.coupon.withValues(alpha: 0.3)),
+        gradient: LinearGradient(
+          colors: [
+            AppColors.coupon.withValues(alpha: 0.12),
+            AppColors.bgCard,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.coupon.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [
@@ -1283,13 +1293,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
               clipBehavior: Clip.none,
               children: [
                 Container(
-                  width: 60,
-                  height: 60,
+                  width: 76,
+                  height: 76,
+                  padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: tierClr,
+                    border: Border.all(
+                      color: AppColors.coupon.withValues(alpha: 0.7),
+                      width: 2,
+                    ),
                   ),
-                  child: _buildAvatarContent(user),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: tierClr,
+                    ),
+                    child: _buildAvatarContent(user),
+                  ),
                 ),
                 Positioned(
                   right: -2,
@@ -1317,17 +1337,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Build 460: 매장 이름이 키비주얼(18pt) — 손님에게 보이는
+                //   상호가 주인공. 아이디는 보조 라인.
                 Text(
-                  user.username,
+                  (user.brandName?.isNotEmpty ?? false)
+                      ? user.brandName!
+                      : user.username,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: AppColors.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
-                const SizedBox(height: 4),
+                if (user.brandName?.isNotEmpty ?? false) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    '@${user.username}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 11.5,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 5),
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 9, vertical: 3),

@@ -1880,13 +1880,18 @@ class _SignupTabState extends State<_SignupTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Build 460 (키비주얼): 첫 가입 화면의 시각 앵커 — 큰 티켓 이모지 +
+          //   타이틀 19→22. 두 선택 카드가 화면의 주인공임을 명확히.
+          const Text('🎟', textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 40)),
+          const SizedBox(height: 10),
           Text(
             l10n.accountTypeChooserTitle,
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: AppColors.textPrimary,
-              fontSize: 19,
-              fontWeight: FontWeight.w800,
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
               height: 1.3,
             ),
           ),
@@ -3435,10 +3440,19 @@ class _AccountTypeCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: AppColors.bgCard,
+            // Build 460 (키비주얼): 평면 카드 → accent 그라디언트 — 두 경로가
+            //   각자의 색 정체성(teal/coupon)으로 즉시 구분.
+            gradient: LinearGradient(
+              colors: [
+                accentColor.withValues(alpha: 0.12),
+                AppColors.bgCard,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: accentColor.withValues(alpha: 0.4),
+              color: accentColor.withValues(alpha: 0.45),
               width: 1.5,
             ),
           ),
@@ -3447,7 +3461,18 @@ class _AccountTypeCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Text(emoji, style: const TextStyle(fontSize: 30)),
+                  // Build 460: 이모지를 틴트 원(52px) 안에 — 시각 앵커.
+                  Container(
+                    width: 52,
+                    height: 52,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: accentColor.withValues(alpha: 0.16),
+                    ),
+                    child: Text(emoji,
+                        style: const TextStyle(fontSize: 26)),
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -3457,8 +3482,8 @@ class _AccountTypeCard extends StatelessWidget {
                           title,
                           style: TextStyle(
                             color: accentColor,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
                           ),
                         ),
                         const SizedBox(height: 4),

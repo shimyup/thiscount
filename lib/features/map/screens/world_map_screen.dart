@@ -407,9 +407,11 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                       ),
                       radius: 2000,
                       useRadiusInMeter: true,
-                      color: timeColors.accent.withValues(alpha: 0.08),
-                      borderColor: timeColors.accent.withValues(alpha: 0.35),
-                      borderStrokeWidth: 1.5,
+                      // Build 460 (키비주얼 위계): 픽업 링(3px·0.98)이 유일한
+                      //   주인공이 되도록 알림 반경 원은 점선 느낌의 옅은 보조로.
+                      color: timeColors.accent.withValues(alpha: 0.04),
+                      borderColor: timeColors.accent.withValues(alpha: 0.18),
+                      borderStrokeWidth: 1.0,
                     ),
                   ],
                 ),
@@ -4073,13 +4075,14 @@ class _MapHeader extends StatelessWidget {
             children: [
               // Build 146: 로고를 ✉️ 이모지 + 텍스트 조합으로 바꿔 브랜딩
               // 표현 강화. fontSize 18→16, weight w800→w900.
-              const Text('🎟', style: TextStyle(fontSize: 16)),
+              // Build 460 (키비주얼): 로고 존재감 ↑ (🎟 16→18, 텍스트 16→17).
+              const Text('🎟', style: TextStyle(fontSize: 18)),
               const SizedBox(width: 6),
               const Text(
                 'Thiscount',
                 style: TextStyle(
                   color: AppColors.textPrimary,
-                  fontSize: 16,
+                  fontSize: 17,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 1.2,
                 ),
