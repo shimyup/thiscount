@@ -60,6 +60,10 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   Timer? _positionSaveDebounce; // Build 151: 지도 이동 시 debounce 저장
   final _tickNotifier = ValueNotifier<int>(0);
   double _lastKnownZoom = 2.0;
+  // Build 459 (UI 다이어트): 국가 점프 바는 세계 탐색 줌(<8)에서만 — 동네 줌
+  //   레벨에선 무관한 글로벌 UI 가 최상단을 차지하던 과밀 해소.
+  bool _showCountryBar = true;
+  static const double _countryBarZoomThreshold = 8.0;
   bool _showTowerLabels = false;
   final bool _showRouteLines = true;
   bool _showNearbyOnly = false;
@@ -348,6 +352,11 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   if (shouldShowLabels != _showTowerLabels && mounted) {
                     setState(() => _showTowerLabels = shouldShowLabels);
                   }
+                  final shouldShowCountryBar =
+                      zoom < _countryBarZoomThreshold;
+                  if (shouldShowCountryBar != _showCountryBar && mounted) {
+                    setState(() => _showCountryBar = shouldShowCountryBar);
+                  }
                   // Build 151: 이동 멈춘 2초 뒤 현재 좌표·줌 저장
                   // (SharedPreferences). 다음 앱 실행 시 이 지점으로 복원.
                   _scheduleMapPositionSave();
@@ -506,7 +515,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
             // Build 404 (PR-MM2): newcomer (가입 5분 이내) 에게는 hide.
             //   첫 인상 지도에 헤더 외 floating UI 가 5+ 동시 노출되면 인지
             //   부담. 5분 후 자연스럽게 나라 점프 + 브랜드 프로모 노출.
-            if (widget.showChrome && !state.currentUser.isNewcomer)
+            if (widget.showChrome &&
+                !state.currentUser.isNewcomer &&
+                _showCountryBar)
               Positioned(
                 top: 56,
                 left: 0,
@@ -528,7 +539,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
             // Build 404 (PR-MM2): newcomer hide — 위 country bar 와 동일 사유.
             if (widget.showChrome && !state.currentUser.isNewcomer)
               Positioned(
-                top: 94,
+                top: _showCountryBar ? 94 : 56,
                 left: 0,
                 right: 0,
                 child: SafeArea(

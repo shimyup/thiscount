@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
 import '../../state/app_state.dart';
+import '../brand/brand_quick_send_wizard.dart';
 import '../premium/premium_screen.dart';
 
 /// Build 456: 로그인 후 1회 노출되는 **티어별 투어** (3장).
@@ -172,6 +173,8 @@ class _TierTourScreenState extends State<TierTourScreen> {
     final slides = _slides(l, isBrand, isPremium);
     final isLast = _page == slides.length - 1;
     final showPremiumCta = !isBrand && !isPremium && isLast;
+    // Build 459: Brand 마지막 장 → '첫 캠페인 만들기' CTA (3스텝 마법사).
+    final showBrandCta = isBrand && isLast;
 
     return Scaffold(
       backgroundColor: AppColors.bgDeep,
@@ -281,7 +284,48 @@ class _TierTourScreenState extends State<TierTourScreen> {
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
               child: Column(
                 children: [
-                  if (showPremiumCta) ...[
+                  if (showBrandCta) ...[
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: () async {
+                          await TierTourScreen.markSeen();
+                          if (!mounted) return;
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (_) => const BrandQuickSendWizard(),
+                            ),
+                          );
+                        },
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.coupon,
+                          foregroundColor: AppColors.bgDeep,
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: Text(
+                          l.koEn('📣 첫 캠페인 만들기', '📣 Create first campaign'),
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: _finish,
+                      child: Text(
+                        l.koEn('나중에 할게요', 'Later'),
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ] else if (showPremiumCta) ...[
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton(
@@ -313,6 +357,7 @@ class _TierTourScreenState extends State<TierTourScreen> {
                     ),
                     const SizedBox(height: 8),
                   ],
+                  if (!showBrandCta)
                   SizedBox(
                     width: double.infinity,
                     child: showPremiumCta

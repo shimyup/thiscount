@@ -1145,16 +1145,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             const SizedBox(height: 12),
                           ],
-                          // ①-2 나의 여정 카드 — 누적 지표가 있을 때만 표시
-                          const JourneyCard(
-                            margin: EdgeInsets.symmetric(horizontal: 16),
-                          ),
-                          const SizedBox(height: 12),
-                          // ①-4 이번 주 회고 — 일요일 + 발송 이력 있을 때만
-                          const WeeklyReflectionCard(),
                           // ② 구독 + 잔여발송 빠른카드 (B+C)
                           _buildQuickCardsRow(ctx, state, user, purchase),
                           const SizedBox(height: 12),
+                          // Build 459 (UI 다이어트): 여정/회고/우표앨범/선호
+                          //   카테고리 4카드를 '내 기록' 접이식 1섹션으로 — 매일
+                          //   보는 정보가 아닌 회고성 카드가 프로필 세로 밀도를
+                          //   키우던 문제. Brand 는 기존 노출 유지(아래 분기).
+                          if (!user.isBrand) ...[
+                            _RecordsSection(
+                              l: _l,
+                              children: [
+                                const JourneyCard(
+                                  margin:
+                                      EdgeInsets.symmetric(horizontal: 16),
+                                ),
+                                const SizedBox(height: 12),
+                                const WeeklyReflectionCard(),
+                                _buildStampAlbumBanner(ctx, state),
+                                const SizedBox(height: 12),
+                                _PreferredCategoryCard(state: state),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                          ] else ...[
+                            const JourneyCard(
+                              margin: EdgeInsets.symmetric(horizontal: 16),
+                            ),
+                            const SizedBox(height: 12),
+                            const WeeklyReflectionCard(),
+                          ],
                           // Build 178: XP 레벨 바 + 타워 진척 카드는 Free/Premium
                           // 유저의 경우 레터 탭 hero 에 이미 표시됨 → 여기선 숨겨
                           // 프로필 수직 밀도 감소. Brand 만 남겨 타워 정체성 유지.
@@ -1162,21 +1182,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             _buildXpLevelCard(ctx, state),
                             const SizedBox(height: 12),
                             _buildTowerProgressCard(ctx, user),
-                            const SizedBox(height: 12),
-                          ],
-                          // ④ 우표 앨범 배너 — Build 185: Brand 숨김.
-                          // Brand 는 ROI 대시보드가 프로필 주력이고 우표 수집은
-                          // Free/Premium 게임플레이 요소.
-                          if (!user.isBrand) ...[
-                            _buildStampAlbumBanner(ctx, state),
-                            const SizedBox(height: 12),
-                          ],
-                          // Build 218: Premium Lv11+ 카테고리 선호 카드.
-                          // Brand 가 카테고리별로 보낸 편지 중, 내가 받고 싶은
-                          // 카테고리 매칭 확률을 높여준다 (50% 부스트).
-                          // Lv11 미만 / Free 는 잠금 상태로 노출 (업그레이드 유도).
-                          if (!user.isBrand) ...[
-                            _PreferredCategoryCard(state: state),
                             const SizedBox(height: 12),
                           ],
                           // ⑤ 팔로잉/팔로워 탭
@@ -3112,6 +3117,102 @@ class _BrandExactDropCreditsCard extends StatelessWidget {
 /// 기본은 접힘 — 프로필 스캔을 가볍게. 탭하면 자식들이 펼쳐진다.
 /// Build 271: 설정 그룹별 펼침/접힘 widget. 헤더만 노출 → 사용자가 펼치면
 /// 항목 카드가 나타남. _SettingsCollapseButton 안에서 그룹별로 다시 펼침.
+// Build 459 (UI 다이어트): '내 기록' 접이식 섹션 — 여정/회고/우표앨범/선호
+//   카테고리 4카드를 1줄 헤더 뒤로. 기본 접힘, 세션 상태(영속 불필요).
+class _RecordsSection extends StatefulWidget {
+  final AppL10n l;
+  final List<Widget> children;
+  const _RecordsSection({required this.l, required this.children});
+
+  @override
+  State<_RecordsSection> createState() => _RecordsSectionState();
+}
+
+class _RecordsSectionState extends State<_RecordsSection> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => setState(() => _expanded = !_expanded),
+              borderRadius: BorderRadius.circular(14),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                decoration: BoxDecoration(
+                  color: AppColors.bgCard,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: AppColors.textMuted.withValues(alpha: 0.12),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Text('📒', style: TextStyle(fontSize: 16)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.l.koEn('내 기록', 'My records'),
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            widget.l.koEn(
+                              '여정 · 주간 회고 · 우표 앨범 · 선호 카테고리',
+                              'Journey · Weekly recap · Stamp album · Preferences',
+                            ),
+                            style: const TextStyle(
+                              color: AppColors.textMuted,
+                              fontSize: 10.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    AnimatedRotation(
+                      turns: _expanded ? 0.5 : 0.0,
+                      duration: const Duration(milliseconds: 200),
+                      child: const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        size: 20,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        AnimatedCrossFade(
+          firstChild: const SizedBox.shrink(),
+          secondChild: Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Column(children: widget.children),
+          ),
+          crossFadeState: _expanded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
+          duration: const Duration(milliseconds: 220),
+        ),
+      ],
+    );
+  }
+}
+
 class _ExpandableSettingsGroup extends StatefulWidget {
   final String title;
   final List<Widget> children;

@@ -19,6 +19,7 @@ import '../../../core/theme/letter_style.dart';
 import '../../../core/data/country_cities.dart';
 import '../../../core/services/geocoding_service.dart';
 import '../../../core/services/brand_zone_service.dart';
+import '../../../core/utils/content_moderation.dart';
 import '../../../core/utils/redemption_code.dart';
 import '../../../core/utils/secure_clipboard.dart';
 import '../../../models/letter.dart';
@@ -494,54 +495,6 @@ class _ComposeScreenState extends State<ComposeScreen>
   int? _redemptionValidityDays = 30;
   static const List<int?> _redemptionValidityChoices = [7, 30, 90, 365, null];
 
-  static const List<String> _bannedWords = [
-    // English
-    'fuck', 'shit', 'bitch', 'asshole', 'bastard', 'dick', 'pussy', 'cunt',
-    'nigger', 'nigga', 'faggot', 'whore', 'slut', 'rape', 'kill yourself',
-    'kys', 'retard',
-    // 한국어
-    '씨발', '병신', '개새끼', '존나', '지랄', '엿먹', '꺼져', '죽어',
-    '미친놈', '미친년', '창녀', '보지', '자지', '좆',
-    // 日本語
-    'くそ', 'ばか', 'しね', '死ね', 'きもい', 'うざい', 'ころす', '殺す',
-    'ちんこ', 'まんこ', 'おっぱい', 'やりまん',
-    // 中文
-    '他妈', '操你', '妈逼', '傻逼', '狗屎', '去死', '废物', '贱人',
-    '混蛋', '王八蛋', '滚蛋',
-    // Español
-    'mierda', 'puta', 'cabrón', 'pendejo', 'joder', 'coño', 'maricón',
-    'hijo de puta', 'culero', 'verga',
-    // Français
-    'merde', 'putain', 'connard', 'salaud', 'enculé', 'bordel', 'nique',
-    'ta gueule', 'pédé', 'salope',
-    // Deutsch
-    'scheiße', 'arschloch', 'hurensohn', 'wichser', 'fotze', 'missgeburt',
-    'schwuchtel', 'drecksau',
-    // Português
-    'merda', 'porra', 'caralho', 'filho da puta', 'buceta', 'viado',
-    'desgraça', 'otário', 'piranha',
-    // Русский
-    'блядь', 'сука', 'хуй', 'пизда', 'ебать', 'мудак', 'дерьмо',
-    'говно', 'пиздец', 'заткнись',
-    // Build 375 (PR-DD4 audit msg P1-8): AR/TR/IT/HI/TH 추가 — PR-AA2 가
-    //   user-facing 14언어 정리했으나 banned word 사전이 9언어만 → 5언어
-    //   사용자 욕설 leak.
-    // العربية
-    'كس', 'زب', 'شرموطة', 'كلب', 'لعنة', 'احمق', 'قحبة', 'منيك',
-    // Türkçe
-    'siktir', 'amına', 'orospu', 'piç', 'aptal', 'göt', 'yarrak', 'kahpe',
-    // Italiano
-    'cazzo', 'merda', 'vaffanculo', 'stronzo', 'coglione', 'puttana', 'fanculo',
-    'figa', 'troia',
-    // हिन्दी
-    'मादरचोद', 'भोसडी', 'चूतिया', 'गांडू', 'रंडी', 'हरामी', 'कमीना',
-    // ภาษาไทย
-    'ควย', 'หี', 'แม่ง', 'เหี้ย', 'สัส', 'อีดอก', 'มึง',
-    // Spam patterns (multilingual)
-    '카지노', '도박', '대출', '비트코인 투자', '클릭하세요',
-    'casino', 'gambling', 'bitcoin invest', 'click here', 'free money',
-    'カジノ', '赌博', '賭博',
-  ];
 
   @override
   void initState() {
@@ -1300,34 +1253,9 @@ class _ComposeScreenState extends State<ComposeScreen>
 
   bool get _isReply => widget.replyToId != null;
 
-  bool _hasBannedWords(String text) {
-    // Build 378 (PR-EE1 audit msg P1-8 잔여): 우회 차단 강화.
-    // Build 397 (PR-HH6 audit 전반 P1-4): \b word boundary — 영문 word
-    //   level 매칭. 이전 substring (`lower.contains(w)`) 로 "class/passion/
-    //   glass/massachusetts" 같은 정상 단어가 'ass' banned word 로 false-
-    //   positive 차단됐던 회귀. CJK/Arabic/Thai/Hindi 는 word boundary 개념
-    //   다르므로 normalized substring 유지.
-    final lowerOriginal = text.toLowerCase();
-    final normalized = lowerOriginal
-        .replaceAll(RegExp(r'[^a-z0-9À-ſ가-힯぀-ヿ一-鿿؀-ۿ฀-๿ऀ-ॿ]'), '');
-    return _bannedWords.any((w) {
-      final wl = w.toLowerCase();
-      // 영문/숫자만 으로 이뤄진 word → \b boundary 매칭 (정상 단어 false-positive 방지).
-      final isAsciiWord = RegExp(r'^[a-z0-9 \-]+$').hasMatch(wl);
-      if (isAsciiWord) {
-        // 'kill yourself' 같은 phrase 도 \b...\b 통과.
-        final pattern = r'\b' + RegExp.escape(wl) + r'\b';
-        if (RegExp(pattern).hasMatch(lowerOriginal)) return true;
-      } else {
-        // 비-ascii (CJK / 아랍 / 태국 / 힌디 등) — substring 매칭.
-        if (lowerOriginal.contains(wl)) return true;
-        // 정규화 우회 차단 (공백/특수문자 우회).
-        final wn = wl.replaceAll(RegExp(r'[^a-z0-9À-ſ가-힯぀-ヿ一-鿿؀-ۿ฀-๿ऀ-ॿ]'), '');
-        if (wn.isNotEmpty && normalized.contains(wn)) return true;
-      }
-      return false;
-    });
-  }
+  bool _hasBannedWords(String text) =>
+      // Build 459: 공용 유틸로 이동(발송 마법사와 공유) — 로직 동일.
+      ContentModeration.hasBannedWords(text);
 
   /// Build 207: 본문 PII 패턴 감지.
   /// 편지 본문은 공개 데이터로 취급되므로 사용자가 실수로 전화번호/주민번호/

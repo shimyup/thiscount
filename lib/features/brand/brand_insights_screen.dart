@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/localization/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
@@ -36,14 +37,29 @@ class BrandInsightsScreen extends StatefulWidget {
 
 class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
   bool _refreshing = false;
+  // Build 459: '지표 읽는 법' 푸터 dismiss 영속.
+  static const _kHelpDismissed = 'insights_help_dismissed_v1';
+  bool _helpDismissed = true; // 로딩 전 미노출(깜빡임 방지)
 
   @override
   void initState() {
     super.initState();
+    SharedPreferences.getInstance().then((p) {
+      if (mounted) {
+        setState(
+            () => _helpDismissed = p.getBool(_kHelpDismissed) ?? false);
+      }
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _refresh();
     });
+  }
+
+  Future<void> _dismissHelp() async {
+    setState(() => _helpDismissed = true);
+    final p = await SharedPreferences.getInstance();
+    await p.setBool(_kHelpDismissed, true);
   }
 
   Future<void> _refresh() async {
@@ -95,7 +111,8 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
           ...insights.campaigns.take(10).map(_buildCampaignCard),
         ],
         const SizedBox(height: 16),
-        _buildHelpFooter(l),
+        // Build 459 (UI 다이어트): 지표 읽는 법 — 닫기 가능(1회성 교육).
+        if (!_helpDismissed) _buildHelpFooter(l),
       ],
     );
     // Build 446: 임베드 모드면 본문만 반환(상위 탭이 Scaffold/AppBar 보유).
@@ -640,13 +657,24 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            l.koEn('📚 지표 읽는 법', '📚 How to read these metrics'),
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  l.koEn('📚 지표 읽는 법', '📚 How to read these metrics'),
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: _dismissHelp,
+                child: const Icon(Icons.close_rounded,
+                    size: 15, color: AppColors.textMuted),
+              ),
+            ],
           ),
           const SizedBox(height: 6),
           Text(

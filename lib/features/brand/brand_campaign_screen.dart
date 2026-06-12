@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/localization/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
@@ -11,6 +12,7 @@ import '../../state/app_state.dart';
 import '../compose/screens/compose_screen.dart';
 import '../dm/dm_conversation_screen.dart';
 import 'brand_insights_screen.dart';
+import 'brand_quick_send_wizard.dart';
 
 /// Build 405 (PR-NN4): Brand 계정 전용 메인 화면.
 ///
@@ -200,9 +202,9 @@ class _BrandCampaignScreenState extends State<BrandCampaignScreen>
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
       children: [
-        _QuotaSummaryCard(state: state, l: l),
-        const SizedBox(height: 12),
-        _QuickComposeCard(l: l),
+        // Build 459 (UI 다이어트): 쿼터 카드 + 발송 CTA 카드 → 히어로 1카드 통합.
+        //   "오늘 얼마나 보낼 수 있고, 지금 보내기" 가 첫 시야에 하나로.
+        _HeroSendCard(state: state, l: l),
         const SizedBox(height: 12),
         // Build 458 (페르소나 치명 — 사장 인지): 단골 스탬프가 사장 모르게
         //   돌아가던 문제. 자동 운영 사실 + 규칙(5회→보상 교환권)을 명시.
@@ -214,12 +216,16 @@ class _BrandCampaignScreenState extends State<BrandCampaignScreen>
           const SizedBox(height: 16),
         ],
         // Build 446: 카테고리 필터 칩 — 전체/일반/할인권/교환권.
-        _CategoryFilterRow(
-          selected: _cat,
-          l: l,
-          onSelect: (c) => setState(() => _cat = c),
-        ),
-        const SizedBox(height: 12),
+        // Build 459 (UI 다이어트): 캠페인 3건+ 부터 노출 — 0~2건엔 거를 게 없어
+        //   신규 사장이 가장 복잡한 화면을 보던 역설 해소.
+        if (sentByNewest.length >= 3) ...[
+          _CategoryFilterRow(
+            selected: _cat,
+            l: l,
+            onSelect: (c) => setState(() => _cat = c),
+          ),
+          const SizedBox(height: 12),
+        ],
         if (sentByNewest.isEmpty) ...[
           _SectionHeader(title: l.brandCampaignRecentSent),
           const SizedBox(height: 8),
@@ -448,13 +454,41 @@ class _DmRow extends StatelessWidget {
 }
 
 // Build 458: 단골 스탬프 자동 운영 안내 — 사장이 프로그램 존재·규칙을 인지.
-class _StampProgramNotice extends StatelessWidget {
+// Build 459 (UI 다이어트): 1회성 교육 카드 — 닫기 가능 + prefs 영속.
+class _StampProgramNotice extends StatefulWidget {
   final AppL10n l;
   const _StampProgramNotice({required this.l});
 
   @override
+  State<_StampProgramNotice> createState() => _StampProgramNoticeState();
+}
+
+class _StampProgramNoticeState extends State<_StampProgramNotice> {
+  static const _kDismissed = 'stamp_notice_dismissed_v1';
+  bool? _dismissed; // null = 로딩 전(미노출)
+
+  @override
+  void initState() {
+    super.initState();
+    SharedPreferences.getInstance().then((p) {
+      if (mounted) {
+        setState(() => _dismissed = p.getBool(_kDismissed) ?? false);
+      }
+    });
+  }
+
+  Future<void> _dismiss() async {
+    setState(() => _dismissed = true);
+    final p = await SharedPreferences.getInstance();
+    await p.setBool(_kDismissed, true);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_dismissed != false) return const SizedBox.shrink();
+    final l = widget.l;
     return Container(
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.gold.withValues(alpha: 0.07),
@@ -491,6 +525,15 @@ class _StampProgramNotice extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+          ),
+          // 닫기 — 읽은 교육 카드가 영구 잔류하지 않게.
+          GestureDetector(
+            onTap: _dismiss,
+            child: const Padding(
+              padding: EdgeInsets.only(left: 6),
+              child: Icon(Icons.close_rounded,
+                  size: 16, color: AppColors.textMuted),
             ),
           ),
         ],
@@ -570,8 +613,118 @@ class _EmptyFiltered extends StatelessWidget {
   }
 }
 
+// Build 459: 히어로 발송 카드 — 플랜 배지 + 오늘 잔여 + 큰 발송 CTA 통합.
+//   (기존 _QuotaSummaryCard/_QuickComposeCard 2장을 대체.)
+class _HeroSendCard extends StatelessWidget {
+  final AppState state;
+  final AppL10n l;
+  const _HeroSendCard({required this.state, required this.l});
+
+  @override
+  Widget build(BuildContext context) {
+    final dailyRemaining = state.remainingDailySendCount;
+    final dailyLimit = state.dailySendLimit;
+    final dailyPct = dailyLimit > 0 ? dailyRemaining / dailyLimit : 0.0;
+    final dailyColor = dailyPct > 0.4
+        ? AppColors.teal
+        : (dailyPct > 0.15 ? AppColors.gold : AppColors.error);
+    final exactDropFree = state.exactDropFreeForBeta;
+    final credits = state.brandExactDropCredits;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.coupon.withValues(alpha: 0.12),
+            AppColors.coupon.withValues(alpha: 0.03),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.coupon.withValues(alpha: 0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.coupon.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'Brand',
+                  style: TextStyle(
+                    color: AppColors.coupon,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  l.brandCampaignDailyRemaining(dailyRemaining, dailyLimit),
+                  style: TextStyle(
+                    color: dailyColor,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            exactDropFree
+                ? l.brandCampaignQuotaUnlimited
+                : l.brandCampaignQuotaCredits(credits),
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 11.5,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              // Build 459: 히어로 CTA → 3스텝 마법사(간단 경로). 풀 compose 는
+              //   마법사 상단 '고급 모드' 및 FAB 로 유지.
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => const BrandQuickSendWizard(),
+              )),
+              icon: const Text('📣', style: TextStyle(fontSize: 16)),
+              label: Text(
+                l.brandCampaignQuickComposeTitle,
+                style: const TextStyle(
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.coupon,
+                foregroundColor: AppColors.bgDeep,
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Build 407 (PR-QQ7): 구독 플랜 + 남은 발송 가능 수 요약 카드.
 ///   Brand: ExactDrop 크레딧 + (베타면 무제한 안내). Premium: 특급 잔여.
+// Build 459: _HeroSendCard 로 대체 — 보존(향후 재사용 대비).
+// ignore: unused_element
 class _QuotaSummaryCard extends StatelessWidget {
   final AppState state;
   final AppL10n l;
@@ -668,6 +821,8 @@ class _QuotaSummaryCard extends StatelessWidget {
   }
 }
 
+// Build 459: _HeroSendCard 로 대체 — 보존.
+// ignore: unused_element
 class _QuickComposeCard extends StatelessWidget {
   final AppL10n l;
   const _QuickComposeCard({required this.l});
