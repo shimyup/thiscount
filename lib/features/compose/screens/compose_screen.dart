@@ -91,6 +91,10 @@ class _ComposeScreenState extends State<ComposeScreen>
   // Build 425 (device #3): 목적지 선택 전엔 어떤 버튼도 활성 강조색을 띄지 않음
   //   (초기 random 자동 하이라이트 제거). 사용자가 나라/랜덤을 누르면 true.
   bool _destinationTouched = false;
+  // Build 458 (페르소나 치명): Brand 기본 목적지 = 내 매장 주변. true 면 단건
+  //   발송이 좌표를 그대로 보존(useExactCoordinates — 자기 매장이라 무차감,
+  //   auto-zone 무료 정책과 일관). 사용자가 목적지를 바꾸면 해제.
+  bool _destIsMyStore = false;
   bool _isAnonymous = true;
   bool _attachSocial = false;
   // Build 229: 사진+링크 첨부 카드 onTap → 첨부 영역으로 스크롤 + 토글 활성화.
@@ -652,7 +656,33 @@ class _ComposeScreenState extends State<ComposeScreen>
       if (!mounted) return;
       final state = context.read<AppState>();
       final purchase = context.read<PurchaseService>();
-      _pickRandomDestination(excludeCountry: state.currentUser.country);
+      // Build 458 (페르소나 치명): Brand 의 기본 목적지가 '내 나라 제외 랜덤
+      //   해외'라 동네 카페 첫 캠페인이 외국으로 날아가던 함정 → Brand 는
+      //   고정 매장 위치(있으면) 또는 현재 GPS = '내 매장 주변'을 기본으로.
+      //   랜덤 해외는 목적지 카드에서 명시적으로 선택할 때만.
+      final bUser = state.currentUser;
+      final bLat = state.hasFixedStoreLocation
+          ? state.fixedStoreLat!
+          : bUser.latitude;
+      final bLng = state.hasFixedStoreLocation
+          ? state.fixedStoreLng!
+          : bUser.longitude;
+      if (bUser.isBrand &&
+          !_isReply &&
+          bUser.country.isNotEmpty &&
+          (bLat != 0 || bLng != 0)) {
+        setState(() {
+          _isRandom = false;
+          _destIsMyStore = true;
+          _destinationTouched = true;
+          _selectedCountry = bUser.country;
+          _selectedFlag = bUser.countryFlag;
+          _destLat = bLat;
+          _destLng = bLng;
+        });
+      } else {
+        _pickRandomDestination(excludeCountry: bUser.country);
+      }
       // 프리미엄/브랜드 유저만 SNS 자동 첨부
       final hasPremiumForSns =
           purchase.isPremium ||
@@ -968,6 +998,7 @@ class _ComposeScreenState extends State<ComposeScreen>
   }
 
   void _pickRandomDestination({String? excludeCountry}) {
+    _destIsMyStore = false;
     final dest = AppState.randomDestination(excludeCountry: excludeCountry);
     final countryName = dest['name']!;
     final langCode = context.read<AppState>().currentUser.languageCode;
@@ -1981,7 +2012,8 @@ class _ComposeScreenState extends State<ComposeScreen>
           // compose에서 이미 선택된 도시를 그대로 넘겨 재랜덤을 방지
           destCityName: _selectedCity.isNotEmpty ? _selectedCity : null,
           // Build 317: ExactDrop 발송 시 destCityName 미정이어도 핀 좌표 보존.
-          useExactCoordinates: _isExactDropped,
+          // Build 458: '내 매장 주변' 기본 목적지도 좌표 보존(무차감).
+          useExactCoordinates: _isExactDropped || _destIsMyStore,
           deliveryEmoji: _deliveryEmojiEncoded,
           socialLink: _attachSocial && _socialLinkController.text.isNotEmpty
               ? _socialLinkController.text.trim()
@@ -2265,6 +2297,7 @@ class _ComposeScreenState extends State<ComposeScreen>
   }
 
   Future<void> _selectExactDrop() async {
+    _destIsMyStore = false;
     final state = context.read<AppState>();
     final langCode = state.currentUser.languageCode;
     final l = AppL10n.of(langCode);
@@ -2363,6 +2396,7 @@ class _ComposeScreenState extends State<ComposeScreen>
   }
 
   void _selectCountry() {
+    _destIsMyStore = false;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -3080,9 +3114,11 @@ class _ComposeScreenState extends State<ComposeScreen>
                       children: [
                         Text(
                           !_isRandom
-                              ? CountryL10n.localizedName(
-                                  _selectedCountry, langCode,
-                                )
+                              ? (_destIsMyStore
+                                  ? '${CountryL10n.localizedName(_selectedCountry, langCode)} · ${l10n.koEn('내 매장 주변', 'Near my store')}'
+                                  : CountryL10n.localizedName(
+                                      _selectedCountry, langCode,
+                                    ))
                               : l10n.selectCountry,
                           style: TextStyle(
                             color: !_isRandom

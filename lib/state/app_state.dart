@@ -9903,7 +9903,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
     _currentUser.activityScore.receivedCount++;
     // Build 414 (sim100 #54): 쿨다운 시작 시각도 SecureClock — getter 와 일관.
-    _lastNearbyPickupAt = SecureClock.now(); // 쿨다운 시작
+    // Build 458 (페르소나 치명): 체험(demo_*)·튜토리얼·웰컴 letter 픽업은
+    //   쿨다운 미소모 — 이전엔 Free 첫 세션이 "가짜 쿠폰 1개 줍고 60분 대기"
+    //   로 끝났음. 진짜 쿠폰 픽업만 쿨다운 시작.
+    final isTutorialPickup = letter.id.startsWith('demo_') ||
+        letter.id.startsWith('tutorial_') ||
+        letter.id.startsWith('welcome_');
+    if (!isTutorialPickup) {
+      _lastNearbyPickupAt = SecureClock.now(); // 쿨다운 시작
+    }
 
     // 픽업 모먼트 햅틱 — 포켓몬 고식 "편지 주움" 감각. Brand 발신 편지는
     // 한 단계 더 무거운 시퀀스로 "공식 발송인" 체감 차별화.
@@ -10425,42 +10433,30 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     );
     _dmMessages[partnerId]!.add(msg);
 
-    // Simulate partner reply after 3 seconds
-    Future.delayed(const Duration(seconds: 3), () {
+    // Build 458 (페르소나 치명 — DM 정직화): 상대를 사칭하던 가짜 자동응답
+    //   (stateDmReply1-7 랜덤)을 제거. 이전엔 결제한 Premium 이 봇과 대화 중인
+    //   걸 모르고, 브랜드는 자기 이름으로 헛소리 응답이 나갔음. 대신 대화당 1회
+    //   'Thiscount' 명의의 시스템 안내로 베타 상태를 투명하게 고지.
+    Future.delayed(const Duration(seconds: 2), () {
       if (_chatSessions.containsKey(partnerId)) {
-        final session = _chatSessions[partnerId]!;
-        final l10n = _l10n;
-        final replies = [
-          l10n.stateDmReply1,
-          l10n.stateDmReply2,
-          l10n.stateDmReply3,
-          l10n.stateDmReply4,
-          l10n.stateDmReply5,
-          l10n.stateDmReply6,
-          l10n.stateDmReply7,
-        ];
+        final alreadyNoticed = (_dmMessages[partnerId] ?? const [])
+            .any((m) => m.id.startsWith('dm_system_'));
+        if (alreadyNoticed) return;
         final reply = DirectMessage(
-          id: 'dm_reply_${DateTime.now().millisecondsSinceEpoch}',
-          senderId: partnerId,
-          senderName: session.partnerName,
-          content: replies[DateTime.now().millisecond % replies.length],
+          id: 'dm_system_${DateTime.now().millisecondsSinceEpoch}',
+          senderId: '_thiscount_system',
+          senderName: 'Thiscount',
+          content: _l10n.koEn(
+            '🧪 베타 안내: 1:1 채팅은 준비 중이에요. 지금 보낸 메시지는 아직 상대에게 전달되지 않으며, 정식 오픈 시 채팅 기능이 활성화됩니다.',
+            '🧪 Beta notice: 1:1 chat is in preparation. Your message has not been delivered to the other person yet — chat will activate at full launch.',
+          ),
           sentAt: DateTime.now(),
           isRead: false,
         );
         _dmMessages[partnerId]!.add(reply);
-        // Build 421 (sim-fresh P3): 사용자가 바로 그 대화를 보고 있으면 안읽음
-        //   배지/푸시를 띄우지 않고 즉시 읽음 처리 — 이전엔 화면 보는 중에도
-        //   배지 증가 + 푸시가 떠 오안내.
-        if (_activeDmPartnerId == partnerId) {
-          reply.isRead = true;
-        } else {
-          session.unreadCount++;
-          NotificationService.showDMArrivedNotification(
-            senderName: session.partnerName,
-            message: reply.content,
-            langCode: _currentUser.languageCode,
-          );
-        }
+        // 시스템 안내는 배지/푸시 미발생 — 보고 있으면 즉시 읽음, 아니어도
+        //   가짜 '상대 답장' 알림으로 오인되지 않게 무음 처리.
+        reply.isRead = true;
         notifyListeners();
         _saveDMToPrefs();
       }

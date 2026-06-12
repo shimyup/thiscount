@@ -12209,21 +12209,23 @@ class AppL10n {
   });
 
   // Build 426 (sim100 #31): Premium 고유 강점 — 1:1 채팅(DM) 비교 행.
+  // Build 458 (DM 정직화): 베타 표기 — 실제 전달은 정식 오픈 시 활성. 결제
+  //   셀링포인트가 가짜로 보이지 않도록 페이월에서부터 투명하게.
   String get premiumCompareDM => _t({
-    'ko': '1:1 채팅 (DM)',
-    'en': '1:1 chat (DM)',
-    'ja': '1:1チャット (DM)',
-    'zh': '1:1 聊天 (DM)',
-    'fr': 'Chat 1:1 (DM)',
-    'de': '1:1-Chat (DM)',
-    'es': 'Chat 1:1 (DM)',
-    'pt': 'Chat 1:1 (DM)',
-    'ru': 'Чат 1:1 (DM)',
-    'tr': 'Birebir sohbet (DM)',
-    'ar': 'محادثة 1:1 (DM)',
-    'it': 'Chat 1:1 (DM)',
-    'hi': '1:1 चैट (DM)',
-    'th': 'แชท 1:1 (DM)',
+    'ko': '1:1 채팅 (DM · 베타 준비 중)',
+    'en': '1:1 chat (DM · beta, coming soon)',
+    'ja': '1:1チャット (DM・ベータ準備中)',
+    'zh': '1:1 聊天 (DM · 测试筹备中)',
+    'fr': 'Chat 1:1 (DM · bêta à venir)',
+    'de': '1:1-Chat (DM · Beta, bald)',
+    'es': 'Chat 1:1 (DM · beta próximamente)',
+    'pt': 'Chat 1:1 (DM · beta em breve)',
+    'ru': 'Чат 1:1 (DM · бета скоро)',
+    'tr': 'Birebir sohbet (DM · beta yakında)',
+    'ar': 'محادثة 1:1 (DM · تجريبي قريبًا)',
+    'it': 'Chat 1:1 (DM · beta in arrivo)',
+    'hi': '1:1 चैट (DM · बीटा जल्द)',
+    'th': 'แชท 1:1 (DM · เบต้าเร็วๆ นี้)',
   });
 
   String get premiumCompareDailyLetters => _t({

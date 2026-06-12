@@ -116,8 +116,8 @@ class _TierTourScreenState extends State<TierTourScreen> {
           emoji: '⚡',
           title: l.koEn('특급 발송과 1:1 채팅', 'Express send & 1:1 chat'),
           body: l.koEn(
-            '내 편지를 5분 특급으로 보내고, 발송인과 DM으로 대화할 수 있어요.',
-            'Send your letters express (5 min) and chat 1:1 with senders via DM.',
+            '내 편지를 5분 특급으로 보낼 수 있어요. 발송인과의 1:1 채팅(DM)은 베타 준비 중 — 정식 오픈 시 활성화돼요.',
+            'Send your letters express (5 min). 1:1 chat (DM) is in beta preparation — it activates at full launch.',
           ),
         ),
         _TourSlide(

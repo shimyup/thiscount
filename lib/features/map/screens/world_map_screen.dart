@@ -4511,6 +4511,59 @@ class _PickupSheet extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
+          // Build 458 (페르소나 높음): 브랜드 쿠폰은 혜택 미리보기 — 이전엔
+          //   발신처만 보여 1시간 1회 픽업이 '깜깜이 도박'이었음. 발송 종류 +
+          //   본문 2줄로 "걸어갈 가치"를 픽업 전에 판단. 개인 편지는 미스터리 유지.
+          if (isBrand) ...[
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: ink.withValues(alpha: 0.07),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        bizCategoryEmoji(letter.categoryTag),
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        letter.category == LetterCategory.coupon
+                            ? l10n.composeBrandCategoryCoupon
+                            : letter.category == LetterCategory.voucher
+                                ? l10n.composeBrandCategoryVoucher
+                                : l10n.composeBrandCategoryGeneral,
+                        style: TextStyle(
+                          color: ink.withValues(alpha: 0.75),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    letter.content,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: ink.withValues(alpha: 0.9),
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                      height: 1.35,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 20),
           // Build 304 (a11y): VoiceOver/TalkBack — 픽업 버튼임을 명시.
           Semantics(

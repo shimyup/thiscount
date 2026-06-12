@@ -203,6 +203,11 @@ class _BrandCampaignScreenState extends State<BrandCampaignScreen>
         _QuotaSummaryCard(state: state, l: l),
         const SizedBox(height: 12),
         _QuickComposeCard(l: l),
+        const SizedBox(height: 12),
+        // Build 458 (페르소나 치명 — 사장 인지): 단골 스탬프가 사장 모르게
+        //   돌아가던 문제. 자동 운영 사실 + 규칙(5회→보상 교환권)을 명시.
+        //   임계값/보상 커스텀·현황 집계는 서버 권위 필요 → Auth Phase 3 후속.
+        _StampProgramNotice(l: l),
         const SizedBox(height: 16),
         if (mostRecentlyPickedUp != null) ...[
           _RecentPickupHighlight(letter: mostRecentlyPickedUp, l: l),
@@ -437,6 +442,58 @@ class _DmRow extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+// Build 458: 단골 스탬프 자동 운영 안내 — 사장이 프로그램 존재·규칙을 인지.
+class _StampProgramNotice extends StatelessWidget {
+  final AppL10n l;
+  const _StampProgramNotice({required this.l});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.gold.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('☕', style: TextStyle(fontSize: 16)),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l.koEn('단골 스탬프 자동 운영 중', 'Loyalty stamps run automatically'),
+                  style: const TextStyle(
+                    color: AppColors.gold,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  l.koEn(
+                    '손님이 내 매장 쿠폰을 5번 사용하면 "단골 보상" 교환권이 자동 발급돼 재방문을 유도해요. 보상 화면에는 매장 이름이 표시됩니다.',
+                    'After 5 redemptions at your store, a "loyalty reward" voucher is auto-issued to bring customers back. Your store name appears on the reward.',
+                  ),
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 11,
+                    height: 1.45,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

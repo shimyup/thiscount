@@ -1177,6 +1177,9 @@ class _SignupTabState extends State<_SignupTab> {
 
   // ── 검증 상태 ──
   String? _usernameError; // 실시간 아이디 에러
+  // Build 458 (페르소나 높음): Brand 가입 시 매장 이름 별도 입력 — 이전엔
+  //   영숫자 아이디('happycafe77')가 그대로 상호로 노출되고 한글 상호 불가.
+  final _storeNameCtrl = TextEditingController();
   String? _passwordError; // 실시간 비밀번호 에러
   bool _usernameTaken = false;
 
@@ -1386,6 +1389,7 @@ class _SignupTabState extends State<_SignupTab> {
   @override
   void dispose() {
     _emailCtrl.dispose();
+    _storeNameCtrl.dispose();
     _usernameCtrl.dispose();
     _passCtrl.dispose();
     _socialCtrl.dispose();
@@ -1544,8 +1548,11 @@ class _SignupTabState extends State<_SignupTab> {
       //   Brand 선택 시 brandName 도 같이 — username 을 fallback 으로 사용
       //   (브랜드명 별도 입력 step 은 후속 PR 에서 강화 예정).
       isBrand: _selectedAccountType == SignupAccountType.brand,
+      // Build 458: 매장 이름 입력값 우선 — 미입력 시에만 아이디 fallback.
       brandName: _selectedAccountType == SignupAccountType.brand
-          ? _usernameCtrl.text.trim()
+          ? (_storeNameCtrl.text.trim().isNotEmpty
+              ? _storeNameCtrl.text.trim()
+              : _usernameCtrl.text.trim())
           : null,
     );
 
@@ -1984,6 +1991,19 @@ class _SignupTabState extends State<_SignupTab> {
               ),
             ),
           const SizedBox(height: 12),
+
+          // ── 2.5 매장 이름 (Brand 전용) ────────────────────────────────────
+          // Build 458: 손님 지도/쿠폰에 노출되는 상호 — 한글/공백 허용, 아이디와
+          //   분리. 미입력 시 아이디 fallback(기존 동작 유지).
+          if (_selectedAccountType == SignupAccountType.brand) ...[
+            _InputField(
+              controller: _storeNameCtrl,
+              label: l10n.koEn('매장 이름', 'Store name'),
+              hint: l10n.koEn('손님에게 보여요 (예: 행복카페)', 'Shown to customers (e.g. Happy Cafe)'),
+              icon: Icons.storefront_rounded,
+            ),
+            const SizedBox(height: 12),
+          ],
 
           // ── 3. 비밀번호 ────────────────────────────────────────────────────
           _InputField(
