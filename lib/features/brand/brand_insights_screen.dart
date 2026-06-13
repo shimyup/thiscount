@@ -690,10 +690,15 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
                   ),
                 ),
               ),
-              GestureDetector(
-                onTap: _dismissHelp,
-                child: const Icon(Icons.close_rounded,
+              // Build 464 (디자인 a11y): 44pt 터치 타깃 + 스크린리더 라벨.
+              IconButton(
+                onPressed: _dismissHelp,
+                tooltip: l.mapClose,
+                icon: const Icon(Icons.close_rounded,
                     size: 15, color: AppColors.textMuted),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                visualDensity: VisualDensity.compact,
               ),
             ],
           ),

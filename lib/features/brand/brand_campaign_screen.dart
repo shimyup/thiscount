@@ -643,13 +643,15 @@ class _StampProgramNoticeState extends State<_StampProgramNotice> {
             ),
           ),
           // 닫기 — 읽은 교육 카드가 영구 잔류하지 않게.
-          GestureDetector(
-            onTap: _dismiss,
-            child: const Padding(
-              padding: EdgeInsets.only(left: 6),
-              child: Icon(Icons.close_rounded,
-                  size: 16, color: AppColors.textMuted),
-            ),
+          // Build 464 (디자인 a11y): 44pt 터치 타깃 + 스크린리더 라벨(IconButton).
+          IconButton(
+            onPressed: _dismiss,
+            tooltip: l.mapClose,
+            icon: const Icon(Icons.close_rounded,
+                size: 16, color: AppColors.textMuted),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+            visualDensity: VisualDensity.compact,
           ),
         ],
       ),
@@ -1188,7 +1190,7 @@ class _ZoneRow extends StatelessWidget {
                 foregroundColor: AppColors.error,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                minimumSize: const Size(44, 32),
+                minimumSize: const Size(44, 44),
               ),
               child: Text(
                 l.zoneStopShort,
