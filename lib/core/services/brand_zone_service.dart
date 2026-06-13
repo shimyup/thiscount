@@ -254,6 +254,12 @@ class BrandZoneService {
         'maxRedeems': {'integerValue': '$maxRedeems'},
         'redeemedCount': {'integerValue': '0'},
         'createdAt': {'stringValue': now.toIso8601String()},
+        // Build 462 (보안 보강): 정식 인증(Auth Phase 3) 세션이면 zone 에 소유자
+        //   authUid 를 바인딩 → firestore.rules 의 expiresAt 조기종료가 본인만
+        //   가능해져 '타 매장 zone 조기종료' 표면을 닫는다. anon(플래그 OFF) 이면
+        //   null 미기록 → rule 은 기존 permissive 경로(Phase 3 전 구조 한계).
+        if (FirebaseAuthService.realAuthUid != null)
+          'brandAuthUid': {'stringValue': FirebaseAuthService.realAuthUid!},
       };
       final uri = Uri.parse(
         '${FirebaseConfig.firestoreBase}/brand_zones'

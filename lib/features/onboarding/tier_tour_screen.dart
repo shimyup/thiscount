@@ -74,32 +74,23 @@ class _TierTourScreenState extends State<TierTourScreen> {
       return [
         _TourSlide(
           emoji: '📣',
-          title: l.koEn('동네 손님에게 쿠폰을 뿌리세요', 'Send coupons to nearby customers'),
-          body: l.koEn(
-            '캠페인 탭에서 일반홍보 · 할인권 · 교환권을 골라 발송하면 지도에 떨어지고, 근처 손님이 주워서 매장에 찾아와요.',
-            'Pick Promo · Coupon · Voucher in the Campaign tab. It drops on the map, customers pick it up and visit your store.',
-          ),
+          title: l.tierTourBrandTitle1,
+          body: l.tierTourBrandBody1,
           bullets: [
-            ('📨', l.koEn('일반홍보 — 소식·이벤트 알리기', 'Promo — news & events')),
-            ('🎟', l.koEn('할인권 — 할인코드 자동 발급', 'Coupon — auto discount code')),
-            ('🎁', l.koEn('교환권 — 이미지 첨부 교환', 'Voucher — image attached')),
+            ('📨', l.tierTourBrandBullet1),
+            ('🎟', l.tierTourBrandBullet2),
+            ('🎁', l.tierTourBrandBullet3),
           ],
         ),
         _TourSlide(
           emoji: '📍',
-          title: l.koEn('매장 위치를 고정하세요', 'Lock your store location'),
-          body: l.koEn(
-            '발송 화면의 "매장 위치 · 자동 발송" 카드에서 위치를 한 번 고정하면, 근처에 온 손님에게 혜택이 자동으로 도착하게 할 수 있어요.',
-            'Lock your location once in the "Store location · Auto-send" card — offers can then reach customers automatically when they come nearby.',
-          ),
+          title: l.tierTourBrandTitle2,
+          body: l.tierTourBrandBody2,
         ),
         _TourSlide(
           emoji: '🏷️',
-          title: l.koEn('코드 한 번 등록, 성과는 인사이트에서', 'One code at POS, results in Insights'),
-          body: l.koEn(
-            '할인코드는 캠페인당 1개 — 매장 POS에 한 번만 등록하면 끝. 픽업·사용 성과는 인사이트 탭에서 실시간으로 확인하세요.',
-            'One discount code per campaign — register it once at your POS. Track pickups & redemptions live in the Insights tab.',
-          ),
+          title: l.tierTourBrandTitle3,
+          body: l.tierTourBrandBody3,
         ),
       ];
     }
@@ -107,54 +98,36 @@ class _TierTourScreenState extends State<TierTourScreen> {
       return [
         _TourSlide(
           emoji: '🗺️',
-          title: l.koEn('5배 넓게, 기다림 없이 주우세요', 'Pick up 5× wider, no waiting'),
-          body: l.koEn(
-            'Premium은 반경 1km 안의 혜택을 쿨다운 없이 연속으로 주울 수 있어요. 지도의 원이 내 줍기 범위예요.',
-            'Premium picks up within a 1 km radius with no cooldown. The circle on the map is your range.',
-          ),
+          title: l.tierTourPremiumTitle1,
+          body: l.tierTourPremiumBody1,
         ),
         _TourSlide(
           emoji: '⚡',
-          title: l.koEn('특급 발송과 1:1 채팅', 'Express send & 1:1 chat'),
-          body: l.koEn(
-            '내 편지를 5분 특급으로 보낼 수 있어요. 발송인과의 1:1 채팅(DM)은 베타 준비 중 — 정식 오픈 시 활성화돼요.',
-            'Send your letters express (5 min). 1:1 chat (DM) is in beta preparation — it activates at full launch.',
-          ),
+          title: l.tierTourPremiumTitle2,
+          body: l.tierTourPremiumBody2,
         ),
         _TourSlide(
           emoji: '🎟',
-          title: l.koEn('주운 쿠폰은 수집첩에', 'Picked coupons live in your collection'),
-          body: l.koEn(
-            '주운 할인권은 수집첩에 보관돼요. 매장에서 "사용 진행"을 누르면 코드가 크게 떠요. 같은 매장에서 쓸수록 단골 스탬프도 쌓여요!',
-            'Coupons are kept in your collection. Tap "Redeem" at the store to reveal the code. Repeat visits earn loyalty stamps!',
-          ),
+          title: l.tierTourPremiumTitle3,
+          body: l.tierTourPremiumBody3,
         ),
       ];
     }
     return [
       _TourSlide(
         emoji: '🗺️',
-        title: l.koEn('지도에서 혜택을 주우세요', 'Pick up offers on the map'),
-        body: l.koEn(
-          '주변 200m 안에 떨어진 할인권·교환권을 탭해서 주우세요. 지도의 원이 내 줍기 범위예요.',
-          'Tap coupons & vouchers within 200 m to pick them up. The circle on the map is your range.',
-        ),
+        title: l.tierTourFreeTitle1,
+        body: l.tierTourFreeBody1,
       ),
       _TourSlide(
         emoji: '🎟',
-        title: l.koEn('매장에서 바로 쓰세요', 'Use them right at the store'),
-        body: l.koEn(
-          '주운 쿠폰은 수집첩에 보관돼요. 매장에서 "사용 진행"을 누르면 코드가 크게 떠요. 같은 매장에서 쓸수록 단골 스탬프도 쌓여요!',
-          'Picked coupons are kept in your collection. Tap "Redeem" at the store to reveal the code. Repeat visits earn loyalty stamps!',
-        ),
+        title: l.tierTourFreeTitle2,
+        body: l.tierTourFreeBody2,
       ),
       _TourSlide(
         emoji: '💎',
-        title: l.koEn('더 넓게 줍고 싶다면 Premium', 'Want a wider range? Premium'),
-        body: l.koEn(
-          '반경 5배(1km) · 쿨다운 없음 · 특급 발송 · 1:1 채팅. 3일 무료로 시작할 수 있어요.',
-          '5× radius (1 km) · no cooldown · express send · 1:1 chat. Start with a 3-day free trial.',
-        ),
+        title: l.tierTourFreeTitle3,
+        body: l.tierTourFreeBody3,
       ),
     ];
   }
@@ -306,7 +279,7 @@ class _TierTourScreenState extends State<TierTourScreen> {
                           ),
                         ),
                         child: Text(
-                          l.koEn('📣 첫 캠페인 만들기', '📣 Create first campaign'),
+                          l.tierTourBrandCta,
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w800,
@@ -318,7 +291,7 @@ class _TierTourScreenState extends State<TierTourScreen> {
                     TextButton(
                       onPressed: _finish,
                       child: Text(
-                        l.koEn('나중에 할게요', 'Later'),
+                        l.tierTourLater,
                         style: const TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 13,
@@ -347,7 +320,7 @@ class _TierTourScreenState extends State<TierTourScreen> {
                           ),
                         ),
                         child: Text(
-                          l.koEn('💎 Premium 자세히 보기', '💎 See Premium'),
+                          l.tierTourPremiumCta,
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w800,
@@ -364,7 +337,7 @@ class _TierTourScreenState extends State<TierTourScreen> {
                         ? TextButton(
                             onPressed: _finish,
                             child: Text(
-                              l.koEn('무료로 시작하기', 'Start free'),
+                              l.tierTourStartFree,
                               style: const TextStyle(
                                 color: AppColors.textSecondary,
                                 fontSize: 14,
@@ -393,9 +366,7 @@ class _TierTourScreenState extends State<TierTourScreen> {
                               ),
                             ),
                             child: Text(
-                              isLast
-                                  ? l.koEn('시작하기', 'Get started')
-                                  : l.koEn('다음', 'Next'),
+                              isLast ? l.tierTourGetStarted : l.next,
                               style: const TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w800,

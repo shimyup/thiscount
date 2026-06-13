@@ -69,19 +69,19 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
   String _bizLabel(AppL10n l, String key) {
     switch (key) {
       case 'food':
-        return l.koEn('식당/음식', 'Food');
+        return l.bizLabelFood;
       case 'cafe':
-        return l.koEn('카페', 'Cafe');
+        return l.bizLabelCafe;
       case 'beauty':
-        return l.koEn('뷰티/미용', 'Beauty');
+        return l.bizLabelBeauty;
       case 'fashion':
-        return l.koEn('패션/의류', 'Fashion');
+        return l.bizLabelFashion;
       case 'event':
-        return l.koEn('행사/이벤트', 'Events');
+        return l.bizLabelEvent;
       case 'it':
-        return l.koEn('IT/전자', 'IT');
+        return l.bizLabelIt;
       default:
-        return l.koEn('기타', 'Other');
+        return l.bizLabelOther;
     }
   }
 
@@ -114,7 +114,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
     final minChars = _category == LetterCategory.general ? 10 : 1;
     if (content.length < minChars) {
       _snack(
-        l.koEn('내용을 $minChars자 이상 적어주세요', 'Write at least $minChars characters'),
+        l.wizardMinChars(minChars),
         error: true,
       );
       return false;
@@ -136,7 +136,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         title: Text(
-          l.koEn('✨ AI 초안 만들기', '✨ AI draft'),
+          l.wizardAiTitle,
           style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 16,
@@ -148,9 +148,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
           maxLines: 2,
           style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
           decoration: InputDecoration(
-            hintText: l.koEn(
-                '가게/혜택을 한 줄로 (예: 수제 디저트 카페, 신메뉴 출시)',
-                'Describe your shop/offer (e.g. dessert cafe, new menu)'),
+            hintText: l.wizardAiHint,
             hintStyle:
                 const TextStyle(color: AppColors.textMuted, fontSize: 12),
             filled: true,
@@ -172,7 +170,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
             style: FilledButton.styleFrom(
                 backgroundColor: AppColors.gold,
                 foregroundColor: AppColors.bgDeep),
-            child: Text(l.koEn('생성', 'Generate')),
+            child: Text(l.wizardGenerate),
           ),
         ],
       ),
@@ -184,11 +182,10 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
     final desc = descCtrl.text.trim();
     descCtrl.dispose();
     if (desc.isEmpty) {
-      _snack(l.koEn('설명을 한 줄 적어주세요', 'Add a one-line description'),
-          error: true);
+      _snack(l.wizardAiNeedDesc, error: true);
       return;
     }
-    _snack(l.koEn('✨ 생성 중…', '✨ Generating…'));
+    _snack(l.wizardGenerating);
     final typeKey = _category == LetterCategory.coupon
         ? 'coupon'
         : _category == LetterCategory.voucher
@@ -206,8 +203,8 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
     if (result == null) {
       _snack(
         CouponAIService.lastWasRateLimited
-            ? l.koEn('요청이 많아요 — 잠시 후 다시 시도해주세요', 'Busy — try again shortly')
-            : l.koEn('생성에 실패했어요', 'Generation failed'),
+            ? l.wizardAiBusy
+            : l.wizardAiFailed,
         error: true,
       );
       return;
@@ -236,10 +233,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
     final lng =
         state.hasFixedStoreLocation ? state.fixedStoreLng! : user.longitude;
     if (lat == 0 && lng == 0) {
-      _snack(
-          l.koEn('위치를 확인할 수 없어요 — 매장 위치를 지정하거나 GPS를 허용해주세요',
-              'No location — set your store location or allow GPS'),
-          error: true);
+      _snack(l.wizardNoLocation, error: true);
       return;
     }
     setState(() => _sending = true);
@@ -298,8 +292,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
     if (!mounted) return;
     setState(() => _sending = false);
     if (!ok) {
-      _snack(l.koEn('발송에 실패했어요 — 네트워크를 확인해주세요',
-          'Send failed — check your connection'), error: true);
+      _snack(l.wizardSendFailed, error: true);
       return;
     }
     if (code != null) {
@@ -308,10 +301,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
     if (!mounted) return;
     Navigator.of(context).pop();
     _snack(
-      _mode == _SendMode.dropNow
-          ? l.koEn('📣 매장 주변에 발송됐어요!', '📣 Sent near your store!')
-          : l.koEn('📍 자동 발송이 켜졌어요 — 근처 손님에게 도착해요',
-              '📍 Auto-send is on — it reaches nearby customers'),
+      _mode == _SendMode.dropNow ? l.wizardSentNear : l.wizardAutoOn,
     );
   }
 
@@ -358,8 +348,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
             ),
             const SizedBox(height: 8),
             Text(
-              l.koEn('매장 POS에 이 코드를 1회 등록하세요. 인사이트에서 언제든 다시 볼 수 있어요.',
-                  'Register this code once at your POS. Find it anytime in Insights.'),
+              l.wizardCodeNote,
               style: const TextStyle(
                   color: AppColors.textMuted, fontSize: 11.5, height: 1.4),
             ),
@@ -379,7 +368,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
             style: FilledButton.styleFrom(
                 backgroundColor: AppColors.coupon,
                 foregroundColor: AppColors.bgDeep),
-            child: Text(l.koEn('확인', 'Done')),
+            child: Text(l.wizardDone),
           ),
         ],
       ),
@@ -403,7 +392,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
               )
             : null,
         title: Text(
-          l.koEn('캠페인 만들기 ${_step + 1}/3', 'New campaign ${_step + 1}/3'),
+          l.wizardTitleStep(_step + 1),
           style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 16,
@@ -416,7 +405,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
               MaterialPageRoute(builder: (_) => const ComposeScreen()),
             ),
             child: Text(
-              l.koEn('고급 모드', 'Advanced'),
+              l.wizardAdvanced,
               style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
             ),
           ),
@@ -481,12 +470,12 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
                   ),
                   child: Text(
                     _sending
-                        ? l.koEn('발송 중…', 'Sending…')
+                        ? l.wizardSending
                         : _step < 2
-                            ? l.koEn('다음', 'Next')
+                            ? l.next
                             : (_mode == _SendMode.dropNow
-                                ? l.koEn('📣 발송하기', '📣 Send')
-                                : l.koEn('📍 자동 발송 켜기', '📍 Turn on auto-send')),
+                                ? l.wizardSend
+                                : l.wizardTurnOnAuto),
                     style: const TextStyle(
                         fontSize: 15, fontWeight: FontWeight.w800),
                   ),
@@ -505,7 +494,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          l.koEn('어떤 혜택인가요?', 'What are you offering?'),
+          l.wizardStep1Title,
           style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 20,
@@ -537,7 +526,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
         ),
         const SizedBox(height: 16),
         Text(
-          l.koEn('업종', 'Category'),
+          l.wizardBizHeader,
           style: const TextStyle(
               color: AppColors.textMuted,
               fontSize: 12,
@@ -563,7 +552,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
           children: [
             Expanded(
               child: Text(
-                l.koEn('내용', 'Message'),
+                l.wizardMessageHeader,
                 style: const TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 12,
@@ -575,7 +564,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
                 onPressed: () => _runAiDraft(state, l),
                 icon: const Text('✨', style: TextStyle(fontSize: 13)),
                 label: Text(
-                  l.koEn('AI 초안', 'AI draft'),
+                  l.wizardAiDraftBtn,
                   style: const TextStyle(
                       fontSize: 12, fontWeight: FontWeight.w700),
                 ),
@@ -592,10 +581,8 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
           style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
           decoration: InputDecoration(
             hintText: _category == LetterCategory.general
-                ? l.koEn('홍보 메시지 (예: 신메뉴 출시! 이번 주 방문해 보세요)',
-                    'Promo message (e.g. New menu this week!)')
-                : l.koEn('혜택을 한 줄로 (예: 전 메뉴 20% 할인)',
-                    'Your offer (e.g. 20% off everything)'),
+                ? l.wizardContentHintGeneral
+                : l.wizardContentHintOffer,
             hintStyle:
                 const TextStyle(color: AppColors.textMuted, fontSize: 13),
             filled: true,
@@ -618,8 +605,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
             style:
                 const TextStyle(color: AppColors.textPrimary, fontSize: 13),
             decoration: InputDecoration(
-              hintText: l.koEn('사용 안내 (선택 — 예: 음료 주문 시 직원에게 제시)',
-                  'Redemption note (optional)'),
+              hintText: l.wizardRedemptionHint,
               hintStyle:
                   const TextStyle(color: AppColors.textMuted, fontSize: 12),
               filled: true,
@@ -644,7 +630,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          l.koEn('어떻게 보낼까요?', 'How should it reach customers?'),
+          l.wizardStep2Title,
           style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 20,
@@ -652,19 +638,15 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
         ),
         const SizedBox(height: 6),
         Text(
-          hasFixed
-              ? l.koEn('위치: 고정된 매장 위치 기준', 'From: your locked store location')
-              : l.koEn('위치: 현재 내 위치 기준 (고급 모드에서 매장 위치 고정 가능)',
-                  'From: your current location (lock store location in Advanced)'),
+          hasFixed ? l.wizardLocFixed : l.wizardLocCurrent,
           style: const TextStyle(color: AppColors.textMuted, fontSize: 11.5),
         ),
         const SizedBox(height: 14),
         _modeCard(
           selected: _mode == _SendMode.dropNow,
           emoji: '📣',
-          title: l.koEn('지금 매장 주변에 떨어뜨리기', 'Drop near my store now'),
-          desc: l.koEn('1통이 매장 위치에 떨어지고, 근처 손님이 주워가요.',
-              'One drop at your store — nearby customers pick it up.'),
+          title: l.wizardModeDropTitle,
+          desc: l.wizardModeDropDesc,
           onTap: () => setState(() => _mode = _SendMode.dropNow),
         ),
         const SizedBox(height: 10),
@@ -672,8 +654,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
           selected: _mode == _SendMode.autoZone,
           emoji: '📍',
           title: l.zoneCampaignToggle,
-          desc: l.koEn('손님이 반경 안에 들어올 때마다 자동으로 도착해요 (상시 캠페인).',
-              'Arrives automatically whenever customers enter the radius.'),
+          desc: l.wizardModeAutoDesc,
           onTap: () => setState(() => _mode = _SendMode.autoZone),
         ),
         if (_mode == _SendMode.autoZone) ...[
@@ -702,7 +683,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
             children: [
               Expanded(
                   child: _chip(
-                label: l.koEn('상시', 'Always'),
+                label: l.wizardAlways,
                 selected: _zoneUnlimited,
                 color: AppColors.gold,
                 onTap: () => setState(() => _zoneUnlimited = true),
@@ -710,7 +691,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
               const SizedBox(width: 8),
               Expanded(
                   child: _chip(
-                label: l.koEn('한정 수량', 'Limited'),
+                label: l.wizardLimited,
                 selected: !_zoneUnlimited,
                 color: AppColors.gold,
                 onTap: () => setState(() => _zoneUnlimited = false),
@@ -725,7 +706,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
               style:
                   const TextStyle(color: AppColors.textPrimary, fontSize: 13),
               decoration: InputDecoration(
-                hintText: l.koEn('한정 수량 (예: 100)', 'Limit qty (e.g. 100)'),
+                hintText: l.wizardLimitHint,
                 hintStyle:
                     const TextStyle(color: AppColors.textMuted, fontSize: 12),
                 filled: true,
@@ -749,7 +730,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          l.koEn('이대로 보낼까요?', 'Ready to send?'),
+          l.wizardStep3Title,
           style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 20,
@@ -802,7 +783,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
               const SizedBox(height: 10),
               Text(
                 _mode == _SendMode.dropNow
-                    ? l.koEn('📣 지금 매장 주변 1통', '📣 One drop near store, now')
+                    ? l.wizardSummaryDrop
                     : '📍 ${l.zoneCampaignToggle} · ${_zoneRadius == 300 ? '300m' : '2km'}',
                 style: const TextStyle(
                     color: AppColors.textSecondary, fontSize: 12),
@@ -870,7 +851,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
         if (_category != LetterCategory.general) ...[
           const SizedBox(height: 14),
           Text(
-            l.koEn('사용 기한', 'Valid for'),
+            l.wizardValidFor,
             style: const TextStyle(
                 color: AppColors.textMuted,
                 fontSize: 12,
@@ -882,9 +863,7 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
             children: [
               for (final d in [0, 3, 7, 30])
                 _chip(
-                  label: d == 0
-                      ? l.koEn('없음', 'None')
-                      : l.koEn('$d일', '$d days'),
+                  label: d == 0 ? l.wizardNone : l.wizardDays(d),
                   selected: _expireDays == d,
                   color: AppColors.teal,
                   onTap: () => setState(() => _expireDays = d),

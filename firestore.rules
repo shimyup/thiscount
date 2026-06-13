@@ -315,8 +315,13 @@ service cloud.firestore {
       return data.keys().hasOnly([
             'brandId', 'brandName', 'content', 'redemptionInfo',
             'redemptionCode', 'center', 'radiusM', 'startsAt', 'expiresAt',
-            'maxRedeems', 'redeemedCount', 'createdAt', 'id'
+            'maxRedeems', 'redeemedCount', 'createdAt', 'id',
+            // Build 462 (보안 보강): 정식 인증 zone 소유자 바인딩(선택). 있으면
+            //   expiresAt 조기종료를 소유자만 허용(isAllowedBrandZoneUpdate).
+            'brandAuthUid'
           ])
+          && (!('brandAuthUid' in data)
+              || (data.brandAuthUid is string && data.brandAuthUid.size() <= 128))
           && data.brandId is string && data.brandId.size() > 0 && data.brandId.size() <= 64
           // Build 393 (PR-HH2 P0): brandId 형식 검증 — 'admin' literal 단 1개
           //   (admin 본인 zone) 또는 UUID 형식 (일반 brand). 임의 string 차단.
@@ -353,16 +358,20 @@ service cloud.firestore {
       // redeemedCount 만 변경 가능. counter increment 흐름.
       // Build 461 (zone 조기 종료): expiresAt '단축만' 단독 변경 허용 —
       //   Brand 가 잘못 건 쿠폰 zone 을 30일간 못 멈추던 치명 결함 해소.
-      //   anon-auth 라 owner-check 불가(Phase 3 전 구조 한계)지만 연장/부활은
-      //   string 비교(ISO8601 UTC 동일 포맷)로 차단 — 공격 표면은 '남의 zone
-      //   조기 종료' 뿐이고 발급 amplification 은 불가.
+      //   연장/부활은 string 비교(ISO8601 UTC 동일 포맷)로 차단.
+      // Build 462 (보안 보강): zone 에 brandAuthUid 가 박혀 있으면(정식 인증으로
+      //   생성된 zone) 조기종료를 소유자(request.auth.uid 일치)만 허용 →
+      //   '타 매장 zone 조기종료(경쟁사 방해)' 표면을 닫는다. brandAuthUid 가
+      //   없는 legacy/anon zone 은 기존 permissive 경로(Phase 3 전 구조 한계).
       return request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(['redeemedCount'])
         || (request.resource.data.diff(resource.data).affectedKeys()
               .hasOnly(['expiresAt'])
             && request.resource.data.expiresAt is string
             && resource.data.expiresAt is string
-            && request.resource.data.expiresAt <= resource.data.expiresAt);
+            && request.resource.data.expiresAt <= resource.data.expiresAt
+            && (!('brandAuthUid' in resource.data)
+                || request.auth.uid == resource.data.brandAuthUid));
     }
 
     // Build 297 (HIGH security audit): redeemedCount 증분 0 또는 +1 만 허용.
