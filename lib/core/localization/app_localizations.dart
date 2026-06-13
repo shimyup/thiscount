@@ -31379,4 +31379,416 @@ class AppL10n {
     'hi': '$d दिन',
     'th': '$d วัน',
   });
+
+  // ── Build 463 (i18n 완결): brand_campaign + brand_insights koEn → 14언어 ──────
+  String get zoneSectionHeader => _t({
+    'ko': '자동발송 매장 위치',
+    'en': 'AUTO-SEND ZONES',
+    'ja': '自動配信エリア',
+    'zh': '自动发放区域',
+    'fr': 'ZONES D\'ENVOI AUTO',
+    'de': 'AUTO-VERSAND-ZONEN',
+    'es': 'ZONAS DE ENVÍO AUTO',
+    'pt': 'ZONAS DE ENVIO AUTO',
+    'ru': 'ЗОНЫ АВТОРАССЫЛКИ',
+    'tr': 'OTOMATİK GÖNDERİM BÖLGELERİ',
+    'ar': 'مناطق الإرسال التلقائي',
+    'it': 'ZONE DI INVIO AUTO',
+    'hi': 'ऑटो-सेंड क्षेत्र',
+    'th': 'โซนส่งอัตโนมัติ',
+  });
+  String get zoneStopConfirmTitle => _t({
+    'ko': '자동발송을 중단할까요?',
+    'en': 'Stop this auto-send zone?',
+    'ja': 'この自動配信を停止しますか？',
+    'zh': '要停止此自动发放区域吗？',
+    'fr': 'Arrêter cette zone d\'envoi auto ?',
+    'de': 'Diese Auto-Versand-Zone stoppen?',
+    'es': '¿Detener esta zona de envío auto?',
+    'pt': 'Parar esta zona de envio auto?',
+    'ru': 'Остановить эту зону авторассылки?',
+    'tr': 'Bu otomatik gönderim bölgesi durdurulsun mu?',
+    'ar': 'إيقاف منطقة الإرسال التلقائي هذه؟',
+    'it': 'Fermare questa zona di invio auto?',
+    'hi': 'इस ऑटो-सेंड क्षेत्र को रोकें?',
+    'th': 'หยุดโซนส่งอัตโนมัตินี้ไหม?',
+  });
+  String get zoneStopConfirmBody => _t({
+    'ko': '이 위치의 신규 자동 발급이 즉시 중단돼요. 이미 발급된 쿠폰은 유지됩니다. 되돌릴 수 없어요.',
+    'en': 'New auto-drops at this location stop immediately. Already-issued coupons remain. This cannot be undone.',
+    'ja': 'この場所での新規自動発行が即座に停止します。発行済みのクーポンは保持されます。元に戻せません。',
+    'zh': '此位置的新自动发放将立即停止。已发放的优惠券将保留。此操作无法撤销。',
+    'fr': 'Les nouveaux envois auto à cet endroit s\'arrêtent immédiatement. Les coupons déjà émis sont conservés. Action irréversible.',
+    'de': 'Neue Auto-Drops an diesem Ort stoppen sofort. Bereits ausgegebene Coupons bleiben erhalten. Dies kann nicht rückgängig gemacht werden.',
+    'es': 'Los nuevos envíos auto en esta ubicación se detienen de inmediato. Los cupones ya emitidos se mantienen. No se puede deshacer.',
+    'pt': 'Os novos envios auto neste local param imediatamente. Os cupons já emitidos permanecem. Não pode ser desfeito.',
+    'ru': 'Новая авторассылка в этом месте остановится немедленно. Уже выданные купоны сохранятся. Это нельзя отменить.',
+    'tr': 'Bu konumdaki yeni otomatik gönderimler hemen durur. Halihazırda verilmiş kuponlar kalır. Bu işlem geri alınamaz.',
+    'ar': 'يتوقف الإرسال التلقائي الجديد في هذا الموقع فوراً. تبقى القسائم الصادرة بالفعل. لا يمكن التراجع عن هذا.',
+    'it': 'I nuovi invii auto in questa posizione si fermano subito. I coupon già emessi restano. Non è reversibile.',
+    'hi': 'इस स्थान पर नए ऑटो-ड्रॉप तुरंत रुक जाएंगे। पहले से जारी कूपन बने रहेंगे। इसे पूर्ववत नहीं किया जा सकता।',
+    'th': 'การส่งอัตโนมัติใหม่ที่ตำแหน่งนี้จะหยุดทันที คูปองที่ออกไปแล้วจะยังคงอยู่ ไม่สามารถยกเลิกได้',
+  });
+  String get zoneStopConfirmCta => _t({
+    'ko': '중단하기',
+    'en': 'Stop',
+    'ja': '停止する',
+    'zh': '停止',
+    'fr': 'Arrêter',
+    'de': 'Stoppen',
+    'es': 'Detener',
+    'pt': 'Parar',
+    'ru': 'Остановить',
+    'tr': 'Durdur',
+    'ar': 'إيقاف',
+    'it': 'Ferma',
+    'hi': 'रोकें',
+    'th': 'หยุด',
+  });
+  String get zoneStoppedToast => _t({
+    'ko': '자동발송을 중단했어요',
+    'en': 'Auto-send zone stopped',
+    'ja': '自動配信を停止しました',
+    'zh': '已停止自动发放区域',
+    'fr': 'Zone d\'envoi auto arrêtée',
+    'de': 'Auto-Versand-Zone gestoppt',
+    'es': 'Zona de envío auto detenida',
+    'pt': 'Zona de envio auto parada',
+    'ru': 'Зона авторассылки остановлена',
+    'tr': 'Otomatik gönderim bölgesi durduruldu',
+    'ar': 'تم إيقاف منطقة الإرسال التلقائي',
+    'it': 'Zona di invio auto fermata',
+    'hi': 'ऑटो-सेंड क्षेत्र रोक दिया गया',
+    'th': 'หยุดโซนส่งอัตโนมัติแล้ว',
+  });
+  String get zoneStopFailedToast => _t({
+    'ko': '중단에 실패했어요 — 잠시 후 다시 시도해 주세요',
+    'en': 'Failed to stop — try again later',
+    'ja': '停止に失敗しました — しばらくしてからもう一度お試しください',
+    'zh': '停止失败 — 请稍后再试',
+    'fr': 'Échec de l\'arrêt — réessayez plus tard',
+    'de': 'Stoppen fehlgeschlagen — später erneut versuchen',
+    'es': 'Error al detener — inténtalo más tarde',
+    'pt': 'Falha ao parar — tente novamente mais tarde',
+    'ru': 'Не удалось остановить — повторите попытку позже',
+    'tr': 'Durdurulamadı — daha sonra tekrar deneyin',
+    'ar': 'فشل الإيقاف — حاول مرة أخرى لاحقاً',
+    'it': 'Impossibile fermare — riprova più tardi',
+    'hi': 'रोकने में विफल — बाद में फिर से प्रयास करें',
+    'th': 'หยุดไม่สำเร็จ — ลองอีกครั้งภายหลัง',
+  });
+  String get zoneStopShort => _t({
+    'ko': '중단',
+    'en': 'Stop',
+    'ja': '停止',
+    'zh': '停止',
+    'fr': 'Arrêter',
+    'de': 'Stopp',
+    'es': 'Detener',
+    'pt': 'Parar',
+    'ru': 'Стоп',
+    'tr': 'Durdur',
+    'ar': 'إيقاف',
+    'it': 'Ferma',
+    'hi': 'रोकें',
+    'th': 'หยุด',
+  });
+  String get zoneEndedLabel => _t({
+    'ko': '종료됨',
+    'en': 'Ended',
+    'ja': '終了',
+    'zh': '已结束',
+    'fr': 'Terminé',
+    'de': 'Beendet',
+    'es': 'Finalizado',
+    'pt': 'Encerrado',
+    'ru': 'Завершено',
+    'tr': 'Sona erdi',
+    'ar': 'منتهي',
+    'it': 'Terminato',
+    'hi': 'समाप्त',
+    'th': 'สิ้นสุดแล้ว',
+  });
+  String get zoneEndsToday => _t({
+    'ko': '오늘 만료',
+    'en': 'Ends today',
+    'ja': '本日期限切れ',
+    'zh': '今天到期',
+    'fr': 'Expire aujourd\'hui',
+    'de': 'Endet heute',
+    'es': 'Termina hoy',
+    'pt': 'Termina hoje',
+    'ru': 'Истекает сегодня',
+    'tr': 'Bugün sona eriyor',
+    'ar': 'ينتهي اليوم',
+    'it': 'Scade oggi',
+    'hi': 'आज समाप्त',
+    'th': 'หมดอายุวันนี้',
+  });
+  String get zoneIssuedLabel => _t({
+    'ko': '발급',
+    'en': 'Issued',
+    'ja': '発行',
+    'zh': '已发放',
+    'fr': 'Émis',
+    'de': 'Ausgegeben',
+    'es': 'Emitidos',
+    'pt': 'Emitidos',
+    'ru': 'Выдано',
+    'tr': 'Verildi',
+    'ar': 'صادر',
+    'it': 'Emessi',
+    'hi': 'जारी',
+    'th': 'ออกแล้ว',
+  });
+  String get stampAutoTitle => _t({
+    'ko': '단골 스탬프 자동 운영 중',
+    'en': 'Loyalty stamps run automatically',
+    'ja': 'スタンプカードを自動運用中',
+    'zh': '会员印章自动运行中',
+    'fr': 'Tampons de fidélité automatiques',
+    'de': 'Treuestempel laufen automatisch',
+    'es': 'Sellos de fidelidad automáticos',
+    'pt': 'Selos de fidelidade automáticos',
+    'ru': 'Бонусные штампы работают автоматически',
+    'tr': 'Sadakat damgaları otomatik çalışıyor',
+    'ar': 'أختام الولاء تعمل تلقائياً',
+    'it': 'Timbri fedeltà automatici',
+    'hi': 'लॉयल्टी स्टाम्प स्वतः चलते हैं',
+    'th': 'แสตมป์สะสมแต้มทำงานอัตโนมัติ',
+  });
+  String get stampAutoBody => _t({
+    'ko': '손님이 내 매장 쿠폰을 5번 사용하면 "단골 보상" 교환권이 자동 발급돼 재방문을 유도해요. 보상 화면에는 매장 이름이 표시됩니다.',
+    'en': 'After 5 redemptions at your store, a "loyalty reward" voucher is auto-issued to bring customers back. Your store name appears on the reward.',
+    'ja': 'お客様が店舗クーポンを5回使用すると、「常連リワード」引換券が自動発行され、再来店を促します。リワード画面には店舗名が表示されます。',
+    'zh': '顾客在您的门店使用5次优惠券后，将自动发放"会员奖励"兑换券以促进回访。奖励页面会显示您的门店名称。',
+    'fr': 'Après 5 utilisations dans votre magasin, un bon "récompense fidélité" est émis automatiquement pour faire revenir les clients. Le nom de votre magasin figure sur la récompense.',
+    'de': 'Nach 5 Einlösungen in Ihrem Geschäft wird automatisch ein „Treue-Belohnung"-Gutschein ausgestellt, um Kunden zurückzuholen. Ihr Geschäftsname erscheint auf der Belohnung.',
+    'es': 'Tras 5 canjes en tu tienda, se emite automáticamente un vale de "recompensa de fidelidad" para que los clientes vuelvan. El nombre de tu tienda aparece en la recompensa.',
+    'pt': 'Após 5 resgates na sua loja, um voucher de "recompensa de fidelidade" é emitido automaticamente para trazer os clientes de volta. O nome da sua loja aparece na recompensa.',
+    'ru': 'После 5 использований в вашем магазине автоматически выдаётся ваучер «бонус за лояльность», чтобы вернуть клиентов. Название вашего магазина отображается на бонусе.',
+    'tr': 'Mağazanızda 5 kullanımdan sonra, müşterileri geri getirmek için otomatik olarak bir "sadakat ödülü" kuponu verilir. Mağaza adınız ödülde görünür.',
+    'ar': 'بعد 5 عمليات استخدام في متجرك، تُصدر قسيمة "مكافأة الولاء" تلقائياً لإعادة العملاء. يظهر اسم متجرك على المكافأة.',
+    'it': 'Dopo 5 utilizzi nel tuo negozio, viene emesso automaticamente un buono "premio fedeltà" per far tornare i clienti. Il nome del tuo negozio appare sul premio.',
+    'hi': 'आपके स्टोर पर 5 बार उपयोग के बाद, ग्राहकों को वापस लाने के लिए "लॉयल्टी रिवॉर्ड" वाउचर स्वतः जारी होता है। रिवॉर्ड पर आपके स्टोर का नाम दिखता है।',
+    'th': 'หลังจากใช้คูปอง 5 ครั้งที่ร้านของคุณ จะออกบัตรกำนัล "รางวัลสมาชิก" อัตโนมัติเพื่อดึงลูกค้ากลับมา ชื่อร้านของคุณจะแสดงบนรางวัล',
+  });
+  String get campaignResend => _t({
+    'ko': '같은 조건으로 다시 보내기',
+    'en': 'Send again with same setup',
+    'ja': '同じ設定で再送信',
+    'zh': '以相同设置再次发送',
+    'fr': 'Renvoyer avec les mêmes réglages',
+    'de': 'Mit gleichen Einstellungen erneut senden',
+    'es': 'Enviar de nuevo con la misma configuración',
+    'pt': 'Enviar novamente com a mesma configuração',
+    'ru': 'Отправить снова с теми же настройками',
+    'tr': 'Aynı ayarlarla tekrar gönder',
+    'ar': 'إعادة الإرسال بنفس الإعدادات',
+    'it': 'Invia di nuovo con la stessa configurazione',
+    'hi': 'समान सेटअप के साथ फिर से भेजें',
+    'th': 'ส่งอีกครั้งด้วยการตั้งค่าเดิม',
+  });
+  String get brandFunnelReveal => _t({
+    'ko': '노출',
+    'en': 'Reveal',
+    'ja': '表示',
+    'zh': '曝光',
+    'fr': 'Affichage',
+    'de': 'Anzeige',
+    'es': 'Vistas',
+    'pt': 'Exibições',
+    'ru': 'Показы',
+    'tr': 'Görüntülenme',
+    'ar': 'الظهور',
+    'it': 'Visualizzazioni',
+    'hi': 'प्रदर्शन',
+    'th': 'การแสดงผล',
+  });
+  String get brandFunnelRedeem => _t({
+    'ko': '사용',
+    'en': 'Redeem',
+    'ja': '利用',
+    'zh': '使用',
+    'fr': 'Utilisation',
+    'de': 'Einlösung',
+    'es': 'Canje',
+    'pt': 'Resgate',
+    'ru': 'Использование',
+    'tr': 'Kullanım',
+    'ar': 'الاستخدام',
+    'it': 'Utilizzo',
+    'hi': 'उपयोग',
+    'th': 'การใช้งาน',
+  });
+  String get insightsCampaignPerf => _t({
+    'ko': '캠페인별 성과',
+    'en': 'Campaign performance',
+    'ja': 'キャンペーン別の成果',
+    'zh': '各活动成效',
+    'fr': 'Performance des campagnes',
+    'de': 'Kampagnen-Performance',
+    'es': 'Rendimiento de campañas',
+    'pt': 'Desempenho das campanhas',
+    'ru': 'Эффективность кампаний',
+    'tr': 'Kampanya performansı',
+    'ar': 'أداء الحملات',
+    'it': 'Performance delle campagne',
+    'hi': 'अभियान प्रदर्शन',
+    'th': 'ผลการดำเนินแคมเปญ',
+  });
+  String get insightsHeadline => _t({
+    'ko': '최근 30일 · 사용 전환율',
+    'en': 'Last 30 days · Redemption',
+    'ja': '直近30日 · 利用転換率',
+    'zh': '最近30天 · 使用转化率',
+    'fr': '30 derniers jours · Utilisation',
+    'de': 'Letzte 30 Tage · Einlösung',
+    'es': 'Últimos 30 días · Canje',
+    'pt': 'Últimos 30 dias · Resgate',
+    'ru': 'Последние 30 дней · Использование',
+    'tr': 'Son 30 gün · Kullanım',
+    'ar': 'آخر 30 يوماً · الاستخدام',
+    'it': 'Ultimi 30 giorni · Utilizzo',
+    'hi': 'पिछले 30 दिन · उपयोग',
+    'th': '30 วันล่าสุด · การใช้งาน',
+  });
+  String get insightsCollecting => _t({
+    'ko': '🆕 데이터 수집 중',
+    'en': '🆕 Collecting data',
+    'ja': '🆕 データ収集中',
+    'zh': '🆕 正在收集数据',
+    'fr': '🆕 Collecte des données',
+    'de': '🆕 Daten werden gesammelt',
+    'es': '🆕 Recopilando datos',
+    'pt': '🆕 Coletando dados',
+    'ru': '🆕 Сбор данных',
+    'tr': '🆕 Veri toplanıyor',
+    'ar': '🆕 جمع البيانات',
+    'it': '🆕 Raccolta dati',
+    'hi': '🆕 डेटा एकत्र हो रहा है',
+    'th': '🆕 กำลังเก็บข้อมูล',
+  });
+  String get insightsEmptyTitle => _t({
+    'ko': '최근 30일 캠페인 데이터 없음',
+    'en': 'No campaign data in the last 30 days',
+    'ja': '直近30日のキャンペーンデータがありません',
+    'zh': '最近30天无活动数据',
+    'fr': 'Aucune donnée de campagne sur les 30 derniers jours',
+    'de': 'Keine Kampagnendaten in den letzten 30 Tagen',
+    'es': 'Sin datos de campañas en los últimos 30 días',
+    'pt': 'Sem dados de campanha nos últimos 30 dias',
+    'ru': 'Нет данных по кампаниям за последние 30 дней',
+    'tr': 'Son 30 günde kampanya verisi yok',
+    'ar': 'لا توجد بيانات حملات في آخر 30 يوماً',
+    'it': 'Nessun dato di campagna negli ultimi 30 giorni',
+    'hi': 'पिछले 30 दिनों में कोई अभियान डेटा नहीं',
+    'th': 'ไม่มีข้อมูลแคมเปญใน 30 วันล่าสุด',
+  });
+  String get insightsEmptySub => _t({
+    'ko': '캠페인 화면에서 첫 캠페인을 등록해 보세요',
+    'en': 'Launch your first campaign from the Campaign screen',
+    'ja': 'キャンペーン画面で最初のキャンペーンを登録してみましょう',
+    'zh': '请在活动页面创建您的第一个活动',
+    'fr': 'Lancez votre première campagne depuis l\'écran Campagne',
+    'de': 'Starten Sie Ihre erste Kampagne über den Kampagnen-Bildschirm',
+    'es': 'Lanza tu primera campaña desde la pantalla de Campañas',
+    'pt': 'Lance sua primeira campanha na tela de Campanhas',
+    'ru': 'Запустите первую кампанию на экране кампаний',
+    'tr': 'İlk kampanyanızı Kampanya ekranından başlatın',
+    'ar': 'أطلق حملتك الأولى من شاشة الحملات',
+    'it': 'Avvia la tua prima campagna dalla schermata Campagne',
+    'hi': 'अभियान स्क्रीन से अपना पहला अभियान शुरू करें',
+    'th': 'เริ่มแคมเปญแรกของคุณจากหน้าจอแคมเปญ',
+  });
+  String get insightsHelpTitle => _t({
+    'ko': '📚 지표 읽는 법',
+    'en': '📚 How to read these metrics',
+    'ja': '📚 指標の読み方',
+    'zh': '📚 如何解读这些指标',
+    'fr': '📚 Comment lire ces indicateurs',
+    'de': '📚 So lesen Sie diese Kennzahlen',
+    'es': '📚 Cómo leer estas métricas',
+    'pt': '📚 Como ler estas métricas',
+    'ru': '📚 Как читать эти показатели',
+    'tr': '📚 Bu metrikler nasıl okunur',
+    'ar': '📚 كيفية قراءة هذه المقاييس',
+    'it': '📚 Come leggere queste metriche',
+    'hi': '📚 इन मेट्रिक्स को कैसे पढ़ें',
+    'th': '📚 วิธีอ่านตัวชี้วัดเหล่านี้',
+  });
+  String get insightsHelpBody => _t({
+    'ko': '• 사용 전환률 ≥ 20%: 잘 되는 캠페인 — 동일 패턴 재집행\n'
+        '• 5~20%: 보통 — 가벼운 본문 / 가격 조정\n'
+        '• < 5%: 개선 필요 — 본문 / 반경 / 가격 재검토\n'
+        '• 픽업 0: 반경 좁히거나 본문 매력 ↑',
+    'en': '• Redemption ≥ 20%: strong — repeat the same pattern\n'
+        '• 5–20%: average — tweak copy / price\n'
+        '• < 5%: needs work — revisit copy / radius / price\n'
+        '• Pickup 0: narrow the radius or boost the copy',
+    'ja': '• 利用転換率 ≥ 20%: 好調なキャンペーン — 同じパターンを再実施\n'
+        '• 5～20%: 普通 — 本文 / 価格を軽く調整\n'
+        '• < 5%: 改善が必要 — 本文 / 範囲 / 価格を見直し\n'
+        '• ピックアップ 0: 範囲を狭めるか本文の魅力 ↑',
+    'zh': '• 使用转化率 ≥ 20%：表现优异 — 重复相同模式\n'
+        '• 5–20%：一般 — 微调文案 / 价格\n'
+        '• < 5%：需改进 — 重新审视文案 / 半径 / 价格\n'
+        '• 领取 0：缩小半径或提升文案吸引力 ↑',
+    'fr': '• Utilisation ≥ 20% : performante — répétez le même modèle\n'
+        '• 5–20% : moyenne — ajustez le texte / le prix\n'
+        '• < 5% : à améliorer — revoyez texte / rayon / prix\n'
+        '• Récupération 0 : réduisez le rayon ou renforcez le texte ↑',
+    'de': '• Einlösung ≥ 20%: stark — gleiches Muster wiederholen\n'
+        '• 5–20%: durchschnittlich — Text / Preis anpassen\n'
+        '• < 5%: verbesserungswürdig — Text / Radius / Preis prüfen\n'
+        '• Abholung 0: Radius verkleinern oder Text aufwerten ↑',
+    'es': '• Canje ≥ 20%: sólido — repite el mismo patrón\n'
+        '• 5–20%: medio — ajusta el texto / precio\n'
+        '• < 5%: a mejorar — revisa texto / radio / precio\n'
+        '• Recogidas 0: reduce el radio o mejora el texto ↑',
+    'pt': '• Resgate ≥ 20%: forte — repita o mesmo padrão\n'
+        '• 5–20%: médio — ajuste o texto / preço\n'
+        '• < 5%: precisa melhorar — revise texto / raio / preço\n'
+        '• Coletas 0: reduza o raio ou reforce o texto ↑',
+    'ru': '• Использование ≥ 20%: отлично — повторите ту же схему\n'
+        '• 5–20%: средне — измените текст / цену\n'
+        '• < 5%: нужна доработка — пересмотрите текст / радиус / цену\n'
+        '• Получений 0: сузьте радиус или усильте текст ↑',
+    'tr': '• Kullanım ≥ 20%: güçlü — aynı kalıbı tekrarlayın\n'
+        '• 5–20%: ortalama — metin / fiyat ayarlayın\n'
+        '• < 5%: iyileştirme gerek — metin / yarıçap / fiyatı gözden geçirin\n'
+        '• Alım 0: yarıçapı daraltın veya metni güçlendirin ↑',
+    'ar': '• الاستخدام ≥ 20%: قوي — كرر النمط نفسه\n'
+        '• 5–20%: متوسط — عدّل النص / السعر\n'
+        '• < 5%: يحتاج تحسيناً — راجع النص / النطاق / السعر\n'
+        '• الاستلام 0: قلّص النطاق أو عزّز جاذبية النص ↑',
+    'it': '• Utilizzo ≥ 20%: forte — ripeti lo stesso schema\n'
+        '• 5–20%: medio — modifica testo / prezzo\n'
+        '• < 5%: da migliorare — rivedi testo / raggio / prezzo\n'
+        '• Ritiri 0: restringi il raggio o potenzia il testo ↑',
+    'hi': '• उपयोग ≥ 20%: मजबूत — वही पैटर्न दोहराएं\n'
+        '• 5–20%: औसत — टेक्स्ट / कीमत समायोजित करें\n'
+        '• < 5%: सुधार आवश्यक — टेक्स्ट / दायरा / कीमत पुनः जांचें\n'
+        '• पिकअप 0: दायरा घटाएं या टेक्स्ट की अपील बढ़ाएं ↑',
+    'th': '• การใช้งาน ≥ 20%: ดีเยี่ยม — ทำซ้ำรูปแบบเดิม\n'
+        '• 5–20%: ปานกลาง — ปรับข้อความ / ราคา\n'
+        '• < 5%: ต้องปรับปรุง — ทบทวนข้อความ / รัศมี / ราคา\n'
+        '• การเก็บ 0: ลดรัศมีหรือเพิ่มความน่าสนใจของข้อความ ↑',
+  });
+  String insightsFollowers(int followers) => _t({
+    'ko': '팔로워 $followers명 — 내 쿠폰이 인박스 상단에 고정돼요',
+    'en': '$followers followers — your coupons pin to their inbox',
+    'ja': 'フォロワー $followers人 — クーポンが受信トレイの上部に固定されます',
+    'zh': '$followers 位粉丝 — 您的优惠券将置顶于其收件箱',
+    'fr': '$followers abonnés — vos coupons s\'épinglent en haut de leur boîte',
+    'de': '$followers Follower — Ihre Coupons werden oben im Posteingang angeheftet',
+    'es': '$followers seguidores — tus cupones se fijan en su bandeja',
+    'pt': '$followers seguidores — seus cupons fixam no topo da caixa de entrada',
+    'ru': '$followers подписчиков — ваши купоны закрепляются вверху их входящих',
+    'tr': '$followers takipçi — kuponlarınız gelen kutularının üstüne sabitlenir',
+    'ar': '$followers متابع — تُثبَّت قسائمك أعلى صندوق الوارد لديهم',
+    'it': '$followers follower — i tuoi coupon si fissano in cima alla loro casella',
+    'hi': '$followers फॉलोअर — आपके कूपन उनके इनबॉक्स में सबसे ऊपर पिन होते हैं',
+    'th': 'ผู้ติดตาม $followers คน — คูปองของคุณจะปักหมุดบนสุดของกล่องข้อความ',
+  });
 }

@@ -248,7 +248,7 @@ class _BrandCampaignScreenState extends State<BrandCampaignScreen>
         //   이전엔 zone 을 만들면 목록도 중단 수단도 없어 잘못 건 쿠폰이 30일간
         //   살아있었음.
         if (_myZones != null && _myZones!.isNotEmpty) ...[
-          _SectionHeader(title: l.koEn('자동발송 매장 위치', 'AUTO-SEND ZONES')),
+          _SectionHeader(title: l.zoneSectionHeader),
           const SizedBox(height: 8),
           ..._myZones!.map(
             (z) => Padding(
@@ -316,7 +316,7 @@ class _BrandCampaignScreenState extends State<BrandCampaignScreen>
         backgroundColor: AppColors.bgCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          l.koEn('자동발송을 중단할까요?', 'Stop this auto-send zone?'),
+          l.zoneStopConfirmTitle,
           style: const TextStyle(
             color: AppColors.textPrimary,
             fontSize: 16,
@@ -324,10 +324,7 @@ class _BrandCampaignScreenState extends State<BrandCampaignScreen>
           ),
         ),
         content: Text(
-          l.koEn(
-            '이 위치의 신규 자동 발급이 즉시 중단돼요. 이미 발급된 쿠폰은 유지됩니다. 되돌릴 수 없어요.',
-            'New auto-drops at this location stop immediately. Already-issued coupons remain. This cannot be undone.',
-          ),
+          l.zoneStopConfirmBody,
           style: const TextStyle(
             color: AppColors.textSecondary,
             fontSize: 13,
@@ -345,7 +342,7 @@ class _BrandCampaignScreenState extends State<BrandCampaignScreen>
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(
-              l.koEn('중단하기', 'Stop'),
+              l.zoneStopConfirmCta,
               style: const TextStyle(
                 color: AppColors.error,
                 fontWeight: FontWeight.w700,
@@ -366,9 +363,8 @@ class _BrandCampaignScreenState extends State<BrandCampaignScreen>
       SnackBar(
         content: Text(
           success
-              ? l.koEn('자동발송을 중단했어요', 'Auto-send zone stopped')
-              : l.koEn('중단에 실패했어요 — 잠시 후 다시 시도해 주세요',
-                  'Failed to stop — try again later'),
+              ? l.zoneStoppedToast
+              : l.zoneStopFailedToast,
           style: TextStyle(
             color: success ? AppColors.tealInk : Colors.white,
           ),
@@ -627,7 +623,7 @@ class _StampProgramNoticeState extends State<_StampProgramNotice> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  l.koEn('단골 스탬프 자동 운영 중', 'Loyalty stamps run automatically'),
+                  l.stampAutoTitle,
                   style: const TextStyle(
                     color: AppColors.gold,
                     fontSize: 12.5,
@@ -636,10 +632,7 @@ class _StampProgramNoticeState extends State<_StampProgramNotice> {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  l.koEn(
-                    '손님이 내 매장 쿠폰을 5번 사용하면 "단골 보상" 교환권이 자동 발급돼 재방문을 유도해요. 보상 화면에는 매장 이름이 표시됩니다.',
-                    'After 5 redemptions at your store, a "loyalty reward" voucher is auto-issued to bring customers back. Your store name appears on the reward.',
-                  ),
+                  l.stampAutoBody,
                   style: const TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 11,
@@ -1129,10 +1122,10 @@ class _ZoneRow extends StatelessWidget {
         : '${zone.redeemedCount}';
     final remain = zone.expiresAt.difference(DateTime.now());
     final expiryLabel = !active
-        ? l.koEn('종료됨', 'Ended')
+        ? l.zoneEndedLabel
         : remain.inDays >= 1
-            ? l.koEn('D-${remain.inDays}', 'D-${remain.inDays}')
-            : l.koEn('오늘 만료', 'Ends today');
+            ? 'D-${remain.inDays}'
+            : l.zoneEndsToday;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
@@ -1178,7 +1171,7 @@ class _ZoneRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  '$radiusLabel · ${l.koEn('발급', 'Issued')} $issued · $expiryLabel',
+                  '$radiusLabel · ${l.zoneIssuedLabel} $issued · $expiryLabel',
                   style: const TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 11.5,
@@ -1198,7 +1191,7 @@ class _ZoneRow extends StatelessWidget {
                 minimumSize: const Size(44, 32),
               ),
               child: Text(
-                l.koEn('중단', 'Stop'),
+                l.zoneStopShort,
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
@@ -1470,9 +1463,9 @@ class _CampaignDetailSheet extends StatelessWidget {
             spacing: 10,
             runSpacing: 8,
             children: [
-              _miniStat('📮', '$sentCount', l.koEn('발송', 'Sent')),
-              _miniStat('🛍', '$pickedUp', l.koEn('픽업', 'Pickup')),
-              _miniStat('✅', '$redeemed', l.koEn('사용', 'Used')),
+              _miniStat('📮', '$sentCount', l.brandAnalyticsSent),
+              _miniStat('🛍', '$pickedUp', l.brandAnalyticsPicked),
+              _miniStat('✅', '$redeemed', l.brandAnalyticsRedeemed),
               if (letter.redemptionExpiresAt != null)
                 _miniStat(
                   '⏳',
@@ -1502,7 +1495,7 @@ class _CampaignDetailSheet extends StatelessWidget {
               },
               icon: const Icon(Icons.replay_rounded, size: 18),
               label: Text(
-                l.koEn('같은 조건으로 다시 보내기', 'Send again with same setup'),
+                l.campaignResend,
                 style: const TextStyle(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w800,
@@ -1583,7 +1576,7 @@ class _CampaignDetailSheet extends StatelessWidget {
 
   String _expiryLabel(DateTime exp) {
     final d = exp.difference(DateTime.now());
-    if (d.isNegative) return l.koEn('만료됨', 'Expired');
+    if (d.isNegative) return l.brandTicketExpired;
     if (d.inDays >= 1) return l.expiresDaysShort(d.inDays);
     if (d.inHours >= 1) return l.expiresHoursShort(d.inHours);
     return l.expiresMinutesShort(d.inMinutes);

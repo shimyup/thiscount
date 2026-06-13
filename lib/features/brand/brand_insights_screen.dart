@@ -97,7 +97,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
               const Text('📊', style: TextStyle(fontSize: 14)),
               const SizedBox(width: 6),
               Text(
-                l.koEn('캠페인별 성과', 'Campaign performance'),
+                l.insightsCampaignPerf,
                 style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 13,
@@ -147,10 +147,10 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
     final pReveal = i.totalRevealed.clamp(0, pPickup);
     final pRedeem = i.totalRedeemed.clamp(0, pReveal);
     final stages = <_FunnelStage>[
-      _FunnelStage('\u{1F4EE}', l.koEn('발송', 'Sent'), pSent, AppColors.textMuted),
-      _FunnelStage('\u{1F3AF}', l.koEn('픽업', 'Pickup'), pPickup, AppColors.teal),
-      _FunnelStage('\u{1F6D2}', l.koEn('노출', 'Reveal'), pReveal, AppColors.coupon),
-      _FunnelStage('\u2705', l.koEn('사용', 'Redeem'), pRedeem, AppColors.gold),
+      _FunnelStage('\u{1F4EE}', l.brandAnalyticsSent, pSent, AppColors.textMuted),
+      _FunnelStage('\u{1F3AF}', l.brandAnalyticsPicked, pPickup, AppColors.teal),
+      _FunnelStage('\u{1F6D2}', l.brandFunnelReveal, pReveal, AppColors.coupon),
+      _FunnelStage('\u2705', l.brandFunnelRedeem, pRedeem, AppColors.gold),
     ];
     final maxCount = i.totalSent <= 0 ? 1 : i.totalSent;
     return Container(
@@ -172,7 +172,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
         children: [
           // ── ROI 전환율 헤드라인 ──
           Text(
-            l.koEn('최근 30일 · 사용 전환율', 'Last 30 days · Redemption'),
+            l.insightsHeadline,
             style: const TextStyle(
               color: AppColors.textMuted,
               fontSize: 11,
@@ -199,7 +199,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
                   padding: const EdgeInsets.only(bottom: 3),
                   child: Text(
                     noData
-                        ? l.koEn('\u{1F195} 데이터 수집 중', '\u{1F195} Collecting data')
+                        ? l.insightsCollecting
                         : '${i.healthEmoji} ${i.healthLabelL10n(l)}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -224,8 +224,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
                   const Text('👥', style: TextStyle(fontSize: 13)),
                   const SizedBox(width: 6),
                   Text(
-                    l.koEn('팔로워 $followers명 — 내 쿠폰이 인박스 상단에 고정돼요',
-                        '$followers followers — your coupons pin to their inbox'),
+                    l.insightsFollowers(followers),
                     style: const TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 11.5,
@@ -652,8 +651,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
           const Text('📭', style: TextStyle(fontSize: 32)),
           const SizedBox(height: 8),
           Text(
-            l.koEn('최근 30일 캠페인 데이터 없음',
-                'No campaign data in the last 30 days'),
+            l.insightsEmptyTitle,
             style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 13,
@@ -662,8 +660,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            l.koEn('캠페인 화면에서 첫 캠페인을 등록해 보세요',
-                'Launch your first campaign from the Campaign screen'),
+            l.insightsEmptySub,
             style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
           ),
         ],
@@ -685,7 +682,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
             children: [
               Expanded(
                 child: Text(
-                  l.koEn('📚 지표 읽는 법', '📚 How to read these metrics'),
+                  l.insightsHelpTitle,
                   style: const TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 11,
@@ -702,16 +699,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            l.koEn(
-              '• 사용 전환률 ≥ 20%: 잘 되는 캠페인 — 동일 패턴 재집행\n'
-                  '• 5~20%: 보통 — 가벼운 본문 / 가격 조정\n'
-                  '• < 5%: 개선 필요 — 본문 / 반경 / 가격 재검토\n'
-                  '• 픽업 0: 반경 좁히거나 본문 매력 ↑',
-              '• Redemption ≥ 20%: strong — repeat the same pattern\n'
-                  '• 5–20%: average — tweak copy / price\n'
-                  '• < 5%: needs work — revisit copy / radius / price\n'
-                  '• 0 pickups: narrow the radius or sharpen the copy',
-            ),
+            l.insightsHelpBody,
             style: const TextStyle(
               color: AppColors.textMuted,
               fontSize: 11,
