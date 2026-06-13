@@ -457,6 +457,12 @@ class Letter {
   /// null = 사용 진행 미탭 / not null = 코드 reveal 됨.
   DateTime? codeRevealedAt;
 
+  /// Build 461 (페르소나 — 보상·선물 redeem 퍼널 증발): 로컬 전용 사본 letter
+  /// (`stamp_reward_*` / `gift_*`) 가 어느 서버 원본 letter 에서 파생됐는지.
+  /// markLetterRedeemed 가 이 id 의 서버 카운터로 redeem 을 귀속시켜 단골/선물
+  /// 루프의 최종 전환이 Brand 인사이트에 잡히게 한다. 일반 letter 는 null.
+  final String? sourceLetterId;
+
   Letter({
     required this.id,
     required this.senderId,
@@ -509,6 +515,7 @@ class Letter {
     this.campaignId,
     this.redemptionCode,
     this.codeRevealedAt,
+    this.sourceLetterId,
   }) : reportedBy = reportedBy ?? {};
 
   /// 인박스용 독립 복사본 (worldLetters에서 제거 전 inbox에 추가할 때 사용)
@@ -567,6 +574,7 @@ class Letter {
     campaignId: campaignId,
     redemptionCode: redemptionCode,
     codeRevealedAt: null,
+    sourceLetterId: sourceLetterId,
     readCount: readCount,
     maxReaders: maxReaders,
   );
@@ -800,6 +808,7 @@ class Letter {
     if (redemptionCode != null) 'redemptionCode': redemptionCode,
     if (codeRevealedAt != null)
       'codeRevealedAt': codeRevealedAt!.millisecondsSinceEpoch,
+    if (sourceLetterId != null) 'sourceLetterId': sourceLetterId,
     'readCount': readCount,
     'maxReaders': maxReaders,
   };
@@ -915,6 +924,7 @@ class Letter {
     //   _sanitizeRedemptionCode 가 형식 검사 → 불일치 시 null fallback.
     redemptionCode: _sanitizeRedemptionCode(j['redemptionCode']),
     codeRevealedAt: _parseDateTime(j['codeRevealedAt']),
+    sourceLetterId: j['sourceLetterId'] as String?,
     expiresAt: _parseDateTime(j['expiresAt']),
     readCount: j['readCount'] as int? ?? 0,
     maxReaders: j['maxReaders'] as int? ?? Letter.maxReadersDefault,

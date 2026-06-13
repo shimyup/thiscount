@@ -137,6 +137,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
   }
 
   // Build 448: ROI 전환율 헤드라인 + 4단계 퍼널을 한 카드로 통합.
+  // Build 461: 팔로워 수 KPI 추가 (followerCount — toggleBrandFollow 서버 집계).
   Widget _buildSummaryCard(BrandInsights i, AppL10n l) {
     final pct = (i.redeemRate * 100).toStringAsFixed(1);
     final noData = i.totalSent == 0 || i.totalPickup == 0;
@@ -212,6 +213,29 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
               ),
             ],
           ),
+          // ── 팔로워 KPI (Build 461) — 단골 채널이 처음으로 측정 가능해짐 ──
+          Builder(builder: (context) {
+            final followers = context.watch<AppState>().brandFollowerCount;
+            if (followers < 0) return const SizedBox.shrink();
+            return Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                children: [
+                  const Text('👥', style: TextStyle(fontSize: 13)),
+                  const SizedBox(width: 6),
+                  Text(
+                    l.koEn('팔로워 $followers명 — 내 쿠폰이 인박스 상단에 고정돼요',
+                        '$followers followers — your coupons pin to their inbox'),
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
           const SizedBox(height: 12),
           Divider(height: 1, color: AppColors.gold.withValues(alpha: 0.18)),
           const SizedBox(height: 12),

@@ -132,7 +132,7 @@ class BrandZone {
         redemptionCode: j['redemptionCode'] as String?,
       );
 
-  BrandZone copyWith({int? redeemedCount}) => BrandZone(
+  BrandZone copyWith({int? redeemedCount, DateTime? expiresAt}) => BrandZone(
         id: id,
         brandId: brandId,
         brandName: brandName,
@@ -141,7 +141,8 @@ class BrandZone {
         content: content,
         redemptionInfo: redemptionInfo,
         startsAt: startsAt,
-        expiresAt: expiresAt,
+        // Build 461: 조기 종료(deactivateZone) 시 expiresAt 단축 반영.
+        expiresAt: expiresAt ?? this.expiresAt,
         maxRedeems: maxRedeems,
         redeemedCount: redeemedCount ?? this.redeemedCount,
         createdAt: createdAt,

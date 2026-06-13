@@ -40,7 +40,31 @@ class ComposeScreen extends StatefulWidget {
   final String? replyToId;
   final String? replyToName;
 
-  const ComposeScreen({super.key, this.replyToId, this.replyToName});
+  // Build 461 (페르소나 높음 — 재발송 버튼 부재): 캠페인 상세 '같은 조건으로
+  //   다시 보내기' 프리필 진입. 본문/혜택/카테고리/업종/코드를 그대로 복원 —
+  //   코칭팁의 '재집행 권장' 과 액션을 연결. 코드는 원본 재사용(POS 추가 등록 0).
+  final String? initialContent;
+  final String? initialRedemptionInfo;
+
+  /// LetterCategory key — 'general' / 'coupon' / 'voucher'.
+  final String? initialBrandCategoryKey;
+
+  /// 업종 태그 — food/cafe/beauty/fashion/event/other.
+  final String? initialBizCategory;
+
+  /// 원본 캠페인의 매장 코드. non-null 이면 코드 발급 토글 ON + 같은 코드 재사용.
+  final String? initialRedemptionCode;
+
+  const ComposeScreen({
+    super.key,
+    this.replyToId,
+    this.replyToName,
+    this.initialContent,
+    this.initialRedemptionInfo,
+    this.initialBrandCategoryKey,
+    this.initialBizCategory,
+    this.initialRedemptionCode,
+  });
 
   @override
   State<ComposeScreen> createState() => _ComposeScreenState();
@@ -651,7 +675,33 @@ class _ComposeScreenState extends State<ComposeScreen>
           });
         }
       }
-      _loadDraftIfExists();
+      // Build 461: 재발송 프리필 — 본문/혜택/카테고리/업종/코드 복원. 프리필
+      //   진입 시엔 draft 이어쓰기 다이얼로그를 띄우지 않음(의도가 명확).
+      if (widget.initialContent != null && widget.initialContent!.isNotEmpty) {
+        setState(() {
+          _contentController.text = widget.initialContent!;
+          _charCount = widget.initialContent!.trim().length;
+          if (widget.initialBrandCategoryKey != null) {
+            _brandCategory =
+                LetterCategoryExt.fromKey(widget.initialBrandCategoryKey);
+          }
+          if (widget.initialBizCategory != null &&
+              _bizCategoryKeys.contains(widget.initialBizCategory)) {
+            _brandBizCategory = widget.initialBizCategory;
+          }
+          final ri = widget.initialRedemptionInfo;
+          if (ri != null && ri.isNotEmpty) {
+            _redemptionInfoController.text = ri;
+          }
+          final code = widget.initialRedemptionCode;
+          if (code != null && code.isNotEmpty) {
+            _attachRedemptionCode = true;
+            _previewRedemptionCode = code;
+          }
+        });
+      } else {
+        _loadDraftIfExists();
+      }
       // Build 189: 3초마다 자동 저장. text 가 비었어도 brand/mode 상태가 바뀌어
       // 있으면 저장 (이전엔 text 비면 저장 안 해서 bulk/express 상태가 휘발).
       _autoSaveTimer = Timer.periodic(const Duration(seconds: 3), (_) {

@@ -124,6 +124,19 @@ void main() {
       expect(cloned.campaignId, 'cmp_xyz');
       expect(cloned.brandUniquePerUser, isTrue);
     });
+
+    test('Build 461: sourceLetterId 라운드트립 + legacy null + clone 보존', () {
+      // 일반 letter 는 키 자체가 없음 (legacy 호환).
+      final json = _brandLetter().toJson();
+      expect(json.containsKey('sourceLetterId'), isFalse);
+      expect(Letter.fromJson(json).sourceLetterId, isNull);
+      // gift_/stamp_reward_ 사본이 갖는 원본 귀속 id 보존.
+      json['sourceLetterId'] = 'sent_origin_1';
+      final restored = Letter.fromJson(json);
+      expect(restored.sourceLetterId, 'sent_origin_1');
+      expect(restored.toJson()['sourceLetterId'], 'sent_origin_1');
+      expect(restored.clone().sourceLetterId, 'sent_origin_1');
+    });
   });
 
   group('LetterCategory enum', () {

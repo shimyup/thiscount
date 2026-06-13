@@ -64,6 +64,18 @@ void main() {
       final z = _zone(maxRedeems: 100, redeemedCount: 50);
       expect(z.isActive(now), isTrue);
     });
+
+    test('Build 461: copyWith(expiresAt) 단축 → 조기 종료 + 다른 필드 보존', () {
+      final z = _zone(); // 기본 만료 = now + 7일 (활성)
+      expect(z.isActive(now), isTrue);
+      final stopped =
+          z.copyWith(expiresAt: now.subtract(const Duration(seconds: 1)));
+      expect(stopped.isActive(now), isFalse);
+      // 다른 필드는 그대로 (redemptionInfo/redeemedCount 회귀 가드).
+      expect(stopped.redemptionInfo, 'STARBUCKS20');
+      expect(stopped.redeemedCount, z.redeemedCount);
+      expect(stopped.id, z.id);
+    });
   });
 
   group('BrandZone.containsPosition (haversine)', () {

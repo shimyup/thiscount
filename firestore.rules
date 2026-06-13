@@ -157,6 +157,9 @@ service cloud.firestore {
             //   read 규칙 불변, 프로덕션(flag OFF, authUid 미기록) 영향 없음.
             //   Phase 3 cutover 에서 authUid 는 owner-check 기준이 됨.
             'authUid',
+            // Build 461 (팔로워 집계): 타 사용자의 follow/unfollow 가 브랜드
+            //   user doc 의 followerCount 를 ±1 — 폭은 아래 delta 가드가 제한.
+            'followerCount',
             // Build 300: welcomeTrialClaimedAt 는 client update 차단.
             // 서버측 source of truth = trial_claims/{sha256(email)}.
             // (client 가 user doc 의 timestamp 를 지워 farming 시도 회로 차단.)
@@ -192,7 +195,14 @@ service cloud.firestore {
                    ? request.resource.data.brandExtraMonthlyQuota : 0);
       // 모든 credit 카운터는 client 측에서 감소만 허용 (consume).
       // 증가는 admin REST.
-      return newEx <= curEx && newIn <= curIn && newBQ <= curBQ;
+      // Build 461: followerCount 는 ±1 만 (follow/unfollow 자연 증감 —
+      //   review-bombing 식 +999 차단). 음수 하한도 차단.
+      let curF = ('followerCount' in resource.data
+                  ? resource.data.followerCount : 0);
+      let newF = ('followerCount' in request.resource.data
+                  ? request.resource.data.followerCount : 0);
+      return newEx <= curEx && newIn <= curIn && newBQ <= curBQ
+          && newF >= curF - 1 && newF <= curF + 1 && newF >= 0;
     }
 
     match /users/{userId} {
@@ -341,8 +351,18 @@ service cloud.firestore {
 
     function isAllowedBrandZoneUpdate() {
       // redeemedCount 만 변경 가능. counter increment 흐름.
+      // Build 461 (zone 조기 종료): expiresAt '단축만' 단독 변경 허용 —
+      //   Brand 가 잘못 건 쿠폰 zone 을 30일간 못 멈추던 치명 결함 해소.
+      //   anon-auth 라 owner-check 불가(Phase 3 전 구조 한계)지만 연장/부활은
+      //   string 비교(ISO8601 UTC 동일 포맷)로 차단 — 공격 표면은 '남의 zone
+      //   조기 종료' 뿐이고 발급 amplification 은 불가.
       return request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['redeemedCount']);
+          .hasOnly(['redeemedCount'])
+        || (request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['expiresAt'])
+            && request.resource.data.expiresAt is string
+            && resource.data.expiresAt is string
+            && request.resource.data.expiresAt <= resource.data.expiresAt);
     }
 
     // Build 297 (HIGH security audit): redeemedCount 증분 0 또는 +1 만 허용.

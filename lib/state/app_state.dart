@@ -2007,23 +2007,37 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // Build 138: 브랜드 편지 사용 완료 집계 — 브랜드 대시보드 conversion
     // 계산 원천. 로컬 `_redeemedLetterIds` 와 별도로 서버에도 기록.
     // Build 322: redeemedAt timestamp 도 PATCH — 일자별 conversion rate 분석.
+    // Build 461 (페르소나 높음 — 보상·선물 redeem 퍼널 증발): stamp_reward_*/
+    //   gift_* 는 서버에 없는 로컬 사본이라 자기 id 로의 PATCH 가 전부 dead-write
+    //   였음 → sourceLetterId(원본 캠페인 letter)로 redeemedCount 를 귀속시켜
+    //   단골 루프·선물 바이럴의 최종 전환이 brandInsights 에 처음으로 집계되게.
+    //   redeemedAt 은 write-once 룰 + 원본 픽업자의 본인 redeem 기록이므로
+    //   사본 redeem 에선 건드리지 않는다(counter 만 +1).
     if (FirebaseConfig.kFirebaseEnabled && isRedeemable) {
-      unawaited(
-        FirestoreService.incrementField(
-          path: 'letters/$letterId',
-          field: 'redeemedCount',
-        ),
-      );
-      unawaited(
-        FirestoreService.patchFields(
-          path: 'letters/$letterId',
-          fields: {
-            'redeemedAt': {
-              'timestampValue': now.toUtc().toIso8601String(),
+      final isLocalCopy = letterId.startsWith(_stampRewardIdPrefix) ||
+          letterId.startsWith('gift_');
+      final serverTargetId =
+          isLocalCopy ? (matched?.sourceLetterId ?? '') : letterId;
+      if (serverTargetId.isNotEmpty) {
+        unawaited(
+          FirestoreService.incrementField(
+            path: 'letters/$serverTargetId',
+            field: 'redeemedCount',
+          ),
+        );
+      }
+      if (!isLocalCopy) {
+        unawaited(
+          FirestoreService.patchFields(
+            path: 'letters/$letterId',
+            fields: {
+              'redeemedAt': {
+                'timestampValue': now.toUtc().toIso8601String(),
+              },
             },
-          },
-        ),
-      );
+          ),
+        );
+      }
     }
     // Build 453 (단골 스탬프): 브랜드 쿠폰/교환권 사용 = 그 매장 스탬프 +1.
     //   완성 시 보상 쿠폰 자동 발급 — "헌팅(신규)×스탬프(재방문)" 풀퍼널의
@@ -2149,6 +2163,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       expiresAt: now.add(const Duration(days: 30)),
       redemptionExpiresAt: now.add(const Duration(days: 30)),
       redemptionCode: rewardCode,
+      // Build 461: 보상 redeem 을 원본 캠페인 letter 에 귀속(퍼널 집계).
+      //   sourceLetter 가 gift 사본이면 그 원본으로 한 단계 해소.
+      sourceLetterId: sourceLetter.sourceLetterId ?? sourceLetter.id,
     );
     _inbox.add(reward);
     _hasNearbyAlert = true;
@@ -2282,6 +2299,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // id 는 final — toJson→fromJson 라운드트립으로 새 id 의 사본 생성.
     final giftJson = letter.toJson();
     giftJson['id'] = 'gift_${id}_${now.millisecondsSinceEpoch}';
+    // Build 461: 선물 사본의 redeem 을 원본 캠페인 letter 에 귀속(퍼널 집계).
+    giftJson['sourceLetterId'] = id;
     final gift = Letter.fromJson(giftJson)
       ..status = DeliveryStatus.nearYou
       ..arrivedAt = now;
@@ -2317,6 +2336,19 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   final Map<String, ({int pickup, int revealed, int redeemed})>
       _serverInsightsCache = {};
 
+  /// Build 461 (페르소나 높음 — 캠페인 탭/인사이트 숫자 불일치): 캠페인 화면도
+  /// 같은 서버 집계 캐시를 읽도록 public lookup. 로컬 `_sent` 의 readCount 는
+  /// 타인 픽업이 반영되지 않아(sync 가 본인 발송 letter skip) 대부분 0 이었음.
+  ({int pickup, int revealed, int redeemed})? serverInsightFor(
+          String letterId) =>
+      _serverInsightsCache[letterId];
+
+  /// Build 461 (페르소나 중간 — 팔로워 깜깜이): 내 브랜드의 서버 집계 팔로워 수.
+  /// `refreshBrandInsightsFromServer()` 가 users/{me}.followerCount 를 fetch.
+  /// -1 = 아직 미조회(표시 생략).
+  int _brandFollowerCount = -1;
+  int get brandFollowerCount => _brandFollowerCount;
+
   /// Build 324 (audit fix): Brand insights 정확도 보강. 본인 sent letter 들의
   ///   Firestore 집계 (pickupCount + redeemedCount atomic increment) 를 fetch
   ///   해 캐시. brand_insights_screen 진입 시 호출.
@@ -2324,9 +2356,23 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> refreshBrandInsightsFromServer() async {
     if (!_currentUser.isBrand) return;
     if (!FirebaseConfig.kFirebaseEnabled) return;
+    // Build 461: 팔로워 수 서버 집계 fetch (1 doc — letter 루프와 독립).
+    try {
+      final meDoc =
+          await FirestoreService.getDocument('users/${_currentUser.id}');
+      if (meDoc != null) {
+        final meMap = FirestoreService.fromFirestoreDoc(meDoc);
+        _brandFollowerCount = (meMap['followerCount'] as num?)?.toInt() ?? 0;
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('[BrandInsights] follower fetch 실패: $e');
+    }
     final cutoff = SecureClock.now().subtract(const Duration(days: 30));
     final recent = _sent.where((l) => l.sentAt.isAfter(cutoff)).toList();
-    if (recent.isEmpty) return;
+    if (recent.isEmpty) {
+      notifyListeners();
+      return;
+    }
     for (final letter in recent) {
       try {
         final doc = await FirestoreService.getDocument('letters/${letter.id}');
@@ -2447,7 +2493,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // Build 425 (sim-fresh3 #46): 자기 자신(브랜드 계정) 팔로우 차단.
     if (senderId == _currentUser.id) return;
     final prefs = await SharedPreferences.getInstance();
-    if (_followedBrandIds.contains(senderId)) {
+    final unfollow = _followedBrandIds.contains(senderId);
+    if (unfollow) {
       _followedBrandIds.remove(senderId);
     } else {
       _followedBrandIds.add(senderId);
@@ -2459,6 +2506,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       'followedBrandIds',
       _followedBrandIds.toList(),
     );
+    // Build 461 (페르소나 중간): 팔로워 수 서버 집계 — Brand 가 처음으로 팔로우
+    //   효과를 확인할 수 있게(인사이트 KPI). best-effort: 룰 배포 전/오프라인
+    //   실패는 무시(±1 카운터, PII 없음).
+    if (FirebaseConfig.kFirebaseEnabled) {
+      unawaited(FirestoreService.incrementField(
+        path: 'users/$senderId',
+        field: 'followerCount',
+        by: unfollow ? -1 : 1,
+      ));
+    }
     notifyListeners();
   }
 
@@ -5395,6 +5452,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       _followedBrandIds.clear();
       _redeemedLetterIds.clear();
       _serverInsightsCache.clear();
+      // Build 461: 팔로워 수도 계정 전환 시 reset (이전 브랜드 값 누수 차단).
+      _brandFollowerCount = -1;
       _brandExactDropCredits = 0;
       _brandExtraMonthlyQuota = 0;
       _inviteRewardCredits = 0;

@@ -309,6 +309,61 @@ class BrandZoneService {
     }
   }
 
+  /// Build 461 (페르소나 치명 — zone 은 만들면 끝): 내 브랜드의 zone 목록.
+  /// 캐시(전체 zone, pageSize 200) 에서 brandId 필터 — Brand 캠페인 화면의
+  /// '자동발송 매장 위치' 섹션이 사용. 최신 생성순.
+  Future<List<BrandZone>> zonesForBrand(
+    String brandId, {
+    bool force = false,
+  }) async {
+    if (brandId.isEmpty) return const [];
+    await warmUp(force: force);
+    final mine = _cache.where((z) => z.brandId == brandId).toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return mine;
+  }
+
+  /// Build 461: zone 조기 종료 — expiresAt 을 현재 시각으로 PATCH.
+  /// 가격 오타 쿠폰을 30일간 회수할 수단이 maxRedeems 소진뿐이던 치명 결함 해소.
+  /// firestore.rules 는 expiresAt '단축만' 허용(연장/부활 차단). 성공 시 캐시
+  /// in-place 갱신 → 다음 triggerForUser 부터 즉시 비활성.
+  Future<bool> deactivateZone(String zoneId) async {
+    if (!FirebaseConfig.kFirebaseEnabled || zoneId.isEmpty) return false;
+    try {
+      final now = DateTime.now().toUtc();
+      await FirebaseAuthService.ensureValidToken();
+      final uri = Uri.parse(
+        '${FirebaseConfig.firestoreBase}/brand_zones/$zoneId'
+        '?updateMask.fieldPaths=expiresAt',
+      );
+      final r = await http
+          .patch(
+            uri,
+            headers: FirestoreService.authHeaders,
+            body: jsonEncode({
+              'fields': {
+                'expiresAt': {'stringValue': now.toIso8601String()},
+              },
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+      if (r.statusCode < 200 || r.statusCode >= 300) {
+        if (kDebugMode) {
+          debugPrint('[BrandZone] deactivate ${r.statusCode}: ${r.body}');
+        }
+        return false;
+      }
+      _cache = List<BrandZone>.unmodifiable([
+        for (final z in _cache)
+          if (z.id == zoneId) z.copyWith(expiresAt: now.toLocal()) else z,
+      ]);
+      return true;
+    } catch (e, st) {
+      if (kDebugMode) debugPrint('[BrandZone] deactivate err: $e\n$st');
+      return false;
+    }
+  }
+
   /// 테스트용 cache 주입.
   @visibleForTesting
   void injectCacheForTest(List<BrandZone> zones) {
