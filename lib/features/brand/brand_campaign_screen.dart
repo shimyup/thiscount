@@ -48,6 +48,9 @@ class _BrandCampaignScreenState extends State<BrandCampaignScreen>
   // Build 461 (페르소나 치명 — zone 은 만들면 끝): 내 자동발송 zone 목록.
   // null = 로딩 전(섹션 미노출).
   List<BrandZone>? _myZones;
+  // Build 465 (UX): zone 중단 in-flight 가드 — deactivate 가 최대 10s 네트워크
+  //   awaits 동안 무반응/중복탭을 막고, 해당 row 에 스피너 표시.
+  final Set<String> _deactivatingZoneIds = {};
 
   @override
   void initState() {
@@ -256,6 +259,7 @@ class _BrandCampaignScreenState extends State<BrandCampaignScreen>
               child: _ZoneRow(
                 zone: z,
                 l: l,
+                inFlight: _deactivatingZoneIds.contains(z.id),
                 onDeactivate: () => _confirmDeactivateZone(z, l),
               ),
             ),
@@ -353,7 +357,15 @@ class _BrandCampaignScreenState extends State<BrandCampaignScreen>
       ),
     );
     if (ok != true || !mounted) return;
-    final success = await BrandZoneService.instance.deactivateZone(zone.id);
+    // Build 465 (UX): 중복 탭 가드 + row 스피너. 이미 진행 중이면 무시.
+    if (_deactivatingZoneIds.contains(zone.id)) return;
+    setState(() => _deactivatingZoneIds.add(zone.id));
+    bool success = false;
+    try {
+      success = await BrandZoneService.instance.deactivateZone(zone.id);
+    } finally {
+      if (mounted) setState(() => _deactivatingZoneIds.remove(zone.id));
+    }
     if (!mounted) return;
     if (success) {
       await _loadMyZones(context.read<AppState>());
@@ -1106,10 +1118,12 @@ class _SectionHeader extends StatelessWidget {
 class _ZoneRow extends StatelessWidget {
   final BrandZone zone;
   final AppL10n l;
+  final bool inFlight;
   final VoidCallback onDeactivate;
   const _ZoneRow({
     required this.zone,
     required this.l,
+    this.inFlight = false,
     required this.onDeactivate,
   });
 
@@ -1184,22 +1198,39 @@ class _ZoneRow extends StatelessWidget {
           ),
           if (active) ...[
             const SizedBox(width: 8),
-            TextButton(
-              onPressed: onDeactivate,
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.error,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                minimumSize: const Size(44, 44),
-              ),
-              child: Text(
-                l.zoneStopShort,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
+            // Build 465 (UX): 중단 진행 중이면 스피너(중복탭 방지 + 10s 무반응 해소).
+            if (inFlight)
+              const SizedBox(
+                width: 44,
+                height: 44,
+                child: Center(
+                  child: SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.error,
+                    ),
+                  ),
+                ),
+              )
+            else
+              TextButton(
+                onPressed: onDeactivate,
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.error,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  minimumSize: const Size(44, 44),
+                ),
+                child: Text(
+                  l.zoneStopShort,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
-            ),
           ],
         ],
       ),

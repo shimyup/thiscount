@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../core/services/brand_zone_service.dart';
 import '../../core/services/coupon_ai_service.dart';
+import '../../core/services/feedback_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/content_moderation.dart';
 import '../../core/utils/redemption_code.dart';
@@ -295,6 +296,8 @@ class _BrandQuickSendWizardState extends State<BrandQuickSendWizard> {
       _snack(l.wizardSendFailed, error: true);
       return;
     }
+    // Build 465 (UX): 발송 성공 피드백 — 앱 표준 햅틱/사운드(다른 발송 경로와 일관).
+    await FeedbackService.onLetterSend();
     if (code != null) {
       await _showCodeDialog(l, code);
     }
