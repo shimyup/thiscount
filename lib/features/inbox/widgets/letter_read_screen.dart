@@ -87,8 +87,17 @@ class _LetterReadScreenState extends State<LetterReadScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final state = context.read<AppState>();
-      if (widget.letter.content.trim().isEmpty) {
-        unawaited(state.refetchLetterContentIfEmpty(widget.letter.id));
+      // Build 467 (sim466 P1): 이전엔 content 가 비었을 때만 refetch 호출 →
+      //   본문은 있고 매장 코드만 map-sync mask 로 null 인 브랜드 쿠폰은 영영
+      //   refetch 안 돼 코드가 빈 채로 남아(픽업 후 "사용 진행" 시 코드 박스 공백).
+      //   refetchLetterContentIfEmpty 는 내부 needsCode(Build 416)로 코드를 채울
+      //   수 있으므로, 코드 누락 브랜드 쿠폰/교환권도 트리거에 포함.
+      final lt = widget.letter;
+      final needsCodeRefetch = lt.senderIsBrand &&
+          lt.category != LetterCategory.general &&
+          (lt.redemptionCode == null || lt.redemptionCode!.isEmpty);
+      if (lt.content.trim().isEmpty || needsCodeRefetch) {
+        unawaited(state.refetchLetterContentIfEmpty(lt.id));
       }
       // Build 324 (Q1): 화면 진입 시 만료된 pending redemption 자동 정리
       //   → redeemed 처리 + UI 즉시 반영 (dim + 사용됨 라벨).

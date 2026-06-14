@@ -5416,7 +5416,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         _currentUser.id.isNotEmpty &&
         _currentUser.id != 'guest' &&
         _currentUser.id != id;
-    if (isNewUser) {
+    // Build 467 (sim466 P1): guest→실계정 전환도 in-memory/prefs 정리. 이전엔
+    //   isNewUser 가 guest 를 제외해, 게스트 세션(데모 편지·픽업·차단 등)이
+    //   logout 을 거치지 않고 곧장 로그인하면 새 계정에 잔존했음. isBrand
+    //   OR-fallback(아래 5544)은 isNewUser 만 사용하므로 그대로 둠 — guest 의
+    //   isBrand=false 라 결과 동일, 신규가입 cold-start 보존 로직 영향 없음.
+    final isFromGuest =
+        _currentUser.id == 'guest' && id.isNotEmpty && id != 'guest';
+    if (isNewUser || isFromGuest) {
       _pickedUpCampaignIds.clear();
       _myPickedUpLetterIds.clear();
       // Build 368 (PR-CC2 P0 #6): in-memory letter 컬렉션도 동시 clear.
