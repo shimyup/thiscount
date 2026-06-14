@@ -771,10 +771,16 @@ class _ComposeScreenState extends State<ComposeScreen>
       //   시 "이어쓰기" 다이얼로그가 떠 '버리기' 해도 계속 재출현. 실제 의미있는
       //   상태(대량/특송/타깃/특정국가 선택/혜택정보)만 draft 로 간주 —
       //   닫기 확인의 hasContent 와 동일 기준.
+      // Build 466 (실기 피드백 — '버리기' 후 무한 재출현): Build 458 의 브랜드
+      //   기본 목적지(_destIsMyStore=내 매장 자동선택)가 진입할 때마다
+      //   _selectedCountry+!_isRandom 를 채워 빈 화면인데도 hasState=true →
+      //   phantom brand draft 가 매 진입 자동저장 → '버리기' 해도 재진입 시 또
+      //   생성됐음. 자동 기본 목적지는 '의미있는 draft' 에서 제외(사용자가 직접
+      //   다른 목적지를 고르면 _destIsMyStore=false 가 되어 정상 저장).
       final hasState = _isBulkMode ||
           _isExpressMode ||
           _bulkTargets.isNotEmpty ||
-          (_selectedCountry.isNotEmpty && !_isRandom) ||
+          (_selectedCountry.isNotEmpty && !_isRandom && !_destIsMyStore) ||
           _redemptionInfoController.text.trim().isNotEmpty ||
           _attachRedemptionCode ||
           _brandUniquePerUser;

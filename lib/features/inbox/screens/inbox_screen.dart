@@ -2184,12 +2184,10 @@ class _InboxTab extends StatelessWidget {
     // 교환권). 각 그룹 위에 작은 섹션 헤더를 끼워 넣어 시각 분리. 특정 필터
     // 가 켜져 있으면 그룹이 1개뿐이라 헤더 없이 평이한 리스트.
     final List<_InboxRow> rows = _buildRows(letters, l10n);
+    // Build 466 (실기 피드백): 카테고리 필터를 상단→하단 바로 이동(상단 UI 과밀
+    //   /겹침 해소). 필터 바는 이 Column 의 마지막 child(하단 바)로 배치.
     return Column(
       children: [
-        _LetterFilterBar(
-          activeFilter: activeFilter,
-          onChanged: onFilterChanged,
-        ),
         if (letters.isEmpty)
           Expanded(
             child: Builder(
@@ -2202,42 +2200,43 @@ class _InboxTab extends StatelessWidget {
                 final sub = nearby > 0
                     ? '$baseSub\n${l10n.inboxEmptyNearbyCount(nearby)}'
                     : baseSub;
-                return Stack(
+                // Build 466 (실기 피드백 — '사장님이세요?' 겹침): 이전엔 Stack +
+                //   Positioned(bottom:24) 로 빈 상태 CTA 위에 겹쳐 떴음. 정상
+                //   세로 흐름(Column)으로 배치해 겹침 제거.
+                return Column(
                   children: [
-                    _EmptyState(
-                      emoji: _emptyEmojiForFilter(activeFilter),
-                      title: activeFilter == LetterFilterType.all
-                          ? l10n.inboxEmptyReceived
-                          : l10n.inboxEmptyForFilter(
-                              _filterName(activeFilter, l10n),
-                            ),
-                      subtitle: sub,
-                      // Build 428 (UX): 받은 인박스는 '줍기'로 채워지므로 빈 상태
-                      //   CTA 를 항상 '지도에서 줍기'로 — 이전엔 '작성'(/compose)
-                      //   유도라 발송 불가한 Free/Premium 이 BrandOnly 게이트로
-                      //   막다른 진입했음.
-                      ctaLabel: l10n.emptyStateExploreCta,
-                      onCtaTap: () => Navigator.of(
-                        context,
-                      ).pushNamedAndRemoveUntil('/home', (route) => false),
+                    Expanded(
+                      child: _EmptyState(
+                        emoji: _emptyEmojiForFilter(activeFilter),
+                        title: activeFilter == LetterFilterType.all
+                            ? l10n.inboxEmptyReceived
+                            : l10n.inboxEmptyForFilter(
+                                _filterName(activeFilter, l10n),
+                              ),
+                        subtitle: sub,
+                        // Build 428 (UX): 받은 인박스는 '줍기'로 채워지므로 빈 상태
+                        //   CTA 를 항상 '지도에서 줍기'로.
+                        ctaLabel: l10n.emptyStateExploreCta,
+                        onCtaTap: () => Navigator.of(
+                          context,
+                        ).pushNamedAndRemoveUntil('/home', (route) => false),
+                      ),
                     ),
-                    // Build 242: 빈 상태 하단에 가맹점 영입 CTA — Cold-start
-                    // 양방향 마켓 부트스트랩의 핵심. Free/Premium 사용자에게
-                    // "사장님이세요?" 노출 → 실 가맹점 관심 캡처. Brand 등급은
-                    // 이미 가맹점이므로 노출 안 함. 이미 등록한 사용자도 숨김.
+                    // Build 242: 빈 상태 하단 가맹점 영입 CTA — "사장님이세요?".
+                    //   Brand 는 제외, 이미 등록한 사용자도 숨김.
                     if (!state.currentUser.isBrand)
-                      Positioned(
-                        left: 16,
-                        right: 16,
-                        bottom: 24,
-                        child: FutureBuilder<bool>(
-                          future: MerchantInterestSheet.isAlreadyRegistered(),
-                          builder: (ctx, snap) {
-                            if (snap.data == true)
-                              return const SizedBox.shrink();
-                            return _MerchantHookCard(l10n: l10n);
-                          },
-                        ),
+                      FutureBuilder<bool>(
+                        future: MerchantInterestSheet.isAlreadyRegistered(),
+                        builder: (ctx, snap) {
+                          if (snap.data == true) {
+                            return const SizedBox.shrink();
+                          }
+                          return Padding(
+                            padding:
+                                const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                            child: _MerchantHookCard(l10n: l10n),
+                          );
+                        },
                       ),
                   ],
                 );
@@ -2485,6 +2484,11 @@ class _InboxTab extends StatelessWidget {
             ), // close RefreshIndicator (Build 254 pull-to-refresh)
           ),
         ],
+        // Build 466 (실기 피드백): 카테고리 필터(홍보/할인/교환권 등)를 하단 바로.
+        _LetterFilterBar(
+          activeFilter: activeFilter,
+          onChanged: onFilterChanged,
+        ),
       ],
     );
   }

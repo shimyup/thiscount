@@ -3237,7 +3237,21 @@ class _RecordsSectionState extends State<_RecordsSection> {
           firstChild: const SizedBox.shrink(),
           secondChild: Padding(
             padding: const EdgeInsets.only(top: 12),
-            child: Column(children: widget.children),
+            child: Column(
+              children: [
+                ...widget.children,
+                // Build 466 (실기 피드백): 펼친 뒤 스크롤로 헤더까지 안 올라가도
+                //   하단 '닫기' 버튼으로 접기.
+                const SizedBox(height: 4),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _CollapseButton(
+                    label: widget.l.mapClose,
+                    onTap: () => setState(() => _expanded = false),
+                  ),
+                ),
+              ],
+            ),
           ),
           crossFadeState: _expanded
               ? CrossFadeState.showSecond
@@ -3245,6 +3259,35 @@ class _RecordsSectionState extends State<_RecordsSection> {
           duration: const Duration(milliseconds: 220),
         ),
       ],
+    );
+  }
+}
+
+// Build 466 (실기 피드백): 펼친 접이식 섹션을 하단에서 바로 접는 공용 버튼.
+class _CollapseButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  const _CollapseButton({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: TextButton.icon(
+        onPressed: onTap,
+        icon: const Icon(Icons.keyboard_arrow_up_rounded, size: 18),
+        label: Text(
+          label,
+          style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
+        ),
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.textMuted,
+          minimumSize: const Size(44, 44),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -3345,7 +3388,19 @@ class _ExpandableSettingsGroupState extends State<_ExpandableSettingsGroup> {
             ),
             AnimatedCrossFade(
               firstChild: const SizedBox.shrink(),
-              secondChild: _content(),
+              secondChild: Column(
+                children: [
+                  _content(),
+                  // Build 466 (실기 피드백): 펼친 설정 그룹도 하단 '닫기'로 접기.
+                  const SizedBox(height: 6),
+                  _CollapseButton(
+                    label: AppL10n.of(
+                            context.read<AppState>().currentUser.languageCode)
+                        .mapClose,
+                    onTap: () => setState(() => _expanded = false),
+                  ),
+                ],
+              ),
               crossFadeState: _expanded
                   ? CrossFadeState.showSecond
                   : CrossFadeState.showFirst,
