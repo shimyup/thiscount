@@ -229,29 +229,21 @@ class _BrandCampaignScreenState extends State<BrandCampaignScreen>
         _group(filtered.where((l) => !l.isExpired).toList(), state);
     final endedSent =
         _group(filtered.where((l) => l.isExpired).toList(), state);
-    final mostRecentlyPickedUp = state.brandMostRecentlyPickedUpLetter;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
       children: [
-        // Build 459 (UI 다이어트): 쿼터 카드 + 발송 CTA 카드 → 히어로 1카드 통합.
-        //   "오늘 얼마나 보낼 수 있고, 지금 보내기" 가 첫 시야에 하나로.
-        _HeroSendCard(state: state, l: l),
-        const SizedBox(height: 12),
-        // Build 458 (페르소나 치명 — 사장 인지): 단골 스탬프가 사장 모르게
-        //   돌아가던 문제. 자동 운영 사실 + 규칙(5회→보상 교환권)을 명시.
-        //   임계값/보상 커스텀·현황 집계는 서버 권위 필요 → Auth Phase 3 후속.
-        _StampProgramNotice(l: l),
-        const SizedBox(height: 16),
-        if (mostRecentlyPickedUp != null) ...[
-          _RecentPickupHighlight(letter: mostRecentlyPickedUp, l: l),
-          const SizedBox(height: 16),
-        ],
+        // Build 468 (UI 단순화 시안 승인): 히어로 카드(배지+잔여+크레딧+큰버튼)
+        //   → 컴팩트 발송 헤더(잔여/크레딧/자동발송 수 = 서브라인 1줄 + 발송 버튼).
+        //   최근 픽업 하이라이트 카드 제거(캠페인 리스트가 픽업 수 표시 = 중복).
+        //   단골 스탬프 안내는 하단 슬림으로 이동(아래).
+        _CompactSendHeader(
+            state: state, l: l, zoneCount: _myZones?.length ?? 0),
+        const SizedBox(height: 14),
         // Build 461 (페르소나 치명): 자동발송 zone 관리 — 목록/잔여/조기 종료.
-        //   이전엔 zone 을 만들면 목록도 중단 수단도 없어 잘못 건 쿠폰이 30일간
-        //   살아있었음.
         if (_myZones != null && _myZones!.isNotEmpty) ...[
-          _SectionHeader(title: l.zoneSectionHeader),
+          _SectionHeader(
+              title: '${l.zoneSectionHeader} · ${_myZones!.length}'),
           const SizedBox(height: 8),
           ..._myZones!.map(
             (z) => Padding(
@@ -308,6 +300,10 @@ class _BrandCampaignScreenState extends State<BrandCampaignScreen>
                 ),
           ],
         ],
+        // Build 468 (UI 단순화 시안): 단골 스탬프 안내를 상단 골드 카드 →
+        //   리스트 하단 슬림 안내로 이동(발송/캠페인이 먼저 보이도록). dismiss 유지.
+        const SizedBox(height: 16),
+        _StampProgramNotice(l: l),
       ],
     );
   }
@@ -742,8 +738,97 @@ class _EmptyFiltered extends StatelessWidget {
   }
 }
 
+// Build 468 (UI 단순화 시안): 컴팩트 발송 헤더 — 잔여/크레딧/자동발송 수를
+//   서브라인 1줄로, 그 아래 발송 버튼 1개. 기존 _HeroSendCard(배지+큰카드)를
+//   대체해 상단 높이를 ~절반으로 줄이고 캠페인 리스트를 더 빨리 노출.
+class _CompactSendHeader extends StatelessWidget {
+  final AppState state;
+  final AppL10n l;
+  final int zoneCount;
+  const _CompactSendHeader({
+    required this.state,
+    required this.l,
+    required this.zoneCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dailyRemaining = state.remainingDailySendCount;
+    final dailyLimit = state.dailySendLimit;
+    final dailyPct = dailyLimit > 0 ? dailyRemaining / dailyLimit : 0.0;
+    final dailyColor = dailyPct > 0.4
+        ? AppColors.teal
+        : (dailyPct > 0.15 ? AppColors.gold : AppColors.error);
+    final exactDropFree = state.exactDropFreeForBeta;
+    final credits = state.brandExactDropCredits;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 서브라인 1줄: 오늘 잔여 · 크레딧/무제한 · 자동발송 N곳
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 2,
+          children: [
+            Text(
+              l.brandCampaignDailyRemaining(dailyRemaining, dailyLimit),
+              style: TextStyle(
+                color: dailyColor,
+                fontSize: 12.5,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            Text(
+              '· ${exactDropFree ? l.brandCampaignQuotaUnlimited : l.brandCampaignQuotaCredits(credits)}',
+              style: const TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 11.5,
+              ),
+            ),
+            if (zoneCount > 0)
+              Text(
+                '· ${l.zoneSectionHeader} $zoneCount',
+                style: const TextStyle(
+                  color: AppColors.gold,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => const BrandQuickSendWizard(),
+            )),
+            icon: const Text('📣', style: TextStyle(fontSize: 16)),
+            label: Text(
+              l.brandCampaignQuickComposeTitle,
+              style: const TextStyle(
+                fontSize: 14.5,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.coupon,
+              foregroundColor: AppColors.bgDeep,
+              padding: const EdgeInsets.symmetric(vertical: 13),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(13),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 // Build 459: 히어로 발송 카드 — 플랜 배지 + 오늘 잔여 + 큰 발송 CTA 통합.
-//   (기존 _QuotaSummaryCard/_QuickComposeCard 2장을 대체.)
+// Build 468: _CompactSendHeader 로 대체 — 보존(미사용).
+// ignore: unused_element
 class _HeroSendCard extends StatelessWidget {
   final AppState state;
   final AppL10n l;
@@ -1017,6 +1102,8 @@ class _QuickComposeCard extends StatelessWidget {
   }
 }
 
+// Build 468 (UI 단순화): 캠페인 리스트가 픽업 수를 표시해 중복 → 미사용(보존).
+// ignore: unused_element
 class _RecentPickupHighlight extends StatelessWidget {
   final Letter letter;
   final AppL10n l;
