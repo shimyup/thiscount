@@ -6,7 +6,6 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../core/localization/country_names.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/person_emoji.dart';
-import '../../../widgets/app_card.dart';
 import '../../../core/services/recommendation_service.dart';
 import '../../../models/letter.dart';
 import '../../../models/direct_message.dart';
@@ -1115,73 +1114,10 @@ class _InboxScreenState extends State<InboxScreen>
           body: SafeArea(
             child: Column(
               children: [
+                // Build 468 (UI 단순화): 상단 5단(헤더카드/근처상태/만료배너/탭/필터)
+                //   → 헤더 1단 통합. 근처 N·곧 만료 N·이번달 진행은 헤더 서브라인
+                //   으로 흡수(아래 _buildHeader), 별도 카드/배너 제거 → 콘텐츠 공간 확대.
                 _buildHeader(context, state),
-                _InboxQuickStatusCard(
-                  state: state,
-                  onExploreTap: () => Navigator.of(
-                    context,
-                  ).pushNamedAndRemoveUntil('/home', (route) => false),
-                ),
-                // 만료 사이렌 (Build 115, Build 116 에서 탭 가능) — 24h 이내
-                // 만료되는 쿠폰/교환권이 있을 때만 붉은 배너 노출. 탭 시
-                // 쿠폰 필터로 즉시 전환 + 받은 편지 탭으로 이동해 사용 유도.
-                Builder(
-                  builder: (ctx) {
-                    final expiring = state.expiringSoonLetters;
-                    if (expiring.isEmpty) return const SizedBox.shrink();
-                    final l10n = AppL10n.of(state.currentUser.languageCode);
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _inboxFilter = LetterFilterType.coupon;
-                          _tabController.animateTo(0);
-                        });
-                      },
-                      // Build 404 (PR-MM3): inline gradient Container → AppCard
-                      //   .active. urgency 시각은 동일 색상(coupon) + active
-                      //   variant 의 더 진한 border 로 표현. 코드 50줄 → 15줄.
-                      child: Padding(
-                        padding: const EdgeInsetsDirectional.fromSTEB(
-                          16,
-                          8,
-                          16,
-                          0,
-                        ),
-                        child: AppCard.active(
-                          color: AppColors.coupon,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 10,
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  l10n.expirySirenTitle(expiring.length),
-                                  style: const TextStyle(
-                                    color: AppColors.coupon,
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w800,
-                                    height: 1.35,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                l10n.expirySirenCta,
-                                style: const TextStyle(
-                                  color: AppColors.coupon,
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
                 _buildTabBar(),
                 Expanded(
                   child: TabBarView(
@@ -1392,13 +1328,51 @@ class _InboxScreenState extends State<InboxScreen>
                           ),
                         ],
                       ),
-                      const SizedBox(height: 6),
-                      // Build 179: Monthly progress 만 남김 (subtitle caps + total 수 제거 — title 옆으로 흡수).
-                      _MonthlyProgressBar(
-                        collected: _countThisMonth(state.inbox),
-                        target: 50,
-                        l10n: l10n,
-                      ),
+                      const SizedBox(height: 5),
+                      // Build 468 (UI 단순화): 진행도 막대 + 별도 근처카드 + 만료배너
+                      //   3요소를 헤더 서브라인 1줄로 통합(상단 과밀 해소). 곧 만료·근처는
+                      //   탭하면 각각 쿠폰필터/지도로(이전 배너·카드 동작 보존).
+                      Builder(builder: (_) {
+                        final monthly = l10n.inboxMonthlyGoalLabel(
+                            _countThisMonth(state.inbox), 50);
+                        final expiring = state.expiringSoonLetters.length;
+                        final nearby = state.nearbyLetters.length;
+                        return Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 8,
+                          runSpacing: 2,
+                          children: [
+                            Text(monthly,
+                                style: const TextStyle(
+                                    color: AppColors.textMuted, fontSize: 11.5)),
+                            if (expiring > 0)
+                              GestureDetector(
+                                onTap: () => setState(() {
+                                  _inboxFilter = LetterFilterType.coupon;
+                                  _tabController.animateTo(0);
+                                }),
+                                child: Text(
+                                    '· ${l10n.expirySirenTitle(expiring)}',
+                                    style: const TextStyle(
+                                        color: AppColors.coupon,
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w700)),
+                              ),
+                            if (nearby > 0)
+                              GestureDetector(
+                                onTap: () => Navigator.of(ctx)
+                                    .pushNamedAndRemoveUntil(
+                                        '/home', (r) => false),
+                                child: Text(
+                                    '· ${l10n.inboxEmptyNearbyCount(nearby)}',
+                                    style: const TextStyle(
+                                        color: AppColors.teal,
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600)),
+                              ),
+                          ],
+                        );
+                      }),
                     ],
                   ),
                 ),
@@ -1894,6 +1868,8 @@ void _confirmDelete(
   );
 }
 
+// Build 468 (UI 단순화): 헤더 서브라인으로 흡수 — 현재 미사용(향후 재사용 대비 보존).
+// ignore: unused_element
 class _InboxQuickStatusCard extends StatelessWidget {
   final AppState state;
   final VoidCallback onExploreTap;
@@ -5051,6 +5027,8 @@ class _FollowListTab extends StatelessWidget {
 ///   < 50% : teal
 ///   50–99%: gold
 ///   >= 100%: gold 애니메이션 (달성)
+// Build 468 (UI 단순화): 헤더 서브라인 텍스트로 대체 — 미사용(보존).
+// ignore: unused_element
 class _MonthlyProgressBar extends StatelessWidget {
   final int collected;
   final int target;
