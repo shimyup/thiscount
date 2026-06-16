@@ -495,6 +495,11 @@ class _ComposeScreenState extends State<ComposeScreen>
     'food', 'cafe', 'beauty', 'fashion', 'event', 'other',
   ];
 
+  // Build 470 (발송 마법사 통합): 브랜드 신규 발송을 3단계로 — ①혜택 ②대상 ③확인.
+  //   기존 섹션 위젯·발송 로직(_buildSendButton/_onSend)·picker 전부 재사용,
+  //   레이아웃만 단계화(한 스크롤 → PageStep). 답장(_isReply)은 단계 미적용.
+  int _composeStep = 0;
+
   // Build 321: 자동 발송 zone 모드 — 사용자가 반경 안에 들어오면 자동 letter.
   // compose 화면에서 토글로 활성화. send 버튼이 createZone 호출로 변경.
   // 이전 별도 BrandZoneSetupScreen 으로 분리됐던 UX 를 같은 작성 화면 통합.
@@ -2437,106 +2442,139 @@ class _ComposeScreenState extends State<ComposeScreen>
                 child: Column(
                   children: [
                     _buildHeader(context, state),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 14),
-                            // Build 204 — 사용자 요청 재배치:
-                            //   1) 나라 선택
-                            //   2) 편지 종류 (일반/할인/교환) — 나라 바로 아래
-                            //   3) 대량 발송 (Brand)
-                            //   4) 특급 배송
-                            //   5) 오늘의 영감 (강조)
-                            //   6) 편지 꾸미기 (StyleBar)
-                            //   7) 더 많은 옵션 (접히는 섹션 — SNS/익명/이미지 등)
-                            //   8) 편지 본문 (가장 아래)
-                            //   9) 보내기 버튼
-                            if (!_isReply)
-                              _buildDestinationCard(state, hasPremium),
-                            if (!_isReply) const SizedBox(height: 8),
-
-                            // ── 편지 종류 (Brand 카테고리 / 일반에겐 안내 시트) ──
-                            if (!_isReply) _buildBrandCategoryPanel(state),
-                            if (!_isReply) const SizedBox(height: 8),
-
-                            // ── 발송 모드 (대량 발송 / 특급 배송) ──
-                            // Build 425 (device 보고 #2): 대량·특급 토글을 brand
-                            //   옵션 pill 과 동일 스타일로 Wrap 배치해 한눈에 통일.
-                            //   대량은 Brand 만, 특급은 모든 비-답장(Free=잠금 업셀).
-                            if (!_isReply) ...[
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
+                    if (_isReply) ...[
+                      // ── 답장: 기존 단일 스크롤 유지 (단계 미적용) ──
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 14),
+                              _ComposeOptionsSection(
+                                title: l10n.composeOptionsSectionTitle,
                                 children: [
-                                  if (isBrand) _buildBulkModeToggle(),
-                                  _buildExpressToggle(state, hasPremium),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              if (isBrand && _isBulkMode) ...[
-                                _buildBulkSendPanel(state),
-                                const SizedBox(height: 8),
-                              ],
-                            ],
-
-                            // ── 더 많은 옵션 (접히는 섹션) — 편지지 위쪽 ──
-                            // Build 238: Premium(비-Brand)는 홍보 배지 카드 CTA 의
-                            // 첨부 바텀시트가 사진/링크를 처리 — 옵션창에서 중복 제거.
-                            // Brand/Free 는 기존대로 노출 (Free=잠금 안내, Brand=사용).
-                            // Build 271: 오늘의 영감(Lucky Letter / Recall Last) +
-                            // StyleBar(편지 꾸미기) 도 collapsible 섹션 안으로 이동.
-                            // 작성 화면 1차 노출 항목을 줄여 "본문 작성" 1순위 액션을
-                            // 묻히지 않게.
-                            // Build 415 (UX 통일): 발송 옵션 간소화.
-                            //   - SNS 링크 첨부(item 9) / 이름공개(item 10) 는 프로필
-                            //     설정으로 이동 → compose 에서 제거.
-                            //   - 꾸미기(종이/폰트, item 13) 제거, 발송 이모지만 유지.
-                            //   - 오늘의 혜택 자동발송/영감 자동주입(item 5·14) 제거.
-                            _ComposeOptionsSection(
-                              title: l10n.composeOptionsSectionTitle,
-                              children: [
-                                _buildDeliveryEmojiButton(),
-                                if (!_isReply && isBrand) ...[
-                                  const SizedBox(height: 10),
-                                  _buildBrandOptions(state),
-                                ],
-                                // Build 425 (device #7): 본문 사진 첨부는 '일반'
-                                //   혜택일 때만 노출 — 할인권/교환권 선택 시엔
-                                //   교환권 이미지(redemptionInfo)가 별도라 중복·
-                                //   혼선 → 숨김. (답장은 카테고리 없음 → 기존 유지)
-                                if (!(hasPremium && !isBrand) &&
-                                    (_isReply ||
-                                        _brandCategory ==
-                                            LetterCategory.general)) ...[
-                                  const SizedBox(height: 10),
-                                  Container(
-                                    key: _attachAreaKey,
-                                    child: _buildImageAttachButton(
-                                      state,
-                                      hasPremium: hasPremium,
-                                      purchase: purchase,
-                                    ),
-                                  ),
-                                  if (_imageFilePath != null) ...[
+                                  _buildDeliveryEmojiButton(),
+                                  if (!(hasPremium && !isBrand)) ...[
                                     const SizedBox(height: 10),
-                                    _buildImagePreview(),
+                                    Container(
+                                      key: _attachAreaKey,
+                                      child: _buildImageAttachButton(
+                                        state,
+                                        hasPremium: hasPremium,
+                                        purchase: purchase,
+                                      ),
+                                    ),
+                                    if (_imageFilePath != null) ...[
+                                      const SizedBox(height: 10),
+                                      _buildImagePreview(),
+                                    ],
                                   ],
                                 ],
-                              ],
+                              ),
+                              const SizedBox(height: 16),
+                              _buildLetterBody(),
+                              const SizedBox(height: 40),
+                            ],
+                          ),
+                        ),
+                      ),
+                      _buildSendButton(state),
+                    ] else ...[
+                      // ── Build 470: 브랜드 신규 발송 3단계 마법사 ──
+                      //   ①혜택 ②대상 ③확인. IndexedStack 으로 입력값(TextField)
+                      //   상태 보존. 모든 섹션 위젯·발송 로직 재사용.
+                      _buildComposeStepBar(l10n),
+                      Expanded(
+                        child: IndexedStack(
+                          index: _composeStep,
+                          children: [
+                            // ── ① 혜택: 종류/업종/본문/AI/코드/유효기간/교환권이미지 ──
+                            SingleChildScrollView(
+                              padding:
+                                  const EdgeInsets.fromLTRB(20, 14, 20, 24),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildBrandCategoryPanel(state),
+                                  const SizedBox(height: 16),
+                                  _buildLetterBody(),
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 16),
-
-                            // ── 편지 본문 (가장 아래) ──
-                            _buildLetterBody(),
-                            const SizedBox(height: 40),
+                            // ── ② 대상: 목적지/자동발송/대량/정밀/특급/옵션 ──
+                            SingleChildScrollView(
+                              padding:
+                                  const EdgeInsets.fromLTRB(20, 14, 20, 24),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildDestinationCard(state, hasPremium),
+                                  const SizedBox(height: 8),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: [
+                                      if (isBrand) _buildBulkModeToggle(),
+                                      _buildExpressToggle(state, hasPremium),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  if (isBrand && _isBulkMode) ...[
+                                    _buildBulkSendPanel(state),
+                                    const SizedBox(height: 8),
+                                  ],
+                                  _ComposeOptionsSection(
+                                    title: l10n.composeOptionsSectionTitle,
+                                    children: [
+                                      _buildDeliveryEmojiButton(),
+                                      if (isBrand) ...[
+                                        const SizedBox(height: 10),
+                                        _buildBrandOptions(state),
+                                      ],
+                                      if (!(hasPremium && !isBrand) &&
+                                          _brandCategory ==
+                                              LetterCategory.general) ...[
+                                        const SizedBox(height: 10),
+                                        Container(
+                                          key: _attachAreaKey,
+                                          child: _buildImageAttachButton(
+                                            state,
+                                            hasPremium: hasPremium,
+                                            purchase: purchase,
+                                          ),
+                                        ),
+                                        if (_imageFilePath != null) ...[
+                                          const SizedBox(height: 10),
+                                          _buildImagePreview(),
+                                        ],
+                                      ],
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // ── ③ 확인: 요약 + 코드 미리보기 ──
+                            SingleChildScrollView(
+                              padding:
+                                  const EdgeInsets.fromLTRB(20, 14, 20, 24),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildComposeSummary(state, l10n),
+                                  if (_attachRedemptionCode &&
+                                      _previewRedemptionCode != null) ...[
+                                    const SizedBox(height: 14),
+                                    _buildRedemptionPreviewCard(l10n),
+                                  ],
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                    ),
-                    _buildSendButton(state),
+                      _buildComposeStepNav(state, l10n),
+                    ],
                   ],
                 ),
               ),
@@ -2552,6 +2590,218 @@ class _ComposeScreenState extends State<ComposeScreen>
           ),
         );
       },
+    );
+  }
+
+  // ── Build 470: 발송 마법사 단계 UI (혜택→대상→확인) ──────────────────────────
+  static const int _composeStepCount = 3;
+
+  Widget _buildComposeStepBar(AppL10n l10n) {
+    final labels = [
+      l10n.koEn('혜택', 'Offer'),
+      l10n.koEn('대상', 'Target'),
+      l10n.koEn('확인', 'Review'),
+    ];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+      child: Column(
+        children: [
+          Row(
+            children: List.generate(_composeStepCount, (i) {
+              return Expanded(
+                child: Container(
+                  height: 4,
+                  margin: EdgeInsets.only(right: i < _composeStepCount - 1 ? 6 : 0),
+                  decoration: BoxDecoration(
+                    color: i <= _composeStep
+                        ? AppColors.coupon
+                        : AppColors.bgSurface,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: List.generate(_composeStepCount, (i) {
+              return Expanded(
+                child: Text(
+                  '${i + 1}. ${labels[i]}',
+                  textAlign: i == 0
+                      ? TextAlign.start
+                      : (i == _composeStepCount - 1
+                          ? TextAlign.end
+                          : TextAlign.center),
+                  style: TextStyle(
+                    color: i == _composeStep
+                        ? AppColors.coupon
+                        : AppColors.textMuted,
+                    fontSize: 11,
+                    fontWeight:
+                        i == _composeStep ? FontWeight.w800 : FontWeight.w500,
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 단계 전환 전 검증. step0(혜택): 본문 최소 글자. 그 외 통과.
+  bool _validateComposeStep(int step, AppState state, AppL10n l10n) {
+    if (step == 0) {
+      final content = _contentController.text.trim();
+      final minChars = _brandCategory == LetterCategory.general ? 10 : 1;
+      if (content.length < minChars) {
+        _showError(l10n.composeEmptyError);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Widget _buildComposeStepNav(AppState state, AppL10n l10n) {
+    final isLast = _composeStep >= _composeStepCount - 1;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 6, 20, 12),
+      child: Row(
+        children: [
+          if (_composeStep > 0) ...[
+            OutlinedButton(
+              onPressed: () => setState(() => _composeStep -= 1),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.textSecondary,
+                side: BorderSide(
+                    color: AppColors.textMuted.withValues(alpha: 0.4)),
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(13)),
+              ),
+              child: Text(l10n.koEn('이전', 'Back')),
+            ),
+            const SizedBox(width: 10),
+          ],
+          // 마지막 단계는 기존 발송 버튼(_buildSendButton)이 전체 발송 디스패치 처리.
+          Expanded(
+            child: isLast
+                ? _buildSendButton(state)
+                : FilledButton(
+                    onPressed: () {
+                      if (_validateComposeStep(_composeStep, state, l10n)) {
+                        setState(() => _composeStep += 1);
+                      }
+                    },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.coupon,
+                      foregroundColor: AppColors.bgDeep,
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                    ),
+                    child: Text(
+                      l10n.koEn('다음', 'Next'),
+                      style: const TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.w800),
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// ③ 확인 단계 요약 카드 — 혜택/대상/수량을 한눈에.
+  Widget _buildComposeSummary(AppState state, AppL10n l10n) {
+    final content = _contentController.text.trim();
+    final catLabel = switch (_brandCategory) {
+      LetterCategory.coupon => l10n.composeBrandCategoryCoupon,
+      LetterCategory.voucher => l10n.composeBrandCategoryVoucher,
+      _ => l10n.composeBrandCategoryGeneral,
+    };
+    // 대상 요약.
+    String target;
+    if (_isAutoZoneMode) {
+      target = l10n.koEn(
+          '자동발송 · ${_zoneRadius >= 1000 ? '${(_zoneRadius / 1000).toStringAsFixed(0)}km' : '${_zoneRadius.round()}m'}',
+          'Auto-send · ${_zoneRadius >= 1000 ? '${(_zoneRadius / 1000).toStringAsFixed(0)}km' : '${_zoneRadius.round()}m'}');
+    } else if (_isBulkMode) {
+      final n = _isRandom
+          ? _sendPerCountry
+          : _bulkTargets.length * _sendPerCountry;
+      target = l10n.koEn('대량 발송 · $n통', 'Bulk · $n');
+    } else if (_isExactDropped) {
+      target = l10n.koEn('정밀 위치', 'Precise location');
+    } else if (_destIsMyStore) {
+      target = l10n.koEn('내 매장 주변 · 1통', 'Near my store · 1');
+    } else {
+      target = '${_selectedFlag} ${_selectedCountry}'.trim();
+    }
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.coupon.withValues(alpha: 0.35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(bizCategoryEmoji(_brandBizCategory),
+                  style: const TextStyle(fontSize: 20)),
+              const SizedBox(width: 8),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.coupon.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  catLabel,
+                  style: const TextStyle(
+                    color: AppColors.coupon,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            content.isEmpty ? l10n.composeEmptyError : content,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 14,
+              height: 1.45,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              const Icon(Icons.send_rounded,
+                  size: 15, color: AppColors.textSecondary),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  target,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

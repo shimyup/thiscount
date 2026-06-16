@@ -800,8 +800,9 @@ class _CompactSendHeader extends StatelessWidget {
         SizedBox(
           width: double.infinity,
           child: FilledButton.icon(
+            // Build 470: 발송은 단계화된 ComposeScreen 하나로 통일(혜택→대상→확인).
             onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-              builder: (_) => const BrandQuickSendWizard(),
+              builder: (_) => const ComposeScreen(),
             )),
             icon: const Text('📣', style: TextStyle(fontSize: 16)),
             label: Text(

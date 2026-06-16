@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
 import '../../state/app_state.dart';
-import '../brand/brand_quick_send_wizard.dart';
+import '../compose/screens/compose_screen.dart';
 import '../premium/premium_screen.dart';
 
 /// Build 456: 로그인 후 1회 노출되는 **티어별 투어** (3장).
@@ -266,7 +266,7 @@ class _TierTourScreenState extends State<TierTourScreen> {
                           if (!mounted) return;
                           Navigator.of(context).pushReplacement(
                             MaterialPageRoute(
-                              builder: (_) => const BrandQuickSendWizard(),
+                              builder: (_) => const ComposeScreen(),
                             ),
                           );
                         },
