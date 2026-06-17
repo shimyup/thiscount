@@ -2598,9 +2598,9 @@ class _ComposeScreenState extends State<ComposeScreen>
 
   Widget _buildComposeStepBar(AppL10n l10n) {
     final labels = [
-      l10n.koEn('혜택', 'Offer'),
-      l10n.koEn('대상', 'Target'),
-      l10n.koEn('확인', 'Review'),
+      l10n.composeStepOffer,
+      l10n.composeStepTarget,
+      l10n.composeStepReview,
     ];
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
@@ -2680,7 +2680,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(13)),
               ),
-              child: Text(l10n.koEn('이전', 'Back')),
+              child: Text(l10n.composeBack),
             ),
             const SizedBox(width: 10),
           ],
@@ -2702,7 +2702,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                           borderRadius: BorderRadius.circular(14)),
                     ),
                     child: Text(
-                      l10n.koEn('다음', 'Next'),
+                      l10n.next,
                       style: const TextStyle(
                           fontSize: 15, fontWeight: FontWeight.w800),
                     ),
@@ -2724,18 +2724,19 @@ class _ComposeScreenState extends State<ComposeScreen>
     // 대상 요약.
     String target;
     if (_isAutoZoneMode) {
-      target = l10n.koEn(
-          '자동발송 · ${_zoneRadius >= 1000 ? '${(_zoneRadius / 1000).toStringAsFixed(0)}km' : '${_zoneRadius.round()}m'}',
-          'Auto-send · ${_zoneRadius >= 1000 ? '${(_zoneRadius / 1000).toStringAsFixed(0)}km' : '${_zoneRadius.round()}m'}');
+      final radius = _zoneRadius >= 1000
+          ? '${(_zoneRadius / 1000).toStringAsFixed(0)}km'
+          : '${_zoneRadius.round()}m';
+      target = '${l10n.composeModeAutoSend} · $radius';
     } else if (_isBulkMode) {
       final n = _isRandom
           ? _sendPerCountry
           : _bulkTargets.length * _sendPerCountry;
-      target = l10n.koEn('대량 발송 · $n통', 'Bulk · $n');
+      target = '${l10n.composeModeBulk} · ${l10n.composeCountUnit(n)}';
     } else if (_isExactDropped) {
-      target = l10n.koEn('정밀 위치', 'Precise location');
+      target = l10n.composeExactDropToggle;
     } else if (_destIsMyStore) {
-      target = l10n.koEn('내 매장 주변 · 1통', 'Near my store · 1');
+      target = '${l10n.composeDestNearStore} · 1';
     } else {
       target = '${_selectedFlag} ${_selectedCountry}'.trim();
     }
@@ -3349,7 +3350,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                         Text(
                           !_isRandom
                               ? (_destIsMyStore
-                                  ? '${CountryL10n.localizedName(_selectedCountry, langCode)} · ${l10n.koEn('내 매장 주변', 'Near my store')}'
+                                  ? '${CountryL10n.localizedName(_selectedCountry, langCode)} · ${l10n.composeDestNearStore}'
                                   : CountryL10n.localizedName(
                                       _selectedCountry, langCode,
                                     ))

@@ -696,8 +696,8 @@ class AppL10n {
     'th': 'ชื่อผู้ใช้',
   });
   String get selectCountry => _t({
-    'ko': '나라 선택',
-    'en': 'Select Country',
+    'ko': '국가 선택',
+    'en': 'Select country',
     'ja': '国を選択',
     'zh': '选择国家',
     'fr': 'Choisir le pays',
@@ -5257,21 +5257,71 @@ class AppL10n {
     'th': 'ปลายทางรางวัล',
   });
 
+  // Build 470: 발송 마법사 단계/네비 라벨 — 14언어(koEn 대체).
+  String get composeStepOffer => _t({
+    'ko': '혜택', 'en': 'Offer', 'ja': '特典', 'zh': '优惠', 'fr': 'Offre',
+    'de': 'Angebot', 'es': 'Oferta', 'pt': 'Oferta', 'ru': 'Предложение',
+    'tr': 'Teklif', 'ar': 'العرض', 'it': 'Offerta', 'hi': 'ऑफर', 'th': 'ข้อเสนอ',
+  });
+  String get composeStepTarget => _t({
+    'ko': '대상', 'en': 'Target', 'ja': '対象', 'zh': '对象', 'fr': 'Cible',
+    'de': 'Ziel', 'es': 'Destino', 'pt': 'Alvo', 'ru': 'Кому', 'tr': 'Hedef',
+    'ar': 'الهدف', 'it': 'Destinatari', 'hi': 'लक्ष्य', 'th': 'กลุ่มเป้าหมาย',
+  });
+  String get composeStepReview => _t({
+    'ko': '확인', 'en': 'Review', 'ja': '確認', 'zh': '确认', 'fr': 'Vérifier',
+    'de': 'Prüfen', 'es': 'Revisar', 'pt': 'Revisar', 'ru': 'Проверка',
+    'tr': 'İncele', 'ar': 'مراجعة', 'it': 'Verifica', 'hi': 'समीक्षा', 'th': 'ตรวจสอบ',
+  });
+  String get composeBack => _t({
+    'ko': '이전', 'en': 'Back', 'ja': '戻る', 'zh': '上一步', 'fr': 'Retour',
+    'de': 'Zurück', 'es': 'Atrás', 'pt': 'Voltar', 'ru': 'Назад', 'tr': 'Geri',
+    'ar': 'رجوع', 'it': 'Indietro', 'hi': 'वापस', 'th': 'ย้อนกลับ',
+  });
+  String get composeModeBulk => _t({
+    'ko': '대량 발송', 'en': 'Bulk send', 'ja': '一括送信', 'zh': '批量发送',
+    'fr': 'Envoi en masse', 'de': 'Massenversand', 'es': 'Envío masivo',
+    'pt': 'Envio em massa', 'ru': 'Массовая рассылка', 'tr': 'Toplu gönderim',
+    'ar': 'إرسال جماعي', 'it': 'Invio in massa', 'hi': 'बल्क भेजना', 'th': 'ส่งจำนวนมาก',
+  });
+  String get composeModeAutoSend => _t({
+    'ko': '자동발송', 'en': 'Auto-send', 'ja': '自動送信', 'zh': '自动发送',
+    'fr': 'Envoi auto', 'de': 'Auto-Versand', 'es': 'Envío auto',
+    'pt': 'Envio auto', 'ru': 'Авторассылка', 'tr': 'Otomatik gönderim',
+    'ar': 'إرسال تلقائي', 'it': 'Invio automatico', 'hi': 'ऑटो-सेंड', 'th': 'ส่งอัตโนมัติ',
+  });
+  // Build 470: 목적지 '매장 근처' 라벨 — 14언어(이전 koEn 대체).
+  String get composeDestNearStore => _t({
+    'ko': '매장 근처',
+    'en': 'Near store',
+    'ja': '店舗の近く',
+    'zh': '店铺附近',
+    'fr': 'Près du magasin',
+    'de': 'In Ladennähe',
+    'es': 'Cerca de la tienda',
+    'pt': 'Perto da loja',
+    'ru': 'Рядом с магазином',
+    'tr': 'Mağaza yakını',
+    'ar': 'قرب المتجر',
+    'it': 'Vicino al negozio',
+    'hi': 'दुकान के पास',
+    'th': 'ใกล้ร้าน',
+  });
   String get composeRandom => _t({
-    'ko': '랜덤',
-    'en': 'Random',
-    'ja': 'ランダム',
-    'zh': '随机',
-    'fr': 'Aléatoire',
-    'de': 'Zufällig',
-    'es': 'Aleatorio',
-    'pt': 'Aleatório',
-    'ru': 'Случайно',
-    'tr': 'Rastgele',
-    'ar': 'عشوائي',
-    'it': 'Casuale',
-    'hi': 'रैंडम',
-    'th': 'สุ่ม',
+    'ko': '랜덤 국가',
+    'en': 'Random country',
+    'ja': 'ランダムな国',
+    'zh': '随机国家',
+    'fr': 'Pays aléatoire',
+    'de': 'Zufälliges Land',
+    'es': 'País aleatorio',
+    'pt': 'País aleatório',
+    'ru': 'Случайная страна',
+    'tr': 'Rastgele ülke',
+    'ar': 'دولة عشوائية',
+    'it': 'Paese casuale',
+    'hi': 'रैंडम देश',
+    'th': 'ประเทศสุ่ม',
   });
 
   String get composeSomewhereInWorld => _t({
@@ -5776,20 +5826,20 @@ class AppL10n {
   });
 
   String get composeExactDropToggle => _t({
-    'ko': '🎯 정확한 위치 지정',
-    'en': '🎯 Exact location',
-    'ja': '🎯 正確な位置',
-    'zh': '🎯 精确位置',
-    'fr': '🎯 Emplacement précis',
-    'de': '🎯 Genauer Standort',
-    'es': '🎯 Ubicación exacta',
-    'pt': '🎯 Local exato',
-    'ru': '🎯 Точное место',
-    'tr': '🎯 Tam konum',
-    'ar': '🎯 موقع دقيق',
-    'it': '🎯 Posizione esatta',
-    'hi': '🎯 सटीक स्थान',
-    'th': '🎯 ตำแหน่งที่แม่นยำ',
+    'ko': '위치 지정',
+    'en': 'Pin location',
+    'ja': '位置を指定',
+    'zh': '指定位置',
+    'fr': 'Choisir l\'emplacement',
+    'de': 'Ort festlegen',
+    'es': 'Fijar ubicación',
+    'pt': 'Definir local',
+    'ru': 'Указать место',
+    'tr': 'Konum seç',
+    'ar': 'تحديد الموقع',
+    'it': 'Scegli posizione',
+    'hi': 'स्थान चुनें',
+    'th': 'ปักหมุดตำแหน่ง',
   });
   // 🎟 브랜드 홍보 티켓형 팝업 (Build 107) — 로그인 후 1회/세션
   String get brandTicketTopLabel => _t({
