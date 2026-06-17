@@ -1428,23 +1428,55 @@ class _ComposeScreenState extends State<ComposeScreen>
   // Build 414: AI 쿠폰 생성 버튼 (Brand 전용, 함수 설정 시).
   Widget _buildAICouponButton(BuildContext context) {
     final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 8, bottom: 2),
-        child: TextButton.icon(
-          onPressed: _isGeneratingAI ? null : () => _showAICouponDialog(context),
-          icon: _isGeneratingAI
-              ? const SizedBox(
-                  width: 14,
-                  height: 14,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Text('✨', style: TextStyle(fontSize: 14)),
-          label: Text(l10n.composeAIGenerate),
-          style: TextButton.styleFrom(
-            foregroundColor: AppColors.teal,
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+    // Build 472 (사용자 요청 — 가시성): 작은 텍스트 링크 → 테두리+틴트 칩으로
+    //   격상. 본문 입력 위에서 'AI 생성'이 명확히 눈에 띄도록 굵은 글씨·아이콘.
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap:
+              _isGeneratingAI ? null : () => _showAICouponDialog(context),
+          child: Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+            decoration: BoxDecoration(
+              color: AppColors.teal.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppColors.teal.withValues(alpha: 0.6),
+                width: 1.3,
+              ),
+            ),
+            child: Row(
+              children: [
+                _isGeneratingAI
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.teal,
+                        ),
+                      )
+                    : const Text('✨', style: TextStyle(fontSize: 16)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.composeAIGenerate,
+                    style: const TextStyle(
+                      color: AppColors.teal,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.auto_awesome_rounded,
+                    color: AppColors.teal, size: 17),
+              ],
+            ),
           ),
         ),
       ),
@@ -3869,10 +3901,10 @@ class _ComposeScreenState extends State<ComposeScreen>
                   ],
                 ),
               ),
-              if (_charCount == 0 && !_isReply)
-                _buildDailyPromptChip(paper.inkColor),
+              // Build 472: '오늘의 영감'(daily prompt chip) 제거 — 캠페인 작성에선
+              //   불필요한 영감 문구가 본문 입력 집중을 흐트림(사용자 요청).
               // Build 414: AI 쿠폰 생성 (Brand + 함수 설정 시). 업종/타입 기반으로
-              //   LLM(ko→Solar 국산 / 그 외→Gemini)이 카피·혜택 초안을 채운다.
+              //   LLM(Gemini)이 카피·혜택 초안을 채운다.
               if (context.read<AppState>().currentUser.isBrand &&
                   CouponAIService.isAvailable)
                 _buildAICouponButton(context),
