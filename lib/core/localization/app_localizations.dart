@@ -8974,6 +8974,24 @@ class AppL10n {
     'th': 'ใช้แล้ว',
   });
 
+  // Build 474: 받은함 티켓 카드 '사용하기' CTA — 누르면 리딤 상세(코드) 열림.
+  String get inboxUseCta => _t({
+    'ko': '사용하기',
+    'en': 'Use',
+    'ja': '使う',
+    'zh': '使用',
+    'fr': 'Utiliser',
+    'de': 'Nutzen',
+    'es': 'Usar',
+    'pt': 'Usar',
+    'ru': 'Исп.',
+    'tr': 'Kullan',
+    'ar': 'استخدم',
+    'it': 'Usa',
+    'hi': 'उपयोग',
+    'th': 'ใช้',
+  });
+
   String get inboxAlreadyUsed => _t({
     'ko': '이미 사용',
     'en': 'Used',

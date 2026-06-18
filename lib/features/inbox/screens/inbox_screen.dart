@@ -2160,10 +2160,12 @@ class _InboxTab extends StatelessWidget {
     // 교환권). 각 그룹 위에 작은 섹션 헤더를 끼워 넣어 시각 분리. 특정 필터
     // 가 켜져 있으면 그룹이 1개뿐이라 헤더 없이 평이한 리스트.
     final List<_InboxRow> rows = _buildRows(letters, l10n);
-    // Build 466 (실기 피드백): 카테고리 필터를 상단→하단 바로 이동(상단 UI 과밀
-    //   /겹침 해소). 필터 바는 이 Column 의 마지막 child(하단 바)로 배치.
+    // Build 474 (사용자 요청): 카테고리 필터 바를 받은함 최상단으로 이동(한 곳만).
+    //   보낸 탭은 이미 상단 배치라 일관성 확보. (Build 466 에서 하단으로 내렸던
+    //   것을 되돌림 — 티켓 카드 재디자인으로 상단 과밀 우려가 해소됨.)
     return Column(
       children: [
+        _LetterFilterBar(activeFilter: activeFilter, onChanged: onFilterChanged),
         if (letters.isEmpty)
           Expanded(
             child: Builder(
@@ -2460,11 +2462,6 @@ class _InboxTab extends StatelessWidget {
             ), // close RefreshIndicator (Build 254 pull-to-refresh)
           ),
         ],
-        // Build 466 (실기 피드백): 카테고리 필터(홍보/할인/교환권 등)를 하단 바로.
-        _LetterFilterBar(
-          activeFilter: activeFilter,
-          onChanged: onFilterChanged,
-        ),
       ],
     );
   }
@@ -2893,6 +2890,325 @@ class _LetterCard extends StatelessWidget {
     return AppColors.teal;
   }
 
+  // ── Build 474: 받은함 티켓 카드 헬퍼 ────────────────────────────────────────
+  /// 카테고리별 색: 할인권=coral / 교환권=lime-teal / 홍보=gold / 메시지=teal.
+  Color get _ticketColor {
+    switch (letter.category) {
+      case LetterCategory.coupon:
+        return AppColors.coupon;
+      case LetterCategory.voucher:
+        return AppColors.teal;
+      case LetterCategory.general:
+        if (letter.senderIsBrand ||
+            letter.letterType == LetterType.brandExpress ||
+            letter.senderTier == LetterSenderTier.premium) {
+          return AppColors.gold;
+        }
+        return AppColors.teal;
+    }
+  }
+
+  /// 카테고리 색 위 버튼/텍스트용 어두운 ink (WCAG 대비).
+  Color _ticketInk(Color c) {
+    if (c == AppColors.gold) return const Color(0xFF1A1300);
+    if (c == AppColors.coupon) return const Color(0xFF3A0010);
+    return AppColors.tealInk; // teal/lime
+  }
+
+  /// 혜택값 추출 실패 시 좌측 패널 큰 이모지(업종/유형 힌트).
+  String get _ticketEmoji {
+    switch (letter.category) {
+      case LetterCategory.coupon:
+        return '🎟';
+      case LetterCategory.voucher:
+        return '🎁';
+      case LetterCategory.general:
+        if (letter.senderIsBrand ||
+            letter.letterType == LetterType.brandExpress) {
+          return '🏢';
+        }
+        if (letter.senderTier == LetterSenderTier.premium) return '📣';
+        return personEmojiForId(letter.senderId);
+    }
+  }
+
+  String _ticketCategoryLabel(AppL10n l10n) {
+    switch (letter.category) {
+      case LetterCategory.coupon:
+        return l10n.inboxFilterCoupon;
+      case LetterCategory.voucher:
+        return l10n.inboxFilterVoucher;
+      case LetterCategory.general:
+        if (letter.senderIsBrand ||
+            letter.letterType == LetterType.brandExpress ||
+            letter.senderTier == LetterSenderTier.premium) {
+          return l10n.inboxBadgePromo;
+        }
+        return l10n.inboxFilterGeneral;
+    }
+  }
+
+  /// AI 추천 모드 시 "왜 이 순서?" 칩 (티켓 우측 상단, 컴팩트).
+  Widget _buildAiReasonChip(AppL10n l10n) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppColors.aiSignalBg,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppColors.aiSignalBorder),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('✨', style: TextStyle(fontSize: 10)),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              aiReasonChip!.text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppColors.aiSignal,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 받은함 '쿠폰 티켓형' 카드 (B 디자인). 좌측 혜택/이모지 패널 + 점선 분리
+  /// + 우측 매장·내용·만료 + '사용하기' CTA. 사용완료/만료는 흐림·취소선.
+  Widget _buildInboxTicket(
+    BuildContext context,
+    AppL10n l10n,
+    String semanticsLabel,
+  ) {
+    final st = context.read<AppState>();
+    final cat = _ticketColor;
+    final unread = _isUnread && !isLocked;
+    final redeemed = st.isLetterRedeemed(letter.id);
+    final expired = letter.isExpired || letter.isRedemptionExpired;
+    final done = redeemed || expired;
+    final isCoupon = letter.category == LetterCategory.coupon ||
+        letter.category == LetterCategory.voucher;
+    final benefit = letter.senderIsBrand ? _extractBenefitBigText(letter) : null;
+    final canUse = isCoupon && letter.senderIsBrand && !done && !isLocked;
+    final ink = _ticketInk(cat);
+    final senderTitle =
+        letter.isAnonymous ? l10n.inboxAnonymousLetter : letter.senderName;
+
+    final card = Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: unread
+              ? cat.withValues(alpha: 0.45)
+              : AppColors.textMuted.withValues(alpha: 0.10),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: unread
+                ? cat.withValues(alpha: 0.14)
+                : Colors.black.withValues(alpha: 0.24),
+            blurRadius: unread ? 16 : 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // 좌측: 혜택값(추출 성공) 또는 큰 이모지 + 카테고리 라벨
+              Container(
+                width: 86,
+                color: cat.withValues(alpha: done ? 0.06 : 0.14),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    benefit != null
+                        ? Text(
+                            benefit,
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: cat,
+                              fontSize: benefit.length >= 4 ? 20 : 26,
+                              fontWeight: FontWeight.w900,
+                              height: 1.0,
+                              letterSpacing: -0.5,
+                            ),
+                          )
+                        : Text(
+                            _ticketEmoji,
+                            style: const TextStyle(fontSize: 30),
+                          ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _ticketCategoryLabel(l10n),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: cat,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // 점선 분리선 (티켓 절취선)
+              _TicketDashLine(
+                color: AppColors.textMuted.withValues(alpha: 0.32),
+              ),
+              // 우측: 매장 + 내용 + 만료/거리 + '사용하기'
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(13, 12, 12, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (aiReasonChip != null) ...[
+                        _buildAiReasonChip(l10n),
+                        const SizedBox(height: 6),
+                      ],
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              senderTitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: unread
+                                    ? AppColors.textPrimary
+                                    : AppColors.textSecondary,
+                                fontSize: 14,
+                                fontWeight: unread
+                                    ? FontWeight.w700
+                                    : FontWeight.w600,
+                                decoration: done
+                                    ? TextDecoration.lineThrough
+                                    : null,
+                                decorationColor: AppColors.textMuted,
+                              ),
+                            ),
+                          ),
+                          if (unread)
+                            Container(
+                              width: 8,
+                              height: 8,
+                              margin: const EdgeInsets.only(left: 6),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: cat,
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        letter.content,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppColors.textMuted,
+                          fontSize: 13,
+                          height: 1.35,
+                          decoration:
+                              done ? TextDecoration.lineThrough : null,
+                          decorationColor: AppColors.textMuted,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              done
+                                  ? (redeemed
+                                      ? l10n.inboxAlreadyUsed
+                                      : l10n
+                                          .letterReadRedemptionExpiredBadge)
+                                  : _buildSmartContextLabel(
+                                      context, letter, l10n),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: AppColors.textMuted,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          if (done)
+                            Icon(
+                              redeemed
+                                  ? Icons.check_circle_rounded
+                                  : Icons.timer_off_rounded,
+                              size: 18,
+                              color: AppColors.textMuted,
+                            )
+                          else if (canUse)
+                            Material(
+                              color: cat,
+                              borderRadius: BorderRadius.circular(10),
+                              clipBehavior: Clip.antiAlias,
+                              child: InkWell(
+                                onTap: onTap,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 9,
+                                  ),
+                                  child: Text(
+                                    l10n.inboxUseCta,
+                                    style: TextStyle(
+                                      color: ink,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )
+                          else
+                            ..._buildSingleContextBadge(letter, l10n),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    return Semantics(
+      button: true,
+      label: semanticsLabel,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Opacity(opacity: done ? 0.6 : 1.0, child: card),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
@@ -2910,6 +3226,12 @@ class _LetterCard extends StatelessWidget {
       letter.senderName,
       preview,
     ].where((s) => s.isNotEmpty).join(', ');
+    // Build 474: 받은함 카드는 '쿠폰 티켓형'(혜택 강조)으로 재디자인. 보낸 카드는
+    //   기존 레이아웃 유지(아래 코드). 티켓: 좌측 혜택값/이모지 패널 + 점선 분리
+    //   + 우측 매장·내용·만료 + '사용하기' CTA. 사용완료/만료는 흐림·취소선.
+    if (isInbox) {
+      return _buildInboxTicket(context, l10n, semanticsLabel);
+    }
     return Semantics(
       button: true,
       label: semanticsLabel,
@@ -3236,6 +3558,44 @@ class _LetterCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Build 474: 티켓 카드 좌/우 패널 사이 세로 절취 점선.
+class _TicketDashLine extends StatelessWidget {
+  final Color color;
+  const _TicketDashLine({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 1,
+      child: CustomPaint(painter: _VDashPainter(color)),
+    );
+  }
+}
+
+class _VDashPainter extends CustomPainter {
+  final Color color;
+  _VDashPainter(this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const dash = 4.0;
+    const gap = 4.0;
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1
+      ..strokeCap = StrokeCap.round;
+    double y = 6;
+    while (y < size.height - 6) {
+      canvas.drawLine(const Offset(0.5, 0).translate(0, y),
+          const Offset(0.5, 0).translate(0, y + dash), paint);
+      y += dash + gap;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _VDashPainter old) => old.color != color;
 }
 
 /// Build 204: 수집첩 동일 분류 그룹 헤더 + 행 모델.
