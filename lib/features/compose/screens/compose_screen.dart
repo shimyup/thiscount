@@ -1058,80 +1058,28 @@ class _ComposeScreenState extends State<ComposeScreen>
     });
   }
 
-  /// Build 321: 자동 발송 zone 등록. compose 의 본문 + redemption + 옵션
-  /// (반경 / 수량) 을 사용해 BrandZoneService.createZone 호출. 이전 별도
-  /// BrandZoneSetupScreen 흐름을 같은 작성 화면에 통합.
-  Future<void> _submitAutoZone(AppState state) async {
-    final l10n = AppL10n.of(state.currentUser.languageCode);
+  /// Build 321/475: 자동 발송 zone 등록. compose 의 본문 + redemption + 옵션
+  /// (반경 / 수량) 으로 BrandZoneService.createZone 호출.
+  /// Build 475: 이전 `_submitAutoZone` 은 zone 만 만들고 캠페인은 발송하지 않아
+  ///   혼선이 있었음. 이제 _onSendInner 의 단건 즉시발송이 끝난 뒤 호출되는
+  ///   best-effort 등록 헬퍼로 변경 — 검증/쿼터/검열·pop/스낵바는 호출부가
+  ///   이미 수행하므로 여기선 zone 생성만 한다. 성공 시 true.
+  Future<bool> _registerAutoZone(AppState state) async {
     final user = state.currentUser;
-    // Build 321 audit: zone 등록 흐름에 isBanned 가드 추가.
-    // 일반 compose 흐름은 이미 가드되지만 zone 분기 (line 1057) 가 banned check
-    // 이전에 분기 → 우회 가능했음.
-    if (user.isBanned) {
-      _showError(l10n.composeBannedAccount);
-      return;
-    }
-    // Build 448: 고정 매장 위치 사용 시 현재 GPS 가 없어도 OK(고정 좌표로 발송).
     final useFixed = _useFixedStoreLocation && state.hasFixedStoreLocation;
-    if (!useFixed && user.latitude == 0 && user.longitude == 0) {
-      _showError(l10n.composeNoLocation);
-      return;
-    }
     final content = _stripBidiControls(_contentController.text.trim());
-    if (content.length < 5) {
-      _showError(l10n.composeMinLengthError(content.length));
-      return;
-    }
-    // Build 449 (sim100 P1): auto-zone 본문도 공개 게시물 — 단건 발송과 동일하게
-    //   금칙어 + PII 검사. 이전엔 zone 분기가 검열을 건너뛰어 무검열 공개됐음.
-    //   redemptionInfo(혜택 안내)도 공개되므로 함께 검사.
-    final zoneCheckText =
-        '$content\n${_redemptionInfoController.text.trim()}';
-    if (_hasBannedWords(zoneCheckText)) {
-      _showError(l10n.composeBannedWordError);
-      return;
-    }
-    final zonePii = _detectPii(zoneCheckText);
-    if (zonePii != null) {
-      final proceed = await _confirmPiiBeforeSend(zonePii);
-      if (!proceed) return;
-    }
     final maxR = _zoneUnlimited
         ? 0
         : int.tryParse(_zoneMaxRedeemsCtrl.text.trim()) ?? 0;
-    if (!_zoneUnlimited && maxR <= 0) {
-      _showError(l10n.zoneCampaignMaxRedeemsHint);
-      return;
-    }
-    // Build 421 (sim-fresh P1): auto-zone 분기가 일반 compose 의 일일/월간 발송
-    //   쿼터 게이트를 건너뛰어, 한도 소진 브랜드도 zone 을 무제한 생성하던 우회
-    //   차단. 일반 send 와 동일 게이트 적용.
-    // Build 425 (sim-fresh3 #35·#36): 일간뿐 아니라 월간 한도까지 보는
-    //   canSendByQuota 로 통일 — 이전엔 월간 소진(일간/초대크레딧 남음) 브랜드가
-    //   auto-zone 생성·단건 발송 게이트를 우회. 버튼 활성 게이트(canSendByQuota)
-    //   와 일치.
-    if (!state.canSendByQuota) {
-      _showError(!state.hasRemainingMonthlyQuota && state.hasRemainingDailyQuota
-          ? state.monthlyLimitExceededMessage
-          : state.dailyLimitExceededMessage);
-      return;
-    }
-    setState(() => _isSending = true);
-    // Build 364 (PR-BB3): try/finally 로 _isSending 항상 reset.
-    //   이전엔 success 후 Navigator.pop 만 호출, error 경로 일부에서만 reset
-    //   → dialog stack 등에서 pop 실패 시 버튼 영구 disable 회귀.
-    String? createdId;
     try {
-      // Build 360 (PR-AA1): zone 1개 = 코드 1개 (zone 으로 발급되는 모든 letter
-      //   가 동일 코드 공유 → 매장 POS 1회 등록). 코드 토글이 ON 이면 생성.
-      // Build 446: 미리보기 카드에 보여준 코드를 그대로 사용 → 발송 전후 일치.
+      // Build 360 (PR-AA1): zone 1개 = 코드 1개. 즉시 발송한 단건과 동일 코드를
+      //   공유하도록 _previewRedemptionCode 를 그대로 사용(매장 POS 1회 등록).
       final zoneCode = _attachRedemptionCode
           ? (_previewRedemptionCode ?? RedemptionCode.generate())
           : null;
-      createdId = await BrandZoneService.instance.createZone(
+      final createdId = await BrandZoneService.instance.createZone(
         brandId: user.id,
         brandName: user.username,
-        // Build 448: 고정 매장 위치 사용 시 그 좌표를 zone 중심으로.
         center: useFixed
             ? LatLng(state.fixedStoreLat!, state.fixedStoreLng!)
             : LatLng(user.latitude, user.longitude),
@@ -1143,20 +1091,10 @@ class _ComposeScreenState extends State<ComposeScreen>
         maxRedeems: maxR,
         redemptionCode: zoneCode,
       );
+      return createdId != null;
     } catch (_) {
-      createdId = null;
-    } finally {
-      if (mounted) setState(() => _isSending = false);
+      return false;
     }
-    if (!mounted) return;
-    if (createdId == null) {
-      _showError(l10n.zoneCampaignSubmitError);
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.zoneCampaignSubmitOk)),
-    );
-    Navigator.of(context).pop();
   }
 
   @override
@@ -1429,8 +1367,9 @@ class _ComposeScreenState extends State<ComposeScreen>
   Widget _buildAICouponButton(BuildContext context) {
     final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
     // Build 472 (가시성): 작은 텍스트 링크 → 테두리+틴트 칩으로 격상.
-    // Build 473 (사용자 요청): 형광 녹색(teal) 가독성 낮음 → 골드(AI/프리미엄
-    //   시맨틱, 어두운 배경에서 또렷) + 본문이 진한 골드라 대비 충분.
+    // Build 475 (사용자 요청): 골드 → 솔리드 블랙 버튼(흰 텍스트/아이콘) — paper
+    //   배경(밝음) 위에서 대비 최대 + 라벨 'AI 추천 캠페인글 생성'으로 명확화.
+    const fg = Colors.white;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Material(
@@ -1442,14 +1381,10 @@ class _ComposeScreenState extends State<ComposeScreen>
               _isGeneratingAI ? null : () => _showAICouponDialog(context),
           child: Container(
             padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: AppColors.gold.withValues(alpha: 0.16),
+              color: Colors.black,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppColors.gold.withValues(alpha: 0.65),
-                width: 1.3,
-              ),
             ),
             child: Row(
               children: [
@@ -1459,23 +1394,22 @@ class _ComposeScreenState extends State<ComposeScreen>
                         height: 16,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: AppColors.gold,
+                          color: fg,
                         ),
                       )
                     : const Text('✨', style: TextStyle(fontSize: 16)),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    l10n.composeAIGenerate,
+                    l10n.composeAICampaignGenerate,
                     style: const TextStyle(
-                      color: AppColors.gold,
+                      color: fg,
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
-                const Icon(Icons.auto_awesome_rounded,
-                    color: AppColors.gold, size: 17),
+                const Icon(Icons.auto_awesome_rounded, color: fg, size: 17),
               ],
             ),
           ),
@@ -1632,11 +1566,36 @@ class _ComposeScreenState extends State<ComposeScreen>
       ));
       return;
     }
-    // Build 321: Brand + 자동 zone 모드 → createZone 분기.
-    // 별도 화면 (BrandZoneSetupScreen) 으로 분리됐던 흐름을 compose 통합.
-    if (_isAutoZoneMode && state.currentUser.isBrand) {
-      await _submitAutoZone(state);
-      return;
+    // Build 321/475: Brand + 자동발송(zone) 모드.
+    // Build 475 (사용자 요청): 이전엔 zone 만 등록하고 작성 중인 캠페인은 발송
+    //   하지 않아 "발송했는데 안 보인다"는 혼선이 있었음. 이제 자동발송을 켜도
+    //   ① 매장 주변에 1통 즉시 발송(아래 단건 경로 재사용) + ② 자동발송 zone 등록
+    //   (발송 성공 후 _registerAutoZone)을 함께 수행한다.
+    final bool autoZone = _isAutoZoneMode && state.currentUser.isBrand;
+    if (autoZone) {
+      final useFixed = _useFixedStoreLocation && state.hasFixedStoreLocation;
+      final double zLat =
+          useFixed ? state.fixedStoreLat! : state.currentUser.latitude;
+      final double zLng =
+          useFixed ? state.fixedStoreLng! : state.currentUser.longitude;
+      if (zLat == 0 && zLng == 0) {
+        _showError(l10n.composeNoLocation);
+        return;
+      }
+      // zone 수량 입력 검증(무제한 아니면 1 이상) — 발송 전에 막는다.
+      final maxR = _zoneUnlimited
+          ? 0
+          : int.tryParse(_zoneMaxRedeemsCtrl.text.trim()) ?? 0;
+      if (!_zoneUnlimited && maxR <= 0) {
+        _showError(l10n.zoneCampaignMaxRedeemsHint);
+        return;
+      }
+      // 즉시 발송 목적지 = 매장(zone 중심). 단건 경로로 진행(bulk/express 무시).
+      _destIsMyStore = true;
+      _selectedCountry = state.currentUser.country;
+      _selectedFlag = state.currentUser.countryFlag;
+      _destLat = zLat;
+      _destLng = zLng;
     }
     final content = _stripBidiControls(_contentController.text.trim());
     // Brand 가 쿠폰/교환권 카테고리로 보낼 때는 본문 대신 "사용 방법" 필드가
@@ -1716,7 +1675,9 @@ class _ComposeScreenState extends State<ComposeScreen>
       setState(() => _isExactDropped = false);
       return;
     }
-    final useExpressSingle = _isExpressMode && !_isBulkMode && !_isReply;
+    // Build 475: 자동발송 모드의 즉시발송은 항상 단건(매장 주변) — express/bulk 무시.
+    final useExpressSingle =
+        _isExpressMode && !_isBulkMode && !_isReply && !autoZone;
     if (useExpressSingle &&
         !state.currentUser.isBrand &&
         !state.canUsePremiumExpress) {
@@ -1726,7 +1687,7 @@ class _ComposeScreenState extends State<ComposeScreen>
     }
 
     // ── 특송 + 대량 동시 모드 ──────────────────────────────────────────────
-    if (_isExpressMode && _isBulkMode && state.currentUser.isBrand) {
+    if (!autoZone && _isExpressMode && _isBulkMode && state.currentUser.isBrand) {
       if (!_isBulkRandom && _bulkTargets.isEmpty) {
         _showError(l10n.composeSelectCountryError);
         return;
@@ -1887,7 +1848,7 @@ class _ComposeScreenState extends State<ComposeScreen>
     }
 
     // ── 대량 발송 모드 ─────────────────────────────────────────────────────
-    if (_isBulkMode && state.currentUser.isBrand) {
+    if (!autoZone && _isBulkMode && state.currentUser.isBrand) {
       if (!_isBulkRandom && _bulkTargets.isEmpty) {
         _showError(l10n.composeSelectCountryError);
         return;
@@ -2096,6 +2057,24 @@ class _ComposeScreenState extends State<ComposeScreen>
       return;
     }
 
+    // Build 475: 자동발송 모드면 즉시발송 성공 후 zone 등록(향후 손님 자동 드롭).
+    //   best-effort — 실패해도 즉시발송은 이미 성공했으므로 안내만 한다.
+    if (autoZone) {
+      final zoneOk = await _registerAutoZone(state);
+      if (!zoneOk && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.koEn(
+              '캠페인은 발송됐지만 자동발송 등록에 실패했어요. 다시 시도해 주세요.',
+              'Campaign sent, but auto-send setup failed. Please try again.',
+            )),
+            backgroundColor: AppColors.gold,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+
     var shouldShowPremiumWelcome = false;
     if (!_isReply && state.isGeneralMember) {
       final prefs = await SharedPreferences.getInstance();
@@ -2135,7 +2114,12 @@ class _ComposeScreenState extends State<ComposeScreen>
           : estMin < 1440
           ? l10n.composeEstHours((estMin / 60).ceil())
           : l10n.composeEstDays((estMin / 1440).ceil());
-      final String mainMsg = _isReply
+      final String mainMsg = autoZone
+          ? l10n.koEn(
+              '캠페인 발송 + 자동발송이 시작됐어요',
+              'Campaign sent · auto-send is now active',
+            )
+          : _isReply
           ? l10n.composeReplySent(widget.replyToName ?? '')
           : useExpressSingle
           ? (_isRandom

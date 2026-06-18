@@ -7878,6 +7878,24 @@ class AppL10n {
     'ar': '✨ إنشاء بالذكاء الاصطناعي', 'it': '✨ Genera con IA',
     'hi': '✨ AI से बनाएं', 'th': '✨ สร้างด้วย AI',
   });
+  // Build 475 (사용자 요청): compose AI 버튼 라벨 — '✨ AI 생성' → 'AI 추천
+  //   캠페인글 생성'(더 명확). 다이얼로그 확인 버튼은 composeAIGenerate 유지.
+  String get composeAICampaignGenerate => _t({
+    'ko': 'AI 추천 캠페인글 생성',
+    'en': 'Generate AI campaign copy',
+    'ja': 'AI キャンペーン文を生成',
+    'zh': '生成 AI 推荐文案',
+    'fr': 'Rédiger la campagne par IA',
+    'de': 'KI-Kampagnentext erstellen',
+    'es': 'Crear texto de campaña con IA',
+    'pt': 'Gerar texto de campanha com IA',
+    'ru': 'AI-текст кампании',
+    'tr': 'AI ile kampanya metni',
+    'ar': 'إنشاء نص الحملة بالذكاء الاصطناعي',
+    'it': 'Genera testo campagna con IA',
+    'hi': 'AI कैम्पेन टेक्स्ट बनाएं',
+    'th': 'สร้างข้อความแคมเปญด้วย AI',
+  });
   String get composeAIGenerateTitle => _t({
     'ko': 'AI 쿠폰 생성', 'en': 'Generate with AI',
     'ja': 'AI クーポン生成', 'zh': 'AI 优惠券生成',
