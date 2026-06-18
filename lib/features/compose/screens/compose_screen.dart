@@ -1428,8 +1428,9 @@ class _ComposeScreenState extends State<ComposeScreen>
   // Build 414: AI 쿠폰 생성 버튼 (Brand 전용, 함수 설정 시).
   Widget _buildAICouponButton(BuildContext context) {
     final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
-    // Build 472 (사용자 요청 — 가시성): 작은 텍스트 링크 → 테두리+틴트 칩으로
-    //   격상. 본문 입력 위에서 'AI 생성'이 명확히 눈에 띄도록 굵은 글씨·아이콘.
+    // Build 472 (가시성): 작은 텍스트 링크 → 테두리+틴트 칩으로 격상.
+    // Build 473 (사용자 요청): 형광 녹색(teal) 가독성 낮음 → 골드(AI/프리미엄
+    //   시맨틱, 어두운 배경에서 또렷) + 본문이 진한 골드라 대비 충분.
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Material(
@@ -1443,10 +1444,10 @@ class _ComposeScreenState extends State<ComposeScreen>
             padding:
                 const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
             decoration: BoxDecoration(
-              color: AppColors.teal.withValues(alpha: 0.16),
+              color: AppColors.gold.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: AppColors.teal.withValues(alpha: 0.6),
+                color: AppColors.gold.withValues(alpha: 0.65),
                 width: 1.3,
               ),
             ),
@@ -1458,7 +1459,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                         height: 16,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: AppColors.teal,
+                          color: AppColors.gold,
                         ),
                       )
                     : const Text('✨', style: TextStyle(fontSize: 16)),
@@ -1467,14 +1468,14 @@ class _ComposeScreenState extends State<ComposeScreen>
                   child: Text(
                     l10n.composeAIGenerate,
                     style: const TextStyle(
-                      color: AppColors.teal,
+                      color: AppColors.gold,
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
                 const Icon(Icons.auto_awesome_rounded,
-                    color: AppColors.teal, size: 17),
+                    color: AppColors.gold, size: 17),
               ],
             ),
           ),

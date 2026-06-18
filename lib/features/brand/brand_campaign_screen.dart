@@ -172,18 +172,8 @@ class _BrandCampaignScreenState extends State<BrandCampaignScreen>
           _buildDmTab(state, l),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.coupon,
-        foregroundColor: AppColors.bgDeep,
-        icon: const Icon(Icons.send_rounded),
-        label: Text(
-          l.brandCampaignQuickSend,
-          style: const TextStyle(fontWeight: FontWeight.w800),
-        ),
-        onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => const ComposeScreen(),
-        )),
-      ),
+      // Build 473 (사용자 요청): 하단 플로팅 발송 버튼 제거 — 발송 진입은 상단
+      //   히어로의 '쿠폰 발송하기' 버튼 하나로 충분(중복 CTA 정리).
     );
   }
 
