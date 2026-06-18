@@ -3560,11 +3560,12 @@ class _UnreadDeliveredMarker extends StatelessWidget {
               alignment: Alignment.center,
               clipBehavior: Clip.none,
               children: [
-                // Build 164: 최단 편지 전용 추가 halo (width 44+pulse, gold)
+                // Build 164: 최단 편지 전용 추가 halo (gold)
+                // Build 476 (마커 다듬기): 마커 크기 상향에 맞춰 halo 48 로.
                 if (isNearest)
                   Container(
-                    width: 44 + pulse * 8,
-                    height: 44 + pulse * 8,
+                    width: 48 + pulse * 8,
+                    height: 48 + pulse * 8,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
@@ -3576,9 +3577,10 @@ class _UnreadDeliveredMarker extends StatelessWidget {
                     ),
                   ),
                 // 맥동 링 — Build 415: rare/epic 이면 희귀도 색으로 글로우.
+                // Build 476 (마커 다듬기): 외곽 tier/희귀도 펄스링 36 으로.
                 Container(
-                  width: 32 + pulse * 6,
-                  height: 32 + pulse * 6,
+                  width: 36 + pulse * 6,
+                  height: 36 + pulse * 6,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
@@ -3588,9 +3590,10 @@ class _UnreadDeliveredMarker extends StatelessWidget {
                   ),
                 ),
                 // 편지함 아이콘 컨테이너 (Build 147: 내부 테두리 = 카테고리 색)
+                // Build 476 (마커 다듬기): 30→34, 이모지 가독성·터치 시인성 상향.
                 Container(
-                  width: 30,
-                  height: 30,
+                  width: 34,
+                  height: 34,
                   decoration: BoxDecoration(
                     color: boxBg,
                     shape: BoxShape.circle,
@@ -3614,8 +3617,9 @@ class _UnreadDeliveredMarker extends StatelessWidget {
                   child: Center(
                     child: Text(
                       mailEmoji,
+                      // Build 476 (마커 다듬기): 14→16 — 카테고리 이모지 가독성.
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 16,
                         shadows: [
                           Shadow(
                             color: ringColor.withValues(alpha: 0.5),
@@ -3634,8 +3638,9 @@ class _UnreadDeliveredMarker extends StatelessWidget {
                     right: -4,
                     child: Text(
                       rarityBadge,
+                      // Build 476 (마커 다듬기): 13→14, 마커 확대에 맞춰 배지도.
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 14,
                         shadows: [
                           Shadow(
                             color: rarityColor.withValues(alpha: 0.9),
