@@ -50,6 +50,11 @@ class StampAlbumScreen extends StatelessWidget {
     }
     final stampList = stamps.values.toList()
       ..sort((a, b) => b.lastReceivedAt.compareTo(a.lastReceivedAt));
+    // Build 477: 진행 바 기준 — 최다 수집 국가 대비 비율(상대 진척).
+    final maxCount = stampList.fold<int>(
+      0,
+      (m, s) => s.count > m ? s.count : m,
+    );
 
     return Scaffold(
       backgroundColor: AppColors.bgDeep,
@@ -86,8 +91,13 @@ class StampAlbumScreen extends StatelessWidget {
                     padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 32),
                     itemCount: stampList.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (context, i) =>
-                        _buildStampRow(context, stampList[i], l, langCode),
+                    itemBuilder: (context, i) => _buildStampRow(
+                      context,
+                      stampList[i],
+                      l,
+                      langCode,
+                      maxCount,
+                    ),
                   ),
                 ),
               ],
@@ -158,81 +168,107 @@ class StampAlbumScreen extends StatelessWidget {
     );
   }
 
-  // ── 스탬프 행 — flag + 국가명 + 편지 수 + 최근 수신일 ──────────────────────
+  // Build 477: 국가별 고정 색(쿠폰 팔레트) — 컬러풀한 우표 수집 느낌.
+  static const List<Color> _stampPalette = [
+    AppColors.coupon, // coral
+    AppColors.teal, // lime-teal
+    AppColors.gold,
+    Color(0xFF5BA4F6), // blue
+    Color(0xFFC77DFF), // purple
+  ];
+
+  // ── 스탬프 행 (Build 477: 쿠폰 티켓형) — 국기 패널 + 절취 점선 + 진행 바 ─────
   Widget _buildStampRow(
     BuildContext context,
     _StampEntry stamp,
     AppL10n l,
     String langCode,
+    int maxCount,
   ) {
+    final color = _stampPalette[stamp.country.hashCode.abs() % _stampPalette.length];
+    final progress = maxCount > 0 ? (stamp.count / maxCount).clamp(0.0, 1.0) : 0.0;
     return Material(
       color: AppColors.bgCard,
       borderRadius: BorderRadius.circular(18),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => _showStampDetail(context, stamp, l, langCode),
-        child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(16, 14, 16, 14),
+        child: IntrinsicHeight(
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 작은 원형 flag
+              // 좌측 국기 패널 (카테고리 색 틴트)
               Container(
-                width: 44,
-                height: 44,
+                width: 60,
                 alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                  color: AppColors.bgSurface,
-                  shape: BoxShape.circle,
-                ),
-                child: Text(stamp.flag, style: const TextStyle(fontSize: 22)),
+                color: color.withValues(alpha: 0.12),
+                child: Text(stamp.flag, style: const TextStyle(fontSize: 30)),
               ),
-              const SizedBox(width: 14),
-              // 국가명 + 메타 (왼쪽)
+              // 절취 점선
+              _StampDashLine(
+                color: AppColors.textMuted.withValues(alpha: 0.32),
+              ),
+              // 국가명 + 최근일 + 진행 바
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      CountryL10n.localizedName(stamp.country, langCode),
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.3,
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 14, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        CountryL10n.localizedName(stamp.country, langCode),
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      _relativeDate(stamp.lastReceivedAt, l),
-                      style: const TextStyle(
-                        color: AppColors.textMuted,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                      const SizedBox(height: 3),
+                      Text(
+                        _relativeDate(stamp.lastReceivedAt, l),
+                        style: const TextStyle(
+                          color: AppColors.textMuted,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(3),
+                        child: LinearProgressIndicator(
+                          value: progress,
+                          minHeight: 5,
+                          backgroundColor: AppColors.bgSurface,
+                          valueColor: AlwaysStoppedAnimation<Color>(color),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              // 카운트 (오른쪽)
-              RichText(
-                textAlign: TextAlign.right,
-                text: TextSpan(
+              // 카운트 (우측)
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(10, 0, 14, 0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    TextSpan(
-                      text: '${stamp.count}',
-                      style: const TextStyle(
-                        color: AppColors.gold,
-                        fontSize: 22,
+                    Text(
+                      '${stamp.count}',
+                      style: TextStyle(
+                        color: color,
+                        fontSize: 20,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.5,
                         height: 1,
                       ),
                     ),
-                    TextSpan(
-                      // Build 409 (sim P2 L233): 영어 전용 'LETTERS' → 현지화.
-                      text: '\n${l.koEn('수집', 'COLLECTED')}',
+                    const SizedBox(height: 2),
+                    Text(
+                      l.koEn('수집', 'COLLECTED'),
                       style: const TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 9,
@@ -432,6 +468,43 @@ class StampAlbumScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+// Build 477: 스탬프 티켓 카드 좌/우 절취 세로 점선.
+class _StampDashLine extends StatelessWidget {
+  final Color color;
+  const _StampDashLine({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 1,
+      child: CustomPaint(painter: _StampDashPainter(color)),
+    );
+  }
+}
+
+class _StampDashPainter extends CustomPainter {
+  final Color color;
+  _StampDashPainter(this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const dash = 4.0;
+    const gap = 4.0;
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1
+      ..strokeCap = StrokeCap.round;
+    double y = 6;
+    while (y < size.height - 6) {
+      canvas.drawLine(Offset(0.5, y), Offset(0.5, y + dash), paint);
+      y += dash + gap;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _StampDashPainter old) => old.color != color;
 }
 
 class _StampEntry {
