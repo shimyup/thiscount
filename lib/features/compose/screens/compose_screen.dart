@@ -1386,7 +1386,10 @@ class _ComposeScreenState extends State<ComposeScreen>
               color: Colors.black,
               borderRadius: BorderRadius.circular(12),
             ),
+            // Build 478 (사용자 요청): 좌측 라벨+우측 아이콘(행처럼 보임) →
+            //   중앙 정렬 솔리드 CTA 버튼 형태로(버튼처럼 또렷).
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _isGeneratingAI
                     ? const SizedBox(
@@ -1397,19 +1400,22 @@ class _ComposeScreenState extends State<ComposeScreen>
                           color: fg,
                         ),
                       )
-                    : const Text('✨', style: TextStyle(fontSize: 16)),
+                    : const Icon(Icons.auto_awesome_rounded, color: fg, size: 18),
                 const SizedBox(width: 8),
-                Expanded(
+                Flexible(
                   child: Text(
                     l10n.composeAICampaignGenerate,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: fg,
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
+                      letterSpacing: 0.2,
                     ),
                   ),
                 ),
-                const Icon(Icons.auto_awesome_rounded, color: fg, size: 17),
               ],
             ),
           ),
@@ -1426,7 +1432,8 @@ class _ComposeScreenState extends State<ComposeScreen>
         TextEditingController(text: state.currentUser.brandName ?? '');
     final descCtrl = TextEditingController();
     const cats = ['cafe', 'food', 'beauty', 'fashion', 'it', 'event', 'other'];
-    String cat = 'other';
+    // Build 478 (사용자 요청): 기본 '기타' 대신 미선택(hint='카테고리') 시작.
+    String? cat;
     final ok = await showDialog<bool>(
       context: context,
       builder: (dctx) => StatefulBuilder(
@@ -1442,17 +1449,29 @@ class _ComposeScreenState extends State<ComposeScreen>
                 decoration: InputDecoration(labelText: l10n.composeAIBusinessName),
               ),
               const SizedBox(height: 10),
+              // Build 478 (사용자 요청): labelText 가 길어 잘리던 문제 →
+              //   짧은 라벨 + 예시 hint 분리, maxLines 3 으로 내용 충분히 노출.
               TextField(
                 controller: descCtrl,
-                maxLines: 2,
+                maxLines: 3,
+                minLines: 2,
                 style: const TextStyle(color: AppColors.textPrimary),
-                decoration: InputDecoration(labelText: l10n.composeAIBusinessDesc),
+                decoration: InputDecoration(
+                  labelText: l10n.composeAIBusinessDescLabel,
+                  hintText: l10n.composeAIBusinessDescHint,
+                  hintMaxLines: 2,
+                  alignLabelWithHint: true,
+                  hintStyle: const TextStyle(color: AppColors.textMuted),
+                ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 14),
+              // Build 478 (사용자 요청): 기본 '기타' 표시 대신 '카테고리' placeholder.
               DropdownButton<String>(
                 value: cat,
                 isExpanded: true,
                 dropdownColor: AppColors.bgCard,
+                hint: Text(l10n.composeAICategoryHint,
+                    style: const TextStyle(color: AppColors.textMuted)),
                 items: cats
                     .map((c) => DropdownMenuItem(
                           value: c,
@@ -1460,7 +1479,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                               style: const TextStyle(color: AppColors.textPrimary)),
                         ))
                     .toList(),
-                onChanged: (v) => setLocal(() => cat = v ?? 'other'),
+                onChanged: (v) => setLocal(() => cat = v),
               ),
             ]),
           ),
@@ -1499,7 +1518,7 @@ class _ComposeScreenState extends State<ComposeScreen>
       businessName: bizName,
       businessDesc: bizDesc,
       type: _brandCategory.key, // general / coupon / voucher
-      category: cat,
+      category: cat ?? 'other',
       langCode: state.currentUser.languageCode,
     );
     if (!mounted) return;

@@ -7911,6 +7911,37 @@ class AppL10n {
     'ar': 'اسم المتجر', 'it': 'Nome attività', 'hi': 'व्यवसाय का नाम',
     'th': 'ชื่อร้าน',
   });
+  // Build 478: AI 다이얼로그 — 짧은 라벨 + 예시 hint 분리(라벨 잘림 방지).
+  String get composeAIBusinessDescLabel => _t({
+    'ko': '설명·목표', 'en': 'Description / goal', 'ja': '説明・目標',
+    'zh': '描述 / 目标', 'fr': 'Description / objectif', 'de': 'Beschreibung / Ziel',
+    'es': 'Descripción / objetivo', 'pt': 'Descrição / objetivo',
+    'ru': 'Описание / цель', 'tr': 'Açıklama / hedef', 'ar': 'الوصف / الهدف',
+    'it': 'Descrizione / obiettivo', 'hi': 'विवरण / लक्ष्य', 'th': 'คำอธิบาย / เป้าหมาย',
+  });
+  String get composeAIBusinessDescHint => _t({
+    'ko': '예: 신메뉴 홍보, 점심 손님 유치',
+    'en': 'e.g., promote new menu, attract lunch customers',
+    'ja': '例: 新メニュー宣伝、ランチ客の獲得',
+    'zh': '如: 推广新菜单、吸引午餐顾客',
+    'fr': 'ex. promouvoir un nouveau menu, attirer la clientèle du midi',
+    'de': 'z. B. neues Menü bewerben, Mittagsgäste gewinnen',
+    'es': 'p. ej., promocionar menú nuevo, atraer clientes del almuerzo',
+    'pt': 'ex.: promover novo menu, atrair clientes do almoço',
+    'ru': 'напр., реклама нового меню, привлечение обеденных гостей',
+    'tr': 'örn. yeni menüyü tanıt, öğle müşterisi çek',
+    'ar': 'مثل الترويج لقائمة جديدة، جذب زبائن الغداء',
+    'it': 'es. promuovere nuovo menu, attirare clienti a pranzo',
+    'hi': 'जैसे नया मेन्यू प्रचार, लंच ग्राहक आकर्षित करना',
+    'th': 'เช่น โปรโมเมนูใหม่ ดึงลูกค้ามื้อเที่ยง',
+  });
+  // Build 478: AI 카테고리 드롭다운 placeholder — 기본 '기타' 대신 '카테고리'.
+  String get composeAICategoryHint => _t({
+    'ko': '카테고리', 'en': 'Category', 'ja': 'カテゴリー', 'zh': '类别',
+    'fr': 'Catégorie', 'de': 'Kategorie', 'es': 'Categoría', 'pt': 'Categoria',
+    'ru': 'Категория', 'tr': 'Kategori', 'ar': 'الفئة', 'it': 'Categoria',
+    'hi': 'श्रेणी', 'th': 'หมวดหมู่',
+  });
   String get composeAIBusinessDesc => _t({
     'ko': '설명·목표 (예: 신메뉴 홍보, 점심 손님 유치)',
     'en': 'Description / goal (e.g., promote new menu)',
@@ -31578,6 +31609,46 @@ class AppL10n {
     'it': 'Ferma',
     'hi': 'रोकें',
     'th': 'หยุด',
+  });
+  // Build 478: 자동발송 zone 관리 메뉴 — 다시 사용하기 / 목록에서 삭제.
+  String get zoneReuseCta => _t({
+    'ko': '다시 사용하기', 'en': 'Reuse', 'ja': '再利用', 'zh': '再次使用',
+    'fr': 'Réutiliser', 'de': 'Erneut nutzen', 'es': 'Reutilizar', 'pt': 'Reutilizar',
+    'ru': 'Повторить', 'tr': 'Yeniden kullan', 'ar': 'إعادة الاستخدام',
+    'it': 'Riusa', 'hi': 'फिर उपयोग करें', 'th': 'ใช้ซ้ำ',
+  });
+  String get zoneDeleteCta => _t({
+    'ko': '목록에서 삭제', 'en': 'Remove from list', 'ja': 'リストから削除',
+    'zh': '从列表删除', 'fr': 'Retirer de la liste', 'de': 'Aus Liste entfernen',
+    'es': 'Quitar de la lista', 'pt': 'Remover da lista', 'ru': 'Убрать из списка',
+    'tr': 'Listeden kaldır', 'ar': 'إزالة من القائمة', 'it': 'Rimuovi dalla lista',
+    'hi': 'सूची से हटाएं', 'th': 'ลบออกจากรายการ',
+  });
+  String get zoneReusedToast => _t({
+    'ko': '새 자동발송을 시작했어요', 'en': 'New auto-send started',
+    'ja': '新しい自動配信を開始しました', 'zh': '已开始新的自动发送',
+    'fr': 'Nouvel envoi automatique lancé', 'de': 'Neuer Auto-Versand gestartet',
+    'es': 'Nuevo envío automático iniciado', 'pt': 'Novo envio automático iniciado',
+    'ru': 'Запущена новая авторассылка', 'tr': 'Yeni otomatik gönderim başladı',
+    'ar': 'بدأ إرسال تلقائي جديد', 'it': 'Nuovo invio automatico avviato',
+    'hi': 'नया ऑटो-सेंड शुरू हुआ', 'th': 'เริ่มส่งอัตโนมัติใหม่แล้ว',
+  });
+  String get zoneReuseFailedToast => _t({
+    'ko': '다시 사용에 실패했어요. 잠시 후 다시 시도해 주세요.',
+    'en': 'Reuse failed. Please try again.', 'ja': '再利用に失敗しました。',
+    'zh': '再次使用失败，请重试。', 'fr': 'Échec de la réutilisation.',
+    'de': 'Wiederverwendung fehlgeschlagen.', 'es': 'Error al reutilizar.',
+    'pt': 'Falha ao reutilizar.', 'ru': 'Не удалось повторить.',
+    'tr': 'Yeniden kullanım başarısız.', 'ar': 'فشلت إعادة الاستخدام.',
+    'it': 'Riutilizzo non riuscito.', 'hi': 'फिर उपयोग विफल।',
+    'th': 'ใช้ซ้ำไม่สำเร็จ',
+  });
+  String get zoneDeletedToast => _t({
+    'ko': '목록에서 제거했어요', 'en': 'Removed from list', 'ja': 'リストから削除しました',
+    'zh': '已从列表移除', 'fr': 'Retiré de la liste', 'de': 'Aus Liste entfernt',
+    'es': 'Quitado de la lista', 'pt': 'Removido da lista', 'ru': 'Убрано из списка',
+    'tr': 'Listeden kaldırıldı', 'ar': 'تمت الإزالة من القائمة',
+    'it': 'Rimosso dalla lista', 'hi': 'सूची से हटाया गया', 'th': 'ลบออกจากรายการแล้ว',
   });
   String get zoneEndedLabel => _t({
     'ko': '종료됨',

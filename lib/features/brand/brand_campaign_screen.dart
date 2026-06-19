@@ -51,6 +51,11 @@ class _BrandCampaignScreenState extends State<BrandCampaignScreen>
   // Build 465 (UX): zone 중단 in-flight 가드 — deactivate 가 최대 10s 네트워크
   //   awaits 동안 무반응/중복탭을 막고, 해당 row 에 스피너 표시.
   final Set<String> _deactivatingZoneIds = {};
+  // Build 478 (사용자 요청): 자동발송 zone '목록에서 삭제' — 서버 delete 는
+  //   firestore.rules(allow delete:false) 로 막혀 있어 로컬 hide 로 구현(영속).
+  //   숨긴 zone 은 목록에서 제외, 활성이면 함께 중지(자동 드롭 정지).
+  static const String _hiddenZonesPrefKey = 'brand_hidden_zone_ids';
+  Set<String> _hiddenZoneIds = {};
 
   @override
   void initState() {
@@ -59,6 +64,7 @@ class _BrandCampaignScreenState extends State<BrandCampaignScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final state = context.read<AppState>();
+      unawaited(_loadHiddenZones());
       // Build 461 (페르소나 높음 — 두 화면 숫자 불일치): 캠페인 탭도 인사이트와
       //   같은 서버 atomic 집계를 사용 — 진입 시 캐시 refresh(notify 로 재빌드).
       unawaited(state.refreshBrandInsightsFromServer());
@@ -71,6 +77,68 @@ class _BrandCampaignScreenState extends State<BrandCampaignScreen>
     final zones = await BrandZoneService.instance
         .zonesForBrand(state.currentUser.id, force: force);
     if (mounted) setState(() => _myZones = zones);
+  }
+
+  // Build 478: 숨긴 zone id 로드(영속) — '목록에서 삭제' 한 zone 제외.
+  Future<void> _loadHiddenZones() async {
+    final prefs = await SharedPreferences.getInstance();
+    final ids = prefs.getStringList(_hiddenZonesPrefKey) ?? const [];
+    if (mounted) setState(() => _hiddenZoneIds = ids.toSet());
+  }
+
+  Future<void> _persistHiddenZones() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_hiddenZonesPrefKey, _hiddenZoneIds.toList());
+  }
+
+  // Build 478: '다시 사용하기' — 같은 내용/반경/혜택/코드로 새 zone 생성(복제).
+  //   서버 expiresAt 연장은 rules 로 막혀 있어(단축만) 부활 대신 신규 생성.
+  Future<void> _reuseZone(BrandZone zone, AppL10n l) async {
+    final state = context.read<AppState>();
+    final newId = await BrandZoneService.instance.createZone(
+      brandId: state.currentUser.id,
+      brandName: state.currentUser.username,
+      center: zone.center,
+      radiusM: zone.radiusM,
+      content: zone.content,
+      redemptionInfo: zone.redemptionInfo,
+      maxRedeems: zone.maxRedeems,
+      redemptionCode: zone.redemptionCode,
+    );
+    if (!mounted) return;
+    if (newId != null) {
+      await _loadMyZones(state, force: true);
+    }
+    if (!mounted) return;
+    _zoneToast(newId != null ? l.zoneReusedToast : l.zoneReuseFailedToast,
+        success: newId != null);
+  }
+
+  // Build 478: '목록에서 삭제' — 활성이면 먼저 중지(자동 드롭 정지) 후 로컬 hide.
+  Future<void> _deleteZoneFromList(BrandZone zone, AppL10n l) async {
+    if (zone.isActive()) {
+      await BrandZoneService.instance.deactivateZone(zone.id);
+    }
+    if (!mounted) return;
+    setState(() => _hiddenZoneIds.add(zone.id));
+    await _persistHiddenZones();
+    if (mounted) await _loadMyZones(context.read<AppState>());
+    if (!mounted) return;
+    _zoneToast(l.zoneDeletedToast, success: true);
+  }
+
+  void _zoneToast(String msg, {required bool success}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg,
+            style: TextStyle(color: success ? AppColors.tealInk : Colors.white)),
+        backgroundColor: success ? AppColors.teal : AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
   @override
@@ -228,26 +296,41 @@ class _BrandCampaignScreenState extends State<BrandCampaignScreen>
         //   최근 픽업 하이라이트 카드 제거(캠페인 리스트가 픽업 수 표시 = 중복).
         //   단골 스탬프 안내는 하단 슬림으로 이동(아래).
         _CompactSendHeader(
-            state: state, l: l, zoneCount: _myZones?.length ?? 0),
+            state: state,
+            l: l,
+            zoneCount: _myZones
+                    ?.where((z) => !_hiddenZoneIds.contains(z.id))
+                    .length ??
+                0),
         const SizedBox(height: 14),
         // Build 461 (페르소나 치명): 자동발송 zone 관리 — 목록/잔여/조기 종료.
-        if (_myZones != null && _myZones!.isNotEmpty) ...[
-          _SectionHeader(
-              title: '${l.zoneSectionHeader} · ${_myZones!.length}'),
-          const SizedBox(height: 8),
-          ..._myZones!.map(
-            (z) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: _ZoneRow(
-                zone: z,
-                l: l,
-                inFlight: _deactivatingZoneIds.contains(z.id),
-                onDeactivate: () => _confirmDeactivateZone(z, l),
+        // Build 478: '목록에서 삭제'(로컬 hide)한 zone 제외.
+        ...(() {
+          final visibleZones = _myZones
+                  ?.where((z) => !_hiddenZoneIds.contains(z.id))
+                  .toList() ??
+              const <BrandZone>[];
+          if (visibleZones.isEmpty) return <Widget>[];
+          return <Widget>[
+            _SectionHeader(
+                title: '${l.zoneSectionHeader} · ${visibleZones.length}'),
+            const SizedBox(height: 8),
+            ...visibleZones.map(
+              (z) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _ZoneRow(
+                  zone: z,
+                  l: l,
+                  inFlight: _deactivatingZoneIds.contains(z.id),
+                  onDeactivate: () => _confirmDeactivateZone(z, l),
+                  onReuse: () => _reuseZone(z, l),
+                  onDelete: () => _deleteZoneFromList(z, l),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-        ],
+            const SizedBox(height: 16),
+          ];
+        })(),
         // Build 446: 카테고리 필터 칩 — 전체/일반/할인권/교환권.
         // Build 459 (UI 다이어트): 캠페인 3건+ 부터 노출 — 0~2건엔 거를 게 없어
         //   신규 사장이 가장 복잡한 화면을 보던 역설 해소.
@@ -1198,11 +1281,16 @@ class _ZoneRow extends StatelessWidget {
   final AppL10n l;
   final bool inFlight;
   final VoidCallback onDeactivate;
+  // Build 478: 자동발송 zone 관리 — 다시 사용하기(복제) / 목록에서 삭제(hide).
+  final VoidCallback onReuse;
+  final VoidCallback onDelete;
   const _ZoneRow({
     required this.zone,
     required this.l,
     this.inFlight = false,
     required this.onDeactivate,
+    required this.onReuse,
+    required this.onDelete,
   });
 
   @override
@@ -1274,44 +1362,81 @@ class _ZoneRow extends StatelessWidget {
               ],
             ),
           ),
-          if (active) ...[
-            const SizedBox(width: 8),
-            // Build 465 (UX): 중단 진행 중이면 스피너(중복탭 방지 + 10s 무반응 해소).
-            if (inFlight)
-              const SizedBox(
-                width: 44,
-                height: 44,
-                child: Center(
-                  child: SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.error,
-                    ),
-                  ),
-                ),
-              )
-            else
-              TextButton(
-                onPressed: onDeactivate,
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.error,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  minimumSize: const Size(44, 44),
-                ),
-                child: Text(
-                  l.zoneStopShort,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
+          const SizedBox(width: 8),
+          // Build 478: 중단 진행 중이면 스피너, 아니면 관리 메뉴(⋮).
+          //   - 활성: 중지 / 다시 사용하기 / 목록에서 삭제
+          //   - 종료됨: 다시 사용하기 / 목록에서 삭제
+          if (inFlight)
+            const SizedBox(
+              width: 44,
+              height: 44,
+              child: Center(
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.error,
                   ),
                 ),
               ),
-          ],
+            )
+          else
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert_rounded,
+                  color: AppColors.textMuted, size: 20),
+              color: AppColors.bgSurface,
+              tooltip: l.koEn('관리', 'Manage'),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              onSelected: (v) {
+                switch (v) {
+                  case 'stop':
+                    onDeactivate();
+                    break;
+                  case 'reuse':
+                    onReuse();
+                    break;
+                  case 'delete':
+                    onDelete();
+                    break;
+                }
+              },
+              itemBuilder: (_) => [
+                if (active)
+                  PopupMenuItem(
+                    value: 'stop',
+                    child: _zoneMenuItem(
+                        Icons.pause_circle_outline_rounded,
+                        l.zoneStopShort,
+                        AppColors.error),
+                  ),
+                PopupMenuItem(
+                  value: 'reuse',
+                  child: _zoneMenuItem(Icons.refresh_rounded, l.zoneReuseCta,
+                      AppColors.gold),
+                ),
+                PopupMenuItem(
+                  value: 'delete',
+                  child: _zoneMenuItem(Icons.delete_outline_rounded,
+                      l.zoneDeleteCta, AppColors.textSecondary),
+                ),
+              ],
+            ),
         ],
       ),
+    );
+  }
+
+  Widget _zoneMenuItem(IconData icon, String label, Color color) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: color),
+        const SizedBox(width: 10),
+        Text(label,
+            style: TextStyle(
+                color: color, fontSize: 13, fontWeight: FontWeight.w700)),
+      ],
     );
   }
 }
