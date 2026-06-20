@@ -786,7 +786,7 @@ class _ComposeScreenState extends State<ComposeScreen>
           _isExpressMode ||
           _bulkTargets.isNotEmpty ||
           (_selectedCountry.isNotEmpty && !_isRandom && !_destIsMyStore) ||
-          _redemptionInfoController.text.trim().isNotEmpty ||
+          _redemptionInfoSafe.isNotEmpty ||
           _attachRedemptionCode ||
           _brandUniquePerUser;
       if (hasState) {
@@ -1085,9 +1085,9 @@ class _ComposeScreenState extends State<ComposeScreen>
             : LatLng(user.latitude, user.longitude),
         radiusM: _zoneRadius,
         content: content,
-        redemptionInfo: _redemptionInfoController.text.trim().isEmpty
+        redemptionInfo: _redemptionInfoSafe.isEmpty
             ? null
-            : _redemptionInfoController.text.trim(),
+            : _redemptionInfoSafe,
         maxRedeems: maxR,
         redemptionCode: zoneCode,
       );
@@ -1265,6 +1265,13 @@ class _ComposeScreenState extends State<ComposeScreen>
     // 한국 휴대전화 (010-1234-5678 / 01012345678 / 010 1234 5678)
     final phoneRegex = RegExp(r'01[016789][\s\-]?\d{3,4}[\s\-]?\d{4}');
     if (phoneRegex.hasMatch(text)) return l10n.piiLabelPhone;
+    // Build 479 (보안 감사 글로벌): 국제 전화(E.164, 선행 + 필수로 오탐 최소)
+    //   예: +1 415 555 0123 / +44-20-7946-0958. 비한국 회원 PII 보호.
+    final intlPhoneRegex = RegExp(r'\+\d{1,3}[\s\-]?\d{2,4}[\s\-]?\d{3,4}[\s\-]?\d{3,4}');
+    if (intlPhoneRegex.hasMatch(text)) return l10n.piiLabelPhone;
+    // Build 479: 이메일 주소(글로벌 공통 PII).
+    final emailRegex = RegExp(r'[\w.+\-]+@[\w\-]+\.[\w.\-]{2,}');
+    if (emailRegex.hasMatch(text)) return l10n.piiLabelEmail;
     // 한국 주민등록번호 (앞6 - 뒤7)
     final rrnRegex = RegExp(r'\b\d{6}[\s\-]\d{7}\b');
     if (rrnRegex.hasMatch(text)) return l10n.piiLabelKrRrn;
@@ -1358,10 +1365,26 @@ class _ComposeScreenState extends State<ComposeScreen>
   static final _bidiControlRe = RegExp(
     // U+202A-U+202E + U+2066-U+2069 — analyzer text_direction 경고 회피용
     // char-code 생성.
-    String.fromCharCodes([0x5B, 0x202A, 0x2D, 0x202E, 0x2066, 0x2D, 0x2069, 0x5D]),
+    // Build 479 (보안 감사): U+200B-U+200F(ZWSP/ZWNJ/ZWJ/LRM/RLM) + U+061C(ALM)
+    //   + U+FEFF(BOM) 추가 — 잔여 방향 마크 + 글자 사이 ZWSP 삽입 금칙어 우회 차단.
+    String.fromCharCodes([
+      0x5B,
+      0x202A, 0x2D, 0x202E,
+      0x2066, 0x2D, 0x2069,
+      0x200B, 0x2D, 0x200F,
+      0x061C,
+      0xFEFF,
+      0x5D,
+    ]),
   );
   static String _stripBidiControls(String input) =>
       input.replaceAll(_bidiControlRe, '');
+
+  /// Build 479 (보안 감사): 쿠폰 사용안내(redemptionInfo)도 공개 게시물 →
+  ///   본문(content)과 동일하게 BIDI 제어문자 정화 후 발송. 이전엔 raw trim 만
+  ///   거쳐 방향 스푸핑/금칙어 우회 여지가 있었음.
+  String get _redemptionInfoSafe =>
+      _stripBidiControls(_redemptionInfoController.text.trim());
 
   // Build 414: AI 쿠폰 생성 버튼 (Brand 전용, 함수 설정 시).
   Widget _buildAICouponButton(BuildContext context) {
@@ -1661,7 +1684,7 @@ class _ComposeScreenState extends State<ComposeScreen>
     // Build 453 (tier-sim P2): redemptionInfo(쿠폰 사용방법/혜택 안내)도 공개
     //   게시물 → 본문과 합쳐 금칙어/PII 검사. 이전엔 단건/특송/대량은 content 만
     //   검사하고 redemptionInfo 는 zone 경로에서만 검사돼 우회됐음.
-    final redemptionExtra = _redemptionInfoController.text.trim();
+    final redemptionExtra = _redemptionInfoSafe;
     final moderationText =
         redemptionExtra.isEmpty ? content : '$content\n$redemptionExtra';
     if (_hasBannedWords(moderationText)) {
@@ -1759,9 +1782,9 @@ class _ComposeScreenState extends State<ComposeScreen>
             category: _brandCategory,
             categoryTag: _brandBizCategory,
             acceptsReplies: _brandAcceptsReplies,
-            redemptionInfo: _redemptionInfoController.text.trim().isEmpty
+            redemptionInfo: _redemptionInfoSafe.isEmpty
                 ? null
-                : _redemptionInfoController.text.trim(),
+                : _redemptionInfoSafe,
             redemptionExpiresAt: _computeRedemptionExpiresAt(),
             campaignId: sharedCampaignId,
             attachRedemptionCode: _attachRedemptionCode,
@@ -1798,9 +1821,9 @@ class _ComposeScreenState extends State<ComposeScreen>
             category: _brandCategory,
             categoryTag: _brandBizCategory,
             acceptsReplies: _brandAcceptsReplies,
-            redemptionInfo: _redemptionInfoController.text.trim().isEmpty
+            redemptionInfo: _redemptionInfoSafe.isEmpty
                 ? null
-                : _redemptionInfoController.text.trim(),
+                : _redemptionInfoSafe,
             redemptionExpiresAt: _computeRedemptionExpiresAt(),
             campaignId: sharedCampaignId,
             attachRedemptionCode: _attachRedemptionCode,
@@ -1899,9 +1922,9 @@ class _ComposeScreenState extends State<ComposeScreen>
           category: _brandCategory,
             categoryTag: _brandBizCategory,
           acceptsReplies: _brandAcceptsReplies,
-          redemptionInfo: _redemptionInfoController.text.trim().isEmpty
+          redemptionInfo: _redemptionInfoSafe.isEmpty
               ? null
-              : _redemptionInfoController.text.trim(),
+              : _redemptionInfoSafe,
           redemptionExpiresAt: _computeRedemptionExpiresAt(),
           attachRedemptionCode: _attachRedemptionCode,
           // Build 446: 미리보기 카드 코드 주입 → 발송 전후 일치.
@@ -2029,9 +2052,9 @@ class _ComposeScreenState extends State<ComposeScreen>
           category: _brandCategory,
             categoryTag: _brandBizCategory,
           acceptsReplies: _brandAcceptsReplies,
-          redemptionInfo: _redemptionInfoController.text.trim().isEmpty
+          redemptionInfo: _redemptionInfoSafe.isEmpty
               ? null
-              : _redemptionInfoController.text.trim(),
+              : _redemptionInfoSafe,
           redemptionExpiresAt: _computeRedemptionExpiresAt(),
           attachRedemptionCode: _attachRedemptionCode,
           // Build 446: 미리보기 카드 코드 주입 → 발송 전후 일치(단건 24h 재사용
@@ -3217,7 +3240,7 @@ class _ComposeScreenState extends State<ComposeScreen>
         _isExpressMode ||
         _bulkTargets.isNotEmpty ||
         (_selectedCountry.isNotEmpty && !_isRandom) ||
-        (_redemptionInfoController.text.trim().isNotEmpty);
+        (_redemptionInfoSafe.isNotEmpty);
     if (!hasContent) {
       Navigator.pop(ctx);
       return;

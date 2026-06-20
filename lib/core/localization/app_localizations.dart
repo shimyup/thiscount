@@ -28271,6 +28271,15 @@ class AppL10n {
     'th': 'หมายเลขบัตร',
   });
 
+  // Build 479 (보안 감사 글로벌): 이메일 PII 라벨.
+  String get piiLabelEmail => _t({
+    'ko': '이메일 주소', 'en': 'Email address', 'ja': 'メールアドレス',
+    'zh': '电子邮箱', 'fr': 'Adresse e-mail', 'de': 'E-Mail-Adresse',
+    'es': 'Correo electrónico', 'pt': 'Endereço de e-mail', 'ru': 'Эл. почта',
+    'tr': 'E-posta adresi', 'ar': 'البريد الإلكتروني', 'it': 'Indirizzo e-mail',
+    'hi': 'ईमेल पता', 'th': 'อีเมล',
+  });
+
   String piiDialogTitle(String label) => _t({
     'ko': '$label 가 포함됐어요',
     'en': '$label detected',

@@ -7571,7 +7571,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
                 rank: 0,
                 level: approxLevel,
                 username: isPublic ? username : null,
-                towerName: towerName,
+                // Build 479 (보안 감사): 쓰기측은 비공개 시 customTowerName 을
+                //   null PATCH(Build 412)하지만, 읽기측이 게이트 없이 파싱해
+                //   pre-412/구버전 doc 의 평문 타워명(실명·상호 가능)이 비공개
+                //   사용자에게도 노출되던 비대칭 → username 과 동일 게이트.
+                towerName: isPublic ? towerName : null,
                 towerColor: towerColorRaw,
                 towerAccentEmoji: towerAccent,
                 towerRoofStyle: parseInt(fields, 'towerRoofStyle'),
@@ -9536,6 +9540,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'profileImagePath',
         'purchase_isPremium',
         'purchase_isBrand',
+        // Build 479 (보안 감사): 결제 예약/구독 만료 prefs — 공유기기에서 A 로그아웃
+        //   후 B 가 A 의 예약 다운그레이드/선물 trial/결제일을 상속(거짓 Premium 또는
+        //   강제 강등)하던 누수. resetForLogout 의 secure/in-mem 정리에 빠져 있던 plain
+        //   prefs 키를 여기 userScoped 정리에 추가. (PrefKeys.purchase* 와 동일 문자열)
+        'purchase_next_billing_date',
+        'purchase_giftExpiry',
+        'purchase_scheduled_plan_change_date',
+        'purchase_scheduled_plan_change_target',
+        'purchase_scheduledDowngrade',
         // Build 414 (sim200 P1-3/P1-4): 계정 전환 누수 잔존 키 추가 —
         //   DM 대화/메시지, 팔로우 브랜드, 사용완료 쿠폰, ExactDrop 유료 크레딧.
         //   in-memory 는 isNewUser 블록에서 clear 하지만 prefs 키가 남으면 다음
