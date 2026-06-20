@@ -83,6 +83,30 @@ const List<LetterFilterType> _visibleFilters = [
   ..._industryFilters,
 ];
 
+// Build 481 (사용자 요청): 받은함 2단 필터 하위(업종) 7-way 키 + 14언어 라벨.
+const List<String> _inboxIndustryKeys = [
+  'food', 'cafe', 'beauty', 'fashion', 'it', 'event', 'other',
+];
+
+String inboxIndustryLabel(String key, AppL10n l) {
+  switch (key) {
+    case 'food':
+      return l.inboxFilterFood;
+    case 'cafe':
+      return l.inboxFilterCafe;
+    case 'beauty':
+      return l.inboxFilterBeauty;
+    case 'fashion':
+      return l.inboxFilterFashion;
+    case 'it':
+      return l.inboxFilterIt;
+    case 'event':
+      return l.inboxFilterEvent;
+    default:
+      return l.inboxFilterOther;
+  }
+}
+
 /// Build 264: 산업군 키워드 사전. letter.content + senderName + redemptionInfo
 /// 안에 키워드 하나라도 있으면 그 산업군에 해당.
 const Map<LetterFilterType, List<String>> _industryKeywords = {
@@ -585,10 +609,17 @@ class _InboxScreenState extends State<InboxScreen>
   int _wantTabLength() {
     final state = context.read<AppState>();
     if (state.currentUser.isBrand) return 2;
-    return state.canUseDM ? 3 : 2;
+    // Build 481 (사용자 요청): 수집첩에서 '보낸' 탭 제거 — 받은(+DM)만.
+    //   Premium=[받은, DM]=2, Free=[받은]=1.
+    return state.canUseDM ? 2 : 1;
   }
   final ScrollController _inboxScrollController = ScrollController();
-  LetterFilterType _inboxFilter = LetterFilterType.all;
+  // Build 481 (사용자 요청): 받은함 2단 다중선택 필터.
+  //   상위(쿠폰 종류): general(메시지·홍보)/coupon(할인권)/voucher(교환권) — 개별 토글.
+  //   하위(업종): food/cafe/beauty/fashion/it/event/other — 개별 토글.
+  //   둘 다 비어 있으면 전체. (이전 단일 select _inboxFilter 대체.)
+  final Set<LetterCategory> _inboxTypes = {};
+  final Set<String> _inboxIndustries = {};
   LetterFilterType _sentFilter = LetterFilterType.all;
   // Build 295: 사용자 선택 정렬 모드. default = 최신순 (기존 동작).
   InboxSortMode _sortMode = InboxSortMode.latest;
@@ -722,7 +753,9 @@ class _InboxScreenState extends State<InboxScreen>
     const double headerH = 36.0; // _CategorySectionHeader 의 vertical 합계 근사
     final unreadLetter = letters[unreadIdx];
     int rowIdx = 0;
-    if (_inboxFilter == LetterFilterType.all) {
+    // Build 481: 그룹 헤더는 필터 미적용(전체) 일 때만 삽입됨.
+    final filterAll = _inboxTypes.isEmpty && _inboxIndustries.isEmpty;
+    if (filterAll) {
       // 일반 → 할인권 → 교환권 순서대로 헤더 + 그룹 letters 누적.
       final order = [
         LetterCategory.general,
@@ -743,7 +776,7 @@ class _InboxScreenState extends State<InboxScreen>
     } else {
       rowIdx = unreadIdx;
     }
-    final isAll = _inboxFilter == LetterFilterType.all;
+    final isAll = filterAll;
     final headerCount = isAll
         ? letters.map((l) => l.category).toSet().take(3).length
         : 0;
@@ -817,6 +850,42 @@ class _InboxScreenState extends State<InboxScreen>
           return true;
       }
     }).toList();
+  }
+
+  // Build 481 (사용자 요청): 받은함 2단 다중선택 필터 적용.
+  //   상위(쿠폰 종류) AND 하위(업종) — 각 집합이 비면 그 축은 통과.
+  bool _matchesAnyInboxIndustry(Letter l) {
+    for (final key in _inboxIndustries) {
+      final ft = _filterTypeFromName(key);
+      if (ft != null && _matchesIndustry(ft, l)) return true;
+    }
+    return false;
+  }
+
+  List<Letter> _applyReceivedFilter(List<Letter> letters) {
+    final searched = _applySearch(letters);
+    if (_inboxTypes.isEmpty && _inboxIndustries.isEmpty) return searched;
+    return searched.where((l) {
+      if (_inboxTypes.isNotEmpty && !_inboxTypes.contains(l.category)) {
+        return false;
+      }
+      if (_inboxIndustries.isNotEmpty && !_matchesAnyInboxIndustry(l)) {
+        return false;
+      }
+      return true;
+    }).toList();
+  }
+
+  void _toggleInboxType(LetterCategory c) {
+    setState(() {
+      if (!_inboxTypes.remove(c)) _inboxTypes.add(c);
+    });
+  }
+
+  void _toggleInboxIndustry(String k) {
+    setState(() {
+      if (!_inboxIndustries.remove(k)) _inboxIndustries.add(k);
+    });
   }
 
   // Build 290 (P1): inbox/sent letter 를 도착(또는 발송) 시각 DESC 로 정렬.
@@ -1141,7 +1210,7 @@ class _InboxScreenState extends State<InboxScreen>
                               },
                             ),
                             _InboxTab(
-                              letters: _applyFilter(
+                              letters: _applyReceivedFilter(
                                 _sortFollowedFirst(
                                   state,
                                   _sortByArrivedDesc(
@@ -1157,13 +1226,15 @@ class _InboxScreenState extends State<InboxScreen>
                                         .toList(),
                                   ),
                                 ),
-                                filter: _inboxFilter,
-                                isInbox: true,
                               ),
-                              activeFilter: _inboxFilter,
-                              onFilterChanged: (next) {
-                                setState(() => _inboxFilter = next);
-                              },
+                              selectedTypes: _inboxTypes,
+                              selectedIndustries: _inboxIndustries,
+                              onToggleType: _toggleInboxType,
+                              onToggleIndustry: _toggleInboxIndustry,
+                              onClearFilters: () => setState(() {
+                                _inboxTypes.clear();
+                                _inboxIndustries.clear();
+                              }),
                               onTap: (letter) =>
                                   _openLetter(context, letter, state),
                               sentSinceLastUnlock: state.sentSinceLastUnlock,
@@ -1175,7 +1246,7 @@ class _InboxScreenState extends State<InboxScreen>
                           ]
                         : [
                             _InboxTab(
-                              letters: _applyFilter(
+                              letters: _applyReceivedFilter(
                                 _sortFollowedFirst(
                                   state,
                                   // Build 324: 정렬 모드 (Build 295 의 sort 필터)
@@ -1194,13 +1265,15 @@ class _InboxScreenState extends State<InboxScreen>
                                         .toList(),
                                   ),
                                 ),
-                                filter: _inboxFilter,
-                                isInbox: true,
                               ),
-                              activeFilter: _inboxFilter,
-                              onFilterChanged: (next) {
-                                setState(() => _inboxFilter = next);
-                              },
+                              selectedTypes: _inboxTypes,
+                              selectedIndustries: _inboxIndustries,
+                              onToggleType: _toggleInboxType,
+                              onToggleIndustry: _toggleInboxIndustry,
+                              onClearFilters: () => setState(() {
+                                _inboxTypes.clear();
+                                _inboxIndustries.clear();
+                              }),
                               onTap: (letter) =>
                                   _openLetter(context, letter, state),
                               sentSinceLastUnlock: state.sentSinceLastUnlock,
@@ -1209,22 +1282,7 @@ class _InboxScreenState extends State<InboxScreen>
                               aiRecommendActive:
                                   _sortMode == InboxSortMode.aiRecommend,
                             ),
-                            _SentTab(
-                              letters: _applyFilter(
-                                _sortByArrivedDesc(
-                                  state,
-                                  state.sent.toList(),
-                                  isInbox: false,
-                                ),
-                                filter: _sentFilter,
-                                isInbox: false,
-                              ),
-                              activeFilter: _sentFilter,
-                              onFilterChanged: (next) {
-                                setState(() => _sentFilter = next);
-                              },
-                            ),
-                            // Build 428 (UX): Premium DM 탭 — 발견성 확보.
+                            // Build 481: '보낸' 탭 제거. Premium 은 DM 탭만 추가.
                             if (state.canUseDM) const _DMTab(),
                           ],
                   ),
@@ -1348,7 +1406,11 @@ class _InboxScreenState extends State<InboxScreen>
                             if (expiring > 0)
                               GestureDetector(
                                 onTap: () => setState(() {
-                                  _inboxFilter = LetterFilterType.coupon;
+                                  // Build 481: 다중선택 — 할인권만 선택.
+                                  _inboxTypes
+                                    ..clear()
+                                    ..add(LetterCategory.coupon);
+                                  _inboxIndustries.clear();
                                   _tabController.animateTo(0);
                                 }),
                                 child: Text(
@@ -1526,7 +1588,7 @@ class _InboxScreenState extends State<InboxScreen>
                       // Build 417 (sim100 P2): 표시 리스트와 동일하게 뮤트필터 +
                       //   _sortFollowedFirst 적용 — 이전엔 미적용 리스트로 인덱스를
                       //   계산해 잘못된 위치로 스크롤됐음.
-                      final letters = _applyFilter(
+                      final letters = _applyReceivedFilter(
                         _sortFollowedFirst(
                           state,
                           _sortByArrivedDesc(
@@ -1540,8 +1602,6 @@ class _InboxScreenState extends State<InboxScreen>
                                 .toList(),
                           ),
                         ),
-                        filter: _inboxFilter,
-                        isInbox: true,
                       );
                       _scrollToFirstUnread(letters);
                     },
@@ -1701,9 +1761,9 @@ class _InboxScreenState extends State<InboxScreen>
                 Tab(text: _l10n(context).inboxTabSent),
                 Tab(text: _l10n(context).inboxTabReceived),
               ]
+            // Build 481: 비-Brand 는 '보낸' 탭 제거 — [받은, (DM)].
             : [
                 Tab(text: _l10n(context).inboxTabReceived),
-                Tab(text: _l10n(context).inboxTabSent),
                 if (canDM) Tab(text: _l10n(context).inboxTabDM),
               ],
       ),
@@ -2091,8 +2151,12 @@ class _QuickMetricTile extends StatelessWidget {
 // ── 받은 편지 탭 ──────────────────────────────────────────────────────────────
 class _InboxTab extends StatelessWidget {
   final List<Letter> letters;
-  final LetterFilterType activeFilter;
-  final ValueChanged<LetterFilterType> onFilterChanged;
+  // Build 481 (사용자 요청): 2단 다중선택 필터 — 상위(쿠폰 종류)/하위(업종).
+  final Set<LetterCategory> selectedTypes;
+  final Set<String> selectedIndustries;
+  final ValueChanged<LetterCategory> onToggleType;
+  final ValueChanged<String> onToggleIndustry;
+  final VoidCallback onClearFilters;
   final void Function(Letter) onTap;
   final int sentSinceLastUnlock;
   final bool canViewNext;
@@ -2103,8 +2167,11 @@ class _InboxTab extends StatelessWidget {
 
   const _InboxTab({
     required this.letters,
-    required this.activeFilter,
-    required this.onFilterChanged,
+    required this.selectedTypes,
+    required this.selectedIndustries,
+    required this.onToggleType,
+    required this.onToggleIndustry,
+    required this.onClearFilters,
     required this.onTap,
     required this.sentSinceLastUnlock,
     required this.canViewNext,
@@ -2112,10 +2179,13 @@ class _InboxTab extends StatelessWidget {
     this.aiRecommendActive = false,
   });
 
-  /// Build 204: 필터=전체일 때 카테고리별 그룹 + 헤더 삽입. 특정 필터일 때는
-  /// 단일 그룹이라 헤더 없이 letter rows 만 반환.
+  bool get _filterActive =>
+      selectedTypes.isNotEmpty || selectedIndustries.isNotEmpty;
+
+  /// Build 204/481: 필터 미적용 시 카테고리별 그룹 + 헤더 삽입. 필터 적용 시
+  /// 평이한 리스트(그룹 헤더 없음).
   List<_InboxRow> _buildRows(List<Letter> source, AppL10n l10n) {
-    if (activeFilter != LetterFilterType.all) {
+    if (_filterActive) {
       return source.map((l) => _InboxLetterRow(l)).toList();
     }
     // 카테고리별 분리 — 원래 정렬 순서(팔로우 우선 + 최신순) 유지.
@@ -2151,6 +2221,22 @@ class _InboxTab extends StatelessWidget {
     return out;
   }
 
+  // Build 481: 빈 상태 안내용 — 선택된 필터 라벨 조합.
+  String _selectedFilterLabel(AppL10n l10n) {
+    final parts = <String>[];
+    for (final t in selectedTypes) {
+      parts.add(switch (t) {
+        LetterCategory.general => l10n.inboxFilterGeneral,
+        LetterCategory.coupon => l10n.inboxFilterCoupon,
+        LetterCategory.voucher => l10n.inboxFilterVoucher,
+      });
+    }
+    for (final k in selectedIndustries) {
+      parts.add(inboxIndustryLabel(k, l10n));
+    }
+    return parts.join(', ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
@@ -2165,7 +2251,13 @@ class _InboxTab extends StatelessWidget {
     //   것을 되돌림 — 티켓 카드 재디자인으로 상단 과밀 우려가 해소됨.)
     return Column(
       children: [
-        _LetterFilterBar(activeFilter: activeFilter, onChanged: onFilterChanged),
+        _ReceivedFilterBar(
+          selectedTypes: selectedTypes,
+          selectedIndustries: selectedIndustries,
+          onToggleType: onToggleType,
+          onToggleIndustry: onToggleIndustry,
+          onClear: onClearFilters,
+        ),
         if (letters.isEmpty)
           Expanded(
             child: Builder(
@@ -2185,12 +2277,12 @@ class _InboxTab extends StatelessWidget {
                   children: [
                     Expanded(
                       child: _EmptyState(
-                        emoji: _emptyEmojiForFilter(activeFilter),
-                        title: activeFilter == LetterFilterType.all
-                            ? l10n.inboxEmptyReceived
-                            : l10n.inboxEmptyForFilter(
-                                _filterName(activeFilter, l10n),
-                              ),
+                        emoji: _filterActive ? '🔍' : '📭',
+                        title: _filterActive
+                            ? l10n.inboxEmptyForFilter(
+                                _selectedFilterLabel(l10n),
+                              )
+                            : l10n.inboxEmptyReceived,
                         subtitle: sub,
                         // Build 428 (UX): 받은 인박스는 '줍기'로 채워지므로 빈 상태
                         //   CTA 를 항상 '지도에서 줍기'로.
@@ -4201,6 +4293,156 @@ class _BrandStatBlock extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// Build 481 (사용자 요청): 받은함 2단 다중선택 필터 바.
+//   상위(쿠폰 종류): 메시지·홍보 / 할인권 / 교환권 — 개별 토글.
+//   하위(업종): 식당/카페/뷰티/패션/IT/행사/기타 — 개별 토글.
+//   둘 다 비면 전체. 'X 해제'로 일괄 초기화.
+class _ReceivedFilterBar extends StatelessWidget {
+  final Set<LetterCategory> selectedTypes;
+  final Set<String> selectedIndustries;
+  final ValueChanged<LetterCategory> onToggleType;
+  final ValueChanged<String> onToggleIndustry;
+  final VoidCallback onClear;
+  const _ReceivedFilterBar({
+    required this.selectedTypes,
+    required this.selectedIndustries,
+    required this.onToggleType,
+    required this.onToggleIndustry,
+    required this.onClear,
+  });
+
+  Widget _chip({
+    required String label,
+    required Color color,
+    required bool selected,
+    required VoidCallback onTap,
+    required bool big,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: Material(
+        color: selected
+            ? color.withValues(alpha: 0.16)
+            : AppColors.bgSurface.withValues(alpha: 0.72),
+        clipBehavior: Clip.antiAlias,
+        shape: StadiumBorder(
+          side: BorderSide(
+            color: selected
+                ? color.withValues(alpha: 0.85)
+                : AppColors.textMuted.withValues(alpha: 0.18),
+            width: selected ? 1.4 : 1.0,
+          ),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+                horizontal: big ? 14 : 12, vertical: big ? 10 : 8),
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: selected ? color : AppColors.textSecondary,
+                fontSize: big ? 13.5 : 12.5,
+                fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                letterSpacing: -0.1,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    final types = <(LetterCategory, String, Color)>[
+      (LetterCategory.general, l.inboxFilterGeneral, AppColors.textSecondary),
+      (LetterCategory.coupon, l.inboxFilterCoupon, AppColors.coupon),
+      (LetterCategory.voucher, l.inboxFilterVoucher, AppColors.teal),
+    ];
+    final anySelected =
+        selectedTypes.isNotEmpty || selectedIndustries.isNotEmpty;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── 상위: 쿠폰 종류 (다중 선택) ──
+        SizedBox(
+          height: 44,
+          child: ShaderMask(
+            shaderCallback: (b) => const LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [Colors.black, Colors.black, Colors.transparent],
+              stops: [0.0, 0.93, 1.0],
+            ).createShader(b),
+            blendMode: BlendMode.dstIn,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 2),
+              children: [
+                for (final t in types)
+                  _chip(
+                    label: t.$2,
+                    color: t.$3,
+                    selected: selectedTypes.contains(t.$1),
+                    onTap: () => onToggleType(t.$1),
+                    big: true,
+                  ),
+                if (anySelected)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 2),
+                    child: TextButton.icon(
+                      onPressed: onClear,
+                      icon: const Icon(Icons.close_rounded, size: 15),
+                      label: Text(l.koEn('해제', 'Clear')),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.textMuted,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        textStyle: const TextStyle(
+                            fontSize: 12.5, fontWeight: FontWeight.w700),
+                        minimumSize: const Size(44, 36),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        // ── 하위: 업종 (다중 선택) ──
+        SizedBox(
+          height: 40,
+          child: ShaderMask(
+            shaderCallback: (b) => const LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [Colors.black, Colors.black, Colors.transparent],
+              stops: [0.0, 0.93, 1.0],
+            ).createShader(b),
+            blendMode: BlendMode.dstIn,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 12, 6),
+              children: [
+                for (final k in _inboxIndustryKeys)
+                  _chip(
+                    label: inboxIndustryLabel(k, l),
+                    color: AppColors.gold,
+                    selected: selectedIndustries.contains(k),
+                    onTap: () => onToggleIndustry(k),
+                    big: false,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
