@@ -13579,6 +13579,46 @@ class AppL10n {
     'th': 'ดูทั้งหมด',
   });
 
+  // Build 480 (글로벌): 지도 업종 필터(Premium) — koEn → 14언어.
+  String get mapInterestFilterTitle => _t({
+    'ko': '업종 카테고리 필터', 'en': 'Category filter', 'ja': '業種カテゴリーフィルター',
+    'zh': '行业类别筛选', 'fr': 'Filtre par catégorie', 'de': 'Kategoriefilter',
+    'es': 'Filtro por categoría', 'pt': 'Filtro por categoria', 'ru': 'Фильтр категорий',
+    'tr': 'Kategori filtresi', 'ar': 'تصفية حسب الفئة', 'it': 'Filtro categoria',
+    'hi': 'श्रेणी फ़िल्टर', 'th': 'ตัวกรองหมวดหมู่',
+  });
+  String get mapInterestFilterDesc => _t({
+    'ko': '선택한 업종의 매장 쿠폰만 지도에 보여요. 업종 미지정 캠페인과 개인 편지는 항상 표시돼요. 모두 해제하면 전체가 보여요.',
+    'en': 'Only store coupons in the selected categories appear on the map. Campaigns without a category and personal letters always show. Clear all to see everything.',
+    'ja': '選択した業種の店舗クーポンのみ地図に表示。業種未指定のキャンペーンと個人レターは常に表示。すべて解除で全体表示。',
+    'zh': '地图仅显示所选行业的门店优惠券。未指定行业的活动和个人信件始终显示。全部清除可查看全部。',
+    'fr': 'Seuls les coupons des catégories sélectionnées apparaissent. Les campagnes sans catégorie et les lettres personnelles restent visibles. Tout effacer pour tout voir.',
+    'de': 'Nur Coupons der gewählten Kategorien erscheinen. Kampagnen ohne Kategorie und persönliche Briefe bleiben sichtbar. Alles löschen zeigt alles.',
+    'es': 'Solo aparecen los cupones de las categorías seleccionadas. Las campañas sin categoría y las cartas personales siempre se muestran. Borra todo para ver todo.',
+    'pt': 'Apenas cupons das categorias selecionadas aparecem. Campanhas sem categoria e cartas pessoais sempre aparecem. Limpe tudo para ver tudo.',
+    'ru': 'На карте показываются только купоны выбранных категорий. Кампании без категории и личные письма видны всегда. Сбросьте всё, чтобы увидеть всё.',
+    'tr': 'Haritada yalnızca seçili kategorilerdeki kuponlar görünür. Kategorisiz kampanyalar ve kişisel mektuplar her zaman görünür. Tümünü temizleyin.',
+    'ar': 'تظهر فقط كوبونات الفئات المحددة على الخريطة. الحملات بدون فئة والرسائل الشخصية تظهر دائمًا. امسح الكل لرؤية الجميع.',
+    'it': 'Sulla mappa appaiono solo i coupon delle categorie selezionate. Le campagne senza categoria e le lettere personali sono sempre visibili. Cancella tutto per vedere tutto.',
+    'hi': 'मानचित्र पर केवल चयनित श्रेणियों के स्टोर कूपन दिखते हैं। बिना श्रेणी वाले कैम्पेन और व्यक्तिगत पत्र हमेशा दिखते हैं। सब हटाएं तो सब दिखेगा।',
+    'th': 'แผนที่จะแสดงเฉพาะคูปองร้านในหมวดที่เลือก แคมเปญที่ไม่ระบุหมวดและจดหมายส่วนตัวจะแสดงเสมอ ล้างทั้งหมดเพื่อดูทั้งหมด',
+  });
+  String get mapInterestFilterUpsell => _t({
+    'ko': '관심 있는 업종의 매장 쿠폰만 지도에 보이게 골라낼 수 있어요. Premium 에서 사용할 수 있어요.',
+    'en': 'Show only the store categories you care about on the map. Available with Premium.',
+    'ja': '関心のある業種の店舗クーポンだけを地図に表示できます。Premium でご利用いただけます。',
+    'zh': '可只在地图上显示你关心的行业门店优惠券。Premium 可用。',
+    'fr': 'Affichez uniquement les catégories de magasins qui vous intéressent. Disponible avec Premium.',
+    'de': 'Zeige nur die Geschäftskategorien, die dich interessieren. Mit Premium verfügbar.',
+    'es': 'Muestra solo las categorías de tiendas que te interesan. Disponible con Premium.',
+    'pt': 'Mostre apenas as categorias de lojas que te interessam. Disponível com Premium.',
+    'ru': 'Показывайте на карте только интересные вам категории магазинов. Доступно в Premium.',
+    'tr': 'Haritada yalnızca ilgilendiğin mağaza kategorilerini göster. Premium ile kullanılabilir.',
+    'ar': 'اعرض فقط فئات المتاجر التي تهمك على الخريطة. متاح مع Premium.',
+    'it': 'Mostra solo le categorie di negozi che ti interessano. Disponibile con Premium.',
+    'hi': 'मानचित्र पर केवल अपनी पसंद की स्टोर श्रेणियाँ दिखाएँ। Premium के साथ उपलब्ध।',
+    'th': 'แสดงเฉพาะหมวดร้านที่คุณสนใจบนแผนที่ ใช้ได้กับ Premium',
+  });
   String get mapZoomIn => _t({
     'ko': '확대',
     'en': 'Zoom In',

@@ -829,13 +829,46 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   ),
                   const SizedBox(height: 14),
                   // Build 457: 관심 카테고리 필터 (Premium 전용) — Free 는 업셀.
-                  _MapQuickActionButton(
-                    icon: state.interestFilterActive
-                        ? Icons.filter_alt_rounded
-                        : Icons.filter_alt_outlined,
-                    tooltip: l10n.koEn('관심 카테고리', 'Interest filter'),
-                    highlighted: state.interestFilterActive,
-                    onTap: () => _openInterestFilter(context, state, l10n),
+                  // Build 480 (발견성): 활성 시 선택 업종 수 배지 노출.
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      _MapQuickActionButton(
+                        icon: state.interestFilterActive
+                            ? Icons.filter_alt_rounded
+                            : Icons.filter_alt_outlined,
+                        tooltip: l10n.mapInterestFilterTitle,
+                        highlighted: state.interestFilterActive,
+                        onTap: () => _openInterestFilter(context, state, l10n),
+                      ),
+                      if (state.interestFilterActive)
+                        PositionedDirectional(
+                          top: -4,
+                          end: -4,
+                          child: Container(
+                            constraints:
+                                const BoxConstraints(minWidth: 18, minHeight: 18),
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.gold,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                  color: AppColors.bgDeep, width: 1.5),
+                            ),
+                            child: Text(
+                              '${state.interestCategoryKeys.length}',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Color(0xFF1A1300),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   _MapQuickActionButton(
@@ -978,12 +1011,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     if (!state.canUseInterestFilter) {
       PremiumGateSheet.show(
         context,
-        featureName: l10n.koEn('관심 카테고리 필터', 'Interest category filter'),
+        featureName: l10n.mapInterestFilterTitle,
         featureEmoji: '🔎',
-        description: l10n.koEn(
-          '관심 있는 업종의 매장 쿠폰만 지도에 보이게 골라낼 수 있어요. Premium 에서 사용할 수 있어요.',
-          'Show only the store categories you care about on the map. Available with Premium.',
-        ),
+        description: l10n.mapInterestFilterUpsell,
       );
       return;
     }
@@ -5559,22 +5589,23 @@ class _InterestFilterSheetState extends State<_InterestFilterSheet> {
     'food', 'cafe', 'beauty', 'fashion', 'event', 'it', 'other',
   ];
 
+  // Build 480 (글로벌): koEn → 인박스 업종 getter(14언어) 재사용.
   String _label(AppL10n l, String key) {
     switch (key) {
       case 'food':
-        return l.koEn('식당/음식', 'Food');
+        return l.inboxFilterFood;
       case 'cafe':
-        return l.koEn('카페', 'Cafe');
+        return l.inboxFilterCafe;
       case 'beauty':
-        return l.koEn('뷰티/미용', 'Beauty');
+        return l.inboxFilterBeauty;
       case 'fashion':
-        return l.koEn('패션/의류', 'Fashion');
+        return l.inboxFilterFashion;
       case 'event':
-        return l.koEn('행사/이벤트', 'Events');
+        return l.inboxFilterEvent;
       case 'it':
-        return l.koEn('IT/전자', 'IT');
+        return l.inboxFilterIt;
       default:
-        return l.koEn('기타', 'Other');
+        return l.inboxFilterOther;
     }
   }
 
@@ -5590,7 +5621,7 @@ class _InterestFilterSheetState extends State<_InterestFilterSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            l.koEn('🔎 관심 카테고리', '🔎 Interest categories'),
+            '🔎 ${l.mapInterestFilterTitle}',
             style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 16,
@@ -5599,10 +5630,7 @@ class _InterestFilterSheetState extends State<_InterestFilterSheet> {
           ),
           const SizedBox(height: 6),
           Text(
-            l.koEn(
-              '선택한 업종의 매장 쿠폰만 지도에 보여요. 업종을 지정하지 않은 캠페인과 개인 편지는 항상 표시돼요. 모두 해제하면 전체가 보여요.',
-              'Only store coupons in the selected categories appear on the map. Campaigns without a category and personal letters always show. Clear all to see everything.',
-            ),
+            l.mapInterestFilterDesc,
             style: const TextStyle(
               color: AppColors.textMuted,
               fontSize: 12,
