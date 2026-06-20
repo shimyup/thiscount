@@ -2207,16 +2207,27 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // 필터 대상 — 업종 미지정 캠페인·개인 편지는 항상 표시. Free 는 잠금(업셀).
   static const String _interestPrefsKey = 'interest_category_keys_v1';
   final Set<String> _interestCategoryKeys = {};
+  // Build 482 (사용자 요청): 지도 필터 상위 티어 — 쿠폰 종류
+  //   ('general'=메시지·홍보 / 'coupon'=할인권 / 'voucher'=교환권), 다중선택.
+  static const String _interestTypePrefsKey = 'interest_type_keys_v1';
+  final Set<String> _interestTypeKeys = {};
 
   Set<String> get interestCategoryKeys =>
       Set.unmodifiable(_interestCategoryKeys);
+  Set<String> get interestTypeKeys => Set.unmodifiable(_interestTypeKeys);
 
-  /// 필터 사용 자격 — Premium 전용 (Free 잠금).
-  bool get canUseInterestFilter => _currentUser.isPremium;
+  /// 필터 사용 자격 — Premium 전용. Build 482: Brand 계정은 지도 필터 제외.
+  bool get canUseInterestFilter =>
+      _currentUser.isPremium && !_currentUser.isBrand;
 
-  /// 필터가 실제로 동작 중인지 (자격 + 1개 이상 선택).
+  /// 필터가 실제로 동작 중인지 (자격 + 1개 이상 선택). Build 482: 종류/업종 둘 중 하나.
   bool get interestFilterActive =>
-      canUseInterestFilter && _interestCategoryKeys.isNotEmpty;
+      canUseInterestFilter &&
+      (_interestCategoryKeys.isNotEmpty || _interestTypeKeys.isNotEmpty);
+
+  /// 활성 필터 칩 총 개수(버튼 배지용).
+  int get interestFilterCount =>
+      _interestTypeKeys.length + _interestCategoryKeys.length;
 
   Future<void> setInterestCategories(Set<String> keys) async {
     _interestCategoryKeys
@@ -2232,13 +2243,39 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
-  /// 이 letter 가 관심 필터를 통과하는가. 필터 비활성/비대상이면 항상 true.
+  // Build 482: 상위(쿠폰 종류) 필터 저장.
+  Future<void> setInterestTypes(Set<String> keys) async {
+    _interestTypeKeys
+      ..clear()
+      ..addAll(keys);
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList(
+          _interestTypePrefsKey, _interestTypeKeys.toList());
+    } catch (e) {
+      if (kDebugMode) debugPrint('[InterestFilter] type save 실패: $e');
+    }
+  }
+
+  /// 이 letter 가 관심 필터를 통과하는가. 필터 비활성이면 항상 true.
+  /// Build 482: 상위(쿠폰 종류, 모든 letter 대상) AND 하위(업종, 브랜드 캠페인 대상).
   bool passesInterestFilter(Letter l) {
     if (!interestFilterActive) return true;
-    if (!l.senderIsBrand) return true; // 개인 편지는 필터 대상 아님
-    final tag = l.categoryTag;
-    if (tag == null || tag.isEmpty) return true; // 업종 미지정 캠페인은 항상 표시
-    return _interestCategoryKeys.contains(tag);
+    // 상위: 쿠폰 종류 — 모든 letter 의 category 기준.
+    if (_interestTypeKeys.isNotEmpty &&
+        !_interestTypeKeys.contains(l.category.key)) {
+      return false;
+    }
+    // 하위: 업종 — 브랜드 캠페인만 대상(개인 편지·업종 미지정은 통과).
+    if (_interestCategoryKeys.isNotEmpty && l.senderIsBrand) {
+      final tag = l.categoryTag;
+      if (tag != null && tag.isNotEmpty &&
+          !_interestCategoryKeys.contains(tag)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   // ── 친구 쿠폰 선물 (Build 453) ─────────────────────────────────────────────
@@ -3740,10 +3777,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _fixedStoreLng = prefs.getDouble('brand_fixed_store_lng');
     // Build 453: 단골 스탬프 카드 복원 (user-scoped — 계정전환 시 정리됨).
     _loadStampCardsFromPrefs(prefs);
-    // Build 457: 관심 카테고리 필터 복원.
+    // Build 457: 관심 카테고리 필터 복원. Build 482: 쿠폰 종류 티어도.
     _interestCategoryKeys
       ..clear()
       ..addAll(prefs.getStringList(_interestPrefsKey) ?? const []);
+    _interestTypeKeys
+      ..clear()
+      ..addAll(prefs.getStringList(_interestTypePrefsKey) ?? const []);
     // 레거시 테스터: 거리 기록이 없을 때, 기존 활동량 기반으로 초기 추정 XP 를
     // 확보해 레벨 라벨이 신규 유저처럼 보이지 않도록 한다. 정확한 누적값은
     // 앞으로의 픽업·발송부터 실측이 덮어쓴다.
@@ -5478,8 +5518,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       // Build 453: 단골 스탬프 in-memory reset (A 의 적립이 B 에게 누수 차단).
       _stampCards.clear();
       _pendingStampCelebration = null;
-      // Build 457: 관심 카테고리 필터 in-memory reset.
+      // Build 457: 관심 카테고리 필터 in-memory reset. Build 482: 쿠폰 종류도.
       _interestCategoryKeys.clear();
+      _interestTypeKeys.clear();
       // Build 415 (sim50 P1/P2): 계정 전환 시 게임화/할당량 카운터 in-memory
       //   reset. 이전엔 streak/주간챌린지/월간·이미지·익스프레스 발송 카운트와
       //   누적 거리(XP 원천)가 다음 계정으로 그대로 넘어가 레벨/한도 누수.
@@ -9504,6 +9545,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'tier_tour_seen_v1',
         // Build 457: 관심 카테고리 필터 — A 의 관심사가 B 에게 상속 차단.
         'interest_category_keys_v1',
+        'interest_type_keys_v1',
         // premium 특급 배송 (premium 사용자 전용)
         'dailyPremiumExpressSentCount',
         'dailyPremiumExpressDateKey',

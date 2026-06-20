@@ -4373,8 +4373,10 @@ class _ReceivedFilterBar extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // ── 상위: 쿠폰 종류 (다중 선택) ──
+        // Build 482 (사용자): height 44 + ListView 세로패딩이 칩(~39px)을 세로로
+        //   잘라 상위 필터 글씨가 잘려 보이던 문제 → 높이 50, 패딩 축소.
         SizedBox(
-          height: 44,
+          height: 50,
           child: ShaderMask(
             shaderCallback: (b) => const LinearGradient(
               begin: Alignment.centerLeft,
@@ -4385,7 +4387,7 @@ class _ReceivedFilterBar extends StatelessWidget {
             blendMode: BlendMode.dstIn,
             child: ListView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 2),
+              padding: const EdgeInsets.fromLTRB(12, 6, 12, 4),
               children: [
                 for (final t in types)
                   _chip(
@@ -4417,7 +4419,7 @@ class _ReceivedFilterBar extends StatelessWidget {
         ),
         // ── 하위: 업종 (다중 선택) ──
         SizedBox(
-          height: 40,
+          height: 44,
           child: ShaderMask(
             shaderCallback: (b) => const LinearGradient(
               begin: Alignment.centerLeft,

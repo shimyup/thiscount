@@ -829,48 +829,52 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   ),
                   const SizedBox(height: 14),
                   // Build 457: 관심 카테고리 필터 (Premium 전용) — Free 는 업셀.
-                  // Build 480 (발견성): 활성 시 선택 업종 수 배지 노출.
-                  Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      _MapQuickActionButton(
-                        icon: state.interestFilterActive
-                            ? Icons.filter_alt_rounded
-                            : Icons.filter_alt_outlined,
-                        tooltip: l10n.mapInterestFilterTitle,
-                        highlighted: state.interestFilterActive,
-                        onTap: () => _openInterestFilter(context, state, l10n),
-                      ),
-                      if (state.interestFilterActive)
-                        PositionedDirectional(
-                          top: -4,
-                          end: -4,
-                          child: Container(
-                            constraints:
-                                const BoxConstraints(minWidth: 18, minHeight: 18),
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 4),
-                            decoration: BoxDecoration(
-                              color: AppColors.gold,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                  color: AppColors.bgDeep, width: 1.5),
-                            ),
-                            child: Text(
-                              '${state.interestCategoryKeys.length}',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Color(0xFF1A1300),
-                                fontSize: 10,
-                                fontWeight: FontWeight.w900,
-                                height: 1.4,
+                  // Build 480 (발견성): 활성 시 선택 수 배지 노출.
+                  // Build 482 (사용자 요청): Brand 계정은 지도 필터 자체를 제외(숨김).
+                  if (!state.currentUser.isBrand) ...[
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        _MapQuickActionButton(
+                          icon: state.interestFilterActive
+                              ? Icons.filter_alt_rounded
+                              : Icons.filter_alt_outlined,
+                          tooltip: l10n.mapInterestFilterTitle,
+                          highlighted: state.interestFilterActive,
+                          onTap: () =>
+                              _openInterestFilter(context, state, l10n),
+                        ),
+                        if (state.interestFilterActive)
+                          PositionedDirectional(
+                            top: -4,
+                            end: -4,
+                            child: Container(
+                              constraints: const BoxConstraints(
+                                  minWidth: 18, minHeight: 18),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.gold,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                    color: AppColors.bgDeep, width: 1.5),
+                              ),
+                              child: Text(
+                                '${state.interestFilterCount}',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Color(0xFF1A1300),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  height: 1.4,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                   _MapQuickActionButton(
                     icon: Icons.public_rounded,
                     tooltip: l10n.mapViewAll,
@@ -5584,10 +5588,36 @@ class _InterestFilterSheet extends StatefulWidget {
 
 class _InterestFilterSheetState extends State<_InterestFilterSheet> {
   late final Set<String> _sel = {...widget.state.interestCategoryKeys};
+  // Build 482 (사용자 요청): 상위 티어 — 쿠폰 종류(메시지·홍보/할인권/교환권).
+  late final Set<String> _selTypes = {...widget.state.interestTypeKeys};
 
   static const List<String> _keys = [
     'food', 'cafe', 'beauty', 'fashion', 'event', 'it', 'other',
   ];
+  // 'general'=메시지·홍보, 'coupon'=할인권, 'voucher'=교환권 (LetterCategory.key).
+  static const List<String> _typeKeys = ['general', 'coupon', 'voucher'];
+
+  String _typeLabel(AppL10n l, String key) {
+    switch (key) {
+      case 'coupon':
+        return l.inboxFilterCoupon;
+      case 'voucher':
+        return l.inboxFilterVoucher;
+      default:
+        return l.inboxFilterGeneral;
+    }
+  }
+
+  Color _typeColor(String key) {
+    switch (key) {
+      case 'coupon':
+        return AppColors.coupon;
+      case 'voucher':
+        return AppColors.teal;
+      default:
+        return AppColors.gold;
+    }
+  }
 
   // Build 480 (글로벌): koEn → 인박스 업종 getter(14언어) 재사용.
   String _label(AppL10n l, String key) {
@@ -5638,6 +5668,69 @@ class _InterestFilterSheetState extends State<_InterestFilterSheet> {
             ),
           ),
           const SizedBox(height: 14),
+          // ── 상위: 쿠폰 종류 (다중 선택) ──
+          Text(
+            l.koEn('종류', 'Type'),
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _typeKeys.map((k) {
+              final on = _selTypes.contains(k);
+              final c = _typeColor(k);
+              return GestureDetector(
+                onTap: () => setState(() {
+                  if (on) {
+                    _selTypes.remove(k);
+                  } else {
+                    _selTypes.add(k);
+                  }
+                }),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 9),
+                  decoration: BoxDecoration(
+                    color: on ? c.withValues(alpha: 0.16) : AppColors.bgSurface,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: on
+                          ? c.withValues(alpha: 0.85)
+                          : AppColors.textMuted.withValues(alpha: 0.25),
+                      width: on ? 1.4 : 1.0,
+                    ),
+                  ),
+                  child: Text(
+                    _typeLabel(l, k),
+                    style: TextStyle(
+                      color: on ? c : AppColors.textSecondary,
+                      fontSize: 13,
+                      fontWeight: on ? FontWeight.w800 : FontWeight.w600,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 16),
+          // ── 하위: 업종 (다중 선택) ──
+          Text(
+            l.koEn('업종', 'Category'),
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -5690,9 +5783,12 @@ class _InterestFilterSheetState extends State<_InterestFilterSheet> {
           const SizedBox(height: 18),
           Row(
             children: [
-              if (_sel.isNotEmpty)
+              if (_sel.isNotEmpty || _selTypes.isNotEmpty)
                 TextButton(
-                  onPressed: () => setState(_sel.clear),
+                  onPressed: () => setState(() {
+                    _sel.clear();
+                    _selTypes.clear();
+                  }),
                   child: Text(
                     l.koEn('모두 해제', 'Clear all'),
                     style: const TextStyle(
@@ -5704,6 +5800,7 @@ class _InterestFilterSheetState extends State<_InterestFilterSheet> {
               const Spacer(),
               FilledButton(
                 onPressed: () async {
+                  await widget.state.setInterestTypes(_selTypes);
                   await widget.state.setInterestCategories(_sel);
                   if (context.mounted) Navigator.of(context).pop();
                 },
