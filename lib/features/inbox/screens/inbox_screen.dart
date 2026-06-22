@@ -748,7 +748,9 @@ class _InboxScreenState extends State<InboxScreen>
     // Build 205.1: 필터=전체 일 때는 카테고리별 그룹 헤더가 사이에 끼어 들어가
     // 단순히 letterIdx × itemH 로 오프셋을 계산하면 헤더 만큼 어긋난다.
     // 이전 카테고리에 속한 letter 개수 + 헤더 1개씩을 더해 실제 row 위치 계산.
-    const double filterBarH = 56.0;
+    // Build 483: 받은함 필터 바가 2단(상위 50 + 하위 44 ≈ 94)으로 커져 스크롤
+    //   오프셋 추정치 56 → 94 로 갱신(첫 안읽음 편지로 스크롤 정확도).
+    const double filterBarH = 94.0;
     const double itemH = 110.0;
     const double headerH = 36.0; // _CategorySectionHeader 의 vertical 합계 근사
     final unreadLetter = letters[unreadIdx];
@@ -4430,7 +4432,8 @@ class _ReceivedFilterBar extends StatelessWidget {
             blendMode: BlendMode.dstIn,
             child: ListView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 12, 6),
+              // Build 483: 상위 행(12)과 좌측 들여쓰기 통일.
+              padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 12, 6),
               children: [
                 for (final k in _inboxIndustryKeys)
                   _chip(

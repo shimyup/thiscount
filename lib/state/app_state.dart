@@ -4475,11 +4475,18 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       //   집/현재 위치가 노출됐음. 익명은 기존대로 destination 으로 collapse,
       //   비익명은 ~110m 좌표화(지도 경로선 표시는 유지, 정밀 PII 제거).
       double coarse(double v) => (v * 1000).round() / 1000;
+      // Build 483 (보안 감사 MED): 익명 letter 는 origin 을 destination 으로
+      //   collapse 하는데 이전엔 origin·dest 둘 다 풀정밀 기록 → '내 주변 broadcast'
+      //   처럼 destination 이 발신자 근처일 때 익명 발신자 GPS 가 ~cm 로 공개
+      //   letters(read:if true) 에 노출. 익명 한정 destination 도 ~110m 좌표화
+      //   (픽업 반경 내라 무해, ExactDrop 정밀발송은 비익명이라 영향 없음).
+      final anonDestLat = coarse(letter.destinationLocation.latitude);
+      final anonDestLng = coarse(letter.destinationLocation.longitude);
       final firestoreOriginLat = isAnon
-          ? letter.destinationLocation.latitude
+          ? anonDestLat
           : coarse(letter.originLocation.latitude);
       final firestoreOriginLng = isAnon
-          ? letter.destinationLocation.longitude
+          ? anonDestLng
           : coarse(letter.originLocation.longitude);
       await FirestoreService.setDocument('letters/${letter.id}', {
         'id': letter.id,
@@ -4490,8 +4497,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'content': letter.content,
         'originLat': firestoreOriginLat,
         'originLng': firestoreOriginLng,
-        'destLat': letter.destinationLocation.latitude,
-        'destLng': letter.destinationLocation.longitude,
+        // Build 483: 익명은 destination 도 좌표화(발신자 GPS 보호), 비익명은
+        //   의도된 목적지(ExactDrop 등 정밀 발송 포함) 풀정밀 유지.
+        'destLat': isAnon ? anonDestLat : letter.destinationLocation.latitude,
+        'destLng': isAnon ? anonDestLng : letter.destinationLocation.longitude,
         'destinationCountry': letter.destinationCountry,
         'destinationCountryFlag': letter.destinationCountryFlag,
         'destinationCity': letter.destinationCity ?? '',
