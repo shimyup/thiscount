@@ -1687,7 +1687,7 @@ class _InboxScreenState extends State<InboxScreen>
                           suffixIcon: _searchQuery.isNotEmpty
                               ? IconButton(
                                   // Build 423 (sim-crosscut P3): a11y 라벨.
-                                  tooltip: l10n.koEn('검색어 지우기', 'Clear search'),
+                                  tooltip: l10n.inboxSearchClear,
                                   icon: const Icon(
                                     Icons.clear_rounded,
                                     color: AppColors.textMuted,
@@ -4405,7 +4405,7 @@ class _ReceivedFilterBar extends StatelessWidget {
                     child: TextButton.icon(
                       onPressed: onClear,
                       icon: const Icon(Icons.close_rounded, size: 15),
-                      label: Text(l.koEn('해제', 'Clear')),
+                      label: Text(l.inboxFilterClear),
                       style: TextButton.styleFrom(
                         foregroundColor: AppColors.textMuted,
                         padding: const EdgeInsets.symmetric(horizontal: 8),

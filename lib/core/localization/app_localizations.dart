@@ -10294,6 +10294,20 @@ class AppL10n {
     'hi': 'हटाएं', 'th': 'ล้าง',
   });
 
+  // Build 484 (글로벌): 받은함 필터 '해제' / 검색 '지우기' — koEn → 14언어.
+  String get inboxFilterClear => _t({
+    'ko': '해제', 'en': 'Clear', 'ja': '解除', 'zh': '清除', 'fr': 'Effacer',
+    'de': 'Entfernen', 'es': 'Quitar', 'pt': 'Limpar', 'ru': 'Сбросить',
+    'tr': 'Kaldır', 'ar': 'مسح', 'it': 'Rimuovi', 'hi': 'हटाएं', 'th': 'ล้าง',
+  });
+  String get inboxSearchClear => _t({
+    'ko': '검색어 지우기', 'en': 'Clear search', 'ja': '検索をクリア',
+    'zh': '清除搜索', 'fr': 'Effacer la recherche', 'de': 'Suche löschen',
+    'es': 'Borrar búsqueda', 'pt': 'Limpar busca', 'ru': 'Очистить поиск',
+    'tr': 'Aramayı temizle', 'ar': 'مسح البحث', 'it': 'Cancella ricerca',
+    'hi': 'खोज साफ़ करें', 'th': 'ล้างการค้นหา',
+  });
+
   /// 카테고리 필터 섹션 헤더 (이전 "산업군" → Build 315 명칭 변경).
   String get inboxCategorySectionTitle => _t({
     'ko': '카테고리',

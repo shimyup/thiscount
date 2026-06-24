@@ -88,14 +88,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     // 1초마다 tickNotifier 갱신 → 편지 마커 위치가 sentAt~arrivalTime 기반으로
     // 부드럽게 이동. Build 300 (HIGH performance audit): inTransit 편지가
     // 없으면 marker 위치가 변하지 않으므로 tick 발화를 skip — CPU/배터리 절약.
-    _positionTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!mounted) return;
-      final state = context.read<AppState>();
-      final hasInTransit = state.worldLetters.any(
-        (l) => l.status == DeliveryStatus.inTransit,
-      );
-      if (hasInTransit) _tickNotifier.value++;
-    });
+    _startPositionTimer();
     // 지도 열릴 때 회원 타워 즉시 로드 + 유저 위치로 자동 이동
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -152,6 +145,19 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     super.dispose();
   }
 
+  // Build 484: position tick 타이머 — inTransit 편지가 있을 때만 매초 발화
+  //   (마커 위치 보간). initState·앱 재개 양쪽에서 동일 사용(중복/회귀 방지).
+  void _startPositionTimer() {
+    _positionTimer?.cancel();
+    _positionTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      final hasInTransit = context.read<AppState>().worldLetters.any(
+            (l) => l.status == DeliveryStatus.inTransit,
+          );
+      if (hasInTransit) _tickNotifier.value++;
+    });
+  }
+
   /// Build 219: 백그라운드에서 복귀할 때 편지가 멈춰 보이지 않도록.
   /// AppState 의 reconcile 은 wall-clock 기반으로 letter status 를 즉시
   /// 캐치업하지만, 지도 위 마커는 별도 vsync 애니메이션이라 OS 가 정지
@@ -167,11 +173,10 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       // position timer 가 OS 에 의해 멈춰 있으면 다시 등록
       // Build 351 (PR-V1 시뮬레이션 P2): cancel + null 명시 — 이전 timer leak 방지.
       if (_positionTimer == null || !_positionTimer!.isActive) {
-        _positionTimer?.cancel();
-        _positionTimer = null;
-        _positionTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-          if (mounted) _tickNotifier.value++;
-        });
+        // Build 484: 재개 시에도 initState 와 동일한 hasInTransit skip 적용
+        //   (이전엔 무조건 매초 _tickNotifier++ → inTransit 0 이어도 앱 재개 후
+        //    매초 전체 마커 rebuild = 배터리/CPU 회귀).
+        _startPositionTimer();
       }
       // 즉시 1회 강제 rebuild → 마커가 새 wall-clock 으로 위치 재계산
       _tickNotifier.value++;
