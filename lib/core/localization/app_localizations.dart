@@ -10556,6 +10556,119 @@ class AppL10n {
     'hi': 'इनबॉक्स से किसी प्रेषक को फॉलो करें\nआपसी फॉलो पर DM शुरू होता है',
     'th': 'ติดตามผู้ส่งจากกล่องรางวัล\nDM จะเปิดเมื่อติดตามกลับ',
   });
+  // Build 485 (UX sim #5): 친구 선물 받기 다이얼로그 — koEn → 14언어(바이럴 루프).
+  String get giftClaimTitle => _t({
+    'ko': '🎁 선물 받기', 'en': '🎁 Claim a gift', 'ja': '🎁 ギフトを受け取る',
+    'zh': '🎁 领取礼物', 'fr': '🎁 Réclamer un cadeau', 'de': '🎁 Geschenk einlösen',
+    'es': '🎁 Reclamar un regalo', 'pt': '🎁 Resgatar presente',
+    'ru': '🎁 Получить подарок', 'tr': '🎁 Hediyeyi al', 'ar': '🎁 استلام هدية',
+    'it': '🎁 Riscatta un regalo', 'hi': '🎁 उपहार लें', 'th': '🎁 รับของขวัญ',
+  });
+  String get giftClaimBody => _t({
+    'ko': '친구가 보낸 선물 코드(또는 메시지 전체)를 붙여넣으세요.',
+    'en': 'Paste the gift code (or the whole message) from your friend.',
+    'ja': '友達から届いたギフトコード（またはメッセージ全文）を貼り付けてください。',
+    'zh': '粘贴朋友发来的礼物码（或整条消息）。',
+    'fr': 'Collez le code cadeau (ou tout le message) de votre ami.',
+    'de': 'Füge den Geschenkcode (oder die ganze Nachricht) deines Freundes ein.',
+    'es': 'Pega el código de regalo (o el mensaje completo) de tu amigo.',
+    'pt': 'Cole o código do presente (ou a mensagem inteira) do seu amigo.',
+    'ru': 'Вставьте подарочный код (или всё сообщение) от друга.',
+    'tr': 'Arkadaşından gelen hediye kodunu (veya tüm mesajı) yapıştır.',
+    'ar': 'الصق رمز الهدية (أو الرسالة كاملة) من صديقك.',
+    'it': 'Incolla il codice regalo (o l\'intero messaggio) del tuo amico.',
+    'hi': 'अपने दोस्त का गिफ्ट कोड (या पूरा संदेश) पेस्ट करें।',
+    'th': 'วางรหัสของขวัญ (หรือข้อความทั้งหมด) จากเพื่อนของคุณ',
+  });
+  String get giftClaimHint => _t({
+    'ko': '선물 코드 붙여넣기', 'en': 'Paste gift code', 'ja': 'ギフトコードを貼り付け',
+    'zh': '粘贴礼物码', 'fr': 'Coller le code cadeau', 'de': 'Geschenkcode einfügen',
+    'es': 'Pegar código de regalo', 'pt': 'Colar código do presente',
+    'ru': 'Вставьте код', 'tr': 'Hediye kodunu yapıştır', 'ar': 'الصق رمز الهدية',
+    'it': 'Incolla il codice', 'hi': 'गिफ्ट कोड पेस्ट करें', 'th': 'วางรหัสของขวัญ',
+  });
+  String get giftClaimChecking => _t({
+    'ko': '확인 중…', 'en': 'Checking…', 'ja': '確認中…', 'zh': '确认中…',
+    'fr': 'Vérification…', 'de': 'Wird geprüft…', 'es': 'Verificando…',
+    'pt': 'Verificando…', 'ru': 'Проверка…', 'tr': 'Kontrol ediliyor…',
+    'ar': 'جارٍ التحقق…', 'it': 'Verifica…', 'hi': 'जाँच हो रही…', 'th': 'กำลังตรวจสอบ…',
+  });
+  String get giftClaimCta => _t({
+    'ko': '받기', 'en': 'Claim', 'ja': '受け取る', 'zh': '领取', 'fr': 'Réclamer',
+    'de': 'Einlösen', 'es': 'Reclamar', 'pt': 'Resgatar', 'ru': 'Получить',
+    'tr': 'Al', 'ar': 'استلام', 'it': 'Riscatta', 'hi': 'लें', 'th': 'รับ',
+  });
+  String get giftClaimSuccess => _t({
+    'ko': '🎁 선물 쿠폰이 수집첩에 도착했어요!',
+    'en': '🎁 Gift coupon added to your collection!',
+    'ja': '🎁 ギフトクーポンがコレクションに届きました！',
+    'zh': '🎁 礼物优惠券已加入您的收藏！',
+    'fr': '🎁 Le coupon cadeau a été ajouté à votre collection !',
+    'de': '🎁 Geschenkgutschein zu deiner Sammlung hinzugefügt!',
+    'es': '🎁 ¡Cupón de regalo añadido a tu colección!',
+    'pt': '🎁 Cupom de presente adicionado à sua coleção!',
+    'ru': '🎁 Подарочный купон добавлен в коллекцию!',
+    'tr': '🎁 Hediye kuponu koleksiyonuna eklendi!',
+    'ar': '🎁 تمت إضافة قسيمة الهدية إلى مجموعتك!',
+    'it': '🎁 Coupon regalo aggiunto alla tua collezione!',
+    'hi': '🎁 उपहार कूपन आपके संग्रह में जुड़ गया!',
+    'th': '🎁 เพิ่มคูปองของขวัญในคอลเลกชันแล้ว!',
+  });
+  String get giftClaimTooltip => _t({
+    'ko': '선물 받기', 'en': 'Claim gift', 'ja': 'ギフトを受け取る', 'zh': '领取礼物',
+    'fr': 'Réclamer un cadeau', 'de': 'Geschenk einlösen', 'es': 'Reclamar regalo',
+    'pt': 'Resgatar presente', 'ru': 'Получить подарок', 'tr': 'Hediyeyi al',
+    'ar': 'استلام هدية', 'it': 'Riscatta regalo', 'hi': 'उपहार लें', 'th': 'รับของขวัญ',
+  });
+  String get giftToFriend => _t({
+    'ko': '친구에게 선물하기', 'en': 'Gift to a friend', 'ja': '友達にギフト',
+    'zh': '送给朋友', 'fr': 'Offrir à un ami', 'de': 'An Freund verschenken',
+    'es': 'Regalar a un amigo', 'pt': 'Presentear um amigo',
+    'ru': 'Подарить другу', 'tr': 'Bir arkadaşa hediye et', 'ar': 'إهداء لصديق',
+    'it': 'Regala a un amico', 'hi': 'दोस्त को उपहार दें', 'th': 'มอบให้เพื่อน',
+  });
+  String giftShareText(String preview, String code) => _t({
+    'ko': '🎁 Thiscount 쿠폰 선물이 도착했어요!\n"$preview"\n앱 수집첩에서 🎁 아이콘을 누르고 아래 코드를 붙여넣으세요.\n선물 코드: $code',
+    'en': '🎁 A Thiscount coupon gift for you!\n"$preview"\nTap the 🎁 icon in the app collection and paste this code.\nGift code: $code',
+    'ja': '🎁 Thiscount クーポンギフトが届きました！\n"$preview"\nアプリのコレクションで🎁アイコンを押し、下のコードを貼り付けてください。\nギフトコード: $code',
+    'zh': '🎁 您收到一份 Thiscount 优惠券礼物！\n"$preview"\n在应用收藏中点击🎁图标并粘贴此码。\n礼物码: $code',
+    'fr': '🎁 Un cadeau coupon Thiscount pour vous !\n"$preview"\nAppuyez sur l\'icône 🎁 dans la collection et collez ce code.\nCode cadeau : $code',
+    'de': '🎁 Ein Thiscount-Gutscheingeschenk für dich!\n"$preview"\nTippe in der Sammlung auf das 🎁-Symbol und füge diesen Code ein.\nGeschenkcode: $code',
+    'es': '🎁 ¡Un regalo de cupón Thiscount para ti!\n"$preview"\nToca el icono 🎁 en la colección y pega este código.\nCódigo de regalo: $code',
+    'pt': '🎁 Um presente de cupom Thiscount para você!\n"$preview"\nToque no ícone 🎁 na coleção e cole este código.\nCódigo do presente: $code',
+    'ru': '🎁 Подарочный купон Thiscount для вас!\n"$preview"\nНажмите значок 🎁 в коллекции и вставьте этот код.\nКод подарка: $code',
+    'tr': '🎁 Sana bir Thiscount kupon hediyesi!\n"$preview"\nKoleksiyonda 🎁 simgesine dokun ve bu kodu yapıştır.\nHediye kodu: $code',
+    'ar': '🎁 هدية قسيمة Thiscount لك!\n"$preview"\nاضغط على أيقونة 🎁 في المجموعة والصق هذا الرمز.\nرمز الهدية: $code',
+    'it': '🎁 Un regalo coupon Thiscount per te!\n"$preview"\nTocca l\'icona 🎁 nella collezione e incolla questo codice.\nCodice regalo: $code',
+    'hi': '🎁 आपके लिए Thiscount कूपन उपहार!\n"$preview"\nसंग्रह में 🎁 आइकन दबाएँ और यह कोड पेस्ट करें।\nगिफ्ट कोड: $code',
+    'th': '🎁 ของขวัญคูปอง Thiscount สำหรับคุณ!\n"$preview"\nแตะไอคอน 🎁 ในคอลเลกชันแล้ววางรหัสนี้\nรหัสของขวัญ: $code',
+  });
+  String inboxStampComplete(String brand) => _t({
+    'ko': '🎉 $brand 단골 스탬프 완성! 보상 쿠폰 도착',
+    'en': '🎉 $brand stamp card complete! Reward arrived',
+    'ja': '🎉 $brand スタンプ完成！特典クーポン到着',
+    'zh': '🎉 $brand 集章完成！奖励优惠券已送达',
+    'fr': '🎉 Carte de tampons $brand complète ! Récompense arrivée',
+    'de': '🎉 $brand Stempelkarte voll! Belohnung erhalten',
+    'es': '🎉 ¡Tarjeta de sellos de $brand completa! Recompensa recibida',
+    'pt': '🎉 Cartão de selos $brand completo! Recompensa chegou',
+    'ru': '🎉 Карта штампов $brand заполнена! Награда получена',
+    'tr': '🎉 $brand damga kartı tamam! Ödül geldi',
+    'ar': '🎉 اكتملت بطاقة طوابع $brand! وصلت المكافأة',
+    'it': '🎉 Tessera timbri $brand completa! Ricompensa arrivata',
+    'hi': '🎉 $brand स्टैम्प कार्ड पूरा! इनाम आ गया',
+    'th': '🎉 สะสมแสตมป์ $brand ครบ! รับคูปองรางวัลแล้ว',
+  });
+  // Build 485 (UX sim #3): DM 빈 화면 시작 CTA — 지도에서 사람 찾기/팔로우.
+  String get inboxNoDMCta => _t({
+    'ko': '지도에서 사람 찾기', 'en': 'Find people on the map',
+    'ja': '地図で人を探す', 'zh': '在地图上找人', 'fr': 'Trouver des gens sur la carte',
+    'de': 'Leute auf der Karte finden', 'es': 'Buscar personas en el mapa',
+    'pt': 'Encontrar pessoas no mapa', 'ru': 'Найти людей на карте',
+    'tr': 'Haritada insanları bul', 'ar': 'ابحث عن أشخاص على الخريطة',
+    'it': 'Trova persone sulla mappa', 'hi': 'मानचित्र पर लोग खोजें',
+    'th': 'ค้นหาผู้คนบนแผนที่',
+  });
 
   String inboxDMChatWith(String name) => _t({
     'ko': '${name}님과 대화',
@@ -13633,6 +13746,74 @@ class AppL10n {
     'hi': 'मानचित्र पर केवल अपनी पसंद की स्टोर श्रेणियाँ दिखाएँ। Premium के साथ उपलब्ध।',
     'th': 'แสดงเฉพาะหมวดร้านที่คุณสนใจบนแผนที่ ใช้ได้กับ Premium',
   });
+  // Build 485 (UX sim Brand): 고정 매장위치 없이 자동발송 시 '현재 위치 등록' 경고.
+  String get zoneNoFixedLocationTitle => _t({
+    'ko': '현재 위치로 등록돼요', 'en': 'Using your current location',
+    'ja': '現在地で登録されます', 'zh': '将以当前位置注册',
+    'fr': 'Position actuelle utilisée', 'de': 'Aktueller Standort wird verwendet',
+    'es': 'Se usará tu ubicación actual', 'pt': 'Usando sua localização atual',
+    'ru': 'Используется текущее местоположение', 'tr': 'Mevcut konumun kullanılıyor',
+    'ar': 'سيتم استخدام موقعك الحالي', 'it': 'Verrà usata la posizione attuale',
+    'hi': 'आपका वर्तमान स्थान उपयोग होगा', 'th': 'จะใช้ตำแหน่งปัจจุบันของคุณ',
+  });
+  String get zoneNoFixedLocationBody => _t({
+    'ko': '매장 위치를 고정하지 않아 지금 계신 위치를 자동발송 중심으로 등록해요. 매장이 아닌 곳이면 설정에서 매장 위치를 먼저 고정하세요.',
+    'en': 'No fixed store location set — your current location will be the auto-send center. If you\'re not at the store, set a fixed store location first.',
+    'ja': '店舗位置が固定されていないため、現在地が自動配信の中心になります。店舗以外なら先に店舗位置を固定してください。',
+    'zh': '未固定门店位置，将以当前位置作为自动发送中心。若不在门店，请先固定门店位置。',
+    'fr': 'Aucune position de magasin fixée — votre position actuelle sera le centre. Si vous n\'êtes pas au magasin, fixez-la d\'abord.',
+    'de': 'Kein fester Geschäftsstandort — dein aktueller Standort wird der Mittelpunkt. Wenn du nicht im Geschäft bist, lege ihn zuerst fest.',
+    'es': 'Sin ubicación de tienda fija: tu ubicación actual será el centro. Si no estás en la tienda, fíjala primero.',
+    'pt': 'Sem local de loja fixo — sua localização atual será o centro. Se não estiver na loja, fixe o local primeiro.',
+    'ru': 'Фиксированный адрес магазина не задан — центром станет ваше текущее местоположение. Если вы не в магазине, сначала задайте адрес.',
+    'tr': 'Sabit mağaza konumu yok — mevcut konumun merkez olacak. Mağazada değilsen önce konumu sabitle.',
+    'ar': 'لا يوجد موقع متجر ثابت — سيكون موقعك الحالي هو المركز. إن لم تكن في المتجر فحدد الموقع أولاً.',
+    'it': 'Nessuna posizione fissa del negozio — la tua posizione attuale sarà il centro. Se non sei al negozio, impostala prima.',
+    'hi': 'कोई स्थिर स्टोर स्थान नहीं — आपका वर्तमान स्थान केंद्र होगा। यदि आप स्टोर पर नहीं हैं तो पहले स्थान तय करें।',
+    'th': 'ยังไม่ได้ตั้งตำแหน่งร้าน จะใช้ตำแหน่งปัจจุบันเป็นศูนย์กลาง หากไม่ได้อยู่ที่ร้านให้ตั้งตำแหน่งก่อน',
+  });
+  String get composeSendAnyway => _t({
+    'ko': '이대로 발송', 'en': 'Send anyway', 'ja': 'このまま送信', 'zh': '仍然发送',
+    'fr': 'Envoyer quand même', 'de': 'Trotzdem senden', 'es': 'Enviar igualmente',
+    'pt': 'Enviar mesmo assim', 'ru': 'Всё равно отправить', 'tr': 'Yine de gönder',
+    'ar': 'إرسال على أي حال', 'it': 'Invia comunque', 'hi': 'फिर भी भेजें', 'th': 'ส่งต่อไป',
+  });
+  // Build 485 (UX sim #6): 지도 필터 시트 섹션/액션 — koEn → 14언어.
+  String get mapFilterTypeSection => _t({
+    'ko': '종류', 'en': 'Type', 'ja': '種類', 'zh': '类型', 'fr': 'Type',
+    'de': 'Art', 'es': 'Tipo', 'pt': 'Tipo', 'ru': 'Тип', 'tr': 'Tür',
+    'ar': 'النوع', 'it': 'Tipo', 'hi': 'प्रकार', 'th': 'ประเภท',
+  });
+  String get mapFilterCategorySection => _t({
+    'ko': '업종', 'en': 'Category', 'ja': '業種', 'zh': '行业', 'fr': 'Catégorie',
+    'de': 'Kategorie', 'es': 'Categoría', 'pt': 'Categoria', 'ru': 'Категория',
+    'tr': 'Kategori', 'ar': 'الفئة', 'it': 'Categoria', 'hi': 'श्रेणी', 'th': 'หมวด',
+  });
+  String get commonApply => _t({
+    'ko': '적용', 'en': 'Apply', 'ja': '適用', 'zh': '应用', 'fr': 'Appliquer',
+    'de': 'Anwenden', 'es': 'Aplicar', 'pt': 'Aplicar', 'ru': 'Применить',
+    'tr': 'Uygula', 'ar': 'تطبيق', 'it': 'Applica', 'hi': 'लागू करें', 'th': 'ใช้',
+  });
+  String get commonClearAll => _t({
+    'ko': '모두 해제', 'en': 'Clear all', 'ja': 'すべて解除', 'zh': '全部清除',
+    'fr': 'Tout effacer', 'de': 'Alle löschen', 'es': 'Borrar todo',
+    'pt': 'Limpar tudo', 'ru': 'Сбросить всё', 'tr': 'Tümünü temizle',
+    'ar': 'مسح الكل', 'it': 'Cancella tutto', 'hi': 'सब हटाएं', 'th': 'ล้างทั้งหมด',
+  });
+
+  // Build 485 (UX sim #2): 지도 필터가 모든 마커를 숨겼을 때 안내(빈 지도 오인 방지).
+  String get mapFilterNoResults => _t({
+    'ko': '필터에 맞는 혜택이 없어요', 'en': 'No rewards match your filter',
+    'ja': 'フィルターに合う特典がありません', 'zh': '没有符合筛选的优惠',
+    'fr': 'Aucune récompense ne correspond au filtre',
+    'de': 'Keine Belohnungen passen zum Filter',
+    'es': 'Ninguna recompensa coincide con el filtro',
+    'pt': 'Nenhuma recompensa corresponde ao filtro',
+    'ru': 'Нет наград по фильтру', 'tr': 'Filtreye uygun ödül yok',
+    'ar': 'لا مكافآت تطابق الفلتر', 'it': 'Nessun premio corrisponde al filtro',
+    'hi': 'फ़िल्टर से मेल खाते कोई रिवॉर्ड नहीं', 'th': 'ไม่มีรางวัลที่ตรงกับตัวกรอง',
+  });
+
   String get mapZoomIn => _t({
     'ko': '확대',
     'en': 'Zoom In',
@@ -15751,25 +15932,26 @@ class AppL10n {
     'th': 'รางวัลนี้ถูกอ่านแล้ว $maxReaders คน 📪',
   });
 
-  String get stateDistanceTooFar => _t({
-    'ko': '📍 혜택 수령지 2km 이내에 있어야 받을 수 있어요',
-    'en':
-        '📍 You must be within 2km of the reward\'s destination to pick it up',
-    'ja': '📍 特典の受取地点から2km以内にいる必要があります',
-    'zh': '📍 您需要在优惠券目的地2km范围内才能领取',
+  // Build 485 (UX sim #1): '2km' 하드코딩 제거 — 실제 등급별 줍기 반경($radius)을
+  //   주입(Free 200m·Premium 1km·레벨보너스). 거짓 안내(2km) 회귀 차단.
+  String stateDistanceTooFar(String radius) => _t({
+    'ko': '📍 혜택 수령지 $radius 이내에 있어야 받을 수 있어요',
+    'en': '📍 You must be within $radius of the reward\'s destination to pick it up',
+    'ja': '📍 特典の受取地点から$radius以内にいる必要があります',
+    'zh': '📍 您需要在优惠券目的地$radius范围内才能领取',
     'fr':
-        '📍 Vous devez être à moins de 2 km de la destination pour récupérer le coupon',
+        '📍 Vous devez être à moins de $radius de la destination pour récupérer le coupon',
     'de':
-        '📍 Sie müssen innerhalb von 2 km vom Couponziel sein, um ihn abzuholen',
-    'es': '📍 Debes estar a menos de 2 km del destino para recoger la recompensa',
-    'pt': '📍 Você precisa estar a menos de 2 km do destino para pegar a recompensa',
-    'ru': '📍 Вы должны быть в пределах 2 км от адресата, чтобы забрать награда',
-    'tr': '📍 Kuponu almak için 2 km içinde olmalısınız',
-    'ar': '📍 يجب أن تكون على بعد 2 كم من وجهة المكافأة لاستلامها',
+        '📍 Sie müssen innerhalb von $radius vom Couponziel sein, um ihn abzuholen',
+    'es': '📍 Debes estar a menos de $radius del destino para recoger la recompensa',
+    'pt': '📍 Você precisa estar a menos de $radius do destino para pegar a recompensa',
+    'ru': '📍 Вы должны быть в пределах $radius от адресата, чтобы забрать награду',
+    'tr': '📍 Kuponu almak için $radius içinde olmalısınız',
+    'ar': '📍 يجب أن تكون على بعد $radius من وجهة المكافأة لاستلامها',
     'it':
-        '📍 Devi essere entro 2 km dalla destinazione per ritirare il coupon',
-    'hi': '📍 पुरस्कार लेने के लिए गंतव्य के 2km के भीतर होना आवश्यक है',
-    'th': '📍 ต้องอยู่ภายในระยะ 2 กม. จากจุดหมายรางวัลจึงจะเก็บได้',
+        '📍 Devi essere entro $radius dalla destinazione per ritirare il coupon',
+    'hi': '📍 पुरस्कार लेने के लिए गंतव्य के $radius के भीतर होना आवश्यक है',
+    'th': '📍 ต้องอยู่ภายในระยะ $radius จากจุดหมายรางวัลจึงจะเก็บได้',
   });
 
   String get stateDmReply1 => _t({

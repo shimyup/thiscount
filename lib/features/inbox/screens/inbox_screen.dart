@@ -1052,7 +1052,7 @@ class _InboxScreenState extends State<InboxScreen>
             borderRadius: BorderRadius.circular(18),
           ),
           title: Text(
-            l10n.koEn('🎁 선물 받기', '🎁 Claim a gift'),
+            l10n.giftClaimTitle,
             style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 16,
@@ -1064,10 +1064,7 @@ class _InboxScreenState extends State<InboxScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                l10n.koEn(
-                  '친구가 보낸 선물 코드(또는 메시지 전체)를 붙여넣으세요.',
-                  'Paste the gift code (or the whole message) from your friend.',
-                ),
+                l10n.giftClaimBody,
                 style: const TextStyle(
                   color: AppColors.textMuted,
                   fontSize: 12,
@@ -1085,7 +1082,7 @@ class _InboxScreenState extends State<InboxScreen>
                   fontSize: 13,
                 ),
                 decoration: InputDecoration(
-                  hintText: l10n.koEn('선물 코드 붙여넣기', 'Paste gift code'),
+                  hintText: l10n.giftClaimHint,
                   hintStyle: const TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 12,
@@ -1136,10 +1133,7 @@ class _InboxScreenState extends State<InboxScreen>
                       ScaffoldMessenger.of(this.context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            l10n.koEn(
-                              '🎁 선물 쿠폰이 수집첩에 도착했어요!',
-                              '🎁 Gift coupon added to your collection!',
-                            ),
+                            l10n.giftClaimSuccess,
                             style: const TextStyle(
                               color: AppColors.bgDeep,
                               fontWeight: FontWeight.w700,
@@ -1159,8 +1153,8 @@ class _InboxScreenState extends State<InboxScreen>
               ),
               child: Text(
                 claiming
-                    ? l10n.koEn('확인 중…', 'Checking…')
-                    : l10n.koEn('받기', 'Claim'),
+                    ? l10n.giftClaimChecking
+                    : l10n.giftClaimCta,
                 style: const TextStyle(fontWeight: FontWeight.w800),
               ),
             ),
@@ -1562,7 +1556,7 @@ class _InboxScreenState extends State<InboxScreen>
                 // Build 453 (친구 선물): 선물 코드 입력 — 친구가 공유한 쿠폰 받기.
                 IconButton(
                   onPressed: () => _showGiftClaimDialog(context),
-                  tooltip: l10n.koEn('선물 받기', 'Claim gift'),
+                  tooltip: l10n.giftClaimTooltip,
                   icon: const Icon(
                     Icons.card_giftcard_rounded,
                     color: AppColors.textSecondary,
@@ -2464,10 +2458,7 @@ class _InboxTab extends StatelessWidget {
                           SnackBar(
                             content: Text(
                               celebrated != null
-                                  ? l10n.koEn(
-                                      '🎉 ${celebrated.brandName} 단골 스탬프 완성! 보상 쿠폰 도착',
-                                      '🎉 ${celebrated.brandName} stamp card complete! Reward arrived',
-                                    )
+                                  ? l10n.inboxStampComplete(celebrated.brandName)
                                   : l10n.inboxMarkedUsed,
                             ),
                             backgroundColor: celebrated != null
@@ -5308,6 +5299,28 @@ class _DMTab extends StatelessWidget {
                       color: AppColors.textMuted,
                       fontSize: 13,
                       height: 1.6,
+                    ),
+                  ),
+                ),
+                // Build 485 (UX sim #3): DM 시작 경로 안내 — 지도로 이동해 사람
+                //   찾기/팔로우(이전엔 시작법 안내 없어 막다른길).
+                const SizedBox(height: 20),
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.of(ctx).pushNamedAndRemoveUntil(
+                    '/home',
+                    (route) => false,
+                  ),
+                  icon: const Icon(Icons.map_outlined, size: 18),
+                  label: Text(l10n.inboxNoDMCta),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.gold,
+                    side: BorderSide(
+                      color: AppColors.gold.withValues(alpha: 0.6),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 18, vertical: 11),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),

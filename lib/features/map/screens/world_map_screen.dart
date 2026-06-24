@@ -502,6 +502,58 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 right: 0,
                 child: const _MapHeader(),
               ),
+            // Build 485 (UX sim #2): 관심 필터가 모든 마커를 숨겼을 때 안내 —
+            //   '왜 안 보이지?'(네트워크/위치 오류 오인) 막다른길 해소 + 1탭 해제.
+            if (widget.showChrome &&
+                state.interestFilterActive &&
+                filteredLetters.isEmpty &&
+                letters.isNotEmpty)
+              Positioned(
+                top: 92,
+                left: 16,
+                right: 16,
+                child: SafeArea(
+                  bottom: false,
+                  child: GestureDetector(
+                    onTap: () {
+                      state.setInterestTypes({});
+                      state.setInterestCategories({});
+                    },
+                    child: AppCard.accent(
+                      color: AppColors.gold,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 11),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.filter_alt_off_rounded,
+                              color: AppColors.gold, size: 18),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              l10n.mapFilterNoResults,
+                              style: const TextStyle(
+                                color: AppColors.gold,
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            l10n.commonClearAll,
+                            style: TextStyle(
+                              color: AppColors.gold.withValues(alpha: 0.85),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             // Build 271: 위치 권한 거부 시 영구 배너 — 사용자가 "왜 핀이 안 보이지?"
             // 같은 혼란 차단. 탭 시 앱 설정 진입.
             if (widget.showChrome && _locationPermissionDenied)
@@ -5675,7 +5727,7 @@ class _InterestFilterSheetState extends State<_InterestFilterSheet> {
           const SizedBox(height: 14),
           // ── 상위: 쿠폰 종류 (다중 선택) ──
           Text(
-            l.koEn('종류', 'Type'),
+            l.mapFilterTypeSection,
             style: const TextStyle(
               color: AppColors.textMuted,
               fontSize: 11,
@@ -5727,7 +5779,7 @@ class _InterestFilterSheetState extends State<_InterestFilterSheet> {
           const SizedBox(height: 16),
           // ── 하위: 업종 (다중 선택) ──
           Text(
-            l.koEn('업종', 'Category'),
+            l.mapFilterCategorySection,
             style: const TextStyle(
               color: AppColors.textMuted,
               fontSize: 11,
@@ -5795,7 +5847,7 @@ class _InterestFilterSheetState extends State<_InterestFilterSheet> {
                     _selTypes.clear();
                   }),
                   child: Text(
-                    l.koEn('모두 해제', 'Clear all'),
+                    l.commonClearAll,
                     style: const TextStyle(
                       color: AppColors.textMuted,
                       fontSize: 13,
@@ -5819,7 +5871,7 @@ class _InterestFilterSheetState extends State<_InterestFilterSheet> {
                   ),
                 ),
                 child: Text(
-                  l.koEn('적용', 'Apply'),
+                  l.commonApply,
                   style: const TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w800),
                 ),

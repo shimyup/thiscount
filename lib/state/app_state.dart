@@ -332,6 +332,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     return base + levelBonus;
   }
 
+  // Build 485 (UX sim #1): 줍기 반경을 사용자 표시용 라벨로(m/km). 안내 메시지에서
+  //   '2km' 하드코딩 대신 실제 등급별 반경 노출.
+  String get pickupRadiusLabel {
+    final m = pickupRadiusMeters;
+    return m >= 1000
+        ? '${(m / 1000).toStringAsFixed(m % 1000 == 0 ? 0 : 1)}km'
+        : '${m.round()}m';
+  }
+
   // ── 포인트 (Level 50 이후 초과 XP 누적) ─────────────────────────────────
   // Level 50 도달 XP = (50-1)² × 50 = 120,050. 이후 쌓이는 XP 는 "포인트"
   // 로 환산되어 추후 구독 결제 시 크레딧으로 사용할 수 있도록 적립된다.
@@ -9988,12 +9997,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       if (uLat == 0 ||
           uLng == 0 ||
           (uLat.abs() < 0.0001 && uLng.abs() < 0.0001)) {
-        return _l10n.stateDistanceTooFar;
+        return _l10n.stateDistanceTooFar(pickupRadiusLabel);
       }
       final dist = letter.destinationLocation.distanceTo(
         LatLng(_currentUser.latitude, _currentUser.longitude),
       );
-      if (dist > pickupRadiusMeters) return _l10n.stateDistanceTooFar;
+      if (dist > pickupRadiusMeters) {
+        return _l10n.stateDistanceTooFar(pickupRadiusLabel);
+      }
     }
 
     // ⑥ 수령 처리: readCount 증가 후 inbox에 복사본 추가

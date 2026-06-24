@@ -1632,6 +1632,41 @@ class _ComposeScreenState extends State<ComposeScreen>
         _showError(l10n.zoneCampaignMaxRedeemsHint);
         return;
       }
+      // Build 485 (UX sim Brand): 고정 매장위치 미설정 시 현재 GPS 가 zone 중심이
+      //   됨 → 매장 아닌 곳(집/외부)에서 작성하면 엉뚱한 위치 등록. 사전 경고/확인.
+      if (!useFixed) {
+        final proceed = await showDialog<bool>(
+          context: context,
+          builder: (dctx) => AlertDialog(
+            backgroundColor: AppColors.bgCard,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16)),
+            title: Text(l10n.zoneNoFixedLocationTitle,
+                style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800)),
+            content: Text(l10n.zoneNoFixedLocationBody,
+                style: const TextStyle(
+                    color: AppColors.textSecondary, fontSize: 13, height: 1.45)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dctx, false),
+                child: Text(l10n.settingsCancel,
+                    style: const TextStyle(color: AppColors.textMuted)),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(dctx, true),
+                child: Text(l10n.composeSendAnyway,
+                    style: const TextStyle(
+                        color: AppColors.gold, fontWeight: FontWeight.w700)),
+              ),
+            ],
+          ),
+        );
+        if (proceed != true) return;
+        if (!mounted) return;
+      }
       // 즉시 발송 목적지 = 매장(zone 중심). 단건 경로로 진행(bulk/express 무시).
       _destIsMyStore = true;
       _selectedCountry = state.currentUser.country;

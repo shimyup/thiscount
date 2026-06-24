@@ -2621,21 +2621,14 @@ class _LetterReadScreenState extends State<LetterReadScreen>
               Center(
                 child: TextButton.icon(
                   onPressed: () {
-                    final shareText = l10n.koEn(
-                      '🎁 Thiscount 쿠폰 선물이 도착했어요!\n'
-                          '"${letter.content.length > 40 ? '${letter.content.substring(0, 40)}…' : letter.content}"\n'
-                          '앱 수집첩에서 🎁 아이콘을 누르고 아래 코드를 붙여넣으세요.\n'
-                          '선물 코드: ${letter.id}',
-                      '🎁 A Thiscount coupon gift for you!\n'
-                          '"${letter.content.length > 40 ? '${letter.content.substring(0, 40)}…' : letter.content}"\n'
-                          'Tap the 🎁 icon in the app collection and paste this code.\n'
-                          'Gift code: ${letter.id}',
-                    );
-                    Share.share(shareText);
+                    final preview = letter.content.length > 40
+                        ? '${letter.content.substring(0, 40)}…'
+                        : letter.content;
+                    Share.share(l10n.giftShareText(preview, letter.id));
                   },
                   icon: const Icon(Icons.card_giftcard_rounded, size: 16),
                   label: Text(
-                    l10n.koEn('친구에게 선물하기', 'Gift to a friend'),
+                    l10n.giftToFriend,
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
