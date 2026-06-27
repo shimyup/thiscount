@@ -104,7 +104,7 @@ if [[ -n "$DEVICE_ID" ]]; then
         ;;
     esac
   done
-  flutter run -d "$DEVICE_ID" --debug "${DART_DEFINES[@]}" "${FLUTTER_ARGS[@]}"
+  flutter run -d "$DEVICE_ID" --debug "${DART_DEFINES[@]}" ${FLUTTER_ARGS[@]+"${FLUTTER_ARGS[@]}"}
 else
   FLUTTER_ARGS=()
   while [[ $# -gt 0 ]]; do
@@ -127,5 +127,5 @@ else
         ;;
     esac
   done
-  flutter run --debug "${DART_DEFINES[@]}" "${FLUTTER_ARGS[@]}"
+  flutter run --debug "${DART_DEFINES[@]}" ${FLUTTER_ARGS[@]+"${FLUTTER_ARGS[@]}"}
 fi
