@@ -7896,6 +7896,23 @@ class AppL10n {
     'hi': 'AI कैम्पेन टेक्स्ट बनाएं',
     'th': 'สร้างข้อความแคมเปญด้วย AI',
   });
+  // Build 486 (UX sim): AI 혜택 생성으로 발송종류가 일반→할인권 자동 변경 시 안내.
+  String get composeAIPromotedToCoupon => _t({
+    'ko': '✨ 혜택이 생성돼 발송 종류가 할인권으로 바뀌었어요',
+    'en': '✨ Benefit generated — type changed to Discount',
+    'ja': '✨ 特典が生成され、種類が割引券に変わりました',
+    'zh': '✨ 已生成优惠，类型已改为折扣券',
+    'fr': '✨ Avantage généré — type changé en Réduction',
+    'de': '✨ Vorteil erstellt — Typ auf Rabatt geändert',
+    'es': '✨ Beneficio generado — tipo cambiado a Descuento',
+    'pt': '✨ Benefício gerado — tipo alterado para Desconto',
+    'ru': '✨ Выгода создана — тип изменён на Скидку',
+    'tr': '✨ Avantaj oluşturuldu — tür İndirim olarak değişti',
+    'ar': '✨ تم إنشاء الميزة — تغيّر النوع إلى خصم',
+    'it': '✨ Vantaggio generato — tipo cambiato in Sconto',
+    'hi': '✨ लाभ बना — प्रकार छूट में बदला',
+    'th': '✨ สร้างสิทธิประโยชน์แล้ว — เปลี่ยนเป็นคูปองส่วนลด',
+  });
   String get composeAIGenerateTitle => _t({
     'ko': 'AI 쿠폰 생성', 'en': 'Generate with AI',
     'ja': 'AI クーポン生成', 'zh': 'AI 优惠券生成',

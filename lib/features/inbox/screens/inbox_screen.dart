@@ -1723,6 +1723,9 @@ class _InboxScreenState extends State<InboxScreen>
   Widget _buildTabBar() {
     final isBrand = context.read<AppState>().currentUser.isBrand;
     final canDM = context.read<AppState>().canUseDM;
+    // Build 486 (UX sim): DM 탭 라벨에 미읽음 배지 — 탭 전환 전에도 발견(이전엔
+    //   세션 카드에만 배지라 DM 탭으로 들어가야만 보였음).
+    final dmUnread = context.watch<AppState>().totalDMUnread;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       padding: const EdgeInsets.all(4),
@@ -1760,8 +1763,41 @@ class _InboxScreenState extends State<InboxScreen>
             // Build 481: 비-Brand 는 '보낸' 탭 제거 — [받은, (DM)].
             : [
                 Tab(text: _l10n(context).inboxTabReceived),
-                if (canDM) Tab(text: _l10n(context).inboxTabDM),
+                if (canDM) _dmTabWithBadge(_l10n(context).inboxTabDM, dmUnread),
               ],
+      ),
+    );
+  }
+
+  // Build 486 (UX sim): DM 탭 라벨 + 미읽음 배지(>0 일 때).
+  Widget _dmTabWithBadge(String label, int unread) {
+    if (unread <= 0) return Tab(text: label);
+    return Tab(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(label),
+          const SizedBox(width: 6),
+          Container(
+            constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+            padding: const EdgeInsets.symmetric(horizontal: 5),
+            decoration: BoxDecoration(
+              color: AppColors.coupon,
+              borderRadius: BorderRadius.circular(9),
+            ),
+            child: Text(
+              unread > 9 ? '9+' : '$unread',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+                height: 1.6,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -2901,6 +2937,9 @@ class _LetterCard extends StatelessWidget {
         if (remain.inHours >= 1) return '⏰ ${remain.inHours}h';
         return '⏰ ${remain.inMinutes}m';
       }
+      // Build 486 (UX sim): 만료 임박 배지를 7일까지 확장(이전 24h만) — 2~7일
+      //   남은 쿠폰도 FOMO 신호 노출.
+      if (remain.inDays <= 7) return '⏰ ${remain.inDays}d';
     }
 
     final user = ctx.read<AppState>().currentUser;
@@ -4333,8 +4372,9 @@ class _ReceivedFilterBar extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           child: Padding(
+            // Build 486 (a11y): 하위 칩 터치 타깃 ↑ (vertical 8→10).
             padding: EdgeInsets.symmetric(
-                horizontal: big ? 14 : 12, vertical: big ? 10 : 8),
+                horizontal: big ? 14 : 12, vertical: 10),
             child: Text(
               label,
               maxLines: 1,

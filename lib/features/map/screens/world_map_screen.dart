@@ -5752,8 +5752,9 @@ class _InterestFilterSheetState extends State<_InterestFilterSheet> {
                 }),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
+                  // Build 486 (a11y): 터치 타깃 ≥44pt — vertical 9→12.
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 9),
+                      horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
                     color: on ? c.withValues(alpha: 0.16) : AppColors.bgSurface,
                     borderRadius: BorderRadius.circular(18),
@@ -5803,8 +5804,9 @@ class _InterestFilterSheetState extends State<_InterestFilterSheet> {
                 }),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
+                  // Build 486 (a11y): 터치 타깃 ≥44pt — vertical 8→12.
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 13, vertical: 8),
+                      horizontal: 13, vertical: 12),
                   decoration: BoxDecoration(
                     color: on
                         ? AppColors.gold.withValues(alpha: 0.16)

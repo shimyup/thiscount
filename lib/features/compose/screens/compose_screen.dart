@@ -1549,6 +1549,7 @@ class _ComposeScreenState extends State<ComposeScreen>
     //   이전엔 빈 문자열로 본문을 무음 덮어쓰기 했음.
     final failed = result == null ||
         (result.title.trim().isEmpty && result.body.trim().isEmpty);
+    var promotedToCoupon = false;
     setState(() {
       _isGeneratingAI = false;
       if (!failed) {
@@ -1560,10 +1561,21 @@ class _ComposeScreenState extends State<ComposeScreen>
           // 혜택이 생성됐는데 타입이 '일반'이면 할인권으로 승격.
           if (_brandCategory == LetterCategory.general) {
             _brandCategory = LetterCategory.coupon;
+            promotedToCoupon = true;
           }
         }
       }
     });
+    // Build 486 (UX sim): 발송 종류가 조용히 바뀌면 혼란 → 1줄 안내.
+    if (promotedToCoupon && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.composeAIPromotedToCoupon),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
     if (failed && mounted) {
       // Build 422 (sim-fresh2 P3): rate-limit(429)은 별도 안내 — 일반 실패와 구분.
       final msg = CouponAIService.lastWasRateLimited
