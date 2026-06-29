@@ -613,6 +613,110 @@ class AppL10n {
     'hi': 'आज $remaining/$limit',
     'th': 'วันนี้ $remaining/$limit',
   });
+  // Build 487 (UX sim): 헤더에 월간 잔여도 — 월간 소진 시 버튼 비활성인데 일간만
+  //   보여 혼란하던 문제 해소.
+  String brandCampaignMonthlyRemaining(int remaining, int limit) => _t({
+    'ko': '이달 $remaining/$limit통',
+    'en': 'This month $remaining/$limit',
+    'ja': '今月 $remaining/$limit通',
+    'zh': '本月 $remaining/$limit',
+    'fr': 'Ce mois $remaining/$limit',
+    'de': 'Diesen Monat $remaining/$limit',
+    'es': 'Este mes $remaining/$limit',
+    'pt': 'Este mês $remaining/$limit',
+    'ru': 'В этом месяце $remaining/$limit',
+    'tr': 'Bu ay $remaining/$limit',
+    'ar': 'هذا الشهر $remaining/$limit',
+    'it': 'Questo mese $remaining/$limit',
+    'hi': 'इस माह $remaining/$limit',
+    'th': 'เดือนนี้ $remaining/$limit',
+  });
+  // Build 487 (UX sim): Premium Lv11 '받고 싶은 혜택 카테고리' 카드 — koEn → 14언어.
+  String get prefCategoryTitle => _t({
+    'ko': '받고 싶은 혜택 카테고리', 'en': 'Benefit category you want',
+    'ja': '受け取りたい特典カテゴリー', 'zh': '想要的优惠类别',
+    'fr': 'Catégorie d\'avantage souhaitée', 'de': 'Gewünschte Vorteilskategorie',
+    'es': 'Categoría de beneficio deseada', 'pt': 'Categoria de benefício desejada',
+    'ru': 'Желаемая категория выгод', 'tr': 'İstediğin avantaj kategorisi',
+    'ar': 'فئة المكافأة المطلوبة', 'it': 'Categoria di vantaggio desiderata',
+    'hi': 'पसंदीदा लाभ श्रेणी', 'th': 'หมวดสิทธิประโยชน์ที่ต้องการ',
+  });
+  String get prefCategoryDesc => _t({
+    'ko': '브랜드가 보낸 편지 중 선택 카테고리의 픽업 확률이 올라가요.',
+    'en': 'Boosts pickup odds for your chosen category from brands.',
+    'ja': 'ブランドからの特典のうち、選んだカテゴリーの受取確率が上がります。',
+    'zh': '提高所选类别（来自品牌）的领取概率。',
+    'fr': 'Augmente les chances de ramassage pour la catégorie choisie des marques.',
+    'de': 'Erhöht die Abholchance für deine gewählte Markenkategorie.',
+    'es': 'Aumenta las probabilidades de recoger tu categoría elegida de marcas.',
+    'pt': 'Aumenta a chance de coleta da categoria escolhida das marcas.',
+    'ru': 'Повышает шанс получить выбранную категорию от брендов.',
+    'tr': 'Markalardan seçtiğin kategoride toplama olasılığını artırır.',
+    'ar': 'يزيد فرص التقاط الفئة المختارة من العلامات التجارية.',
+    'it': 'Aumenta le probabilità di ritiro per la categoria scelta dai brand.',
+    'hi': 'ब्रांड से चुनी श्रेणी के पिकअप की संभावना बढ़ाता है।',
+    'th': 'เพิ่มโอกาสเก็บหมวดที่เลือกจากแบรนด์',
+  });
+  String get prefCategoryLockNotPremium => _t({
+    'ko': '🔒 Premium 가입 후 Lv 11 부터', 'en': '🔒 Premium + Lv 11 required',
+    'ja': '🔒 Premium 加入後 Lv 11 から', 'zh': '🔒 需 Premium 且 Lv 11',
+    'fr': '🔒 Premium + niveau 11 requis', 'de': '🔒 Premium + Lv 11 erforderlich',
+    'es': '🔒 Requiere Premium + Nv 11', 'pt': '🔒 Requer Premium + Nv 11',
+    'ru': '🔒 Нужен Premium + ур. 11', 'tr': '🔒 Premium + Lv 11 gerekli',
+    'ar': '🔒 يتطلب Premium + المستوى 11', 'it': '🔒 Richiede Premium + Lv 11',
+    'hi': '🔒 Premium + Lv 11 आवश्यक', 'th': '🔒 ต้องมี Premium + Lv 11',
+  });
+  String prefCategoryLockLevel(int level) => _t({
+    'ko': '🔒 Lv $level → Lv 11 도달 시 잠금 해제',
+    'en': '🔒 Lv $level → unlocks at Lv 11', 'ja': '🔒 Lv $level → Lv 11 で解除',
+    'zh': '🔒 Lv $level → 达到 Lv 11 解锁', 'fr': '🔒 Niv $level → débloqué au niv 11',
+    'de': '🔒 Lv $level → ab Lv 11 frei', 'es': '🔒 Nv $level → se desbloquea en Nv 11',
+    'pt': '🔒 Nv $level → desbloqueia no Nv 11', 'ru': '🔒 Ур. $level → откроется на ур. 11',
+    'tr': '🔒 Lv $level → Lv 11\'de açılır', 'ar': '🔒 المستوى $level → يُفتح عند 11',
+    'it': '🔒 Lv $level → si sblocca al Lv 11', 'hi': '🔒 Lv $level → Lv 11 पर अनलॉक',
+    'th': '🔒 Lv $level → ปลดล็อกที่ Lv 11',
+  });
+  String prefCategoryLevelSnack(int level) => _t({
+    'ko': 'Lv 11 도달 후 잠금 해제 (현재 Lv $level)',
+    'en': 'Unlocks at Lv 11 (currently Lv $level)',
+    'ja': 'Lv 11 で解除（現在 Lv $level）', 'zh': '达到 Lv 11 解锁（当前 Lv $level）',
+    'fr': 'Débloqué au niv 11 (actuel niv $level)', 'de': 'Ab Lv 11 frei (aktuell Lv $level)',
+    'es': 'Se desbloquea en Nv 11 (actual Nv $level)',
+    'pt': 'Desbloqueia no Nv 11 (atual Nv $level)',
+    'ru': 'Откроется на ур. 11 (сейчас ур. $level)', 'tr': 'Lv 11\'de açılır (şu an Lv $level)',
+    'ar': 'يُفتح عند المستوى 11 (حاليًا $level)', 'it': 'Si sblocca al Lv 11 (attuale Lv $level)',
+    'hi': 'Lv 11 पर अनलॉक (अभी Lv $level)', 'th': 'ปลดล็อกที่ Lv 11 (ตอนนี้ Lv $level)',
+  });
+  String get prefCategoryGateName => _t({
+    'ko': '카테고리 선호 부스트', 'en': 'Category preference boost',
+    'ja': 'カテゴリー優先ブースト', 'zh': '类别偏好加成',
+    'fr': 'Boost de préférence de catégorie', 'de': 'Kategorie-Präferenz-Boost',
+    'es': 'Impulso de preferencia de categoría', 'pt': 'Impulso de preferência de categoria',
+    'ru': 'Буст предпочтений категории', 'tr': 'Kategori tercih artışı',
+    'ar': 'تعزيز تفضيل الفئة', 'it': 'Boost preferenza categoria',
+    'hi': 'श्रेणी वरीयता बूस्ट', 'th': 'บูสต์หมวดที่ชอบ',
+  });
+  String get prefCategoryGateDesc => _t({
+    'ko': 'Premium 가입 후 Lv 11 도달 시, 받고 싶은 혜택 카테고리를 지정하면 매칭 확률이 올라갑니다.',
+    'en': 'At Premium + Lv 11, pick a benefit category to raise your match odds.',
+    'ja': 'Premium 加入後 Lv 11 で、受け取りたいカテゴリーを指定すると一致確率が上がります。',
+    'zh': '在 Premium 且 Lv 11 时，指定想要的优惠类别可提高匹配概率。',
+    'fr': 'Avec Premium + niv 11, choisissez une catégorie pour augmenter vos chances.',
+    'de': 'Mit Premium + Lv 11 eine Kategorie wählen, um die Trefferchance zu erhöhen.',
+    'es': 'Con Premium + Nv 11, elige una categoría para subir tus probabilidades.',
+    'pt': 'Com Premium + Nv 11, escolha uma categoria para aumentar suas chances.',
+    'ru': 'С Premium и ур. 11 выберите категорию, чтобы повысить шанс совпадения.',
+    'tr': 'Premium + Lv 11 ile bir kategori seçerek eşleşme olasılığını artır.',
+    'ar': 'مع Premium والمستوى 11، اختر فئة لزيادة فرص التطابق.',
+    'it': 'Con Premium + Lv 11, scegli una categoria per aumentare le probabilità.',
+    'hi': 'Premium + Lv 11 पर श्रेणी चुनें ताकि मैच की संभावना बढ़े।',
+    'th': 'เมื่อ Premium + Lv 11 เลือกหมวดเพื่อเพิ่มโอกาสจับคู่',
+  });
+  String get commonRandom => _t({
+    'ko': '랜덤', 'en': 'Random', 'ja': 'ランダム', 'zh': '随机', 'fr': 'Aléatoire',
+    'de': 'Zufällig', 'es': 'Aleatorio', 'pt': 'Aleatório', 'ru': 'Случайно',
+    'tr': 'Rastgele', 'ar': 'عشوائي', 'it': 'Casuale', 'hi': 'यादृच्छिक', 'th': 'สุ่ม',
+  });
   String get brandCampaignEmptyTitle => _t({
     'ko': '아직 발송한 캠페인이 없어요',
     'en': 'No campaigns yet',

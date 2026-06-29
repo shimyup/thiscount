@@ -3638,10 +3638,9 @@ class _PreferredCategoryCard extends StatelessWidget {
     final l = AppL10n.of(user.languageCode);
 
     final lockReason = !user.isPremium
-        ? l.koEn('🔒 Premium 가입 후 Lv 11 부터', '🔒 Premium + Lv 11 required')
+        ? l.prefCategoryLockNotPremium
         : (level < 11
-            ? l.koEn('🔒 Lv $level → Lv 11 도달 시 잠금 해제',
-                '🔒 Lv $level → unlocks at Lv 11')
+            ? l.prefCategoryLockLevel(level)
             : null);
 
     return Container(
@@ -3667,7 +3666,7 @@ class _PreferredCategoryCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   // Build 421 (sim-fresh P2): 하드코딩 한국어 → 언어별.
-                  l.koEn('받고 싶은 혜택 카테고리', 'Benefit category you want'),
+                  l.prefCategoryTitle,
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 14,
@@ -3700,9 +3699,8 @@ class _PreferredCategoryCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             unlocked
-                ? l.koEn('브랜드가 보낸 편지 중 선택 카테고리의 픽업 확률이 올라가요.',
-                    'Boosts pickup odds for your chosen category from brands.')
-                : (lockReason ?? l.koEn('잠금 해제', 'Unlock')),
+                ? l.prefCategoryDesc
+                : (lockReason ?? l.prefCategoryTitle),
             style: const TextStyle(
               color: AppColors.textMuted,
               fontSize: 12,
@@ -3730,19 +3728,14 @@ class _PreferredCategoryCard extends StatelessWidget {
                         if (!user.isPremium) {
                           PremiumGateSheet.show(
                             context,
-                            featureName: l.koEn(
-                                '카테고리 선호 부스트', 'Category preference boost'),
+                            featureName: l.prefCategoryGateName,
                             featureEmoji: '🎯',
-                            description: l.koEn(
-                                'Premium 가입 후 Lv 11 도달 시, 받고 싶은 혜택 카테고리를 지정하면 매칭 확률이 올라갑니다.',
-                                'At Premium + Lv 11, pick a benefit category to raise your match odds.'),
+                            description: l.prefCategoryGateDesc,
                           );
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(l.koEn(
-                                  'Lv 11 도달 후 잠금 해제 (현재 Lv $level)',
-                                  'Unlocks at Lv 11 (currently Lv $level)')),
+                              content: Text(l.prefCategoryLevelSnack(level)),
                               behavior: SnackBarBehavior.floating,
                             ),
                           );
@@ -3795,7 +3788,7 @@ class _PreferredCategoryChip extends StatelessWidget {
         ? l.composeBrandCategoryCoupon
         : category == LetterCategory.voucher
         ? l.composeBrandCategoryVoucher
-        : l.koEn('랜덤', 'Random');
+        : l.commonRandom;
 
     return InkWell(
       onTap: onTap,

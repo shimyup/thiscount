@@ -834,6 +834,10 @@ class _CompactSendHeader extends StatelessWidget {
         : (dailyPct > 0.15 ? AppColors.gold : AppColors.error);
     final exactDropFree = state.exactDropFreeForBeta;
     final credits = state.brandExactDropCredits;
+    // Build 487 (UX sim): 월간 잔여 — 소진 시 빨강(버튼 비활성 원인 가시화).
+    final monthlyRemaining = state.remainingMonthlySendCount;
+    final monthlyLimit = state.monthlySendLimit;
+    final monthlyExhausted = monthlyRemaining <= 0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -849,6 +853,16 @@ class _CompactSendHeader extends StatelessWidget {
                 color: dailyColor,
                 fontSize: 12.5,
                 fontWeight: FontWeight.w800,
+              ),
+            ),
+            // Build 487: 월간 잔여 — 소진 시 빨강 강조.
+            Text(
+              '· ${l.brandCampaignMonthlyRemaining(monthlyRemaining, monthlyLimit)}',
+              style: TextStyle(
+                color: monthlyExhausted ? AppColors.error : AppColors.textMuted,
+                fontSize: 11.5,
+                fontWeight:
+                    monthlyExhausted ? FontWeight.w800 : FontWeight.w600,
               ),
             ),
             Text(
