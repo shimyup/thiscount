@@ -11875,21 +11875,24 @@ class AppL10n {
     'th': 'ไม่มีคูลดาวน์ (ต่อเนื่อง)',
   });
 
+  // Build 488 (UX sim 카피 정정): Premium 은 신규 캠페인 '발송'이 아니라 '답장/DM'
+  //   에 사진 첨부가 실제 능력(신규 발송은 Brand 전용, Build 425). '홍보 메시지
+  //   발송' 과장 → 정확한 카피로 수정.
   String get benefitPhoto => _t({
-    'ko': '사진 + 링크 홍보 메시지 발송',
-    'en': 'Send promo with photo + link',
-    'ja': '写真 + リンク付きプロモを送信',
-    'zh': '发送带图片和链接的推广',
-    'fr': 'Envoyer une promo avec photo + lien',
-    'de': 'Werbung mit Foto + Link senden',
-    'es': 'Envía promos con foto + enlace',
-    'pt': 'Envie promos com foto + link',
-    'ru': 'Отправляйте промо с фото и ссылкой',
-    'tr': 'Fotoğraf + bağlantı ile promosyon gönder',
-    'ar': 'أرسل إعلانات مع صورة + رابط',
-    'it': 'Invia promo con foto + link',
-    'hi': 'फ़ोटो + लिंक के साथ प्रोमो भेजें',
-    'th': 'ส่งโปรโมตพร้อมรูป + ลิงก์',
+    'ko': '답장·DM에 사진 첨부',
+    'en': 'Attach photos to replies & DMs',
+    'ja': '返信・DMに写真を添付',
+    'zh': '在回复和私信中附加照片',
+    'fr': 'Joindre des photos aux réponses et DM',
+    'de': 'Fotos an Antworten & DMs anhängen',
+    'es': 'Adjunta fotos en respuestas y DMs',
+    'pt': 'Anexe fotos em respostas e DMs',
+    'ru': 'Прикрепляйте фото к ответам и личным сообщениям',
+    'tr': 'Yanıtlara ve DM\'lere fotoğraf ekle',
+    'ar': 'أرفق صورًا في الردود والرسائل الخاصة',
+    'it': 'Allega foto a risposte e DM',
+    'hi': 'जवाब और DM में फ़ोटो जोड़ें',
+    'th': 'แนบรูปในการตอบกลับและ DM',
   });
 
   String get benefitCustom => _t({
