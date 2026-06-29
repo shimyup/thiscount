@@ -1,5 +1,4 @@
 "NSLocationWhenInUseUsageDescription" = "موقعك مطلوب لعرض كوبونات المتاجر القريبة.";
-"NSLocationAlwaysAndWhenInUseUsageDescription" = "موقعك مطلوب لعرض كوبونات المتاجر القريبة.";
 "NSPhotoLibraryUsageDescription" = "مطلوب الوصول إلى مكتبة الصور لتغيير صورة ملفك الشخصي وصور الكوبونات.";
 "NSPhotoLibraryAddUsageDescription" = "مطلوب إذن لحفظ الصور المختارة في التطبيق.";
 "NSUserNotificationUsageDescription" = "الإشعارات مطلوبة لتنبيهك عند وصول مكافآت جديدة بالقرب منك.";

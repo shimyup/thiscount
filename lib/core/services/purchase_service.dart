@@ -58,6 +58,9 @@ class PurchaseProductIds {
   // Build 325 (T4): 50통 (₩6,000) / 500통 (₩40,000) 가격 티어.
   static const String _exactDrop50Legacy = 'letter_go_exact_drop_50';
   static const String _exactDrop500Legacy = 'letter_go_exact_drop_500';
+  // Build 429 (device): 1000통 대용량 티어 (₩10,000) — 기존 100통 슬롯 대체.
+  //   🔴 ASC 등록 필요: thiscount_exact_drop_1000_ios (소모성, ₩10,000).
+  static const String _exactDrop1000Legacy = 'letter_go_exact_drop_1000';
 
   // iOS (App Store Connect)
   static const String _premiumMonthlyIos = 'thiscount_premium_monthly_ios';
@@ -67,6 +70,7 @@ class PurchaseProductIds {
   static const String _exactDrop100Ios = 'thiscount_exact_drop_100_ios';
   static const String _exactDrop50Ios = 'thiscount_exact_drop_50_ios';
   static const String _exactDrop500Ios = 'thiscount_exact_drop_500_ios';
+  static const String _exactDrop1000Ios = 'thiscount_exact_drop_1000_ios';
 
   // Android (Google Play Billing / RevenueCat import 결과)
   static const String _premiumMonthlyAndroid =
@@ -77,6 +81,7 @@ class PurchaseProductIds {
   static const String _exactDrop100Android = _exactDrop100Legacy;
   static const String _exactDrop50Android = _exactDrop50Legacy;
   static const String _exactDrop500Android = _exactDrop500Legacy;
+  static const String _exactDrop1000Android = _exactDrop1000Legacy;
 
   static String _forPlatform({
     required String ios,
@@ -132,6 +137,11 @@ class PurchaseProductIds {
     android: _exactDrop500Android,
     fallback: _exactDrop500Legacy,
   );
+  static String get exactDrop1000 => _forPlatform(
+    ios: _exactDrop1000Ios,
+    android: _exactDrop1000Android,
+    fallback: _exactDrop1000Legacy,
+  );
 
   static List<String> premiumMonthlyCandidates() => _orderedUnique([
     premiumMonthly,
@@ -179,18 +189,26 @@ class PurchaseProductIds {
     _exactDrop500Android,
     _exactDrop500Legacy,
   ]);
+  static List<String> exactDrop1000Candidates() => _orderedUnique([
+    exactDrop1000,
+    _exactDrop1000Ios,
+    _exactDrop1000Android,
+    _exactDrop1000Legacy,
+  ]);
 
-  /// Build 325 (T4): 패키지 수량에 따른 candidates 조회 (50 / 100 / 500).
+  /// Build 325/429: 패키지 수량별 candidates (50 / 500 / 1000, 기본 100).
   static List<String> exactDropCandidates(int qty) {
     if (qty == 50) return exactDrop50Candidates();
     if (qty == 500) return exactDrop500Candidates();
+    if (qty == 1000) return exactDrop1000Candidates();
     return exactDrop100Candidates();
   }
 
-  /// Build 325 (T4): 로그/에러 메시지용 대표 ID.
+  /// Build 325/429: 로그/에러 메시지용 대표 ID.
   static String exactDropProductId(int qty) {
     if (qty == 50) return exactDrop50;
     if (qty == 500) return exactDrop500;
+    if (qty == 1000) return exactDrop1000;
     return exactDrop100;
   }
 }
@@ -235,6 +253,16 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
       // RC 서버에서 발생해도 사용자가 백그라운드 → 포어그라운드 복귀 시
       // 즉시 entitlement 동기화. 이전엔 cold-start 까지 stale Premium 유지.
       _refreshCustomerInfoIfReady();
+      // Build 441 (sim100 P2): 예약 다운그레이드 재평가도 resume 훅에 추가.
+      //   기존엔 _refreshCustomerInfoIfReady 가 베타(_isTestMode/freePremium/
+      //   upgradeSimulator) early-return 이라, 베타·TestFlight 에서 effectiveDate
+      //   를 foreground 로 넘기면 cold-start 전까지 예약 강등이 미발효됐다.
+      //   SecureClock 가드를 가진 _loadAndApplyScheduledPlanChange 를 베타 무관
+      //   직접 호출(due 아니면 no-op, 적용 후 schedule clear 라 멱등).
+      unawaited(() async {
+        final prefs = await _getPrefs();
+        await _loadAndApplyScheduledPlanChange(prefs);
+      }());
     }
   }
 
@@ -243,7 +271,10 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
     if (!_isRcKeyConfiguredForCurrentPlatform) return;
     try {
       final info = await Purchases.getCustomerInfo();
-      _applyCustomerInfo(info);
+      // Build 414 (sim100 #37): _applyCustomerInfo 단독은 notifyListeners/
+      //   schedule 재적용을 안 해, 포어그라운드 복귀 시 환불·외부취소가
+      //   반영돼도 UI 가 stale Premium 을 유지했다. 정식 콜백 경로로 통일.
+      _onCustomerInfoUpdated(info);
     } catch (_) {
       // 무시 — 다음 resumed 또는 cold-start 에 다시 시도.
     }
@@ -398,8 +429,12 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
   DateTime? get trialExpiry => _trialExpiry;
   // Build 304: SecureClock.now() 로 시계 되돌리기 우회 차단. 사용자가
   // 디바이스 시각을 과거로 되돌려도 trial 이 영원히 활성화되지 않는다.
+  // Build 441 (sim100 P2): `&& !_isBrand` 이중방어 — Brand 정식 결제 후에도
+  //   trialExpiry 잔존 시 '체험 곧 종료' 배너가 잘못 노출되던 비대칭 차단.
   bool get isTrialActive =>
-      _trialExpiry != null && SecureClock.now().isBefore(_trialExpiry!);
+      _trialExpiry != null &&
+      !_isBrand &&
+      SecureClock.now().isBefore(_trialExpiry!);
   int get trialHoursRemaining {
     if (_trialExpiry == null) return 0;
     final diff = _trialExpiry!.difference(SecureClock.now());
@@ -412,13 +447,14 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
       id: PurchaseProductIds.premiumMonthly,
       title: 'Premium',
       price: '₩4,900',
-      description: '하루 30통 발송 · 사진 첨부 · 타워 커스텀',
+      // Build 426: Premium 발송 제거 → 줍기 부스터·DM·커스터마이즈로 정정.
+      description: '줍기 반경 1km · 쿨다운 없음 · 1:1 채팅(DM) · 타워 커스텀',
     ),
     ProductInfo(
       id: PurchaseProductIds.brandMonthly,
       title: 'Brand / Creator',
       price: '₩99,000',
-      description: '인증 배지 · 하루 200통 · 대량 발송 · Premium 포함',
+      description: '인증 배지 · 월 10,000통 · 대량 발송 · Premium 포함',
     ),
     ProductInfo(
       id: PurchaseProductIds.giftCard,
@@ -599,6 +635,18 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
     _applyCustomerInfo(info);
     await _persistBillingDateToPrefs();
     final prefs = await _getPrefs();
+    // Build 441 (sim100 P1): production cold-start 는 _applyCustomerInfo(RC
+    //   entitlement 기반)만 타서 로컬 grant trial(gift)을 _isPremium=false 로
+    //   덮고 secure 까지 오염 → trial 이 1세션만 동작하던 회귀(베타 경로는
+    //   _initFromPrefs 가 giftExpiry 평가해 정상이라 베타 QA 에서 미검출).
+    //   여기서 giftExpiry 를 평가해 미만료 trial 이면 Premium OR-병합 + secure
+    //   복구. 매 cold-start 복원이라 _applyCustomerInfo 의 secure(false) write 와
+    //   race 가 나도 다음 cold-start 에서 self-heal.
+    await _evaluateGiftExpiryFromPrefs(prefs);
+    if (_trialExpiry != null && !_isBrand && !_isPremium) {
+      _isPremium = true;
+      await _saveSecurePremiumState(isPremium: true, isBrand: _isBrand);
+    }
     await _loadAndApplyScheduledPlanChange(prefs);
 
     try {
@@ -653,6 +701,16 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
       //   transient RC notify 와 구분 (신규 Brand 가입 보존은 그대로).
       _pendingAuthoritativeDowngrade = true;
       unawaited(_saveSecurePremiumState(isPremium: false, isBrand: false));
+      // Build 414 (sim100 #36): 발효된 free 다운그레이드 schedule 은 1회성 —
+      //   클리어하지 않으면 이후 재구독해도 매 customerInfo 갱신마다 재적용돼
+      //   Premium 이 즉시 회수된다(결제 후 무권한). brand 분기와 동일하게 정리.
+      _scheduledPlanChangeDate = null;
+      _scheduledPlanTarget = null;
+      unawaited(() async {
+        final prefs = await _getPrefs();
+        await prefs.remove(PrefKeys.purchaseScheduledPlanChangeDate);
+        await prefs.remove(PrefKeys.purchaseScheduledPlanChangeTarget);
+      }());
     }
     // Build 368 (PR-CC1 P0 #1): scheduled Brand 자동 flip 제거.
     //   이전엔 schedule date 도달만으로 _isBrand=true → 사용자가 ₩99,000 IAP
@@ -721,6 +779,14 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
 
     await _evaluateGiftExpiryFromPrefs(prefs);
 
+    // Build 453 (tier-sim P2): billingDate 를 무결성 가드보다 먼저 로드 — 이전엔
+    //   가드가 _nextBillingDate(아직 null)로 검사해 정식 결제 Premium 도 RC 폴백
+    //   시 박탈됐음. 가드의 의도(billing/gift 둘 다 없는 위반만 차단)는 유지.
+    _nextBillingDate = _loadDateFromPrefs(
+      prefs,
+      PrefKeys.purchaseNextBillingDate,
+    );
+
     if (_trialExpiry == null && _isPremium && !_isBrand &&
         _nextBillingDate == null) {
       // Build 290 (P0): secure storage 에 _isPremium=true 인데 giftExpiry 도
@@ -730,11 +796,6 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
       _isPremium = false;
       await _saveSecurePremiumState(isPremium: false, isBrand: _isBrand);
     }
-
-    _nextBillingDate = _loadDateFromPrefs(
-      prefs,
-      PrefKeys.purchaseNextBillingDate,
-    );
     await _loadAndApplyScheduledPlanChange(prefs);
     notifyListeners();
   }
@@ -814,6 +875,12 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
       if (target == ScheduledPlanTarget.free) {
         _isPremium = false;
         _isBrand = false;
+        // Build 441 (sim100 P1/#2-b): cold-start 에서 예약 free 다운그레이드가
+        //   발효될 때도 '확정 강등' flag 를 세운다(런타임 _reapplyScheduledPlan
+        //   ChangeIfDue 와 대칭). 누락 시 AppState.syncPremiumStatus 의 OR-fallback
+        //   (resolvedIsBrand=isBrand||_currentUser.isBrand)이 재시작 후 prefs/서버
+        //   의 stale isBrand=true 로 Brand 권한을 부활시켜 강등이 미반영됐음.
+        _pendingAuthoritativeDowngrade = true;
         await _saveSecurePremiumState(isPremium: false, isBrand: false);
       } else if (target == ScheduledPlanTarget.brand &&
           _isPremium &&
@@ -841,7 +908,9 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> grantWelcomeTrial({int days = 3}) async {
     if (_isPremium || _isBrand) return; // 이미 보유 → no-op
     final prefs = await _getPrefs();
-    final expiry = DateTime.now().add(Duration(days: days));
+    // Build 421 (sim-fresh P2): trial 평가가 SecureClock.now() 이므로 부여
+    //   expiry 도 SecureClock 기준 — monotonic clock 보다 뒤로 안 가게 정렬.
+    final expiry = SecureClock.now().add(Duration(days: days));
     // Build 304: trial 부여 시각을 SecureClock watermark 에 박는다.
     // 이후 클럭 되돌리기 시 isTrialActive 가 expiry 보다 앞을 절대 안 봄.
     SecureClock.touch();
@@ -865,7 +934,7 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
 
   // ── Premium 구매 ────────────────────────────────────────────────────────
   Future<bool> buyPremium() async {
-    _startLoading(PurchaseOperation.premium);
+    if (!_startLoading(PurchaseOperation.premium)) return false;
     if (!_isTestMode &&
         !_isBetaFreePremium &&
         !_isBetaUpgradeSimulator &&
@@ -882,6 +951,11 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
         _isBrand = false;
         await _saveSecurePremiumState(isPremium: true, isBrand: false);
         await _markBillingCycleRefreshed(prefs);
+        // Build 414 (sim100 #26): 베타/시뮬레이터 결제도 RC 경로(922-928)와 동일
+        //   하게 trial 잔여(giftExpiry) 클리어 — 안 하면 trial 만료 시점에
+        //   _evaluateGiftExpiryFromPrefs 가 결제한 Premium 을 회수 + 오인 배너.
+        _trialExpiry = null;
+        await prefs.remove(PrefKeys.purchaseGiftExpiry);
       });
     }
 
@@ -924,7 +998,7 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
 
   // ── Brand 구매 ──────────────────────────────────────────────────────────
   Future<bool> buyBrand() async {
-    _startLoading(PurchaseOperation.brand);
+    if (!_startLoading(PurchaseOperation.brand)) return false;
 
     // 베타 무료 프리미엄 모드에서는 Brand 구독 불가
     if (_isBetaFreePremium) {
@@ -946,6 +1020,9 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
         _isBrand = true;
         _isPremium = true;
         await _saveSecurePremiumState(isPremium: true, isBrand: true);
+        // Build 441 (sim100 P2): Brand 결제 시 trial 정리(buyPremium 과 대칭).
+        _trialExpiry = null;
+        await prefs.remove(PrefKeys.purchaseGiftExpiry);
         await _markBillingCycleRefreshed(prefs);
       });
     }
@@ -968,6 +1045,12 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
       final prefs = await _getPrefs();
       await _persistBillingDateToPrefs();
       await _clearScheduledPlanChange(prefs);
+      // Build 441 (sim100 P2): Brand 정식 결제 성공 시 trial 잔여 정리
+      //   (buyPremium 과 대칭) — ambiguous trial+paid 상태 차단.
+      if (_isBrand) {
+        _trialExpiry = null;
+        await prefs.remove(PrefKeys.purchaseGiftExpiry);
+      }
       _stopLoading();
       return _isBrand;
     } on PlatformException catch (e) {
@@ -1011,18 +1094,24 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
     if (!appState.isBrandMember && _isBrand) {
       appState.syncPremiumStatus(isPremium: true, isBrand: true);
     }
-    _startLoading(PurchaseOperation.brandExtra);
-    if (!_isTestMode && !_isRcKeyConfiguredForCurrentPlatform) {
+    if (!_startLoading(PurchaseOperation.brandExtra)) return false;
+    if (!_isTestMode &&
+        !_isBetaUpgradeSimulator &&
+        !_isRcKeyConfiguredForCurrentPlatform) {
       _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
       return false;
     }
-    if (!_isTestMode && !appState.isBrandExtraServerVerificationReady) {
+    // Build 449 (sim100 P1): 베타(TestFlight) 시뮬레이터에선 서버검증 불필요 —
+    //   buyExactDrop 과 비대칭이라 추가 발송권 구매가 베타에서 항상 실패하던 회귀.
+    if (!_isTestMode &&
+        !_isBetaUpgradeSimulator &&
+        !appState.isBrandExtraServerVerificationReady) {
       _setError(appState.brandExtraServerVerificationUnavailableMessage);
       return false;
     }
 
-    // 디버그 빌드 or RevenueCat 미연동 → 테스트 모드
-    if (_isTestMode) {
+    // 디버그 빌드 / RC 미연동 / 베타 시뮬레이터 → 테스트 모드 (즉시 grant).
+    if (_isTestMode || _isBetaUpgradeSimulator) {
       return await _fakePurchase(() async {
         await appState.grantBrandExtraQuotaLocally(quotaAmount: 1000);
       });
@@ -1115,14 +1204,19 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
         : qty == 500
             ? PurchaseOperation.exactDrop500
             : PurchaseOperation.exactDrop100;
-    _startLoading(op);
-    if (!_isTestMode && !_isRcKeyConfiguredForCurrentPlatform) {
+    if (!_startLoading(op)) return false;
+    if (!_isTestMode &&
+        !_isBetaUpgradeSimulator &&
+        !_isRcKeyConfiguredForCurrentPlatform) {
       _setError('결제 설정이 누락되었습니다. 앱 업데이트 후 다시 시도해주세요.');
       return false;
     }
 
-    // 디버그 / RC 미연동 → 테스트 모드 (즉시 qty grant).
-    if (_isTestMode) {
+    // 디버그 / RC 미연동 / 베타 시뮬레이터 → 테스트 모드 (즉시 qty grant).
+    // Build 429 (device): 베타(TestFlight)에서도 ExactDrop '추가 구매' 가 동작하도록
+    //   _isBetaUpgradeSimulator 추가 — 이전엔 _isTestMode(디버그 한정)만이라
+    //   실 IAP 미등록 베타에서 구매가 항상 실패했음.
+    if (_isTestMode || _isBetaUpgradeSimulator) {
       return await _fakePurchase(() async {
         await appState.adminGrantExactDropCredits(qty);
       });
@@ -1154,7 +1248,7 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
 
   // ── 구매 복원 ───────────────────────────────────────────────────────────
   Future<bool> restorePurchases() async {
-    _startLoading(PurchaseOperation.restore);
+    if (!_startLoading(PurchaseOperation.restore)) return false;
     if (!_isTestMode &&
         !_isBetaFreePremium &&
         !_isRcKeyConfiguredForCurrentPlatform) {
@@ -1197,7 +1291,10 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
       _applyCustomerInfo(info);
       await _persistBillingDateToPrefs();
       _stopLoading();
-      return true;
+      // Build 414 (sim100 #28): 활성 entitlement 가 없으면 false 반환 — 이전엔
+      //   복원할 구매가 없어도 무조건 true 라 '복원 성공' 거짓 안내. 호출처
+      //   (premium_screen)가 false 시 '복원할 구매 없음' 으로 분기.
+      return _isPremium || _isBrand;
     } on PlatformException catch (e) {
       _handlePlatformException(e);
       return false;
@@ -1221,7 +1318,7 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
     if (!_isPremium && !_isBrand) return;
     final prefs = await _getPrefs();
     final effectiveDate =
-        _nextBillingDate ?? DateTime.now().add(const Duration(days: 30));
+        _nextBillingDate ?? SecureClock.now().add(const Duration(days: 30));
 
     _scheduledPlanChangeDate = effectiveDate;
     _scheduledPlanTarget = ScheduledPlanTarget.free;
@@ -1239,25 +1336,27 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
   // 권한 부여되던 critical 회귀. 이제 schedule 자체를 noop — Brand 전환은
   // 반드시 buyBrand() (실제 RC IAP) 통해서만. UI 가 이 메서드 호출 시 자동
   // buyBrand 로 fall-through 또는 안내.
+  // Build 414 (sim100 #4/#6): Future<bool> 로 변경 — 결제 취소/실패 시 false 를
+  //   반환해 호출자(premium_screen)가 '성공' 스낵바를 띄우지 않도록. 이전엔
+  //   void 라 buyBrand() 결과를 버려 결제 실패에도 무조건 녹색 성공 표시.
   @Deprecated('Use buyBrand() — scheduling 은 P0 회귀로 제거됨')
-  Future<void> scheduleUpgradeToBrand({String? userEmail}) async {
+  Future<bool> scheduleUpgradeToBrand({String? userEmail}) async {
     if (kDebugMode) {
       debugPrint('[PurchaseService] scheduleUpgradeToBrand deprecated — buyBrand 로 fall-through');
     }
     // Test/beta 모드에서만 시뮬레이션 — production 은 fall-through.
     if (_isTestMode || _isBetaUpgradeSimulator) {
-      _startLoading(PurchaseOperation.brand);
-      await _fakePurchase(() async {
+      if (!_startLoading(PurchaseOperation.brand)) return false;
+      return await _fakePurchase(() async {
         final prefs = await _getPrefs();
         _isBrand = true;
         _isPremium = true;
         await _saveSecurePremiumState(isPremium: true, isBrand: true);
         await _markBillingCycleRefreshed(prefs);
       });
-      return;
     }
     // Production: 실제 IAP 강제.
-    await buyBrand();
+    return await buyBrand();
   }
 
   // ── 테스트 이메일 자동 브랜드 설정 (DEBUG + BETA_ADMIN_EMAIL) ──────────────
@@ -1321,7 +1420,7 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> _markBillingCycleRefreshed(SharedPreferences prefs) async {
-    _nextBillingDate = DateTime.now().add(const Duration(days: 30));
+    _nextBillingDate = SecureClock.now().add(const Duration(days: 30));
     await prefs.setInt(
       PrefKeys.purchaseNextBillingDate,
       _nextBillingDate!.millisecondsSinceEpoch,
@@ -1399,10 +1498,13 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
   ///   로케일/통화로 자동 포맷됨. 캐시 또는 offering 에서 조회, 없으면 null →
   ///   호출자가 하드코딩 KRW fallback. (offerings 미로드 시 null)
   String? localizedPriceFor(String productId) {
-    final cached = _storeProductsById[productId];
-    if (cached != null) return cached.priceString;
-    final pkg = _findPackage(productId);
-    return pkg?.storeProduct.priceString;
+    // Build 421 (sim-fresh P3): 빈 문자열 priceString 은 null 로 정규화 — 호출자
+    //   `?? '₩4,900'` fallback 이 null 에서만 동작하므로, RC 가 빈 가격을 주면
+    //   가격이 공란으로 표시되던 위험 차단.
+    final cached = _storeProductsById[productId]?.priceString;
+    if (cached != null && cached.trim().isNotEmpty) return cached;
+    final pkg = _findPackage(productId)?.storeProduct.priceString;
+    return (pkg != null && pkg.trim().isNotEmpty) ? pkg : null;
   }
 
   /// Offering에서 productId에 맞는 Package 찾기
@@ -1558,24 +1660,24 @@ class PurchaseService extends ChangeNotifier with WidgetsBindingObserver {
     return true;
   }
 
-  void _startLoading(PurchaseOperation operation) {
-    // Build 347 (PR-U2 시뮬레이션 P2): 이미 다른 operation 진행 중이면 새
-    //   operation 으로 덮어쓰지 않음 — UI/Race 시점에 두 buy 가 동시 호출돼도
-    //   첫 번째 의 _activeOperation 보존. caller 가 빠르게 두 번 탭해도 두
-    //   번째는 첫 번째의 결과 기다림 (대부분 _isRcKeyConfigured 체크에서 빠른
-    //   return). 완벽한 mutex 는 아니나 UI race 의 90% 가드.
+  /// Build 423 (sim-crosscut P2): 락 획득 성공 여부를 bool 로 반환 — 이전엔 void
+  ///   라, 락이 잡혀 있어도 caller 가 계속 진행해 두 번째 buy 가 _setError 의
+  ///   _loading=false 로 첫 operation 의 락을 풀어버리는 race(중복 grant 포함)가
+  ///   있었음. caller 는 `if (!_startLoading(op)) return false;` 로 즉시 bail.
+  bool _startLoading(PurchaseOperation operation) {
     if (_loading) {
       if (kDebugMode) {
         debugPrint(
           '[purchase] _startLoading skip — busy with $_activeOperation',
         );
       }
-      return;
+      return false;
     }
     _loading = true;
     _activeOperation = operation;
     _errorMessage = null;
     notifyListeners();
+    return true;
   }
 
   void _stopLoading() {

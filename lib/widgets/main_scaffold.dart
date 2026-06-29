@@ -7,11 +7,11 @@ import '../core/services/purchase_service.dart';
 import '../state/app_state.dart';
 import '../features/map/screens/world_map_screen.dart';
 import '../features/compose/screens/compose_screen.dart';
-import '../features/premium/premium_gate_sheet.dart';
+import '../features/premium/brand_only_gate_sheet.dart';
 import '../features/premium/premium_screen.dart';
-import '../features/premium/brand_comparison_sheet.dart';
 import '../features/brand/brand_campaign_screen.dart';
 import '../features/inbox/screens/inbox_screen.dart';
+import '../features/onboarding/tier_tour_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/streak/streak_badge.dart';
 import '../features/progression/level_up_banner.dart';
@@ -30,10 +30,7 @@ class MainScaffold extends StatefulWidget {
 
 class _MainScaffoldState extends State<MainScaffold> {
   late int _currentIndex = widget.initialIndex;
-  // Build 408 (QQ9): 비-지도 탭에서 지도가 상단으로 노출되는 peek 높이(px).
-  //   "하단 탭 눌러도 내 위치 지도가 일부 보임" 요구. 너무 크면 콘텐츠 영역
-  //   손실, 너무 작으면 의미 없음 → 96px 절충 (지도 핀 1–2개 보이는 정도).
-  static const double _kMapPeek = 96;
+  // Build 418 (사용자 device): 비-지도 탭 지도 peek 제거 — 탭 콘텐츠 전체화면.
   // Build 205: 마지막으로 광고 모달을 trigger 시도한 promo letter id. 같은
   // id 가 다시 build 되면 무시 — id 가 바뀌면(새 광고 도착) 다시 trigger.
   String? _lastTriggeredAdId;
@@ -66,6 +63,9 @@ class _MainScaffoldState extends State<MainScaffold> {
     // 스트릭·레벨업 축하 스낵바 — 첫 프레임 이후 1회 표시
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      // Build 456: 로그인 후 티어별 투어 1회 — 가입 전 온보딩에서 옮겨온
+      //   Brand/Premium/Free 맞춤 사용법. 다른 모달보다 우선(첫 진입 교육).
+      TierTourScreen.showIfNeeded(context);
       // Build 324: 신규 가입자 trial 부여 직후 1회 모달 — "결제한 적 없는데 왜
       //   Premium?" 혼란 해소 (Free 신규 시뮬레이션 발견). 다른 banner 보다 우선.
       _maybeShowWelcomeTrialModal();
@@ -156,42 +156,19 @@ class _MainScaffoldState extends State<MainScaffold> {
       );
       return;
     }
-    if (!state.currentUser.isPremium && !state.currentUser.isBrand) {
+    // Build 425 (device): 발송은 Brand(광고주) 계정 전용. Free·Premium 은 발송 탭
+    //   자체가 숨겨져 여기 도달하지 않지만(다른 진입점 대비) 안전망으로 Brand
+    //   전용 안내 시트를 띄운다. Premium 의 답장·DM 은 별도 경로로 유지.
+    if (!state.currentUser.isBrand) {
       final l = AppL10n.of(state.currentUser.languageCode);
-      // Build 403 (PR-LL4): newcomer (가입 후 5분 이내) 에게는 paywall sheet
-      //   대신 가벼운 SnackBar coachmark. 첫 진입에서 결제 압박을 받으면
-      //   drop-off → 일단 픽업 흐름 안내만. trial 받은 사용자는 isPremium=true
-      //   이므로 이 분기 안 옴 (자유 발송 가능).
-      if (state.currentUser.isNewcomer) {
-        ScaffoldMessenger.of(ctx).showSnackBar(
-          SnackBar(
-            backgroundColor: AppColors.bgCard,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 4),
-            content: Text(
-              l.koEn(
-                '👋 먼저 지도에서 근처 쿠폰을 픽업해보세요. 발송은 픽업 후 안내드릴게요.',
-                '👋 Try picking up a nearby coupon on the map first. We\'ll guide you to sending after.',
-              ),
-              style: const TextStyle(color: AppColors.textPrimary),
-            ),
-          ),
-        );
-        return;
-      }
-      PremiumGateSheet.show(
+      BrandOnlyGateSheet.show(
         ctx,
-        featureName: l.composeGateFeatureName,
+        featureName: l.navCampaign,
         featureEmoji: '📣',
-        description: l.composeGateDesc,
+        description: l.categoryHelpBrandOnlyNote,
+        viewerIsPremium: state.currentUser.isPremium,
       );
       return;
-    }
-    // Build 238: Premium(비-Brand) 회원이 발송 진입 시 한 번 Brand 비교 시트 노출.
-    // 자기 홍보 메시지 (사진+링크) 와 광고주 트랙 (쿠폰/대량/ExactDrop) 차이 환기.
-    if (state.currentUser.isPremium && !state.currentUser.isBrand) {
-      await BrandComparisonSheet.showOncePerSession(ctx);
-      if (!ctx.mounted) return;
     }
     final result = await Navigator.push<bool>(
       ctx,
@@ -232,6 +209,17 @@ class _MainScaffoldState extends State<MainScaffold> {
     final isBrand = context.select<AppState, bool>(
       (s) => s.currentUser.isBrand,
     );
+    // Build 453 (tier-sim P2): 실시간 티어 강등(Brand→하위) 시 _currentIndex 가
+    //   3(프로필) 인데 비-Brand 는 최대 인덱스 2 → 본문/네비 하이라이트 desync.
+    //   표시 가능 최대 인덱스로 clamp(build 중 동기 setState 회피 위해 postFrame).
+    final maxIdx = isBrand ? 3 : 2;
+    if (_currentIndex > maxIdx) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _currentIndex > maxIdx) {
+          setState(() => _currentIndex = maxIdx);
+        }
+      });
+    }
     // Build 205: 새 브랜드 광고 도착 시마다 모달 재trigger.
     // featuredBrandPromo.id 만 select 해 build 폭발 방지.
     final currentAdId = context.select<AppState, String?>(
@@ -300,33 +288,34 @@ class _MainScaffoldState extends State<MainScaffold> {
                         ),
                       ),
                     ),
-                    // 비-지도 탭 시트 — 상단 peek 만큼 내려 지도 노출.
-                    Positioned(
-                      top: _kMapPeek,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
+                    // Build 418 (사용자 device): 비-지도 탭은 지도 peek 없이 화면
+                    //   전체를 채운다(상단 _kMapPeek 노출 제거) — 탭 콘텐츠만 전체로.
+                    Positioned.fill(
                       child: Offstage(
                         offstage: _currentIndex == 0,
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(20),
-                          ),
-                          // 시트가 이미 status bar 아래라 top inset 중복 제거.
-                          child: MediaQuery.removePadding(
-                            context: context,
-                            removeTop: true,
-                            child: IndexedStack(
-                              index: (_currentIndex - 1).clamp(0, 1),
-                              children: [
-                                if (isBrand)
-                                  const BrandCampaignScreen()
-                                else
-                                  const InboxScreen(),
-                                const ProfileScreen(),
-                              ],
-                            ),
-                          ),
+                        // 시트가 이미 status bar 아래라 top inset 중복 제거.
+                        child: MediaQuery.removePadding(
+                          context: context,
+                          removeTop: true,
+                          // Build 447: Brand 는 하단 네비를 4탭(탐험/내캠페인/인사이트
+                          //   /프로필)으로 확장 → 인사이트를 별도 탭으로 승격.
+                          //   비-Brand 는 기존 2페이지(인박스/프로필) 유지.
+                          child: isBrand
+                              ? IndexedStack(
+                                  index: (_currentIndex - 1).clamp(0, 2),
+                                  children: const [
+                                    BrandCampaignScreen(),
+                                    BrandInsightsScreen(),
+                                    ProfileScreen(),
+                                  ],
+                                )
+                              : IndexedStack(
+                                  index: (_currentIndex - 1).clamp(0, 1),
+                                  children: const [
+                                    InboxScreen(),
+                                    ProfileScreen(),
+                                  ],
+                                ),
                         ),
                       ),
                     ),
@@ -432,36 +421,41 @@ class _MainScaffoldState extends State<MainScaffold> {
                             onTap: () => setState(() => _currentIndex = 1),
                           ),
                   ),
-                  Expanded(
-                    // Build 281: Free 회원에게 잠긴 "홍보" 보다 "업그레이드" 를
-                    // 먼저 보여줘 이 탭의 성격을 즉시 이해하게 한다.
-                    //   Free    → 💎 업그레이드 (잠금 🔒) · 탭 시 PremiumGateSheet
-                    //   Premium → 📣 홍보 · 탭 시 compose 진입
-                    //   Brand   → 📣 캠페인 · 탭 시 compose 진입
-                    child: _ComposeNavItem(
-                      label: isBrand
-                          ? l.navCampaign
-                          : (isPremium ? l.navSend : l.navUpgradeShort),
-                      icon: isBrand
-                          ? Icons.campaign_rounded
-                          : (isPremium
-                                ? Icons.campaign_outlined
-                                : Icons.workspace_premium_rounded),
-                      accent: isBrand ? AppColors.coupon : AppColors.gold,
-                      isLocked: !isBrand && !isPremium,
-                      onTap: () => _openCompose(ctx),
+                  // Build 425 (device): 발송은 Brand(광고주) 계정 전용으로 전환 —
+                  //   Free·Premium 은 줍기 중심이라 발송 탭 자체를 숨긴다(이전엔
+                  //   Free=업그레이드 / Premium=홍보 노출). Premium 은 답장·DM 으로
+                  //   여전히 상호작용 가능.
+                  if (isBrand)
+                    Expanded(
+                      child: _ComposeNavItem(
+                        label: l.navCampaign,
+                        icon: Icons.campaign_rounded,
+                        accent: AppColors.coupon,
+                        isLocked: false,
+                        onTap: () => _openCompose(ctx),
+                      ),
                     ),
-                  ),
-                  // Build 324 (positioning): 4탭 → 3탭. 타워 탭 격리 →
-                  //   ProfileScreen 의 "내 등급" 진입 카드로 통합. 첫 화면의
-                  //   nav 인지 부하 -25% + 등급/타워 시스템은 진성 사용자만
-                  //   발견하는 "숨겨진 깊이" (포켓몬 GO 의 메달 패턴).
+                  // Build 447: Brand 전용 '인사이트' 탭 — ROI 대시보드를 하단 네비
+                  //   별도 탭으로 분리(이전엔 프로필 안 하위 탭). index 2.
+                  if (isBrand)
+                    Expanded(
+                      child: _NavItem(
+                        icon: Icons.insights_rounded,
+                        label: l.brandProfileInsightsTab,
+                        isSelected: _currentIndex == 2,
+                        onTap: () => setState(() => _currentIndex = 2),
+                      ),
+                    ),
+                  // Build 324 (positioning): 타워 탭 격리 → ProfileScreen 의
+                  //   "내 등급" 진입 카드로 통합. Brand 는 인사이트 탭 추가로
+                  //   프로필이 index 3, 비-Brand 는 index 2.
                   Expanded(
                     child: _NavItem(
                       icon: Icons.person_rounded,
                       label: l.profile,
-                      isSelected: _currentIndex == 2,
-                      onTap: () => setState(() => _currentIndex = 2),
+                      isSelected: _currentIndex == (isBrand ? 3 : 2),
+                      onTap: () =>
+                          setState(() => _currentIndex = isBrand ? 3 : 2),
                     ),
                   ),
                 ],
@@ -810,16 +804,17 @@ class _TrialCountdownBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final purchase = context.watch<PurchaseService>();
-    final isPremium = context.select<AppState, bool>(
-      (s) => s.currentUser.isPremium,
-    );
     // 본 결제 완료 (Brand 또는 정식 Premium) 시 배너 숨김 — trial 만 노출.
+    // Build 441 (sim100 P1): trial 사용자는 isPremium=true 이므로, 기존
+    //   `if (isPremium && !beta...)` 가드가 production 빌드(beta flag 전부 false)
+    //   에서 trial 사용자까지 배너를 영구 숨겨 Build 288 anti-friction 을
+    //   무력화하던 회귀. isTrialActive(776) 통과 시점이면 정식 결제자는 이미
+    //   trialExpiry=null 로 걸러졌으므로(buyPremium 이 clear) 추가 isPremium
+    //   가드는 잉여 + 유해 → 제거. trial 사용자는 항상 카운트다운 노출.
     if (!purchase.isTrialActive) return const SizedBox.shrink();
     if (purchase.trialExpiry == null) return const SizedBox.shrink();
-    // Premium 정식 결제 완료 사용자가 trial 잔여기 있는 케이스는 잠재적 — 노출 X.
-    if (isPremium && !purchase.isBetaFreePremium && !purchase.isTestMode) {
-      return const SizedBox.shrink();
-    }
+    // Brand 정식 결제자(trial 잔여 동시 보유 잠재 케이스)만 방어적으로 숨김.
+    if (purchase.isBrand) return const SizedBox.shrink();
     final hours = purchase.trialHoursRemaining;
     final langCode = context.select<AppState, String>(
       (s) => s.currentUser.languageCode,

@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -75,14 +77,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _setNotifyDaily(bool value) async {
+    // Build 421 (sim-fresh P2): OS 권한 거부 시 토글이 ON 으로 남던 오안내 수정 —
+    //   profile_screen 과 동일하게 requestPermissions 결과를 토글/저장에 반영.
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('notify_daily_letter', value);
-    setState(() => _notifyDaily = value);
-    final lang = context.read<AppState>().currentUser.languageCode;
     if (value) {
-      await NotificationService.requestPermissions();
+      final granted = await NotificationService.requestPermissions();
+      await prefs.setBool('notify_daily_letter', granted);
+      if (!mounted) return;
+      setState(() => _notifyDaily = granted);
+      if (!granted) return;
+      final lang = context.read<AppState>().currentUser.languageCode;
       await NotificationService.scheduleDailyLetterReminder(langCode: lang);
     } else {
+      await prefs.setBool('notify_daily_letter', false);
+      if (mounted) setState(() => _notifyDaily = false);
       await NotificationService.cancelDailyLetterReminder();
     }
   }
@@ -148,7 +156,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
-    );
+    ).then((_) => ctrl.dispose());
   }
 
   // ── 비밀번호 변경 ──────────────────────────────────────────────────────────
@@ -158,6 +166,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final oldCtrl = TextEditingController();
     final newCtrl = TextEditingController();
     final confirmCtrl = TextEditingController();
+    // Build 423 (sim-crosscut P2): 다이얼로그 종료 시 3 컨트롤러 해제(매 호출 누수).
     showDialog(
       context: ctx,
       builder: (_) => AlertDialog(
@@ -226,7 +235,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
-    );
+    ).then((_) {
+      oldCtrl.dispose();
+      newCtrl.dispose();
+      confirmCtrl.dispose();
+    });
   }
 
   Widget _pwField(TextEditingController ctrl, String hint) {
@@ -376,6 +389,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
         defaultValue: 'dev',
       );
       final prefs = await SharedPreferences.getInstance();
+      // Build 414 (sim P2): 동의 타임스탬프는 Build 286 부터 FlutterSecureStorage
+      //   에 저장(auth_screen._consentStore)되는데, export 는 SharedPreferences
+      //   에서 (게다가 2건은 잘못된 키로) 읽어 GDPR Art.20 export 가 동의 항목을
+      //   항상 null 로 내보내고 있었다. 동일 store/키로 정정.
+      const consentStore = FlutterSecureStorage(
+        aOptions: AndroidOptions(encryptedSharedPreferences: true),
+        iOptions: IOSOptions(
+          accessibility: KeychainAccessibility.first_unlock_this_device,
+        ),
+      );
+      final consents = <String, String?>{
+        'consent_terms_ts': await consentStore.read(key: 'consent_terms_ts'),
+        'consent_privacy_ts':
+            await consentStore.read(key: 'consent_privacy_ts'),
+        'consent_marketing_ts':
+            await consentStore.read(key: 'consent_marketing_ts'),
+        'consent_thirdparty_ts':
+            await consentStore.read(key: 'consent_third_party_sharing_ts'),
+        'consent_age14_ts':
+            await consentStore.read(key: 'consent_age_above14_ts'),
+      };
       final data = <String, dynamic>{
         'exportedAt': DateTime.now().toUtc().toIso8601String(),
         'app': 'Thiscount',
@@ -398,16 +432,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           'lastKnownLatitude': prefs.getDouble('lkLat_v1'),
           'lastKnownLongitude': prefs.getDouble('lkLng_v1'),
         },
-        'consents': {
-          for (final key in [
-            'consent_terms_ts',
-            'consent_privacy_ts',
-            'consent_marketing_ts',
-            'consent_thirdparty_ts',
-            'consent_age14_ts',
-          ])
-            key: prefs.getString(key),
-        },
+        'consents': consents,
         'activityScore': u.activityScore.toJson(),
         'trial': {
           'welcomeTrialClaimedAt': prefs.getString('welcomeTrialClaimedAt'),
@@ -563,9 +588,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               : FontWeight.w400,
                         ),
                       ),
-                      onTap: () {
+                      onTap: () async {
                         state.updateProfile(languageCode: code);
-                        Navigator.pop(ctx);
+                        // Build 421 (sim-fresh P3): 일일 리마인더가 켜져 있으면
+                        //   새 언어로 재예약 — 이전엔 옛 언어 본문으로 잔존.
+                        if (_notifyDaily) {
+                          await NotificationService.scheduleDailyLetterReminder(
+                            langCode: code,
+                          );
+                        }
+                        if (ctx.mounted) Navigator.pop(ctx);
                       },
                     );
                   },
@@ -692,6 +724,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: confirmCtrl.text.trim() == username
                   ? () async {
                       Navigator.pop(dCtx);
+                      // Build 414 (sim200 P2): 탈퇴 전 서버 sync 타이머 정지 —
+                      //   안 멈추면 삭제 직후 타이머가 user doc 을 재기록(부활)해
+                      //   GDPR 삭제가 무력화됨(로그아웃과 동일 대칭).
+                      ctx.read<AppState>().stopServerSync();
                       await AuthService.deleteAccount();
                       if (ctx.mounted) {
                         Navigator.of(
@@ -713,7 +749,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
       ),
-    );
+    ).then((_) => confirmCtrl.dispose());
   }
 
   @override
@@ -742,6 +778,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             leading: widget.embedded
                 ? null
                 : IconButton(
+                    tooltip: l.koEn('뒤로', 'Back'),
                     onPressed: () => Navigator.pop(ctx),
                     icon: const Icon(
                       Icons.arrow_back_ios_new_rounded,
@@ -930,9 +967,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       icon: Icons.shield_outlined,
                       label: l.settingsPrivacy,
                       onTap: () async {
-                        // 사용자 나라에 맞는 언어 버전 오픈
-                        final url = AppLinks.privacyPolicyForCountry(
-                          user.country,
+                        // Build 421 (sim-fresh P3): 위치약관 타일과 동일하게 앱
+                        //   언어 기준 — 나라 기준은 비-한국 거주 한국어 사용자가
+                        //   영문 문서를 보던 불일치.
+                        final url = AppLinks.privacyPolicyForLanguage(
+                          user.languageCode,
                         );
                         final uri = Uri.parse(url);
                         try {
@@ -952,8 +991,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       icon: Icons.description_outlined,
                       label: l.settingsTerms,
                       onTap: () async {
-                        final url = AppLinks.termsForCountry(user.country);
+                        final url =
+                            AppLinks.termsForLanguage(user.languageCode);
                         final uri = Uri.parse(url);
+                        try {
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.inAppBrowserView,
+                          );
+                        } catch (_) {
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        }
+                      },
+                    ),
+                    // Build 411 (launch): 위치기반서비스 이용약관 (위치정보법
+                    //   별도 게시 의무) — 개인정보처리방침/이용약관과 분리해 노출.
+                    _tile(
+                      icon: Icons.location_on_outlined,
+                      label: l.koEn('위치기반서비스 이용약관',
+                          'Location-Based Service Terms'),
+                      onTap: () async {
+                        final uri = Uri.parse(
+                          AppLinks.locationTermsForLanguage(user.languageCode),
+                        );
                         try {
                           await launchUrl(
                             uri,
@@ -1121,9 +1184,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 'I would like to withdraw consent for specific data processing.\n\nUsername: ${user.username}\nEmail: ${user.email ?? "N/A"}\n\nDetails:\n- [ ] Third-party sharing (Firebase / RevenueCat / Resend / Twilio / etc.)\n- [ ] Location processing\n- [ ] Marketing communications\n- [ ] Other (specify): ',
                           },
                         );
+                        // Build 414 (sim100 #38): 메일 앱 없으면 launchUrl 이
+                        //   조용히 실패해 데드버튼이었다. canLaunchUrl 사전체크 +
+                        //   실패 시 support 이메일을 SnackBar 로 직접 노출(복사 가능).
+                        bool ok = false;
                         try {
-                          await launchUrl(uri);
+                          if (await canLaunchUrl(uri)) {
+                            ok = await launchUrl(uri);
+                          }
                         } catch (_) {}
+                        if (!ok && ctx.mounted) {
+                          await Clipboard.setData(
+                            ClipboardData(text: AppLinks.supportEmail),
+                          );
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '${l.settingsWithdrawConsent}: ${AppLinks.supportEmail}',
+                              ),
+                              duration: const Duration(seconds: 5),
+                            ),
+                          );
+                        }
                       },
                     ),
 

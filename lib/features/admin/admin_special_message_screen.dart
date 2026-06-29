@@ -2,8 +2,8 @@
 //
 // 관리자가 좌표 + 반경 + 메시지 + 시간 + 수량 을 입력해 brand_zones 에
 // `brandId='admin'` 으로 POST. 일반 사용자가 zone 안에 들어오면
-// BrandZoneService.triggerForUser 가 letter 자동 발급 + 지도에 [AutoDropMarker]
-// (gold 핀 + %) 로 차별 표시.
+// BrandZoneService.triggerForUser 가 letter 자동 발급 + 지도에 brand 마커로
+// 차별 표시.
 //
 // 본 화면은 admin 전용 진입. admin_screen 의 메뉴에서 push.
 // 보안: 클라이언트 검증만 — Firestore rules 가 본문 크기/필드 화이트리스트

@@ -450,7 +450,7 @@ class _AdminScreenState extends State<AdminScreen> {
           // 메시지 + 시간 + 수량 입력 → Firestore brand_zones 컬렉션에
           // brandId='admin' 으로 POST. 일반 사용자가 zone 안에 들어오면
           // BrandZoneService.triggerForUser 가 letter 자동 발급, 지도에
-          // AutoDropMarker (gold 핀+%) 로 차별 표시.
+          // brand 마커로 차별 표시.
           _actionTile(
             icon: Icons.campaign_rounded,
             iconColor: AppColors.premium,
@@ -785,6 +785,10 @@ class _AdminScreenState extends State<AdminScreen> {
                               state.syncPremiumStatus(
                                 isPremium: false,
                                 isBrand: false,
+                                // Build 414 (sim200 P3): admin 명시적 강등은
+                                //   authoritative — OR-fallback 으로 Brand 가
+                                //   유지돼 강등이 무력화되던 것 차단.
+                                authoritative: true,
                               );
                               _showSnack(
                                 l.koEn(
@@ -810,6 +814,9 @@ class _AdminScreenState extends State<AdminScreen> {
                             state.syncPremiumStatus(
                               isPremium: true,
                               isBrand: false,
+                              // Build 414 (sim200 P3): admin 명시적 Brand→Premium
+                              //   강등도 authoritative (OR-fallback 우회).
+                              authoritative: true,
                             );
                             _showSnack(
                               l.koEn(
@@ -1024,7 +1031,12 @@ class _AdminScreenState extends State<AdminScreen> {
           ),
         ),
       ),
-    );
+      // Build 423 (sim-crosscut P3): 시트 종료 시 3 컨트롤러 해제.
+    ).then((_) {
+      numberCtrl.dispose();
+      docCtrl.dispose();
+      phoneCtrl.dispose();
+    });
   }
 
   Widget _verificationField({
@@ -1316,7 +1328,8 @@ class _AdminScreenState extends State<AdminScreen> {
           ),
         ],
       ),
-    );
+      // Build 423 (sim-crosscut P3): 다이얼로그 종료 시 컨트롤러 해제.
+    ).then((_) => ctrl.dispose());
   }
 
   // ── 신고된 편지 목록 ────────────────────────────────────────────────────────

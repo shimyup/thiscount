@@ -1,12 +1,22 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/localization/app_localizations.dart';
+import '../../core/services/brand_zone_service.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/redemption_code.dart';
+import '../../core/utils/secure_clipboard.dart';
+import '../../models/brand_zone.dart';
+import '../../models/direct_message.dart';
 import '../../models/letter.dart';
 import '../../state/app_state.dart';
 import '../compose/screens/compose_screen.dart';
+import '../dm/dm_conversation_screen.dart';
 import 'brand_insights_screen.dart';
+import 'brand_quick_send_wizard.dart';
 
 /// Build 405 (PR-NN4): Brand 계정 전용 메인 화면.
 ///
@@ -21,27 +31,141 @@ import 'brand_insights_screen.dart';
 /// 일반 회원의 [InboxScreen] 과 데이터/스토리지를 공유 (state.sent 와
 /// state.inbox 같은 source) 하지만 표시 방식이 완전히 다르다. NN5 에서
 /// 공유 시스템 documentation 으로 명확화.
-class BrandCampaignScreen extends StatelessWidget {
+/// Build 446: 보낸 캠페인 카테고리 필터.
+enum _CampaignCatFilter { all, general, coupon, voucher }
+
+class BrandCampaignScreen extends StatefulWidget {
   const BrandCampaignScreen({super.key});
+
+  @override
+  State<BrandCampaignScreen> createState() => _BrandCampaignScreenState();
+}
+
+class _BrandCampaignScreenState extends State<BrandCampaignScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tab;
+  _CampaignCatFilter _cat = _CampaignCatFilter.all;
+  // Build 461 (페르소나 치명 — zone 은 만들면 끝): 내 자동발송 zone 목록.
+  // null = 로딩 전(섹션 미노출).
+  List<BrandZone>? _myZones;
+  // Build 465 (UX): zone 중단 in-flight 가드 — deactivate 가 최대 10s 네트워크
+  //   awaits 동안 무반응/중복탭을 막고, 해당 row 에 스피너 표시.
+  final Set<String> _deactivatingZoneIds = {};
+  // Build 478 (사용자 요청): 자동발송 zone '목록에서 삭제' — 서버 delete 는
+  //   firestore.rules(allow delete:false) 로 막혀 있어 로컬 hide 로 구현(영속).
+  //   숨긴 zone 은 목록에서 제외, 활성이면 함께 중지(자동 드롭 정지).
+  static const String _hiddenZonesPrefKey = 'brand_hidden_zone_ids';
+  Set<String> _hiddenZoneIds = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _tab = TabController(length: 2, vsync: this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final state = context.read<AppState>();
+      unawaited(_loadHiddenZones());
+      // Build 461 (페르소나 높음 — 두 화면 숫자 불일치): 캠페인 탭도 인사이트와
+      //   같은 서버 atomic 집계를 사용 — 진입 시 캐시 refresh(notify 로 재빌드).
+      unawaited(state.refreshBrandInsightsFromServer());
+      unawaited(_loadMyZones(state));
+    });
+  }
+
+  Future<void> _loadMyZones(AppState state, {bool force = false}) async {
+    if (!state.currentUser.isBrand) return;
+    final zones = await BrandZoneService.instance
+        .zonesForBrand(state.currentUser.id, force: force);
+    if (mounted) setState(() => _myZones = zones);
+  }
+
+  // Build 478: 숨긴 zone id 로드(영속) — '목록에서 삭제' 한 zone 제외.
+  Future<void> _loadHiddenZones() async {
+    final prefs = await SharedPreferences.getInstance();
+    final ids = prefs.getStringList(_hiddenZonesPrefKey) ?? const [];
+    if (mounted) setState(() => _hiddenZoneIds = ids.toSet());
+  }
+
+  Future<void> _persistHiddenZones() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_hiddenZonesPrefKey, _hiddenZoneIds.toList());
+  }
+
+  // Build 478: '다시 사용하기' — 같은 내용/반경/혜택/코드로 새 zone 생성(복제).
+  //   서버 expiresAt 연장은 rules 로 막혀 있어(단축만) 부활 대신 신규 생성.
+  Future<void> _reuseZone(BrandZone zone, AppL10n l) async {
+    final state = context.read<AppState>();
+    final newId = await BrandZoneService.instance.createZone(
+      brandId: state.currentUser.id,
+      brandName: state.currentUser.username,
+      center: zone.center,
+      radiusM: zone.radiusM,
+      content: zone.content,
+      redemptionInfo: zone.redemptionInfo,
+      maxRedeems: zone.maxRedeems,
+      redemptionCode: zone.redemptionCode,
+    );
+    if (!mounted) return;
+    if (newId != null) {
+      await _loadMyZones(state, force: true);
+    }
+    if (!mounted) return;
+    _zoneToast(newId != null ? l.zoneReusedToast : l.zoneReuseFailedToast,
+        success: newId != null);
+  }
+
+  // Build 478: '목록에서 삭제' — 활성이면 먼저 중지(자동 드롭 정지) 후 로컬 hide.
+  Future<void> _deleteZoneFromList(BrandZone zone, AppL10n l) async {
+    if (zone.isActive()) {
+      await BrandZoneService.instance.deactivateZone(zone.id);
+    }
+    if (!mounted) return;
+    setState(() => _hiddenZoneIds.add(zone.id));
+    await _persistHiddenZones();
+    if (mounted) await _loadMyZones(context.read<AppState>());
+    if (!mounted) return;
+    _zoneToast(l.zoneDeletedToast, success: true);
+  }
+
+  void _zoneToast(String msg, {required bool success}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg,
+            style: TextStyle(color: success ? AppColors.tealInk : Colors.white)),
+        backgroundColor: success ? AppColors.teal : AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _tab.dispose();
+    super.dispose();
+  }
+
+  bool _matchesCat(Letter l) {
+    switch (_cat) {
+      case _CampaignCatFilter.all:
+        return true;
+      case _CampaignCatFilter.general:
+        return l.category == LetterCategory.general;
+      case _CampaignCatFilter.coupon:
+        return l.category == LetterCategory.coupon;
+      case _CampaignCatFilter.voucher:
+        return l.category == LetterCategory.voucher;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
     final l = AppL10n.of(state.currentUser.languageCode);
-    // 가장 최근 발송 → 가장 오래된 순으로 정렬한 사본.
-    final sentByNewest = [...state.sent]
-      ..sort((a, b) => b.sentAt.compareTo(a.sentAt));
-    final mostRecentlyPickedUp = state.brandMostRecentlyPickedUpLetter;
-    // Build 406 (PR-OO7 시뮬레이션 P1 #1): Brand 사용자가 zone letter 등 픽업
-    //   시 _inbox 에 들어가지만 BrandCampaignScreen 미노출 → invisible 누수.
-    //   여기서 최근 5개 받은 letter 도 노출 (picked-up). 일반 회원의 InboxScreen
-    //   과 동일 source (state.inbox) 사용 — 공유 시스템 일관성.
-    final receivedByNewest = [...state.inbox]
-      ..sort((a, b) {
-        final at = a.arrivedAt ?? a.sentAt;
-        final bt = b.arrivedAt ?? b.sentAt;
-        return bt.compareTo(at);
-      });
+    // 받은 DM 미읽음 합계 → 탭 배지.
+    final dmUnread = state.totalDMUnread;
 
     return Scaffold(
       backgroundColor: AppColors.bgDeep,
@@ -70,57 +194,830 @@ class BrandCampaignScreen extends StatelessWidget {
             },
           ),
         ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
-        children: [
-          // Build 407 (PR-QQ7): 구독 플랜 + 남은 발송 가능 수를 캠페인 화면
-          //   최상단에 한눈에. 이전엔 프로필 깊숙이 있어 발송 전 확인 어려움.
-          _QuotaSummaryCard(state: state, l: l),
-          const SizedBox(height: 12),
-          _QuickComposeCard(l: l),
-          const SizedBox(height: 16),
-          if (mostRecentlyPickedUp != null) ...[
-            _RecentPickupHighlight(letter: mostRecentlyPickedUp, l: l),
-            const SizedBox(height: 16),
+        bottom: TabBar(
+          controller: _tab,
+          labelColor: AppColors.coupon,
+          unselectedLabelColor: AppColors.textMuted,
+          indicatorColor: AppColors.coupon,
+          labelStyle:
+              const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800),
+          tabs: [
+            Tab(text: l.brandCampaignSentTab),
+            Tab(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(l.brandCampaignDmTab),
+                  if (dmUnread > 0) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: AppColors.error,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        dmUnread > 99 ? '99+' : '$dmUnread',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
           ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tab,
+        children: [
+          _buildSentTab(state, l),
+          _buildDmTab(state, l),
+        ],
+      ),
+      // Build 473 (사용자 요청): 하단 플로팅 발송 버튼 제거 — 발송 진입은 상단
+      //   히어로의 '쿠폰 발송하기' 버튼 하나로 충분(중복 CTA 정리).
+    );
+  }
+
+  // Build 449: 대량발송 캠페인 그룹화 — 같은 campaignId(1인당1회 ON) 또는
+  //   같은 본문+코드+업종(brandUniquePerUser OFF) letter 들을 1개 캠페인 행으로
+  //   묶고 'N통 발송'으로 집계. 사용자가 "대량발송했는데 1개만 보인다"고 느끼던
+  //   회귀(중복 N행 또는 글로벌 산포)를 한 행 + 정확한 발송 수로 해소.
+  static String _groupKey(Letter l) {
+    if (l.campaignId != null && l.campaignId!.isNotEmpty) return l.campaignId!;
+    return '${l.content}${l.redemptionCode ?? ''}${l.categoryTag ?? ''}';
+  }
+
+  // Build 461 (페르소나 높음 — 캠페인 탭/인사이트 숫자 불일치): 서버 atomic
+  //   집계 캐시(state.serverInsightFor) 우선 — 로컬 readCount 는 타인 픽업이
+  //   반영되지 않아(sync 가 본인 발송 letter skip) 대부분 0 이었음. 인사이트
+  //   getter(brandInsights)와 동일 소스/동일 fallback 으로 두 화면 숫자 일치.
+  static List<_CampaignGroup> _group(List<Letter> letters, AppState state) {
+    final map = <String, _CampaignGroup>{};
+    final order = <String>[];
+    for (final l in letters) {
+      final k = _groupKey(l);
+      final g = map.putIfAbsent(k, () {
+        order.add(k);
+        return _CampaignGroup(rep: l);
+      });
+      final cached = state.serverInsightFor(l.id);
+      g.count += 1;
+      g.pickup += cached?.pickup ?? l.readCount;
+      g.redeemed += cached?.redeemed ?? (l.redeemedAt != null ? 1 : 0);
+      // 대표 letter 는 가장 최근 발송으로 유지.
+      if (l.sentAt.isAfter(g.rep.sentAt)) g.rep = l;
+    }
+    return [for (final k in order) map[k]!];
+  }
+
+  // ── 보낸 캠페인 탭 ──────────────────────────────────────────────────────────
+  Widget _buildSentTab(AppState state, AppL10n l) {
+    final sentByNewest = [...state.sent]
+      ..sort((a, b) => b.sentAt.compareTo(a.sentAt));
+    // 카테고리 필터 적용.
+    final filtered = sentByNewest.where(_matchesCat).toList();
+    final activeSent =
+        _group(filtered.where((l) => !l.isExpired).toList(), state);
+    final endedSent =
+        _group(filtered.where((l) => l.isExpired).toList(), state);
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
+      children: [
+        // Build 468 (UI 단순화 시안 승인): 히어로 카드(배지+잔여+크레딧+큰버튼)
+        //   → 컴팩트 발송 헤더(잔여/크레딧/자동발송 수 = 서브라인 1줄 + 발송 버튼).
+        //   최근 픽업 하이라이트 카드 제거(캠페인 리스트가 픽업 수 표시 = 중복).
+        //   단골 스탬프 안내는 하단 슬림으로 이동(아래).
+        _CompactSendHeader(
+            state: state,
+            l: l,
+            zoneCount: _myZones
+                    ?.where((z) => !_hiddenZoneIds.contains(z.id))
+                    .length ??
+                0),
+        const SizedBox(height: 14),
+        // Build 461 (페르소나 치명): 자동발송 zone 관리 — 목록/잔여/조기 종료.
+        // Build 478: '목록에서 삭제'(로컬 hide)한 zone 제외.
+        ...(() {
+          final visibleZones = _myZones
+                  ?.where((z) => !_hiddenZoneIds.contains(z.id))
+                  .toList() ??
+              const <BrandZone>[];
+          if (visibleZones.isEmpty) return <Widget>[];
+          return <Widget>[
+            _SectionHeader(
+                title: '${l.zoneSectionHeader} · ${visibleZones.length}'),
+            const SizedBox(height: 8),
+            ...visibleZones.map(
+              (z) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _ZoneRow(
+                  zone: z,
+                  l: l,
+                  inFlight: _deactivatingZoneIds.contains(z.id),
+                  onDeactivate: () => _confirmDeactivateZone(z, l),
+                  onReuse: () => _reuseZone(z, l),
+                  onDelete: () => _deleteZoneFromList(z, l),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ];
+        })(),
+        // Build 446: 카테고리 필터 칩 — 전체/일반/할인권/교환권.
+        // Build 459 (UI 다이어트): 캠페인 3건+ 부터 노출 — 0~2건엔 거를 게 없어
+        //   신규 사장이 가장 복잡한 화면을 보던 역설 해소.
+        if (sentByNewest.length >= 3) ...[
+          _CategoryFilterRow(
+            selected: _cat,
+            l: l,
+            onSelect: (c) => setState(() => _cat = c),
+          ),
+          const SizedBox(height: 12),
+        ],
+        if (sentByNewest.isEmpty) ...[
           _SectionHeader(title: l.brandCampaignRecentSent),
           const SizedBox(height: 8),
-          if (sentByNewest.isEmpty)
-            _EmptySentCampaigns(l: l)
-          else
-            ...sentByNewest.take(20).map(
-                  (letter) => Padding(
+          _EmptySentCampaigns(l: l),
+        ] else if (filtered.isEmpty) ...[
+          _SectionHeader(title: l.brandCampaignRecentSent),
+          const SizedBox(height: 8),
+          _EmptyFiltered(l: l),
+        ] else ...[
+          if (activeSent.isNotEmpty) ...[
+            _SectionHeader(title: l.brandCampaignActive),
+            const SizedBox(height: 8),
+            ...activeSent.take(50).map(
+                  (g) => Padding(
                     padding: const EdgeInsets.only(bottom: 8),
-                    child: _CampaignRow(letter: letter, l: l),
+                    child: _CampaignRow(group: g, l: l),
                   ),
                 ),
-          // Build 406 (PR-OO7): Brand 도 zone letter 픽업 가능 → 받은 letter
-          //   섹션을 별도로 노출. 비어있으면 hide (Brand 대부분 케이스).
-          if (receivedByNewest.isNotEmpty) ...[
-            const SizedBox(height: 24),
-            _SectionHeader(title: l.brandCampaignReceived),
+          ],
+          if (endedSent.isNotEmpty) ...[
+            if (activeSent.isNotEmpty) const SizedBox(height: 24),
+            _SectionHeader(title: l.brandCampaignEnded),
             const SizedBox(height: 8),
-            ...receivedByNewest.take(5).map(
-                  (letter) => Padding(
+            ...endedSent.take(50).map(
+                  (g) => Padding(
                     padding: const EdgeInsets.only(bottom: 8),
-                    child: _CampaignRow(letter: letter, l: l),
+                    child: _CampaignRow(group: g, l: l),
                   ),
                 ),
           ],
         ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.coupon,
-        foregroundColor: AppColors.bgDeep,
-        icon: const Icon(Icons.send_rounded),
-        label: Text(
-          l.brandCampaignQuickSend,
-          style: const TextStyle(fontWeight: FontWeight.w800),
+        // Build 468 (UI 단순화 시안): 단골 스탬프 안내를 상단 골드 카드 →
+        //   리스트 하단 슬림 안내로 이동(발송/캠페인이 먼저 보이도록). dismiss 유지.
+        const SizedBox(height: 16),
+        _StampProgramNotice(l: l),
+      ],
+    );
+  }
+
+  // Build 461: zone 조기 종료 확인 → deactivate → 목록 갱신.
+  Future<void> _confirmDeactivateZone(BrandZone zone, AppL10n l) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.bgCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          l.zoneStopConfirmTitle,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+          ),
         ),
-        onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => const ComposeScreen(),
+        content: Text(
+          l.zoneStopConfirmBody,
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 13,
+            height: 1.45,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              l.settingsCancel,
+              style: const TextStyle(color: AppColors.textMuted),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              l.zoneStopConfirmCta,
+              style: const TextStyle(
+                color: AppColors.error,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    // Build 465 (UX): 중복 탭 가드 + row 스피너. 이미 진행 중이면 무시.
+    if (_deactivatingZoneIds.contains(zone.id)) return;
+    setState(() => _deactivatingZoneIds.add(zone.id));
+    bool success = false;
+    try {
+      success = await BrandZoneService.instance.deactivateZone(zone.id);
+    } finally {
+      if (mounted) setState(() => _deactivatingZoneIds.remove(zone.id));
+    }
+    if (!mounted) return;
+    if (success) {
+      await _loadMyZones(context.read<AppState>());
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? l.zoneStoppedToast
+              : l.zoneStopFailedToast,
+          style: TextStyle(
+            color: success ? AppColors.tealInk : Colors.white,
+          ),
+        ),
+        backgroundColor: success ? AppColors.teal : AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
+
+  // ── 받은 DM 탭 ─────────────────────────────────────────────────────────────
+  Widget _buildDmTab(AppState state, AppL10n l) {
+    // 미읽음 우선 → 최근 생성 순.
+    final sessions = state.chatSessions.values.toList()
+      ..sort((a, b) {
+        if ((a.unreadCount > 0) != (b.unreadCount > 0)) {
+          return a.unreadCount > 0 ? -1 : 1;
+        }
+        return b.createdAt.compareTo(a.createdAt);
+      });
+    if (sessions.isEmpty) {
+      return ListView(
+        padding: const EdgeInsets.fromLTRB(16, 40, 16, 90),
+        children: [_EmptyDm(l: l)],
+      );
+    }
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
+      itemCount: sessions.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      itemBuilder: (_, i) => _DmRow(session: sessions[i], state: state, l: l),
+    );
+  }
+}
+
+// Build 446: 카테고리 필터 칩 행.
+class _CategoryFilterRow extends StatelessWidget {
+  final _CampaignCatFilter selected;
+  final AppL10n l;
+  final ValueChanged<_CampaignCatFilter> onSelect;
+  const _CategoryFilterRow({
+    required this.selected,
+    required this.l,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final items = <(_CampaignCatFilter, String)>[
+      (_CampaignCatFilter.all, l.inboxFilterAll),
+      (_CampaignCatFilter.general, l.composeBrandCategoryGeneral),
+      (_CampaignCatFilter.coupon, l.composeBrandCategoryCoupon),
+      (_CampaignCatFilter.voucher, l.composeBrandCategoryVoucher),
+    ];
+    return SizedBox(
+      height: 34,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: items.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (_, i) {
+          final (cat, label) = items[i];
+          final active = cat == selected;
+          return GestureDetector(
+            onTap: () => onSelect(cat),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              decoration: BoxDecoration(
+                color: active
+                    ? AppColors.coupon.withValues(alpha: 0.16)
+                    : AppColors.bgCard,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: active
+                      ? AppColors.coupon.withValues(alpha: 0.7)
+                      : AppColors.bgSurface,
+                  width: active ? 1.3 : 1.0,
+                ),
+              ),
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: active ? AppColors.coupon : AppColors.textSecondary,
+                  fontSize: 12.5,
+                  fontWeight: active ? FontWeight.w800 : FontWeight.w600,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// Build 446: 받은 DM 한 행 — 상대 닉네임/국기 + 마지막 메시지 미리보기 + 미읽음.
+class _DmRow extends StatelessWidget {
+  final ChatSession session;
+  final AppState state;
+  final AppL10n l;
+  const _DmRow({required this.session, required this.state, required this.l});
+
+  @override
+  Widget build(BuildContext context) {
+    final msgs = state.getDMConversation(session.partnerId);
+    final last = msgs.isNotEmpty ? msgs.last : null;
+    final hasUnread = session.unreadCount > 0;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => DmConversationScreen(
+            partnerId: session.partnerId,
+            partnerName: session.partnerName,
+            partnerFlag: session.partnerFlag,
+          ),
         )),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+          decoration: BoxDecoration(
+            color: AppColors.bgCard,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: hasUnread
+                  ? AppColors.coupon.withValues(alpha: 0.5)
+                  : AppColors.bgSurface,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.bgSurface,
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Text(session.partnerFlag,
+                    style: const TextStyle(fontSize: 20)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      session.partnerName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      last?.content ?? l.brandCampaignDmNoMessage,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: hasUnread
+                            ? AppColors.textSecondary
+                            : AppColors.textMuted,
+                        fontSize: 12,
+                        fontWeight:
+                            hasUnread ? FontWeight.w600 : FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (hasUnread) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.error,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    session.unreadCount > 99 ? '99+' : '${session.unreadCount}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Build 458: 단골 스탬프 자동 운영 안내 — 사장이 프로그램 존재·규칙을 인지.
+// Build 459 (UI 다이어트): 1회성 교육 카드 — 닫기 가능 + prefs 영속.
+class _StampProgramNotice extends StatefulWidget {
+  final AppL10n l;
+  const _StampProgramNotice({required this.l});
+
+  @override
+  State<_StampProgramNotice> createState() => _StampProgramNoticeState();
+}
+
+class _StampProgramNoticeState extends State<_StampProgramNotice> {
+  static const _kDismissed = 'stamp_notice_dismissed_v1';
+  bool? _dismissed; // null = 로딩 전(미노출)
+
+  @override
+  void initState() {
+    super.initState();
+    SharedPreferences.getInstance().then((p) {
+      if (mounted) {
+        setState(() => _dismissed = p.getBool(_kDismissed) ?? false);
+      }
+    });
+  }
+
+  Future<void> _dismiss() async {
+    setState(() => _dismissed = true);
+    final p = await SharedPreferences.getInstance();
+    await p.setBool(_kDismissed, true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_dismissed != false) return const SizedBox.shrink();
+    final l = widget.l;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.gold.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('☕', style: TextStyle(fontSize: 16)),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l.stampAutoTitle,
+                  style: const TextStyle(
+                    color: AppColors.gold,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  l.stampAutoBody,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 11,
+                    height: 1.45,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // 닫기 — 읽은 교육 카드가 영구 잔류하지 않게.
+          // Build 464 (디자인 a11y): 44pt 터치 타깃 + 스크린리더 라벨(IconButton).
+          IconButton(
+            onPressed: _dismiss,
+            tooltip: l.mapClose,
+            icon: const Icon(Icons.close_rounded,
+                size: 16, color: AppColors.textMuted),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+            visualDensity: VisualDensity.compact,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Build 446: 받은 DM 빈 상태.
+class _EmptyDm extends StatelessWidget {
+  final AppL10n l;
+  const _EmptyDm({required this.l});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.bgSurface),
+      ),
+      child: Column(
+        children: [
+          const Text('💬', style: TextStyle(fontSize: 36)),
+          const SizedBox(height: 10),
+          Text(
+            l.brandCampaignDmEmptyTitle,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l.brandCampaignDmEmptySub,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 12,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Build 446: 필터 결과 없음.
+class _EmptyFiltered extends StatelessWidget {
+  final AppL10n l;
+  const _EmptyFiltered({required this.l});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.bgSurface),
+      ),
+      child: Center(
+        child: Text(
+          l.brandCampaignFilterEmpty,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: AppColors.textMuted,
+            fontSize: 12.5,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Build 468 (UI 단순화 시안): 컴팩트 발송 헤더 — 잔여/크레딧/자동발송 수를
+//   서브라인 1줄로, 그 아래 발송 버튼 1개. 기존 _HeroSendCard(배지+큰카드)를
+//   대체해 상단 높이를 ~절반으로 줄이고 캠페인 리스트를 더 빨리 노출.
+class _CompactSendHeader extends StatelessWidget {
+  final AppState state;
+  final AppL10n l;
+  final int zoneCount;
+  const _CompactSendHeader({
+    required this.state,
+    required this.l,
+    required this.zoneCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dailyRemaining = state.remainingDailySendCount;
+    final dailyLimit = state.dailySendLimit;
+    final dailyPct = dailyLimit > 0 ? dailyRemaining / dailyLimit : 0.0;
+    final dailyColor = dailyPct > 0.4
+        ? AppColors.teal
+        : (dailyPct > 0.15 ? AppColors.gold : AppColors.error);
+    final exactDropFree = state.exactDropFreeForBeta;
+    final credits = state.brandExactDropCredits;
+    // Build 487 (UX sim): 월간 잔여 — 소진 시 빨강(버튼 비활성 원인 가시화).
+    final monthlyRemaining = state.remainingMonthlySendCount;
+    final monthlyLimit = state.monthlySendLimit;
+    final monthlyExhausted = monthlyRemaining <= 0;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 서브라인 1줄: 오늘 잔여 · 크레딧/무제한 · 자동발송 N곳
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 2,
+          children: [
+            Text(
+              l.brandCampaignDailyRemaining(dailyRemaining, dailyLimit),
+              style: TextStyle(
+                color: dailyColor,
+                fontSize: 12.5,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            // Build 487: 월간 잔여 — 소진 시 빨강 강조.
+            Text(
+              '· ${l.brandCampaignMonthlyRemaining(monthlyRemaining, monthlyLimit)}',
+              style: TextStyle(
+                color: monthlyExhausted ? AppColors.error : AppColors.textMuted,
+                fontSize: 11.5,
+                fontWeight:
+                    monthlyExhausted ? FontWeight.w800 : FontWeight.w600,
+              ),
+            ),
+            Text(
+              '· ${exactDropFree ? l.brandCampaignQuotaUnlimited : l.brandCampaignQuotaCredits(credits)}',
+              style: const TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 11.5,
+              ),
+            ),
+            if (zoneCount > 0)
+              Text(
+                '· ${l.zoneSectionHeader} $zoneCount',
+                style: const TextStyle(
+                  color: AppColors.gold,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            // Build 470: 발송은 단계화된 ComposeScreen 하나로 통일(혜택→대상→확인).
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => const ComposeScreen(),
+            )),
+            icon: const Text('📣', style: TextStyle(fontSize: 16)),
+            label: Text(
+              l.brandCampaignQuickComposeTitle,
+              style: const TextStyle(
+                fontSize: 14.5,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.coupon,
+              foregroundColor: AppColors.bgDeep,
+              padding: const EdgeInsets.symmetric(vertical: 13),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(13),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Build 459: 히어로 발송 카드 — 플랜 배지 + 오늘 잔여 + 큰 발송 CTA 통합.
+// Build 468: _CompactSendHeader 로 대체 — 보존(미사용).
+// ignore: unused_element
+class _HeroSendCard extends StatelessWidget {
+  final AppState state;
+  final AppL10n l;
+  const _HeroSendCard({required this.state, required this.l});
+
+  @override
+  Widget build(BuildContext context) {
+    final dailyRemaining = state.remainingDailySendCount;
+    final dailyLimit = state.dailySendLimit;
+    final dailyPct = dailyLimit > 0 ? dailyRemaining / dailyLimit : 0.0;
+    final dailyColor = dailyPct > 0.4
+        ? AppColors.teal
+        : (dailyPct > 0.15 ? AppColors.gold : AppColors.error);
+    final exactDropFree = state.exactDropFreeForBeta;
+    final credits = state.brandExactDropCredits;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.coupon.withValues(alpha: 0.12),
+            AppColors.coupon.withValues(alpha: 0.03),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.coupon.withValues(alpha: 0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.coupon.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'Brand',
+                  style: TextStyle(
+                    color: AppColors.coupon,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  l.brandCampaignDailyRemaining(dailyRemaining, dailyLimit),
+                  style: TextStyle(
+                    color: dailyColor,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            exactDropFree
+                ? l.brandCampaignQuotaUnlimited
+                : l.brandCampaignQuotaCredits(credits),
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 11.5,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              // Build 459: 히어로 CTA → 3스텝 마법사(간단 경로). 풀 compose 는
+              //   마법사 상단 '고급 모드' 및 FAB 로 유지.
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => const BrandQuickSendWizard(),
+              )),
+              icon: const Text('📣', style: TextStyle(fontSize: 16)),
+              label: Text(
+                l.brandCampaignQuickComposeTitle,
+                style: const TextStyle(
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.coupon,
+                foregroundColor: AppColors.bgDeep,
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -128,6 +1025,8 @@ class BrandCampaignScreen extends StatelessWidget {
 
 /// Build 407 (PR-QQ7): 구독 플랜 + 남은 발송 가능 수 요약 카드.
 ///   Brand: ExactDrop 크레딧 + (베타면 무제한 안내). Premium: 특급 잔여.
+// Build 459: _HeroSendCard 로 대체 — 보존(향후 재사용 대비).
+// ignore: unused_element
 class _QuotaSummaryCard extends StatelessWidget {
   final AppState state;
   final AppL10n l;
@@ -224,6 +1123,8 @@ class _QuotaSummaryCard extends StatelessWidget {
   }
 }
 
+// Build 459: _HeroSendCard 로 대체 — 보존.
+// ignore: unused_element
 class _QuickComposeCard extends StatelessWidget {
   final AppL10n l;
   const _QuickComposeCard({required this.l});
@@ -289,6 +1190,8 @@ class _QuickComposeCard extends StatelessWidget {
   }
 }
 
+// Build 468 (UI 단순화): 캠페인 리스트가 픽업 수를 표시해 중복 → 미사용(보존).
+// ignore: unused_element
 class _RecentPickupHighlight extends StatelessWidget {
   final Letter letter;
   final AppL10n l;
@@ -386,65 +1289,325 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-class _CampaignRow extends StatelessWidget {
-  final Letter letter;
+// Build 461 (페르소나 치명): 자동발송 zone 한 행 — 내용/반경/발급/만료 + 중지.
+class _ZoneRow extends StatelessWidget {
+  final BrandZone zone;
   final AppL10n l;
-  const _CampaignRow({required this.letter, required this.l});
+  final bool inFlight;
+  final VoidCallback onDeactivate;
+  // Build 478: 자동발송 zone 관리 — 다시 사용하기(복제) / 목록에서 삭제(hide).
+  final VoidCallback onReuse;
+  final VoidCallback onDelete;
+  const _ZoneRow({
+    required this.zone,
+    required this.l,
+    this.inFlight = false,
+    required this.onDeactivate,
+    required this.onReuse,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
-    // Letter 모델은 readCount (unique 픽업 인원) 와 redeemedAt (본인 사용
-    // 시각, 단건) 만 노출. campaign-level "사용됨" 집계는 별도 path 필요 →
-    // 우선 readCount 만 표시. 후속 PR (Cloud Function) 에서 redeem 집계 추가.
-    final pickedUp = letter.readCount;
-    final redeemed = letter.redeemedAt != null ? 1 : 0;
+    final active = zone.isActive();
+    final radiusLabel = zone.radiusM >= 1000
+        ? '${(zone.radiusM / 1000).toStringAsFixed(zone.radiusM % 1000 == 0 ? 0 : 1)}km'
+        : '${zone.radiusM.round()}m';
+    final issued = zone.maxRedeems > 0
+        ? '${zone.redeemedCount}/${zone.maxRedeems}'
+        : '${zone.redeemedCount}';
+    final remain = zone.expiresAt.difference(DateTime.now());
+    final expiryLabel = !active
+        ? l.zoneEndedLabel
+        : remain.inDays >= 1
+            ? 'D-${remain.inDays}'
+            : l.zoneEndsToday;
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.bgSurface),
+        border: Border.all(
+          color: active
+              ? AppColors.gold.withValues(alpha: 0.45)
+              : AppColors.bgSurface,
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(
-            letter.content,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              height: 1.4,
+          Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.gold.withValues(alpha: active ? 0.14 : 0.05),
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: Text('📍',
+                style: TextStyle(
+                    fontSize: 20,
+                    color: active ? null : AppColors.textMuted)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  zone.content,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: active
+                        ? AppColors.textPrimary
+                        : AppColors.textMuted,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  '$radiusLabel · ${l.zoneIssuedLabel} $issued · $expiryLabel',
+                  style: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 11.5,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              _StatChip(
-                icon: Icons.local_mall_outlined,
-                label: '$pickedUp',
-                tooltip: l.brandCampaignPicked,
-              ),
-              const SizedBox(width: 8),
-              _StatChip(
-                icon: Icons.check_circle_outline_rounded,
-                label: '$redeemed',
-                tooltip: l.brandCampaignRedeemed,
-              ),
-              const Spacer(),
-              Text(
-                _shortAge(letter.sentAt),
-                style: const TextStyle(
-                  color: AppColors.textMuted,
-                  fontSize: 11,
+          const SizedBox(width: 8),
+          // Build 478: 중단 진행 중이면 스피너, 아니면 관리 메뉴(⋮).
+          //   - 활성: 중지 / 다시 사용하기 / 목록에서 삭제
+          //   - 종료됨: 다시 사용하기 / 목록에서 삭제
+          if (inFlight)
+            const SizedBox(
+              width: 44,
+              height: 44,
+              child: Center(
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.error,
+                  ),
                 ),
               ),
-            ],
-          ),
+            )
+          else
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert_rounded,
+                  color: AppColors.textMuted, size: 20),
+              color: AppColors.bgSurface,
+              tooltip: l.koEn('관리', 'Manage'),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              onSelected: (v) {
+                switch (v) {
+                  case 'stop':
+                    onDeactivate();
+                    break;
+                  case 'reuse':
+                    onReuse();
+                    break;
+                  case 'delete':
+                    onDelete();
+                    break;
+                }
+              },
+              itemBuilder: (_) => [
+                if (active)
+                  PopupMenuItem(
+                    value: 'stop',
+                    child: _zoneMenuItem(
+                        Icons.pause_circle_outline_rounded,
+                        l.zoneStopShort,
+                        AppColors.error),
+                  ),
+                PopupMenuItem(
+                  value: 'reuse',
+                  child: _zoneMenuItem(Icons.refresh_rounded, l.zoneReuseCta,
+                      AppColors.gold),
+                ),
+                PopupMenuItem(
+                  value: 'delete',
+                  child: _zoneMenuItem(Icons.delete_outline_rounded,
+                      l.zoneDeleteCta, AppColors.textSecondary),
+                ),
+              ],
+            ),
         ],
       ),
+    );
+  }
+
+  Widget _zoneMenuItem(IconData icon, String label, Color color) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: color),
+        const SizedBox(width: 10),
+        Text(label,
+            style: TextStyle(
+                color: color, fontSize: 13, fontWeight: FontWeight.w700)),
+      ],
+    );
+  }
+}
+
+// Build 449: 대량발송 캠페인 그룹 — 같은 캠페인 letter N통의 대표 + 집계.
+class _CampaignGroup {
+  Letter rep;
+  int count = 0;
+  int pickup = 0;
+  int redeemed = 0;
+  _CampaignGroup({required this.rep});
+}
+
+class _CampaignRow extends StatelessWidget {
+  final _CampaignGroup group;
+  final AppL10n l;
+  const _CampaignRow({required this.group, required this.l});
+
+  @override
+  Widget build(BuildContext context) {
+    final letter = group.rep;
+    // Build 449: 그룹 집계 — 대량발송 N통을 1행으로 묶어 발송 수/픽업/사용 합산.
+    final sentCount = group.count;
+    final pickedUp = group.pickup;
+    final redeemed = group.redeemed;
+    final hasCode = letter.redemptionCode != null;
+    // Build 437 (device #2): 캠페인 카드 compact 가로형 — 업종 이모지 + 1줄 내용
+    //   + 인라인 통계. 이전 세로 2줄+칩 카드(~100pt)는 한 화면에 몇 개 못 보여
+    //   "스크롤만 되고 보기 어렵다" 회귀 → 높이 ~절반(화면당 ~2배 노출).
+    // Build 449: 탭하면 상세 시트 → 발급된 매장 코드(할인코드) 확인/복사.
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => _showDetail(context),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: AppColors.bgCard,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.bgSurface),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.bgSurface,
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Text(
+                  bizCategoryEmoji(letter.categoryTag),
+                  style: const TextStyle(fontSize: 20),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            letter.content,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        // Build 449: 대량발송이면 'N통' 발송 수 배지.
+                        if (sentCount > 1) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.coupon.withValues(alpha: 0.16),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              l.composeCountUnit(sentCount),
+                              style: const TextStyle(
+                                color: AppColors.coupon,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 5),
+                    Row(
+                      children: [
+                        Text(
+                          '🛍 $pickedUp',
+                          style: const TextStyle(
+                            color: AppColors.teal,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          '✅ $redeemed',
+                          style: const TextStyle(
+                            color: AppColors.gold,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          _shortAge(letter.sentAt),
+                          style: const TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // 할인코드 발급 표식 + 화살표.
+              if (hasCode) ...[
+                const SizedBox(width: 6),
+                const Icon(Icons.qr_code_2_rounded,
+                    size: 16, color: AppColors.coupon),
+                const SizedBox(width: 4),
+              ],
+              const Icon(Icons.chevron_right_rounded,
+                  size: 18, color: AppColors.textMuted),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Build 449: 캠페인 상세 — 발급된 할인코드(매장 코드)를 크게 보여주고 복사.
+  void _showDetail(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.bgCard,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => _CampaignDetailSheet(group: group, l: l),
     );
   }
 
@@ -458,6 +1621,302 @@ class _CampaignRow extends StatelessWidget {
   }
 }
 
+// Build 449: 캠페인 상세 바텀시트 — 발급된 할인코드(매장 코드)를 크게 노출 + 복사.
+//   사용자 요구: "발급된 매장코드는 내 캠페인에서 보낸 편지를 클릭하면 볼 수 있게".
+class _CampaignDetailSheet extends StatelessWidget {
+  final _CampaignGroup group;
+  final AppL10n l;
+  const _CampaignDetailSheet({required this.group, required this.l});
+
+  @override
+  Widget build(BuildContext context) {
+    final letter = group.rep;
+    final code = letter.redemptionCode;
+    final sentCount = group.count;
+    final pickedUp = group.pickup;
+    final redeemed = group.redeemed;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        20,
+        4,
+        20,
+        20 + MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 업종 이모지 + 카테고리 배지.
+          Row(
+            children: [
+              Text(bizCategoryEmoji(letter.categoryTag),
+                  style: const TextStyle(fontSize: 22)),
+              const SizedBox(width: 8),
+              _catBadge(letter.category),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // 본문.
+          Text(
+            letter.content,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 15,
+              height: 1.45,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 16),
+          // ── 발급된 할인코드 ──
+          if (code != null) ...[
+            Text(
+              l.redemptionPreviewHeader,
+              style: const TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 11.5,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.4,
+              ),
+            ),
+            const SizedBox(height: 8),
+            _CodeBox(code: code, l: l),
+            const SizedBox(height: 8),
+            Text(
+              l.composeBrandCouponAutoCodeNote,
+              style: const TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 11,
+                height: 1.4,
+              ),
+            ),
+          ] else ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.bgSurface,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                l.brandNoCodesYet,
+                style: const TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 12.5,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: 16),
+          // ── 성과 요약 ── Build 449: 발송 수(N통) 포함.
+          Wrap(
+            spacing: 10,
+            runSpacing: 8,
+            children: [
+              _miniStat('📮', '$sentCount', l.brandAnalyticsSent),
+              _miniStat('🛍', '$pickedUp', l.brandAnalyticsPicked),
+              _miniStat('✅', '$redeemed', l.brandAnalyticsRedeemed),
+              if (letter.redemptionExpiresAt != null)
+                _miniStat(
+                  '⏳',
+                  '',
+                  _expiryLabel(letter.redemptionExpiresAt!),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Build 461 (페르소나 높음 — 재발송 버튼 부재): 코칭팁의 '재집행 권장'
+          //   과 액션 연결. 본문/혜택/카테고리/업종/코드를 compose 에 프리필 —
+          //   잘된 캠페인을 처음부터 다시 타이핑하지 않아도 된다.
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => ComposeScreen(
+                    initialContent: letter.content,
+                    initialRedemptionInfo: letter.redemptionInfo,
+                    initialBrandCategoryKey: letter.category.key,
+                    initialBizCategory: letter.categoryTag,
+                    initialRedemptionCode: letter.redemptionCode,
+                  ),
+                ));
+              },
+              icon: const Icon(Icons.replay_rounded, size: 18),
+              label: Text(
+                l.campaignResend,
+                style: const TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.coupon,
+                foregroundColor: AppColors.bgDeep,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _catBadge(LetterCategory c) {
+    final (label, color) = switch (c) {
+      LetterCategory.coupon => (l.composeBrandCategoryCoupon, AppColors.coupon),
+      LetterCategory.voucher => (l.composeBrandCategoryVoucher, AppColors.gold),
+      _ => (l.composeBrandCategoryGeneral, AppColors.teal),
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 11.5,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+
+  Widget _miniStat(String emoji, String value, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.bgSurface,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 14)),
+          const SizedBox(width: 6),
+          if (value.isNotEmpty) ...[
+            Text(
+              value,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _expiryLabel(DateTime exp) {
+    final d = exp.difference(DateTime.now());
+    if (d.isNegative) return l.brandTicketExpired;
+    if (d.inDays >= 1) return l.expiresDaysShort(d.inDays);
+    if (d.inHours >= 1) return l.expiresHoursShort(d.inHours);
+    return l.expiresMinutesShort(d.inMinutes);
+  }
+}
+
+// Build 449: 코드 박스 — 큰 monospace 코드 + 복사 버튼.
+class _CodeBox extends StatelessWidget {
+  final String code;
+  final AppL10n l;
+  const _CodeBox({required this.code, required this.l});
+
+  @override
+  Widget build(BuildContext context) {
+    final formatted = RedemptionCode.formatForDisplay(code);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.coupon.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.coupon.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              formatted,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                fontFamily: 'monospace',
+                letterSpacing: 2,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () async {
+              await SecureClipboard.copyEphemeral(formatted);
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    l.redemptionCodeCopied,
+                    style: const TextStyle(color: AppColors.tealInk),
+                  ),
+                  backgroundColor: AppColors.teal,
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.coupon.withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(8),
+                border:
+                    Border.all(color: AppColors.coupon.withValues(alpha: 0.6)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.copy_rounded,
+                      size: 14, color: AppColors.coupon),
+                  const SizedBox(width: 5),
+                  Text(
+                    l.redemptionCodeCopy,
+                    style: const TextStyle(
+                      color: AppColors.coupon,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Build 437 (device #2): compact 카드 전환으로 현재 미사용 — 향후 재사용 대비 보존.
+// ignore: unused_element
 class _StatChip extends StatelessWidget {
   final IconData icon;
   final String label;

@@ -107,7 +107,10 @@ class AppColors {
   // Text
   static const Color textPrimary = Color(0xFFFFFFFF);
   static const Color textSecondary = Color(0xFF8E8E93);
-  static const Color textMuted = Color(0xFF5A5A5F);
+  // Build 424 (WCAG P0): #5A5A5F on bgDeep #000000 = 3.3:1 (AA fail). 동적
+  //   팔레트(AppPalette)는 이미 #7C7C82(≈5.0:1)로 교정됐는데 정적 AppColors
+  //   만 옛 값이라 600+ 참조가 대비 미달이었음 → 승인된 동적 값에 정렬.
+  static const Color textMuted = Color(0xFF7C7C82);
 
   // Letter glow colors
   static const Color letterGlow = Color(0xFFFFD60A);
@@ -278,6 +281,10 @@ class AppTheme {
   static ThemeData get darkTheme {
     return ThemeData(
       brightness: Brightness.dark,
+      // Build 444 (design): 2026 트렌드 — 앱 전체 기본 폰트를 Pretendard 로.
+      //   시스템 폰트(Apple SD Gothic Neo) 대비 한/영/숫자 균형·가독·모던. 개별
+      //   TextStyle 에 fontFamily 미지정 시 전부 이 패밀리 상속.
+      fontFamily: 'Pretendard',
       scaffoldBackgroundColor: AppColors.bgDeep,
       colorScheme: const ColorScheme.dark(
         primary: AppColors.gold,

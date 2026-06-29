@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
+import '../../../core/services/secure_clock.dart';
 import '../../../core/services/secure_location.dart';
 import 'package:latlong2/latlong.dart' as ll;
 import 'package:provider/provider.dart';
@@ -12,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/config/map_config.dart';
 import '../../progression/user_level.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../widgets/app_snack.dart';
 import '../../../core/localization/country_names.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/person_emoji.dart';
@@ -21,6 +23,7 @@ import '../../../widgets/app_card.dart';
 import '../../../models/user_profile.dart';
 import '../../../state/app_state.dart';
 import '../../brand/brand_promo_banner.dart';
+import '../../premium/premium_gate_sheet.dart';
 
 // 목업 타워 데이터 제거 → AppState.mapUsers (Firestore 실시간) 사용
 
@@ -57,6 +60,10 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   Timer? _positionSaveDebounce; // Build 151: 지도 이동 시 debounce 저장
   final _tickNotifier = ValueNotifier<int>(0);
   double _lastKnownZoom = 2.0;
+  // Build 459 (UI 다이어트): 국가 점프 바는 세계 탐색 줌(<8)에서만 — 동네 줌
+  //   레벨에선 무관한 글로벌 UI 가 최상단을 차지하던 과밀 해소.
+  bool _showCountryBar = true;
+  static const double _countryBarZoomThreshold = 8.0;
   bool _showTowerLabels = false;
   final bool _showRouteLines = true;
   bool _showNearbyOnly = false;
@@ -81,14 +88,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     // 1초마다 tickNotifier 갱신 → 편지 마커 위치가 sentAt~arrivalTime 기반으로
     // 부드럽게 이동. Build 300 (HIGH performance audit): inTransit 편지가
     // 없으면 marker 위치가 변하지 않으므로 tick 발화를 skip — CPU/배터리 절약.
-    _positionTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!mounted) return;
-      final state = context.read<AppState>();
-      final hasInTransit = state.worldLetters.any(
-        (l) => l.status == DeliveryStatus.inTransit,
-      );
-      if (hasInTransit) _tickNotifier.value++;
-    });
+    _startPositionTimer();
     // 지도 열릴 때 회원 타워 즉시 로드 + 유저 위치로 자동 이동
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -102,6 +102,8 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       // Build 151: 이전 세션의 지도 위치·줌이 저장돼 있으면 우선 복원.
       // 없으면 기존 로직 (유저 현재 위치로 이동).
       _restoreLastMapPosition(state);
+      // Build 414 (#3 아하모먼트): 첫 지도 진입 신규 사용자에게 줍기 유도 1회.
+      unawaited(_maybeShowFirstPickupCoachmark(state));
     });
     // 15분마다 타워 목록 자동 갱신 (과도한 네트워크 호출 방지)
     _mapRefreshTimer = Timer.periodic(const Duration(minutes: 15), (_) {
@@ -143,6 +145,19 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     super.dispose();
   }
 
+  // Build 484: position tick 타이머 — inTransit 편지가 있을 때만 매초 발화
+  //   (마커 위치 보간). initState·앱 재개 양쪽에서 동일 사용(중복/회귀 방지).
+  void _startPositionTimer() {
+    _positionTimer?.cancel();
+    _positionTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      final hasInTransit = context.read<AppState>().worldLetters.any(
+            (l) => l.status == DeliveryStatus.inTransit,
+          );
+      if (hasInTransit) _tickNotifier.value++;
+    });
+  }
+
   /// Build 219: 백그라운드에서 복귀할 때 편지가 멈춰 보이지 않도록.
   /// AppState 의 reconcile 은 wall-clock 기반으로 letter status 를 즉시
   /// 캐치업하지만, 지도 위 마커는 별도 vsync 애니메이션이라 OS 가 정지
@@ -158,11 +173,10 @@ class _WorldMapScreenState extends State<WorldMapScreen>
       // position timer 가 OS 에 의해 멈춰 있으면 다시 등록
       // Build 351 (PR-V1 시뮬레이션 P2): cancel + null 명시 — 이전 timer leak 방지.
       if (_positionTimer == null || !_positionTimer!.isActive) {
-        _positionTimer?.cancel();
-        _positionTimer = null;
-        _positionTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-          if (mounted) _tickNotifier.value++;
-        });
+        // Build 484: 재개 시에도 initState 와 동일한 hasInTransit skip 적용
+        //   (이전엔 무조건 매초 _tickNotifier++ → inTransit 0 이어도 앱 재개 후
+        //    매초 전체 마커 rebuild = 배터리/CPU 회귀).
+        _startPositionTimer();
       }
       // 즉시 1회 강제 rebuild → 마커가 새 wall-clock 으로 위치 재계산
       _tickNotifier.value++;
@@ -275,6 +289,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                       //   만 보고 표시 → 소진된 쿠폰이 잔존했음.
                       !_isLetterConsumed(l) &&
                       !inboxIds.contains(l.id) &&
+                      // Build 421 (sim-fresh P3): nearbyLetters 와 동일 — 이미
+                      //   픽업한 brandUniquePerUser 캠페인의 잔여 마커 숨김.
+                      !state.hasPickedUpCampaign(l.campaignId) &&
                       (l.status == DeliveryStatus.inTransit ||
                           l.status == DeliveryStatus.nearYou ||
                           // 수령 대기 (목적지 도착, 500m 밖): 지도에서 계속 표시
@@ -286,6 +303,11 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 // 내가 수령했지만 아직 읽지 않은 inbox 편지도 지도에 📮로 표시
                 ...inboxDelivered,
               ];
+        // Build 457: Premium 관심 카테고리 필터 — 브랜드가 업종을 지정한 캠페인만
+        //   대상(미지정·개인 편지는 통과). nearbyOnly/world 양 분기 공통 적용.
+        final filteredLetters = state.interestFilterActive
+            ? letters.where(state.passesInterestFilter).toList()
+            : letters;
         final timeColors = AppTimeColors.of(context);
         final mapLangCode = MapConfig.resolveMapLanguage(
           country: state.currentUser.country,
@@ -335,6 +357,11 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   if (shouldShowLabels != _showTowerLabels && mounted) {
                     setState(() => _showTowerLabels = shouldShowLabels);
                   }
+                  final shouldShowCountryBar =
+                      zoom < _countryBarZoomThreshold;
+                  if (shouldShowCountryBar != _showCountryBar && mounted) {
+                    setState(() => _showCountryBar = shouldShowCountryBar);
+                  }
                   // Build 151: 이동 멈춘 2초 뒤 현재 좌표·줌 저장
                   // (SharedPreferences). 다음 앱 실행 시 이 지점으로 복원.
                   _scheduleMapPositionSave();
@@ -372,9 +399,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   ),
                 // ── 배송 경로선 ────────────────────────────────────────────
                 if (_showRouteLines)
-                  PolylineLayer(polylines: _buildRoutePolylines(letters)),
+                  PolylineLayer(polylines: _buildRoutePolylines(filteredLetters)),
                 // ── 허브 마커 ─────────────────────────────────────────────
-                MarkerLayer(markers: _buildHubMarkers(letters)),
+                MarkerLayer(markers: _buildHubMarkers(filteredLetters)),
                 // ── 2km 반경 원 (마커 아래에 배치 → 탭 차단 방지) ──────
                 CircleLayer(
                   circles: [
@@ -385,9 +412,11 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                       ),
                       radius: 2000,
                       useRadiusInMeter: true,
-                      color: timeColors.accent.withValues(alpha: 0.08),
-                      borderColor: timeColors.accent.withValues(alpha: 0.35),
-                      borderStrokeWidth: 1.5,
+                      // Build 460 (키비주얼 위계): 픽업 링(3px·0.98)이 유일한
+                      //   주인공이 되도록 알림 반경 원은 점선 느낌의 옅은 보조로.
+                      color: timeColors.accent.withValues(alpha: 0.04),
+                      borderColor: timeColors.accent.withValues(alpha: 0.18),
+                      borderStrokeWidth: 1.0,
                     ),
                   ],
                 ),
@@ -397,30 +426,28 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 // 원" 을 매일 느끼게 하는 핵심 앵커.
                 // - Free: teal (200m + 레벨 보너스)
                 // - Premium: gold (1km + 레벨 보너스)
-                // - Brand: orange (1km)
-                CircleLayer(
-                  circles: [
-                    CircleMarker(
-                      point: ll.LatLng(
-                        state.currentUser.latitude,
-                        state.currentUser.longitude,
+                // Build 429 (device): Brand 는 픽업 불가 → 줍기 반경 링 미표시
+                //   (떠 있으면 "주울 수 있다" 오해). Brand 는 발송/캠페인 트랙.
+                if (!state.currentUser.isBrand)
+                  CircleLayer(
+                    circles: [
+                      CircleMarker(
+                        point: ll.LatLng(
+                          state.currentUser.latitude,
+                          state.currentUser.longitude,
+                        ),
+                        radius: state.pickupRadiusMeters,
+                        useRadiusInMeter: true,
+                        color: state.currentUser.isPremium
+                            ? AppColors.gold.withValues(alpha: 0.20)
+                            : AppColors.teal.withValues(alpha: 0.22),
+                        borderColor: state.currentUser.isPremium
+                            ? AppColors.gold.withValues(alpha: 0.98)
+                            : AppColors.teal.withValues(alpha: 0.98),
+                        borderStrokeWidth: 3.0,
                       ),
-                      radius: state.pickupRadiusMeters,
-                      useRadiusInMeter: true,
-                      color: state.currentUser.isBrand
-                          ? AppColors.coupon.withValues(alpha: 0.18)
-                          : state.currentUser.isPremium
-                              ? AppColors.gold.withValues(alpha: 0.20)
-                              : AppColors.teal.withValues(alpha: 0.22),
-                      borderColor: state.currentUser.isBrand
-                          ? AppColors.coupon.withValues(alpha: 0.95)
-                          : state.currentUser.isPremium
-                              ? AppColors.gold.withValues(alpha: 0.98)
-                              : AppColors.teal.withValues(alpha: 0.98),
-                      borderStrokeWidth: 3.0,
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
                 // ── 모든 마커 (단일 레이어 — 히트 테스팅 정확도 보장) ──
                 // 순서: 클러스터 타워 → 내 타워 + 편지 (뒤쪽이 위에 렌더링)
                 ValueListenableBuilder<int>(
@@ -438,7 +465,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                             clusters: mapClusters,
                           ),
                         ..._buildLetterMarkers(
-                          letters, state, l10n, langCode,
+                          filteredLetters, state, l10n, langCode,
                           nearestCluster: myNearestCluster,
                         ),
                       ],
@@ -475,6 +502,58 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 right: 0,
                 child: const _MapHeader(),
               ),
+            // Build 485 (UX sim #2): 관심 필터가 모든 마커를 숨겼을 때 안내 —
+            //   '왜 안 보이지?'(네트워크/위치 오류 오인) 막다른길 해소 + 1탭 해제.
+            if (widget.showChrome &&
+                state.interestFilterActive &&
+                filteredLetters.isEmpty &&
+                letters.isNotEmpty)
+              Positioned(
+                top: 92,
+                left: 16,
+                right: 16,
+                child: SafeArea(
+                  bottom: false,
+                  child: GestureDetector(
+                    onTap: () {
+                      state.setInterestTypes({});
+                      state.setInterestCategories({});
+                    },
+                    child: AppCard.accent(
+                      color: AppColors.gold,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 11),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.filter_alt_off_rounded,
+                              color: AppColors.gold, size: 18),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              l10n.mapFilterNoResults,
+                              style: const TextStyle(
+                                color: AppColors.gold,
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            l10n.commonClearAll,
+                            style: TextStyle(
+                              color: AppColors.gold.withValues(alpha: 0.85),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             // Build 271: 위치 권한 거부 시 영구 배너 — 사용자가 "왜 핀이 안 보이지?"
             // 같은 혼란 차단. 탭 시 앱 설정 진입.
             if (widget.showChrome && _locationPermissionDenied)
@@ -495,7 +574,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
             // Build 404 (PR-MM2): newcomer (가입 5분 이내) 에게는 hide.
             //   첫 인상 지도에 헤더 외 floating UI 가 5+ 동시 노출되면 인지
             //   부담. 5분 후 자연스럽게 나라 점프 + 브랜드 프로모 노출.
-            if (widget.showChrome && !state.currentUser.isNewcomer)
+            if (widget.showChrome &&
+                !state.currentUser.isNewcomer &&
+                _showCountryBar)
               Positioned(
                 top: 56,
                 left: 0,
@@ -517,7 +598,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
             // Build 404 (PR-MM2): newcomer hide — 위 country bar 와 동일 사유.
             if (widget.showChrome && !state.currentUser.isNewcomer)
               Positioned(
-                top: 94,
+                top: _showCountryBar ? 94 : 56,
                 left: 0,
                 right: 0,
                 child: SafeArea(
@@ -640,6 +721,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   right: 16,
                   child: _BrandRecentPickupBanner(
                     letter: picked,
+                    l10n: AppL10n.of(
+                      ctx.read<AppState>().currentUser.languageCode,
+                    ),
                     onTap: () {
                       HapticFeedback.lightImpact();
                       final target = ll.LatLng(
@@ -684,7 +768,8 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   },
                 ),
               ),
-            if (!state.currentUser.isBrand &&
+            if (!_locationPermissionDenied &&
+                !state.currentUser.isBrand &&
                 state.nearbyLetters.isEmpty &&
                 state.worldLetters.isNotEmpty)
               Builder(builder: (ctx) {
@@ -772,6 +857,81 @@ class _WorldMapScreenState extends State<WorldMapScreen>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Build 437 (device #7): 지도 위 줌 +/- 버튼 복원(Build 271 에서
+                  //   제거됐었음). 핀치 외 명시적 줌 컨트롤 요구. min/max 3~18 clamp.
+                  _MapQuickActionButton(
+                    icon: Icons.add_rounded,
+                    tooltip: l10n.koEn('확대', 'Zoom in'),
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      final cam = _mapController.camera;
+                      _mapController.move(
+                        cam.center,
+                        (cam.zoom + 1).clamp(3.0, 18.0),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  _MapQuickActionButton(
+                    icon: Icons.remove_rounded,
+                    tooltip: l10n.koEn('축소', 'Zoom out'),
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      final cam = _mapController.camera;
+                      _mapController.move(
+                        cam.center,
+                        (cam.zoom - 1).clamp(3.0, 18.0),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                  // Build 457: 관심 카테고리 필터 (Premium 전용) — Free 는 업셀.
+                  // Build 480 (발견성): 활성 시 선택 수 배지 노출.
+                  // Build 482 (사용자 요청): Brand 계정은 지도 필터 자체를 제외(숨김).
+                  if (!state.currentUser.isBrand) ...[
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        _MapQuickActionButton(
+                          icon: state.interestFilterActive
+                              ? Icons.filter_alt_rounded
+                              : Icons.filter_alt_outlined,
+                          tooltip: l10n.mapInterestFilterTitle,
+                          highlighted: state.interestFilterActive,
+                          onTap: () =>
+                              _openInterestFilter(context, state, l10n),
+                        ),
+                        if (state.interestFilterActive)
+                          PositionedDirectional(
+                            top: -4,
+                            end: -4,
+                            child: Container(
+                              constraints: const BoxConstraints(
+                                  minWidth: 18, minHeight: 18),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.gold,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                    color: AppColors.bgDeep, width: 1.5),
+                              ),
+                              child: Text(
+                                '${state.interestFilterCount}',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Color(0xFF1A1300),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                   _MapQuickActionButton(
                     icon: Icons.public_rounded,
                     tooltip: l10n.mapViewAll,
@@ -903,6 +1063,33 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   }
 
   // ── 편지 마커 ────────────────────────────────────────────────────────────────
+  // Build 457: 관심 카테고리 필터 — Premium 은 선택 시트, Free 는 업셀.
+  Future<void> _openInterestFilter(
+    BuildContext context,
+    AppState state,
+    AppL10n l10n,
+  ) async {
+    if (!state.canUseInterestFilter) {
+      PremiumGateSheet.show(
+        context,
+        featureName: l10n.mapInterestFilterTitle,
+        featureEmoji: '🔎',
+        description: l10n.mapInterestFilterUpsell,
+      );
+      return;
+    }
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.bgCard,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => _InterestFilterSheet(state: state, l10n: l10n),
+    );
+    if (mounted) setState(() {});
+  }
+
   List<Marker> _buildLetterMarkers(
     List<Letter> letters, AppState state, AppL10n l10n, String langCode, {
     List<MapUser>? nearestCluster,
@@ -913,6 +1100,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     // 타워 위치(2km 이내)에 수령 가능한 nearYou 편지 목록
     final towerLat = state.currentUser.latitude;
     final towerLng = state.currentUser.longitude;
+    // Build 422 (sim-fresh2 P3): GPS 미설정(0,0) 사용자는 내 타워 마커를 (0,0)
+    //   기니만 바다 한가운데 표시하지 않음.
+    final hasValidTower = !(towerLat == 0.0 && towerLng == 0.0);
     final overlappingLetters = letters
         .where(
           (l) =>
@@ -920,11 +1110,12 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   (l.status == DeliveryStatus.delivered &&
                       !l.isReadByRecipient)) &&
               l.destinationLocation.distanceTo(LatLng(towerLat, towerLng)) <
-                  200,
+                  state.pickupRadiusMeters,
         )
         .toList();
 
-    markers.add(
+    if (hasValidTower) {
+      markers.add(
       Marker(
         point: ll.LatLng(towerLat, towerLng),
         width: 64,
@@ -1005,8 +1196,11 @@ class _WorldMapScreenState extends State<WorldMapScreen>
         ),
       ),
     );
+    }
 
-    final now = DateTime.now();
+    // Build 422 (sim-fresh2 P3): 도착 마커 상태 판정도 SecureClock — 시계 앞당겨
+    //   조기 '도착' 표시 차단.
+    final now = SecureClock.now();
     final viewerIsPremiumOrBrand =
         state.currentUser.isPremium || state.currentUser.isBrand;
 
@@ -1041,8 +1235,10 @@ class _WorldMapScreenState extends State<WorldMapScreen>
           Marker(
             point: ll.LatLng(destLoc.latitude, destLoc.longitude),
             width: isNearest ? 80 : 40,
+            // Build 415: nearest 라벨(칩+2px gap) 포함 시 비-브랜드 마커가 70px
+            //   박스를 1.5px 초과(RenderFlex overflow) → 추가 높이 22→24 로 여유.
             height: (isBrandLetter && viewerIsPremiumOrBrand ? 62 : 48) +
-                (isNearest ? 22 : 0),
+                (isNearest ? 26 : 0),
             child: GestureDetector(
               onTap: () => _onLetterTap(context, letter, state, l10n, langCode),
               child: _UnreadDeliveredMarker(
@@ -1067,8 +1263,10 @@ class _WorldMapScreenState extends State<WorldMapScreen>
           Marker(
             point: ll.LatLng(destLoc.latitude, destLoc.longitude),
             width: isNearest ? 80 : 40,
+            // Build 415: nearest 라벨(칩+2px gap) 포함 시 비-브랜드 마커가 70px
+            //   박스를 1.5px 초과(RenderFlex overflow) → 추가 높이 22→24 로 여유.
             height: (isBrandLetter && viewerIsPremiumOrBrand ? 62 : 48) +
-                (isNearest ? 22 : 0),
+                (isNearest ? 26 : 0),
             child: GestureDetector(
               onTap: () => _onLetterTap(context, letter, state, l10n, langCode),
               child: _UnreadDeliveredMarker(
@@ -1173,8 +1371,13 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     double lat,
     double lng,
   ) {
+    // Build 422 (sim-fresh2 P1): GPS 미설정(0,0) 사용자는 '내 타워' 매칭 불가 —
+    //   (0,0) 근처 타인 클러스터를 내 것으로 오인해 타인 정보 화면이 뜨던 문제.
+    if (lat == 0 && lng == 0) return null;
     List<MapUser>? best;
-    double bestDist = 0.05 * 0.05; // 최대 5km
+    // Build 422 (sim-fresh2 P1): 5.5km → ~500m 로 좁힘 — 이전엔 5km 내 아무 타인
+    //   클러스터나 '내 타워' 탭으로 가로채 본인 정보 화면 도달 불가/타인 노출.
+    double bestDist = 0.005 * 0.005; // 최대 ~500m
     for (final cluster in clusters) {
       for (final u in cluster) {
         final dLat = u.lat - lat;
@@ -1315,7 +1518,13 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                           ),
                         ],
                       ),
-                      child: Center(
+                      // Build 415 (런타임 점검): emoji+flag 2줄 Column 이 고정 크기
+                      //   아바타 원(avatarSize)을 ~2px 초과(RenderFlex overflow)하던
+                      //   문제 — FittedBox(scaleDown)로 어떤 scale 에서도 원 안에 맞게
+                      //   축소(필요할 때만, 확대는 안 함). 지도 줌아웃 시 다수 마커가
+                      //   노란 overflow 줄무늬를 띄우던 표면 닫음.
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           mainAxisSize: MainAxisSize.min,
@@ -2237,6 +2446,30 @@ class _WorldMapScreenState extends State<WorldMapScreen>
           final error = state.pickUpLetter(letter.id);
           Navigator.pop(ctx);
           if (error == null) {
+            // Build 415 (#5 레어 드롭): rare/epic 편지를 주웠으면 "발견" 축하
+            //   토스트. campaign dedup 안내보다 우선 (더 강한 도파민 신호).
+            if (letter.rarity.isSpecial) {
+              final isEpic = letter.rarity == LetterRarity.epic;
+              ScaffoldMessenger.of(ctx).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    isEpic ? l10n.epicDropToast : l10n.rareDropToast,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  backgroundColor: isEpic
+                      ? const Color(0xFF7C4DFF)
+                      : const Color(0xFFB8860B),
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 3),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              );
+            }
             // Build 324: brandUniquePerUser 캠페인 픽업 시 hidden 안내 스낵바.
             //   "왜 다른 letter 가 사라지지?" 의문 해소 (Premium 시뮬레이션 발견).
             if (preCampaignSiblings > 0) {
@@ -2481,6 +2714,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
           !(status == DeliveryStatus.delivered && !l.isReadByRecipient)) {
         continue;
       }
+      // Build 421 (sim-fresh P2): 마커 빌드/nearbyLetters 와 동일한 소진 가드 —
+      //   이전엔 만료/소진/차단 쿠폰을 나침반이 가리켜 죽은 안내가 떴음.
+      if (_isLetterConsumed(l)) continue;
       final d = l.destinationLocation.distanceTo(me);
       if (d < radius) continue; // 반경 안에 있으면 이미 줍기 가능 — 스킵
       if (d < nearestDist) {
@@ -2515,12 +2751,54 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     );
   }
 
+  // Build 414 (#3 아하모먼트): 첫 지도 진입 시 1회 줍기 유도 coachmark.
+  //   가입 후 _maybePlaceTutorialLetter 가 반경 내 튜토리얼 쿠폰을 깔아두므로,
+  //   신규 사용자(아직 픽업 0)에게 "탭해서 주워보세요"를 가볍게 안내 → 핵심
+  //   가치(줍기)를 60초 내 체감하게. 1회만(prefs flag).
+  Future<void> _maybeShowFirstPickupCoachmark(AppState state) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool('map_first_pickup_hint_v1') == true) return;
+      await prefs.setBool('map_first_pickup_hint_v1', true);
+      // 이미 줍기 경험이 있으면(인박스 보유) 안내 불필요.
+      if (state.inbox.isNotEmpty) return;
+      // 지도·쿠폰이 그려질 시간을 약간 준 뒤 노출.
+      await Future.delayed(const Duration(milliseconds: 1500));
+      if (!mounted) return;
+      AppSnack.hint(
+        context,
+        AppL10n.of(state.currentUser.languageCode).mapFirstPickupHint,
+      );
+    } catch (_) {/* best-effort 안내 */}
+  }
+
   Future<void> _checkLocationPermission() async {
     final permission = await Geolocator.checkPermission();
     final denied = permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever;
     if (mounted && denied != _locationPermissionDenied) {
       setState(() => _locationPermissionDenied = denied);
+    }
+    // Build 414 (sim100 #2): 신규 가입자가 (0,0) 으로 남아 줍기/지도가 전면
+    //   불가하던 회귀 해소. 권한 허용 상태인데 좌표가 (0,0) 이면 즉시 1회 GPS
+    //   취득 후 반영 (best-effort — 실패 시 (0,0) 유지, 기존 fallback 동작).
+    if (!denied && mounted) {
+      final state = context.read<AppState>();
+      final u = state.currentUser;
+      if (u.latitude == 0.0 && u.longitude == 0.0) {
+        try {
+          if (await Geolocator.isLocationServiceEnabled()) {
+            final rawPos = await Geolocator.getCurrentPosition(
+              locationSettings:
+                  const LocationSettings(accuracy: LocationAccuracy.high),
+            ).timeout(const Duration(seconds: 8));
+            final pos = SecureLocation.guard(rawPos);
+            if (pos != null && mounted) {
+              state.updateUserLocation(pos.latitude, pos.longitude);
+            }
+          }
+        } catch (_) {/* 권한 거부/타임아웃 등 — 무시 */}
+      }
     }
     if (permission != LocationPermission.deniedForever) return;
     if (!mounted) return;
@@ -2586,16 +2864,20 @@ class _MapQuickActionButton extends StatelessWidget {
   final IconData icon;
   final String tooltip;
   final VoidCallback onTap;
+  // Build 457: 활성 상태 강조 (관심 필터 ON) — gold 톤.
+  final bool highlighted;
 
   const _MapQuickActionButton({
     required this.icon,
     required this.tooltip,
     required this.onTap,
+    this.highlighted = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final timeColors = AppTimeColors.of(context);
+    final accent = highlighted ? AppColors.gold : timeColors.accent;
     // Build 161: Tooltip 은 이미 mouse-hover 라벨 제공, Semantics 는 터치
     // 접근성 (스크린리더) 전용. 동일 텍스트 재사용.
     return Semantics(
@@ -2622,8 +2904,8 @@ class _MapQuickActionButton extends StatelessWidget {
                   ],
                 ),
                 border: Border.all(
-                  color: timeColors.accent.withValues(alpha: 0.42),
-                  width: 1.2,
+                  color: accent.withValues(alpha: highlighted ? 0.8 : 0.42),
+                  width: highlighted ? 1.6 : 1.2,
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -2633,7 +2915,7 @@ class _MapQuickActionButton extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Icon(icon, color: timeColors.accent, size: 22),
+              child: Icon(icon, color: accent, size: 22),
             ),
           ),
         ),
@@ -2752,7 +3034,12 @@ class _MyLocationButtonState extends State<_MyLocationButton> {
   @override
   Widget build(BuildContext context) {
     final timeColors = AppTimeColors.of(context);
-    return GestureDetector(
+    // Build 423 (sim-crosscut P2): a11y — 아이콘 전용 버튼 라벨.
+    final lang = context.read<AppState>().currentUser.languageCode;
+    return Semantics(
+      button: true,
+      label: AppL10n.of(lang).koEn('내 위치로 이동', 'Go to my location'),
+      child: GestureDetector(
       onTap: () => _goToMyLocation(context),
       child: Container(
         width: 46,
@@ -2796,6 +3083,7 @@ class _MyLocationButtonState extends State<_MyLocationButton> {
                 size: 22,
               ),
       ),
+    ),
     );
   }
 }
@@ -2817,12 +3105,26 @@ class _ArrivedWaitingMarker extends StatelessWidget {
   //   eat (food+cafe) = 🍴 / shop (beauty+fashion) = 🛍️ /
   //   etc (it+event+other) = 🎁 / categoryTag null = 📬 (기본).
   //   FOMO 시 빨강 ring 은 별개 — 긴급성 시각화는 유지.
+  // Build 433 (device): 업종 카테고리별 도착 이모지 — 공유 헬퍼(bizCategoryEmoji)
+  //   로 카페☕/음식🍔/뷰티💄/패션👗/행사🎉/기타🎁 구분. categoryTag null 이면
+  //   📬(일반 편지).
   String get _categoryEmoji {
     final tag = letter.categoryTag;
-    if (tag == 'food' || tag == 'cafe') return '🍴';
-    if (tag == 'beauty' || tag == 'fashion') return '🛍️';
-    if (tag == 'it' || tag == 'event' || tag == 'other') return '🎁';
-    return '📬';
+    if (tag == null) return '📬';
+    return bizCategoryEmoji(tag);
+  }
+
+  /// Build 415 (#5 레어 드롭): 희귀도별 글로우 색. normal 은 null (강조 없음).
+  ///   epic = 보라, rare = 밝은 골드. 마커에 글로우 ring + 배지로 시각 구분.
+  Color? get _rarityColor {
+    switch (letter.rarity) {
+      case LetterRarity.epic:
+        return const Color(0xFF7C4DFF);
+      case LetterRarity.rare:
+        return const Color(0xFFFFD54F);
+      case LetterRarity.normal:
+        return null;
+    }
   }
 
   /// Build 324 (FOMO): 만료 임박 (≤24h) 여부.
@@ -2858,8 +3160,13 @@ class _ArrivedWaitingMarker extends StatelessWidget {
     final state = context.read<AppState>();
     final isMine = letter.senderId == state.currentUser.id;
     final fomoColor = expiringSoon ? const Color(0xFFE53935) : null;
-    final baseColor = AppColors.gold;
-    final showMineRing = isMine && !expiringSoon; // FOMO 우선
+    // Build 415 (#5 레어 드롭): rare/epic 글로우. FOMO(만료임박) 가 더 강한 행동
+    //   신호라 빨강 ring 우선 — rare 글로우는 FOMO 아닐 때만 발화 (noise 억제).
+    final rarityColor = _rarityColor;
+    final rarityBadge = letter.rarity.badge;
+    final showRarity = rarityColor != null && !expiringSoon;
+    final baseColor = showRarity ? rarityColor : AppColors.gold;
+    final showMineRing = isMine && !expiringSoon && !showRarity; // FOMO·레어 우선
     return AnimatedBuilder(
       animation: pulseController,
       builder: (_, __) {
@@ -2868,7 +3175,27 @@ class _ArrivedWaitingMarker extends StatelessWidget {
         final pulse = (sin(phase) * 0.5 + 0.5);
         return Stack(
           alignment: Alignment.center,
+          clipBehavior: Clip.none,
           children: [
+            // Build 415 (#5): rare/epic 글로우 ring — 희귀도 색으로 마커를 감싼다.
+            if (showRarity)
+              Container(
+                width: 68 + pulse * 8,
+                height: 68 + pulse * 8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: baseColor.withValues(alpha: 0.5 + pulse * 0.4),
+                    width: 2.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: baseColor.withValues(alpha: 0.35 + pulse * 0.3),
+                      blurRadius: 16 + pulse * 8,
+                    ),
+                  ],
+                ),
+              ),
             // Build 324: 본인 sender ring — FOMO 가 아닐 때만 노출 (Q3 audit:
             //   동시발화 차단). FOMO 가 더 강한 사용자 행동 신호 → 우선.
             if (showMineRing)
@@ -2927,6 +3254,26 @@ class _ArrivedWaitingMarker extends StatelessWidget {
                 ],
               ),
             ),
+            // Build 415 (#5, sim50 P2): rare/epic 배지 — 우상단 ✨/💎.
+            //   만료 임박(FOMO)으로 glow ring 이 빨강 우선되어도 배지는 항상 노출
+            //   (희소성 신호 소실 방지). 배지 색은 항상 희귀도 색.
+            if (rarityColor != null && rarityBadge.isNotEmpty)
+              Positioned(
+                top: -2,
+                right: 4,
+                child: Text(
+                  rarityBadge,
+                  style: TextStyle(
+                    fontSize: 16,
+                    shadows: [
+                      Shadow(
+                        color: rarityColor.withValues(alpha: 0.9),
+                        blurRadius: 8,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
         );
       },
@@ -3255,6 +3602,19 @@ class _UnreadDeliveredMarker extends StatelessWidget {
             ? '💌'
             : '📮';
 
+        // Build 415 (#5 레어 드롭, sim50 P1): 실제 픽업 가능한 마커에도 희귀도
+        //   글로우+배지. 이전엔 _ArrivedWaitingMarker(도착 직전 과도기)만 글로우가
+        //   있어, 정작 줍는 delivered/nearYou 마커에선 FOMO 신호가 사라졌음.
+        //   링/글로우 색만 recolor(레이아웃 불변) + 우상단 ✨/💎 배지(Positioned).
+        final rarityColor = letter.rarity == LetterRarity.epic
+            ? const Color(0xFF7C4DFF)
+            : letter.rarity == LetterRarity.rare
+                ? const Color(0xFFFFD54F)
+                : null;
+        final rarityBadge = letter.rarity.badge;
+        // tier glow 보다 희귀도 색을 우선(특별함 강조). normal 은 기존 색 유지.
+        final ringColor = rarityColor ?? glowColor;
+
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -3289,12 +3649,14 @@ class _UnreadDeliveredMarker extends StatelessWidget {
             ],
             Stack(
               alignment: Alignment.center,
+              clipBehavior: Clip.none,
               children: [
-                // Build 164: 최단 편지 전용 추가 halo (width 44+pulse, gold)
+                // Build 164: 최단 편지 전용 추가 halo (gold)
+                // Build 476 (마커 다듬기): 마커 크기 상향에 맞춰 halo 48 로.
                 if (isNearest)
                   Container(
-                    width: 44 + pulse * 8,
-                    height: 44 + pulse * 8,
+                    width: 48 + pulse * 8,
+                    height: 48 + pulse * 8,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
@@ -3305,22 +3667,24 @@ class _UnreadDeliveredMarker extends StatelessWidget {
                       ),
                     ),
                   ),
-                // 맥동 링
+                // 맥동 링 — Build 415: rare/epic 이면 희귀도 색으로 글로우.
+                // Build 476 (마커 다듬기): 외곽 tier/희귀도 펄스링 36 으로.
                 Container(
-                  width: 32 + pulse * 6,
-                  height: 32 + pulse * 6,
+                  width: 36 + pulse * 6,
+                  height: 36 + pulse * 6,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: glowColor.withValues(alpha: 0.2 + pulse * 0.3),
+                      color: ringColor.withValues(alpha: 0.2 + pulse * 0.3),
                       width: 1.5,
                     ),
                   ),
                 ),
                 // 편지함 아이콘 컨테이너 (Build 147: 내부 테두리 = 카테고리 색)
+                // Build 476 (마커 다듬기): 30→34, 이모지 가독성·터치 시인성 상향.
                 Container(
-                  width: 30,
-                  height: 30,
+                  width: 34,
+                  height: 34,
                   decoration: BoxDecoration(
                     color: boxBg,
                     shape: BoxShape.circle,
@@ -3344,11 +3708,12 @@ class _UnreadDeliveredMarker extends StatelessWidget {
                   child: Center(
                     child: Text(
                       mailEmoji,
+                      // Build 476 (마커 다듬기): 14→16 — 카테고리 이모지 가독성.
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 16,
                         shadows: [
                           Shadow(
-                            color: glowColor.withValues(alpha: 0.5),
+                            color: ringColor.withValues(alpha: 0.5),
                             blurRadius: 6,
                           ),
                         ],
@@ -3356,6 +3721,26 @@ class _UnreadDeliveredMarker extends StatelessWidget {
                     ),
                   ),
                 ),
+                // Build 415 (#5 레어 드롭, sim50 P1): rare/epic 배지(✨/💎).
+                //   Positioned 라 Column 높이에 영향 없음(오버플로우 무관).
+                if (rarityColor != null && rarityBadge.isNotEmpty)
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: Text(
+                      rarityBadge,
+                      // Build 476 (마커 다듬기): 13→14, 마커 확대에 맞춰 배지도.
+                      style: TextStyle(
+                        fontSize: 14,
+                        shadows: [
+                          Shadow(
+                            color: rarityColor.withValues(alpha: 0.9),
+                            blurRadius: 6,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
               ],
             ),
             // 브랜드 편지 + 프리미엄/브랜드 뷰어: 발신자 ID 표시
@@ -3786,13 +4171,14 @@ class _MapHeader extends StatelessWidget {
             children: [
               // Build 146: 로고를 ✉️ 이모지 + 텍스트 조합으로 바꿔 브랜딩
               // 표현 강화. fontSize 18→16, weight w800→w900.
-              const Text('🎟', style: TextStyle(fontSize: 16)),
+              // Build 460 (키비주얼): 로고 존재감 ↑ (🎟 16→18, 텍스트 16→17).
+              const Text('🎟', style: TextStyle(fontSize: 18)),
               const SizedBox(width: 6),
               const Text(
                 'Thiscount',
                 style: TextStyle(
                   color: AppColors.textPrimary,
-                  fontSize: 16,
+                  fontSize: 17,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 1.2,
                 ),
@@ -3963,6 +4349,8 @@ class _MapHelpButton extends StatelessWidget {
                     ),
                   ),
                   IconButton(
+                    // Build 424 (WCAG P0): 닫기 버튼 a11y tooltip.
+                    tooltip: l10n.authClose,
                     icon: const Icon(
                       Icons.close_rounded,
                       color: AppColors.textMuted,
@@ -4187,14 +4575,23 @@ class _PickupSheet extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                isBrand ? 'BRAND' : 'LETTER',
-                style: TextStyle(
-                  color: ink.withValues(alpha: 0.7),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.66,
-                ),
+              Row(
+                children: [
+                  Text(
+                    isBrand ? 'BRAND' : 'LETTER',
+                    style: TextStyle(
+                      color: ink.withValues(alpha: 0.7),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.66,
+                    ),
+                  ),
+                  // Build 415 (#5 레어 드롭): rare/epic 이면 희귀도 칩 노출.
+                  if (letter.rarity.isSpecial) ...[
+                    const SizedBox(width: 8),
+                    _RarityChip(rarity: letter.rarity, l10n: l10n),
+                  ],
+                ],
               ),
               Text(
                 letter.senderCountryFlag,
@@ -4224,6 +4621,59 @@ class _PickupSheet extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
+          // Build 458 (페르소나 높음): 브랜드 쿠폰은 혜택 미리보기 — 이전엔
+          //   발신처만 보여 1시간 1회 픽업이 '깜깜이 도박'이었음. 발송 종류 +
+          //   본문 2줄로 "걸어갈 가치"를 픽업 전에 판단. 개인 편지는 미스터리 유지.
+          if (isBrand) ...[
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: ink.withValues(alpha: 0.07),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        bizCategoryEmoji(letter.categoryTag),
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        letter.category == LetterCategory.coupon
+                            ? l10n.composeBrandCategoryCoupon
+                            : letter.category == LetterCategory.voucher
+                                ? l10n.composeBrandCategoryVoucher
+                                : l10n.composeBrandCategoryGeneral,
+                        style: TextStyle(
+                          color: ink.withValues(alpha: 0.75),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    letter.content,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: ink.withValues(alpha: 0.9),
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                      height: 1.35,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 20),
           // Build 304 (a11y): VoiceOver/TalkBack — 픽업 버튼임을 명시.
           Semantics(
@@ -4252,6 +4702,39 @@ class _PickupSheet extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── Build 415 (#5 레어 드롭): 희귀도 칩 ──────────────────────────────────────
+//   픽업 시트 헤더에서 rare/epic 편지임을 알리는 작은 배지. ✨ RARE / 💎 EPIC.
+class _RarityChip extends StatelessWidget {
+  final LetterRarity rarity;
+  final AppL10n l10n;
+  const _RarityChip({required this.rarity, required this.l10n});
+
+  @override
+  Widget build(BuildContext context) {
+    final isEpic = rarity == LetterRarity.epic;
+    final color =
+        isEpic ? const Color(0xFF7C4DFF) : const Color(0xFFB8860B);
+    final label = isEpic ? l10n.rarityEpicLabel : l10n.rarityRareLabel;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.16),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.6), width: 1),
+      ),
+      child: Text(
+        '${rarity.badge} $label',
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.4,
+        ),
       ),
     );
   }
@@ -4338,7 +4821,7 @@ class _TransitInfoSheet extends StatelessWidget {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        '${l10n.mapCurrent}: ${seg.fromName} → ${(seg == letter.segments.last && letter.destinationDisplayAddress != null) ? letter.destinationDisplayAddress! : seg.toName}',
+                        '${l10n.mapCurrent}: ${seg.displayFromName(l10n.languageCode)} → ${(seg == letter.segments.last && letter.destinationDisplayAddress != null) ? letter.destinationDisplayAddress! : seg.displayToName(l10n.languageCode)}',
                         style: const TextStyle(
                           color: AppColors.textMuted,
                           fontSize: 12,
@@ -4457,7 +4940,7 @@ class _TransitInfoSheet extends StatelessWidget {
                         children: [
                           const SizedBox(height: 3),
                           Text(
-                            '${s.fromName} → ${(s == letter.segments.last && letter.destinationDisplayAddress != null) ? letter.destinationDisplayAddress! : s.toName}',
+                            '${s.displayFromName(l10n.languageCode)} → ${(s == letter.segments.last && letter.destinationDisplayAddress != null) ? letter.destinationDisplayAddress! : s.displayToName(l10n.languageCode)}',
                             style: TextStyle(
                               color: isActive
                                   ? AppColors.textPrimary
@@ -5052,9 +5535,12 @@ class _PointedRoofPainter extends CustomPainter {
 class _BrandRecentPickupBanner extends StatelessWidget {
   final Letter letter;
   final VoidCallback onTap;
+  // Build 421 (sim-fresh P2): 하드코딩 한국어(헤더+상대시간) 제거 위해 l10n 주입.
+  final AppL10n l10n;
   const _BrandRecentPickupBanner({
     required this.letter,
     required this.onTap,
+    required this.l10n,
   });
 
   @override
@@ -5101,7 +5587,7 @@ class _BrandRecentPickupBanner extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      '캠페인이 픽업됐어요',
+                      l10n.koEn('캠페인이 픽업됐어요', 'A campaign was picked up'),
                       style: TextStyle(
                         color: AppColors.coupon,
                         fontSize: 11,
@@ -5137,10 +5623,265 @@ class _BrandRecentPickupBanner extends StatelessWidget {
   }
 
   String _relativeTime(Duration d) {
-    if (d.inMinutes < 1) return '방금 전';
-    if (d.inMinutes < 60) return '${d.inMinutes}분 전';
-    if (d.inHours < 24) return '${d.inHours}시간 전';
-    if (d.inDays < 7) return '${d.inDays}일 전';
-    return '${d.inDays ~/ 7}주 전';
+    if (d.inMinutes < 1) return l10n.koEn('방금 전', 'just now');
+    if (d.inMinutes < 60) return l10n.letterReadMinutesAgo(d.inMinutes);
+    if (d.inHours < 24) return l10n.letterReadHoursAgo(d.inHours);
+    if (d.inDays < 7) return l10n.letterReadDaysAgo(d.inDays);
+    return l10n.koEn('${d.inDays ~/ 7}주 전', '${d.inDays ~/ 7}w ago');
+  }
+}
+
+
+// Build 457: 관심 카테고리 선택 시트 — 업종 다중 선택. 비우면 전체 표시.
+//   "브랜드가 업종을 지정한 캠페인만" 필터 대상이라는 안내 포함.
+class _InterestFilterSheet extends StatefulWidget {
+  final AppState state;
+  final AppL10n l10n;
+  const _InterestFilterSheet({required this.state, required this.l10n});
+
+  @override
+  State<_InterestFilterSheet> createState() => _InterestFilterSheetState();
+}
+
+class _InterestFilterSheetState extends State<_InterestFilterSheet> {
+  late final Set<String> _sel = {...widget.state.interestCategoryKeys};
+  // Build 482 (사용자 요청): 상위 티어 — 쿠폰 종류(메시지·홍보/할인권/교환권).
+  late final Set<String> _selTypes = {...widget.state.interestTypeKeys};
+
+  static const List<String> _keys = [
+    'food', 'cafe', 'beauty', 'fashion', 'event', 'it', 'other',
+  ];
+  // 'general'=메시지·홍보, 'coupon'=할인권, 'voucher'=교환권 (LetterCategory.key).
+  static const List<String> _typeKeys = ['general', 'coupon', 'voucher'];
+
+  String _typeLabel(AppL10n l, String key) {
+    switch (key) {
+      case 'coupon':
+        return l.inboxFilterCoupon;
+      case 'voucher':
+        return l.inboxFilterVoucher;
+      default:
+        return l.inboxFilterGeneral;
+    }
+  }
+
+  Color _typeColor(String key) {
+    switch (key) {
+      case 'coupon':
+        return AppColors.coupon;
+      case 'voucher':
+        return AppColors.teal;
+      default:
+        return AppColors.gold;
+    }
+  }
+
+  // Build 480 (글로벌): koEn → 인박스 업종 getter(14언어) 재사용.
+  String _label(AppL10n l, String key) {
+    switch (key) {
+      case 'food':
+        return l.inboxFilterFood;
+      case 'cafe':
+        return l.inboxFilterCafe;
+      case 'beauty':
+        return l.inboxFilterBeauty;
+      case 'fashion':
+        return l.inboxFilterFashion;
+      case 'event':
+        return l.inboxFilterEvent;
+      case 'it':
+        return l.inboxFilterIt;
+      default:
+        return l.inboxFilterOther;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = widget.l10n;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        20, 4, 20, 20 + MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '🔎 ${l.mapInterestFilterTitle}',
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l.mapInterestFilterDesc,
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 12,
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 14),
+          // ── 상위: 쿠폰 종류 (다중 선택) ──
+          Text(
+            l.mapFilterTypeSection,
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _typeKeys.map((k) {
+              final on = _selTypes.contains(k);
+              final c = _typeColor(k);
+              return GestureDetector(
+                onTap: () => setState(() {
+                  if (on) {
+                    _selTypes.remove(k);
+                  } else {
+                    _selTypes.add(k);
+                  }
+                }),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  // Build 486 (a11y): 터치 타깃 ≥44pt — vertical 9→12.
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: on ? c.withValues(alpha: 0.16) : AppColors.bgSurface,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: on
+                          ? c.withValues(alpha: 0.85)
+                          : AppColors.textMuted.withValues(alpha: 0.25),
+                      width: on ? 1.4 : 1.0,
+                    ),
+                  ),
+                  child: Text(
+                    _typeLabel(l, k),
+                    style: TextStyle(
+                      color: on ? c : AppColors.textSecondary,
+                      fontSize: 13,
+                      fontWeight: on ? FontWeight.w800 : FontWeight.w600,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 16),
+          // ── 하위: 업종 (다중 선택) ──
+          Text(
+            l.mapFilterCategorySection,
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _keys.map((k) {
+              final on = _sel.contains(k);
+              return GestureDetector(
+                onTap: () => setState(() {
+                  if (on) {
+                    _sel.remove(k);
+                  } else {
+                    _sel.add(k);
+                  }
+                }),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  // Build 486 (a11y): 터치 타깃 ≥44pt — vertical 8→12.
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 13, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: on
+                        ? AppColors.gold.withValues(alpha: 0.16)
+                        : AppColors.bgSurface,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: on
+                          ? AppColors.gold.withValues(alpha: 0.75)
+                          : AppColors.textMuted.withValues(alpha: 0.25),
+                      width: on ? 1.4 : 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(bizCategoryEmoji(k),
+                          style: const TextStyle(fontSize: 14)),
+                      const SizedBox(width: 6),
+                      Text(
+                        _label(l, k),
+                        style: TextStyle(
+                          color: on ? AppColors.gold : AppColors.textSecondary,
+                          fontSize: 12.5,
+                          fontWeight: on ? FontWeight.w800 : FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              if (_sel.isNotEmpty || _selTypes.isNotEmpty)
+                TextButton(
+                  onPressed: () => setState(() {
+                    _sel.clear();
+                    _selTypes.clear();
+                  }),
+                  child: Text(
+                    l.commonClearAll,
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              const Spacer(),
+              FilledButton(
+                onPressed: () async {
+                  await widget.state.setInterestTypes(_selTypes);
+                  await widget.state.setInterestCategories(_sel);
+                  if (context.mounted) Navigator.of(context).pop();
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.gold,
+                  foregroundColor: AppColors.bgDeep,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 26, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  l.commonApply,
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w800),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

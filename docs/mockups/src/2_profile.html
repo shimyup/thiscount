@@ -1,0 +1,113 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<link rel="stylesheet" href="common.css">
+<style>
+.content{padding:8px 20px 0}
+/* hero */
+.hero{display:flex;align-items:center;gap:16px;padding:8px 2px 22px}
+.avatar{width:78px;height:78px;border-radius:26px;background:linear-gradient(145deg,#2b7a70,#1b4a44);
+  display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;color:#eafdfa;
+  box-shadow:0 8px 22px rgba(47,217,196,.22);position:relative;flex-shrink:0}
+.avatar .edit{position:absolute;bottom:-3px;right:-3px;width:26px;height:26px;border-radius:13px;background:var(--surface3);border:2px solid var(--bg);display:flex;align-items:center;justify-content:center}
+.hero .h-main{flex:1;min-width:0}
+.namerow{display:flex;align-items:center;gap:9px;margin-bottom:5px}
+.namerow .nm{font-size:23px;font-weight:800;letter-spacing:-.5px}
+.tier{height:25px;padding:0 11px;border-radius:13px;background:linear-gradient(135deg,#f3c44c,#d9a52f);color:#241a04;font-size:12px;font-weight:800;display:flex;align-items:center;gap:4px}
+.handle{font-size:13.5px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:7px}
+.streakpill{display:inline-flex;align-items:center;gap:4px;color:var(--coupon);font-weight:800}
+
+/* this month activity — single hero card */
+.act{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:var(--shadow);margin-bottom:16px}
+.act .top{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:4px}
+.act .lbl{font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--teal)}
+.act .month{font-size:12px;font-weight:700;color:var(--faint)}
+.act .heronum{display:flex;align-items:baseline;gap:9px;margin:6px 0 18px}
+.act .heronum .n{font-size:54px;font-weight:800;letter-spacing:-2px;line-height:.9;
+  background:linear-gradient(180deg,#fff,#bfeee7);-webkit-background-clip:text;background-clip:text;color:transparent}
+.act .heronum .u{font-size:15px;font-weight:700;color:var(--muted);padding-bottom:6px}
+.act .grid{display:flex;gap:10px}
+.act .g{flex:1;background:var(--surface2);border-radius:15px;padding:13px 12px}
+.act .g .gn{font-size:21px;font-weight:800;letter-spacing:-.5px}
+.act .g .gl{font-size:11px;font-weight:700;color:var(--muted);margin-top:3px}
+.act .g .gn.gold{color:var(--gold)}
+.act .g .gn.teal{color:var(--teal)}
+.act .g .gn.coupon{color:var(--coupon)}
+
+/* level progress */
+.level{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:17px 18px;box-shadow:var(--shadow);margin-bottom:14px}
+.level .lr{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.level .lv{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800}
+.level .lv .badge{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,#f3c44c,#d9a52f);color:#241a04;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.level .nextlv{font-size:12px;font-weight:700;color:var(--muted)}
+.level .nextlv b{color:var(--txt)}
+.lvbar{height:10px;border-radius:5px;background:var(--surface2);overflow:hidden}
+.lvfill{width:64%;height:100%;border-radius:5px;background:linear-gradient(90deg,#f3c44c,#ffe08a)}
+.level .ltip{font-size:11.5px;font-weight:600;color:var(--faint);margin-top:9px}
+
+/* radius row */
+.rad{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:15px 18px;display:flex;align-items:center;gap:13px;box-shadow:var(--shadow)}
+.rad .ric{width:42px;height:42px;border-radius:13px;background:var(--teal-dim);display:flex;align-items:center;justify-content:center;font-size:19px}
+.rad .rb{flex:1}
+.rad .rt{font-size:14px;font-weight:800}
+.rad .rs{font-size:12px;font-weight:600;color:var(--muted);margin-top:2px}
+.rad .rv{font-size:13px;font-weight:800;color:var(--teal)}
+</style></head>
+<body><div class="screen">
+  <div class="statusbar"><span class="time">9:41</span>
+    <span class="icons">
+      <svg width="18" height="12" viewBox="0 0 18 12"><g fill="#F4F4F7"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="4.5" width="3" height="7.5" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></g></svg>
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M8.5 2.3C10.7 2.3 12.7 3.2 14.2 4.6L15.6 3.1C13.7 1.3 11.2 .2 8.5 .2S3.3 1.3 1.4 3.1L2.8 4.6C4.3 3.2 6.3 2.3 8.5 2.3Z" fill="#F4F4F7"/><path d="M8.5 6C9.6 6 10.6 6.4 11.3 7.1L8.5 10 5.7 7.1C6.4 6.4 7.4 6 8.5 6Z" fill="#F4F4F7"/></svg>
+      <svg width="27" height="13" viewBox="0 0 27 13"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" stroke="#F4F4F7" stroke-opacity=".5" fill="none"/><rect x="2" y="2" width="18" height="9" rx="2" fill="#F4F4F7"/><rect x="24" y="4" width="2" height="5" rx="1" fill="#F4F4F7" fill-opacity=".5"/></svg>
+    </span>
+  </div>
+
+  <div class="content">
+    <div class="hero">
+      <div class="avatar">T
+        <div class="edit"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M8.2 1.8L10.2 3.8L4 10H2V8L8.2 1.8Z" stroke="#F4F4F7" stroke-width="1.3" stroke-linejoin="round"/></svg></div>
+      </div>
+      <div class="h-main">
+        <div class="namerow"><span class="nm">testuser123</span>
+          <span class="tier">👑 Premium</span></div>
+        <div class="handle">@testuser123 · <span class="streakpill">🔥 7일 연속</span></div>
+      </div>
+    </div>
+
+    <div class="act">
+      <div class="top">
+        <span class="lbl">이번 달 활동</span>
+        <span class="month">2026년 6월</span>
+      </div>
+      <div class="heronum"><span class="n">12</span><span class="u">장 줍기 🎯</span></div>
+      <div class="grid">
+        <div class="g"><div class="gn coupon">5</div><div class="gl">사용</div></div>
+        <div class="g"><div class="gn">7</div><div class="gl">연속일</div></div>
+        <div class="g"><div class="gn teal">3</div><div class="gl">방문 매장</div></div>
+      </div>
+    </div>
+
+    <div class="level">
+      <div class="lr">
+        <div class="lv"><span class="badge">5</span> 동네 탐험가</div>
+        <div class="nextlv">Lv.6 까지 <b>8장</b></div>
+      </div>
+      <div class="lvbar"><div class="lvfill"></div></div>
+      <div class="ltip">누적 픽업 42장 · 줍을수록 레벨이 올라가요</div>
+    </div>
+
+    <div class="rad">
+      <div class="ric">📍</div>
+      <div class="rb">
+        <div class="rt">내 줍기 반경</div>
+        <div class="rs">Premium · 쿨다운 없음</div>
+      </div>
+      <div class="rv">1km</div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9.2" stroke="#62626E" stroke-width="1.8"/><path d="M15.5 8.5L13.2 13.2L8.5 15.5L10.8 10.8L15.5 8.5Z" fill="#62626E"/></svg></div>탐험</div>
+    <div class="tab"><div class="ic"><svg width="24" height="22" viewBox="0 0 24 22" fill="none"><rect x="2.5" y="5" width="19" height="14.5" rx="3.2" stroke="#62626E" stroke-width="1.9"/><path d="M2.5 10H21.5" stroke="#62626E" stroke-width="1.9"/></svg></div>수집첩</div>
+    <div class="tab active"><div class="ic"><svg width="22" height="24" viewBox="0 0 22 24" fill="none"><circle cx="11" cy="8" r="4.3" stroke="#F3C44C" stroke-width="1.9"/><path d="M3 21C3 16.6 6.6 14 11 14C15.4 14 19 16.6 19 21" stroke="#F3C44C" stroke-width="1.9" stroke-linecap="round"/></svg></div>프로필</div>
+  </div>
+  <div class="home-ind"></div>
+</div></body></html>

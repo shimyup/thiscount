@@ -30,12 +30,13 @@ class UserProgress {
 
   /// XP → 레벨. 1 부터 시작, 50 에서 캡.
   ///
-  /// 공식: level = 1 + floor(sqrt(xp / 50))
+  /// 공식: level = 1 + floor(sqrt(xp / 50)), 역 threshold = (level-1)² × 50
+  /// Build 422 (sim-fresh2 P3): 주석 수치를 실제 공식과 일치하게 정정.
   /// - 0 XP → 1
   /// - 50 XP → 2
-  /// - 1,250 → 5
-  /// - 5,000 → 10
-  /// - 125,000 → 50 (이후 cap)
+  /// - 800 → 5
+  /// - 4,050 → 10
+  /// - 120,050 → 50 (이후 cap)
   static int calcLevel(int xp) {
     if (xp <= 0) return 1;
     final raw = 1 + math.sqrt(xp / 50).floor();
@@ -51,7 +52,7 @@ class UserProgress {
   }
 
   /// 특정 레벨 도달에 필요한 최소 XP. calcLevel 의 역함수.
-  /// level 1 = 0 XP, level 2 = 50, level 5 = 1,250, level 50 = 120,050.
+  /// level 1 = 0 XP, level 2 = 50, level 5 = 800, level 50 = 120,050.
   static int xpThresholdForLevel(int level) {
     if (level <= 1) return 0;
     final clamped = level.clamp(1, 50);
@@ -86,10 +87,26 @@ const Map<int, String> _levelNameByFloor = {
   45: '👑 전설의 혜택 헌터',
 };
 
-String xpLevelLabel(int level) {
+// Build 421 (sim-fresh P1): 비-한국어 사용자에게 레벨 라벨이 한국어로 노출되던
+//   문제 → 영어 매핑 추가(ko 외엔 영어). UI 표시 전용.
+const Map<int, String> _levelNameByFloorEn = {
+  0: '🎟 Rookie Explorer',
+  5: '🎫 Novice Hunter',
+  10: '🏷️ Skilled Hunter',
+  15: '🛍 Town Shopper',
+  20: '🎯 City Scout',
+  25: '💎 Treasure Finder',
+  30: '🏆 Deal Master',
+  35: '⭐ Super Hunter',
+  40: '🌍 Global Pickup Leader',
+  45: '👑 Legendary Deal Hunter',
+};
+
+String xpLevelLabel(int level, {String langCode = 'ko'}) {
+  final table = langCode == 'ko' ? _levelNameByFloor : _levelNameByFloorEn;
   // 가장 가까운 하위 floor 찾기 (45 ≤ level ≤ 50 → "전설의 혜택 헌터")
   for (final floor in [45, 40, 35, 30, 25, 20, 15, 10, 5, 0]) {
-    if (level >= floor) return _levelNameByFloor[floor]!;
+    if (level >= floor) return table[floor]!;
   }
-  return _levelNameByFloor[0]!;
+  return table[0]!;
 }

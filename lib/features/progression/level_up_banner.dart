@@ -16,13 +16,18 @@ class LevelUpBanner {
     final state = context.read<AppState>();
     final newLevel = state.consumeLevelUpFlag();
     if (newLevel == null) return;
-    if (newLevel == UserLevel.newbie) return; // newbie 는 축하 생략
+    // Build 422 (sim-fresh2 P2): 진급 종류 구분 — 5단계 진급이면 단계 welcome,
+    //   XP-only 진급이면 XP 레벨 라벨(levelLabel) 을 보여줘 stale 메시지 방지.
+    final wasStage = state.lastLevelUpWasStageChange;
+    // 5단계 newbie 진급은 축하 생략(첫 화면). XP-only 진급은 표시.
+    if (wasStage && newLevel == UserLevel.newbie) return;
 
     // Build 182: 레벨업 순간 chime + heavy haptic.
     FeedbackService.onLevelUp();
 
     final l10n = AppL10n.of(state.currentUser.languageCode);
-    final welcome = _localizedWelcome(l10n, newLevel);
+    final welcome =
+        wasStage ? _localizedWelcome(l10n, newLevel) : state.levelLabel;
     // Build 120: 레벨업 순간 실제 "반경 확대" 를 함께 보여준다. 배너 본문에
     // 한 줄 추가. XP 레벨 기반 픽업 반경이 +10m 단위로 올라가므로 델타는
     // 고정 10m, 신규 값은 pickupRadiusMeters 를 정수로 반올림.

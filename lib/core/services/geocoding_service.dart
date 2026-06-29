@@ -313,8 +313,12 @@ class GeocodingService {
       await Future.delayed(const Duration(seconds: 1));
       final addr = await _reverseRequest(lat, lng, languageCode: languageCode);
       final result = addr != null ? _buildDisplayAddress(addr) : null;
-      _evictDisplayIfNeeded();
-      _displayCache[key] = result;
+      // Build 422 (sim-fresh2 P1): 일시적 네트워크 실패(null)를 캐시에 박지 않음 —
+      //   이전엔 null 을 캐싱해 이후 호출이 영구히 빈 주소를 반환했음(1차와 통일).
+      if (result != null) {
+        _evictDisplayIfNeeded();
+        _displayCache[key] = result;
+      }
       return result;
     } catch (_) {
       return null;
@@ -432,6 +436,10 @@ class GeocodingService {
     String? expectedCountryIso,
   }) async {
     await _waitForRateLimit();
+    // Build 422 (sim-fresh2 P3): 요청 직전에 타임스탬프 — searchAddress 와 동일.
+    //   응답 후 stamp 하면 실패/throw 시 갱신 안 돼 빠른 재시도가 Nominatim
+    //   1req/s 한도를 넘길 수 있었음.
+    _lastApiCall = DateTime.now();
 
     try {
       final uri = Uri.parse(
@@ -440,8 +448,6 @@ class GeocodingService {
       final resp = await http.get(uri, headers: {
         'User-Agent': _userAgent,
       }).timeout(const Duration(seconds: 10));
-
-      _lastApiCall = DateTime.now();
 
       if (resp.statusCode != 200) return null;
       final data = json.decode(resp.body) as Map<String, dynamic>;

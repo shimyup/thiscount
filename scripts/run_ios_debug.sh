@@ -34,6 +34,13 @@ if [[ -n "${STADIA_MAPS_API_KEY:-}" ]]; then
   DART_DEFINES+=("--dart-define=STADIA_MAPS_API_KEY=${STADIA_MAPS_API_KEY}")
 fi
 
+# Build 414 (Auth Phase 3 STEP 1/2): .env.local 에 AUTH_BIND_ENABLED=true 일 때만
+#   주입 — 시뮬레이터 debug 로 그림자 바인딩 검증용.
+if [[ -n "${AUTH_BIND_ENABLED:-}" ]]; then
+  echo "[ios-debug] AUTH_BIND_ENABLED=${AUTH_BIND_ENABLED}"
+  DART_DEFINES+=("--dart-define=AUTH_BIND_ENABLED=${AUTH_BIND_ENABLED}")
+fi
+
 if [[ -n "${REVENUECAT_IOS_KEY:-}" ]]; then
   DART_DEFINES+=("--dart-define=REVENUECAT_IOS_KEY=${REVENUECAT_IOS_KEY}")
 fi
@@ -54,12 +61,71 @@ if [[ -n "${BETA_ADMIN_EMAIL:-}" ]]; then
   DART_DEFINES+=("--dart-define=BETA_ADMIN_EMAIL=${BETA_ADMIN_EMAIL}")
 fi
 
+# Build 414: Cloud Function URL 들 (.env.local 에 있을 때만) — 디버그에서도 실제
+#   이메일 relay / AI 쿠폰 생성 테스트 가능하게.
+if [[ -n "${AUTH_EMAIL_FN_URL:-}" ]]; then
+  echo "[ios-debug] AUTH_EMAIL_FN_URL set"
+  DART_DEFINES+=("--dart-define=AUTH_EMAIL_FN_URL=${AUTH_EMAIL_FN_URL}")
+fi
+if [[ -n "${AUTH_SMS_FN_URL:-}" ]]; then
+  DART_DEFINES+=("--dart-define=AUTH_SMS_FN_URL=${AUTH_SMS_FN_URL}")
+fi
+if [[ -n "${COUPON_AI_FN_URL:-}" ]]; then
+  echo "[ios-debug] COUPON_AI_FN_URL set"
+  DART_DEFINES+=("--dart-define=COUPON_AI_FN_URL=${COUPON_AI_FN_URL}")
+fi
+
 cd "$ROOT_DIR"
 
-DEVICE_ID="${1:-}"
-if [[ -n "$DEVICE_ID" ]]; then
+DEVICE_ID=""
+if [[ $# -gt 0 && "$1" != --* ]]; then
+  DEVICE_ID="$1"
   shift
-  flutter run -d "$DEVICE_ID" --debug "${DART_DEFINES[@]}" "$@"
+fi
+if [[ -n "$DEVICE_ID" ]]; then
+  FLUTTER_ARGS=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --route)
+        if [[ $# -lt 2 ]]; then
+          echo "[ios-debug] --route requires a route value" >&2
+          exit 1
+        fi
+        DART_DEFINES+=("--dart-define=APP_INITIAL_ROUTE=$2")
+        shift 2
+        ;;
+      --route=*)
+        DART_DEFINES+=("--dart-define=APP_INITIAL_ROUTE=${1#--route=}")
+        shift
+        ;;
+      *)
+        FLUTTER_ARGS+=("$1")
+        shift
+        ;;
+    esac
+  done
+  flutter run -d "$DEVICE_ID" --debug "${DART_DEFINES[@]}" ${FLUTTER_ARGS[@]+"${FLUTTER_ARGS[@]}"}
 else
-  flutter run --debug "${DART_DEFINES[@]}" "$@"
+  FLUTTER_ARGS=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --route)
+        if [[ $# -lt 2 ]]; then
+          echo "[ios-debug] --route requires a route value" >&2
+          exit 1
+        fi
+        DART_DEFINES+=("--dart-define=APP_INITIAL_ROUTE=$2")
+        shift 2
+        ;;
+      --route=*)
+        DART_DEFINES+=("--dart-define=APP_INITIAL_ROUTE=${1#--route=}")
+        shift
+        ;;
+      *)
+        FLUTTER_ARGS+=("$1")
+        shift
+        ;;
+    esac
+  done
+  flutter run --debug "${DART_DEFINES[@]}" ${FLUTTER_ARGS[@]+"${FLUTTER_ARGS[@]}"}
 fi

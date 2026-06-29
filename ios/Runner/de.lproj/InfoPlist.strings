@@ -1,5 +1,4 @@
 "NSLocationWhenInUseUsageDescription" = "Ihr Standort wird verwendet, um Gutscheine von Geschäften in der Nähe anzuzeigen.";
-"NSLocationAlwaysAndWhenInUseUsageDescription" = "Ihr Standort wird verwendet, um Gutscheine von Geschäften in der Nähe anzuzeigen.";
 "NSPhotoLibraryUsageDescription" = "Zugriff auf die Fotobibliothek wird benötigt, um Profilbild und Gutscheinbilder zu ändern.";
 "NSPhotoLibraryAddUsageDescription" = "Berechtigung wird benötigt, um ausgewählte Fotos in der App zu speichern.";
 "NSUserNotificationUsageDescription" = "Mitteilungen werden benötigt, um Sie über neue Belohnungen in der Nähe zu informieren.";

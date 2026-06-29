@@ -584,7 +584,9 @@ class AuthService {
   /// Rate limit 초과 시 null 반환 (UI에서 에러 메시지 표시).
   /// 실제 서비스에서는 이 코드를 이메일 발송 API와 연동.
   static String? generateEmailOtp(String email) {
-    final now = DateTime.now();
+    // Build 414 (sim100 #51): SecureClock — 시계 조작으로 OTP rate-limit 윈도우/
+    //   쿨다운 우회 차단. getter/verify 와 일관(단조 증가 watermark).
+    final now = SecureClock.now();
 
     // 윈도우 리셋 (10분 경과) — Build 288: email 전용 윈도우
     if (_emailOtpWindowStart == null ||
@@ -726,7 +728,8 @@ class AuthService {
     String phoneNumber, {
     String langCode = 'en',
   }) async {
-    final now = DateTime.now();
+    // Build 414 (sim100 #51): SecureClock — 시계 조작 OTP 우회 차단 (email 과 동일).
+    final now = SecureClock.now();
 
     // 윈도우 리셋 (10분 경과) — Build 288: phone 전용 윈도우
     if (_phoneOtpWindowStart == null ||
@@ -1168,6 +1171,8 @@ class AuthService {
     } else {
       await _deleteSecure(_keyBrandName);
     }
+    // Build 413 (Auth Phase 2, flag-gated): 가입 직후 정식 Firebase Auth 바인딩.
+    await _bindFirebaseAuthIfEnabled(normalizedEmail, password);
     return null; // null = 성공
   }
 
@@ -1262,6 +1267,11 @@ class AuthService {
           tempExpiresAt != null &&
           nowMs <= tempExpiresAt &&
           tempMatched) {
+        // Build 414 (sim100 #52): 임시 비번 로그인 성공도 정상 성공과 동일하게
+        //   실패 카운터/lockout 리셋 — 이전엔 미초기화라 직전 실패 누적이 남아
+        //   다음 로그인이 부당하게 lockout 될 수 있었음.
+        await _writeSecure(_keyLoginAttempts, '0');
+        await _deleteSecure(_keyLoginLockoutUntil);
         await _writeSecure(_keyMustChangePassword, 'true');
         await _writeSecure(_keyIsLoggedIn, 'true');
         return null;
@@ -1285,7 +1295,29 @@ class AuthService {
     await _deleteSecure(_keyTempPasswordExpiresAt);
     await _writeSecure(_keyMustChangePassword, 'false');
     await _writeSecure(_keyIsLoggedIn, 'true');
+    // Build 413 (Auth Phase 2, flag-gated): 로컬 비번 검증 통과 직후 정식
+    //   Firebase Auth 에 바인딩(그림자). 플래그 OFF 면 no-op. best-effort —
+    //   실패해도 로그인 성공 흐름엔 영향 없음 (rules 는 아직 public).
+    await _bindFirebaseAuthIfEnabled(savedEmail, password);
     return null; // null = 성공
+  }
+
+  /// Build 413 (Auth Phase 2): AUTH_BIND_ENABLED 일 때만 정식 Firebase Auth
+  ///   (email/password) 세션 확보 + refresh token 보관. 실패는 조용히 무시.
+  static Future<void> _bindFirebaseAuthIfEnabled(
+    String? email,
+    String password,
+  ) async {
+    if (!FirebaseConfig.authBindEnabled) return;
+    if (email == null || email.trim().isEmpty) return;
+    try {
+      await FirebaseAuthService.signInOrMigrate(
+        email: email.trim(),
+        password: password,
+      );
+    } catch (e) {
+      if (kDebugMode) debugPrint('[AuthService] firebase bind skip: $e');
+    }
   }
 
   // Build 294: 로그인 실패 카운팅 + 5회 도달 시 15분 lockout 발화.
@@ -1455,13 +1487,31 @@ class AuthService {
     await _deleteSecure(_keyTempPasswordHash);
     await _deleteSecure(_keyTempPasswordExpiresAt);
     await _writeSecure(_keyMustChangePassword, 'false');
+    // Build 414 (Auth Phase 2, sim P1): 정식 세션이 살아있는 경우 Firebase Auth
+    //   비번도 동기화해 desync 차단. flag OFF / anon 세션이면 no-op.
+    //   ⚠️ 비밀번호 찾기(임시비번) 흐름은 정식 세션이 없을 수 있어 여기서 동기
+    //   화 불가 — Phase 3 서버측 reset(Admin SDK) 으로 해결 (docs 백로그 참조).
+    if (FirebaseConfig.authBindEnabled) {
+      try {
+        await FirebaseAuthService.changePassword(newPassword);
+      } catch (e) {
+        if (kDebugMode) debugPrint('[AuthService] fb changePassword skip: $e');
+      }
+    }
   }
 
   // Delete account
   static Future<void> deleteAccount() async {
     await _deleteRemoteAccountDataBestEffort();
     final prefs = await SharedPreferences.getInstance();
+    // Build 415 (sim50 P1): _deleteRemoteAccountDataBestEffort 가 실패 시 등록한
+    //   pending_gdpr_deletions 큐를 prefs.clear() 가 즉시 지워버려 재시도가 영영
+    //   불가능했음(dead queue). clear 전에 보존했다가 복원 → 다음 실행에서 retry.
+    final pendingGdpr = prefs.getStringList('pending_gdpr_deletions');
     await prefs.clear();
+    if (pendingGdpr != null && pendingGdpr.isNotEmpty) {
+      await prefs.setStringList('pending_gdpr_deletions', pendingGdpr);
+    }
     FirebaseAuthService.signOut();
     await _secure.deleteAll();
     // Build 368 (PR-CC1 P0 #4): deleteAccount 도 동일 — PurchaseService
@@ -1522,7 +1572,9 @@ class AuthService {
       }
     }
 
-    // 실패한 작업을 pending 큐에 등록 (다음 앱 실행 시 admin REST 로 후속 처리).
+    // 실패한 작업을 pending 큐에 등록 (다음 앱 실행 시 processPendingGdprDeletions
+    //   가 재시도). Build 415 (sim50 P1): 큐 보존(deleteAccount) + 재처리 추가 전엔
+    //   이 큐가 즉시 prefs.clear() 로 지워지고 읽는 코드도 없어 dead 였음.
     if (!userDeleted || !scrubbed) {
       try {
         final prefs = await SharedPreferences.getInstance();
@@ -1533,6 +1585,52 @@ class AuthService {
         await prefs.setStringList('pending_gdpr_deletions', pending);
       } catch (_) {}
     }
+  }
+
+  /// Build 415 (sim50 P1): pending_gdpr_deletions 큐 재처리. 앱 시작 시 1회 호출
+  ///   (best-effort) — 이전 탈퇴에서 원격 user doc 삭제/letter scrub 가 실패해
+  ///   큐에 남은 항목을 재시도하고, 성공분만 큐에서 제거한다. 실패분은 보존해
+  ///   다음 실행/서버측(deleteMyData) 처리로 넘긴다. 익명 세션 권한 부족으로
+  ///   403 이 나면 항목 유지(무한 누적은 서버 hard-delete 도입 시 해소).
+  static Future<void> processPendingGdprDeletions() async {
+    if (!FirebaseConfig.kFirebaseEnabled) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final pending = prefs.getStringList('pending_gdpr_deletions') ?? [];
+      if (pending.isEmpty) return;
+      final remaining = <String>[];
+      for (final entry in pending) {
+        final parts = entry.split('|');
+        final uid = parts.isNotEmpty ? parts[0].trim() : '';
+        if (uid.isEmpty) continue;
+        bool docOk = parts.length > 2 && parts[2] == 'doc_ok';
+        bool scrubOk = parts.length > 3 && parts[3] == 'scrub_ok';
+        final ts = parts.length > 1 ? parts[1] : '';
+        if (!docOk) {
+          try {
+            await FirestoreService.deleteDocument('users/$uid');
+            docOk = true;
+          } catch (_) {}
+        }
+        if (!scrubOk) {
+          try {
+            await FirestoreService.scrubLettersBySender(uid);
+            scrubOk = true;
+          } catch (_) {}
+        }
+        if (!docOk || !scrubOk) {
+          remaining.add('$uid|$ts|${docOk ? 'doc_ok' : 'doc_fail'}|'
+              '${scrubOk ? 'scrub_ok' : 'scrub_fail'}');
+        }
+      }
+      if (remaining.length != pending.length) {
+        if (remaining.isEmpty) {
+          await prefs.remove('pending_gdpr_deletions');
+        } else {
+          await prefs.setStringList('pending_gdpr_deletions', remaining);
+        }
+      }
+    } catch (_) {}
   }
 
   // Check onboarding completion (v2 = with country selection)

@@ -64,6 +64,18 @@ void main() {
       final z = _zone(maxRedeems: 100, redeemedCount: 50);
       expect(z.isActive(now), isTrue);
     });
+
+    test('Build 461: copyWith(expiresAt) 단축 → 조기 종료 + 다른 필드 보존', () {
+      final z = _zone(); // 기본 만료 = now + 7일 (활성)
+      expect(z.isActive(now), isTrue);
+      final stopped =
+          z.copyWith(expiresAt: now.subtract(const Duration(seconds: 1)));
+      expect(stopped.isActive(now), isFalse);
+      // 다른 필드는 그대로 (redemptionInfo/redeemedCount 회귀 가드).
+      expect(stopped.redemptionInfo, 'STARBUCKS20');
+      expect(stopped.redeemedCount, z.redeemedCount);
+      expect(stopped.id, z.id);
+    });
   });
 
   group('BrandZone.containsPosition (haversine)', () {
@@ -217,7 +229,10 @@ void main() {
       final picked = await svc.triggerForUser(
         userId: 'user1',
         userPos: origin,
-        onZoneEnter: (z, dest) async => triggered.add(z.id),
+        onZoneEnter: (z, dest) async {
+          triggered.add(z.id);
+          return true;
+        },
         now: now,
         rng: math.Random(1),
       );
@@ -230,7 +245,10 @@ void main() {
       final picked2 = await svc.triggerForUser(
         userId: 'user1',
         userPos: origin,
-        onZoneEnter: (z, dest) async => triggered.add(z.id),
+        onZoneEnter: (z, dest) async {
+          triggered.add(z.id);
+          return true;
+        },
         now: now,
         rng: math.Random(1),
       );
@@ -249,6 +267,7 @@ void main() {
         userPos: origin,
         onZoneEnter: (z, dest) async {
           captured = dest;
+          return true;
         },
         now: DateTime(2026, 5, 14, 12),
         rng: math.Random(777),
@@ -267,9 +286,65 @@ void main() {
       final r = await svc.triggerForUser(
         userId: '',
         userPos: const LatLng(0, 0),
-        onZoneEnter: (z, dest) async {},
+        onZoneEnter: (z, dest) async => true,
       );
       expect(r, isEmpty);
+    });
+
+    // Build 467: "브랜드가 설정한 주변에 회원이 오면 쿠폰이 발행되는지" end-to-end
+    //   트리거 증명 — 활성 zone(내용+매장코드) 안에 회원(브랜드 본인 아님)이
+    //   들어오면 onZoneEnter 가 그 zone(내용/코드/매장명 보존)으로 1회 발화하고
+    //   seen 마킹돼 재발급되지 않음. _handleAutoBrandDrop(AppState)이 이 zone 으로
+    //   category=coupon letter 를 인박스+지도에 생성.
+    test('triggerForUser — 회원이 활성 zone 진입 시 쿠폰(내용/코드) 발급 트리거', () async {
+      SharedPreferences.setMockInitialValues({});
+      final svc = BrandZoneService.instance;
+      final store = const LatLng(37.4979, 127.0276); // 매장(zone 중심)
+      final now = DateTime(2026, 5, 14, 12);
+      svc.injectCacheForTest([
+        _zone(
+          id: 'cafe-zone',
+          brandId: 'brandCafe',
+          center: store,
+          radiusM: 300,
+        ), // content='20% OFF 음료 1잔', redemptionInfo='STARBUCKS20'
+      ]);
+
+      BrandZone? issuedFrom;
+      LatLng? dropAt;
+      final picked = await svc.triggerForUser(
+        userId: 'memberA', // 브랜드 본인 아님
+        userPos: store, // 매장 반경 안(0m)
+        onZoneEnter: (z, dest) async {
+          issuedFrom = z;
+          dropAt = dest;
+          return true; // AppState 가 letter 생성 성공했다고 가정
+        },
+        now: now,
+        rng: math.Random(42),
+      );
+
+      // 1) 발급 트리거됨
+      expect(picked.length, 1);
+      expect(picked.first.id, 'cafe-zone');
+      // 2) 발급될 쿠폰은 브랜드 zone 의 내용/매장명 보존(=발행되는 쿠폰 본문)
+      expect(issuedFrom, isNotNull);
+      expect(issuedFrom!.content, '20% OFF 음료 1잔');
+      expect(issuedFrom!.redemptionInfo, 'STARBUCKS20');
+      expect(issuedFrom!.brandName, 'Starbucks 강남역점');
+      // 3) 드롭 위치는 회원 주변(매장 반경 안) — 픽업 가능
+      expect(dropAt, isNotNull);
+      expect(store.distanceTo(dropAt!), lessThanOrEqualTo(30.0 + 1e-6));
+
+      // 4) 같은 회원 재진입 시 중복 발급 안 됨(seen 마킹)
+      final again = await svc.triggerForUser(
+        userId: 'memberA',
+        userPos: store,
+        onZoneEnter: (z, dest) async => true,
+        now: now,
+        rng: math.Random(42),
+      );
+      expect(again, isEmpty);
     });
   });
 

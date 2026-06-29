@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../features/progression/user_level.dart';
 import '../features/progression/user_progress.dart';
 import '../features/welcome/welcome_letter.dart';
+import '../models/brand_stamp.dart';
 import '../models/letter.dart';
 import '../models/user_profile.dart';
 import '../core/config/app_keys.dart';
@@ -24,9 +25,11 @@ import '../core/services/feedback_service.dart';
 import '../core/services/geocoding_service.dart';
 import '../core/services/firestore_service.dart';
 import '../core/services/firebase_auth_service.dart';
+import '../core/services/auth_service.dart';
 import '../core/services/brand_zone_service.dart';
 import '../core/services/purchase_service.dart';
 import '../core/services/secure_clock.dart';
+import '../core/utils/gift_code.dart';
 import '../features/inbox/utils/category_inference.dart';
 import '../core/utils/redemption_code.dart';
 import '../models/brand_insights.dart';
@@ -237,8 +240,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // 리스트 앞쪽으로 오도록 정렬 부스트 (UI · 알림 · 가장 가까운 편지 추천에서
   // 선호 카테고리 우선 노출).
   List<Letter> get nearbyLetters {
+    // Build 429 (device): Brand 는 픽업 불가 트랙 → 근처 줍기 대상도 비움
+    //   ('근처 N통' 칩·픽업 마커 하이라이트 미노출). 발송/캠페인 화면 중심.
+    if (_currentUser.isBrand) return const [];
     final list = _worldLetters
         .where((l) => l.status == DeliveryStatus.nearYou)
+        // Build 414 (sim100 #41): 만료된 auto-drop/letter 가 지도에 ghost 마커로
+        //   잔존 + 탭 시 '이미 받았어요' 오안내 → 만료분 사전 제외.
+        .where((l) => !l.isExpired)
+        // Build 420 (sim100 iter5): 비-nearby 픽업 경로(소진 판정)와 동일 기준 —
+        //   maxReaders 도달/신고차단(isBlocked) letter 는 지도/리스트에서 제외.
+        .where((l) => l.readCount < l.maxReaders && !l.isBlocked)
         // Build 324: brandUniquePerUser 캠페인의 다른 letter 를 이미 픽업했다면
         //   같은 캠페인의 잔여 letter 는 지도/리스트에서 숨김. 노출 후 탭 시점
         //   "이미 받았어요" 차단보다 사전 차단이 UX 자연스럽다.
@@ -256,6 +268,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     }
     return list;
   }
+
+  // Build 421 (sim-fresh P3): 월드 뷰 마커 필터가 nearbyLetters 와 동일하게
+  //   이미 픽업한 brandUniquePerUser 캠페인을 숨기도록 공개 헬퍼 제공.
+  bool hasPickedUpCampaign(String? campaignId) =>
+      campaignId != null && _pickedUpCampaignIds.contains(campaignId);
 
   // ── 카테고리 선호 (Premium Lv11+ 전용) ──────────────────────────────────
   /// 선호 카테고리 잠금 해제 조건 — Brand 가 아니고 Premium Level 11 이상.
@@ -286,11 +303,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     return true;
   }
 
-  // ── 주변 편지 줍기 제한 (무료: 1시간, 프리미엄: 10분, 선착순) ─────────────
-  /// 티어별 쿨다운: 프리미엄/브랜드 10분, 무료 60분
+  // ── 주변 편지 줍기 제한 (무료: 1시간, 프리미엄/브랜드: 없음, 선착순) ───────
+  /// Build 429 (device): Premium/Brand 쿨다운 완전 제거(즉시 연속 픽업).
+  ///   무료만 60분 유지. (이전엔 Premium/Brand 10분)
   Duration get _nearbyPickupCooldown =>
       (_currentUser.isPremium || _currentUser.isBrand)
-      ? const Duration(minutes: 10)
+      ? Duration.zero
       : const Duration(minutes: 60);
 
   // ── 등급별 픽업 반경 ──────────────────────────────────────────────────
@@ -312,6 +330,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final base = _currentUser.isPremium ? 1000.0 : 200.0;
     final levelBonus = (currentLevel - 1).clamp(0, 49) * 10.0;
     return base + levelBonus;
+  }
+
+  // Build 485 (UX sim #1): 줍기 반경을 사용자 표시용 라벨로(m/km). 안내 메시지에서
+  //   '2km' 하드코딩 대신 실제 등급별 반경 노출.
+  String get pickupRadiusLabel {
+    final m = pickupRadiusMeters;
+    return m >= 1000
+        ? '${(m / 1000).toStringAsFixed(m % 1000 == 0 ? 0 : 1)}km'
+        : '${m.round()}m';
   }
 
   // ── 포인트 (Level 50 이후 초과 XP 누적) ─────────────────────────────────
@@ -344,7 +371,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// 다음 줍기 가능까지 남은 시간 (null = 바로 가능)
   Duration? get nearbyPickupRemainingCooldown {
     if (_lastNearbyPickupAt == null) return null;
-    final elapsed = DateTime.now().difference(_lastNearbyPickupAt!);
+    // Build 414 (sim100 #54): SecureClock — 시계 전진으로 픽업 쿨다운 우회 차단.
+    final elapsed = SecureClock.now().difference(_lastNearbyPickupAt!);
     if (elapsed >= _nearbyPickupCooldown) return null;
     return _nearbyPickupCooldown - elapsed;
   }
@@ -353,8 +381,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   Duration get pickupCooldownDuration => _nearbyPickupCooldown;
 
   // ── SharedPreferences 암호화 ─────────────────────────────────────────────
+  // Build 412 (PII sim MED): iOptions 추가 — letter 복호화 AES 키가 iCloud/
+  //   iTunes 백업으로 다른 기기에 복원되는 경로 차단 (first_unlock_this_device =
+  //   백업 비포함, 기기 종속). auth_service._secure 와 동일 정책.
   static const _secure = FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    iOptions: IOSOptions(
+      accessibility: KeychainAccessibility.first_unlock_this_device,
+    ),
   );
   static const _encKeyName = 'sp_enc_key_v1';
   static Uint8List? _encKey; // 32바이트 XOR 키 (앱 최초 실행 시 생성)
@@ -370,7 +404,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // ── 일일 발송 제한 ────────────────────────────────────────────────────────
   static const int _dailyLimitFree = 3;
   static const int _dailyLimitPremium = 30;
-  static const int _dailyLimitBrand = 200;
+  // Build 453 (tier-sim P2): _dailyLimitBrand(=200) 죽은 상수 제거 — Brand 캡은
+  //   dailySendLimit(월간한도+extra)이 실질. 메시지/게이트 모두 그쪽으로 통일.
   static const int _dailyPremiumExpressLimit = 3;
   static const Duration _readLetterRetention = Duration(days: 30);
   static const Duration _unopenedLetterExpiry = Duration(days: 7);
@@ -560,8 +595,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   /// 레벨 라벨 — UI 에서 직접 이 문자열만 렌더.
   String get levelLabel {
-    if (_currentUser.isBrand) return '👑 공식 발송인';
-    return xpLevelLabel(currentLevel);
+    // Build 421 (sim-fresh P1): 레벨 라벨 언어별 — 비-ko 사용자 한국어 노출 차단.
+    final isKo = _currentUser.languageCode == 'ko';
+    if (_currentUser.isBrand) {
+      return isKo ? '👑 공식 발송인' : '👑 Official Sender';
+    }
+    return xpLevelLabel(currentLevel, langCode: _currentUser.languageCode);
   }
 
   /// 레벨업 일회성 플래그를 소비. UI 에서 축하 배너 표시 후 호출.
@@ -572,21 +611,32 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     return userLevel;
   }
 
+  /// Build 422 (sim-fresh2 P2): 마지막 레벨업이 5단계 UserLevel 진급이었는지
+  ///   (true) 아니면 XP 1~50 진급만이었는지(false). XP-only 진급에서 5단계
+  ///   welcome 메시지를 띄우면 사용자가 이미 본 메시지가 또 떠 stale → 배너가
+  ///   이 플래그로 구분해 XP 진급엔 XP 레벨 라벨을 보여준다.
+  bool _lastLevelUpWasStage = false;
+  bool get lastLevelUpWasStageChange => _lastLevelUpWasStage;
+
   /// 레벨 변화 감지 — `sendLetter` 성공, 답장 수신, 체크인, 픽업 등 주요 이벤트
   /// 이후 호출. UserLevel (5단계 호환) 또는 XP 레벨 (1~50) 중 어느 쪽이든
   /// 올랐으면 `_justLeveledUp = true`.
   void _detectLevelUp() {
     // 기존 UserLevel 5단계 진급
     final current = userLevel;
+    bool stageUp = false;
     if (_previousUserLevel != null &&
         current.rank > _previousUserLevel!.rank) {
       _justLeveledUp = true;
+      stageUp = true;
     }
     _previousUserLevel = current;
     // XP 기반 1~50 레벨 진급 (Brand 는 currentLevel 이 항상 0 이라 트리거 안 됨)
     final xpLevel = currentLevel;
+    bool xpUp = false;
     if (xpLevel > 0 && xpLevel > _previousXpLevel) {
       _justLeveledUp = true;
+      xpUp = true;
       // Build 120: 마일스톤 레벨(2/5/10/25/50) 도달 시 별도 플래그 — UI 에서
       // 축하 모달 트리거용. 단순 레벨업 배너보다 무거운 축하 모먼트.
       if (_milestoneLevels.contains(xpLevel) &&
@@ -595,6 +645,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       }
     }
     _previousXpLevel = xpLevel;
+    // 이번 호출에서 무엇이 진급했는지 기록 — 5단계 진급이 우선(welcome 메시지가
+    //   더 의미 있음), 둘 다 아니면 직전 값 유지.
+    if (stageUp) {
+      _lastLevelUpWasStage = true;
+    } else if (xpUp) {
+      _lastLevelUpWasStage = false;
+    }
   }
 
   // ── 레벨 마일스톤 축하 (Build 120, Build 126 재분배) ─────────────────────
@@ -838,18 +895,24 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       _currentUser.brandVerifiedAt = DateTime.now();
     }
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      'brandBusinessNumber',
-      _currentUser.businessRegistrationNumber ?? '',
+    // Build 412 (PII sim MED YES.3): 사업자등록번호/연락처/등록문서 URL 은
+    //   민감 PII → 평문 SharedPreferences 대신 암호화 secure storage 에 저장.
+    //   기존 평문 키는 제거 (rooted/백업 환경 노출 차단).
+    await _secure.write(
+      key: 'brandBusinessNumber',
+      value: _currentUser.businessRegistrationNumber ?? '',
     );
-    await prefs.setString(
-      'brandRegistrationDocUrl',
-      _currentUser.businessRegistrationDocUrl ?? '',
+    await _secure.write(
+      key: 'brandRegistrationDocUrl',
+      value: _currentUser.businessRegistrationDocUrl ?? '',
     );
-    await prefs.setString(
-      'brandContactPhone',
-      _currentUser.businessContactPhone ?? '',
+    await _secure.write(
+      key: 'brandContactPhone',
+      value: _currentUser.businessContactPhone ?? '',
     );
+    await prefs.remove('brandBusinessNumber');
+    await prefs.remove('brandRegistrationDocUrl');
+    await prefs.remove('brandContactPhone');
     final verifiedAt = _currentUser.brandVerifiedAt;
     if (verifiedAt != null) {
       await prefs.setInt(
@@ -892,14 +955,18 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     required String languageCode,
   }) async {
     final docId = 'interest_${_currentUser.id}_${DateTime.now().millisecondsSinceEpoch}';
+    // Build 411 (launch sim P2): 좌표를 ~100m(소수 3자리)로 좌표화해 저장 —
+    //   _doSaveUserToFirestore 의 데이터 최소화 정책과 통일. 이전엔 원좌표(정밀
+    //   집 위치)를 그대로 기록하던 유일한 경로였음.
+    double coarse(double v) => (v * 1000).round() / 1000;
     await FirestoreService.setDocument('merchant_interest/$docId', {
       'userId': _currentUser.id,
       'username': _currentUser.username,
       'country': country,
       'countryFlag': countryFlag,
       'languageCode': languageCode,
-      'lat': _currentUser.latitude,
-      'lng': _currentUser.longitude,
+      'lat': coarse(_currentUser.latitude),
+      'lng': coarse(_currentUser.longitude),
       'createdAt': DateTime.now().toUtc().toIso8601String(),
     });
   }
@@ -1048,6 +1115,26 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// Build 302 (MED audit): 파라미터 명 `emailHash` → `email` (raw email 받는
   /// 다는 사실 명확화). 함수 내부에서 sha256 으로 해싱. 호출자가 "이미 해시된"
   /// 값을 전달하는 오해 차단.
+  // Build 441 (sim100 P1): Gmail/Googlemail 메일박스 정규화 — '+' 태그 제거 +
+  //   local-part 점(.) 제거 + domain 통일. Gmail 은 점/대소문자 무시 + plus-tag 가
+  //   같은 받은편지함이라 별칭으로 trial_claims 를 우회할 수 있어 canonical 키로
+  //   합친다. 비-Gmail 도메인은 plus/dot 처리가 제공자마다 달라(literal 가능)
+  //   정상 사용자 오차단을 피하려 원본 유지.
+  String _canonicalizeEmailForClaim(String normalized) {
+    final at = normalized.lastIndexOf('@');
+    if (at <= 0) return normalized;
+    var local = normalized.substring(0, at);
+    final domain = normalized.substring(at + 1);
+    if (domain == 'gmail.com' || domain == 'googlemail.com') {
+      final plus = local.indexOf('+');
+      if (plus >= 0) local = local.substring(0, plus);
+      local = local.replaceAll('.', '');
+      if (local.isEmpty) return normalized; // 비정상 입력 방어
+      return '$local@gmail.com';
+    }
+    return normalized;
+  }
+
   Future<bool> tryClaimWelcomeTrial({
     required String email,
     required Future<void> Function() grant,
@@ -1059,8 +1146,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // 이전엔 '@' 만 검증 → 'a@' 같은 무효 값도 통과 → 의미 없는 claim doc 누적.
     final emailRe = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
     if (normalized.isEmpty || !emailRe.hasMatch(normalized)) return false;
+    // Build 441 (sim100 P1): Gmail/Googlemail 별칭 canonicalize 후 해싱 — 정규화
+    //   누락 시 user+1@gmail / u.s.er@gmail 이 서로 다른 해시 → trial_claims 우회
+    //   무제한 3일 Premium farming. 동일 메일박스는 같은 claim 키를 갖게 한다.
+    final canonical = _canonicalizeEmailForClaim(normalized);
     // Build 299: 이메일 sha256 — 평문 이메일을 인덱스 키로 노출하지 않도록.
-    final hash = sha256.convert(utf8.encode(normalized)).toString();
+    final hash = sha256.convert(utf8.encode(canonical)).toString();
     final claimPath = 'trial_claims/$hash';
 
     if (FirebaseConfig.kFirebaseEnabled) {
@@ -1143,8 +1234,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('brandExactDropCredits', _brandExactDropCredits);
     // Build 296 (P0 audit): Firestore 즉시 동기화 — 충전 직후 다른 기기/재설치
-    // 에서도 즉시 복구 가능. await 으로 묶어 결제 → 충전 → 다음 액션 일관성.
-    await _saveUserToFirestore();
+    // 에서도 즉시 복구 가능.
+    // Build 437 (device #4): best-effort 로 격리. 이전엔 await 가 throw 하면
+    //   호출측(_selectExactDrop / buyExactDrop)까지 전파 → ExactDrop picker 가
+    //   안 열리고 '자동 구매/충전이 안 됨' 회귀. 로컬+prefs 는 이미 반영됐고
+    //   베타는 exactDropFreeForBeta 로 무료 사용되므로 서버 저장 실패는 비치명적.
+    try {
+      await _saveUserToFirestore();
+    } catch (_) {
+      // 서버 저장 실패해도 로컬 크레딧은 유지 — 흐름 차단 금지.
+    }
     notifyListeners();
   }
 
@@ -1206,6 +1305,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         l.senderId != myId &&
         (l.category == LetterCategory.coupon ||
             l.category == LetterCategory.voucher) &&
+        // Build 414 (sim200 P3): 사용기한 만료 쿠폰을 광고 모달이 추천하면
+        //   픽업 시 실패 → 추천 후보에서 제외.
+        !l.isRedemptionExpired &&
         (l.expiresAt == null || l.expiresAt!.isAfter(now))).toList();
     if (candidates.isEmpty) return null;
     candidates.sort((a, b) => b.sentAt.compareTo(a.sentAt));
@@ -1312,9 +1414,41 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     return remainingPremiumExpressCount > 0;
   }
 
-  // ── DM 권한 (프리미엄 전용) ─────────────────────────────────────────────────
-  /// DM은 프리미엄 회원만 사용 가능. 무료·브랜드 계정은 불가.
-  bool get canUseDM => _currentUser.isPremium && !_currentUser.isBrand;
+  // ── Build 448: Brand 고정 매장 위치 ─────────────────────────────────────────
+  /// 자동 발송(zone)·정밀 발송의 중심으로 재사용할 매장 좌표. 기기 로컬 영속
+  /// (SharedPreferences) — 매번 위치를 다시 지정할 필요 없음. 미설정 시 null.
+  double? _fixedStoreLat;
+  double? _fixedStoreLng;
+  double? get fixedStoreLat => _fixedStoreLat;
+  double? get fixedStoreLng => _fixedStoreLng;
+  bool get hasFixedStoreLocation =>
+      _fixedStoreLat != null && _fixedStoreLng != null;
+
+  /// 고정 매장 위치 저장. (lat/lng 둘 다 필요)
+  Future<void> setFixedStoreLocation(double lat, double lng) async {
+    _fixedStoreLat = lat;
+    _fixedStoreLng = lng;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('brand_fixed_store_lat', lat);
+    await prefs.setDouble('brand_fixed_store_lng', lng);
+  }
+
+  /// 고정 매장 위치 해제.
+  Future<void> clearFixedStoreLocation() async {
+    _fixedStoreLat = null;
+    _fixedStoreLng = null;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('brand_fixed_store_lat');
+    await prefs.remove('brand_fixed_store_lng');
+  }
+
+  // ── DM 권한 ────────────────────────────────────────────────────────────────
+  /// DM 은 유료 등급(프리미엄 또는 브랜드) 사용 가능. 무료 계정은 불가.
+  /// Build 446: 브랜드도 고객 문의를 받을 수 있도록 DM 허용(캠페인 화면 '받은 DM'
+  ///   섹션). 이전엔 브랜드 제외였음.
+  bool get canUseDM => _currentUser.isPremium || _currentUser.isBrand;
 
   /// DM 사용 불가 사유 메시지
   String get dmUnavailableMessage {
@@ -1475,7 +1609,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       return _l10n.stateDailyLimitFree(_dailyLimitFree, _dailyLimitPremium);
     }
     if (isBrandMember) {
-      return _l10n.stateDailyLimitBrand(_dailyLimitBrand);
+      // Build 453 (tier-sim P2): 죽은 상수 200 대신 실제 캡(dailySendLimit =
+      //   월간한도+extra, 테스트제한 brand 는 premium) 표시.
+      return _l10n.stateDailyLimitBrand(dailySendLimit);
     }
     return _l10n.stateDailyLimitPremium(_dailyLimitPremium);
   }
@@ -1530,13 +1666,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   bool canChangeNicknameNow() {
     final next = nextNicknameChangeAvailableAt;
     if (next == null) return true;
-    return !DateTime.now().isBefore(next);
+    // Build 421 (sim-fresh P2): 시계 조작으로 닉네임 쿨다운 우회 차단 (SecureClock).
+    return !SecureClock.now().isBefore(next);
   }
 
   int get nicknameChangeRemainingDays {
     final next = nextNicknameChangeAvailableAt;
     if (next == null) return 0;
-    final now = DateTime.now();
+    final now = SecureClock.now();
     if (!now.isBefore(next)) return 0;
     final remaining = next.difference(now);
     return (remaining.inMinutes / Duration.minutesPerDay).ceil();
@@ -1573,8 +1710,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   // ── 알림 ─────────────────────────────────────────────────────────────────
   // computed getter — 항상 실제 inbox 상태 기준
-  int get unreadCount =>
-      _inbox.where((l) => l.status == DeliveryStatus.delivered).length;
+  // Build 425 (sim-fresh3 #6·#9): 뮤트 브랜드 편지는 인박스 리스트에서 숨겨지므로
+  //   뱃지 카운트도 동일하게 제외 — 이전엔 뱃지(N) 와 표시 리스트(N-뮤트)가
+  //   불일치해 '안읽음 점프' 스크롤 위치가 어긋났음.
+  int get unreadCount => _inbox
+      .where((l) =>
+          l.status == DeliveryStatus.delivered &&
+          !(l.senderIsBrand && isBrandMuted(l.senderId)))
+      .length;
 
   bool _hasNearbyAlert = false;
   bool get hasNearbyAlert => _hasNearbyAlert;
@@ -1847,14 +1990,22 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (letterId.isEmpty) return;
     if (_redeemedLetterIds.contains(letterId)) return;
     _redeemedLetterIds.add(letterId);
-    final now = DateTime.now();
+    // Build 414 (sim200 P3): SecureClock — 시계 조작 시 redeemedAt 분석/표시 왜곡 차단.
+    final now = SecureClock.now();
     // inbox 안의 letter object 에도 redeemedAt 직접 set — UI 즉시 반영.
+    Letter? matched;
     for (final l in _inbox) {
       if (l.id == letterId) {
         l.redeemedAt = now;
+        matched = l;
         break;
       }
     }
+    // Build 420 (sim100 iter5): 비-쿠폰(general 정보성) letter 는 '사용' 개념이
+    //   없으므로 브랜드 redeemedCount 집계에서 제외 — 정보성 letter 를 '사용 완료'
+    //   토글해도 브랜드 conversion 분석이 오염되지 않도록 한다(로컬 토글은 유지).
+    final isRedeemable =
+        matched == null || matched.category != LetterCategory.general;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(
       'redeemedLetterIds',
@@ -1865,26 +2016,355 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // Build 138: 브랜드 편지 사용 완료 집계 — 브랜드 대시보드 conversion
     // 계산 원천. 로컬 `_redeemedLetterIds` 와 별도로 서버에도 기록.
     // Build 322: redeemedAt timestamp 도 PATCH — 일자별 conversion rate 분석.
-    if (FirebaseConfig.kFirebaseEnabled) {
-      unawaited(
-        FirestoreService.incrementField(
-          path: 'letters/$letterId',
-          field: 'redeemedCount',
-        ),
-      );
-      unawaited(
-        FirestoreService.patchFields(
-          path: 'letters/$letterId',
-          fields: {
-            'redeemedAt': {
-              'timestampValue': now.toUtc().toIso8601String(),
+    // Build 461 (페르소나 높음 — 보상·선물 redeem 퍼널 증발): stamp_reward_*/
+    //   gift_* 는 서버에 없는 로컬 사본이라 자기 id 로의 PATCH 가 전부 dead-write
+    //   였음 → sourceLetterId(원본 캠페인 letter)로 redeemedCount 를 귀속시켜
+    //   단골 루프·선물 바이럴의 최종 전환이 brandInsights 에 처음으로 집계되게.
+    //   redeemedAt 은 write-once 룰 + 원본 픽업자의 본인 redeem 기록이므로
+    //   사본 redeem 에선 건드리지 않는다(counter 만 +1).
+    if (FirebaseConfig.kFirebaseEnabled && isRedeemable) {
+      final isLocalCopy = letterId.startsWith(_stampRewardIdPrefix) ||
+          letterId.startsWith('gift_');
+      final serverTargetId =
+          isLocalCopy ? (matched?.sourceLetterId ?? '') : letterId;
+      if (serverTargetId.isNotEmpty) {
+        unawaited(
+          FirestoreService.incrementField(
+            path: 'letters/$serverTargetId',
+            field: 'redeemedCount',
+          ),
+        );
+      }
+      if (!isLocalCopy) {
+        unawaited(
+          FirestoreService.patchFields(
+            path: 'letters/$letterId',
+            fields: {
+              'redeemedAt': {
+                'timestampValue': now.toUtc().toIso8601String(),
+              },
             },
-          },
-        ),
-      );
+          ),
+        );
+      }
+    }
+    // Build 453 (단골 스탬프): 브랜드 쿠폰/교환권 사용 = 그 매장 스탬프 +1.
+    //   완성 시 보상 쿠폰 자동 발급 — "헌팅(신규)×스탬프(재방문)" 풀퍼널의
+    //   재방문 루프. general(정보성)과 보상 쿠폰 자체 사용은 제외.
+    if (isRedeemable && matched != null) {
+      _recordStampForRedeem(matched, now);
     }
     notifyListeners();
     _saveToPrefs();
+  }
+
+  // ── 단골 스탬프 (Build 453) ────────────────────────────────────────────────
+  // 유니크 포지션: 발견(지도 줍기)→방문(코드 사용)→재방문(스탬프→보상)을 한
+  // 루프로. 사장의 핵심 니즈 '단골 만들기'를 측정·보상하는 유일한 표면.
+  // 저장: user-scoped prefs JSON (서버 스키마/룰 변경 0 — 픽업자 디바이스 기준).
+  static const String _stampPrefsKey = 'brand_stamp_cards_v1';
+  static const String _stampRewardIdPrefix = 'stamp_reward_';
+  final Map<String, BrandStampCard> _stampCards = {};
+  // 직전 redeem 으로 완성된 카드(1회성 축하 UI 소비용).
+  BrandStampCard? _pendingStampCelebration;
+
+  /// 스탬프 카드 목록 — 진행 중(스탬프 多) 우선, 그다음 최근 적립순.
+  List<BrandStampCard> get stampCards {
+    final list = _stampCards.values.where((c) => c.brandId.isNotEmpty).toList()
+      ..sort((a, b) {
+        final byStamps = b.stamps.compareTo(a.stamps);
+        if (byStamps != 0) return byStamps;
+        final aT = a.lastStampAt?.millisecondsSinceEpoch ?? 0;
+        final bT = b.lastStampAt?.millisecondsSinceEpoch ?? 0;
+        return bT.compareTo(aT);
+      });
+    return list;
+  }
+
+  /// 직전 redeem 으로 스탬프 카드가 완성됐으면 1회 반환(소비형) — redeem 직후
+  /// 화면이 축하 다이얼로그를 띄우는 데 사용. 없으면 null.
+  BrandStampCard? takeStampCelebration() {
+    final c = _pendingStampCelebration;
+    _pendingStampCelebration = null;
+    return c;
+  }
+
+  void _recordStampForRedeem(Letter letter, DateTime now) {
+    if (!letter.senderIsBrand) return;
+    if (letter.senderId.isEmpty) return;
+    // 보상 쿠폰 자체의 사용은 스탬프 제외(무료 보상으로 다음 보상 적립 방지 —
+    // 커피 스탬프 통념과 동일).
+    if (letter.id.startsWith(_stampRewardIdPrefix)) return;
+    // 브랜드 본인이 자기 쿠폰 self-redeem 시 적립 안 함(zone self-pickup 차단과
+    // 동일 정책).
+    if (letter.senderId == _currentUser.id) return;
+    final card = _stampCards.putIfAbsent(
+      letter.senderId,
+      () => BrandStampCard(
+        brandId: letter.senderId,
+        brandName: letter.senderName,
+      ),
+    );
+    // 매장명 최신화(브랜드가 닉네임 변경했을 수 있음).
+    if (letter.senderName.isNotEmpty) card.brandName = letter.senderName;
+    card.stamps += 1;
+    card.lastStampAt = now;
+    if (card.isComplete) {
+      card.stamps = 0;
+      card.completedCount += 1;
+      _issueStampRewardLetter(card, sourceLetter: letter, now: now);
+      _pendingStampCelebration = card;
+    }
+    unawaited(_saveStampCards());
+  }
+
+  /// 스탬프 완성 보상 쿠폰 — 픽업자 인박스에 로컬 발급(zone auto-drop 패턴).
+  /// 코드는 같은 매장의 최근 코드를 재사용(POS 추가 등록 0). 없으면 화면 제시형.
+  void _issueStampRewardLetter(
+    BrandStampCard card, {
+    required Letter sourceLetter,
+    required DateTime now,
+  }) {
+    // 같은 브랜드 letter 중 가장 최근 redemptionCode 재사용.
+    String? rewardCode = sourceLetter.redemptionCode;
+    if (rewardCode == null) {
+      for (var i = _inbox.length - 1; i >= 0; i--) {
+        final l = _inbox[i];
+        if (l.senderId == card.brandId && l.redemptionCode != null) {
+          rewardCode = l.redemptionCode;
+          break;
+        }
+      }
+    }
+    final id =
+        '$_stampRewardIdPrefix${now.millisecondsSinceEpoch}_${_shortRandHex()}';
+    final reward = Letter(
+      id: id,
+      senderId: card.brandId,
+      senderName: card.brandName,
+      senderCountry: _currentUser.country,
+      senderCountryFlag: _currentUser.countryFlag,
+      content: _l10n.koEn(
+        '🎁 단골 보상이 도착했어요! ${card.brandName}에서 ${card.rewardThreshold}번 사용해 주셔서 감사합니다. 이 쿠폰을 매장에 보여주세요.',
+        '🎁 Loyalty reward! Thanks for redeeming ${card.rewardThreshold} times at ${card.brandName}. Show this coupon at the store.',
+      ),
+      originLocation: sourceLetter.originLocation,
+      destinationLocation: sourceLetter.destinationLocation,
+      destinationCountry: _currentUser.country,
+      destinationCountryFlag: _currentUser.countryFlag,
+      segments: const [],
+      status: DeliveryStatus.nearYou,
+      sentAt: now,
+      arrivedAt: now,
+      isAnonymous: false,
+      estimatedTotalMinutes: 0,
+      senderIsBrand: true,
+      senderTier: LetterSenderTier.brand,
+      // 단골 보상은 그 자체가 '발견의 정점' — epic 고정으로 수집 쾌감 극대화.
+      rarity: LetterRarity.epic,
+      category: LetterCategory.voucher,
+      acceptsReplies: false,
+      redemptionInfo: _l10n.koEn(
+        '단골 ${card.completedCount}회차 보상 — 직원에게 이 화면을 보여주세요.',
+        'Loyalty reward #${card.completedCount} — show this screen to staff.',
+      ),
+      // 보상 사용 기한 30일 — 재방문 유도 윈도우.
+      expiresAt: now.add(const Duration(days: 30)),
+      redemptionExpiresAt: now.add(const Duration(days: 30)),
+      redemptionCode: rewardCode,
+      // Build 461: 보상 redeem 을 원본 캠페인 letter 에 귀속(퍼널 집계).
+      //   sourceLetter 가 gift 사본이면 그 원본으로 한 단계 해소.
+      sourceLetterId: sourceLetter.sourceLetterId ?? sourceLetter.id,
+    );
+    _inbox.add(reward);
+    _hasNearbyAlert = true;
+  }
+
+  Future<void> _saveStampCards() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        _stampPrefsKey,
+        jsonEncode(_stampCards.values.map((c) => c.toJson()).toList()),
+      );
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Stamp] save 실패: $e');
+    }
+  }
+
+  void _loadStampCardsFromPrefs(SharedPreferences prefs) {
+    _stampCards.clear();
+    final raw = prefs.getString(_stampPrefsKey);
+    if (raw == null || raw.isEmpty) return;
+    try {
+      final list = jsonDecode(raw);
+      if (list is! List) return;
+      for (final item in list) {
+        if (item is! Map<String, dynamic>) continue;
+        final card = BrandStampCard.fromJson(item);
+        if (card.brandId.isEmpty) continue;
+        _stampCards[card.brandId] = card;
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Stamp] load 실패: $e');
+    }
+  }
+
+  // ── 관심 카테고리 픽업 필터 (Build 457, Premium 전용) ─────────────────────
+  // Premium 이 관심 업종(food/cafe/beauty/fashion/event/it/other)을 고르면
+  // 지도에 그 업종의 브랜드 캠페인만 표시. **브랜드가 업종을 지정한 캠페인만**
+  // 필터 대상 — 업종 미지정 캠페인·개인 편지는 항상 표시. Free 는 잠금(업셀).
+  static const String _interestPrefsKey = 'interest_category_keys_v1';
+  final Set<String> _interestCategoryKeys = {};
+  // Build 482 (사용자 요청): 지도 필터 상위 티어 — 쿠폰 종류
+  //   ('general'=메시지·홍보 / 'coupon'=할인권 / 'voucher'=교환권), 다중선택.
+  static const String _interestTypePrefsKey = 'interest_type_keys_v1';
+  final Set<String> _interestTypeKeys = {};
+
+  Set<String> get interestCategoryKeys =>
+      Set.unmodifiable(_interestCategoryKeys);
+  Set<String> get interestTypeKeys => Set.unmodifiable(_interestTypeKeys);
+
+  /// 필터 사용 자격 — Premium 전용. Build 482: Brand 계정은 지도 필터 제외.
+  bool get canUseInterestFilter =>
+      _currentUser.isPremium && !_currentUser.isBrand;
+
+  /// 필터가 실제로 동작 중인지 (자격 + 1개 이상 선택). Build 482: 종류/업종 둘 중 하나.
+  bool get interestFilterActive =>
+      canUseInterestFilter &&
+      (_interestCategoryKeys.isNotEmpty || _interestTypeKeys.isNotEmpty);
+
+  /// 활성 필터 칩 총 개수(버튼 배지용).
+  int get interestFilterCount =>
+      _interestTypeKeys.length + _interestCategoryKeys.length;
+
+  Future<void> setInterestCategories(Set<String> keys) async {
+    _interestCategoryKeys
+      ..clear()
+      ..addAll(keys);
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList(
+          _interestPrefsKey, _interestCategoryKeys.toList());
+    } catch (e) {
+      if (kDebugMode) debugPrint('[InterestFilter] save 실패: $e');
+    }
+  }
+
+  // Build 482: 상위(쿠폰 종류) 필터 저장.
+  Future<void> setInterestTypes(Set<String> keys) async {
+    _interestTypeKeys
+      ..clear()
+      ..addAll(keys);
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList(
+          _interestTypePrefsKey, _interestTypeKeys.toList());
+    } catch (e) {
+      if (kDebugMode) debugPrint('[InterestFilter] type save 실패: $e');
+    }
+  }
+
+  /// 이 letter 가 관심 필터를 통과하는가. 필터 비활성이면 항상 true.
+  /// Build 482: 상위(쿠폰 종류, 모든 letter 대상) AND 하위(업종, 브랜드 캠페인 대상).
+  bool passesInterestFilter(Letter l) {
+    if (!interestFilterActive) return true;
+    // 상위: 쿠폰 종류 — 모든 letter 의 category 기준.
+    if (_interestTypeKeys.isNotEmpty &&
+        !_interestTypeKeys.contains(l.category.key)) {
+      return false;
+    }
+    // 하위: 업종 — 브랜드 캠페인만 대상(개인 편지·업종 미지정은 통과).
+    if (_interestCategoryKeys.isNotEmpty && l.senderIsBrand) {
+      final tag = l.categoryTag;
+      if (tag != null && tag.isNotEmpty &&
+          !_interestCategoryKeys.contains(tag)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // ── 친구 쿠폰 선물 (Build 453) ─────────────────────────────────────────────
+  // 바이럴 루프: 주운 브랜드 쿠폰을 친구에게 선물 코드(letter id)로 공유 →
+  // 친구가 앱에서 코드 입력 → 같은 쿠폰이 친구 수집첩에 도착. 매장은 도달이
+  // 늘어 좋고(코드 동일 = POS 추가 등록 0), 유저는 나눔 동기, 앱은 설치 유입.
+  // letters read 는 public 이라 서버 변경 0. 캠페인 dedup/만료/셀프클레임 가드.
+
+  /// 선물 코드로 쿠폰 받기. 성공 시 null, 실패 시 사용자 표시용 에러 메시지.
+  Future<String?> claimGiftLetter(String rawInput) async {
+    final id = GiftCode.extract(rawInput);
+    if (id == null || id.isEmpty) {
+      return _l10n.koEn('선물 코드를 입력해 주세요', 'Enter a gift code');
+    }
+    if (!GiftCode.isGiftableId(id)) {
+      return _l10n.koEn('유효하지 않은 선물 코드예요', 'Invalid gift code');
+    }
+    // 중복 수령 차단 — 원본 letter id 기준 (픽업 dedup 세트 재사용·영속).
+    if (_myPickedUpLetterIds.contains(id)) {
+      return _l10n.koEn('이미 받은 쿠폰이에요', 'You already claimed this coupon');
+    }
+    if (!FirebaseConfig.kFirebaseEnabled) {
+      return _l10n.koEn('네트워크 설정을 확인해 주세요', 'Check your connection');
+    }
+    final doc = await FirestoreService.getDocument('letters/$id');
+    if (doc == null) {
+      return _l10n.koEn(
+          '쿠폰을 찾을 수 없어요 — 코드를 다시 확인해 주세요',
+          'Coupon not found — check the code');
+    }
+    final map = FirestoreService.fromFirestoreDoc(doc);
+    map['id'] ??= id;
+    final letter = _letterFromFirestore(map);
+    if (letter == null) {
+      return _l10n.koEn('쿠폰 정보를 읽지 못했어요', 'Could not read the coupon');
+    }
+    // 선물 가능 대상: 브랜드 쿠폰/교환권만 (개인 편지/홍보 제외).
+    if (!letter.senderIsBrand || letter.category == LetterCategory.general) {
+      return _l10n.koEn('선물할 수 없는 항목이에요', 'This item cannot be gifted');
+    }
+    if (letter.senderId == _currentUser.id) {
+      return _l10n.koEn('내 매장 쿠폰은 받을 수 없어요', 'Cannot claim your own coupon');
+    }
+    // 사용 기한 만료 가드 (SecureClock — 시계 되감기 우회 차단).
+    final exp = letter.redemptionExpiresAt;
+    if (exp != null && SecureClock.now().isAfter(exp)) {
+      return _l10n.koEn('기한이 지난 쿠폰이에요', 'This coupon has expired');
+    }
+    // 1인당 1회 캠페인 dedup — 정상 픽업과 동일 정책.
+    final campaignId = letter.campaignId;
+    if (letter.brandUniquePerUser &&
+        campaignId != null &&
+        _pickedUpCampaignIds.contains(campaignId)) {
+      return _l10n.koEn(
+          '이 캠페인 쿠폰은 이미 보유 중이에요', 'You already have this campaign coupon');
+    }
+    final now = DateTime.now();
+    // id 는 final — toJson→fromJson 라운드트립으로 새 id 의 사본 생성.
+    final giftJson = letter.toJson();
+    giftJson['id'] = 'gift_${id}_${now.millisecondsSinceEpoch}';
+    // Build 461: 선물 사본의 redeem 을 원본 캠페인 letter 에 귀속(퍼널 집계).
+    giftJson['sourceLetterId'] = id;
+    final gift = Letter.fromJson(giftJson)
+      ..status = DeliveryStatus.nearYou
+      ..arrivedAt = now;
+    _inbox.add(gift);
+    _myPickedUpLetterIds.add(id);
+    if (letter.brandUniquePerUser && campaignId != null) {
+      _pickedUpCampaignIds.add(campaignId);
+    }
+    _hasNearbyAlert = true;
+    _currentUser.activityScore.receivedCount++;
+    // 브랜드 퍼널에 도달 반영 — 정상 픽업과 동일하게 카운터 +1 (best-effort).
+    unawaited(FirestoreService.incrementField(
+        path: 'letters/$id', field: 'pickupCount'));
+    unawaited(FirestoreService.incrementField(
+        path: 'letters/$id', field: 'readCount'));
+    notifyListeners();
+    _saveToPrefs();
+    return null;
   }
 
   /// 브랜드 대시보드 용 — 내가 보낸 편지 중 몇 통이 사용됐는지 (동일 디바이스 기준).
@@ -1902,6 +2382,19 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   final Map<String, ({int pickup, int revealed, int redeemed})>
       _serverInsightsCache = {};
 
+  /// Build 461 (페르소나 높음 — 캠페인 탭/인사이트 숫자 불일치): 캠페인 화면도
+  /// 같은 서버 집계 캐시를 읽도록 public lookup. 로컬 `_sent` 의 readCount 는
+  /// 타인 픽업이 반영되지 않아(sync 가 본인 발송 letter skip) 대부분 0 이었음.
+  ({int pickup, int revealed, int redeemed})? serverInsightFor(
+          String letterId) =>
+      _serverInsightsCache[letterId];
+
+  /// Build 461 (페르소나 중간 — 팔로워 깜깜이): 내 브랜드의 서버 집계 팔로워 수.
+  /// `refreshBrandInsightsFromServer()` 가 users/{me}.followerCount 를 fetch.
+  /// -1 = 아직 미조회(표시 생략).
+  int _brandFollowerCount = -1;
+  int get brandFollowerCount => _brandFollowerCount;
+
   /// Build 324 (audit fix): Brand insights 정확도 보강. 본인 sent letter 들의
   ///   Firestore 집계 (pickupCount + redeemedCount atomic increment) 를 fetch
   ///   해 캐시. brand_insights_screen 진입 시 호출.
@@ -1909,9 +2402,23 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> refreshBrandInsightsFromServer() async {
     if (!_currentUser.isBrand) return;
     if (!FirebaseConfig.kFirebaseEnabled) return;
+    // Build 461: 팔로워 수 서버 집계 fetch (1 doc — letter 루프와 독립).
+    try {
+      final meDoc =
+          await FirestoreService.getDocument('users/${_currentUser.id}');
+      if (meDoc != null) {
+        final meMap = FirestoreService.fromFirestoreDoc(meDoc);
+        _brandFollowerCount = (meMap['followerCount'] as num?)?.toInt() ?? 0;
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('[BrandInsights] follower fetch 실패: $e');
+    }
     final cutoff = SecureClock.now().subtract(const Duration(days: 30));
     final recent = _sent.where((l) => l.sentAt.isAfter(cutoff)).toList();
-    if (recent.isEmpty) return;
+    if (recent.isEmpty) {
+      notifyListeners();
+      return;
+    }
     for (final letter in recent) {
       try {
         final doc = await FirestoreService.getDocument('letters/${letter.id}');
@@ -1945,7 +2452,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     int totalPickup = 0;
     int totalRevealed = 0;
     int totalRedeemed = 0;
-    final campaigns = <CampaignInsight>[];
+    // Build 449 (sim100 P2): 캠페인을 campaignId(또는 본문+코드+업종)로 그룹화 —
+    //   이전엔 letter 1통=카드 1개라 대량발송이 N개 중복 카드로 표시됐음. 내 캠페인
+    //   화면 그룹화와 일관. 정렬도 pickup 내림차순→최신순(방금 발송한 신규 캠페인이
+    //   상위10에서 안 밀림).
+    final groups = <String, _InsightAgg>{};
+    final groupOrder = <String>[];
     for (final l in recent) {
       // Build 324 fix: 서버 집계 캐시 우선. 다른 회원의 픽업/사용은 server 만
       //   알 수 있음 (local _inbox 엔 본인이 픽업한 letter 만 존재).
@@ -1957,14 +2469,34 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       totalPickup += p;
       totalRevealed += v;
       totalRedeemed += r;
-      final rate = p == 0 ? 0.0 : r / p;
+      final key = (l.campaignId != null && l.campaignId!.isNotEmpty)
+          ? l.campaignId!
+          : '${l.content}${l.redemptionCode ?? ''}${l.categoryTag ?? ''}';
+      final g = groups.putIfAbsent(key, () {
+        groupOrder.add(key);
+        return _InsightAgg(rep: l);
+      });
+      g.sent += 1;
+      g.pickup += p;
+      g.revealed += v;
+      g.redeemed += r;
+      if (l.sentAt.isAfter(g.rep.sentAt)) g.rep = l;
+    }
+    final campaigns = <CampaignInsight>[];
+    // 최신 발송 순.
+    groupOrder.sort((a, b) => groups[b]!.rep.sentAt.compareTo(groups[a]!.rep.sentAt));
+    for (final key in groupOrder) {
+      final g = groups[key]!;
+      final l = g.rep;
+      // Build 414 (sim200 P3): redeemed>pickup 시 카드별 rate '100% 초과' 방지 clamp.
+      final rate = (g.pickup == 0 ? 0.0 : g.redeemed / g.pickup).clamp(0.0, 1.0);
       campaigns.add(CampaignInsight(
         letterId: l.id,
         title: l.content.length > 40 ? '${l.content.substring(0, 40)}…' : l.content,
-        sent: 1,
-        pickup: p,
-        revealed: v,
-        redeemed: r,
+        sent: g.sent,
+        pickup: g.pickup,
+        revealed: g.revealed,
+        redeemed: g.redeemed,
         redeemRate: rate,
         // Build 334 (PR-S4): 코드 + 만료 전파 — Brand 가 자기 코드 매장 POS 에
         //   등록·갱신 가능.
@@ -1972,7 +2504,6 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         redemptionExpiresAt: l.redemptionExpiresAt,
       ));
     }
-    campaigns.sort((a, b) => b.pickup.compareTo(a.pickup));
     // Build 335 (PR-S7 시뮬레이션 P2 #20): revealedCount > pickup (한 사용자가
     //   여러 디바이스 / 재시도) 케이스 → rate > 100% 표시 방지. clamp 1.0.
     final pickupRate =
@@ -2005,8 +2536,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> toggleBrandFollow(String senderId) async {
     if (senderId.isEmpty) return;
+    // Build 425 (sim-fresh3 #46): 자기 자신(브랜드 계정) 팔로우 차단.
+    if (senderId == _currentUser.id) return;
     final prefs = await SharedPreferences.getInstance();
-    if (_followedBrandIds.contains(senderId)) {
+    final unfollow = _followedBrandIds.contains(senderId);
+    if (unfollow) {
       _followedBrandIds.remove(senderId);
     } else {
       _followedBrandIds.add(senderId);
@@ -2018,6 +2552,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       'followedBrandIds',
       _followedBrandIds.toList(),
     );
+    // Build 461 (페르소나 중간): 팔로워 수 서버 집계 — Brand 가 처음으로 팔로우
+    //   효과를 확인할 수 있게(인사이트 KPI). best-effort: 룰 배포 전/오프라인
+    //   실패는 무시(±1 카운터, PII 없음).
+    if (FirebaseConfig.kFirebaseEnabled) {
+      unawaited(FirestoreService.incrementField(
+        path: 'users/$senderId',
+        field: 'followerCount',
+        by: unfollow ? -1 : 1,
+      ));
+    }
     notifyListeners();
   }
 
@@ -2062,17 +2606,30 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           l.arrivedAt!.isAfter(_startOfMonth))
       .length;
 
+  // Build 422 (sim-fresh2 P2): '이번 달 사용' 은 사용(redeemedAt) 시점 기준이어야
+  //   함 — 이전엔 픽업(arrivedAt) 시점으로 scoping 해, 지난달 픽업→이번달 사용한
+  //   쿠폰이 누락되고 이번달 픽업→미사용도 카운트 흐름이 어긋났음.
   int get redemptionsThisMonth => _inbox
       .where((l) =>
           l.senderIsBrand &&
-          l.arrivedAt != null &&
-          l.arrivedAt!.isAfter(_startOfMonth) &&
-          _redeemedLetterIds.contains(l.id))
+          // Build 453 (tier-sim P2): general(홍보) 제외 — totalRedemptions·서버
+          //   redeemedCount·markLetterRedeemed isRedeemable 게이트와 일관.
+          l.category != LetterCategory.general &&
+          l.redeemedAt != null &&
+          l.redeemedAt!.isAfter(_startOfMonth))
       .length;
 
   int get totalBrandPickups =>
       _inbox.where((l) => l.senderIsBrand).length;
-  int get totalRedemptions => _redeemedLetterIds.length;
+  // Build 422 (sim-fresh2 P3): 사용 가능한(brand 쿠폰/교환권) letter 만 집계 —
+  //   이전엔 raw _redeemedLetterIds.length 라 general 정보성 '사용' 토글까지 세
+  //   지갑 합계가 부풀었음 (markLetterRedeemed 는 general 도 로컬 토글 허용).
+  int get totalRedemptions => _inbox
+      .where((l) =>
+          l.senderIsBrand &&
+          l.category != LetterCategory.general &&
+          _redeemedLetterIds.contains(l.id))
+      .length;
 
   // 주간 (월요일 00:00 부터 현재까지) 픽업 수 — 주간 퀘스트 진행 바용.
   // 로컬 타임존 기준. 일요일 자정에 자동 리셋. Build 116.
@@ -2470,6 +3027,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       }
       // 서버 사용자/편지 동기화 재개 (비용 최적화)
       resumeServerSyncFromBackground();
+      // Build 433 (device): 발송 도중 앱 백그라운드/종료로 Firestore 업로드가
+      //   끊긴 letter(아웃박스 잔존)를 재개 즉시 재업로드 — "발송되다 멈춤" 해소.
+      //   이전엔 주기 sync/auth 시점에만 flush 돼 재개 직후 미전송 상태로 보였음.
+      unawaited(_flushPendingLetterUploads());
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
       // 백그라운드 진입 → 타이머 정지 + 주소 캐시 저장
@@ -2528,6 +3089,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       if (letter.status == DeliveryStatus.delivered ||
           letter.status == DeliveryStatus.nearYou ||
           letter.status == DeliveryStatus.deliveredFar) {
+        // Build 414 (sim200 P1-1 defense): 아직 사용 가능한 쿠폰/교환권
+        //   (redemptionExpiresAt 가 미래)은 미열람 7일 삭제 대상에서 제외 —
+        //   픽업했지만 안 열어본 유효 쿠폰이 조용히 소실되는 것 방지.
+        final redEx = letter.redemptionExpiresAt;
+        if (redEx != null && redEx.isAfter(now)) {
+          return false;
+        }
         final arrivedTime = letter.arrivedAt ?? letter.sentAt;
         if (!letter.isReadByRecipient &&
             now.difference(arrivedTime) >= _unopenedLetterExpiry) {
@@ -2540,7 +3108,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void _rolloverDailySendCounterIfNeeded() {
-    final todayKey = _dateKey(DateTime.now());
+    // Build 414 (sim100 #54): 발송 한도 리셋 키를 SecureClock(단조 증가)으로 —
+    //   wall-clock 사용 시 시계 전진으로 일/월 한도 우회 가능.
+    final todayKey = _dateKey(SecureClock.now());
     if (_dailySentDateKey != todayKey) {
       _dailySentDateKey = todayKey;
       _dailySentCount = 0;
@@ -2548,7 +3118,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void _rolloverMonthlySendCounterIfNeeded() {
-    final thisMonthKey = _monthKey(DateTime.now());
+    final thisMonthKey = _monthKey(SecureClock.now());
     if (_monthlyDateKey != thisMonthKey) {
       _monthlyDateKey = thisMonthKey;
       _monthlySentCount = 0;
@@ -2557,7 +3127,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void _rolloverDailyPremiumExpressCounterIfNeeded() {
-    final todayKey = _dateKey(DateTime.now());
+    final todayKey = _dateKey(SecureClock.now());
     if (_dailyPremiumExpressDateKey != todayKey) {
       _dailyPremiumExpressDateKey = todayKey;
       _dailyPremiumExpressSentCount = 0;
@@ -2611,7 +3181,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void _rolloverDailyImageCounterIfNeeded() {
-    final todayKey = _dateKey(DateTime.now());
+    // Build 421 (sim-fresh P1): 다른 rollover 헬퍼와 동일하게 SecureClock —
+    //   이전엔 DateTime.now() 라 시계 되돌리기로 일일 이미지 한도 우회 가능.
+    final todayKey = _dateKey(SecureClock.now());
     if (_dailyImageDateKey != todayKey) {
       _dailyImageDateKey = todayKey;
       _dailyImageSentCount = 0;
@@ -3116,6 +3688,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _tempBlockedSenderIds.clear();
     _tempBlockedSenderIds.addAll(prefs.getStringList('temp_blocked') ?? []);
 
+    // Build 415 (sim50 P1): 오프라인 편지 업로드 아웃박스 복원. 이전 세션에서
+    //   오프라인 발송돼 서버에 못 올라간 letter id 들 — 다음 sync 에서 재업로드.
+    _pendingLetterUploadIds.clear();
+    _pendingLetterUploadIds.addAll(
+      prefs.getStringList('pending_letter_uploads') ?? const [],
+    );
+
     // 유저가 뮤트한 브랜드 복원
     _mutedBrandIds.clear();
     _mutedBrandIds.addAll(prefs.getStringList('mutedBrandIds') ?? []);
@@ -3135,20 +3714,27 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _followedBrandIds.addAll(prefs.getStringList('followedBrandIds') ?? []);
 
     // Brand 사업자 인증 복원 (Build 127)
+    // Build 412 (PII sim MED YES.3): secure storage 에서 읽되, 레거시 평문
+    //   prefs 값이 있으면 1회 마이그레이션 (secure 로 복사 후 평문 제거).
+    Future<String?> loadBrandPii(String key) async {
+      var v = await _secure.read(key: key);
+      if (v == null) {
+        final legacy = prefs.getString(key);
+        if (legacy != null && legacy.isNotEmpty) {
+          await _secure.write(key: key, value: legacy);
+          v = legacy;
+        }
+        // 평문 잔존 제거 (값 유무와 무관).
+        if (prefs.containsKey(key)) await prefs.remove(key);
+      }
+      return (v == null || v.isEmpty) ? null : v;
+    }
     _currentUser.businessRegistrationNumber =
-        prefs.getString('brandBusinessNumber');
-    if (_currentUser.businessRegistrationNumber?.isEmpty ?? false) {
-      _currentUser.businessRegistrationNumber = null;
-    }
+        await loadBrandPii('brandBusinessNumber');
     _currentUser.businessRegistrationDocUrl =
-        prefs.getString('brandRegistrationDocUrl');
-    if (_currentUser.businessRegistrationDocUrl?.isEmpty ?? false) {
-      _currentUser.businessRegistrationDocUrl = null;
-    }
-    _currentUser.businessContactPhone = prefs.getString('brandContactPhone');
-    if (_currentUser.businessContactPhone?.isEmpty ?? false) {
-      _currentUser.businessContactPhone = null;
-    }
+        await loadBrandPii('brandRegistrationDocUrl');
+    _currentUser.businessContactPhone =
+        await loadBrandPii('brandContactPhone');
     final brandVerifiedMs = prefs.getInt('brandVerifiedAtMs');
     _currentUser.brandVerifiedAt = brandVerifiedMs != null
         ? DateTime.fromMillisecondsSinceEpoch(brandVerifiedMs)
@@ -3194,14 +3780,30 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         prefs.getString('streak_freeze_last_refill') ?? '';
     _sumPickupKm = prefs.getDouble('sum_pickup_km') ?? 0.0;
     _sumSentKm = prefs.getDouble('sum_sent_km') ?? 0.0;
+    // Build 448: Brand 고정 매장 위치 (자동 발송 zone 중심으로 사용). 기기 로컬
+    //   영속 — 백엔드 rules 변경 없이 동작. 미설정 시 null.
+    _fixedStoreLat = prefs.getDouble('brand_fixed_store_lat');
+    _fixedStoreLng = prefs.getDouble('brand_fixed_store_lng');
+    // Build 453: 단골 스탬프 카드 복원 (user-scoped — 계정전환 시 정리됨).
+    _loadStampCardsFromPrefs(prefs);
+    // Build 457: 관심 카테고리 필터 복원. Build 482: 쿠폰 종류 티어도.
+    _interestCategoryKeys
+      ..clear()
+      ..addAll(prefs.getStringList(_interestPrefsKey) ?? const []);
+    _interestTypeKeys
+      ..clear()
+      ..addAll(prefs.getStringList(_interestTypePrefsKey) ?? const []);
     // 레거시 테스터: 거리 기록이 없을 때, 기존 활동량 기반으로 초기 추정 XP 를
     // 확보해 레벨 라벨이 신규 유저처럼 보이지 않도록 한다. 정확한 누적값은
     // 앞으로의 픽업·발송부터 실측이 덮어쓴다.
+    // Build 421 (sim-fresh P2): 백필 추정 거리를 실측 누적(picKm = distanceTo/1000,
+    //   동네 반경이라 통당 km 단위)과 같은 스케일로 — 이전 4000/6000km 는 통당
+    //   대륙횡단급(~1000배)이라 레거시 테스터 레벨이 비현실적으로 부풀었음.
     if (_sumPickupKm == 0.0 && _currentUser.activityScore.receivedCount > 0) {
-      _sumPickupKm = _currentUser.activityScore.receivedCount * 4000.0;
+      _sumPickupKm = _currentUser.activityScore.receivedCount * 4.0;
     }
     if (_sumSentKm == 0.0 && _currentUser.activityScore.sentCount > 0) {
-      _sumSentKm = _currentUser.activityScore.sentCount * 6000.0;
+      _sumSentKm = _currentUser.activityScore.sentCount * 6.0;
     }
     _previousXpLevel = currentLevel;
 
@@ -3349,6 +3951,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
               .toList();
         } catch (_) {}
       }
+    }
+    // Build 421 (sim-fresh P1): 팔로우 그래프 복원 (위 _saveDMToPrefs 와 짝).
+    final followingList = prefs.getStringList('followingIds');
+    if (followingList != null) {
+      _currentUser.followingIds
+        ..clear()
+        ..addAll(followingList);
     }
 
     if (kDebugMode) {
@@ -3548,14 +4157,24 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> _initFirebaseAndSync() async {
     if (!FirebaseConfig.kFirebaseEnabled) return;
-    // 익명 로그인 (Firestore 접근용 ID 토큰 획득)
-    final ok = await FirebaseAuthService.signInAnonymously();
+    // Build 413 (Auth Phase 2, flag-gated): 저장된 정식 세션이 있으면 비번 없이
+    //   복원해 anon 대신 사용 (cold-start 에도 request.auth.uid == authUid 유지).
+    //   실패 시 기존 anon 로그인으로 fallback. 플래그 OFF 면 기존 동작 그대로.
+    var ok = false;
+    if (FirebaseConfig.authBindEnabled) {
+      ok = await FirebaseAuthService.restoreRealSessionIfAvailable();
+    }
+    // 익명 로그인 (Firestore 접근용 ID 토큰 획득) — 정식 세션 미복원 시.
+    if (!ok) ok = await FirebaseAuthService.signInAnonymously();
     if (!ok) {
-      if (kDebugMode) debugPrint('[Firebase] 익명 로그인 실패 — 서버 동기화 스킵');
+      if (kDebugMode) debugPrint('[Firebase] 로그인 실패 — 서버 동기화 스킵');
       return;
     }
     // 내 프로필을 Firestore에 저장 (다른 테스터가 지도에서 볼 수 있도록)
     _saveUserToFirestore();
+    // Build 415 (sim50 P1): 인증 확립 후 이전 탈퇴의 미완료 GDPR 삭제 재시도
+    //   (best-effort). 성공분은 큐에서 제거.
+    unawaited(AuthService.processPendingGdprDeletions());
     // 서버에서 다른 유저들의 편지 가져와서 지도에 표시
     await syncWorldLettersFromServer();
     // 30초마다 서버 편지 동기화 (다른 테스터가 보낸 새 편지를 반영)
@@ -3570,6 +4189,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> syncWorldLettersFromServer() async {
     if (!FirebaseConfig.kFirebaseEnabled) return;
     if (!FirebaseAuthService.isSignedIn) return;
+    // Build 415 (sim50 P1): 모든 sync 트리거(init/30s timer/지도 진입/resume)에서
+    //   오프라인 아웃박스 재업로드 시도 — 오프라인 발송분이 온라인 복귀 시 서버에
+    //   올라가 다른 사용자가 픽업 가능. 자체 in-flight 가드로 중복 안전.
+    unawaited(_flushPendingLetterUploads());
     // Build 408 (P1): 중복 동시 실행 차단 (init/timer/resume/지도 진입 겹침).
     if (_worldLetterSyncInFlight) return;
     _worldLetterSyncInFlight = true;
@@ -3602,6 +4225,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           'isAnonymous', 'senderName', 'senderTier', 'senderIsBrand',
           'category', 'brandUniquePerUser', 'campaignId', 'deliveryEmoji',
           'socialLink', 'acceptsReplies', 'redemptionExpiresAt',
+          // Build 423 (sim-crosscut P2): letterType — 누락 시 수신 letter 가 항상
+          //   normal 로 렌더(express/brandExpress 구분 손실).
+          'letterType',
+          // Build 415 (#5 레어 드롭, sim50 P1): 지도 마커 글로우/배지에 필요한
+          //   희귀도. 누락 시 서버 letter 가 항상 normal 로 렌더(작은 scalar).
+          'rarity',
         ],
       );
       if (docs.isEmpty) return;
@@ -3751,6 +4380,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       } else if (tierStr == 'premium') {
         tier = LetterSenderTier.premium;
       }
+      // Build 423 (sim-crosscut P2): letterType 복원 — 누락/미파싱 시 normal.
+      final ltStr = data['letterType'] as String?;
+      final letterType = LetterType.values.firstWhere(
+        (e) => e.name == ltStr,
+        orElse: () => LetterType.normal,
+      );
       final catKey = data['category'] as String?;
       final category = LetterCategoryExt.fromKey(catKey);
       final redInfoRaw = data['redemptionInfo'] as String?;
@@ -3781,7 +4416,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         status: status,
         sentAt: sentAt,
         arrivalTime: arrivalTime,
-        socialLink: data['socialLink'] as String?,
+        // Build 423 (sim-crosscut P3): 빈 socialLink 를 null 로 정규화 — 발신측이
+        //   null→'' 로 저장해, 수신측이 빈 SNS 링크를 '있는 것'처럼 표시하던 문제.
+        socialLink: (data['socialLink'] as String?)?.isEmpty == true
+            ? null
+            : data['socialLink'] as String?,
+        letterType: letterType,
         estimatedTotalMinutes: totalMin,
         paperStyle: (data['paperStyle'] as num?)?.toInt() ?? 0,
         fontStyle: (data['fontStyle'] as num?)?.toInt() ?? 0,
@@ -3790,7 +4430,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         deliveryEmoji: data['deliveryEmoji'] as String?,
         isAnonymous: data['isAnonymous'] as bool? ?? true,
         category: category,
+        // Build 415 (#5 레어 드롭, sim50 P1): 서버 letter 의 희귀도 복원.
+        rarity: LetterRarityExt.fromJson(data['rarity']),
         redemptionInfo: redInfo,
+        // Build 416 (sim100 P0/R2): 서버 letter 의 매장 사용 코드 복원.
+        redemptionCode: (data['redemptionCode'] as String?)?.isEmpty == true
+            ? null
+            : data['redemptionCode'] as String?,
         redemptionExpiresAt: redExpiresAt,
         acceptsReplies: data['acceptsReplies'] as bool? ?? true,
         senderIsBrand: data['senderIsBrand'] as bool? ?? (tier == LetterSenderTier.brand),
@@ -3812,9 +4458,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   /// 보낸 편지를 Firestore에 저장 (다른 유저가 수신할 수 있도록)
-  Future<void> _saveLetterToFirestore(Letter letter) async {
-    if (!FirebaseConfig.kFirebaseEnabled) return;
-    if (!FirebaseAuthService.isSignedIn) return;
+  Future<bool> _saveLetterToFirestore(Letter letter) async {
+    if (!FirebaseConfig.kFirebaseEnabled) return false;
+    // Build 415 (sim50 P1): 미인증(오프라인/부트 직후)이면 업로드 불가 → 아웃박스에
+    //   넣고 다음 인증/sync 때 재시도. 이전엔 그냥 return 해 letter 가 발신자
+    //   기기에만 존재(할당량만 소모, 아무도 픽업 못함).
+    if (!FirebaseAuthService.isSignedIn) {
+      _enqueueLetterUpload(letter.id);
+      return false;
+    }
     try {
       // Build 207: 익명 편지의 발신자 정보를 서버 사이드에서 stripping.
       // 이전엔 isAnonymous=true 여도 senderId/Name 가 그대로 Firestore 에
@@ -3826,12 +4478,25 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       final isAnon = letter.isAnonymous;
       final firestoreSenderId = isAnon ? 'anon_${letter.id}' : letter.senderId;
       final firestoreSenderName = isAnon ? '__anonymous__' : letter.senderName;
+      // Build 412 (PII sim MED): 비익명 letter 의 origin 도 ~100m 로 좌표화.
+      //   이전엔 비익명 분기가 originLocation 을 full precision 으로 public
+      //   letters 컬렉션(allow read: if true)에 기록 → 실명 발신자의 정확한
+      //   집/현재 위치가 노출됐음. 익명은 기존대로 destination 으로 collapse,
+      //   비익명은 ~110m 좌표화(지도 경로선 표시는 유지, 정밀 PII 제거).
+      double coarse(double v) => (v * 1000).round() / 1000;
+      // Build 483 (보안 감사 MED): 익명 letter 는 origin 을 destination 으로
+      //   collapse 하는데 이전엔 origin·dest 둘 다 풀정밀 기록 → '내 주변 broadcast'
+      //   처럼 destination 이 발신자 근처일 때 익명 발신자 GPS 가 ~cm 로 공개
+      //   letters(read:if true) 에 노출. 익명 한정 destination 도 ~110m 좌표화
+      //   (픽업 반경 내라 무해, ExactDrop 정밀발송은 비익명이라 영향 없음).
+      final anonDestLat = coarse(letter.destinationLocation.latitude);
+      final anonDestLng = coarse(letter.destinationLocation.longitude);
       final firestoreOriginLat = isAnon
-          ? letter.destinationLocation.latitude
-          : letter.originLocation.latitude;
+          ? anonDestLat
+          : coarse(letter.originLocation.latitude);
       final firestoreOriginLng = isAnon
-          ? letter.destinationLocation.longitude
-          : letter.originLocation.longitude;
+          ? anonDestLng
+          : coarse(letter.originLocation.longitude);
       await FirestoreService.setDocument('letters/${letter.id}', {
         'id': letter.id,
         'senderId': firestoreSenderId,
@@ -3841,8 +4506,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'content': letter.content,
         'originLat': firestoreOriginLat,
         'originLng': firestoreOriginLng,
-        'destLat': letter.destinationLocation.latitude,
-        'destLng': letter.destinationLocation.longitude,
+        // Build 483: 익명은 destination 도 좌표화(발신자 GPS 보호), 비익명은
+        //   의도된 목적지(ExactDrop 등 정밀 발송 포함) 풀정밀 유지.
+        'destLat': isAnon ? anonDestLat : letter.destinationLocation.latitude,
+        'destLng': isAnon ? anonDestLng : letter.destinationLocation.longitude,
         'destinationCountry': letter.destinationCountry,
         'destinationCountryFlag': letter.destinationCountryFlag,
         'destinationCity': letter.destinationCity ?? '',
@@ -3865,6 +4532,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         // 주운 수신자가 할인 코드·교환권 이미지·유효기간을 볼 수 없었음.
         'category': letter.category.key,
         'redemptionInfo': letter.redemptionInfo ?? '',
+        // Build 416 (sim100 P0/R2): 매장 사용 코드(redemptionCode) 서버 직렬화.
+        //   이전엔 이 수기 맵에서 누락 → 서버 letter 에 코드 자체가 없어 다른
+        //   기기에서 픽업한 수신자는 코드 null → 모든 쿠폰 POS redeem 불가
+        //   (발신 기기에서만 보여 로컬 데모 착시였음).
+        if (letter.redemptionCode != null)
+          'redemptionCode': letter.redemptionCode,
         if (letter.redemptionExpiresAt != null)
           'redemptionExpiresAt':
               letter.redemptionExpiresAt!.toIso8601String(),
@@ -3877,12 +4550,91 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           'expiresAt': letter.expiresAt!.toIso8601String(),
         'isAnonymous': letter.isAnonymous,
         if (letter.deliveryEmoji != null) 'deliveryEmoji': letter.deliveryEmoji,
+        // Build 415 (#5 레어 드롭, sim50 P1): 희귀도 서버 직렬화. 이전엔 모델
+        //   toJson 만 rarity 를 담고 이 수기 맵은 누락 → 서버 letter 에 rarity 가
+        //   없어 다른 사용자 기기에서 항상 normal 로 강등(기능 cross-user 무효).
+        //   normal 은 생략(legacy 호환), rare/epic 만 기록.
+        if (letter.rarity != LetterRarity.normal) 'rarity': letter.rarity.key,
       });
       if (kDebugMode) {
         debugPrint('[Firebase] 편지 업로드 완료: ${letter.id} → ${letter.destinationCountry}');
       }
+      // Build 415 (sim50 P1): 업로드 성공 시 아웃박스에서 제거(있었다면).
+      _dequeueLetterUpload(letter.id);
+      return true;
     } catch (e, st) {
       if (kDebugMode) debugPrint('[Firebase] 편지 업로드 실패: $e\n$st');
+      // Build 415 (sim50 P1): 네트워크/일시 오류 → 아웃박스 등록, 다음 sync 재시도.
+      _enqueueLetterUpload(letter.id);
+      return false;
+    }
+  }
+
+  // ── Build 415 (sim50 P1): 편지 업로드 아웃박스 ───────────────────────────────
+  //   오프라인/일시오류로 _saveLetterToFirestore 가 실패한 letter 의 id 를 큐에
+  //   쌓아 두고, 인증 확립/30s sync 마다 _sent 에서 찾아 재업로드한다. _sent 는
+  //   prefs 영속('sent')이라 앱 재시작에도 보존. _sent 에 없으면(evicted) 큐에서
+  //   제거(복구 불가, best-effort). cap 으로 무한 증가 방지.
+  final Set<String> _pendingLetterUploadIds = <String>{};
+  static const int _letterOutboxCap = 200;
+  bool _flushingLetterOutbox = false;
+
+  void _enqueueLetterUpload(String id) {
+    if (id.isEmpty) return;
+    if (_pendingLetterUploadIds.length >= _letterOutboxCap &&
+        !_pendingLetterUploadIds.contains(id)) {
+      // 가장 오래된 항목 제거(LinkedHashSet insertion order).
+      _pendingLetterUploadIds.remove(_pendingLetterUploadIds.first);
+    }
+    if (_pendingLetterUploadIds.add(id)) _persistLetterOutbox();
+  }
+
+  void _dequeueLetterUpload(String id) {
+    if (_pendingLetterUploadIds.remove(id)) _persistLetterOutbox();
+  }
+
+  Future<void> _persistLetterOutbox() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (_pendingLetterUploadIds.isEmpty) {
+        await prefs.remove('pending_letter_uploads');
+      } else {
+        await prefs.setStringList(
+          'pending_letter_uploads',
+          _pendingLetterUploadIds.toList(),
+        );
+      }
+    } catch (_) {}
+  }
+
+  /// 아웃박스 재업로드. 인증 확립/주기 sync 에서 호출(best-effort).
+  Future<void> _flushPendingLetterUploads() async {
+    if (_flushingLetterOutbox) return;
+    if (!FirebaseConfig.kFirebaseEnabled) return;
+    if (!FirebaseAuthService.isSignedIn) return;
+    if (_pendingLetterUploadIds.isEmpty) return;
+    _flushingLetterOutbox = true;
+    try {
+      // snapshot — 재업로드 중 set 변경(성공 dequeue) 대비.
+      final ids = _pendingLetterUploadIds.toList();
+      for (final id in ids) {
+        Letter? letter;
+        for (final l in _sent) {
+          if (l.id == id) {
+            letter = l;
+            break;
+          }
+        }
+        if (letter == null) {
+          // _sent 에서 사라진 letter — 복구 불가, 큐에서 제거.
+          _dequeueLetterUpload(id);
+          continue;
+        }
+        // 성공 시 _saveLetterToFirestore 가 _dequeueLetterUpload 호출.
+        await _saveLetterToFirestore(letter);
+      }
+    } finally {
+      _flushingLetterOutbox = false;
     }
   }
 
@@ -3983,6 +4735,22 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           serverIsPremium &&
           !_currentUser.isPremium) {
         _currentUser.isPremium = true;
+        updated = true;
+      }
+      // Build 442 (sim100 #2/#6): revenueCatWebhook 의 서버 권위 '강등' 수용.
+      //   구독 만료/환불 시 webhook 이 서버 isBrand/isPremium=false +
+      //   *EntitlementRevokedAt 마커를 기록한다. 마커가 존재할 때만(=RC 가 실제
+      //   만료/환불 통보) 로컬 true 를 강등 → admin grant·신규 Brand cold-start
+      //   OR-fallback 과 충돌하지 않는다(재구독 시 webhook 이 마커를 지우고
+      //   tier=true 로 되돌리므로 오강등 없음). grant-only 복원의 비대칭 해소.
+      final brandRevoked = map['brandEntitlementRevokedAt'] != null;
+      if (brandRevoked && serverIsBrand == false && _currentUser.isBrand) {
+        _currentUser.isBrand = false;
+        updated = true;
+      }
+      final premiumRevoked = map['premiumEntitlementRevokedAt'] != null;
+      if (premiumRevoked && serverIsPremium == false && _currentUser.isPremium) {
+        _currentUser.isPremium = false;
         updated = true;
       }
       final serverBrandName = map['brandName'];
@@ -4503,6 +5271,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             : map['socialLink'] as String?,
         senderTier: senderTier,
         senderIsBrand: senderTier == LetterSenderTier.brand,
+        // Build 415 (#5 레어 드롭, sim50 P1): 희귀도 복원 (getDocument 파싱 경로).
+        rarity: LetterRarityExt.fromJson(map['rarity']),
+        // Build 416 (sim100 P0/R2): 매장 사용 코드 복원 (getDocument 경로).
+        redemptionCode: (map['redemptionCode'] as String?)?.isEmpty == true
+            ? null
+            : map['redemptionCode'] as String?,
         // Build 409 (sim P1.45): 소진 카운터 복원 — 위 소진 가드 + QQ4 prune 이
         //   정확히 동작하도록. 이전엔 0/default 로 떨어져 over-redemption 가능.
         readCount: (map['readCount'] as num?)?.toInt() ?? 0,
@@ -4700,7 +5474,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         _currentUser.id.isNotEmpty &&
         _currentUser.id != 'guest' &&
         _currentUser.id != id;
-    if (isNewUser) {
+    // Build 467 (sim466 P1): guest→실계정 전환도 in-memory/prefs 정리. 이전엔
+    //   isNewUser 가 guest 를 제외해, 게스트 세션(데모 편지·픽업·차단 등)이
+    //   logout 을 거치지 않고 곧장 로그인하면 새 계정에 잔존했음. isBrand
+    //   OR-fallback(아래 5544)은 isNewUser 만 사용하므로 그대로 둠 — guest 의
+    //   isBrand=false 라 결과 동일, 신규가입 cold-start 보존 로직 영향 없음.
+    final isFromGuest =
+        _currentUser.id == 'guest' && id.isNotEmpty && id != 'guest';
+    if (isNewUser || isFromGuest) {
       _pickedUpCampaignIds.clear();
       _myPickedUpLetterIds.clear();
       // Build 368 (PR-CC2 P0 #6): in-memory letter 컬렉션도 동시 clear.
@@ -4727,6 +5508,80 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       //   사용자 B 가 A 가 이미 본 letter id 를 'seen' 으로 취급해 B 에게 공유된
       //   편지가 인박스/지도에 안 들어오는 silent drop 발생.
       _seenLetterIds.clear();
+      // Build 414 (sim200 P1-3/P1-4): 계정 전환 시 다음 사용자에게 누수되던
+      //   in-memory 상태 추가 reset — DM 대화/메시지, 팔로우 브랜드, 사용완료
+      //   쿠폰, Brand ROI 캐시, 그리고 유료 크레딧/quota(브랜드 자산 누수).
+      //   prefs 쪽은 _clearUserScopedPrefs 가 처리(아래 키 추가).
+      _chatSessions.clear();
+      _dmMessages.clear();
+      _followedBrandIds.clear();
+      _redeemedLetterIds.clear();
+      _serverInsightsCache.clear();
+      // Build 461: 팔로워 수도 계정 전환 시 reset (이전 브랜드 값 누수 차단).
+      _brandFollowerCount = -1;
+      _brandExactDropCredits = 0;
+      _brandExtraMonthlyQuota = 0;
+      _inviteRewardCredits = 0;
+      _welcomeTrialClaimedAt = null;
+      // Build 453 (tier-sim P2): 초대코드 상태 in-memory reset — 안 지우면 A 의
+      //   초대코드/보상시각이 B 의 _saveUserToFirestore PATCH 로 B doc 에 기록되고
+      //   hasAppliedInviteCode 가드가 B 의 정당한 초대코드 적용을 차단했음.
+      _appliedInviteCode = null;
+      _lastInviteRewardAt = null;
+      // Build 449 (sim100 P1): 고정 매장 위치 in-memory 즉시 reset (prefs 는
+      //   _clearUserScopedPrefs 가 처리하지만 in-memory 잔존 시 다음 사용자가
+      //   이전 매장 좌표로 자동발송하는 누수 차단).
+      _fixedStoreLat = null;
+      _fixedStoreLng = null;
+      // Build 453: 단골 스탬프 in-memory reset (A 의 적립이 B 에게 누수 차단).
+      _stampCards.clear();
+      _pendingStampCelebration = null;
+      // Build 457: 관심 카테고리 필터 in-memory reset. Build 482: 쿠폰 종류도.
+      _interestCategoryKeys.clear();
+      _interestTypeKeys.clear();
+      // Build 415 (sim50 P1/P2): 계정 전환 시 게임화/할당량 카운터 in-memory
+      //   reset. 이전엔 streak/주간챌린지/월간·이미지·익스프레스 발송 카운트와
+      //   누적 거리(XP 원천)가 다음 계정으로 그대로 넘어가 레벨/한도 누수.
+      //   activityScore 본체는 아래 UserProfile 재생성에서 fresh 로 교체.
+      _sentSinceLastUnlock = 0;
+      _monthlySentCount = 0;
+      _dailyImageSentCount = 0;
+      _dailyPremiumExpressSentCount = 0;
+      _currentStreak = 0;
+      // Build 421 (sim-fresh P1): streak 부속 상태·DM 누적·팔로우 그래프도 reset —
+      //   이전엔 _currentStreak 만 0 으로 해 longestStreak/마지막체크인/freeze 토큰과
+      //   _pendingDMCount(DM→letter quota 차감), followingIds 가 다음 계정으로 누수.
+      _longestStreak = 0;
+      _lastStreakCheckinDate = '';
+      _streakFreezeTokens = 0;
+      _streakFreezeLastRefill = '';
+      _pendingDMCount = 0;
+      _weeklyChallengeCountries.clear();
+      _weeklyChallengeWeekKey = '';
+      _weeklyChallengeClaimed = false;
+      _sumPickupKm = 0.0;
+      _sumSentKm = 0.0;
+      // Build 422 (sim-fresh2 P1/P3): 추가 in-memory 누수 reset —
+      //   admin Event Mode/속도(프리미엄 한도·애니메이션 누수), XP 레벨업 baseline,
+      //   마일스톤 축하 집합, 챌린지 보상 잔량.
+      _adminEventMode = false;
+      _adminSpeedMultiplier = 1.0;
+      _previousXpLevel = 1;
+      _celebratedMilestones.clear();
+      _challengeRewardBalance = 0;
+      // Build 426 (sim100 #6): 레벨업 축하 플래그도 reset — 이전엔 A 의 미소비
+      //   level-up 플래그가 남아 B 진입 시 가짜 축하 배너가 떴음.
+      _justLeveledUp = false;
+      _previousUserLevel = null;
+      // Build 423 (sim-crosscut P2): 첫 픽업 축하 1회 플래그 / AI letter 날짜키도
+      //   in-memory reset — 이전엔 B 가 첫 픽업 축하를 못 받거나, 전환 당일 AI
+      //   letter 를 못 받던 누수.
+      _hasCelebratedFirstPickup = false;
+      _lastAiLetterDateKey = '';
+      // Build 415 (sim50 P1): 이전 사용자의 오프라인 업로드 아웃박스도 정리
+      //   (그 letter 들은 _sent 와 함께 제거됨).
+      _pendingLetterUploadIds.clear();
+      unawaited(_persistLetterOutbox());
       // Build 409 (sim P1.44): 이전 사용자 프로필 사진이 다음 계정으로 넘어가지
       //   않도록 null. 아래 UserProfile 재생성이 _currentUser.profileImagePath 를
       //   복사하므로 여기서 끊어야 함.
@@ -4749,8 +5604,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       // Build 405 (PR-NN2): 가입 시 chooser 에서 선택한 계정 종류 반영.
       //   isBrand=true 인 신규 사용자는 MainScaffold (NN3) 가 Brand UX 노출.
       //   기존 사용자도 cold-start 에서 secure storage 의 isBrand 값 복원.
-      isBrand: isBrand || _currentUser.isBrand,
-      brandName: brandName ?? _currentUser.brandName,
+      // Build 414 (sim100 #8/#34): isNewUser(계정 전환) 시엔 이전 사용자의
+      //   in-memory isBrand/brandName 가 OR/??-fallback 으로 새 계정에 상속되던
+      //   Brand 권한 누수 차단 — 전달된 파라미터 값만 사용.
+      isBrand: isNewUser ? isBrand : (isBrand || _currentUser.isBrand),
+      brandName: isNewUser ? brandName : (brandName ?? _currentUser.brandName),
       socialLink: socialLink,
       profileImagePath: _currentUser.profileImagePath,
       languageCode: resolvedLanguageCode,
@@ -4761,7 +5619,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       //   fallback 처리 (자연스러운 글로벌).
       latitude: latitude ?? 0.0,
       longitude: longitude ?? 0.0,
-      activityScore: _currentUser.activityScore, // 기존 점수 유지 (초기값 하드코딩 제거)
+      // Build 415 (sim50 P1): 계정 전환(isNewUser)이면 fresh ActivityScore —
+      //   이전 사용자의 레벨/XP/발송·픽업 카운트 상속 차단. 같은 사용자 갱신은 유지.
+      activityScore: isNewUser ? ActivityScore() : _currentUser.activityScore,
       phoneNumber: phoneNumber,
       verifyMethod: verifyMethod ?? 'email',
     );
@@ -5401,7 +6261,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   bool updateUsername(String name) {
     if (!canChangeNicknameNow()) return false;
     _currentUser.username = name;
-    _lastNicknameChangedAt = DateTime.now();
+    // Build 421 (sim-fresh P2): 쿨다운 평가와 동일 시계 — SecureClock.
+    _lastNicknameChangedAt = SecureClock.now();
     _saveToPrefs();
     notifyListeners();
     return true;
@@ -5466,6 +6327,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // Build 409 (sim P1.43): 로그아웃 시 모든 서버 sync timer 정지 — 이전엔
     //   타이머가 계속 돌아 로그아웃된 사용자 컨텍스트로 fetch/PATCH 가 발생.
     stopServerSync();
+    // Build 421 (sim-fresh P1): 예약된 모든 로컬 알림 취소 — 이전엔 한 곳도
+    //   cancelAll 을 안 불러, 사용자 A 가 픽업한 쿠폰의 만료 리마인더/도착
+    //   카운트다운/일일 다이제스트가 B 로그인 후에도 B 디바이스에서 발화
+    //   (A 발신자명 노출 = 프라이버시 누수). 다음 사용자 load 가 일일 리마인더·
+    //   도착·다이제스트를 재예약하므로 일괄 취소가 안전.
+    try {
+      await NotificationService.cancelAll();
+    } catch (_) {/* 알림 취소 실패는 무시 — 로그아웃 진행 */}
     // Build 307: PurchaseService 도 같은 흐름에서 reset → 다음 사용자가 잔존
     // Premium 을 잠시라도 보지 않게. 그리고 prefs flush 완료까지 대기.
     try {
@@ -5474,6 +6343,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     try {
       await flushPrefsBlocking();
     } catch (_) {/* prefs corruption — 진행 */}
+    // Build 412 (PII sim MED YES.7): 로그아웃 시 user-scoped prefs 명시 정리.
+    //   guest→재가입 경로는 setUser isNewUser 가 안 걸려 다음 사용자가 이전
+    //   사용자의 Brand/Premium/프로필/인박스 prefs 를 상속하던 누수 차단.
+    //   flush 이후 실행 — 직전 debounced 저장이 다시 쓴 값까지 제거.
+    try {
+      await _clearUserScopedPrefs();
+    } catch (_) {/* prefs 정리 실패는 무시 */}
     if (_currentUser.id.isEmpty || _currentUser.id == 'guest') return;
     if (!FirebaseConfig.kFirebaseEnabled) return;
     await _saveUserToFirestore(markLoggedOut: true);
@@ -5543,9 +6419,21 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       //   로 skip 했지만 Firestore REST 직접 호출 시 우회 가능.
       //   isMapPublic=true 일 때만 좌표 필드 작성.
       final mapPublic = _currentUser.isMapPublic;
+      // Build 412 (PII sim HIGH): username/타워명도 isUsernamePublic 토글 따라
+      //   공개. 이전엔 isMapPublic 좌표만 null 처리하고 username 은 항상 평문
+      //   기록 → raw REST read (rules `allow read: if true`)로 비공개 설정한
+      //   사용자의 닉네임까지 전부 수집 가능했음. 지도 렌더러는 username null 시
+      //   '국기 #순위' 로 fallback 하므로 기능 영향 없음.
+      final namePublic = _currentUser.isUsernamePublic;
       final fields = <String, Map<String, dynamic>>{
         'id': {'stringValue': _currentUser.id},
-        'username': {'stringValue': _currentUser.username},
+        if (namePublic) 'username': {'stringValue': _currentUser.username},
+        if (!namePublic) 'username': {'nullValue': null},
+        // Build 413 (Auth Phase 2, flag-gated): 정식 Firebase Auth 세션이면
+        //   authUid 바인딩 기록 (TOFU). Phase 3 rules cutover 후 owner-check 의
+        //   기준. 플래그 OFF / anon 세션이면 realAuthUid==null → 미기록(무변경).
+        if (FirebaseAuthService.realAuthUid != null)
+          'authUid': {'stringValue': FirebaseAuthService.realAuthUid!},
         'countryFlag': {'stringValue': _currentUser.countryFlag},
         'country': {'stringValue': _currentUser.country},
         // isMapPublic ON + 유효 좌표 → 작성. OFF 면 null 로 PATCH 해 leak 차단.
@@ -5596,25 +6484,18 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           'integerValue': '${_currentUser.activityScore.likeCount}',
         },
         'inviteCode': {'stringValue': myInviteCode},
-        'inviteRewardCredits': {'integerValue': '$_inviteRewardCredits'},
-        'brandExtraMonthlyQuota': {
-          'integerValue': '$_brandExtraMonthlyQuota',
-        },
-        // Build 296 (P1 audit): ExactDrop 크레딧 (100통=₩10,000) Firestore
-        // 영구화. 이전엔 SharedPreferences 만 → 기기 재설치/로그인 변경 시
-        // 결제 손실. 재로그인 시 _fetchUserFromFirestore 가 이 필드를 읽어
-        // 복구. 클라이언트 측 prefs 는 캐시 역할.
-        'brandExactDropCredits': {
-          'integerValue': '$_brandExactDropCredits',
-        },
-        // Build 298 (HIGH audit): Welcome trial 1회 한정 claim timestamp.
-        // 사용자가 계정 삭제 후 재가입해도 동일 user.id 에 대해 trial 한 번만
-        // 부여됨. null 이면 미수령, ISO timestamp 면 수령 완료.
-        if (_welcomeTrialClaimedAt != null)
-          'welcomeTrialClaimedAt': {
-            'timestampValue':
-                _welcomeTrialClaimedAt!.toUtc().toIso8601String(),
-          },
+        // Build 414 (sim200 P0-A 회귀수정): credit 카운터 3종
+        //   (inviteRewardCredits/brandExtraMonthlyQuota/brandExactDropCredits)은
+        //   이 일반 프로필 PATCH 에서 분리됐다. rules isReasonableUserCounterDelta
+        //   는 credit 을 '감소만' 허용(self-mint 차단)인데, 결제 grant 로 증가시키면
+        //   atomic PATCH 전체가 403 → 위치/프로필/카운터까지 전부 저장 실패.
+        //   → _saveCreditCountersToFirestore 로 별도 best-effort PATCH(아래).
+        //   증가(grant)는 룰상 여전히 차단(서버 grant=Phase 3), 감소(consume)만 영속.
+        // Build 414 (sim100 P0-1/#9): welcomeTrialClaimedAt 는 client PATCH 에서
+        //   제거. Build 300 이 trial farming 차단 위해 화이트리스트에서 뺐는데
+        //   client 가 계속 mask 에 포함 → claim 시 affected key 가 되어 user doc
+        //   PATCH 전체가 atomic 403. 서버 권위 소스는 trial_claims/{sha256(email)}
+        //   이므로 user doc 미러는 불필요(제거해도 trial 무결성 영향 없음).
         if (_appliedInviteCode != null)
           'inviteAppliedCode': {'stringValue': _appliedInviteCode!},
         if (_lastInviteRewardAt != null)
@@ -5622,8 +6503,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             'timestampValue': _lastInviteRewardAt!.toUtc().toIso8601String(),
           },
         'updatedAt': {'stringValue': DateTime.now().toIso8601String()},
-        if (_currentUser.customTowerName != null)
+        // Build 412 (PII sim HIGH): 커스텀 타워명도 닉네임 공개 설정 따름 +
+        //   비공개 시 기존 값 null PATCH (이전 공개 시점 잔존 제거).
+        if (namePublic && _currentUser.customTowerName != null)
           'customTowerName': {'stringValue': _currentUser.customTowerName!},
+        if (!namePublic) 'customTowerName': {'nullValue': null},
         'towerColor': {'stringValue': _currentUser.towerColor},
         if (_currentUser.towerAccentEmoji != null)
           'towerAccentEmoji': {'stringValue': _currentUser.towerAccentEmoji!},
@@ -5657,6 +6541,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         '?key=${FirebaseConfig.apiKey}&$maskParams',
       );
       final body = jsonEncode({'fields': fields});
+      // Build 414 (sim100 P0-1): 인증 토큰 확보 후 Bearer 헤더 부착. 이전엔
+      //   Content-Type 만 보내 request.auth==null → rules isSignedIn() false →
+      //   user doc PATCH 가 항상 403(런타임 확인: letters 는 authHeaders 라 성공,
+      //   user save 만 실패). letters 경로와 동일하게 FirestoreService.authHeaders 사용.
+      await FirebaseAuthService.ensureValidToken();
+      // Build 414 (sim200 P0-A): credit 카운터는 별도 mask 로 분리 PATCH —
+      //   증가(grant) 시 룰 거부(403)가 나도 프로필/위치 저장을 막지 않도록.
+      //   disjoint fieldPaths 라 동시 실행 안전.
+      unawaited(_saveCreditCountersToFirestore());
       for (int attempt = 0; attempt < 3; attempt++) {
         try {
           // Build 302 (MED audit): HTTP status code 검사 추가. 이전엔 res
@@ -5664,7 +6557,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           // ("settings didn't save" 회귀 가능).
           final res = await http.patch(
             url,
-            headers: {'Content-Type': 'application/json'},
+            headers: FirestoreService.authHeaders,
             body: body,
           ).timeout(const Duration(seconds: 20));
           if (res.statusCode >= 200 && res.statusCode < 300) {
@@ -5695,6 +6588,46 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     } catch (e) {
       debugPrint('[Firestore] user save error: $e');
     }
+  }
+
+  /// Build 414 (sim200 P0-A): credit 카운터 전용 best-effort PATCH.
+  /// rules isReasonableUserCounterDelta 는 credit 을 '감소만' 허용(self-mint 차단).
+  /// 감소(consume) → 200 영속. 증가(grant) → 403(서버 grant=Phase 3 까지 로컬
+  /// 전용). 어느 쪽이든 이 PATCH 의 실패가 일반 프로필 저장을 막지 않는다(분리).
+  Future<void> _saveCreditCountersToFirestore() async {
+    if (!FirebaseConfig.kFirebaseEnabled) return;
+    if (_currentUser.id.isEmpty || _currentUser.id == 'guest') return;
+    try {
+      final fields = <String, Map<String, dynamic>>{
+        'inviteRewardCredits': {'integerValue': '$_inviteRewardCredits'},
+        'brandExtraMonthlyQuota': {'integerValue': '$_brandExtraMonthlyQuota'},
+        'brandExactDropCredits': {'integerValue': '$_brandExactDropCredits'},
+      };
+      final maskParams = fields.keys
+          .map((k) => 'updateMask.fieldPaths=${Uri.encodeQueryComponent(k)}')
+          .join('&');
+      final url = Uri.parse(
+        '${FirebaseConfig.firestoreBase}/users/${_currentUser.id}'
+        '?key=${FirebaseConfig.apiKey}&$maskParams',
+      );
+      await FirebaseAuthService.ensureValidToken();
+      final res = await http
+          .patch(
+            url,
+            headers: FirestoreService.authHeaders,
+            body: jsonEncode({'fields': fields}),
+          )
+          .timeout(const Duration(seconds: 20));
+      if (res.statusCode >= 400 && res.statusCode < 500) {
+        // 증가 grant 는 룰상 거부(정상) — 프로필 저장과 분리됐으므로 무해.
+        assert(() {
+          debugPrint(
+            '[Firestore] credit save ${res.statusCode} (grant=서버권위, 로컬 유지)',
+          );
+          return true;
+        }());
+      }
+    } catch (_) {/* best-effort */}
   }
 
   Future<void> _ensureInviteIdentityOnServer() async {
@@ -5749,12 +6682,18 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         // 로컬이 더 큼 → 서버 stale. 로컬 유지 + 서버 보정 push.
         unawaited(_saveUserToFirestore());
       }
-      if (_brandExactDropCredits != serverExactDropCredits) {
+      // Build 414 (sim100 #5): ExactDrop 유료 크레딧도 brandExtraMonthlyQuota
+      //   와 동일하게 가산형. 이전엔 server 값으로 무조건 덮어써(=) 구매 직후
+      //   서버 write 실패 시 다음 동기화에서 유료 크레딧이 소실됐다.
+      //   server > local → 재설치 복구로 보고 채택, server < local → 로컬 유지 +
+      //   서버 끌어올림.
+      if (serverExactDropCredits > _brandExactDropCredits) {
         _brandExactDropCredits = serverExactDropCredits;
-        // 캐시도 동기 갱신 — 다음 부팅 때 prefs 가 stale 하지 않도록.
         final prefs = await SharedPreferences.getInstance();
         await prefs.setInt('brandExactDropCredits', _brandExactDropCredits);
         changed = true;
+      } else if (serverExactDropCredits < _brandExactDropCredits) {
+        unawaited(_saveUserToFirestore());
       }
       // Build 298 (HIGH audit): Welcome trial 1회 한정 — server-as-truth.
       final claimedAtRaw = data['welcomeTrialClaimedAt'] as String?;
@@ -6691,7 +7630,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
                 rank: 0,
                 level: approxLevel,
                 username: isPublic ? username : null,
-                towerName: towerName,
+                // Build 479 (보안 감사): 쓰기측은 비공개 시 customTowerName 을
+                //   null PATCH(Build 412)하지만, 읽기측이 게이트 없이 파싱해
+                //   pre-412/구버전 doc 의 평문 타워명(실명·상호 가능)이 비공개
+                //   사용자에게도 노출되던 비대칭 → username 과 동일 게이트.
+                towerName: isPublic ? towerName : null,
                 towerColor: towerColorRaw,
                 towerAccentEmoji: towerAccent,
                 towerRoofStyle: parseInt(fields, 'towerRoofStyle'),
@@ -7529,7 +8472,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       userId: userId,
       userPos: userPos,
       onZoneEnter: (zone, destination) async {
-        _handleAutoBrandDrop(zone, destination, triggerNotification: notify);
+        return _handleAutoBrandDrop(zone, destination,
+            triggerNotification: notify);
       },
     ).catchError((e, st) {
       if (kDebugMode) debugPrint('[BrandZone] trigger err: $e\n$st');
@@ -7543,7 +8487,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// Firestore POST 는 본 letter 가 "이 사용자만의 것" 이라 skip (다른 device
   /// 가 봐도 의미 없음). 영구 dedup 은 SharedPreferences (BrandZoneService 가
   /// 책임). 사용자가 letter 를 읽거나 만료되면 자연스럽게 inbox 에서 정리.
-  void _handleAutoBrandDrop(
+  /// Build 421 (sim-fresh P2): letter 가 실제 생성됐으면 true, early-return/예외면
+  ///   false 반환 — 호출자(BrandZoneService)가 false 면 seen 마킹을 보류.
+  bool _handleAutoBrandDrop(
     BrandZone zone,
     LatLng destination, {
     bool triggerNotification = true,
@@ -7553,11 +8499,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       // 가 추가로 발급되지 않도록. 서비스 layer 의 trigger 와 별개로
       // 마지막 라인의 안전망. 시계 우회로 만료 회피도 차단.
       final secureNow = SecureClock.now();
-      if (!zone.isActive(secureNow)) return;
+      if (!zone.isActive(secureNow)) return false;
       // Build 344 (PR-S15 4차 시뮬레이션 P1): Brand 본인이 자기 zone 들어와
       //   pickup 하면 revealedCount / redeemedCount 인플레이션. 본인 zone 은
       //   skip — 매장에서 사장이 자기 캠페인 self-redeem 차단.
-      if (zone.brandId == _currentUser.id) return;
+      if (zone.brandId == _currentUser.id) return false;
       final now = DateTime.now();
       // Build 344 (PR-S15 4차 시뮬레이션 P2): zone letter ID 에 random suffix
       //   추가 — 같은 ms 안 두 사용자 진입 시 id collision 차단.
@@ -7584,6 +8530,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         estimatedTotalMinutes: 0,
         senderIsBrand: true,
         senderTier: LetterSenderTier.brand,
+        // Build 416 (sim100 R5): zone auto-drop 쿠폰도 희귀도 roll — 매장 상시
+        //   운영 채널에서도 rare/epic '발견' 가능(이전엔 항상 normal).
+        rarity: _rollLetterRarity(true),
         category: LetterCategory.coupon,
         acceptsReplies: false,
         redemptionInfo: zone.redemptionInfo,
@@ -7636,9 +8585,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       }
 
       notifyListeners();
+      return true;
     } catch (e, st) {
       if (kDebugMode) debugPrint('[BrandZone] auto-drop err: $e\n$st');
     }
+    return false;
   }
 
   // ── AI 자동 편지 발송 (하루 3통, 랜덤 3개국 → 유저 나라 랜덤 주소) ──────────
@@ -8069,6 +9020,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // Build 331 (PR-S1): bulk send 가 동일 코드를 모든 letter 에 부여하기 위한
     //   override. null + attachRedemptionCode=true 면 새 코드 자동 생성.
     String? explicitRedemptionCode,
+    // Build 433 (device): Brand 가 발송 시 직접 고른 업종 카테고리
+    //   (food/cafe/beauty/fashion/event/it/other). 도착 마커 이모지·인박스
+    //   필터에 사용. 미지정 시 픽업 때 inferCategoryTag 로 자동 추론(기존 호환).
+    String? categoryTag,
   }) async {
     // Build 324 (positioning): Free 사용자는 "줍기 전용". 발송 기능은
     //   Premium/Brand 만 가능. UI 측 가드 (main_scaffold compose 진입,
@@ -8306,6 +9261,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       // coupon/voucher 카테고리는 브랜드만 선택할 수 있도록 서버 사이드 가드
       // 일반·프리미엄 유저가 어떤 방식으로 category 를 전달해도 general 로 강제.
       category: _currentUser.isBrand ? category : LetterCategory.general,
+      // Build 433 (device): Brand 가 고른 업종 카테고리를 발송 시 저장 →
+      //   도착 마커 이모지가 업종별로 표시. 비-Brand 는 null(픽업 시 추론).
+      categoryTag: _currentUser.isBrand ? categoryTag : null,
+      // Build 415 (#5 레어 드롭): 브랜드 발송이면 낮은 확률로 rare/epic 부여.
+      //   일반·프리미엄 유저 편지는 항상 normal (게임화는 브랜드 쿠폰 한정).
+      rarity: _rollLetterRarity(_currentUser.isBrand),
       // 답장 수락은 브랜드만 off 가능 — Free/Premium 은 항상 true 로 강제.
       acceptsReplies: _currentUser.isBrand ? acceptsReplies : true,
       // 쿠폰/교환권 사용 안내도 브랜드만 기록됨. 일반 유저가 넘겨도 무시.
@@ -8397,6 +9358,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // Build 331 (PR-S1): bulk send 가 동일 redemptionCode 를 모든 letter 에
     //   부여 — 매장 POS 는 한 캠페인당 1개 코드만 등록하면 끝.
     bool attachRedemptionCode = false,
+    // Build 446: compose 미리보기 카드가 발급한 코드를 그대로 주입 → 발송 전후
+    //   코드 일치. null 이면 기존대로 내부 1회 생성.
+    String? explicitRedemptionCode,
+    // Build 433 (device): 업종 카테고리 — bulk 의 모든 letter 에 동일 적용.
+    String? categoryTag,
   }) async {
     if (!_currentUser.isBrand) return 0;
     int sent = 0;
@@ -8407,8 +9373,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
     // Build 331 (PR-S1): bulk 전체 공통 코드 — 1회 생성 후 sendLetter 마다
     //   explicit override 로 전달. 100통 = 동일 코드 → 매장 1회 셋업.
-    final bulkRedemptionCode =
-        attachRedemptionCode ? RedemptionCode.generate() : null;
+    final bulkRedemptionCode = attachRedemptionCode
+        ? (explicitRedemptionCode ?? RedemptionCode.generate())
+        : null;
 
     if (randomMode) {
       // 랜덤 모드: 매 편지마다 198개국 중 랜덤 국가 선택
@@ -8436,21 +9403,35 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           campaignId: campaignId,
           attachRedemptionCode: attachRedemptionCode,
           explicitRedemptionCode: bulkRedemptionCode,
+          categoryTag: categoryTag,
         );
         if (ok) sent++;
       }
     } else {
       // 기존: 선택된 나라에 나라당 sendCount만큼 발송
       for (final target in targets) {
+        // Build 449 (sim100 P1): precise 타깃(ExactDrop/고정 매장 위치)이면
+        //   useExactCoordinates 로 좌표 보존 — 이전엔 sendBulkLetter 가 precise
+        //   플래그를 무시해 매장 좌표를 버리고 랜덤 도시로 산포했음.
+        final isPrecise = target['precise'] == true;
         for (int i = 0; i < sendCount; i++) {
           if (!_canSendLetterByDailyLimit()) break;
           if (imageUrl != null && !_canSendImageLetter()) break;
+          // Build 453 (tier-sim P1): precise(ExactDrop) 타깃은 통당 1크레딧 차감 —
+          //   단건(compose:1940)·특급+대량(sendBrandExpressBlast:9317) 경로와 동일
+          //   정책. 이전엔 비-특급 대량발송만 차감 누락 → ExactDrop 정밀발송 무료
+          //   무제한 우회(출시 매출 손실). 크레딧 부족 시 break(부분발송 경고로 흡수).
+          if (isPrecise) {
+            final ok = await consumeExactDropCredit();
+            if (!ok) break;
+          }
           final ok = await sendLetter(
             content: content,
             destinationCountry: target['country'] as String,
             destinationFlag: target['flag'] as String,
             destLat: (target['lat'] as num).toDouble(),
             destLng: (target['lng'] as num).toDouble(),
+            useExactCoordinates: isPrecise,
             socialLink: socialLink,
             imageUrl: imageUrl,
             paperStyle: paperStyle,
@@ -8464,6 +9445,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             campaignId: campaignId,
             attachRedemptionCode: attachRedemptionCode,
             explicitRedemptionCode: bulkRedemptionCode,
+            categoryTag: categoryTag,
           );
           if (ok) sent++;
         }
@@ -8481,6 +9463,18 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   ///   미리 생성하기 위한 public wrapper.
   static String newCampaignIdPublic() =>
       'cmp_${DateTime.now().millisecondsSinceEpoch}_${_shortRandHex()}';
+
+  // Build 415 (#5 레어 드롭): 발송 편지의 희귀도 결정. 게임화 — 줍기 루프에
+  //   낮은 확률의 "발견 쾌감" 부여. 브랜드 발송 편지만 rare/epic 가능 (일반
+  //   유저 편지는 항상 normal). MVP 확률: epic 1% / rare 5% / 나머지 normal.
+  static final Random _rarityRng = Random();
+  static LetterRarity _rollLetterRarity(bool isBrand) {
+    if (!isBrand) return LetterRarity.normal;
+    final roll = _rarityRng.nextDouble();
+    if (roll < 0.01) return LetterRarity.epic; // 1%
+    if (roll < 0.06) return LetterRarity.rare; // 다음 5%
+    return LetterRarity.normal;
+  }
 
   /// Build 334 (PR-S4): 가장 최근 발송 letter 의 redemptionCode 반환. compose
   /// 화면이 발송 직후 snackbar / dialog 에 코드 노출해 매장 POS 등록을 유도.
@@ -8559,6 +9553,17 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'towerAccentEmoji',
         // brand-specific (정식 brand 사용자 데이터)
         'brandExtraMonthlyQuota',
+        // Build 449 (sim100 P1): 고정 매장 위치 — 계정 전환 시 다음 사용자에게
+        //   이전 매장 좌표가 누수돼 엉뚱한 곳으로 자동발송되던 회귀 차단.
+        'brand_fixed_store_lat',
+        'brand_fixed_store_lng',
+        // Build 453: 단골 스탬프 — A 의 스탬프가 B 에게 상속되지 않게.
+        'brand_stamp_cards_v1',
+        // Build 456: 티어별 투어 — 계정 전환 시 새 계정이 자기 티어 투어를 봄.
+        'tier_tour_seen_v1',
+        // Build 457: 관심 카테고리 필터 — A 의 관심사가 B 에게 상속 차단.
+        'interest_category_keys_v1',
+        'interest_type_keys_v1',
         // premium 특급 배송 (premium 사용자 전용)
         'dailyPremiumExpressSentCount',
         'dailyPremiumExpressDateKey',
@@ -8585,6 +9590,81 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'inbox',
         'sent',
         'worldLettersIncoming',
+        // Build 412 (PII sim MED YES.7): 티어/프로필 prefs — 로그아웃 후
+        //   guest→재가입 시 isNewUser 가 안 걸려(_currentUser.id=='guest')
+        //   다음 사용자가 이전 사용자의 Brand/Premium/프로필 사진을 상속하던
+        //   누수. secure storage 는 logout 의 deleteAll 이 지우지만 이 plain
+        //   prefs 키들은 누락됐었음. (PrefKeys.* 와 동일 문자열)
+        'isBrand',
+        'brandName',
+        'profileImagePath',
+        'purchase_isPremium',
+        'purchase_isBrand',
+        // Build 479 (보안 감사): 결제 예약/구독 만료 prefs — 공유기기에서 A 로그아웃
+        //   후 B 가 A 의 예약 다운그레이드/선물 trial/결제일을 상속(거짓 Premium 또는
+        //   강제 강등)하던 누수. resetForLogout 의 secure/in-mem 정리에 빠져 있던 plain
+        //   prefs 키를 여기 userScoped 정리에 추가. (PrefKeys.purchase* 와 동일 문자열)
+        'purchase_next_billing_date',
+        'purchase_giftExpiry',
+        'purchase_scheduled_plan_change_date',
+        'purchase_scheduled_plan_change_target',
+        'purchase_scheduledDowngrade',
+        // Build 414 (sim200 P1-3/P1-4): 계정 전환 누수 잔존 키 추가 —
+        //   DM 대화/메시지, 팔로우 브랜드, 사용완료 쿠폰, ExactDrop 유료 크레딧.
+        //   in-memory 는 isNewUser 블록에서 clear 하지만 prefs 키가 남으면 다음
+        //   loadFromPrefs 가 이전 사용자 데이터를 복원(cold restart 후 부활).
+        'chatSessions',
+        'dmMessages',
+        'followedBrandIds',
+        'redeemedLetterIds',
+        'brandExactDropCredits',
+        // Build 417 (sim100 P2): 작성 중 draft 가 계정 전환/guest 로그아웃 후
+        //   다음 사용자에게 노출되던 cross-account 본문 누수 차단.
+        'compose_draft',
+        // Build 417 (sim100 P2): 오프라인 발송 아웃박스 — guest 로그아웃 경로에선
+        //   isNewUser 블록을 안 타 이전 사용자 미발송 letter id 가 잔존(유실/누수).
+        'pending_letter_uploads',
+        // Build 421 (sim-fresh P1/P2): 계정 전환 누수 잔존 키 일괄 추가 — DM 누적
+        //   카운터, 게임화(streak 부속/주간챌린지/누적거리/sentSinceLastUnlock),
+        //   타워 커스터마이즈, 선호 카테고리, activityScore, 닉네임 쿨다운,
+        //   픽업 쿨다운, 알림 토글, merchant CTA, 팔로우 그래프.
+        'pendingDMCount',
+        'sentSinceLastUnlock',
+        'sum_pickup_km',
+        'sum_sent_km',
+        'challenge_week_countries',
+        'challenge_week_key',
+        'challenge_week_claimed',
+        'towerRoofStyle',
+        'towerWindowStyle',
+        'customTowerName',
+        'preferredCategoryKey',
+        'activityScore',
+        'nicknameChangedAtEpochMs',
+        'lastNearbyPickupAtMs',
+        'notify_nearby',
+        'notify_daily_letter',
+        'push_mode',
+        'merchant_interest_registered_v1',
+        'merchant_interest_at',
+        'merchant_interest_city',
+        'followingIds',
+        'followerIds',
+        // Build 422 (sim-fresh2 P1): 마일스톤 축하 집합 — global 키라 사용자 A 의
+        //   달성 레벨이 B 에게 상속돼 B 가 같은 레벨 축하를 못 받던 누수.
+        'celebratedMilestones',
+        // Build 422 (sim-fresh2 P3): 첫 픽업 코치마크 플래그도 계정전환 누수 —
+        //   B 가 첫 픽업 안내를 못 받음 (tutorial_letter_placed 와 동일 처리).
+        'map_first_pickup_hint_v1',
+        // Build 423 (sim-crosscut P1/P2/P3): 계정전환 prefs 누수 잔존 키 —
+        //   브랜드 compose 초안/마지막 발송본문(본문 노출), 첫픽업 축하, AI letter
+        //   날짜키, 주간회고 dismissal, 프리미엄 welcome 1회 플래그.
+        'compose_draft_brand',
+        'last_sent_content',
+        'hasCelebratedFirstPickup',
+        'lastAiLetterDateKey',
+        'weekly_reflection_dismissed',
+        'premium_welcome_shown',
       ];
       for (final key in userScopedKeys) {
         await prefs.remove(key);
@@ -8635,12 +9715,24 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     //   _newCampaignId() 로 자기만의 id 를 만들어 brandUniquePerUser dedup
     //   (같은 campaignId 1개만 픽업)이 깨졌음. null 이면 기존처럼 자체 생성.
     String? campaignId,
+    // Build 415 (sim50 P1): express+bulk 도 매장 코드 발급 지원. 이전엔 이 파라미터
+    //   자체가 없어 _attachRedemptionCode 토글이 무시되고 코드 없이 발송 →
+    //   손님이 영구히 redeem 불가했음. 호출자(compose)가 캠페인 공통 코드를
+    //   explicitRedemptionCode 로 주입(여러 blast 호출이 1개 코드 공유).
+    bool attachRedemptionCode = false,
+    String? explicitRedemptionCode,
+    // Build 433 (device): 업종 카테고리 — blast 의 모든 letter 에 동일 적용.
+    String? categoryTag,
   }) async {
     if (!_currentUser.isBrand) return 0;
     // Build 409 (sim P2 보안 L7948): 차단된 Brand 도 express+bulk 발송 차단.
     if (_currentUser.isBanned) return 0;
 
     const expressTotalMin = 5; // 특송: 5분 즉시 배송
+    // Build 415 (sim50 P1): 이 blast 가 부여할 매장 코드. 호출자 주입(캠페인
+    //   공통) 우선, 없으면 토글 ON 시 1회 생성. 같은 blast 내 모든 letter 공유.
+    final blastRedemptionCode = explicitRedemptionCode ??
+        (attachRedemptionCode ? RedemptionCode.generate() : null);
     final now = DateTime.now();
     // Build 324: brandUniquePerUser=true 면 이 blast 전체에 공통 campaignId.
     // Build 409 (sim P1.22): 주입된 campaignId 우선 (멀티콜 캠페인 공유).
@@ -8663,6 +9755,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final usePrecise = preciseLat != null && preciseLng != null;
     for (int i = 0; i < count; i++) {
       if (!_canSendLetterByDailyLimit()) break;
+      // Build 414 (sim100 #35): 이미지 첨부 시 일일 이미지 한도 검사 — 이전엔
+      //   express+bulk 경로가 _canSendImageLetter 를 안 봐서 이미지 quota 우회.
+      if (imageUrl != null && !_canSendImageLetter()) break;
       // Build 373 (PR-DD2 P1 audit msg #2): ExactDrop credit 차감 — bulk +
       //   정확좌표 발송 분기에서 이전엔 차감 누락 → 베타 무료 분기 우회 외에도
       //   출시 빌드에서 무료 발송 가능 (비즈니스 손실). 단건 path 의
@@ -8687,22 +9782,38 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           usedCityKeys: usedCityKeys,
           languageCode: _currentUser.languageCode,
         );
-        if (cityData == null) {
-          if (usedCityKeys.isEmpty) break; // 해당 국가 도시 데이터 없음
+        if (cityData == null && usedCityKeys.isNotEmpty) {
           usedCityKeys.clear(); // 모든 도시 소진 → 중복 허용으로 재시도
           cityData = CountryCities.randomCityWithOffset(
             destinationCountry,
             usedCityKeys: usedCityKeys,
             languageCode: _currentUser.languageCode,
           );
-          if (cityData == null) break;
         }
-
-        cityName = cityData['name'] as String? ?? '';
-        usedCityKeys.add(CountryCities.cityKey(destinationCountry, cityName));
-
-        cityLat = (cityData['lat'] as num).toDouble();
-        cityLng = (cityData['lng'] as num).toDouble();
+        if (cityData != null) {
+          cityName = cityData['name'] as String? ?? '';
+          usedCityKeys.add(CountryCities.cityKey(destinationCountry, cityName));
+          cityLat = (cityData['lat'] as num).toDouble();
+          cityLng = (cityData['lng'] as num).toDouble();
+        } else {
+          // Build 449 (sim100 P1): cities.json 에 없는 국가에서 break 로 발송이
+          //   1통(또는 0통)에 멈추던 회귀 — 비-특급 bulk(sendLetter)와 동일하게
+          //   bounds 랜덤 좌표로 폴백해 모든 국가 발송 가능. break 제거.
+          final coord = geoSvc.isInitialized
+              ? geoSvc.randomCoordinate(destinationCountry)
+              : null;
+          if (coord != null) {
+            cityName = '';
+            cityLat = coord['lat']!;
+            cityLng = coord['lng']!;
+          } else {
+            final landAddr =
+                LandAddressGenerator.generate(excludeCountry: _currentUser.country);
+            cityName = '';
+            cityLat = (landAddr['lat'] as num).toDouble();
+            cityLng = (landAddr['lng'] as num).toDouble();
+          }
+        }
       }
       final toCity = LatLng(cityLat, cityLng);
 
@@ -8755,11 +9866,19 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             ? now.add(Duration(minutes: expressTotalMin) + Duration(hours: brandAutoExpireHours))
             : null,
         category: category,
+        // Build 433 (device): blast 전체에 동일 업종 카테고리(도착 마커 이모지).
+        categoryTag: categoryTag,
+        // Build 415 (#5 레어 드롭): express blast 도 letter 마다 독립 희귀도 roll
+        //   (블라스트는 항상 브랜드) — 한 캠페인 안에서도 일부만 rare/epic.
+        rarity: _rollLetterRarity(true),
         acceptsReplies: acceptsReplies,
         redemptionInfo: redemptionInfo,
         redemptionExpiresAt: category != LetterCategory.general
             ? redemptionExpiresAt
             : null,
+        // Build 415 (sim50 P1): 매장 사용코드 — blast 공통 코드. 이전 누락으로
+        //   express+bulk 쿠폰이 코드 없이 발송돼 손님 redeem 불가했음.
+        redemptionCode: blastRedemptionCode,
       );
 
       _worldLetters.add(letter);
@@ -8802,11 +9921,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// 반환값: null = 성공, 非non-null = 실패 사유 메시지
   /// [distanceCheck] false로 설정하면 거리 검증 없이 습득 (테스트/관리자용)
   String? pickUpLetter(String letterId, {bool distanceCheck = true}) {
-    // 브랜드 픽업 차단은 포지셔닝 변경으로 해제 — 모든 등급이 줍기 가능.
-    // (Free 200m / Premium 1km / Brand 1km — 브랜드는 발송 중심이지만
-    //  본인도 다른 발신자의 쿠폰/이벤트 편지를 주울 수 있음.)
+    // Build 429 (device): 브랜드 픽업 차단 — Brand 는 발송(캠페인) 전용 트랙.
+    //   줍기는 Free·Premium 회원만. (defense-in-depth: 지도 UI 도 별도 차단)
+    if (_currentUser.isBrand) {
+      return _l10n.statePickupBrandBlocked;
+    }
     //
-    // ① 쿨다운 체크 (무료: 1시간, 프리미엄/브랜드: 10분)
+    // ① 쿨다운 체크 (무료: 1시간, 프리미엄: 10분 — 현재 Premium 쿨다운 0)
     final remaining = nearbyPickupRemainingCooldown;
     if (remaining != null) {
       final mins = remaining.inMinutes;
@@ -8833,7 +9954,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
     // Build 324: worldLetters 정리가 lag 일 때 만료된 letter 픽업 시도 차단.
     //   캠페인 dedup 보다 먼저 — "만료" 메시지가 "이미 받았어요" 보다 정확.
-    if (letter.isExpired) {
+    // Build 414 (sim100 #24): 사용기한(redemptionExpiresAt) 지난 쿠폰도 차단 —
+    //   이전엔 지도 만료(expiresAt)만 봐서 못 쓰는 쿠폰을 픽업해 쿨다운만 소모.
+    if (letter.isExpired || letter.isRedemptionExpired) {
       return _l10n.stateAlreadyTaken;
     }
 
@@ -8867,13 +9990,21 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       // Build 347 (PR-U1 위치 시뮬레이션 P1): GPS 0,0 (권한 거부 / 시동 직후)
       //   인 사용자가 모든 letter 픽업 통과하던 회귀 차단. 위도+경도 둘 다
       //   0 이면 GPS 미가용 — 픽업 거리 검증 불가 → 거절.
-      if (_currentUser.latitude == 0 && _currentUser.longitude == 0) {
-        return _l10n.stateDistanceTooFar;
+      // Build 420 (sim100 iter5): 부분 초기화(한 좌표만 0) 도 미가용으로 간주 —
+      //   OR 가드 + Null Island(둘 다 |좌표|<0.0001) 도 무효 좌표로 처리.
+      final uLat = _currentUser.latitude;
+      final uLng = _currentUser.longitude;
+      if (uLat == 0 ||
+          uLng == 0 ||
+          (uLat.abs() < 0.0001 && uLng.abs() < 0.0001)) {
+        return _l10n.stateDistanceTooFar(pickupRadiusLabel);
       }
       final dist = letter.destinationLocation.distanceTo(
         LatLng(_currentUser.latitude, _currentUser.longitude),
       );
-      if (dist > pickupRadiusMeters) return _l10n.stateDistanceTooFar;
+      if (dist > pickupRadiusMeters) {
+        return _l10n.stateDistanceTooFar(pickupRadiusLabel);
+      }
     }
 
     // ⑥ 수령 처리: readCount 증가 후 inbox에 복사본 추가
@@ -8903,6 +10034,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           );
 
     _inbox.add(inboxCopy);
+    // Build 414 (sim100 #49): 라이브 픽업 세션 중 _inbox 무제한 증가 방지.
+    _capInbox();
 
     // 최대 읽기 인원 도달 시 지도에서 제거
     if (letter.readCount >= letter.maxReaders) {
@@ -8910,11 +10043,24 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     _currentUser.activityScore.receivedCount++;
-    _lastNearbyPickupAt = DateTime.now(); // 쿨다운 시작
+    // Build 414 (sim100 #54): 쿨다운 시작 시각도 SecureClock — getter 와 일관.
+    // Build 458 (페르소나 치명): 체험(demo_*)·튜토리얼·웰컴 letter 픽업은
+    //   쿨다운 미소모 — 이전엔 Free 첫 세션이 "가짜 쿠폰 1개 줍고 60분 대기"
+    //   로 끝났음. 진짜 쿠폰 픽업만 쿨다운 시작.
+    final isTutorialPickup = letter.id.startsWith('demo_') ||
+        letter.id.startsWith('tutorial_') ||
+        letter.id.startsWith('welcome_');
+    if (!isTutorialPickup) {
+      _lastNearbyPickupAt = SecureClock.now(); // 쿨다운 시작
+    }
 
     // 픽업 모먼트 햅틱 — 포켓몬 고식 "편지 주움" 감각. Brand 발신 편지는
     // 한 단계 더 무거운 시퀀스로 "공식 발송인" 체감 차별화.
-    FeedbackService.onLetterPickUp(isBrand: letter.senderIsBrand);
+    // Build 415 (#5 레어 드롭): rare/epic 픽업 시 한 단계 강한 햅틱 (rarity.index).
+    FeedbackService.onLetterPickUp(
+      isBrand: letter.senderIsBrand,
+      rarityBoost: letter.rarity.index,
+    );
 
     // 픽업 거리 누적 — XP 공식의 "편지 간 거리" 원천. Brand 계정은 레벨
     // 시스템 밖이지만 필드 자체는 동일하게 축적해서 후일 Brand 전용 통계에
@@ -9029,9 +10175,19 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   ///   "다른 사용자가 먼저 가져갔어요" 안내.
   void _rollbackPickedUpLetter(String letterId) {
     final before = _inbox.length;
+    // Build 420 (sim100 iter5): 캠페인 dedup 도 rollback — claim 패배 시
+    //   _pickedUpCampaignIds 에 남으면 받지도 못한 캠페인을 영구 픽업 차단.
+    //   inbox 제거 전에 campaignId 확보(제거 후엔 letter 객체 소실).
+    final rolled = _inbox.where((l) => l.id == letterId).toList();
     _inbox.removeWhere((l) => l.id == letterId);
     if (_inbox.length == before) return; // 이미 없음 (사용자가 삭제 등) — no-op
     _myPickedUpLetterIds.remove(letterId);
+    if (rolled.isNotEmpty) {
+      final cid = rolled.first.campaignId;
+      if (rolled.first.brandUniquePerUser && cid != null) {
+        _pickedUpCampaignIds.remove(cid);
+      }
+    }
     // Build 409 (sim P1.4): rollback 시 픽업 쿨다운 해제. 이전엔 optimistic
     //   픽업 때 _lastNearbyPickupAt 가 찍혀, claim 패배(못 받음)에도 사용자가
     //   60분 쿨다운에 묶여 "받지도 못한 편지" 때문에 다음 픽업이 막혔음.
@@ -9136,7 +10292,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         (letter.redemptionInfo == null || letter.redemptionInfo!.isEmpty);
     final needsImage = (letter.category == LetterCategory.voucher) &&
         (letter.imageUrl == null || letter.imageUrl!.isEmpty);
-    if (!needsContent && !needsRedemption && !needsImage) return false;
+    // Build 416 (sim100 P0/R2): 매장 코드도 refetch 트리거. map sync mask 는
+    //   redemptionCode 를 제외(heavy)하므로 픽업 직후 inbox 코드가 null →
+    //   getDocument(full doc)로 채워야 수신자가 매장에서 코드 제시 가능.
+    final needsCode = (letter.category != LetterCategory.general) &&
+        (letter.redemptionCode == null || letter.redemptionCode!.isEmpty);
+    if (!needsContent && !needsRedemption && !needsImage && !needsCode) {
+      return false;
+    }
 
     try {
       final doc = await FirestoreService.getDocument('letters/$letterId');
@@ -9145,6 +10308,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       final serverContent = (map['content'] as String?)?.trim() ?? '';
       final serverRed = (map['redemptionInfo'] as String?)?.trim() ?? '';
       final serverImg = (map['imageUrl'] as String?)?.trim() ?? '';
+      // Build 416 (sim100 P0/R2): 매장 사용 코드도 서버에서 가져옴.
+      final serverCode = (map['redemptionCode'] as String?)?.trim() ?? '';
       // Build 409 (sim P1.2): 서버 doc 의 category 를 진실로 사용. map sync 가
       //   category 를 마스킹했던 시절 픽업된 쿠폰은 local category=general 로
       //   떨어져 redemption 게이트(needsRedemption)가 안 걸려 코드가 영영 빈
@@ -9165,7 +10330,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           serverImg.isNotEmpty &&
           (letter.imageUrl == null || letter.imageUrl!.isEmpty);
       final fixCategory = effectiveCategory != letter.category;
-      if (!fillContent && !fillRed && !fillImg && !fixCategory) return false;
+      // Build 416 (sim100 P0/R2): 서버에 코드 있고 로컬 비어 있으면 채움.
+      final fillCode = serverCode.isNotEmpty &&
+          (letter.redemptionCode == null || letter.redemptionCode!.isEmpty);
+      if (!fillContent && !fillRed && !fillImg && !fixCategory && !fillCode) {
+        return false;
+      }
 
       // Letter 필드 대부분 final — clone 후 신규 인스턴스로 교체. mutate 된
       // inbox 전용 status/readAt 은 유지.
@@ -9222,6 +10392,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         acceptsReplies: letter.acceptsReplies,
         redemptionInfo: fillRed ? serverRed : letter.redemptionInfo,
         redemptionExpiresAt: letter.redemptionExpiresAt,
+        // Build 416 (sim100 P0/R2): 코드 보존/채움 — 이전 재구성은 redemptionCode
+        //   를 누락해 픽업 후 코드가 영구 소실됐음. rarity 도 누락돼 normal 로
+        //   리셋되던 것 같이 보존.
+        redemptionCode: fillCode ? serverCode : letter.redemptionCode,
+        rarity: letter.rarity,
       );
       _inbox[idx] = updated;
       notifyListeners();
@@ -9251,16 +10426,27 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   Future<bool> replyToLetter({
     required String originalLetterId,
     required String content,
+    // Build 453 (tier-sim P2): 답장 첨부 이미지 전달 — 이전엔 미전달이라 UI 에서
+    //   사진을 붙여도 조용히 누락됐음. sendLetter 가 _canSendImageLetter 게이트 +
+    //   _consumeImageQuota 를 적용.
+    String? imageUrl,
   }) async {
+    // Build 426 (sim100 #48): 답장은 Premium·Brand 만 — UI 게이트 외 state 단
+    //   defense-in-depth (Free 가 대체 경로로 답장 발송하는 것 차단).
+    if (!_currentUser.isPremium && !_currentUser.isBrand) return false;
     final idx = _inbox.indexWhere((l) => l.id == originalLetterId);
     if (idx < 0) return false;
     final original = _inbox[idx];
+    // Build 417 (sim100 P2): 서버측 답장 수락 가드 — UI 게이트뿐 아니라 여기서도
+    //   acceptsReplies=false letter 답장을 차단(defense-in-depth).
+    if (!original.acceptsReplies) return false;
     final sent = await sendLetter(
       content: content,
       destinationCountry: original.senderCountry,
       destinationFlag: original.senderCountryFlag,
       destLat: original.originLocation.latitude,
       destLng: original.originLocation.longitude,
+      imageUrl: imageUrl,
     );
     if (sent) {
       _currentUser.activityScore.replyCount++;
@@ -9280,6 +10466,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     String flag = '🌍',
   }) {
     if (_currentUser.followingIds.contains(userId)) return;
+    // Build 421 (sim-fresh P2): 차단/자기자신 팔로우 차단 — 이전엔 가드 없이
+    //   차단한 사용자도 팔로우 + chat 세션 생성돼 차단 우회.
+    if (userId.isEmpty ||
+        userId == _currentUser.id ||
+        _blockedSenderIds.contains(userId) ||
+        _tempBlockedSenderIds.contains(userId)) {
+      return;
+    }
     _currentUser.followingIds.add(userId);
 
     // Create or update chat session
@@ -9311,6 +10505,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   ChatStatus? getChatStatus(String userId) => _chatSessions[userId]?.status;
 
   void acceptChatInvite(String partnerId) {
+    // Build 426 (sim100 #22·#23): DM 자격(Premium·비-Brand) 없으면 채팅 세션
+    //   생성 차단 — Free 가 상호팔로우 카드로 chatting 상태를 만드는 것 방지.
+    if (!canUseDM) return;
     if (_chatSessions.containsKey(partnerId)) {
       _chatSessions[partnerId]!.status = ChatStatus.chatting;
       if (!_dmMessages.containsKey(partnerId)) {
@@ -9332,6 +10529,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   bool sendDM(String partnerId, String content) {
     // ① 권한 체크: 프리미엄만 가능
     if (!canUseDM) return false;
+    // Build 421 (sim-fresh P1): banned/차단 상대 DM 차단 — sendLetter 와 동일
+    //   defense-in-depth. DM 은 sendLetter 를 안 거치므로 별도 가드 필요(이전엔
+    //   admin-banned 프리미엄 사용자가 DM 으로 계속 발송 가능).
+    if (_currentUser.isBanned) return false;
+    // Build 425 (sim-fresh3 #45): 자기 자신에게 DM 차단 (자기 대화 생성 방지).
+    if (partnerId == _currentUser.id) return false;
+    if (_blockedSenderIds.contains(partnerId) ||
+        _tempBlockedSenderIds.contains(partnerId)) {
+      return false;
+    }
 
     // ② 발송 가능 여부 체크 (DM 10회 = 편지 1통 쿼터 차감 시점)
     // 이번 DM이 10의 배수가 되면 편지 쿼터 1통 차감
@@ -9343,8 +10550,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         return false; // 쿼터 없으면 DM 차단
       }
       _pendingDMCount = 0;
-      _dailySentCount++;
-      _monthlySentCount++;
+      // Build 453 (tier-sim P2): _consumeDailyQuota 로 통일 — base quota 우선,
+      //   부족 시 초대 크레딧 차감(+서버 영속). 이전엔 base 카운터를 한도 초과로
+      //   증가시키고 크레딧은 소비 안 해 sendLetter 와 불일치했음.
+      _consumeDailyQuota();
       _sentSinceLastUnlock++;
       _saveToPrefs();
     } else {
@@ -9365,35 +10574,30 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     );
     _dmMessages[partnerId]!.add(msg);
 
-    // Simulate partner reply after 3 seconds
-    Future.delayed(const Duration(seconds: 3), () {
+    // Build 458 (페르소나 치명 — DM 정직화): 상대를 사칭하던 가짜 자동응답
+    //   (stateDmReply1-7 랜덤)을 제거. 이전엔 결제한 Premium 이 봇과 대화 중인
+    //   걸 모르고, 브랜드는 자기 이름으로 헛소리 응답이 나갔음. 대신 대화당 1회
+    //   'Thiscount' 명의의 시스템 안내로 베타 상태를 투명하게 고지.
+    Future.delayed(const Duration(seconds: 2), () {
       if (_chatSessions.containsKey(partnerId)) {
-        final session = _chatSessions[partnerId]!;
-        final l10n = _l10n;
-        final replies = [
-          l10n.stateDmReply1,
-          l10n.stateDmReply2,
-          l10n.stateDmReply3,
-          l10n.stateDmReply4,
-          l10n.stateDmReply5,
-          l10n.stateDmReply6,
-          l10n.stateDmReply7,
-        ];
+        final alreadyNoticed = (_dmMessages[partnerId] ?? const [])
+            .any((m) => m.id.startsWith('dm_system_'));
+        if (alreadyNoticed) return;
         final reply = DirectMessage(
-          id: 'dm_reply_${DateTime.now().millisecondsSinceEpoch}',
-          senderId: partnerId,
-          senderName: session.partnerName,
-          content: replies[DateTime.now().millisecond % replies.length],
+          id: 'dm_system_${DateTime.now().millisecondsSinceEpoch}',
+          senderId: '_thiscount_system',
+          senderName: 'Thiscount',
+          content: _l10n.koEn(
+            '🧪 베타 안내: 1:1 채팅은 준비 중이에요. 지금 보낸 메시지는 아직 상대에게 전달되지 않으며, 정식 오픈 시 채팅 기능이 활성화됩니다.',
+            '🧪 Beta notice: 1:1 chat is in preparation. Your message has not been delivered to the other person yet — chat will activate at full launch.',
+          ),
           sentAt: DateTime.now(),
           isRead: false,
         );
         _dmMessages[partnerId]!.add(reply);
-        session.unreadCount++;
-        NotificationService.showDMArrivedNotification(
-          senderName: session.partnerName,
-          message: reply.content,
-          langCode: _currentUser.languageCode,
-        );
+        // 시스템 안내는 배지/푸시 미발생 — 보고 있으면 즉시 읽음, 아니어도
+        //   가짜 '상대 답장' 알림으로 오인되지 않게 무음 처리.
+        reply.isRead = true;
         notifyListeners();
         _saveDMToPrefs();
       }
@@ -9406,6 +10610,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   List<DirectMessage> getDMConversation(String partnerId) {
     return List.unmodifiable(_dmMessages[partnerId] ?? []);
+  }
+
+  // Build 421 (sim-fresh P3): 현재 열려있는 DM 상대 — 자동응답이 이 대화면
+  //   배지/푸시 생략. DmConversationScreen 이 initState/dispose 에서 설정/해제.
+  String? _activeDmPartnerId;
+  String? get activeDmPartnerId => _activeDmPartnerId;
+  void setActiveDmPartner(String? partnerId) {
+    _activeDmPartnerId = partnerId;
   }
 
   void markDMsRead(String partnerId) {
@@ -9435,6 +10647,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           ),
         ),
       );
+      // Build 421 (sim-fresh P1): 팔로우 그래프 영속 — 이전엔 followingIds 가
+      //   어디에도 저장 안 돼 앱 재시작마다 팔로우 목록 전부 소실.
+      prefs.setStringList('followingIds', _currentUser.followingIds);
     });
   }
 
@@ -9924,4 +11139,15 @@ class BrandAnalytics {
   /// 발송 대비 픽업률 (reach — 얼마나 주워졌는지).
   double get pickupReach =>
       totalSent == 0 ? 0 : (totalPicked / totalSent).clamp(0.0, 1.0);
+}
+
+// Build 449 (sim100 P2): 인사이트 캠페인 그룹 집계 — 대량발송 N통을 1 캠페인
+//   카드로 묶기 위한 임시 누산기 (brandInsights getter 내부 사용).
+class _InsightAgg {
+  Letter rep;
+  int sent = 0;
+  int pickup = 0;
+  int revealed = 0;
+  int redeemed = 0;
+  _InsightAgg({required this.rep});
 }

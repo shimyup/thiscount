@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
 import '../../state/app_state.dart';
+import '../compose/screens/compose_screen.dart';
+import 'brand_verification_sheet.dart';
 
 /// Build 156: 신규 Brand 유저 온보딩 체크리스트 카드.
 /// 프로필 상단에 BrandAnalyticsCard 바로 위 배치. 모든 체크 완료 시 자동 숨김.
@@ -106,11 +108,17 @@ class _BrandChecklistCardState extends State<BrandChecklistCard> {
                 ],
               ),
               const SizedBox(height: 10),
+              // Build 458 (페르소나 높음): 각 스텝에 실제 행동 딥링크 — 이전엔
+              //   1단계 '사업자 인증 제출' 화면이 admin 전용이라 사장이 영영
+              //   도달 불가('뭘 제출하라는 거지?'로 끝). 탭 → 인증 시트/발송.
               _step(
                 index: 1,
                 done: hasVerified,
                 title: l.brandChecklistStep1Title,
                 body: l.brandChecklistStep1Body,
+                onTap: hasVerified
+                    ? null
+                    : () => BrandVerificationSheet.show(context, state, l),
               ),
               const SizedBox(height: 6),
               _step(
@@ -118,6 +126,11 @@ class _BrandChecklistCardState extends State<BrandChecklistCard> {
                 done: hasSent,
                 title: l.brandChecklistStep2Title,
                 body: l.brandChecklistStep2Body,
+                onTap: hasSent
+                    ? null
+                    : () => Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => const ComposeScreen(),
+                        )),
               ),
               const SizedBox(height: 6),
               _step(
@@ -138,11 +151,12 @@ class _BrandChecklistCardState extends State<BrandChecklistCard> {
     required bool done,
     required String title,
     required String body,
+    VoidCallback? onTap,
   }) {
     final color = done
         ? AppColors.coupon
         : AppColors.textMuted.withValues(alpha: 0.6);
-    return Row(
+    final row = Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
@@ -204,7 +218,20 @@ class _BrandChecklistCardState extends State<BrandChecklistCard> {
             ],
           ),
         ),
+        // Build 458: 탭 가능 스텝엔 chevron 어포던스.
+        if (onTap != null)
+          const Icon(
+            Icons.chevron_right_rounded,
+            size: 18,
+            color: AppColors.textMuted,
+          ),
       ],
+    );
+    if (onTap == null) return row;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: row,
     );
   }
 }

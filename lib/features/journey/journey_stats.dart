@@ -22,6 +22,11 @@ class JourneyStats {
   /// 편지를 보낸 국가 수 (고유)
   final int countriesTo;
 
+  /// Build 421 (sim-fresh P2): 방문 나라 = 발신·목적국의 합집합(고유) 크기.
+  ///   이전엔 countriesFrom + countriesTo 로 양쪽에 모두 나타난 나라를 중복
+  ///   계산해 '방문 나라' 가 부풀려졌음.
+  final int countriesTotal;
+
   /// 가장 먼 편지 거리 (km). 발송/수신 모두 포함.
   final int longestDistanceKm;
 
@@ -37,6 +42,7 @@ class JourneyStats {
     required this.totalReplies,
     required this.countriesFrom,
     required this.countriesTo,
+    required this.countriesTotal,
     required this.longestDistanceKm,
     required this.longestDistanceCountry,
     required this.longestStreak,
@@ -87,6 +93,7 @@ class JourneyStats {
       totalReplies: score.replyCount,
       countriesFrom: fromSet.length,
       countriesTo: toSet.length,
+      countriesTotal: fromSet.union(toSet).length,
       longestDistanceKm: maxDist,
       longestDistanceCountry: farthestCountry,
       longestStreak: state.longestStreak,

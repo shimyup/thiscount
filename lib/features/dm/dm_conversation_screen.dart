@@ -30,13 +30,22 @@ class _DmConversationScreenState extends State<DmConversationScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AppState>().markDMsRead(widget.partnerId);
+      final state = context.read<AppState>();
+      // Build 421 (sim-fresh P3): 이 대화를 보는 동안 자동응답이 배지/푸시를
+      //   띄우지 않도록 활성 상대 등록.
+      state.setActiveDmPartner(widget.partnerId);
+      state.markDMsRead(widget.partnerId);
       _scrollToBottom();
     });
   }
 
   @override
   void dispose() {
+    // 화면을 떠나면 활성 상대 해제 (자기 자신일 때만 — 중첩 진입 방지).
+    final state = context.read<AppState>();
+    if (state.activeDmPartnerId == widget.partnerId) {
+      state.setActiveDmPartner(null);
+    }
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -63,7 +72,8 @@ class _DmConversationScreenState extends State<DmConversationScreen> {
       return;
     }
 
-    _controller.clear();
+    // Build 421 (sim-fresh P2): 전송 성공 후에만 입력창 비우기 — 이전엔 clear 를
+    //   먼저 해, 쿼터 부족으로 sendDM 이 false 면 작성한 메시지가 그대로 유실됐음.
     final success = state.sendDM(widget.partnerId, text);
     if (!success) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -77,6 +87,7 @@ class _DmConversationScreenState extends State<DmConversationScreen> {
       );
       return;
     }
+    _controller.clear();
     HapticFeedback.lightImpact();
     Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
   }
@@ -299,6 +310,7 @@ class _DmConversationScreenState extends State<DmConversationScreen> {
             backgroundColor: AppColors.bgCard,
             elevation: 0,
             leading: IconButton(
+              tooltip: l.koEn('뒤로', 'Back'),
               onPressed: () => Navigator.pop(context),
               icon: const Icon(
                 Icons.arrow_back_ios_new_rounded,
@@ -476,6 +488,7 @@ class _DmConversationScreenState extends State<DmConversationScreen> {
         backgroundColor: AppColors.bgCard,
         elevation: 0,
         leading: IconButton(
+          tooltip: l.koEn('뒤로', 'Back'),
           onPressed: () => Navigator.pop(context),
           icon: const Icon(
             Icons.arrow_back_ios_new_rounded,

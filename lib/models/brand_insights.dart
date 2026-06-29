@@ -65,6 +65,15 @@ class BrandInsights {
     return '🔴';
   }
 
+  /// Build 415 (sim50 P2): 한국어 하드코딩이던 healthLabel 을 현지화. 비-KR
+  ///   브랜드에 한국어가 노출되던 i18n 부정합 해소. 호출자가 사용자 언어 l 전달.
+  String healthLabelL10n(AppL10n l) {
+    if (redeemRate >= 0.20) return l.koEn('잘 되고 있어요', 'Going well');
+    if (redeemRate >= 0.05) return l.koEn('보통이에요', 'Doing okay');
+    return l.koEn('개선 필요', 'Needs work');
+  }
+
+  /// Deprecated — 한국어 고정. 신규 호출은 healthLabelL10n 사용.
   String get healthLabel {
     if (redeemRate >= 0.20) return '잘 되고 있어요';
     if (redeemRate >= 0.05) return '보통이에요';

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import '../config/firebase_config.dart';
 import 'firestore_service.dart';
@@ -15,6 +16,50 @@ class FirebaseAuthService {
 
   static String? get currentUid => _uid;
   static bool get isSignedIn => _idToken != null && _uid != null;
+
+  // ── Auth 마이그레이션 Phase 2 (flag-gated) ────────────────────────────────
+  // 현재 세션이 '정식' Firebase Auth(email/password) 인지(true) anon 인지(false).
+  // 정식일 때만 realAuthUid 가 비고, user doc 의 authUid 바인딩에 사용.
+  static bool _isRealAuth = false;
+  static String? get realAuthUid => _isRealAuth ? _uid : null;
+
+  // cold-start 에 비번 없이 정식 세션을 복원하기 위한 refresh token 보관.
+  static const FlutterSecureStorage _authStore = FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    iOptions: IOSOptions(
+      accessibility: KeychainAccessibility.first_unlock_this_device,
+    ),
+  );
+  static const String _kRealRefreshToken = 'fb_real_refresh_v1';
+
+  static Future<void> _persistRealRefreshToken() async {
+    try {
+      if (_refreshToken != null && _refreshToken!.isNotEmpty) {
+        await _authStore.write(key: _kRealRefreshToken, value: _refreshToken!);
+      }
+    } catch (_) {/* best-effort */}
+  }
+
+  /// Build 413 (Auth Phase 2): cold-start 시 저장된 refresh token 으로 정식
+  /// 세션 복원 (비번 불필요). 성공 시 true → 호출자는 anon 로그인 skip.
+  /// AUTH_BIND_ENABLED 일 때만 의미. 실패/미존재 시 false (anon fallback).
+  static Future<bool> restoreRealSessionIfAvailable() async {
+    if (!FirebaseConfig.kFirebaseEnabled) return false;
+    String? rt;
+    try {
+      rt = await _authStore.read(key: _kRealRefreshToken);
+    } catch (_) {
+      return false;
+    }
+    if (rt == null || rt.isEmpty) return false;
+    _refreshToken = rt;
+    await refreshTokenIfNeeded(refreshToken: rt, forceIfExpiringSoon: true);
+    if (_idToken != null) {
+      _isRealAuth = true;
+      return true;
+    }
+    return false;
+  }
 
   /// Firestore 요청 전 호출 — 토큰 만료 시 자동 갱신
   static Future<void> ensureValidToken() async {
@@ -162,6 +207,95 @@ class FirebaseAuthService {
     }
   }
 
+  /// Build 413 (Auth 마이그레이션 Phase 1 — groundwork, 기본 비활성):
+  /// 로컬 비번 검증을 통과한 사용자를 정식 Firebase Auth(email/password)로
+  /// 로그인하거나, 아직 Firebase 계정이 없으면 on-the-fly 생성(migrate).
+  /// 성공 시 Firebase uid(localId), 실패 시 null 반환.
+  ///
+  /// ⚠️ AUTH_BIND_ENABLED 플래그가 켜졌을 때만 호출됨 (docs/AUTH_MIGRATION_DESIGN.md).
+  ///   호출 시점엔 이미 앱이 로컬에서 username+password 를 검증한 상태이므로
+  ///   email/password 쌍은 신뢰 가능. signIn 실패(미존재) → signUp 으로 승급.
+  static Future<String?> signInOrMigrate({
+    required String email,
+    required String password,
+  }) async {
+    if (!FirebaseConfig.kFirebaseEnabled) return null;
+    final signInRes = await signIn(email: email, password: password);
+    if (signInRes != null &&
+        signInRes['error'] == null &&
+        signInRes['localId'] is String) {
+      _isRealAuth = true;
+      await _persistRealRefreshToken();
+      return signInRes['localId'] as String;
+    }
+    // 계정 미존재(또는 anon→email 미승급) → 생성 시도.
+    final signUpRes = await signUp(email: email, password: password);
+    if (signUpRes != null &&
+        signUpRes['error'] == null &&
+        signUpRes['localId'] is String) {
+      _isRealAuth = true;
+      await _persistRealRefreshToken();
+      return signUpRes['localId'] as String;
+    }
+    if (kDebugMode) {
+      debugPrint('[FirebaseAuthService] signInOrMigrate 실패 (계정 충돌 가능)');
+    }
+    return null;
+  }
+
+  /// Build 414 (Auth Phase 2, sim P1): 정식 세션 비밀번호 변경 (accounts:update).
+  /// 앱 로컬 비번을 바꿀 때 Firebase Auth 비번도 함께 갱신하지 않으면, 다음
+  /// signInOrMigrate 가 INVALID_PASSWORD/EMAIL_EXISTS 로 실패해 realAuthUid 가
+  /// 영구 null → Phase 3 cutover 시 owner-check(request.auth.uid==authUid) 불일
+  /// 치로 self-write 가 전면 403 으로 잠긴다. 현 정식 세션 idToken 으로 동기화.
+  ///
+  /// 정식(real) 세션이 없으면(anon 또는 미로그인) no-op + false. flag OFF 면 무의미.
+  /// best-effort — 실패해도 로컬 비번 변경 흐름은 유지(다음 로그인 때 재바인딩 가능).
+  static Future<bool> changePassword(String newPassword) async {
+    if (!FirebaseConfig.kFirebaseEnabled) return false;
+    if (!_isRealAuth || _idToken == null) return false;
+    try {
+      final res = await http
+          .post(
+            Uri.parse(
+              '${FirebaseConfig.authBase}:update?key=${FirebaseConfig.apiKey}',
+            ),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'idToken': _idToken,
+              'password': newPassword,
+              'returnSecureToken': true,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body) as Map<String, dynamic>;
+        // returnSecureToken 시 새 idToken/refreshToken 발급 — 세션 유지.
+        final newIdToken = data['idToken'] as String?;
+        if (newIdToken != null && newIdToken.isNotEmpty) {
+          _idToken = newIdToken;
+          _tokenExpiry = DateTime.now().add(const Duration(seconds: 3600));
+          FirestoreService.setIdToken(_idToken ?? '');
+        }
+        final newRefresh = data['refreshToken'] as String?;
+        if (newRefresh != null && newRefresh.isNotEmpty) {
+          _refreshToken = newRefresh;
+          await _persistRealRefreshToken();
+        }
+        return true;
+      }
+      if (kDebugMode) {
+        debugPrint(
+          '[FirebaseAuthService] changePassword 실패: ${_extractErrorCode(res)}',
+        );
+      }
+      return false;
+    } catch (e) {
+      if (kDebugMode) debugPrint('[FirebaseAuthService] changePassword 에러: $e');
+      return false;
+    }
+  }
+
   // ── 익명 로그인 (테스터용 — Firebase 계정 없이 Firestore 접근) ────────────────
   static Future<bool> signInAnonymously() async {
     if (!FirebaseConfig.kFirebaseEnabled) return false;
@@ -185,6 +319,7 @@ class FirebaseAuthService {
         _uid = data['localId'] as String?;
         _refreshToken = data['refreshToken'] as String?;
         _tokenExpiry = DateTime.now().add(const Duration(seconds: 3600));
+        _isRealAuth = false; // anon 세션 — authUid 바인딩에 쓰지 않음.
         FirestoreService.setIdToken(_idToken ?? '');
         if (kDebugMode) debugPrint('[FirebaseAuth] 익명 로그인 성공: $_uid');
         return true;
@@ -208,7 +343,10 @@ class FirebaseAuthService {
     _uid = null;
     _tokenExpiry = null;
     _refreshToken = null;
+    _isRealAuth = false;
     FirestoreService.setIdToken('');
+    // Build 413 (Auth Phase 2): 저장된 정식 세션 refresh token 도 제거.
+    unawaited(_authStore.delete(key: _kRealRefreshToken));
   }
 
   // ── 토큰 갱신 확인 ──────────────────────────────────────────────────────────

@@ -34,7 +34,10 @@ class ChatSession {
     partnerName: j['partnerName'] as String,
     partnerCountry: j['partnerCountry'] as String? ?? '',
     partnerFlag: j['partnerFlag'] as String? ?? '🌍',
-    status: ChatStatus.values[j['status'] as int? ?? 0],
+    // Build 423 (sim-crosscut P2): 범위 밖 index RangeError 방어.
+    status: ChatStatus.values[
+        ((j['status'] as num?)?.toInt() ?? 0)
+            .clamp(0, ChatStatus.values.length - 1)],
     createdAt:
         DateTime.tryParse(j['createdAt'] as String? ?? '') ?? DateTime.now(),
     unreadCount: j['unreadCount'] as int? ?? 0,

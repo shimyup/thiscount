@@ -1,5 +1,4 @@
 "NSLocationWhenInUseUsageDescription" = "Tu ubicación se usa para mostrar cupones de tiendas cercanas.";
-"NSLocationAlwaysAndWhenInUseUsageDescription" = "Tu ubicación se usa para mostrar cupones de tiendas cercanas.";
 "NSPhotoLibraryUsageDescription" = "Se necesita acceso a la fototeca para cambiar tu foto de perfil e imágenes de cupones.";
 "NSPhotoLibraryAddUsageDescription" = "Se necesita permiso para guardar las fotos seleccionadas en la app.";
 "NSUserNotificationUsageDescription" = "Se necesitan notificaciones para avisarte cuando lleguen nuevas recompensas cerca.";

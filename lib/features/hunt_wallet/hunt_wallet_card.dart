@@ -22,7 +22,10 @@ class HuntWalletCard extends StatelessWidget {
     return Consumer<AppState>(
       builder: (context, state, _) {
         final l10n = AppL10n.of(state.currentUser.languageCode);
-        final monthPickups = state.pickupsThisMonth;
+        // Build 421 (sim-fresh P1): 전체(totalBrandPickups)가 brand-scoped 이므로
+        //   월간도 brand-scoped getter 사용 — 이전엔 월간이 전체 inbox 를 세서
+        //   '이번 달 픽업' > '전체 픽업' 같은 비논리 표시 가능.
+        final monthPickups = state.brandPickupsThisMonth;
         final monthRedeemed = state.redemptionsThisMonth;
         final totalPickups = state.totalBrandPickups;
         final totalRedeemed = state.totalRedemptions;

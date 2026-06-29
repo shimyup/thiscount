@@ -62,6 +62,15 @@ if [[ -n "${STADIA_MAPS_API_KEY:-}" ]]; then
   DART_DEFINES+=("--dart-define=STADIA_MAPS_API_KEY=${STADIA_MAPS_API_KEY}")
 fi
 
+# Build 414 (Auth Phase 2 / Phase 3 STEP 1): .env.local 에 AUTH_BIND_ENABLED=true
+#   가 있을 때만 정식 Firebase Auth 그림자 바인딩 활성(TestFlight 베타로 authUid
+#   바인딩률 축적용). 미설정/없음 = false(프로덕션 기본, 익명 auth 유지).
+#   rules cutover(Phase 3) 전까진 런타임 동작 불변이라 안전. docs/AUTH_PHASE3_CUTOVER_RUNBOOK.md
+if [[ -n "${AUTH_BIND_ENABLED:-}" ]]; then
+  echo "[ios] AUTH_BIND_ENABLED=${AUTH_BIND_ENABLED}"
+  DART_DEFINES+=("--dart-define=AUTH_BIND_ENABLED=${AUTH_BIND_ENABLED}")
+fi
+
 # Build 273 hardening:
 # release_preflight.sh 가 BETA_* 플래그를 사전에 차단한다.
 # 여기서는 preflight 를 통과한 값만 주입한다.
@@ -122,20 +131,22 @@ if [[ -n "${PERMANENT_ADMIN_EMAIL:-}" ]]; then
   DART_DEFINES+=("--dart-define=PERMANENT_ADMIN_EMAIL=${PERMANENT_ADMIN_EMAIL}")
 fi
 
-# Resend 이메일 프로바이더 (OTP 실제 발송).
-# 설정되면 EmailService.isConfigured=true → auth_screen 의 on-screen OTP
-# fallback 이 자동으로 숨겨지고 실제 이메일이 발송됨.
-if [[ -n "${RESEND_API_KEY:-}" && -n "${RESEND_FROM_EMAIL:-}" ]]; then
-  echo "[ios] RESEND configured: ${RESEND_FROM_EMAIL}"
-  DART_DEFINES+=("--dart-define=RESEND_API_KEY=${RESEND_API_KEY}")
-  DART_DEFINES+=("--dart-define=RESEND_FROM_EMAIL=${RESEND_FROM_EMAIL}")
+# Build 412 (PII sim CRITICAL fix): Resend/SendGrid/Twilio 서버급 API 키를
+# 더 이상 클라이언트 바이너리에 주입하지 않는다 (strings 추출 → 도메인 사칭
+# 피싱 위험). 메일/SMS 는 Cloud Function relay (functions/) 가 서버에서 발송하고,
+# 클라이언트엔 '함수 URL'(비밀 아님)만 주입한다. 미설정 시 on-screen OTP fallback.
+if [[ -n "${AUTH_EMAIL_FN_URL:-}" ]]; then
+  echo "[ios] AUTH_EMAIL_FN_URL set"
+  DART_DEFINES+=("--dart-define=AUTH_EMAIL_FN_URL=${AUTH_EMAIL_FN_URL}")
 fi
-
-# SendGrid 이메일 프로바이더 (폴백).
-if [[ -n "${SENDGRID_API_KEY:-}" && -n "${SENDGRID_FROM_EMAIL:-}" ]]; then
-  echo "[ios] SENDGRID configured: ${SENDGRID_FROM_EMAIL}"
-  DART_DEFINES+=("--dart-define=SENDGRID_API_KEY=${SENDGRID_API_KEY}")
-  DART_DEFINES+=("--dart-define=SENDGRID_FROM_EMAIL=${SENDGRID_FROM_EMAIL}")
+if [[ -n "${AUTH_SMS_FN_URL:-}" ]]; then
+  echo "[ios] AUTH_SMS_FN_URL set"
+  DART_DEFINES+=("--dart-define=AUTH_SMS_FN_URL=${AUTH_SMS_FN_URL}")
+fi
+# Build 414: AI 쿠폰 생성 함수 URL (.env.local 에 있을 때만).
+if [[ -n "${COUPON_AI_FN_URL:-}" ]]; then
+  echo "[ios] COUPON_AI_FN_URL set"
+  DART_DEFINES+=("--dart-define=COUPON_AI_FN_URL=${COUPON_AI_FN_URL}")
 fi
 
 cd "$ROOT_DIR"

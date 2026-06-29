@@ -12,6 +12,7 @@ import '../../core/utils/secure_clipboard.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../core/config/app_links.dart';
 import '../../state/app_state.dart';
+import '../../core/widgets/radius_compare_viz.dart';
 
 class PremiumScreen extends StatefulWidget {
   /// [isWelcomeMode] : 최초 가입 후 플랜 선택 화면으로 열릴 때 true.
@@ -175,6 +176,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                     ),
                   )
                 : IconButton(
+                    tooltip: l.koEn('뒤로', 'Back'),
                     icon: const Icon(
                       Icons.arrow_back_ios_new_rounded,
                       color: AppColors.textSecondary,
@@ -226,6 +228,14 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   _PremiumHeroBanner(),
                 const SizedBox(height: 20),
 
+                // Build 435 (design): Free 사용자에게 줍기 반경(200m vs 1km)을
+                //   지도 동심원으로 시각화 — 텍스트 비교보다 "5배 넓다" 를 한 스캔에
+                //   전달해 전환 동기 강화 (Premium = 줍기 부스터 포지셔닝).
+                if (isFree) ...[
+                  RadiusCompareViz(l: l),
+                  const SizedBox(height: 20),
+                ],
+
                 // Build 215: 베타 시뮬레이터 안내. Build 271: 두 줄 → 한 줄로.
                 if (purchase.isBetaUpgradeSimulator && !isPremium && !isBrand)
                   Container(
@@ -247,7 +257,8 @@ class _PremiumScreenState extends State<PremiumScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            '베타 · 결제 없이 즉시 활성화',
+                            l.koEn('베타 · 결제 없이 즉시 활성화',
+                                'Beta · activate instantly, no payment'),
                             style: TextStyle(
                               color: AppColors.gold,
                               fontSize: 12.5,
@@ -295,7 +306,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                     // Build 118: Free 플랜도 픽업 제약 (반경·쿨다운) 부터
                     // 노출해 Premium 업그레이드 동기를 시각적으로 만든다.
                     '📍  ${l.premiumFreeFeature1}',
-                    '✉️  ${l.premiumFreeFeature2}',
+                    '🗺️  ${l.premiumFreeFeature2}',
                   ],
                   // Build 215: 현재 Free 사용자면 active 로 표시 → "현재 사용 중"
                   // 라벨이 뜨고 "해지 예약" 버튼이 안 뜸. 이전엔 항상 false 라
@@ -401,11 +412,18 @@ class _PremiumScreenState extends State<PremiumScreen> {
                           PurchaseProductIds.premiumMonthly) ??
                       '₩4,900',
                   period: l.premiumPerMonth,
-                  badge: isPremium && !isBrand ? l.premiumCurrentPlan : '',
+                  // Build 441 (sim100 P1): trial 사용자(isPremium=true via trial)가
+                  //   '현재 사용 중'으로 잠겨 만료 전 정식 결제 전환이 불가했음
+                  //   (전환 막다른 길). trial 중에는 '체험 중' 배지 + 결제 CTA 유지.
+                  badge: purchase.isTrialActive
+                      ? l.koEn('체험 중', 'On trial')
+                      : (isPremium && !isBrand ? l.premiumCurrentPlan : ''),
                   badgeColor: AppColors.teal,
                   features: premiumFeatures,
-                  isActive: isPremium && !isBrand,
-                  onTap: (isBrand || isPremium || purchase.loading)
+                  isActive: isPremium && !isBrand && !purchase.isTrialActive,
+                  onTap: (isBrand ||
+                          (isPremium && !purchase.isTrialActive) ||
+                          purchase.loading)
                       ? null
                       : () async {
                           if (purchase.isTestMode) {
@@ -454,9 +472,14 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   builder: (_) {
                     final brandEmail =
                         state.currentUser.email?.toLowerCase() ?? '';
-                    final isAdminBrand =
-                        brandEmail == DebugConstants.testBrandEmail ||
-                        BetaConstants.isAdmin(brandEmail);
+                    // Build 411 (sim security LOW): production 출시 빌드에서는
+                    //   하드코딩 admin 이메일 매칭을 무시 (isAdmin 과 동일 정책).
+                    //   이전엔 ceo@airony.xyz 가 production 에서도 brand 구매 UI
+                    //   활성으로 보였음 (실 entitlement 은 RC 서버 통제라 무해하나
+                    //   일관성 위해 가드).
+                    final isAdminBrand = !BetaConstants.isProductionBuild &&
+                        (brandEmail == DebugConstants.testBrandEmail ||
+                            BetaConstants.isAdmin(brandEmail));
                     // 테스터는 브랜드 구매 비활성화 (보이기만 함)
                     final brandDisabled =
                         (kDebugMode && !isAdminBrand && !isBrand) ||
@@ -684,6 +707,15 @@ class _PremiumScreenState extends State<PremiumScreen> {
                                 success: false,
                                 message: purchase.errorMessage,
                               );
+                            } else {
+                              // Build 414 (sim200 P2): restorePurchases 가 빈 복원에
+                              //   false 반환(#28)하나 호출처가 미처리 → 토스트 무반응.
+                              //   '복원할 구매 없음' 명시 안내.
+                              _showPurchaseResultToast(
+                                context,
+                                success: false,
+                                message: l.settingsRestorePurchasesEmpty,
+                              );
                             }
                           },
                     child: Text(
@@ -746,9 +778,12 @@ class _PremiumScreenState extends State<PremiumScreen> {
                         mode: LaunchMode.inAppBrowserView,
                       ),
                       style: TextButton.styleFrom(
-                        minimumSize: Size.zero,
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        // Build 414 (sim100 #39): a11y 터치 타깃 44pt 확보 —
+                        //   이전엔 shrinkWrap+작은 패딩으로 권장 최소 미만이었다.
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 12,
+                        ),
                       ),
                       child: Text(
                         l.settingsTerms,
@@ -777,9 +812,12 @@ class _PremiumScreenState extends State<PremiumScreen> {
                         mode: LaunchMode.inAppBrowserView,
                       ),
                       style: TextButton.styleFrom(
-                        minimumSize: Size.zero,
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        // Build 414 (sim100 #39): a11y 터치 타깃 44pt 확보 —
+                        //   이전엔 shrinkWrap+작은 패딩으로 권장 최소 미만이었다.
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 12,
+                        ),
                       ),
                       child: Text(
                         l.settingsPrivacy,
@@ -1897,22 +1935,25 @@ class _FeatureCompareTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    // Build 426 (sim100 #31): 발송은 Brand 전용 → 발송 기반 행은 Free·Premium
+    //   모두 ✗, Brand 만 수치. Premium 고유 강점(1:1 DM) 행 추가.
     final rows = [
       [l10n.premiumCompareFeature, 'Free', 'Premium', 'Brand'],
-      [l10n.premiumCompareDailyLetters, '3', '30', '200'],
-      [l10n.premiumCompareMonthlyLetters, '100', '500', '10,000'],
+      [l10n.premiumCompareDailyLetters, '✗', '✗', '200'],
+      [l10n.premiumCompareMonthlyLetters, '✗', '✗', '10,000'],
       [
         l10n.premiumCompareImageLink,
         '✗',
-        l10n.premiumCompare20PerDay,
+        '✗',
         l10n.premiumCompareAllIncluded,
       ],
       [
         l10n.premiumCompareExpress,
         '✗',
-        l10n.premiumCompare3PerDay,
+        '✗',
         l10n.premiumCompareInstantBulk,
       ],
+      [l10n.premiumCompareDM, '✗', '✓', '✗'],
       [
         l10n.premiumCompareStyle,
         l10n.premiumCompareBasic,
@@ -1931,8 +1972,12 @@ class _FeatureCompareTable extends StatelessWidget {
       [
         l10n.premiumCompareMonthlyPrice,
         l10n.premiumCompareFree,
-        '₩4,900',
-        '₩99,000',
+        // Build 416 (sim100 P2): RC 현지화 가격 우선 — 상단 _PlanCard 는 priceString
+        //   인데 이 비교표만 ₩ 하드코딩이라 같은 화면 통화 불일치(심사 리스크)였음.
+        PurchaseService().localizedPriceFor(PurchaseProductIds.premiumMonthly) ??
+            '₩4,900',
+        PurchaseService().localizedPriceFor(PurchaseProductIds.brandMonthly) ??
+            '₩99,000',
       ],
     ];
 
@@ -2996,7 +3041,27 @@ void _showBrandUpgradeDialog({
       );
       if (!ok) return;
     }
-    await purchase.scheduleUpgradeToBrand(userEmail: userEmail);
+    final upgraded = await purchase.scheduleUpgradeToBrand(userEmail: userEmail);
+    if (!context.mounted) return;
+    // Build 414 (sim100 #4/#6): 결제 취소/실패 시 '성공' 스낵바 금지. 이전엔
+    //   결과를 무시하고 무조건 녹색 성공 표시 → 결제 안 됐는데 됐다고 오인.
+    if (!upgraded) {
+      final msg = purchase.errorMessage;
+      if (msg != null && msg.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(msg, style: const TextStyle(color: Colors.white)),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+      return;
+    }
     if (context.mounted) {
       // Build 383 (PR-FF1 audit AA1 후속): production 에선 buyBrand() 즉시
       //   결제 (PR-CC1 P0 #1 fix 후) → schedule 카피 부정확. 결제 완료

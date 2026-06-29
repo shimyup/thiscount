@@ -132,7 +132,14 @@ class FeedbackService {
 
   /// Fired when the user successfully picks up a scattered letter from the
   /// map. Brand-sent letters get an extra heavy tap for weight.
-  static Future<void> onLetterPickUp({bool isBrand = false}) async {
+  ///
+  /// Build 415 (#5 레어 드롭): 희귀도가 높을수록 한 단계 더 강한 햅틱 시퀀스를
+  /// 덧붙여 "특별한 걸 주웠다" 는 손맛을 차별화한다. rarityBoost = 0(normal) /
+  /// 1(rare) / 2(epic) — Letter.rarity.index 를 그대로 전달.
+  static Future<void> onLetterPickUp({
+    bool isBrand = false,
+    int rarityBoost = 0,
+  }) async {
     final now = DateTime.now();
     final last = _lastPickupHapticAt;
     if (last != null &&
@@ -149,6 +156,11 @@ class FeedbackService {
       await HapticFeedback.mediumImpact();
       if (isBrand) {
         await Future.delayed(const Duration(milliseconds: 120));
+        await HapticFeedback.heavyImpact();
+      }
+      // rare/epic 추가 임팩트 — boost 만큼 heavy tap 반복으로 "묵직한 보상" 체감.
+      for (int i = 0; i < rarityBoost; i++) {
+        await Future.delayed(const Duration(milliseconds: 100));
         await HapticFeedback.heavyImpact();
       }
     });

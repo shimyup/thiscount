@@ -52,6 +52,12 @@ if [[ -n "${STADIA_MAPS_API_KEY:-}" ]]; then
   DART_DEFINES+=("--dart-define=STADIA_MAPS_API_KEY=${STADIA_MAPS_API_KEY}")
 fi
 
+# Build 414 (Auth Phase 3 STEP 1): .env.local 에 AUTH_BIND_ENABLED=true 일 때만 주입.
+if [[ -n "${AUTH_BIND_ENABLED:-}" ]]; then
+  echo "[android] AUTH_BIND_ENABLED=${AUTH_BIND_ENABLED}"
+  DART_DEFINES+=("--dart-define=AUTH_BIND_ENABLED=${AUTH_BIND_ENABLED}")
+fi
+
 # Build 273 hardening:
 # release_preflight.sh 가 BETA_* 플래그를 사전에 차단한다.
 # 여기서는 preflight 를 통과한 값만 주입한다.
@@ -98,18 +104,20 @@ if [[ -n "${PERMANENT_ADMIN_EMAIL:-}" ]]; then
   DART_DEFINES+=("--dart-define=PERMANENT_ADMIN_EMAIL=${PERMANENT_ADMIN_EMAIL}")
 fi
 
-# Resend 이메일 프로바이더 (OTP 실제 발송).
-if [[ -n "${RESEND_API_KEY:-}" && -n "${RESEND_FROM_EMAIL:-}" ]]; then
-  echo "[android] RESEND configured: ${RESEND_FROM_EMAIL}"
-  DART_DEFINES+=("--dart-define=RESEND_API_KEY=${RESEND_API_KEY}")
-  DART_DEFINES+=("--dart-define=RESEND_FROM_EMAIL=${RESEND_FROM_EMAIL}")
+# Build 412 (PII sim CRITICAL fix): 서버급 API 키 클라이언트 주입 제거.
+# 메일/SMS 는 Cloud Function relay 가 서버에서 발송, 클라이언트엔 함수 URL 만 주입.
+if [[ -n "${AUTH_EMAIL_FN_URL:-}" ]]; then
+  echo "[android] AUTH_EMAIL_FN_URL set"
+  DART_DEFINES+=("--dart-define=AUTH_EMAIL_FN_URL=${AUTH_EMAIL_FN_URL}")
 fi
-
-# SendGrid 이메일 프로바이더 (폴백).
-if [[ -n "${SENDGRID_API_KEY:-}" && -n "${SENDGRID_FROM_EMAIL:-}" ]]; then
-  echo "[android] SENDGRID configured: ${SENDGRID_FROM_EMAIL}"
-  DART_DEFINES+=("--dart-define=SENDGRID_API_KEY=${SENDGRID_API_KEY}")
-  DART_DEFINES+=("--dart-define=SENDGRID_FROM_EMAIL=${SENDGRID_FROM_EMAIL}")
+if [[ -n "${AUTH_SMS_FN_URL:-}" ]]; then
+  echo "[android] AUTH_SMS_FN_URL set"
+  DART_DEFINES+=("--dart-define=AUTH_SMS_FN_URL=${AUTH_SMS_FN_URL}")
+fi
+# Build 414: AI 쿠폰 생성 함수 URL (.env.local 에 있을 때만).
+if [[ -n "${COUPON_AI_FN_URL:-}" ]]; then
+  echo "[android] COUPON_AI_FN_URL set"
+  DART_DEFINES+=("--dart-define=COUPON_AI_FN_URL=${COUPON_AI_FN_URL}")
 fi
 
 cd "$ROOT_DIR"

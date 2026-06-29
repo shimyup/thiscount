@@ -88,6 +88,7 @@ class _BenefitsDialogState extends State<_BenefitsDialog> {
                     ),
                   ),
                   IconButton(
+                    tooltip: l.koEn('닫기', 'Close'),
                     icon: const Icon(
                       Icons.close_rounded,
                       color: AppColors.textMuted,

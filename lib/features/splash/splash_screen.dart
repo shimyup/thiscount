@@ -56,28 +56,13 @@ class _SplashScreenState extends State<SplashScreen>
     //   onboarding 흐름을 항상 force-skip 해서 release 와 동작 불일치.
     //   debug/release 흐름 일치화 → 같은 시나리오 검증 가능.
     if (!onboardingDone) {
-      // Build 284: 첫 방문 → 인포그래픽 투어 → 기존 onboarding 으로.
-      // Build 298 (P0 i18n audit): tour 콘텐츠가 한국어 only — 비-ko 단말은
-      // 자동 skip.
-      // Build 324 (positioning): 온보딩 1액션화 — 한국어 사용자도 투어 자동 skip
-      //   으로 통일. splash → onboarding → home 직진. tour 의 인포그래픽 정보는
-      //   첫 픽업 후 contextual hint 로 대체. 베타 빌드는 매번 reset 유지 (위쪽)
-      //   해서 테스터는 여전히 투어 확인 가능 — 단 출시 빌드 첫 사용자엔 노출 X.
-      final seenTour = prefs.getBool('seen_onboarding_tour') ?? false;
-      if (!seenTour && !isBetaBuild) {
-        await prefs.setBool('seen_onboarding_tour', true);
-      }
+      // Build 429 (device #5): 베타 인포그래픽 투어(3페이지) 제거 — 인트로 5p 와
+      //   내용 중복 + 매 실행 노출로 drop-off. splash → onboarding 직진.
+      //   (투어 정보는 인트로 + 첫 픽업 contextual hint 로 충분히 커버.)
+      //   투어를 다신 띄우지 않도록 seen 플래그도 true 고정.
+      await prefs.setBool('seen_onboarding_tour', true);
       if (!mounted) return;
-      // 베타 빌드 + 한국어 단말 + 미시청 시에만 tour 진입.
-      final effectiveSeen = isBetaBuild
-          ? (prefs.getBool('seen_onboarding_tour') ?? false)
-          : true;
-      final locale = WidgetsBinding.instance.platformDispatcher.locale;
-      final routeAfterSplash =
-          (!effectiveSeen && locale.languageCode.toLowerCase() == 'ko')
-              ? '/onboarding_tour'
-              : '/onboarding';
-      Navigator.of(context).pushReplacementNamed(routeAfterSplash);
+      Navigator.of(context).pushReplacementNamed('/onboarding');
     } else if (widget.skipToAuth) {
       Navigator.of(context).pushReplacementNamed('/auth');
     } else {

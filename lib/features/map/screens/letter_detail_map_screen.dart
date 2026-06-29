@@ -88,6 +88,7 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
             appBar: AppBar(
               backgroundColor: AppColors.bgDeep,
               leading: IconButton(
+                tooltip: l10n.koEn('뒤로', 'Back'),
                 icon: const Icon(
                   Icons.arrow_back_rounded,
                   color: AppColors.gold,
@@ -135,6 +136,7 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
       backgroundColor: AppColors.bgDeep,
       elevation: 0,
       leading: IconButton(
+        tooltip: l10n.koEn('뒤로', 'Back'),
         icon: const Icon(Icons.arrow_back_rounded, color: AppColors.gold),
         onPressed: () => Navigator.pop(context),
       ),
@@ -193,9 +195,11 @@ class _LetterTrackingScreenState extends State<LetterTrackingScreen>
     final displayTo = (isLastSeg && letter.destinationDisplayAddress != null)
         ? letter.destinationDisplayAddress!
         : null;
+    // Build 422 (sim-fresh2 P2): 국경 검문소 sentinel 현지화.
+    final lang = context.read<AppState>().currentUser.languageCode;
 
     if (letter.senderCountry != letter.destinationCountry) {
-      return '${seg.fromName} → ${displayTo ?? seg.toName}';
+      return '${seg.displayFromName(lang)} → ${displayTo ?? seg.displayToName(lang)}';
     }
     final fromLabel = _nearestCityLabel(
       letter.senderCountry,

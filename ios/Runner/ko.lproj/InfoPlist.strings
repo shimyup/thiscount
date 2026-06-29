@@ -1,5 +1,4 @@
 "NSLocationWhenInUseUsageDescription" = "근처 매장의 할인 혜택을 표시하기 위해 위치 정보가 필요합니다.";
-"NSLocationAlwaysAndWhenInUseUsageDescription" = "근처 매장의 할인 혜택을 표시하기 위해 위치 정보가 필요합니다.";
 "NSPhotoLibraryUsageDescription" = "프로필 사진과 쿠폰 이미지를 변경할 때 사진 라이브러리 접근이 필요합니다.";
 "NSPhotoLibraryAddUsageDescription" = "선택한 사진을 앱에 저장하기 위해 권한이 필요합니다.";
 "NSUserNotificationUsageDescription" = "근처에 새로운 혜택이 도착하면 알려드리기 위해 알림 권한이 필요합니다.";

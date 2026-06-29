@@ -17,7 +17,7 @@ capture_route() {
   echo "[capture-set] route=$route label=$label"
   (
     cd "$ROOT_DIR"
-    flutter run -d "$DEVICE_ID" --debug --target lib/main.dart --route "$route" --no-resident >/dev/null
+    flutter run -d "$DEVICE_ID" --debug --target lib/main.dart --dart-define=APP_INITIAL_ROUTE="$route" --no-resident >/dev/null
   )
   sleep 2
   xcrun simctl io "$DEVICE_ID" screenshot "$out_file" >/dev/null

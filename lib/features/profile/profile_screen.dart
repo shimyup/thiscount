@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,13 +9,16 @@ import 'package:provider/provider.dart';
 import '../share/share_card_service.dart';
 
 import '../progression/user_progress.dart';
+import '../admin/admin_screen.dart';
 import '../brand/brand_analytics_card.dart';
 import '../brand/brand_checklist_card.dart';
 import '../hunt_wallet/hunt_wallet_card.dart';
+import '../hunt_wallet/stamp_cards_row.dart';
 import '../journey/journey_card.dart';
 import '../reflection/weekly_reflection_card.dart';
 import '../streak/streak_badge.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../core/config/app_keys.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/localization/country_names.dart';
 import '../../../core/localization/language_config.dart';
@@ -185,7 +189,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-    );
+      // Build 423 (sim-crosscut P2): 다이얼로그 종료 시 컨트롤러 해제.
+    ).then((_) => ctrl.dispose());
   }
 
   Future<void> _changeProfileImage(BuildContext ctx, AppState state) async {
@@ -431,22 +436,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           TextButton(
             onPressed: () async {
-              if (newCtrl.text.length < 6) {
-                _showSnack(ctx, _pl.profilePasswordMinLength);
+              final lc = ctx.read<AppState>().currentUser.languageCode;
+              // Build 416 (sim100 R4): signUp 과 동일한 비번 규칙(8~20·영문·숫자)
+              //   검증 — 이전 '<6' 검사는 규칙 불일치로 변경 후 로그인 거부 유발.
+              final pwErr = AuthService.validatePassword(newCtrl.text, langCode: lc);
+              if (pwErr != null) {
+                _showSnack(ctx, pwErr);
                 return;
               }
               if (newCtrl.text != confirmCtrl.text) {
                 _showSnack(ctx, _pl.profilePasswordMismatch);
                 return;
               }
-              final user = await AuthService.getCurrentUser();
-              if (user == null) return;
-              final err = await AuthService.login(
-                username: user['username'] ?? '',
-                password: oldCtrl.text,
-                langCode: ctx.read<AppState>().currentUser.languageCode,
-              );
-              if (err != null) {
+              // Build 416 (sim100 R4): login() 으로 현재 비번 검증하면 brute-force
+              //   카운터가 올라 5회 오입력 시 본인 계정이 15분 잠김. settings 처럼
+              //   verifyCurrentPassword(카운터 미증분)로 교체.
+              final ok = await AuthService.verifyCurrentPassword(oldCtrl.text);
+              if (!ok) {
                 if (ctx.mounted)
                   _showSnack(ctx, _pl.profileCurrentPasswordWrong);
                 return;
@@ -464,7 +470,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-    );
+      // Build 423 (sim-crosscut P2): 다이얼로그 종료 시 3 컨트롤러 해제.
+    ).then((_) {
+      oldCtrl.dispose();
+      newCtrl.dispose();
+      confirmCtrl.dispose();
+    });
   }
 
   Widget _pwField(TextEditingController ctrl, String hint) {
@@ -586,9 +597,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               : FontWeight.w400,
                         ),
                       ),
-                      onTap: () {
+                      onTap: () async {
                         state.updateProfile(languageCode: code);
-                        Navigator.pop(ctx);
+                        // Build 425 (sim-fresh3 #19): SettingsScreen 과 동일하게,
+                        //   일일 리마인더가 켜져 있으면 새 언어로 재예약 — 이전엔
+                        //   ProfileScreen 경로만 누락돼 옛 언어 본문으로 잔존.
+                        final prefs = await SharedPreferences.getInstance();
+                        if (prefs.getBool('notify_daily_letter') ?? false) {
+                          await NotificationService.scheduleDailyLetterReminder(
+                            langCode: code,
+                          );
+                        }
+                        if (ctx.mounted) Navigator.pop(ctx);
                       },
                     );
                   },
@@ -673,6 +693,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           TextButton(
             onPressed: () async {
+              // Build 414 (sim200 P2): 탈퇴 전 sync 정지 — 삭제 doc 부활 방지(GDPR).
+              ctx.read<AppState>().stopServerSync();
               await AuthService.deleteAccount();
               if (ctx.mounted) {
                 Navigator.of(
@@ -928,6 +950,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final _lc = user.languageCode;
         final _l = AppL10n.of(_lc);
 
+        // Build 446: Brand 계정은 프로필을 '인사이트'(분석 중심) / '프로필'(계정 관리)
+        //   2개 하위 탭으로 재구성. Free/Premium 은 기존 단일 스크롤 유지.
+        if (user.isBrand && !_loading) {
+          return _buildBrandTabbed(ctx, state, purchase, user, _l, _lc);
+        }
+
         return Scaffold(
           backgroundColor: AppTimeColors.of(ctx).bgDeep,
           body: _loading
@@ -1023,6 +1051,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               margin: EdgeInsets.symmetric(horizontal: 16),
                             ),
                             const SizedBox(height: 12),
+                            // Build 453: 단골 스탬프 — 매장별 적립 진행도.
+                            //   카드 0장이면 위젯이 스스로 사라짐.
+                            const StampCardsRow(
+                              margin: EdgeInsets.symmetric(horizontal: 16),
+                            ),
+                            const SizedBox(height: 12),
                           ],
                           // Build 138: Brand 전용 ROI 대시보드. 발송·픽업·사용
                           // 집계 + 전환율 + 국가별 상위 리스트. Firestore 에서
@@ -1060,23 +1094,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       const Text('📊',
                                           style: TextStyle(fontSize: 22)),
                                       const SizedBox(width: 12),
-                                      const Expanded(
+                                      Expanded(
                                         child: Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
+                                            // Build 421 (sim-fresh P2): 하드코딩
+                                            //   한국어 → 언어별 표시.
                                             Text(
-                                              '캠페인 인사이트',
-                                              style: TextStyle(
+                                              _l.koEn('캠페인 인사이트',
+                                                  'Campaign insights'),
+                                              style: const TextStyle(
                                                 color: AppColors.textPrimary,
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w800,
                                               ),
                                             ),
-                                            SizedBox(height: 2),
+                                            const SizedBox(height: 2),
                                             Text(
-                                              '발송 → 픽업 → 사용 전환률 한눈에',
-                                              style: TextStyle(
+                                              _l.koEn(
+                                                  '발송 → 픽업 → 사용 전환률 한눈에',
+                                                  'Sent → pickup → redeem at a glance'),
+                                              style: const TextStyle(
                                                 color: AppColors.textSecondary,
                                                 fontSize: 11,
                                               ),
@@ -1106,16 +1145,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             const SizedBox(height: 12),
                           ],
-                          // ①-2 나의 여정 카드 — 누적 지표가 있을 때만 표시
-                          const JourneyCard(
-                            margin: EdgeInsets.symmetric(horizontal: 16),
-                          ),
-                          const SizedBox(height: 12),
-                          // ①-4 이번 주 회고 — 일요일 + 발송 이력 있을 때만
-                          const WeeklyReflectionCard(),
                           // ② 구독 + 잔여발송 빠른카드 (B+C)
                           _buildQuickCardsRow(ctx, state, user, purchase),
                           const SizedBox(height: 12),
+                          // Build 459 (UI 다이어트): 여정/회고/우표앨범/선호
+                          //   카테고리 4카드를 '내 기록' 접이식 1섹션으로 — 매일
+                          //   보는 정보가 아닌 회고성 카드가 프로필 세로 밀도를
+                          //   키우던 문제. Brand 는 기존 노출 유지(아래 분기).
+                          if (!user.isBrand) ...[
+                            _RecordsSection(
+                              l: _l,
+                              children: [
+                                const JourneyCard(
+                                  margin:
+                                      EdgeInsets.symmetric(horizontal: 16),
+                                ),
+                                const SizedBox(height: 12),
+                                const WeeklyReflectionCard(),
+                                _buildStampAlbumBanner(ctx, state),
+                                const SizedBox(height: 12),
+                                _PreferredCategoryCard(state: state),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                          ] else ...[
+                            const JourneyCard(
+                              margin: EdgeInsets.symmetric(horizontal: 16),
+                            ),
+                            const SizedBox(height: 12),
+                            const WeeklyReflectionCard(),
+                          ],
                           // Build 178: XP 레벨 바 + 타워 진척 카드는 Free/Premium
                           // 유저의 경우 레터 탭 hero 에 이미 표시됨 → 여기선 숨겨
                           // 프로필 수직 밀도 감소. Brand 만 남겨 타워 정체성 유지.
@@ -1125,21 +1184,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             _buildTowerProgressCard(ctx, user),
                             const SizedBox(height: 12),
                           ],
-                          // ④ 우표 앨범 배너 — Build 185: Brand 숨김.
-                          // Brand 는 ROI 대시보드가 프로필 주력이고 우표 수집은
-                          // Free/Premium 게임플레이 요소.
-                          if (!user.isBrand) ...[
-                            _buildStampAlbumBanner(ctx, state),
-                            const SizedBox(height: 12),
-                          ],
-                          // Build 218: Premium Lv11+ 카테고리 선호 카드.
-                          // Brand 가 카테고리별로 보낸 편지 중, 내가 받고 싶은
-                          // 카테고리 매칭 확률을 높여준다 (50% 부스트).
-                          // Lv11 미만 / Free 는 잠금 상태로 노출 (업그레이드 유도).
-                          if (!user.isBrand) ...[
-                            _PreferredCategoryCard(state: state),
-                            const SizedBox(height: 12),
-                          ],
                           // ⑤ 팔로잉/팔로워 탭
                           _buildFollowSection(ctx, state, user),
                           const SizedBox(height: 16),
@@ -1147,10 +1191,224 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           // 뒤로 숨겨 프로필 스캔을 가볍게. 탭하면 아래 계정/
                           // 공개/알림/화면/앱정보/계정관리 전체가 펼쳐진다.
                           // 기존 섹션 구조는 유지 → 필요할 때만 꺼냄.
-                          _SettingsCollapseButton(
+                          // Build 437 (device #6): 계정/공개/알림/화면/앱정보/계정관리 설정을
+                          //   프로필에서 분리 → 톱니 진입 별도 SettingsScreen 으로 이동.
+                          _SettingsEntryTile(
                             label: _l.profileSettingsCollapseLabel,
                             sublabel: _l.profileSettingsCollapseSublabel,
-                            children: [
+                            onTap: () => _openSettingsScreen(ctx),
+                          ),
+                          const SizedBox(height: 60),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+        );
+      },
+    );
+  }
+
+  // ── Build 447: Brand 프로필 = 계정 관리 전용 ────────────────────────────────
+  //   인사이트는 하단 네비 별도 탭(main_scaffold)으로 분리됨 → 여기선 계정 관리만.
+  Widget _buildBrandTabbed(
+    BuildContext ctx,
+    AppState state,
+    PurchaseService purchase,
+    UserProfile user,
+    AppL10n _l,
+    String _lc,
+  ) {
+    return Scaffold(
+      backgroundColor: AppTimeColors.of(ctx).bgDeep,
+      appBar: AppBar(
+        backgroundColor: AppTimeColors.of(ctx).bgDeep,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: Text(
+          _l.profile,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 17,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        actions: [
+          IconButton(
+            tooltip: _l.profileSettingsCollapseLabel,
+            icon: const Icon(Icons.settings_rounded,
+                color: AppColors.textPrimary),
+            onPressed: () => _openSettingsScreen(ctx),
+          ),
+          const SizedBox(width: 4),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(0, 12, 0, 40),
+        children: [
+          _buildBrandProfileHeader(ctx, state, user, _l),
+          const SizedBox(height: 12),
+          _buildFourStatRow(ctx, state, user),
+          const SizedBox(height: 16),
+          _buildFollowSection(ctx, state, user),
+          const SizedBox(height: 16),
+          ..._buildSettingsSections(ctx, state, user, _l,
+              expanded: true, collapsible: false),
+        ],
+      ),
+    );
+  }
+
+  // Build 446: 프로필 탭 상단 — 아바타(탭하면 변경) + 닉네임 + 공식 발송인 배지.
+  Widget _buildBrandProfileHeader(
+    BuildContext ctx,
+    AppState state,
+    UserProfile user,
+    AppL10n _l,
+  ) {
+    final tierClr = _tierColor(user.activityScore.tier);
+    // Build 460 (키비주얼): Brand 헤더 히어로화 — 일반 프로필의 히어로(88px
+    //   아바타)와 격차가 컸던 소형 카드(60px)를 그라디언트 + 76px 아바타 +
+    //   coupon 링으로 승격. 매장 이름(brandName)이 메인, 아이디는 보조.
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.coupon.withValues(alpha: 0.12),
+            AppColors.bgCard,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.coupon.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => _changeProfileImage(ctx, state),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 76,
+                  height: 76,
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.coupon.withValues(alpha: 0.7),
+                      width: 2,
+                    ),
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: tierClr,
+                    ),
+                    child: _buildAvatarContent(user),
+                  ),
+                ),
+                Positioned(
+                  right: -2,
+                  bottom: -2,
+                  child: Container(
+                    width: 22,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.textPrimary,
+                      border: Border.all(
+                        color: AppColors.bgCard,
+                        width: 2,
+                      ),
+                    ),
+                    child: const Icon(Icons.edit_rounded,
+                        size: 11, color: AppColors.bgDeep),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Build 460: 매장 이름이 키비주얼(18pt) — 손님에게 보이는
+                //   상호가 주인공. 아이디는 보조 라인.
+                Text(
+                  (user.brandName?.isNotEmpty ?? false)
+                      ? user.brandName!
+                      : user.username,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                if (user.brandName?.isNotEmpty ?? false) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    '@${user.username}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 11.5,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 5),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.coupon.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: AppColors.coupon.withValues(alpha: 0.42),
+                    ),
+                  ),
+                  child: Text(
+                    '👑 ${user.activityScore.reputationTitleL(user.languageCode)}',
+                    style: const TextStyle(
+                      color: AppColors.coupon,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Build 437 (device #6): 계정/공개/알림/화면/앱정보/계정관리 설정 섹션을
+  //   프로필 본문에서 분리해 별도 SettingsScreen 에서 재사용하도록 추출.
+  //   파라미터로 받은 state/user 로 빌드 → SettingsScreen 의 Consumer 가 호출하므로
+  //   스위치 토글 반응성 보존(서버/로컬 변경 즉시 반영).
+  List<Widget> _buildSettingsSections(
+    BuildContext ctx,
+    AppState state,
+    UserProfile user,
+    AppL10n _l, {
+    bool expanded = false,
+    bool collapsible = true,
+  }) {
+    final _lc = user.languageCode;
+    // Build 448: 이 호출의 그룹 펼침 기본값 지정 (Brand 프로필 탭 = true).
+    _settingsGroupsExpanded = expanded;
+    // Build 449: Brand 탭은 collapsible=false → 항상 펼침(토글 제거).
+    _settingsGroupsCollapsible = collapsible;
+    return [
                               // ── 계정 ──
                               _settingsGroup(_l.profileAccountSection, [
                                 _groupTile(
@@ -1345,16 +1603,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   isLast: true,
                                 ),
                               ]),
-                            ],
-                          ),
-                          const SizedBox(height: 60),
-                        ],
-                      ),
-                    ),
-                  ],
+                              // Build 454: 관리자 패널 — 이전엔 설정 화면(톱니)
+                              //   에만 있어 프로필 인라인 섹션(브랜드 탭 항상펼침)
+                              //   에선 admin 진입이 안 보였음. settings_screen 과
+                              //   동일 게이트(permanentAdminEmail 은 모든 빌드 통과).
+                              if ((kDebugMode &&
+                                      user.email?.toLowerCase() ==
+                                          DebugConstants.testBrandEmail) ||
+                                  BetaConstants.isAdmin(user.email))
+                                _settingsGroup('🔐 ${_l.settingsAdmin}', [
+                                  _groupTile(
+                                    icon: Icons.admin_panel_settings_rounded,
+                                    label: _l.settingsAdminPanel,
+                                    iconColor: AppColors.error,
+                                    onTap: () => Navigator.push(
+                                      ctx,
+                                      MaterialPageRoute(
+                                        builder: (_) => const AdminScreen(),
+                                      ),
+                                    ),
+                                    isLast: true,
+                                  ),
+                                ]),
+    ];
+  }
+
+  // Build 437 (device #6): 프로필 톱니/진입 타일 → 설정 별도 화면 오픈.
+  void _openSettingsScreen(BuildContext ctx) {
+    Navigator.of(ctx).push(
+      MaterialPageRoute(
+        builder: (_) => Consumer<AppState>(
+          builder: (sCtx, state, __) {
+            final l = AppL10n.of(state.currentUser.languageCode);
+            return Scaffold(
+              backgroundColor: AppTimeColors.of(sCtx).bgDeep,
+              appBar: AppBar(
+                backgroundColor: AppTimeColors.of(sCtx).bgDeep,
+                elevation: 0,
+                iconTheme: const IconThemeData(color: AppColors.textPrimary),
+                title: Text(
+                  l.profileSettingsCollapseLabel,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-        );
-      },
+              ),
+              body: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
+                children: _buildSettingsSections(
+                  sCtx,
+                  state,
+                  state.currentUser,
+                  l,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -1396,19 +1704,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final tierClr = _tierColor(tier);
     final isBrand = purchase.isBrand || user.isBrand;
     final isPrem = isBrand || purchase.isPremium || user.isPremium;
+    // Build 441 (sim100 P2): trial 사용자가 정식 결제자와 동일한 '👑 Premium'
+    //   배지로 표기돼 만료/체험 단서가 프로필에 전무하던 투명성 결함 → trial 중
+    //   에는 '체험' 배지 + teal 색으로 구분(카운트다운은 상단 trial 배너가 담당).
+    final isTrial = purchase.isTrialActive && !isBrand;
     final planLabel = isBrand
         ? '🏷️ Brand'
+        : isTrial
+        ? '👑 ${_al.koEn('체험', 'Trial')}'
         : isPrem
         ? '👑 Premium'
         : null;
-    final planColor = isBrand ? AppColors.coupon : AppColors.gold;
+    final planColor = isBrand
+        ? AppColors.coupon
+        : (isTrial ? AppColors.teal : AppColors.gold);
 
     return SliverAppBar(
-      expandedHeight: 270,
+      // Build 435 (design): 아바타 히어로를 toolbar 아래로 분리해 pinned title
+      //   "프로필" 과 아바타가 겹쳐 깨져 보이던 버그 해소 (expandedHeight 도 동반 ↑).
+      expandedHeight: 352,
       pinned: true,
       backgroundColor: AppTimeColors.of(ctx).bgDeep,
       elevation: 0,
       automaticallyImplyLeading: false,
+      // Build 437 (device #6): 설정 별도 화면 진입 — 헤더 우상단 톱니.
+      actions: [
+        IconButton(
+          tooltip: _al.profileSettingsCollapseLabel,
+          icon: const Icon(Icons.settings_rounded, color: AppColors.textPrimary),
+          onPressed: () => _openSettingsScreen(ctx),
+        ),
+        const SizedBox(width: 4),
+      ],
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           color: AppTimeColors.of(ctx).bgDeep,
@@ -1417,7 +1744,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(height: 12),
+                // Build 435 (design): pinned title 영역(kToolbarHeight)만큼 내려
+                //   아바타와 "프로필" 타이틀이 겹치지 않도록 분리.
+                const SizedBox(height: kToolbarHeight),
                 // v5: 클린 솔리드 아바타
                 GestureDetector(
                   onTap: () => _changeProfileImage(ctx, state),
@@ -1502,9 +1831,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const StreakBadge(compact: true),
                   ],
                 ),
+                // Build 437 (device #5): Brand '공식 발송인' 표시를 이름 바로 밑
+                //   전용 배지로 승격(이전엔 @handle 부제목에 묻혀 안 보임).
+                if (isBrand) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.coupon.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: AppColors.coupon.withValues(alpha: 0.42),
+                      ),
+                    ),
+                    child: Text(
+                      '👑 ${user.activityScore.reputationTitleL(user.languageCode)}',
+                      style: const TextStyle(
+                        color: AppColors.coupon,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 4),
                 Text(
-                  '@${user.username.toLowerCase()} · ${user.activityScore.reputationTitleL(user.languageCode)}',
+                  isBrand
+                      ? '@${user.username.toLowerCase()}'
+                      : '@${user.username.toLowerCase()} · ${user.activityScore.reputationTitleL(user.languageCode)}',
                   style: const TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 13,
@@ -1544,7 +1902,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       child: Row(
         children: [
-          _stat4V5('${score.sentCount}', _fsl.profileSentLetters),
+          // Build 433 (device): 비-Brand 는 발송 불가라 '보낸' 이 항상 0 = 노이즈.
+          //   대신 🔥 연속일(streak) 노출(리텐션 지표). Brand 만 '보낸'(캠페인).
+          if (user.isBrand)
+            _stat4V5('${score.sentCount}', _fsl.profileSentLetters)
+          else
+            _stat4V5(
+              '${state.currentStreak}',
+              _fsl.koEn('연속일', 'Streak'),
+              color: AppColors.coupon,
+            ),
           _stat4Divider(),
           _stat4V5('${score.receivedCount}', _fsl.profileReceivedLetters),
           _stat4Divider(),
@@ -1713,6 +2080,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
           ),
+          // Build 426 (sim100 #1): '오늘 발송 잔여' 카드는 Brand 만 — 발송이
+          //   Brand 전용이라 Free·Premium 에겐 쓸 수 없는 숫자라 혼선. 비-Brand
+          //   는 구독 카드만 전체폭으로.
+          if (isBrand) ...[
           const SizedBox(width: 10),
           // 오늘 발송 잔여 — 큰 숫자 v5
           Expanded(
@@ -1773,6 +2144,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
           ),
+          ],
         ],
       ),
     );
@@ -2046,6 +2418,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     IconButton(
+                      tooltip: l.koEn('닫기', 'Close'),
                       onPressed: () => Navigator.pop(sheetCtx),
                       icon: const Icon(Icons.close_rounded),
                       color: AppColors.textMuted,
@@ -2127,7 +2500,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    xpLevelLabel(floor == 0 ? 1 : floor),
+                                    xpLevelLabel(floor == 0 ? 1 : floor,
+                                        langCode: l.languageCode),
                                     style: TextStyle(
                                       color: isCurrent
                                           ? AppColors.gold.withValues(
@@ -2464,8 +2838,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // ── 카드형 설정 그룹 (Build 271: 그룹별 collapsible) ──────────────────
   // 이전엔 모든 그룹 (6개) 이 한꺼번에 펼쳐져 항목이 즉시 노출됐다.
   // 사용자가 원하는 그룹만 펼쳐서 보도록 변경 — 1차 스캔 시 그룹 헤더만.
+  // Build 448: Brand 프로필 탭에서는 펼친 상태로(접지 않고) 노출.
+  bool _settingsGroupsExpanded = false;
+  // Build 449: Brand 프로필 탭은 그룹을 접지 않고 항상 펼침(토글 제거) — 사용자가
+  //   "계정 하위 창이 모두 열려 있어야 한다" 피드백. false 면 헤더 토글 없이 상시 노출.
+  bool _settingsGroupsCollapsible = true;
   Widget _settingsGroup(String title, List<Widget> children) {
-    return _ExpandableSettingsGroup(title: title, children: children);
+    return _ExpandableSettingsGroup(
+      title: title,
+      initiallyExpanded: _settingsGroupsExpanded,
+      collapsible: _settingsGroupsCollapsible,
+      children: children,
+    );
   }
 
   // ── 그룹 내 일반 타일 ────────────────────────────────────────────────────
@@ -2769,53 +3153,74 @@ class _BrandExactDropCreditsCard extends StatelessWidget {
 /// 기본은 접힘 — 프로필 스캔을 가볍게. 탭하면 자식들이 펼쳐진다.
 /// Build 271: 설정 그룹별 펼침/접힘 widget. 헤더만 노출 → 사용자가 펼치면
 /// 항목 카드가 나타남. _SettingsCollapseButton 안에서 그룹별로 다시 펼침.
-class _ExpandableSettingsGroup extends StatefulWidget {
-  final String title;
+// Build 459 (UI 다이어트): '내 기록' 접이식 섹션 — 여정/회고/우표앨범/선호
+//   카테고리 4카드를 1줄 헤더 뒤로. 기본 접힘, 세션 상태(영속 불필요).
+class _RecordsSection extends StatefulWidget {
+  final AppL10n l;
   final List<Widget> children;
-
-  const _ExpandableSettingsGroup({required this.title, required this.children});
+  const _RecordsSection({required this.l, required this.children});
 
   @override
-  State<_ExpandableSettingsGroup> createState() =>
-      _ExpandableSettingsGroupState();
+  State<_RecordsSection> createState() => _RecordsSectionState();
 }
 
-class _ExpandableSettingsGroupState extends State<_ExpandableSettingsGroup> {
+class _RecordsSectionState extends State<_RecordsSection> {
   bool _expanded = false;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Material(
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Material(
             color: Colors.transparent,
             child: InkWell(
               onTap: () => setState(() => _expanded = !_expanded),
-              borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 4,
-                  vertical: 10,
+              borderRadius: BorderRadius.circular(14),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                decoration: BoxDecoration(
+                  color: AppColors.bgCard,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: AppColors.textMuted.withValues(alpha: 0.12),
+                  ),
                 ),
                 child: Row(
                   children: [
+                    const Text('📒', style: TextStyle(fontSize: 16)),
+                    const SizedBox(width: 10),
                     Expanded(
-                      child: Text(
-                        widget.title,
-                        style: const TextStyle(
-                          color: AppColors.teal,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.2,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.l.koEn('내 기록', 'My records'),
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            widget.l.koEn(
+                              '여정 · 주간 회고 · 우표 앨범 · 선호 카테고리',
+                              'Journey · Weekly recap · Stamp album · Preferences',
+                            ),
+                            style: const TextStyle(
+                              color: AppColors.textMuted,
+                              fontSize: 10.5,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     AnimatedRotation(
                       turns: _expanded ? 0.5 : 0.0,
-                      duration: const Duration(milliseconds: 220),
+                      duration: const Duration(milliseconds: 200),
                       child: const Icon(
                         Icons.keyboard_arrow_down_rounded,
                         size: 20,
@@ -2827,29 +3232,188 @@ class _ExpandableSettingsGroupState extends State<_ExpandableSettingsGroup> {
               ),
             ),
           ),
-          AnimatedCrossFade(
-            firstChild: const SizedBox.shrink(),
-            secondChild: Container(
-              decoration: BoxDecoration(
-                color: AppColors.bgCard,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.textMuted.withValues(alpha: 0.1),
+        ),
+        AnimatedCrossFade(
+          firstChild: const SizedBox.shrink(),
+          secondChild: Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Column(
+              children: [
+                ...widget.children,
+                // Build 466 (실기 피드백): 펼친 뒤 스크롤로 헤더까지 안 올라가도
+                //   하단 '닫기' 버튼으로 접기.
+                const SizedBox(height: 4),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _CollapseButton(
+                    label: widget.l.mapClose,
+                    onTap: () => setState(() => _expanded = false),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          crossFadeState: _expanded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
+          duration: const Duration(milliseconds: 220),
+        ),
+      ],
+    );
+  }
+}
+
+// Build 466 (실기 피드백): 펼친 접이식 섹션을 하단에서 바로 접는 공용 버튼.
+class _CollapseButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  const _CollapseButton({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: TextButton.icon(
+        onPressed: onTap,
+        icon: const Icon(Icons.keyboard_arrow_up_rounded, size: 18),
+        label: Text(
+          label,
+          style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
+        ),
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.textMuted,
+          minimumSize: const Size(44, 44),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ExpandableSettingsGroup extends StatefulWidget {
+  final String title;
+  final List<Widget> children;
+  // Build 448: 펼친 상태로 시작 (Brand 프로필 탭은 접지 않고 노출).
+  final bool initiallyExpanded;
+  // Build 449: false 면 토글(접기) 없이 항상 펼침 — Brand 프로필 탭.
+  final bool collapsible;
+
+  const _ExpandableSettingsGroup({
+    required this.title,
+    required this.children,
+    this.initiallyExpanded = false,
+    this.collapsible = true,
+  });
+
+  @override
+  State<_ExpandableSettingsGroup> createState() =>
+      _ExpandableSettingsGroupState();
+}
+
+class _ExpandableSettingsGroupState extends State<_ExpandableSettingsGroup> {
+  late bool _expanded = widget.initiallyExpanded || !widget.collapsible;
+
+  Widget _content() => Container(
+        decoration: BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: AppColors.textMuted.withValues(alpha: 0.1),
+          ),
+        ),
+        child: Column(children: widget.children),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Build 449: collapsible=false → 토글 없는 정적 헤더 + 상시 내용.
+          if (!widget.collapsible) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+              child: Text(
+                widget.title,
+                style: const TextStyle(
+                  color: AppColors.teal,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.2,
                 ),
               ),
-              child: Column(children: widget.children),
             ),
-            crossFadeState: _expanded
-                ? CrossFadeState.showSecond
-                : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 240),
-          ),
+            _content(),
+          ] else ...[
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => setState(() => _expanded = !_expanded),
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 10,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.title,
+                          style: const TextStyle(
+                            color: AppColors.teal,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ),
+                      AnimatedRotation(
+                        turns: _expanded ? 0.5 : 0.0,
+                        duration: const Duration(milliseconds: 220),
+                        child: const Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          size: 20,
+                          color: AppColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            AnimatedCrossFade(
+              firstChild: const SizedBox.shrink(),
+              secondChild: Column(
+                children: [
+                  _content(),
+                  // Build 466 (실기 피드백): 펼친 설정 그룹도 하단 '닫기'로 접기.
+                  const SizedBox(height: 6),
+                  _CollapseButton(
+                    label: AppL10n.of(
+                            context.read<AppState>().currentUser.languageCode)
+                        .mapClose,
+                    onTap: () => setState(() => _expanded = false),
+                  ),
+                ],
+              ),
+              crossFadeState: _expanded
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
+              duration: const Duration(milliseconds: 240),
+            ),
+          ],
         ],
       ),
     );
   }
 }
 
+// ignore: unused_element
 class _SettingsCollapseButton extends StatefulWidget {
   final String label;
   final String sublabel;
@@ -3074,10 +3638,9 @@ class _PreferredCategoryCard extends StatelessWidget {
     final l = AppL10n.of(user.languageCode);
 
     final lockReason = !user.isPremium
-        ? l.koEn('🔒 Premium 가입 후 Lv 11 부터', '🔒 Premium + Lv 11 required')
+        ? l.prefCategoryLockNotPremium
         : (level < 11
-            ? l.koEn('🔒 Lv $level → Lv 11 도달 시 잠금 해제',
-                '🔒 Lv $level → unlocks at Lv 11')
+            ? l.prefCategoryLockLevel(level)
             : null);
 
     return Container(
@@ -3100,10 +3663,11 @@ class _PreferredCategoryCard extends StatelessWidget {
             children: [
               const Text('🎯', style: TextStyle(fontSize: 18)),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  '받고 싶은 혜택 카테고리',
-                  style: TextStyle(
+                  // Build 421 (sim-fresh P2): 하드코딩 한국어 → 언어별.
+                  l.prefCategoryTitle,
+                  style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
@@ -3135,9 +3699,8 @@ class _PreferredCategoryCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             unlocked
-                ? l.koEn('브랜드가 보낸 편지 중 선택 카테고리의 픽업 확률이 올라가요.',
-                    'Boosts pickup odds for your chosen category from brands.')
-                : (lockReason ?? l.koEn('잠금 해제', 'Unlock')),
+                ? l.prefCategoryDesc
+                : (lockReason ?? l.prefCategoryTitle),
             style: const TextStyle(
               color: AppColors.textMuted,
               fontSize: 12,
@@ -3165,19 +3728,14 @@ class _PreferredCategoryCard extends StatelessWidget {
                         if (!user.isPremium) {
                           PremiumGateSheet.show(
                             context,
-                            featureName: l.koEn(
-                                '카테고리 선호 부스트', 'Category preference boost'),
+                            featureName: l.prefCategoryGateName,
                             featureEmoji: '🎯',
-                            description: l.koEn(
-                                'Premium 가입 후 Lv 11 도달 시, 받고 싶은 혜택 카테고리를 지정하면 매칭 확률이 올라갑니다.',
-                                'At Premium + Lv 11, pick a benefit category to raise your match odds.'),
+                            description: l.prefCategoryGateDesc,
                           );
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(l.koEn(
-                                  'Lv 11 도달 후 잠금 해제 (현재 Lv $level)',
-                                  'Unlocks at Lv 11 (currently Lv $level)')),
+                              content: Text(l.prefCategoryLevelSnack(level)),
                               behavior: SnackBarBehavior.floating,
                             ),
                           );
@@ -3216,16 +3774,21 @@ class _PreferredCategoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build 421 (sim-fresh P2): 하드코딩 한국어 칩 라벨 → 기존 14언어 카테고리
+    //   getter + 랜덤은 koEn 으로 현지화.
+    final l = AppL10n.of(
+      context.read<AppState>().currentUser.languageCode,
+    );
     final emoji = category == LetterCategory.coupon
         ? '🎟'
         : category == LetterCategory.voucher
         ? '🎁'
         : '✉️';
     final label = category == LetterCategory.coupon
-        ? '할인권'
+        ? l.composeBrandCategoryCoupon
         : category == LetterCategory.voucher
-        ? '교환권'
-        : '랜덤';
+        ? l.composeBrandCategoryVoucher
+        : l.commonRandom;
 
     return InkWell(
       onTap: onTap,
@@ -3283,6 +3846,86 @@ class _PreferredCategoryChip extends StatelessWidget {
                     ),
                   ),
                 ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Build 437 (device #6): 프로필 본문의 '설정' 진입 타일 — 탭 시 SettingsScreen push.
+class _SettingsEntryTile extends StatelessWidget {
+  final String label;
+  final String sublabel;
+  final VoidCallback onTap;
+  const _SettingsEntryTile({
+    required this.label,
+    required this.sublabel,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          decoration: BoxDecoration(
+            color: AppColors.bgCard,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.textMuted.withValues(alpha: 0.12),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.bgSurface,
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: const Icon(
+                  Icons.settings_rounded,
+                  color: AppColors.textSecondary,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      sublabel,
+                      style: const TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.textMuted,
+                size: 22,
+              ),
             ],
           ),
         ),

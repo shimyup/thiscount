@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../core/services/feedback_service.dart';
+import '../../../core/services/secure_clock.dart';
 import 'package:gal/gal.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
@@ -14,6 +15,8 @@ import 'package:screen_brightness/screen_brightness.dart';
 import 'package:screen_protector/screen_protector.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_theme.dart';
+import 'package:share_plus/share_plus.dart';
+import '../../../core/utils/gift_code.dart';
 import '../../../core/utils/redemption_code.dart';
 import '../../../core/utils/secure_clipboard.dart';
 import '../../../core/theme/letter_style.dart';
@@ -30,8 +33,6 @@ import '../../share/share_card_service.dart';
 import 'letter_context_badge.dart';
 import 'scarcity_indicator.dart';
 import 'sender_moment_line.dart';
-// 펜팔 배지 UI 제거 — import 도 제거. 데이터 통계 로직은 _PenpalStats 내부에서만 사용.
-// import '../../penpal/penpal_tier.dart';
 
 class LetterReadScreen extends StatefulWidget {
   final Letter letter;
@@ -86,12 +87,26 @@ class _LetterReadScreenState extends State<LetterReadScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final state = context.read<AppState>();
-      if (widget.letter.content.trim().isEmpty) {
-        unawaited(state.refetchLetterContentIfEmpty(widget.letter.id));
+      // Build 467 (sim466 P1): 이전엔 content 가 비었을 때만 refetch 호출 →
+      //   본문은 있고 매장 코드만 map-sync mask 로 null 인 브랜드 쿠폰은 영영
+      //   refetch 안 돼 코드가 빈 채로 남아(픽업 후 "사용 진행" 시 코드 박스 공백).
+      //   refetchLetterContentIfEmpty 는 내부 needsCode(Build 416)로 코드를 채울
+      //   수 있으므로, 코드 누락 브랜드 쿠폰/교환권도 트리거에 포함.
+      final lt = widget.letter;
+      final needsCodeRefetch = lt.senderIsBrand &&
+          lt.category != LetterCategory.general &&
+          (lt.redemptionCode == null || lt.redemptionCode!.isEmpty);
+      if (lt.content.trim().isEmpty || needsCodeRefetch) {
+        unawaited(state.refetchLetterContentIfEmpty(lt.id));
       }
       // Build 324 (Q1): 화면 진입 시 만료된 pending redemption 자동 정리
       //   → redeemed 처리 + UI 즉시 반영 (dim + 사용됨 라벨).
       unawaited(state.consumeElapsedPendingRedemptions());
+      // Build 414 (sim200 P1-1): 어느 경로(지도 직행/인박스)로 열든 '열람' 처리.
+      //   지도→상세 직행 시 readLetter 미호출로 status=delivered 잔존 → 7일 후
+      //   _purgeExpiredReadLetters 가 아직 유효한 쿠폰까지 미열람으로 삭제하던
+      //   버그. readLetter 는 status==delivered 일 때만 동작해 중복 호출 무해.
+      state.readLetter(widget.letter.id);
     });
     // 3단계 개봉 시퀀스 — 총 1500ms
     //   Phase 1 (0 → 0.3, ~400ms) : 봉투가 살짝 나타남 + light haptic
@@ -156,7 +171,13 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   ///   까지 자동 스크롤. 본문 긴 letter 에서 사용자가 직접 스크롤 다운하지
   ///   않으면 버튼 못 찾던 UX 회귀 해소.
   void _maybeAutoScrollToRedemption() {
-    if (widget.letter.redemptionCode == null) return;
+    // Build 425 (sim-fresh3 #7): redemption box 렌더 조건과 일치 — 이전엔
+    //   redemptionCode 있는 letter 만 auto-scroll 해서, redemptionInfo(이미지/
+    //   텍스트 교환권)만 있는 letter 는 사용자가 직접 스크롤해야 했음.
+    final hasRedemptionBox = widget.letter.senderIsBrand &&
+        ((widget.letter.redemptionInfo ?? '').trim().isNotEmpty ||
+            widget.letter.redemptionCode != null);
+    if (!hasRedemptionBox) return;
     if (_autoScrolledLetterIds.contains(widget.letter.id)) return;
     _autoScrolledLetterIds.add(widget.letter.id);
     final ctx = _redemptionBoxKey.currentContext;
@@ -356,7 +377,12 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                                       state,
                                     );
                                   }
-                                  if (status == ChatStatus.chatting) {
+                                  // Build 425 (sim-fresh3 #44): DM 버튼은 DM 자격
+                                  //   (Premium & 비-Brand)일 때만 노출 — Brand 가
+                                  //   chatting 상태에 도달해도 진입 차단(sendDM
+                                  //   가드와 defense-in-depth, 죽은 버튼 회피).
+                                  if (status == ChatStatus.chatting &&
+                                      state.canUseDM) {
                                     return _buildDMButton(ctx, letter);
                                   }
                                   return const SizedBox.shrink();
@@ -481,6 +507,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
     String? selectedReason;
     final customCtrl = TextEditingController();
 
+    // Build 423 (sim-crosscut P2): 다이얼로그 종료 시 컨트롤러 해제(매 신고마다 누수).
     showDialog(
       context: ctx,
       builder: (dialogCtx) => StatefulBuilder(
@@ -696,7 +723,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
           ],
         ),
       ),
-    );
+    ).then((_) => customCtrl.dispose());
   }
 
   Widget _buildReactionBar(BuildContext ctx, Letter letter) {
@@ -1317,6 +1344,17 @@ class _LetterReadScreenState extends State<LetterReadScreen>
               Expanded(
                 child: GestureDetector(
                   onTap: () {
+                    // Build 426 (sim100 #20·#22): DM 자격 없으면(=Free) 채팅 진입
+                    //   대신 Premium 안내 — 이전엔 게이트 화면으로 빈 진입했음.
+                    if (!state.canUseDM) {
+                      PremiumGateSheet.show(
+                        ctx,
+                        featureName: l10n.letterReadStartChat,
+                        featureEmoji: '💬',
+                        description: l10n.dmPremiumOnly,
+                      );
+                      return;
+                    }
                     state.acceptChatInvite(letter.senderId);
                     Navigator.push(
                       ctx,
@@ -2322,7 +2360,8 @@ class _LetterReadScreenState extends State<LetterReadScreen>
       final pendingStartedAt = state.pendingRedemptionStartedAt(letter.id);
       // 만료 임박(3일 이내) — 노란 경고 톤으로 카운트다운 강조.
       final expiresAt = letter.redemptionExpiresAt;
-      final daysLeft = expiresAt?.difference(DateTime.now()).inDays;
+      // Build 420 (sim100 iter5): isRedemptionExpired(SecureClock) 와 시계 일관.
+      final daysLeft = expiresAt?.difference(SecureClock.now()).inDays;
       final expiringSoon =
           !expired && daysLeft != null && daysLeft <= 3;
       return Container(
@@ -2484,7 +2523,33 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: () async {
-                    await ctx.read<AppState>().markLetterRedeemed(letter.id);
+                    final state = ctx.read<AppState>();
+                    await state.markLetterRedeemed(letter.id);
+                    // Build 453 (단골 스탬프): 이 redeem 으로 스탬프 카드가 완성
+                    //   됐으면 축하 + 보상 쿠폰 도착 안내(1회성 소비).
+                    final celebrated = state.takeStampCelebration();
+                    if (celebrated != null && ctx.mounted) {
+                      ScaffoldMessenger.of(ctx).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            l10n.koEn(
+                              '🎉 ${celebrated.brandName} 단골 스탬프 완성! 보상 쿠폰이 수집첩에 도착했어요',
+                              '🎉 ${celebrated.brandName} stamp card complete! Reward coupon is in your collection',
+                            ),
+                            style: const TextStyle(
+                              color: AppColors.bgDeep,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          backgroundColor: AppColors.gold,
+                          behavior: SnackBarBehavior.floating,
+                          duration: const Duration(seconds: 5),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      );
+                    }
                   },
                   icon: const Icon(Icons.check_circle_outline_rounded, size: 16),
                   label: Text(
@@ -2549,6 +2614,32 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                 ),
               ),
             ],
+            // Build 453 (친구 선물): 서버 letter(sent_*) + 미사용/미만료 쿠폰만
+            //   선물 가능. 코드 공유 → 친구가 인박스 🎁 받기에서 입력.
+            if (!disabled && GiftCode.isGiftableId(letter.id)) ...[
+              const SizedBox(height: 6),
+              Center(
+                child: TextButton.icon(
+                  onPressed: () {
+                    final preview = letter.content.length > 40
+                        ? '${letter.content.substring(0, 40)}…'
+                        : letter.content;
+                    Share.share(l10n.giftShareText(preview, letter.id));
+                  },
+                  icon: const Icon(Icons.card_giftcard_rounded, size: 16),
+                  label: Text(
+                    l10n.giftToFriend,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.gold,
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       );
@@ -2599,7 +2690,7 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   ) {
     final dateStr =
         '${expiresAt.year}.${expiresAt.month.toString().padLeft(2, '0')}.${expiresAt.day.toString().padLeft(2, '0')}';
-    final daysLeft = expiresAt.difference(DateTime.now()).inDays;
+    final daysLeft = expiresAt.difference(SecureClock.now()).inDays;
     final color = expired
         ? AppColors.textMuted
         : expiringSoon
@@ -2967,6 +3058,8 @@ class _LetterReadScreenState extends State<LetterReadScreen>
           file,
           width: double.infinity,
           fit: BoxFit.cover,
+          // Build 424 (WCAG P1): Image.network 형제와 동일하게 스크린리더 라벨.
+          semanticLabel: 'letter image',
           errorBuilder: (_, __, ___) => _imagePlaceholder(),
         );
       }
@@ -2974,29 +3067,27 @@ class _LetterReadScreenState extends State<LetterReadScreen>
     }
   }
 
+  // Build 433 (design): 깨진 이미지 아이콘 대신 업종 이모지 + 그라데이션
+  //   플레이스홀더 — 실패가 '의도된 브랜드 비주얼' 처럼 보이게(트렌디).
   Widget _imagePlaceholder() {
     return Container(
       height: 120,
       decoration: BoxDecoration(
-        color: AppColors.bgCard,
+        gradient: LinearGradient(
+          colors: [
+            AppColors.bgSurface,
+            AppColors.bgCard,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.textMuted.withValues(alpha: 0.2)),
+        border: Border.all(color: AppColors.textMuted.withValues(alpha: 0.15)),
       ),
       child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.image_not_supported_outlined,
-              color: AppColors.textMuted,
-              size: 28,
-            ),
-            const SizedBox(height: 6),
-            Text(
-              AppL10n.of(context.read<AppState>().currentUser.languageCode).letterReadImageLoadFailed,
-              style: TextStyle(color: AppColors.textMuted, fontSize: 11),
-            ),
-          ],
+        child: Text(
+          bizCategoryEmoji(widget.letter.categoryTag),
+          style: const TextStyle(fontSize: 44),
         ),
       ),
     );
@@ -3255,6 +3346,8 @@ class _FullscreenImageViewerState extends State<_FullscreenImageViewer> {
                       : Image.file(
                           File(widget.imageUrl),
                           fit: BoxFit.contain,
+                          // Build 424 (WCAG P1): 스크린리더 라벨(zoom 형제와 동일).
+                          semanticLabel: 'letter image (zoom)',
                           errorBuilder: (_, __, ___) => const Icon(
                             Icons.broken_image_rounded,
                             color: Colors.white54,

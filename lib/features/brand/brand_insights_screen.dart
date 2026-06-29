@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/localization/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/services/secure_clock.dart';
 import '../../core/utils/redemption_code.dart';
 import '../../core/utils/secure_clipboard.dart';
 import '../../models/brand_insights.dart';
@@ -24,7 +26,10 @@ import '../../state/app_state.dart';
 ///   다른 회원의 픽업/사용이 카운트 안 돼 ROI 항상 0% 표시되던 critical bug.
 class BrandInsightsScreen extends StatefulWidget {
   static const String routeName = '/brand_insights';
-  const BrandInsightsScreen({super.key});
+  // Build 446: 프로필의 '인사이트' 하위 탭에서 본문만 임베드할 때 true → Scaffold/
+  //   AppBar 없이 ListView 만 반환(상위 탭 AppBar 와 중복 방지).
+  final bool embedded;
+  const BrandInsightsScreen({super.key, this.embedded = false});
 
   @override
   State<BrandInsightsScreen> createState() => _BrandInsightsScreenState();
@@ -32,14 +37,29 @@ class BrandInsightsScreen extends StatefulWidget {
 
 class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
   bool _refreshing = false;
+  // Build 459: '지표 읽는 법' 푸터 dismiss 영속.
+  static const _kHelpDismissed = 'insights_help_dismissed_v1';
+  bool _helpDismissed = true; // 로딩 전 미노출(깜빡임 방지)
 
   @override
   void initState() {
     super.initState();
+    SharedPreferences.getInstance().then((p) {
+      if (mounted) {
+        setState(
+            () => _helpDismissed = p.getBool(_kHelpDismissed) ?? false);
+      }
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _refresh();
     });
+  }
+
+  Future<void> _dismissHelp() async {
+    setState(() => _helpDismissed = true);
+    final p = await SharedPreferences.getInstance();
+    await p.setBool(_kHelpDismissed, true);
   }
 
   Future<void> _refresh() async {
@@ -59,6 +79,44 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
     // Build 409 (sim P1.24): 비-Korean Brand 가 한국어 고정 문구를 보던 헤드라인/
     //   빈 상태/도움말을 l 로 현지화 (koEn 토글). l 을 helper 들에 전달.
     final l = AppL10n.of(state.currentUser.languageCode);
+    final body = ListView(
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 32),
+      children: [
+        // Build 448: ROI 전환율 + 단계 퍼널을 한 카드로 통합 → 스크롤 없이 핵심
+        //   지표를 한눈에. (이전엔 헤드라인 카드 + 퍼널 카드 분리로 스크롤 길었음)
+        _buildSummaryCard(insights, l),
+        const SizedBox(height: 14),
+        // "발급된 매장 코드" dedup 섹션.
+        ..._buildActiveCodesSection(insights),
+        // 캠페인 list — Build 449: 섹션 헤더로 구분(정리).
+        if (insights.campaigns.isEmpty)
+          _buildEmpty(l)
+        else ...[
+          Row(
+            children: [
+              const Text('📊', style: TextStyle(fontSize: 14)),
+              const SizedBox(width: 6),
+              Text(
+                l.insightsCampaignPerf,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ...insights.campaigns.take(10).map(_buildCampaignCard),
+        ],
+        const SizedBox(height: 16),
+        // Build 459 (UI 다이어트): 지표 읽는 법 — 닫기 가능(1회성 교육).
+        if (!_helpDismissed) _buildHelpFooter(l),
+      ],
+    );
+    // Build 446: 임베드 모드면 본문만 반환(상위 탭이 Scaffold/AppBar 보유).
+    if (widget.embedded) return body;
     return Scaffold(
       backgroundColor: AppColors.bgDeep,
       appBar: AppBar(
@@ -74,178 +132,213 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
         ),
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
       ),
-      body: ListView(
-        padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 32),
-        children: [
-          // 1) 헤드라인 — 사용 전환률 + 평가
-          _buildHeadline(insights, l),
-          const SizedBox(height: 20),
-          // 2) 단계별 funnel
-          _buildFunnel(insights),
-          const SizedBox(height: 20),
-          // Build 334 (PR-S4): "발급된 매장 코드" dedup 섹션 — 사장이 POS 에
-          //   등록할 코드를 한 화면에서 확인. campaigns 가 같은 코드를 공유하면
-          //   하나로 합쳐 letter 수 / 노출 / 사용 stat 합산.
-          ..._buildActiveCodesSection(insights),
-          // 3) 캠페인 list
-          if (insights.campaigns.isEmpty)
-            _buildEmpty(l)
-          else
-            ...insights.campaigns.take(10).map(_buildCampaignCard),
-          const SizedBox(height: 24),
-          _buildHelpFooter(l),
-        ],
-      ),
+      body: body,
     );
   }
 
-  Widget _buildHeadline(BrandInsights i, AppL10n l) {
+  // Build 448: ROI 전환율 헤드라인 + 4단계 퍼널을 한 카드로 통합.
+  // Build 461: 팔로워 수 KPI 추가 (followerCount — toggleBrandFollow 서버 집계).
+  Widget _buildSummaryCard(BrandInsights i, AppL10n l) {
     final pct = (i.redeemRate * 100).toStringAsFixed(1);
-    // Build 409 (sim P2 L99): 데이터 0 인 신규 Brand 에게 빨간 '개선 필요 0.0%'
-    //   verdict 는 부정확·위축감. 발송 0 또는 픽업 0 이면 중립 안내로 대체.
     final noData = i.totalSent == 0 || i.totalPickup == 0;
+    // 퍼널 단계 — 단조감소 clamp(표시 전용).
+    final pSent = i.totalSent;
+    final pPickup = i.totalPickup.clamp(0, pSent <= 0 ? i.totalPickup : pSent);
+    final pReveal = i.totalRevealed.clamp(0, pPickup);
+    final pRedeem = i.totalRedeemed.clamp(0, pReveal);
+    final stages = <_FunnelStage>[
+      _FunnelStage('\u{1F4EE}', l.brandAnalyticsSent, pSent, AppColors.textMuted),
+      _FunnelStage('\u{1F3AF}', l.brandAnalyticsPicked, pPickup, AppColors.teal),
+      _FunnelStage('\u{1F6D2}', l.brandFunnelReveal, pReveal, AppColors.coupon),
+      _FunnelStage('\u2705', l.brandFunnelRedeem, pRedeem, AppColors.gold),
+    ];
+    final maxCount = i.totalSent <= 0 ? 1 : i.totalSent;
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.gold.withValues(alpha: 0.18),
-            AppColors.gold.withValues(alpha: 0.05),
+            AppColors.gold.withValues(alpha: 0.16),
+            AppColors.gold.withValues(alpha: 0.04),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.gold.withValues(alpha: 0.35)),
+        border: Border.all(color: AppColors.gold.withValues(alpha: 0.32)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ── ROI 전환율 헤드라인 ──
           Text(
-            l.koEn('최근 30일', 'Last 30 days'),
+            l.insightsHeadline,
             style: const TextStyle(
               color: AppColors.textMuted,
               fontSize: 11,
               fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
+              letterSpacing: 0.3,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                noData ? '—' : '$pct%',
+                noData ? '\u2014' : '$pct%',
                 style: const TextStyle(
                   color: AppColors.gold,
-                  fontSize: 36,
+                  fontSize: 30,
                   fontWeight: FontWeight.w900,
                   height: 1.0,
                 ),
               ),
               const SizedBox(width: 8),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text(
-                  noData
-                      ? l.koEn('🆕 데이터 수집 중', '🆕 Collecting data')
-                      : '${i.healthEmoji} ${i.healthLabel}',
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 3),
+                  child: Text(
+                    noData
+                        ? l.insightsCollecting
+                        : '${i.healthEmoji} ${i.healthLabelL10n(l)}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            noData
-                ? l.koEn('첫 픽업이 발생하면 사용 전환율이 표시돼요',
-                    'Redemption rate appears once you get your first pickup')
-                : l.koEn('픽업한 사람 중 매장 사용 비율',
-                    'In-store redemption rate among pickups'),
-            style: const TextStyle(
-                color: AppColors.textSecondary, fontSize: 12),
-          ),
+          // ── 팔로워 KPI (Build 461) — 단골 채널이 처음으로 측정 가능해짐 ──
+          Builder(builder: (context) {
+            final followers = context.watch<AppState>().brandFollowerCount;
+            if (followers < 0) return const SizedBox.shrink();
+            return Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                children: [
+                  const Text('👥', style: TextStyle(fontSize: 13)),
+                  const SizedBox(width: 6),
+                  Text(
+                    l.insightsFollowers(followers),
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          const SizedBox(height: 12),
+          Divider(height: 1, color: AppColors.gold.withValues(alpha: 0.18)),
+          const SizedBox(height: 12),
+          // ── 4단계 전환 퍼널 ──
+          for (int s = 0; s < stages.length; s++)
+            _funnelRow(
+              stages[s],
+              maxCount,
+              s == 0 ? null : _stepRate(stages[s].count, stages[s - 1].count),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildFunnel(BrandInsights i) {
-    // Build 331 (PR-S3): 4단계 funnel — 발송 → 픽업 → 코드 노출 → 사용.
-    //   코드 노출 (revealedCount) = 매장 도착 의도 신호. 노출→사용 drop 큰
-    //   캠페인은 POS 등록 누락 가능성 → 코칭 메시지로 알림.
-    return Row(
-      children: [
-        Expanded(child: _kpiCard('📮', i.totalSent.toString(), null)),
-        const SizedBox(width: 6),
-        Expanded(
-          child: _kpiCard(
-            '🎯',
-            i.totalPickup.toString(),
-            '${(i.pickupRate * 100).toStringAsFixed(0)}%',
-          ),
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: _kpiCard(
-            '🛒',
-            i.totalRevealed.toString(),
-            '${(i.revealRate * 100).toStringAsFixed(0)}%',
-          ),
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: _kpiCard(
-            '✅',
-            i.totalRedeemed.toString(),
-            '${(i.redeemRate * 100).toStringAsFixed(0)}%',
-          ),
-        ),
-      ],
-    );
+  /// 직전 단계 대비 전환율 (0~1, clamp). 분모 0 이면 null.
+  double? _stepRate(int count, int prev) {
+    if (prev <= 0) return null;
+    return (count / prev).clamp(0.0, 1.0);
   }
 
-  Widget _kpiCard(String label, String value, String? sub) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
+  Widget _funnelRow(_FunnelStage stage, int maxCount, double? stepRate) {
+    // 막대 폭 = 발송 대비 비율. count>0 인데 막대가 안 보이지 않도록 최소 6%.
+    final raw = maxCount <= 0 ? 0.0 : stage.count / maxCount;
+    final widthFactor = stage.count == 0 ? 0.0 : (raw < 0.06 ? 0.06 : raw);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
+          // 라벨 (이모지 + 단계명)
+          SizedBox(
+            width: 76,
+            child: Row(
+              children: [
+                Text(stage.emoji, style: const TextStyle(fontSize: 14)),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    stage.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          if (sub != null) ...[
-            const SizedBox(height: 2),
-            Text(
-              sub,
-              style: const TextStyle(
-                color: AppColors.teal,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
+          // 비율 막대 + 수치
+          Expanded(
+            child: Container(
+              height: 28,
+              decoration: BoxDecoration(
+                color: AppColors.bgDeep,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Stack(
+                children: [
+                  FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
+                    widthFactor: widthFactor.clamp(0.0, 1.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: stage.color.withValues(alpha: 0.85),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        stage.count.toString(),
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
+          // 단계 전환율
+          SizedBox(
+            width: 52,
+            child: Text(
+              stepRate == null
+                  ? '—'
+                  : '${(stepRate * 100).toStringAsFixed(0)}%',
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                color: stepRate == null ? AppColors.textMuted : AppColors.teal,
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -333,7 +426,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
   Widget _buildCodeCard(_CodeAggregate g) {
     final formatted = RedemptionCode.formatForDisplay(g.code);
     final expired = g.expiresAt != null &&
-        DateTime.now().isAfter(g.expiresAt!);
+        SecureClock.now().isAfter(g.expiresAt!);
     final accent = expired ? AppColors.textMuted : AppColors.teal;
     final l = AppL10n.of(
       context.read<AppState>().currentUser.languageCode,
@@ -460,18 +553,30 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
   }
 
   String _formatExpiry(DateTime exp, AppL10n l) {
-    final d = exp.difference(DateTime.now());
+    final d = exp.difference(SecureClock.now());
     if (d.inDays >= 1) return l.expiresDaysShort(d.inDays);
     if (d.inHours >= 1) return l.expiresHoursShort(d.inHours);
     return l.expiresMinutesShort(d.inMinutes);
   }
 
+  // Build 449: 캠페인 카드 compact — 미니 퍼널 막대 3개 제거(상단 요약 카드의
+  //   퍼널과 중복 + 카드 높이↑로 스크롤 길어짐). 1줄 헤더 + 1줄 stat 으로 압축,
+  //   코칭 팁은 있을 때만. 화면당 노출 ~2배.
   Widget _buildCampaignCard(CampaignInsight c) {
     final hasMetric = c.pickup > 0;
     final pct = (c.redeemRate * 100).toStringAsFixed(0);
+    // Build 420 (sim100 iter5): 캠페인 카드도 메인 퍼널과 동일하게 단조감소 clamp.
+    //   mixed-source 집계로 redeemed>revealed>pickup 같은 비논리 표시 차단(표시 전용).
+    final cPickup = c.pickup.clamp(0, c.sent <= 0 ? c.pickup : c.sent);
+    final cReveal = c.revealed.clamp(0, cPickup);
+    final cRedeem = c.redeemed.clamp(0, cReveal);
+    final l = AppL10n.of(
+      context.read<AppState>().currentUser.languageCode,
+    );
+    final tip = c.coachingTip(l);
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(12),
@@ -481,10 +586,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
         children: [
           Row(
             children: [
-              Text(
-                c.healthEmoji,
-                style: const TextStyle(fontSize: 16),
-              ),
+              Text(c.healthEmoji, style: const TextStyle(fontSize: 15)),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -503,39 +605,35 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
                   '$pct%',
                   style: const TextStyle(
                     color: AppColors.gold,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           Text(
             // Build 331 (PR-S3): 4단계 표시 — 노출 (🛒) 추가.
-            '📮 ${c.sent} · 🎯 ${c.pickup} · 🛒 ${c.revealed} · ✅ ${c.redeemed}',
+            '📮 ${c.sent} · 🎯 $cPickup · 🛒 $cReveal · ✅ $cRedeem',
             style: const TextStyle(
               color: AppColors.textSecondary,
-              fontSize: 11,
+              fontSize: 11.5,
             ),
           ),
-          Builder(builder: (ctx) {
-            final l = AppL10n.of(
-              ctx.read<AppState>().currentUser.languageCode,
-            );
-            final tip = c.coachingTip(l);
-            if (tip.isEmpty) return const SizedBox.shrink();
-            return Padding(
-              padding: const EdgeInsets.only(top: 6),
+          if (tip.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 5),
               child: Text(
                 '💡 $tip',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: AppColors.coupon,
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-            );
-          }),
+            ),
         ],
       ),
     );
@@ -553,8 +651,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
           const Text('📭', style: TextStyle(fontSize: 32)),
           const SizedBox(height: 8),
           Text(
-            l.koEn('최근 30일 캠페인 데이터 없음',
-                'No campaign data in the last 30 days'),
+            l.insightsEmptyTitle,
             style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 13,
@@ -563,8 +660,7 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            l.koEn('캠페인 화면에서 첫 캠페인을 등록해 보세요',
-                'Launch your first campaign from the Campaign screen'),
+            l.insightsEmptySub,
             style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
           ),
         ],
@@ -582,26 +678,33 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            l.koEn('📚 지표 읽는 법', '📚 How to read these metrics'),
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  l.insightsHelpTitle,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              // Build 464 (디자인 a11y): 44pt 터치 타깃 + 스크린리더 라벨.
+              IconButton(
+                onPressed: _dismissHelp,
+                tooltip: l.mapClose,
+                icon: const Icon(Icons.close_rounded,
+                    size: 15, color: AppColors.textMuted),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
           ),
           const SizedBox(height: 6),
           Text(
-            l.koEn(
-              '• 사용 전환률 ≥ 20%: 잘 되는 캠페인 — 동일 패턴 재집행\n'
-                  '• 5~20%: 보통 — 가벼운 본문 / 가격 조정\n'
-                  '• < 5%: 개선 필요 — 본문 / 반경 / 가격 재검토\n'
-                  '• 픽업 0: 반경 좁히거나 본문 매력 ↑',
-              '• Redemption ≥ 20%: strong — repeat the same pattern\n'
-                  '• 5–20%: average — tweak copy / price\n'
-                  '• < 5%: needs work — revisit copy / radius / price\n'
-                  '• 0 pickups: narrow the radius or sharpen the copy',
-            ),
+            l.insightsHelpBody,
             style: const TextStyle(
               color: AppColors.textMuted,
               fontSize: 11,
@@ -618,6 +721,15 @@ class _BrandInsightsScreenState extends State<BrandInsightsScreen> {
 ///   bulk send 100통이 코드 1개 공유 → 1 row 로 묶어 표시. POS 등록 단위 = 코드.
 /// Build 340 (PR-S11 시뮬레이션): totalPickup 추가 — 코드 카드 stat 이 4단계
 ///   funnel (📮 → 🎯 → 🛒 → ✅) 와 일치하도록.
+/// Build 415 (#8 ROI 퍼널): 퍼널 한 단계의 표시 데이터 (이모지·라벨·수치·색).
+class _FunnelStage {
+  final String emoji;
+  final String label;
+  final int count;
+  final Color color;
+  const _FunnelStage(this.emoji, this.label, this.count, this.color);
+}
+
 class _CodeAggregate {
   final String code;
   int letterCount = 0;

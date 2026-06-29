@@ -14,6 +14,10 @@ class ConnectivityService extends ChangeNotifier {
   bool get isOnline => _isOnline;
 
   Timer? _timer;
+  // Build 422 (sim-fresh2 P2): 단일 in-flight 가드 — 한 번의 _check 가 최대 12s
+  //   (3 URL × 4s) 걸릴 수 있어, 5s 주기 타이머가 겹쳐 발사하면 중복 probe 가
+  //   쌓였음. 진행 중이면 새 호출 skip.
+  bool _checking = false;
 
   void _startPolling() {
     _timer = Timer.periodic(const Duration(seconds: 5), (_) => _check());
@@ -21,6 +25,16 @@ class ConnectivityService extends ChangeNotifier {
   }
 
   Future<void> _check() async {
+    if (_checking) return;
+    _checking = true;
+    try {
+      await _doCheck();
+    } finally {
+      _checking = false;
+    }
+  }
+
+  Future<void> _doCheck() async {
     // 웹 환경: dart:io InternetAddress.lookup 미지원 → HTTP HEAD 요청으로 대체
     // 네이티브: 동일하게 HTTP HEAD 요청 사용 (웹/앱 통합 방식)
     bool online = false;

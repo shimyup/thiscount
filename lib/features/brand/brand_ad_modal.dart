@@ -294,14 +294,22 @@ class _BrandAdDialog extends StatelessWidget {
     );
   }
 
+  // Build 435 (design): 깨진 이미지 아이콘 대신 업종 이모지 + 그라데이션
+  //   플레이스홀더 — 지도 픽업 리워드 팝업에서 이미지 없는 letter 가 회색
+  //   broken-image 처럼 보이던 문제 해소(letter_read_screen 과 동일 패턴, 트렌디).
   Widget _buildPlaceholder() {
     return Container(
-      color: AppColors.bgSurface,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppColors.bgSurface, AppColors.bgCard],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
       alignment: Alignment.center,
-      child: const Icon(
-        Icons.image_outlined,
-        size: 56,
-        color: AppColors.textMuted,
+      child: Text(
+        bizCategoryEmoji(letter.categoryTag),
+        style: const TextStyle(fontSize: 76),
       ),
     );
   }

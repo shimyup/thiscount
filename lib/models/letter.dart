@@ -4,6 +4,19 @@ import '../core/data/country_cities.dart';
 import '../core/localization/app_localizations.dart';
 import '../core/services/secure_clock.dart';
 
+// Build 422 (sim-fresh2 P2): 육로 배송 '국경 검문소' segment 명을 언어중립 sentinel
+//   로 저장하고 렌더 시 현지화 — 이전엔 한국어 리터럴이 전 언어에 노출됐음.
+//   레거시 캐시(리터럴 '국경 검문소')도 렌더 매핑에서 함께 처리.
+const String kBorderCheckpointSentinel = '__border_checkpoint__';
+const String kBorderCheckpointLegacyKo = '국경 검문소';
+
+// Build 423 (sim-crosscut P2): enum index 안전 조회 — 손상/구버전 JSON 의 범위 밖
+//   index 가 RangeError 를 던져 fromJson 전체가 실패(캐시 letter 손실)하던 것 방지.
+T _safeEnum<T>(List<T> values, dynamic raw, [int def = 0]) {
+  final i = raw is int ? raw : (raw is num ? raw.toInt() : def);
+  return (i >= 0 && i < values.length) ? values[i] : values[def];
+}
+
 // ── 편지 타입 ──────────────────────────────────────────────────────────────────
 enum LetterType { normal, express, brandExpress }
 
@@ -19,6 +32,74 @@ enum LetterSenderTier { free, premium, brand }
 // 브랜드 유저만 컴포즈 화면에서 coupon/voucher 를 선택할 수 있다. Firestore
 // 에도 그대로 문자열로 저장되어 다른 유저가 수신할 때 필터링 기준으로 쓴다.
 enum LetterCategory { general, coupon, voucher }
+
+// ── 편지 희귀도 (게임화 — 줍기의 "발견 쾌감") ──────────────────────────────────
+//
+// Build 415 (#5 레어 드롭): 브랜드 발송 편지에 희귀도를 부여해 줍기 루프에
+// "포켓몬 고식" 발견의 쾌감을 더한다. 발송 시 낮은 확률로 자동 부여:
+//   normal (기본) — 일반 발송. 시각 강조 없음.
+//   rare   (~5%)  — ✨ 반짝 배지 + 강화된 글로우 + 한 단계 강한 픽업 햅틱.
+//   epic   (~1%)  — 💎 보석 배지 + 보라/골드 글로우 + 가장 강한 픽업 햅틱.
+//
+// 희귀도는 create 시점에 한 번 결정되어 immutable (firestore.rules 의 letter
+// update 화이트리스트에 없어 변경 불가 — 정상). normal 은 직렬화 생략해
+// 기존 letter 와 호환.
+enum LetterRarity { normal, rare, epic }
+
+extension LetterRarityExt on LetterRarity {
+  String get key {
+    switch (this) {
+      case LetterRarity.normal:
+        return 'normal';
+      case LetterRarity.rare:
+        return 'rare';
+      case LetterRarity.epic:
+        return 'epic';
+    }
+  }
+
+  bool get isSpecial => this != LetterRarity.normal;
+
+  /// 지도 마커·픽업 시트·도착 다이얼로그에서 희귀도를 알리는 배지 이모지.
+  /// normal 은 빈 문자열 (배지 미노출).
+  String get badge {
+    switch (this) {
+      case LetterRarity.normal:
+        return '';
+      case LetterRarity.rare:
+        return '✨';
+      case LetterRarity.epic:
+        return '💎';
+    }
+  }
+
+  static LetterRarity fromKey(String? s) {
+    switch (s) {
+      case 'rare':
+        return LetterRarity.rare;
+      case 'epic':
+        return LetterRarity.epic;
+      case 'normal':
+      default:
+        return LetterRarity.normal;
+    }
+  }
+
+  /// Firestore 는 int(index) 또는 string(key) 어느 쪽으로도 돌아올 수 있어
+  /// 양쪽 모두 안전 파싱. 범위 밖 int 는 normal 로 안전 폴백 (RangeError 차단).
+  static LetterRarity fromJson(dynamic v) {
+    if (v == null) return LetterRarity.normal;
+    if (v is int) {
+      if (v >= 0 && v < LetterRarity.values.length) {
+        return LetterRarity.values[v];
+      }
+      return LetterRarity.normal;
+    }
+    if (v is num) return fromJson(v.toInt());
+    if (v is String) return fromKey(v);
+    return LetterRarity.normal;
+  }
+}
 
 extension LetterCategoryExt on LetterCategory {
   String get key {
@@ -65,6 +146,28 @@ extension LetterCategoryExt on LetterCategory {
       default:
         return LetterCategory.general;
     }
+  }
+}
+
+/// Build 433 (device): 업종 카테고리(categoryTag) → 도착 마커/칩 이모지.
+///   Brand 발송 시 선택, 또는 픽업 시 자동 추론된 7-way 태그 기준.
+///   compose 칩 · 지도 도착 마커가 공유해 시각 일관성 유지.
+String bizCategoryEmoji(String? tag) {
+  switch (tag) {
+    case 'food':
+      return '🍔';
+    case 'cafe':
+      return '☕';
+    case 'beauty':
+      return '💄';
+    case 'fashion':
+      return '👗';
+    case 'event':
+      return '🎉';
+    case 'it':
+      return '💻';
+    default:
+      return '🎁'; // other / null
   }
 }
 
@@ -175,6 +278,19 @@ class RouteSegment {
 
   bool get isComplete => progress >= 1.0;
 
+  // Build 422 (sim-fresh2 P2): 표시용 현지화 — 국경 검문소 sentinel/레거시 리터럴
+  //   을 언어별 라벨로, 그 외(실 도시명)는 그대로. 모든 segment 렌더 사이트가 사용.
+  static String localizeHubName(String name, String langCode) {
+    if (name == kBorderCheckpointSentinel ||
+        name == kBorderCheckpointLegacyKo) {
+      return langCode == 'ko' ? '국경 검문소' : 'Border checkpoint';
+    }
+    return name;
+  }
+
+  String displayFromName(String langCode) => localizeHubName(fromName, langCode);
+  String displayToName(String langCode) => localizeHubName(toName, langCode);
+
   Map<String, dynamic> toJson() => {
     'from': from.toJson(),
     'to': to.toJson(),
@@ -190,11 +306,11 @@ class RouteSegment {
   static RouteSegment fromJson(Map<String, dynamic> j) => RouteSegment(
     from: LatLng.fromJson(j['from'] as Map<String, dynamic>),
     to: LatLng.fromJson(j['to'] as Map<String, dynamic>),
-    mode: TransportMode.values[j['mode'] as int],
+    mode: _safeEnum(TransportMode.values, j['mode']),
     fromName: j['fromName'] as String,
     toName: j['toName'] as String,
-    fromType: HubType.values[j['fromType'] as int],
-    toType: HubType.values[j['toType'] as int],
+    fromType: _safeEnum(HubType.values, j['fromType']),
+    toType: _safeEnum(HubType.values, j['toType']),
     estimatedMinutes: j['estimatedMinutes'] as int,
     progress: (j['progress'] as num).toDouble(),
   );
@@ -278,6 +394,10 @@ class Letter {
   // "쿠폰함" 섹션에 시각적으로 분리 표시된다.
   final LetterCategory category;
 
+  /// Build 415 (#5 레어 드롭): 편지 희귀도 (게임화). 발송 시 결정되어 immutable.
+  /// 브랜드 발송 편지만 rare/epic 가능 — 일반 유저 편지는 항상 normal.
+  final LetterRarity rarity;
+
   /// Build 315: 픽업 시 자동 분류된 산업 카테고리 태그.
   /// 7개 카테고리 (food/cafe/beauty/fashion/it/event/other) 중 하나.
   /// pickUpLetter 시 inferCategoryTag(letter) 로 한 번만 계산해서 저장 →
@@ -337,6 +457,12 @@ class Letter {
   /// null = 사용 진행 미탭 / not null = 코드 reveal 됨.
   DateTime? codeRevealedAt;
 
+  /// Build 461 (페르소나 — 보상·선물 redeem 퍼널 증발): 로컬 전용 사본 letter
+  /// (`stamp_reward_*` / `gift_*`) 가 어느 서버 원본 letter 에서 파생됐는지.
+  /// markLetterRedeemed 가 이 id 의 서버 카운터로 redeem 을 귀속시켜 단골/선물
+  /// 루프의 최종 전환이 Brand 인사이트에 잡히게 한다. 일반 letter 는 null.
+  final String? sourceLetterId;
+
   Letter({
     required this.id,
     required this.senderId,
@@ -379,6 +505,7 @@ class Letter {
     this.brandUniquePerUser = false,
     this.expiresAt,
     this.category = LetterCategory.general,
+    this.rarity = LetterRarity.normal,
     this.acceptsReplies = true,
     this.redemptionInfo,
     this.redemptionExpiresAt,
@@ -388,6 +515,7 @@ class Letter {
     this.campaignId,
     this.redemptionCode,
     this.codeRevealedAt,
+    this.sourceLetterId,
   }) : reportedBy = reportedBy ?? {};
 
   /// 인박스용 독립 복사본 (worldLetters에서 제거 전 inbox에 추가할 때 사용)
@@ -431,6 +559,7 @@ class Letter {
     brandUniquePerUser: brandUniquePerUser,
     expiresAt: expiresAt,
     category: category,
+    rarity: rarity,
     acceptsReplies: acceptsReplies,
     redemptionInfo: redemptionInfo,
     redemptionExpiresAt: redemptionExpiresAt,
@@ -445,6 +574,7 @@ class Letter {
     campaignId: campaignId,
     redemptionCode: redemptionCode,
     codeRevealedAt: null,
+    sourceLetterId: sourceLetterId,
     readCount: readCount,
     maxReaders: maxReaders,
   );
@@ -525,10 +655,13 @@ class Letter {
     }
     final seg = currentSegment;
     final isLastSeg = currentSegmentIndex >= segments.length - 1;
-    final toDisplay = (isLastSeg && destinationDisplayAddress != null)
+    final rawTo = (isLastSeg && destinationDisplayAddress != null)
         ? destinationDisplayAddress!
         : seg.toName;
-    return '${seg.mode.emoji}  ${seg.fromName} → $toDisplay';
+    // Build 422 (sim-fresh2 P2): 국경 검문소 sentinel/레거시 리터럴을 현지화.
+    final fromLoc = RouteSegment.localizeHubName(seg.fromName, langCode);
+    final toLoc = RouteSegment.localizeHubName(rawTo, langCode);
+    return '${seg.mode.emoji}  $fromLoc → $toLoc';
   }
 
   // ── 현실적인 배송 예상 시간 ─────────────────────────────────────────────────
@@ -569,7 +702,8 @@ class Letter {
     }
 
     final days = (remainMin / 1440).ceil();
-    final etaDate = DateTime.now().add(Duration(minutes: remainMin));
+    // Build 422 (sim-fresh2 P3): 모델의 다른 시간원과 일관되게 SecureClock.
+    final etaDate = SecureClock.now().add(Duration(minutes: remainMin));
     return l.arrivalDays(days, _fmtDate(etaDate, langCode));
   }
 
@@ -594,9 +728,9 @@ class Letter {
 
     final totalMin = segments.fold<int>(
       0,
-      (s, seg) => s + seg.estimatedMinutes,
+      (s, seg) => s + (seg.estimatedMinutes > 0 ? seg.estimatedMinutes : 0),
     );
-    if (totalMin == 0) return destinationLocation;
+    if (totalMin <= 0) return destinationLocation;
 
     double targetMin = t * totalMin;
     double accMin = 0;
@@ -660,6 +794,8 @@ class Letter {
     'brandUniquePerUser': brandUniquePerUser,
     if (expiresAt != null) 'expiresAt': expiresAt!.millisecondsSinceEpoch,
     'category': category.key,
+    // Build 415 (#5): normal 은 생략 — 기존 letter/페이로드와 호환 + 직렬화 절약.
+    if (rarity != LetterRarity.normal) 'rarity': rarity.key,
     'acceptsReplies': acceptsReplies,
     if (redemptionInfo != null) 'redemptionInfo': redemptionInfo,
     if (redemptionExpiresAt != null)
@@ -672,6 +808,7 @@ class Letter {
     if (redemptionCode != null) 'redemptionCode': redemptionCode,
     if (codeRevealedAt != null)
       'codeRevealedAt': codeRevealedAt!.millisecondsSinceEpoch,
+    if (sourceLetterId != null) 'sourceLetterId': sourceLetterId,
     'readCount': readCount,
     'maxReaders': maxReaders,
   };
@@ -735,7 +872,7 @@ class Letter {
         .map((s) => RouteSegment.fromJson(s as Map<String, dynamic>))
         .toList(),
     currentSegmentIndex: j['currentSegmentIndex'] as int,
-    status: DeliveryStatus.values[j['status'] as int],
+    status: _safeEnum(DeliveryStatus.values, j['status']),
     sentAt: DateTime.fromMillisecondsSinceEpoch(j['sentAt'] as int),
     arrivedAt: j['arrivedAt'] != null
         ? DateTime.fromMillisecondsSinceEpoch(j['arrivedAt'] as int)
@@ -743,14 +880,15 @@ class Letter {
     readAt: j['readAt'] != null
         ? DateTime.fromMillisecondsSinceEpoch(j['readAt'] as int)
         : null,
-    arrivalTime: j['arrivalTime'] != null
-        ? DateTime.fromMillisecondsSinceEpoch(j['arrivalTime'] as int)
-        : null,
+    // Build 425 (sim-fresh3 #13): arrivalTime 도 _parseDateTime 으로 — 이전엔
+    //   `as int` 라 String/double 로 오면 letter 전체 fromJson 이 throw →
+    //   캐시 letter 손실 + 도착 애니메이션 깨짐.
+    arrivalTime: _parseDateTime(j['arrivalTime']),
     isAnonymous: j['isAnonymous'] as bool? ?? true,
     socialLink: j['socialLink'] as String?,
     estimatedTotalMinutes: j['estimatedTotalMinutes'] as int,
     isReadByRecipient: j['isReadByRecipient'] as bool? ?? false,
-    letterType: LetterType.values[j['letterType'] as int? ?? 0],
+    letterType: _safeEnum(LetterType.values, j['letterType']),
     reportCount: j['reportCount'] as int? ?? 0,
     reportedBy: Set<String>.from(j['reportedBy'] as List? ?? []),
     likeCount: j['likeCount'] as int? ?? 0,
@@ -762,16 +900,17 @@ class Letter {
     hasReplied: j['hasReplied'] as bool? ?? false,
     imageUrl: j['imageUrl'] as String?,
     senderIsBrand: j['senderIsBrand'] as bool? ?? false,
-    senderTier: LetterSenderTier.values[j['senderTier'] as int? ?? 0],
+    senderTier: _safeEnum(LetterSenderTier.values, j['senderTier']),
     brandUniquePerUser: j['brandUniquePerUser'] as bool? ?? false,
     category: LetterCategoryExt.fromKey(j['category'] as String?),
+    // Build 415 (#5): int(index) / string(key) 양쪽 안전 파싱 + 누락 시 normal.
+    rarity: LetterRarityExt.fromJson(j['rarity']),
     acceptsReplies: j['acceptsReplies'] as bool? ?? true,
     redemptionInfo: j['redemptionInfo'] as String?,
-    redemptionExpiresAt: j['redemptionExpiresAt'] != null
-        ? DateTime.fromMillisecondsSinceEpoch(
-            j['redemptionExpiresAt'] as int,
-          )
-        : null,
+    // Build 422 (sim-fresh2 P2): redeemedAt/codeRevealedAt 과 동일하게 안전 파싱 —
+    //   Firestore fetch 후 ISO string 으로 오면 `as int` cast 가 throw → fromJson
+    //   실패 → 캐시 letter 손실. _parseDateTime 은 ms epoch/ISO 양쪽 처리.
+    redemptionExpiresAt: _parseDateTime(j['redemptionExpiresAt']),
     brandZoneId: j['brandZoneId'] as String?,
     categoryTag: j['categoryTag'] as String?,
     // Build 340 (PR-S11 시뮬레이션 P1 Firestore timestamp): redeemedAt /
@@ -785,9 +924,8 @@ class Letter {
     //   _sanitizeRedemptionCode 가 형식 검사 → 불일치 시 null fallback.
     redemptionCode: _sanitizeRedemptionCode(j['redemptionCode']),
     codeRevealedAt: _parseDateTime(j['codeRevealedAt']),
-    expiresAt: j['expiresAt'] != null
-        ? DateTime.fromMillisecondsSinceEpoch(j['expiresAt'] as int)
-        : null,
+    sourceLetterId: j['sourceLetterId'] as String?,
+    expiresAt: _parseDateTime(j['expiresAt']),
     readCount: j['readCount'] as int? ?? 0,
     maxReaders: j['maxReaders'] as int? ?? Letter.maxReadersDefault,
   );
@@ -1712,7 +1850,7 @@ class LogisticsHubs {
         to: borderPoint,
         mode: TransportMode.truck,
         fromName: fromCityLabel,
-        toName: '국경 검문소',
+        toName: kBorderCheckpointSentinel,
         fromType: HubType.city,
         toType: HubType.localHub,
         estimatedMinutes: halfMin,
@@ -1721,7 +1859,7 @@ class LogisticsHubs {
         from: borderPoint,
         to: toCity,
         mode: TransportMode.truck,
-        fromName: '국경 검문소',
+        fromName: kBorderCheckpointSentinel,
         toName: toCityLabel,
         fromType: HubType.localHub,
         toType: HubType.destination,

@@ -98,6 +98,25 @@ service cloud.firestore {
           && _delta('reportCount') >= 0 && _delta('reportCount') <= 1;
     }
 
+    // Build 450 (sim100 보안 P1 — letters.status IDOR 부분 완화):
+    //   anon-auth(request.auth.uid ≠ 앱 userId) 라 letter 의 owner-binding 이
+    //   불가능 → 타 인증자의 letter PATCH 자체는 Auth Phase 3 cutover 전엔 막을
+    //   수 없다(구조적 BLOCKER, docs/AUTH_PHASE3_CUTOVER_RUNBOOK.md). 그러나
+    //   쿠폰 무결성 핵심 타임스탬프를 write-once 로 잠가, 공격자가 이미 사용·노출된
+    //   쿠폰의 redeemedAt/codeRevealedAt 를 되돌리거나(되팔기) 위조(분석 왜곡)하는
+    //   2차 공격을 차단한다. 정상 픽업 흐름(첫 redeem/reveal 1회 set)은 영향 없음.
+    //   - 기존 값이 null/부재 → set 허용(최초 1회).
+    //   - 이미 값 존재 → 동일 값만 허용(변경/삭제 거부).
+    function _tsWriteOnce(field) {
+      return !(field in resource.data) || resource.data[field] == null
+          || (field in request.resource.data
+              && request.resource.data[field] == resource.data[field]);
+    }
+    function isLetterTamperSafe() {
+      return _tsWriteOnce('redeemedAt')
+          && _tsWriteOnce('codeRevealedAt');
+    }
+
     // ── users 컬렉션 ──────────────────────────────────────────────────
     // Build 297 (P0 security audit): update/delete 를 isSignedIn() 만으로 허용
     // 하면 어떤 인증 사용자든 다른 사용자 doc 을 덮어쓰거나 삭제 (PII 변조 +
@@ -121,6 +140,26 @@ service cloud.firestore {
             'customTowerName', 'towerColor', 'towerAccentEmoji',
             'towerRoofStyle', 'towerWindowStyle',
             'preferredCategoryKey',
+            // Build 414 (sim100 P0-1): 클라이언트 _doSaveUserToFirestore PATCH 가
+            //   항상 포함하던 필드. 화이트리스트에 없어 update 가 atomic 403 →
+            //   프로필/카운터/위치/크레딧 전부 서버 미저장(런타임 확인). 추가.
+            //   - pickedUpCampaignIds: 본인 픽업 dedup 동기화(Build 324) — self 데이터.
+            //   - isBrand/brandName: 계정종류 영속(Build 406). create 는 여전히
+            //     isValidUserCreate 가 isBrand=false 강제(가입 시 self-born Brand 차단).
+            //     ⚠️ update 에서 client 가 isBrand=true 설정 가능 = self-promote
+            //     잔존 위험. 단, 본 앱은 anon-auth 라 Brand 가 이미 client-side 티어
+            //     (서버 결제검증 부재, 백로그 ③/#33). 근본 차단은 Auth Phase 3
+            //     cutover + 서버 entitlement 검증 (firestore.rules.phase2).
+            'pickedUpCampaignIds', 'isBrand', 'brandName', 'id',
+            // Build 413 (Auth Phase 2): authUid 바인딩 필드 허용. 이게 없으면
+            //   AUTH_BIND_ENABLED 빌드에서 user doc 저장이 hasOnly 위반으로 전부
+            //   403 거부됨(시뮬레이터 테스트로 확인). 추가형 변경 — 다른 제약·
+            //   read 규칙 불변, 프로덕션(flag OFF, authUid 미기록) 영향 없음.
+            //   Phase 3 cutover 에서 authUid 는 owner-check 기준이 됨.
+            'authUid',
+            // Build 461 (팔로워 집계): 타 사용자의 follow/unfollow 가 브랜드
+            //   user doc 의 followerCount 를 ±1 — 폭은 아래 delta 가드가 제한.
+            'followerCount',
             // Build 300: welcomeTrialClaimedAt 는 client update 차단.
             // 서버측 source of truth = trial_claims/{sha256(email)}.
             // (client 가 user doc 의 timestamp 를 지워 farming 시도 회로 차단.)
@@ -156,7 +195,14 @@ service cloud.firestore {
                    ? request.resource.data.brandExtraMonthlyQuota : 0);
       // 모든 credit 카운터는 client 측에서 감소만 허용 (consume).
       // 증가는 admin REST.
-      return newEx <= curEx && newIn <= curIn && newBQ <= curBQ;
+      // Build 461: followerCount 는 ±1 만 (follow/unfollow 자연 증감 —
+      //   review-bombing 식 +999 차단). 음수 하한도 차단.
+      let curF = ('followerCount' in resource.data
+                  ? resource.data.followerCount : 0);
+      let newF = ('followerCount' in request.resource.data
+                  ? request.resource.data.followerCount : 0);
+      return newEx <= curEx && newIn <= curIn && newBQ <= curBQ
+          && newF >= curF - 1 && newF <= curF + 1 && newF >= 0;
     }
 
     match /users/{userId} {
@@ -205,9 +251,11 @@ service cloud.firestore {
 
       // update 는 카운터·상태 필드만. 본문/발신자/좌표/카테고리는 immutable.
       // Build 297: 카운터 폭 검증 추가 (review-bombing 차단).
+      // Build 450 (보안 P1): redeemedAt/codeRevealedAt write-once 잠금 추가.
       allow update: if isSignedIn()
                   && isAllowedLetterUpdate()
-                  && isReasonableLetterCounterDelta();
+                  && isReasonableLetterCounterDelta()
+                  && isLetterTamperSafe();
 
       // delete 차단 — admin REST 만 가능.
       allow delete: if false;
@@ -217,6 +265,28 @@ service cloud.firestore {
     match /reports/{reportId} {
       // 인증된 사용자는 신고 생성 가능. 읽기·수정·삭제는 관리자 REST 만.
       allow create: if isSignedIn();
+      allow read, list, update, delete: if false;
+    }
+
+    // ── merchant_interest 컬렉션 (Build 415 — B2B 영업 리드) ─────────────
+    // "사장님이세요?" 시트에서 관심 등록 시 기록되는 운영자 전용 리드.
+    // 이전엔 룰이 없어 default-deny(catch-all)로 모든 write 가 403 → 리드 소실.
+    // reports 와 동일 정책: 인증 사용자 create-only, 읽기·수정·삭제는 admin REST.
+    match /merchant_interest/{interestId} {
+      allow create: if isSignedIn()
+          && request.resource.data.userId is string
+          && request.resource.data.country is string;
+      allow read, list, update, delete: if false;
+    }
+
+    // ── inviteClaims 컬렉션 (Build 416 — 초대 보상 중복방지) ─────────────
+    // applyInviteCode 가 inviteClaims/{claimerId} 에 1회 기록(중복 초대 차단).
+    // 이전엔 룰이 없어 catch-all deny(403) → 초대 보상 기능 전면 불능.
+    // create-only(이미 있으면 Firestore 가 거부 → alreadyUsed). read 차단.
+    match /inviteClaims/{claimerId} {
+      allow create: if isSignedIn()
+          && request.resource.data.claimerId is string
+          && request.resource.data.inviterId is string;
       allow read, list, update, delete: if false;
     }
 
@@ -245,8 +315,13 @@ service cloud.firestore {
       return data.keys().hasOnly([
             'brandId', 'brandName', 'content', 'redemptionInfo',
             'redemptionCode', 'center', 'radiusM', 'startsAt', 'expiresAt',
-            'maxRedeems', 'redeemedCount', 'createdAt', 'id'
+            'maxRedeems', 'redeemedCount', 'createdAt', 'id',
+            // Build 462 (보안 보강): 정식 인증 zone 소유자 바인딩(선택). 있으면
+            //   expiresAt 조기종료를 소유자만 허용(isAllowedBrandZoneUpdate).
+            'brandAuthUid'
           ])
+          && (!('brandAuthUid' in data)
+              || (data.brandAuthUid is string && data.brandAuthUid.size() <= 128))
           && data.brandId is string && data.brandId.size() > 0 && data.brandId.size() <= 64
           // Build 393 (PR-HH2 P0): brandId 형식 검증 — 'admin' literal 단 1개
           //   (admin 본인 zone) 또는 UUID 형식 (일반 brand). 임의 string 차단.
@@ -281,8 +356,22 @@ service cloud.firestore {
 
     function isAllowedBrandZoneUpdate() {
       // redeemedCount 만 변경 가능. counter increment 흐름.
+      // Build 461 (zone 조기 종료): expiresAt '단축만' 단독 변경 허용 —
+      //   Brand 가 잘못 건 쿠폰 zone 을 30일간 못 멈추던 치명 결함 해소.
+      //   연장/부활은 string 비교(ISO8601 UTC 동일 포맷)로 차단.
+      // Build 462 (보안 보강): zone 에 brandAuthUid 가 박혀 있으면(정식 인증으로
+      //   생성된 zone) 조기종료를 소유자(request.auth.uid 일치)만 허용 →
+      //   '타 매장 zone 조기종료(경쟁사 방해)' 표면을 닫는다. brandAuthUid 가
+      //   없는 legacy/anon zone 은 기존 permissive 경로(Phase 3 전 구조 한계).
       return request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['redeemedCount']);
+          .hasOnly(['redeemedCount'])
+        || (request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['expiresAt'])
+            && request.resource.data.expiresAt is string
+            && resource.data.expiresAt is string
+            && request.resource.data.expiresAt <= resource.data.expiresAt
+            && (!('brandAuthUid' in resource.data)
+                || request.auth.uid == resource.data.brandAuthUid));
     }
 
     // Build 297 (HIGH security audit): redeemedCount 증분 0 또는 +1 만 허용.
@@ -314,7 +403,12 @@ service cloud.firestore {
     //     완화: hash 가 random sha256 (64-hex) 패턴인 경우만 허용 + 후속 단계
     //     에서 admin REST 기반 issuance 로 마이그레이션 (Cloud Function).
     match /trial_claims/{emailHash} {
-      allow get: if true;
+      // Build 412 (PII sim MED): get:true → false. sha256(email) point-read 이
+      //   email 등록여부 membership oracle (rainbow-table) 로 악용 가능했음.
+      //   클라이언트는 read 불필요 — create 의 currentDocument.exists=false
+      //   precondition 이 단건 grant 를 server-side 로 보장 (tryClaimWelcomeTrial
+      //   의 alreadyExists 처리로 검증됨). list 는 이미 false.
+      allow get: if false;
       allow list: if false;
       // Build 370 (PR-CC4 P0 #10 stop-gap): createdBy 필드 추적 추가.
       //   victim email hash 를 attacker 가 pre-create 한 griefing 케이스를

@@ -3,7 +3,7 @@ description: "Thiscount - Pick up coupons and discounts around you"
 publish_to: 'none'
 homepage: 'https://thiscount.io'
 issue_tracker: 'https://thiscount.io/support'
-version: 1.0.0+410
+version: 1.0.0+489
 
 environment:
   # Build 272 (P2): Flutter SDK 최소 버전 명시 — withValues(alpha:) API 호환성.
@@ -65,3 +65,20 @@ flutter:
     - assets/sounds/
     - assets/cities.json
     - assets/countries_bounds.json
+  # Build 444 (design): 2026 트렌드 — 시스템 폰트 → Pretendard(가독·모던, 한/영/숫자
+  #   균형). OFL 라이선스. weight 매핑으로 w400~w900 커버.
+  fonts:
+    - family: Pretendard
+      fonts:
+        - asset: assets/fonts/Pretendard-Regular.otf
+          weight: 400
+        - asset: assets/fonts/Pretendard-Medium.otf
+          weight: 500
+        - asset: assets/fonts/Pretendard-SemiBold.otf
+          weight: 600
+        - asset: assets/fonts/Pretendard-Bold.otf
+          weight: 700
+        - asset: assets/fonts/Pretendard-ExtraBold.otf
+          weight: 800
+        - asset: assets/fonts/Pretendard-Black.otf
+          weight: 900

@@ -132,7 +132,10 @@ class BrandZoneService {
   Future<List<BrandZone>> triggerForUser({
     required String userId,
     required LatLng userPos,
-    required Future<void> Function(BrandZone zone, LatLng destination)
+    // Build 421 (sim-fresh P2): 콜백이 실제 letter 생성 여부를 bool 로 보고 —
+    //   false(만료/본인zone/예외)면 seen 마킹을 보류해, 잠깐 zone 을 스쳐도
+    //   영구히 '받음' 처리돼 진짜 도착 시 letter 를 못 받던 문제 차단.
+    required Future<bool> Function(BrandZone zone, LatLng destination)
         onZoneEnter,
     DateTime? now,
     math.Random? rng,
@@ -155,9 +158,12 @@ class BrandZoneService {
       //   못 받는 회귀. 10m 면 사용자가 200m 이동해도 안전 margin 확보.
       final dest = randomOffset(userPos, maxMeters: 10, rng: r);
       try {
-        await onZoneEnter(zone, dest);
-        await _markSeen(userId, zone.id);
-        picked.add(zone);
+        final delivered = await onZoneEnter(zone, dest);
+        // letter 가 실제로 생성된 경우에만 seen 마킹 (재시도 여지 보존).
+        if (delivered) {
+          await _markSeen(userId, zone.id);
+          picked.add(zone);
+        }
       } catch (e, st) {
         if (kDebugMode) debugPrint('[BrandZone] trigger err ${zone.id}: $e\n$st');
       }
@@ -248,6 +254,12 @@ class BrandZoneService {
         'maxRedeems': {'integerValue': '$maxRedeems'},
         'redeemedCount': {'integerValue': '0'},
         'createdAt': {'stringValue': now.toIso8601String()},
+        // Build 462 (보안 보강): 정식 인증(Auth Phase 3) 세션이면 zone 에 소유자
+        //   authUid 를 바인딩 → firestore.rules 의 expiresAt 조기종료가 본인만
+        //   가능해져 '타 매장 zone 조기종료' 표면을 닫는다. anon(플래그 OFF) 이면
+        //   null 미기록 → rule 은 기존 permissive 경로(Phase 3 전 구조 한계).
+        if (FirebaseAuthService.realAuthUid != null)
+          'brandAuthUid': {'stringValue': FirebaseAuthService.realAuthUid!},
       };
       final uri = Uri.parse(
         '${FirebaseConfig.firestoreBase}/brand_zones'
@@ -303,6 +315,61 @@ class BrandZoneService {
     }
   }
 
+  /// Build 461 (페르소나 치명 — zone 은 만들면 끝): 내 브랜드의 zone 목록.
+  /// 캐시(전체 zone, pageSize 200) 에서 brandId 필터 — Brand 캠페인 화면의
+  /// '자동발송 매장 위치' 섹션이 사용. 최신 생성순.
+  Future<List<BrandZone>> zonesForBrand(
+    String brandId, {
+    bool force = false,
+  }) async {
+    if (brandId.isEmpty) return const [];
+    await warmUp(force: force);
+    final mine = _cache.where((z) => z.brandId == brandId).toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return mine;
+  }
+
+  /// Build 461: zone 조기 종료 — expiresAt 을 현재 시각으로 PATCH.
+  /// 가격 오타 쿠폰을 30일간 회수할 수단이 maxRedeems 소진뿐이던 치명 결함 해소.
+  /// firestore.rules 는 expiresAt '단축만' 허용(연장/부활 차단). 성공 시 캐시
+  /// in-place 갱신 → 다음 triggerForUser 부터 즉시 비활성.
+  Future<bool> deactivateZone(String zoneId) async {
+    if (!FirebaseConfig.kFirebaseEnabled || zoneId.isEmpty) return false;
+    try {
+      final now = DateTime.now().toUtc();
+      await FirebaseAuthService.ensureValidToken();
+      final uri = Uri.parse(
+        '${FirebaseConfig.firestoreBase}/brand_zones/$zoneId'
+        '?updateMask.fieldPaths=expiresAt',
+      );
+      final r = await http
+          .patch(
+            uri,
+            headers: FirestoreService.authHeaders,
+            body: jsonEncode({
+              'fields': {
+                'expiresAt': {'stringValue': now.toIso8601String()},
+              },
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+      if (r.statusCode < 200 || r.statusCode >= 300) {
+        if (kDebugMode) {
+          debugPrint('[BrandZone] deactivate ${r.statusCode}: ${r.body}');
+        }
+        return false;
+      }
+      _cache = List<BrandZone>.unmodifiable([
+        for (final z in _cache)
+          if (z.id == zoneId) z.copyWith(expiresAt: now.toLocal()) else z,
+      ]);
+      return true;
+    } catch (e, st) {
+      if (kDebugMode) debugPrint('[BrandZone] deactivate err: $e\n$st');
+      return false;
+    }
+  }
+
   /// 테스트용 cache 주입.
   @visibleForTesting
   void injectCacheForTest(List<BrandZone> zones) {
@@ -341,7 +408,9 @@ class BrandZoneService {
     if (v is! Map<String, dynamic>) return v;
     if (v.containsKey('stringValue')) return v['stringValue'];
     if (v.containsKey('integerValue')) {
-      return int.parse(v['integerValue'] as String);
+      // Build 423 (sim-crosscut P2): FirestoreService 와 동일하게 방어적 파싱 —
+      //   integerValue 가 비-String(예: num)으로 와도 zone 전체가 드롭되지 않게.
+      return int.tryParse(v['integerValue'].toString()) ?? 0;
     }
     if (v.containsKey('doubleValue')) return (v['doubleValue'] as num).toDouble();
     if (v.containsKey('booleanValue')) return v['booleanValue'] as bool;

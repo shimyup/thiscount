@@ -19,6 +19,7 @@ import '../../../core/theme/letter_style.dart';
 import '../../../core/data/country_cities.dart';
 import '../../../core/services/geocoding_service.dart';
 import '../../../core/services/brand_zone_service.dart';
+import '../../../core/utils/content_moderation.dart';
 import '../../../core/utils/redemption_code.dart';
 import '../../../core/utils/secure_clipboard.dart';
 import '../../../models/letter.dart';
@@ -33,12 +34,37 @@ import '../day_theme.dart';
 import '../widgets/exact_drop_picker.dart';
 import '../../../core/services/feedback_service.dart';
 import '../../../core/services/storage_service.dart';
+import '../../../core/services/coupon_ai_service.dart';
 
 class ComposeScreen extends StatefulWidget {
   final String? replyToId;
   final String? replyToName;
 
-  const ComposeScreen({super.key, this.replyToId, this.replyToName});
+  // Build 461 (페르소나 높음 — 재발송 버튼 부재): 캠페인 상세 '같은 조건으로
+  //   다시 보내기' 프리필 진입. 본문/혜택/카테고리/업종/코드를 그대로 복원 —
+  //   코칭팁의 '재집행 권장' 과 액션을 연결. 코드는 원본 재사용(POS 추가 등록 0).
+  final String? initialContent;
+  final String? initialRedemptionInfo;
+
+  /// LetterCategory key — 'general' / 'coupon' / 'voucher'.
+  final String? initialBrandCategoryKey;
+
+  /// 업종 태그 — food/cafe/beauty/fashion/event/other.
+  final String? initialBizCategory;
+
+  /// 원본 캠페인의 매장 코드. non-null 이면 코드 발급 토글 ON + 같은 코드 재사용.
+  final String? initialRedemptionCode;
+
+  const ComposeScreen({
+    super.key,
+    this.replyToId,
+    this.replyToName,
+    this.initialContent,
+    this.initialRedemptionInfo,
+    this.initialBrandCategoryKey,
+    this.initialBizCategory,
+    this.initialRedemptionCode,
+  });
 
   @override
   State<ComposeScreen> createState() => _ComposeScreenState();
@@ -87,11 +113,25 @@ class _ComposeScreenState extends State<ComposeScreen>
   }
 
   bool _isRandom = true;
+  // Build 425 (device #3): 목적지 선택 전엔 어떤 버튼도 활성 강조색을 띄지 않음
+  //   (초기 random 자동 하이라이트 제거). 사용자가 나라/랜덤을 누르면 true.
+  bool _destinationTouched = false;
+  // Build 458 (페르소나 치명): Brand 기본 목적지 = 내 매장 주변. true 면 단건
+  //   발송이 좌표를 그대로 보존(useExactCoordinates — 자기 매장이라 무차감,
+  //   auto-zone 무료 정책과 일관). 사용자가 목적지를 바꾸면 해제.
+  bool _destIsMyStore = false;
   bool _isAnonymous = true;
   bool _attachSocial = false;
   // Build 229: 사진+링크 첨부 카드 onTap → 첨부 영역으로 스크롤 + 토글 활성화.
   final GlobalKey _attachAreaKey = GlobalKey();
   bool _isSending = false;
+  // Build 414 (sim200 P2): _onSend 동기 재진입 가드. _isSending 은 실제 발송
+  //   브랜치에서야 setState 되어, 그 전 네트워크 lookup(최대 6s) 동안 더블탭 시
+  //   편지 중복 발송 + 크레딧 이중 소모. 이 플래그는 진입 즉시 set, finally 에서
+  //   해제하므로 모든 early-return 경로에서도 정확히 풀린다.
+  bool _sendInFlight = false;
+  // Build 414: AI 쿠폰 생성 진행 중 플래그 (버튼 비활성/스피너).
+  bool _isGeneratingAI = false;
   // Build 407 (PR-QQ1): draft 버리기 후 autoSaveTimer 가 _selectedCountry 등
   //   기본값으로 brand draft 재저장 → 다음 진입 시 "이어쓰기" 무한 재출현
   //   회귀. discard 시 true 설정 → _saveDraft / autoSave 가 skip. 사용자가
@@ -437,9 +477,28 @@ class _ComposeScreenState extends State<ComposeScreen>
   //   redemptionCode 에 저장. 손님이 "사용 진행" 탭 시 reveal → 매장 POS 가
   //   바코드 스캔 / 코드 수동 입력으로 할인 적용.
   bool _attachRedemptionCode = false;
+  // Build 446: 발송 화면에서 미리 보여줄(그리고 실제 발송에 그대로 주입할) 매장
+  //   코드. 이전엔 코드가 발송 시점에만 생성돼 사장이 발송 전 코드를 못 봤고,
+  //   "본문에 코드 따로 적어야 하나?" 혼선이 있었다. 토글 ON 시 1회 생성 →
+  //   미리보기 카드에 노출 + 모든 발송 경로(sendLetter/Bulk/Express/zone)에
+  //   explicitRedemptionCode 로 주입 → 미리보기 = 실제 발급 코드 보장.
+  String? _previewRedemptionCode;
   // Brand 전용 편지 카테고리 — 일반 / 할인권 / 교환권. 수집첩에서 쿠폰함 섹션
   // 으로 분리 표시되므로 브랜드 운영자가 발송 의도를 명확히 지정한다.
   LetterCategory _brandCategory = LetterCategory.general;
+
+  // Build 433 (device): Brand 발송 업종 카테고리 (발송 종류와 별개 축).
+  //   food/cafe/beauty/fashion/event/other — 도착 마커 이모지·인박스 필터에
+  //   사용. null 이면 픽업 시 본문 기반 자동 추론(기존 호환).
+  String? _brandBizCategory;
+  static const List<String> _bizCategoryKeys = [
+    'food', 'cafe', 'beauty', 'fashion', 'event', 'other',
+  ];
+
+  // Build 470 (발송 마법사 통합): 브랜드 신규 발송을 3단계로 — ①혜택 ②대상 ③확인.
+  //   기존 섹션 위젯·발송 로직(_buildSendButton/_onSend)·picker 전부 재사용,
+  //   레이아웃만 단계화(한 스크롤 → PageStep). 답장(_isReply)은 단계 미적용.
+  int _composeStep = 0;
 
   // Build 321: 자동 발송 zone 모드 — 사용자가 반경 안에 들어오면 자동 letter.
   // compose 화면에서 토글로 활성화. send 버튼이 createZone 호출로 변경.
@@ -447,6 +506,8 @@ class _ComposeScreenState extends State<ComposeScreen>
   bool _isAutoZoneMode = false;
   double _zoneRadius = 300; // 300m / 2km
   bool _zoneUnlimited = true;
+  // Build 448: 자동 발송 시 고정 매장 위치(저장된 좌표)를 zone 중심으로 사용.
+  bool _useFixedStoreLocation = false;
   final TextEditingController _zoneMaxRedeemsCtrl =
       TextEditingController(text: '100');
 
@@ -463,54 +524,6 @@ class _ComposeScreenState extends State<ComposeScreen>
   int? _redemptionValidityDays = 30;
   static const List<int?> _redemptionValidityChoices = [7, 30, 90, 365, null];
 
-  static const List<String> _bannedWords = [
-    // English
-    'fuck', 'shit', 'bitch', 'asshole', 'bastard', 'dick', 'pussy', 'cunt',
-    'nigger', 'nigga', 'faggot', 'whore', 'slut', 'rape', 'kill yourself',
-    'kys', 'retard',
-    // 한국어
-    '씨발', '병신', '개새끼', '존나', '지랄', '엿먹', '꺼져', '죽어',
-    '미친놈', '미친년', '창녀', '보지', '자지', '좆',
-    // 日本語
-    'くそ', 'ばか', 'しね', '死ね', 'きもい', 'うざい', 'ころす', '殺す',
-    'ちんこ', 'まんこ', 'おっぱい', 'やりまん',
-    // 中文
-    '他妈', '操你', '妈逼', '傻逼', '狗屎', '去死', '废物', '贱人',
-    '混蛋', '王八蛋', '滚蛋',
-    // Español
-    'mierda', 'puta', 'cabrón', 'pendejo', 'joder', 'coño', 'maricón',
-    'hijo de puta', 'culero', 'verga',
-    // Français
-    'merde', 'putain', 'connard', 'salaud', 'enculé', 'bordel', 'nique',
-    'ta gueule', 'pédé', 'salope',
-    // Deutsch
-    'scheiße', 'arschloch', 'hurensohn', 'wichser', 'fotze', 'missgeburt',
-    'schwuchtel', 'drecksau',
-    // Português
-    'merda', 'porra', 'caralho', 'filho da puta', 'buceta', 'viado',
-    'desgraça', 'otário', 'piranha',
-    // Русский
-    'блядь', 'сука', 'хуй', 'пизда', 'ебать', 'мудак', 'дерьмо',
-    'говно', 'пиздец', 'заткнись',
-    // Build 375 (PR-DD4 audit msg P1-8): AR/TR/IT/HI/TH 추가 — PR-AA2 가
-    //   user-facing 14언어 정리했으나 banned word 사전이 9언어만 → 5언어
-    //   사용자 욕설 leak.
-    // العربية
-    'كس', 'زب', 'شرموطة', 'كلب', 'لعنة', 'احمق', 'قحبة', 'منيك',
-    // Türkçe
-    'siktir', 'amına', 'orospu', 'piç', 'aptal', 'göt', 'yarrak', 'kahpe',
-    // Italiano
-    'cazzo', 'merda', 'vaffanculo', 'stronzo', 'coglione', 'puttana', 'fanculo',
-    'figa', 'troia',
-    // हिन्दी
-    'मादरचोद', 'भोसडी', 'चूतिया', 'गांडू', 'रंडी', 'हरामी', 'कमीना',
-    // ภาษาไทย
-    'ควย', 'หี', 'แม่ง', 'เหี้ย', 'สัส', 'อีดอก', 'มึง',
-    // Spam patterns (multilingual)
-    '카지노', '도박', '대출', '비트코인 투자', '클릭하세요',
-    'casino', 'gambling', 'bitcoin invest', 'click here', 'free money',
-    'カジノ', '赌博', '賭博',
-  ];
 
   @override
   void initState() {
@@ -520,21 +533,40 @@ class _ComposeScreenState extends State<ComposeScreen>
       vsync: this,
     );
     _sendAnim = CurvedAnimation(parent: _sendController, curve: Curves.easeOut);
-    // Build 324 (positioning): Free 사용자는 "줍기 전용" — compose 진입 자체를
-    //   차단. main_scaffold / inbox_screen / letter_read_screen 등 모든 진입점
-    //   에 가드를 흩뿌리는 대신 ComposeScreen 자체에서 한 번에 처리 (defense-
-    //   in-depth). 진입 시 즉시 pop + PremiumGateSheet 노출.
+    // Build 425 (device): 발송 정책 변경 — 신규 발송(새 편지/캠페인)은 Brand
+    //   계정 전용. 답장(_isReply)은 Premium·Brand 가 그대로 가능(픽업 상호작용).
+    //   모든 진입점 대신 ComposeScreen 에서 한 번에 처리(defense-in-depth):
+    //   진입 시 즉시 pop + 적절한 안내 시트.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final state = context.read<AppState>();
-      if (!state.currentUser.isPremium && !state.currentUser.isBrand) {
-        final l = AppL10n.of(state.currentUser.languageCode);
+      final l = AppL10n.of(state.currentUser.languageCode);
+      // Build 448: 이미 저장된 고정 매장 위치가 있으면 자동 발송 시 기본 사용.
+      if (state.hasFixedStoreLocation && !_useFixedStoreLocation) {
+        setState(() => _useFixedStoreLocation = true);
+      }
+      if (_isReply) {
+        // 답장: Premium·Brand 허용, Free 만 차단.
+        if (!state.currentUser.isPremium && !state.currentUser.isBrand) {
+          Navigator.of(context).pop();
+          PremiumGateSheet.show(
+            context,
+            featureName: l.composeGateFeatureName,
+            featureEmoji: '📣',
+            description: l.composeGateDesc,
+          );
+        }
+        return;
+      }
+      // 신규 발송: Brand 전용.
+      if (!state.currentUser.isBrand) {
         Navigator.of(context).pop();
-        PremiumGateSheet.show(
+        BrandOnlyGateSheet.show(
           context,
-          featureName: l.composeGateFeatureName,
+          featureName: l.navCampaign,
           featureEmoji: '📣',
-          description: l.composeGateDesc,
+          description: l.categoryHelpBrandOnlyNote,
+          viewerIsPremium: state.currentUser.isPremium,
         );
       }
     });
@@ -556,7 +588,10 @@ class _ComposeScreenState extends State<ComposeScreen>
       final allQuotes = _luckyQuotesForLang(langCode);
       final isStillLucky = allQuotes.contains(text.trim());
       setState(() {
-        _charCount = text.length;
+        // Build 417 (sim100 P2): 버튼/카운터도 trim 길이 기준 — 실제 발송검증
+        //   (content.trim().length)과 일치. 앞뒤 공백으로 카운트가 어긋나
+        //   버튼 활성인데 발송 거부되던 불일치 차단.
+        _charCount = text.trim().length;
         if (_isLuckyLetter && !isStillLucky) _isLuckyLetter = false;
       });
       // URL 감지 및 차단
@@ -603,7 +638,33 @@ class _ComposeScreenState extends State<ComposeScreen>
       if (!mounted) return;
       final state = context.read<AppState>();
       final purchase = context.read<PurchaseService>();
-      _pickRandomDestination(excludeCountry: state.currentUser.country);
+      // Build 458 (페르소나 치명): Brand 의 기본 목적지가 '내 나라 제외 랜덤
+      //   해외'라 동네 카페 첫 캠페인이 외국으로 날아가던 함정 → Brand 는
+      //   고정 매장 위치(있으면) 또는 현재 GPS = '내 매장 주변'을 기본으로.
+      //   랜덤 해외는 목적지 카드에서 명시적으로 선택할 때만.
+      final bUser = state.currentUser;
+      final bLat = state.hasFixedStoreLocation
+          ? state.fixedStoreLat!
+          : bUser.latitude;
+      final bLng = state.hasFixedStoreLocation
+          ? state.fixedStoreLng!
+          : bUser.longitude;
+      if (bUser.isBrand &&
+          !_isReply &&
+          bUser.country.isNotEmpty &&
+          (bLat != 0 || bLng != 0)) {
+        setState(() {
+          _isRandom = false;
+          _destIsMyStore = true;
+          _destinationTouched = true;
+          _selectedCountry = bUser.country;
+          _selectedFlag = bUser.countryFlag;
+          _destLat = bLat;
+          _destLng = bLng;
+        });
+      } else {
+        _pickRandomDestination(excludeCountry: bUser.country);
+      }
       // 프리미엄/브랜드 유저만 SNS 자동 첨부
       final hasPremiumForSns =
           purchase.isPremium ||
@@ -619,7 +680,33 @@ class _ComposeScreenState extends State<ComposeScreen>
           });
         }
       }
-      _loadDraftIfExists();
+      // Build 461: 재발송 프리필 — 본문/혜택/카테고리/업종/코드 복원. 프리필
+      //   진입 시엔 draft 이어쓰기 다이얼로그를 띄우지 않음(의도가 명확).
+      if (widget.initialContent != null && widget.initialContent!.isNotEmpty) {
+        setState(() {
+          _contentController.text = widget.initialContent!;
+          _charCount = widget.initialContent!.trim().length;
+          if (widget.initialBrandCategoryKey != null) {
+            _brandCategory =
+                LetterCategoryExt.fromKey(widget.initialBrandCategoryKey);
+          }
+          if (widget.initialBizCategory != null &&
+              _bizCategoryKeys.contains(widget.initialBizCategory)) {
+            _brandBizCategory = widget.initialBizCategory;
+          }
+          final ri = widget.initialRedemptionInfo;
+          if (ri != null && ri.isNotEmpty) {
+            _redemptionInfoController.text = ri;
+          }
+          final code = widget.initialRedemptionCode;
+          if (code != null && code.isNotEmpty) {
+            _attachRedemptionCode = true;
+            _previewRedemptionCode = code;
+          }
+        });
+      } else {
+        _loadDraftIfExists();
+      }
       // Build 189: 3초마다 자동 저장. text 가 비었어도 brand/mode 상태가 바뀌어
       // 있으면 저장 (이전엔 text 비면 저장 안 해서 bulk/express 상태가 휘발).
       _autoSaveTimer = Timer.periodic(const Duration(seconds: 3), (_) {
@@ -678,11 +765,30 @@ class _ComposeScreenState extends State<ComposeScreen>
         'socialLink': _socialLinkController.text,
         'brandCategory': _brandCategory.key,
         'redemptionInfo': _redemptionInfoController.text,
+        // Build 425 (sim-fresh3 #1·#2): 코드발급·1인1회 토글도 draft 에 보존 —
+        //   이전엔 저장 안 돼 재진입 시 false 로 복원되어 POS 코드 미발급 /
+        //   캠페인 dedup 깨짐.
+        'attachRedemptionCode': _attachRedemptionCode,
+        'brandUniquePerUser': _brandUniquePerUser,
       };
+      // Build 418 (사용자 device): 기본 선택 국가(_selectedCountry 는 거의 항상
+      //   비어있지 않음)만으로 brand draft 를 저장하면, 빈 메세지에도 다음 진입
+      //   시 "이어쓰기" 다이얼로그가 떠 '버리기' 해도 계속 재출현. 실제 의미있는
+      //   상태(대량/특송/타깃/특정국가 선택/혜택정보)만 draft 로 간주 —
+      //   닫기 확인의 hasContent 와 동일 기준.
+      // Build 466 (실기 피드백 — '버리기' 후 무한 재출현): Build 458 의 브랜드
+      //   기본 목적지(_destIsMyStore=내 매장 자동선택)가 진입할 때마다
+      //   _selectedCountry+!_isRandom 를 채워 빈 화면인데도 hasState=true →
+      //   phantom brand draft 가 매 진입 자동저장 → '버리기' 해도 재진입 시 또
+      //   생성됐음. 자동 기본 목적지는 '의미있는 draft' 에서 제외(사용자가 직접
+      //   다른 목적지를 고르면 _destIsMyStore=false 가 되어 정상 저장).
       final hasState = _isBulkMode ||
           _isExpressMode ||
           _bulkTargets.isNotEmpty ||
-          _selectedCountry.isNotEmpty;
+          (_selectedCountry.isNotEmpty && !_isRandom && !_destIsMyStore) ||
+          _redemptionInfoSafe.isNotEmpty ||
+          _attachRedemptionCode ||
+          _brandUniquePerUser;
       if (hasState) {
         try {
           prefs.setString('compose_draft_brand', jsonEncode(snapshot));
@@ -771,6 +877,29 @@ class _ComposeScreenState extends State<ComposeScreen>
                     if (ri.isNotEmpty) {
                       _redemptionInfoController.text = ri;
                     }
+                    _attachRedemptionCode =
+                        snap['attachRedemptionCode'] as bool? ?? false;
+                    // Build 446: 토글 ON 으로 복원되면 미리보기 코드도 확보.
+                    if (_attachRedemptionCode) {
+                      _previewRedemptionCode ??= RedemptionCode.generate();
+                    }
+                    _brandUniquePerUser =
+                        snap['brandUniquePerUser'] as bool? ?? false;
+                    // Build 425 (device #3): draft 복원 = 목적지 선택 이력 있음.
+                    _destinationTouched = true;
+                    // Build 428 (sim100 #25): 발송은 Brand 전용 → 비-Brand 가
+                    //   (다운그레이드 등으로) 옛 brand draft 를 복원해도 brand
+                    //   전용 상태는 무력화(서버 가드와 UI 정합).
+                    if (!context.read<AppState>().currentUser.isBrand) {
+                      _isBulkMode = false;
+                      _isExpressMode = false;
+                      _bulkTargets.clear();
+                      _isExactDropped = false;
+                      _attachRedemptionCode = false;
+                      _previewRedemptionCode = null;
+                      _brandUniquePerUser = false;
+                      _brandCategory = LetterCategory.general;
+                    }
                   } catch (_) {}
                 }
               });
@@ -802,6 +931,13 @@ class _ComposeScreenState extends State<ComposeScreen>
     _destLat = 0.0;
     _destLng = 0.0;
     _isExactDropped = false;
+    // Build 425 (sim-fresh3 #0·#3): 첨부 이미지·바우처 경로 + 브랜드 토글도
+    //   clear — 이전엔 남아서 재진입/새 작성 시 옛 이미지가 새 발송에 누수.
+    _imageFilePath = null;
+    _voucherImageLocalPath = null;
+    _attachRedemptionCode = false;
+    _previewRedemptionCode = null;
+    _brandUniquePerUser = false;
     SharedPreferences.getInstance().then((prefs) {
       prefs.remove('compose_draft');
       prefs.remove('compose_draft_brand');
@@ -876,6 +1012,7 @@ class _ComposeScreenState extends State<ComposeScreen>
   }
 
   void _pickRandomDestination({String? excludeCountry}) {
+    _destIsMyStore = false;
     final dest = AppState.randomDestination(excludeCountry: excludeCountry);
     final countryName = dest['name']!;
     final langCode = context.read<AppState>().currentUser.languageCode;
@@ -921,70 +1058,43 @@ class _ComposeScreenState extends State<ComposeScreen>
     });
   }
 
-  /// Build 321: 자동 발송 zone 등록. compose 의 본문 + redemption + 옵션
-  /// (반경 / 수량) 을 사용해 BrandZoneService.createZone 호출. 이전 별도
-  /// BrandZoneSetupScreen 흐름을 같은 작성 화면에 통합.
-  Future<void> _submitAutoZone(AppState state) async {
-    final l10n = AppL10n.of(state.currentUser.languageCode);
+  /// Build 321/475: 자동 발송 zone 등록. compose 의 본문 + redemption + 옵션
+  /// (반경 / 수량) 으로 BrandZoneService.createZone 호출.
+  /// Build 475: 이전 `_submitAutoZone` 은 zone 만 만들고 캠페인은 발송하지 않아
+  ///   혼선이 있었음. 이제 _onSendInner 의 단건 즉시발송이 끝난 뒤 호출되는
+  ///   best-effort 등록 헬퍼로 변경 — 검증/쿼터/검열·pop/스낵바는 호출부가
+  ///   이미 수행하므로 여기선 zone 생성만 한다. 성공 시 true.
+  Future<bool> _registerAutoZone(AppState state) async {
     final user = state.currentUser;
-    // Build 321 audit: zone 등록 흐름에 isBanned 가드 추가.
-    // 일반 compose 흐름은 이미 가드되지만 zone 분기 (line 1057) 가 banned check
-    // 이전에 분기 → 우회 가능했음.
-    if (user.isBanned) {
-      _showError(l10n.composeBannedAccount);
-      return;
-    }
-    if (user.latitude == 0 && user.longitude == 0) {
-      _showError(l10n.composeNoLocation);
-      return;
-    }
+    final useFixed = _useFixedStoreLocation && state.hasFixedStoreLocation;
     final content = _stripBidiControls(_contentController.text.trim());
-    if (content.length < 5) {
-      _showError(l10n.composeMinLengthError(content.length));
-      return;
-    }
     final maxR = _zoneUnlimited
         ? 0
         : int.tryParse(_zoneMaxRedeemsCtrl.text.trim()) ?? 0;
-    if (!_zoneUnlimited && maxR <= 0) {
-      _showError(l10n.zoneCampaignMaxRedeemsHint);
-      return;
-    }
-    setState(() => _isSending = true);
-    // Build 364 (PR-BB3): try/finally 로 _isSending 항상 reset.
-    //   이전엔 success 후 Navigator.pop 만 호출, error 경로 일부에서만 reset
-    //   → dialog stack 등에서 pop 실패 시 버튼 영구 disable 회귀.
-    String? createdId;
     try {
-      // Build 360 (PR-AA1): zone 1개 = 코드 1개 (zone 으로 발급되는 모든 letter
-      //   가 동일 코드 공유 → 매장 POS 1회 등록). 코드 토글이 ON 이면 생성.
-      final zoneCode = _attachRedemptionCode ? RedemptionCode.generate() : null;
-      createdId = await BrandZoneService.instance.createZone(
+      // Build 360 (PR-AA1): zone 1개 = 코드 1개. 즉시 발송한 단건과 동일 코드를
+      //   공유하도록 _previewRedemptionCode 를 그대로 사용(매장 POS 1회 등록).
+      final zoneCode = _attachRedemptionCode
+          ? (_previewRedemptionCode ?? RedemptionCode.generate())
+          : null;
+      final createdId = await BrandZoneService.instance.createZone(
         brandId: user.id,
         brandName: user.username,
-        center: LatLng(user.latitude, user.longitude),
+        center: useFixed
+            ? LatLng(state.fixedStoreLat!, state.fixedStoreLng!)
+            : LatLng(user.latitude, user.longitude),
         radiusM: _zoneRadius,
         content: content,
-        redemptionInfo: _redemptionInfoController.text.trim().isEmpty
+        redemptionInfo: _redemptionInfoSafe.isEmpty
             ? null
-            : _redemptionInfoController.text.trim(),
+            : _redemptionInfoSafe,
         maxRedeems: maxR,
         redemptionCode: zoneCode,
       );
+      return createdId != null;
     } catch (_) {
-      createdId = null;
-    } finally {
-      if (mounted) setState(() => _isSending = false);
+      return false;
     }
-    if (!mounted) return;
-    if (createdId == null) {
-      _showError(l10n.zoneCampaignSubmitError);
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.zoneCampaignSubmitOk)),
-    );
-    Navigator.of(context).pop();
   }
 
   @override
@@ -1067,31 +1177,54 @@ class _ComposeScreenState extends State<ComposeScreen>
       // 첨부하던 누출 경로. compress 가 null/throw 면 첨부 거부 + 사용자 알림.
       if (result?.path == null) throw StateError('compressAndGetFile returned null');
       // 압축본 로컬 경로 — 즉시 썸네일 미리보기.
+      final String localPath = result!.path;
       setState(() {
-        _imageFilePath = result!.path;
+        _imageFilePath = localPath;
       });
       // Build 409 (sim P1.15): 압축본을 Firebase Storage 에 업로드 → HTTPS URL 로
       //   교체. 이전엔 로컬 경로가 imageUrl 로 저장돼 다른 기기 수신자는 항상
-      //   placeholder 만 봤음 (사진이 발신 기기에만 존재). voucher 흐름과 동일
-      //   패턴. 업로드 실패 시 로컬 경로 유지 (같은 기기 테스트는 가능).
+      //   placeholder 만 봤음 (사진이 발신 기기에만 존재). voucher 흐름과 동일 패턴.
+      bool uploaded = false;
       try {
         final uploadPath = StorageService.letterImagePath(
           'letter_${DateTime.now().millisecondsSinceEpoch}',
         );
         if (uploadPath.isNotEmpty) {
           final url = await StorageService.uploadImage(
-            file: File(result!.path),
+            file: File(localPath),
             path: uploadPath,
           );
           if (!mounted) return;
-          if (url != null && url.isNotEmpty) {
+          // Build 414 (sim200 P3): 업로드 중 사용자가 X 로 제거(또는 다른 사진으로
+          //   교체)했으면 _imageFilePath 가 더는 localPath 가 아니다 → url 로
+          //   되살리지 말 것(제거한 사진이 부활/발송되는 버그 차단).
+          if (url != null && url.isNotEmpty && _imageFilePath == localPath) {
             _imageFilePath = url;
+            uploaded = true;
+          } else if (_imageFilePath != localPath) {
+            // 사용자가 이미 제거/교체 → 이 업로드 결과는 폐기. 첨부 상태 유지.
+            uploaded = true;
           }
         }
       } catch (_) {
-        // 업로드 실패 — 로컬 경로 유지.
+        // 업로드 실패 — 아래에서 첨부 취소 처리.
       }
       if (!mounted) return;
+      // Build 414 (sim200 P1-7): Storage 미설정/업로드 실패 시 로컬 파일경로가
+      //   그대로 imageUrl 로 저장돼 발신 기기 외 모든 수신자에게 깨진 이미지가
+      //   되던 버그. 업로드 성공 시에만 첨부 유지, 아니면 취소 + 안내(voucher 와 동일).
+      if (!uploaded) {
+        _imageFilePath = null;
+        final l = AppL10n.of(state.currentUser.languageCode);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l.composeImageCompressWarning),
+            backgroundColor: AppColors.gold,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
       setState(() {
         _isCompressingImage = false;
       });
@@ -1119,34 +1252,9 @@ class _ComposeScreenState extends State<ComposeScreen>
 
   bool get _isReply => widget.replyToId != null;
 
-  bool _hasBannedWords(String text) {
-    // Build 378 (PR-EE1 audit msg P1-8 잔여): 우회 차단 강화.
-    // Build 397 (PR-HH6 audit 전반 P1-4): \b word boundary — 영문 word
-    //   level 매칭. 이전 substring (`lower.contains(w)`) 로 "class/passion/
-    //   glass/massachusetts" 같은 정상 단어가 'ass' banned word 로 false-
-    //   positive 차단됐던 회귀. CJK/Arabic/Thai/Hindi 는 word boundary 개념
-    //   다르므로 normalized substring 유지.
-    final lowerOriginal = text.toLowerCase();
-    final normalized = lowerOriginal
-        .replaceAll(RegExp(r'[^a-z0-9À-ſ가-힯぀-ヿ一-鿿؀-ۿ฀-๿ऀ-ॿ]'), '');
-    return _bannedWords.any((w) {
-      final wl = w.toLowerCase();
-      // 영문/숫자만 으로 이뤄진 word → \b boundary 매칭 (정상 단어 false-positive 방지).
-      final isAsciiWord = RegExp(r'^[a-z0-9 \-]+$').hasMatch(wl);
-      if (isAsciiWord) {
-        // 'kill yourself' 같은 phrase 도 \b...\b 통과.
-        final pattern = r'\b' + RegExp.escape(wl) + r'\b';
-        if (RegExp(pattern).hasMatch(lowerOriginal)) return true;
-      } else {
-        // 비-ascii (CJK / 아랍 / 태국 / 힌디 등) — substring 매칭.
-        if (lowerOriginal.contains(wl)) return true;
-        // 정규화 우회 차단 (공백/특수문자 우회).
-        final wn = wl.replaceAll(RegExp(r'[^a-z0-9À-ſ가-힯぀-ヿ一-鿿؀-ۿ฀-๿ऀ-ॿ]'), '');
-        if (wn.isNotEmpty && normalized.contains(wn)) return true;
-      }
-      return false;
-    });
-  }
+  bool _hasBannedWords(String text) =>
+      // Build 459: 공용 유틸로 이동(발송 마법사와 공유) — 로직 동일.
+      ContentModeration.hasBannedWords(text);
 
   /// Build 207: 본문 PII 패턴 감지.
   /// 편지 본문은 공개 데이터로 취급되므로 사용자가 실수로 전화번호/주민번호/
@@ -1157,6 +1265,13 @@ class _ComposeScreenState extends State<ComposeScreen>
     // 한국 휴대전화 (010-1234-5678 / 01012345678 / 010 1234 5678)
     final phoneRegex = RegExp(r'01[016789][\s\-]?\d{3,4}[\s\-]?\d{4}');
     if (phoneRegex.hasMatch(text)) return l10n.piiLabelPhone;
+    // Build 479 (보안 감사 글로벌): 국제 전화(E.164, 선행 + 필수로 오탐 최소)
+    //   예: +1 415 555 0123 / +44-20-7946-0958. 비한국 회원 PII 보호.
+    final intlPhoneRegex = RegExp(r'\+\d{1,3}[\s\-]?\d{2,4}[\s\-]?\d{3,4}[\s\-]?\d{3,4}');
+    if (intlPhoneRegex.hasMatch(text)) return l10n.piiLabelPhone;
+    // Build 479: 이메일 주소(글로벌 공통 PII).
+    final emailRegex = RegExp(r'[\w.+\-]+@[\w\-]+\.[\w.\-]{2,}');
+    if (emailRegex.hasMatch(text)) return l10n.piiLabelEmail;
     // 한국 주민등록번호 (앞6 - 뒤7)
     final rrnRegex = RegExp(r'\b\d{6}[\s\-]\d{7}\b');
     if (rrnRegex.hasMatch(text)) return l10n.piiLabelKrRrn;
@@ -1250,12 +1365,244 @@ class _ComposeScreenState extends State<ComposeScreen>
   static final _bidiControlRe = RegExp(
     // U+202A-U+202E + U+2066-U+2069 — analyzer text_direction 경고 회피용
     // char-code 생성.
-    String.fromCharCodes([0x5B, 0x202A, 0x2D, 0x202E, 0x2066, 0x2D, 0x2069, 0x5D]),
+    // Build 479 (보안 감사): U+200B-U+200F(ZWSP/ZWNJ/ZWJ/LRM/RLM) + U+061C(ALM)
+    //   + U+FEFF(BOM) 추가 — 잔여 방향 마크 + 글자 사이 ZWSP 삽입 금칙어 우회 차단.
+    String.fromCharCodes([
+      0x5B,
+      0x202A, 0x2D, 0x202E,
+      0x2066, 0x2D, 0x2069,
+      0x200B, 0x2D, 0x200F,
+      0x061C,
+      0xFEFF,
+      0x5D,
+    ]),
   );
   static String _stripBidiControls(String input) =>
       input.replaceAll(_bidiControlRe, '');
 
+  /// Build 479 (보안 감사): 쿠폰 사용안내(redemptionInfo)도 공개 게시물 →
+  ///   본문(content)과 동일하게 BIDI 제어문자 정화 후 발송. 이전엔 raw trim 만
+  ///   거쳐 방향 스푸핑/금칙어 우회 여지가 있었음.
+  String get _redemptionInfoSafe =>
+      _stripBidiControls(_redemptionInfoController.text.trim());
+
+  // Build 414: AI 쿠폰 생성 버튼 (Brand 전용, 함수 설정 시).
+  Widget _buildAICouponButton(BuildContext context) {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    // Build 472 (가시성): 작은 텍스트 링크 → 테두리+틴트 칩으로 격상.
+    // Build 475 (사용자 요청): 골드 → 솔리드 블랙 버튼(흰 텍스트/아이콘) — paper
+    //   배경(밝음) 위에서 대비 최대 + 라벨 'AI 추천 캠페인글 생성'으로 명확화.
+    const fg = Colors.white;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap:
+              _isGeneratingAI ? null : () => _showAICouponDialog(context),
+          child: Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.black,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            // Build 478 (사용자 요청): 좌측 라벨+우측 아이콘(행처럼 보임) →
+            //   중앙 정렬 솔리드 CTA 버튼 형태로(버튼처럼 또렷).
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _isGeneratingAI
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: fg,
+                        ),
+                      )
+                    : const Icon(Icons.auto_awesome_rounded, color: fg, size: 18),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    l10n.composeAICampaignGenerate,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: fg,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Build 414: AI 쿠폰 생성 다이얼로그 — 업종/설명 입력 → LLM 초안으로 필드 채움.
+  Future<void> _showAICouponDialog(BuildContext context) async {
+    final state = context.read<AppState>();
+    final l10n = AppL10n.of(state.currentUser.languageCode);
+    final nameCtrl =
+        TextEditingController(text: state.currentUser.brandName ?? '');
+    final descCtrl = TextEditingController();
+    const cats = ['cafe', 'food', 'beauty', 'fashion', 'it', 'event', 'other'];
+    // Build 478 (사용자 요청): 기본 '기타' 대신 미선택(hint='카테고리') 시작.
+    String? cat;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dctx) => StatefulBuilder(
+        builder: (dctx, setLocal) => AlertDialog(
+          backgroundColor: AppColors.bgCard,
+          title: Text(l10n.composeAIGenerateTitle,
+              style: const TextStyle(color: AppColors.textPrimary, fontSize: 16)),
+          content: SingleChildScrollView(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              TextField(
+                controller: nameCtrl,
+                style: const TextStyle(color: AppColors.textPrimary),
+                decoration: InputDecoration(labelText: l10n.composeAIBusinessName),
+              ),
+              const SizedBox(height: 10),
+              // Build 478 (사용자 요청): labelText 가 길어 잘리던 문제 →
+              //   짧은 라벨 + 예시 hint 분리, maxLines 3 으로 내용 충분히 노출.
+              TextField(
+                controller: descCtrl,
+                maxLines: 3,
+                minLines: 2,
+                style: const TextStyle(color: AppColors.textPrimary),
+                decoration: InputDecoration(
+                  labelText: l10n.composeAIBusinessDescLabel,
+                  hintText: l10n.composeAIBusinessDescHint,
+                  hintMaxLines: 2,
+                  alignLabelWithHint: true,
+                  hintStyle: const TextStyle(color: AppColors.textMuted),
+                ),
+              ),
+              const SizedBox(height: 14),
+              // Build 478 (사용자 요청): 기본 '기타' 표시 대신 '카테고리' placeholder.
+              DropdownButton<String>(
+                value: cat,
+                isExpanded: true,
+                dropdownColor: AppColors.bgCard,
+                hint: Text(l10n.composeAICategoryHint,
+                    style: const TextStyle(color: AppColors.textMuted)),
+                items: cats
+                    .map((c) => DropdownMenuItem(
+                          value: c,
+                          child: Text(l10n.composeAICategoryLabel(c),
+                              style: const TextStyle(color: AppColors.textPrimary)),
+                        ))
+                    .toList(),
+                onChanged: (v) => setLocal(() => cat = v),
+              ),
+            ]),
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(dctx, false),
+                child: Text(l10n.authCancel)),
+            ElevatedButton(
+                onPressed: () => Navigator.pop(dctx, true),
+                child: Text(l10n.composeAIGenerate)),
+          ],
+        ),
+      ),
+    );
+    // Build 422 (sim-fresh2 P2): 다이얼로그 종료 시점에 입력 캡처 후 컨트롤러 해제
+    //   (이전엔 dispose 누락 → 호출마다 누수).
+    final bizName = nameCtrl.text.trim();
+    final bizDesc = descCtrl.text.trim();
+    nameCtrl.dispose();
+    descCtrl.dispose();
+    if (ok != true || !mounted) return;
+    // Build 422 (sim-fresh2 P2): 빈 입력으로 유료 LLM/rate-limit 낭비 방지.
+    if (bizName.isEmpty && bizDesc.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.koEn(
+            '업종명이나 설명을 입력해 주세요',
+            'Enter a business name or description',
+          )),
+        ),
+      );
+      return;
+    }
+    setState(() => _isGeneratingAI = true);
+    final result = await CouponAIService.generate(
+      businessName: bizName,
+      businessDesc: bizDesc,
+      type: _brandCategory.key, // general / coupon / voucher
+      category: cat ?? 'other',
+      langCode: state.currentUser.languageCode,
+    );
+    if (!mounted) return;
+    // Build 422 (sim-fresh2 P2): title+body 모두 빈 garbage 응답은 실패로 취급 —
+    //   이전엔 빈 문자열로 본문을 무음 덮어쓰기 했음.
+    final failed = result == null ||
+        (result.title.trim().isEmpty && result.body.trim().isEmpty);
+    var promotedToCoupon = false;
+    setState(() {
+      _isGeneratingAI = false;
+      if (!failed) {
+        final t = result.title.trim();
+        final b = result.body.trim();
+        _contentController.text = t.isEmpty ? b : '$t\n\n$b';
+        if (result.redemptionInfo.isNotEmpty) {
+          _redemptionInfoController.text = result.redemptionInfo;
+          // 혜택이 생성됐는데 타입이 '일반'이면 할인권으로 승격.
+          if (_brandCategory == LetterCategory.general) {
+            _brandCategory = LetterCategory.coupon;
+            promotedToCoupon = true;
+          }
+        }
+      }
+    });
+    // Build 486 (UX sim): 발송 종류가 조용히 바뀌면 혼란 → 1줄 안내.
+    if (promotedToCoupon && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.composeAIPromotedToCoupon),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+    if (failed && mounted) {
+      // Build 422 (sim-fresh2 P3): rate-limit(429)은 별도 안내 — 일반 실패와 구분.
+      final msg = CouponAIService.lastWasRateLimited
+          ? l10n.koEn(
+              '요청이 많아요. 잠시 후 다시 시도해 주세요',
+              'Too many requests. Please try again shortly.',
+            )
+          : l10n.composeAIFailed;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg)),
+      );
+    }
+  }
+
+  // Build 414 (sim200 P2): 재진입 가드 래퍼 — 두 번째 탭은 즉시 무시.
+  //   내부 구현(_onSendInner)의 다수 early-return 을 건드리지 않고 finally 로 해제.
   Future<void> _onSend(AppState state) async {
+    if (_sendInFlight) return;
+    _sendInFlight = true;
+    try {
+      await _onSendInner(state);
+    } finally {
+      _sendInFlight = false;
+    }
+  }
+
+  Future<void> _onSendInner(AppState state) async {
     final l10n = AppL10n.of(state.currentUser.languageCode);
     // Build 309: Banned 사용자 차단. Build 291 의 reply 가드 (letter_read_screen)
     // 가 reply 경로만 막고 compose 진입은 안 막아서, replyToId 직접 전달 시
@@ -1264,11 +1611,80 @@ class _ComposeScreenState extends State<ComposeScreen>
       _showError(l10n.composeBannedAccount);
       return;
     }
-    // Build 321: Brand + 자동 zone 모드 → createZone 분기.
-    // 별도 화면 (BrandZoneSetupScreen) 으로 분리됐던 흐름을 compose 통합.
-    if (_isAutoZoneMode && state.currentUser.isBrand) {
-      await _submitAutoZone(state);
+    // Build 422 (sim-fresh2 P1): 이미지/바우처 업로드·압축 진행 중 발송 차단 —
+    //   canSend 게이트 외 최종 안전망. 로컬 경로가 발송되는 것을 막는다.
+    if (_isUploadingVoucher || _isCompressingImage) {
+      _showError(l10n.koEn(
+        '이미지 업로드가 끝날 때까지 기다려 주세요',
+        'Please wait for the image upload to finish',
+      ));
       return;
+    }
+    // Build 321/475: Brand + 자동발송(zone) 모드.
+    // Build 475 (사용자 요청): 이전엔 zone 만 등록하고 작성 중인 캠페인은 발송
+    //   하지 않아 "발송했는데 안 보인다"는 혼선이 있었음. 이제 자동발송을 켜도
+    //   ① 매장 주변에 1통 즉시 발송(아래 단건 경로 재사용) + ② 자동발송 zone 등록
+    //   (발송 성공 후 _registerAutoZone)을 함께 수행한다.
+    final bool autoZone = _isAutoZoneMode && state.currentUser.isBrand;
+    if (autoZone) {
+      final useFixed = _useFixedStoreLocation && state.hasFixedStoreLocation;
+      final double zLat =
+          useFixed ? state.fixedStoreLat! : state.currentUser.latitude;
+      final double zLng =
+          useFixed ? state.fixedStoreLng! : state.currentUser.longitude;
+      if (zLat == 0 && zLng == 0) {
+        _showError(l10n.composeNoLocation);
+        return;
+      }
+      // zone 수량 입력 검증(무제한 아니면 1 이상) — 발송 전에 막는다.
+      final maxR = _zoneUnlimited
+          ? 0
+          : int.tryParse(_zoneMaxRedeemsCtrl.text.trim()) ?? 0;
+      if (!_zoneUnlimited && maxR <= 0) {
+        _showError(l10n.zoneCampaignMaxRedeemsHint);
+        return;
+      }
+      // Build 485 (UX sim Brand): 고정 매장위치 미설정 시 현재 GPS 가 zone 중심이
+      //   됨 → 매장 아닌 곳(집/외부)에서 작성하면 엉뚱한 위치 등록. 사전 경고/확인.
+      if (!useFixed) {
+        final proceed = await showDialog<bool>(
+          context: context,
+          builder: (dctx) => AlertDialog(
+            backgroundColor: AppColors.bgCard,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16)),
+            title: Text(l10n.zoneNoFixedLocationTitle,
+                style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800)),
+            content: Text(l10n.zoneNoFixedLocationBody,
+                style: const TextStyle(
+                    color: AppColors.textSecondary, fontSize: 13, height: 1.45)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dctx, false),
+                child: Text(l10n.settingsCancel,
+                    style: const TextStyle(color: AppColors.textMuted)),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(dctx, true),
+                child: Text(l10n.composeSendAnyway,
+                    style: const TextStyle(
+                        color: AppColors.gold, fontWeight: FontWeight.w700)),
+              ),
+            ],
+          ),
+        );
+        if (proceed != true) return;
+        if (!mounted) return;
+      }
+      // 즉시 발송 목적지 = 매장(zone 중심). 단건 경로로 진행(bulk/express 무시).
+      _destIsMyStore = true;
+      _selectedCountry = state.currentUser.country;
+      _selectedFlag = state.currentUser.countryFlag;
+      _destLat = zLat;
+      _destLng = zLng;
     }
     final content = _stripBidiControls(_contentController.text.trim());
     // Brand 가 쿠폰/교환권 카테고리로 보낼 때는 본문 대신 "사용 방법" 필드가
@@ -1306,23 +1722,37 @@ class _ComposeScreenState extends State<ComposeScreen>
       _showError(l10n.composeNoNetwork);
       return;
     }
-    if (!isBrandPromo && content.length < 20) {
+    // Build 416 (sim100 R1): 실제 발송 검증도 10자로 — 버튼/카운터(10자)와
+    //   불일치하던 회귀(10~19자 버튼 활성인데 누르면 '최소 20자' 데드엔드) 수정.
+    if (!isBrandPromo && content.length < 10) {
       _showError(l10n.composeMinLengthError(content.length));
       return;
     }
-    if (_hasBannedWords(content)) {
+    // Build 453 (tier-sim P2): redemptionInfo(쿠폰 사용방법/혜택 안내)도 공개
+    //   게시물 → 본문과 합쳐 금칙어/PII 검사. 이전엔 단건/특송/대량은 content 만
+    //   검사하고 redemptionInfo 는 zone 경로에서만 검사돼 우회됐음.
+    final redemptionExtra = _redemptionInfoSafe;
+    final moderationText =
+        redemptionExtra.isEmpty ? content : '$content\n$redemptionExtra';
+    if (_hasBannedWords(moderationText)) {
       _showError(l10n.composeBannedWordError);
       return;
     }
     // Build 207: PII 패턴 감지 — 본문은 누구나 읽을 수 있는 공개 데이터이므로
     // 사용자가 실수로 전화번호/주민번호/카드번호를 적어 보내지 않도록 confirm.
-    final piiHit = _detectPii(content);
+    final piiHit = _detectPii(moderationText);
     if (piiHit != null) {
       final proceed = await _confirmPiiBeforeSend(piiHit);
       if (!proceed) return;
     }
-    if (!state.hasRemainingDailyQuota) {
-      _showError(state.dailyLimitExceededMessage);
+    // Build 425 (sim-fresh3 #35·#36): 일간뿐 아니라 월간 한도까지 보는
+    //   canSendByQuota 로 통일 — 이전엔 월간 소진(일간/초대크레딧 남음) 브랜드가
+    //   auto-zone 생성·단건 발송 게이트를 우회. 버튼 활성 게이트(canSendByQuota)
+    //   와 일치.
+    if (!state.canSendByQuota) {
+      _showError(!state.hasRemainingMonthlyQuota && state.hasRemainingDailyQuota
+          ? state.monthlyLimitExceededMessage
+          : state.dailyLimitExceededMessage);
       return;
     }
     // Build 246: ExactDrop 가드 — _isExactDropped 플래그만 켜진 상태에서
@@ -1334,7 +1764,9 @@ class _ComposeScreenState extends State<ComposeScreen>
       setState(() => _isExactDropped = false);
       return;
     }
-    final useExpressSingle = _isExpressMode && !_isBulkMode && !_isReply;
+    // Build 475: 자동발송 모드의 즉시발송은 항상 단건(매장 주변) — express/bulk 무시.
+    final useExpressSingle =
+        _isExpressMode && !_isBulkMode && !_isReply && !autoZone;
     if (useExpressSingle &&
         !state.currentUser.isBrand &&
         !state.canUsePremiumExpress) {
@@ -1344,7 +1776,7 @@ class _ComposeScreenState extends State<ComposeScreen>
     }
 
     // ── 특송 + 대량 동시 모드 ──────────────────────────────────────────────
-    if (_isExpressMode && _isBulkMode && state.currentUser.isBrand) {
+    if (!autoZone && _isExpressMode && _isBulkMode && state.currentUser.isBrand) {
       if (!_isBulkRandom && _bulkTargets.isEmpty) {
         _showError(l10n.composeSelectCountryError);
         return;
@@ -1366,6 +1798,13 @@ class _ComposeScreenState extends State<ComposeScreen>
       //   픽업 dedup 정상 동작.
       final sharedCampaignId =
           _brandUniquePerUser ? AppState.newCampaignIdPublic() : null;
+      // Build 415 (sim50 P1): express+bulk 전체가 공유할 매장 코드 1개. 여러
+      //   sendBrandExpressBlast 호출(랜덤/멀티타깃)이 같은 코드를 쓰도록 주입 →
+      //   매장 POS 1회 등록. 이전엔 코드 자체가 발급 안 돼 손님 redeem 불가했음.
+      // Build 446: 미리보기 카드 코드를 그대로 주입 → 발송 전후 일치.
+      final sharedRedemptionCode = _attachRedemptionCode
+          ? (_previewRedemptionCode ?? RedemptionCode.generate())
+          : null;
       try {
       if (_isBulkRandom) {
         // 랜덤 국가 특송: 매 편지마다 랜덤 국가 선택
@@ -1388,12 +1827,15 @@ class _ComposeScreenState extends State<ComposeScreen>
             brandAutoExpireHours: _brandAutoExpireHours,
             imageUrl: _imageFilePath,
             category: _brandCategory,
+            categoryTag: _brandBizCategory,
             acceptsReplies: _brandAcceptsReplies,
-            redemptionInfo: _redemptionInfoController.text.trim().isEmpty
+            redemptionInfo: _redemptionInfoSafe.isEmpty
                 ? null
-                : _redemptionInfoController.text.trim(),
+                : _redemptionInfoSafe,
             redemptionExpiresAt: _computeRedemptionExpiresAt(),
             campaignId: sharedCampaignId,
+            attachRedemptionCode: _attachRedemptionCode,
+            explicitRedemptionCode: sharedRedemptionCode,
           );
           totalSent += sent;
           if (sent == 0) break; // 한도 초과 시 중단
@@ -1424,12 +1866,15 @@ class _ComposeScreenState extends State<ComposeScreen>
             brandAutoExpireHours: _brandAutoExpireHours,
             imageUrl: _imageFilePath,
             category: _brandCategory,
+            categoryTag: _brandBizCategory,
             acceptsReplies: _brandAcceptsReplies,
-            redemptionInfo: _redemptionInfoController.text.trim().isEmpty
+            redemptionInfo: _redemptionInfoSafe.isEmpty
                 ? null
-                : _redemptionInfoController.text.trim(),
+                : _redemptionInfoSafe,
             redemptionExpiresAt: _computeRedemptionExpiresAt(),
             campaignId: sharedCampaignId,
+            attachRedemptionCode: _attachRedemptionCode,
+            explicitRedemptionCode: sharedRedemptionCode,
             preciseLat: preciseLat,
             preciseLng: preciseLng,
           );
@@ -1443,30 +1888,56 @@ class _ComposeScreenState extends State<ComposeScreen>
         }
         return;
       }
+      // Build 423 (sim-crosscut P1): 0통 발송(월간/이미지 쿼터 소진으로 첫 루프
+      //   break) 을 성공처럼 처리하던 버그 — _clearDraft/햅틱/pop/코드reveal 전에
+      //   차단해 가짜 성공 + phantom POS 코드 노출 방지.
+      if (totalSent == 0) {
+        if (mounted) {
+          setState(() => _isSending = false);
+          _sendController.reset();
+          _showError(state.dailyLimitExceededMessage);
+        }
+        return;
+      }
       if (mounted) {
         _clearDraft();
         FeedbackService.onLetterSend();
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n.composeExpressBulkSent(_bulkTargets.length, _sendPerCountry, totalSent),
-              style: const TextStyle(color: Colors.white),
+        // Build 449 (sim100 P1): 요청 통수 대비 부분발송 감지 — 부족 시 경고.
+        final expected =
+            _isBulkRandom ? _sendPerCountry : _bulkTargets.length * _sendPerCountry;
+        // Build 415 (sim50 P1): 코드 발급된 경우 reveal 다이얼로그로 노출(일반 bulk
+        //   와 parity) → 사장이 POS 등록. 이전엔 코드 자체가 없어 redeem 불가했음.
+        final code = state.lastSentRedemptionCode;
+        if (code != null && context.mounted) {
+          unawaited(_showSentCodeReveal(context, code, totalSent));
+        }
+        if (totalSent < expected && context.mounted) {
+          _showBulkResultSnack(
+            context,
+            l10n.koEn(
+              '요청 $expected통 중 $totalSent통만 발송됐어요 (ExactDrop 크레딧/한도 부족)',
+              'Only $totalSent of $expected sent (insufficient ExactDrop credit/quota)',
             ),
-            backgroundColor: AppColors.bgCard,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            duration: const Duration(seconds: 4),
-          ),
-        );
+            warn: true,
+          );
+        } else if (code == null && context.mounted) {
+          _showBulkResultSnack(
+            context,
+            // Build 417 (sim100 P2): 랜덤 모드는 _bulkTargets 가 비어 '0개 나라
+            //   × N' 으로 표시되던 수식 오류 → count-only 메세지(일반 bulk 와 동일).
+            _isBulkRandom
+                ? '🎲 ${l10n.composeBulkSent(totalSent, totalSent)}'
+                : l10n.composeExpressBulkSent(
+                    _bulkTargets.length, _sendPerCountry, totalSent),
+          );
+        }
       }
       return;
     }
 
     // ── 대량 발송 모드 ─────────────────────────────────────────────────────
-    if (_isBulkMode && state.currentUser.isBrand) {
+    if (!autoZone && _isBulkMode && state.currentUser.isBrand) {
       if (!_isBulkRandom && _bulkTargets.isEmpty) {
         _showError(l10n.composeSelectCountryError);
         return;
@@ -1496,12 +1967,16 @@ class _ComposeScreenState extends State<ComposeScreen>
           brandUniquePerUser: _brandUniquePerUser,
           brandAutoExpireHours: _brandAutoExpireHours,
           category: _brandCategory,
+            categoryTag: _brandBizCategory,
           acceptsReplies: _brandAcceptsReplies,
-          redemptionInfo: _redemptionInfoController.text.trim().isEmpty
+          redemptionInfo: _redemptionInfoSafe.isEmpty
               ? null
-              : _redemptionInfoController.text.trim(),
+              : _redemptionInfoSafe,
           redemptionExpiresAt: _computeRedemptionExpiresAt(),
           attachRedemptionCode: _attachRedemptionCode,
+          // Build 446: 미리보기 카드 코드 주입 → 발송 전후 일치.
+          explicitRedemptionCode:
+              _attachRedemptionCode ? _previewRedemptionCode : null,
         );
       } catch (_) {
         if (mounted) {
@@ -1512,31 +1987,43 @@ class _ComposeScreenState extends State<ComposeScreen>
         return;
       }
 
+      // Build 423 (sim-crosscut P1): 0통 발송을 성공처럼 처리하던 버그 차단.
+      if (totalSent == 0) {
+        if (mounted) {
+          setState(() => _isSending = false);
+          _sendController.reset();
+          _showError(state.dailyLimitExceededMessage);
+        }
+        return;
+      }
       if (mounted) {
         _clearDraft();
         FeedbackService.onLetterSend();
         Navigator.pop(context);
+        // Build 449 (sim100 P1): 부분발송 감지.
+        final expected =
+            _isBulkRandom ? _sendPerCountry : _bulkTargets.length * _sendPerCountry;
         // Build 334 (PR-S4): 코드 발급된 경우 발송 후 즉시 dialog 로 노출
         //   → 사장이 POS 등록 곧바로 진행. snackbar 만으로는 사라져서 놓침.
         final code = state.lastSentRedemptionCode;
         if (code != null && context.mounted) {
           unawaited(_showSentCodeReveal(context, code, totalSent));
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                _isBulkRandom
-                    ? '🎲 ${l10n.composeBulkSent(totalSent, totalSent)}'
-                    : l10n.composeBulkSent(totalSent, _bulkTargets.length),
-                style: const TextStyle(color: Colors.white),
-              ),
-              backgroundColor: AppColors.bgCard,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              duration: const Duration(seconds: 3),
+        }
+        if (totalSent < expected && context.mounted) {
+          _showBulkResultSnack(
+            context,
+            l10n.koEn(
+              '요청 $expected통 중 $totalSent통만 발송됐어요 (한도 부족)',
+              'Only $totalSent of $expected sent (quota exhausted)',
             ),
+            warn: true,
+          );
+        } else if (code == null && context.mounted) {
+          _showBulkResultSnack(
+            context,
+            _isBulkRandom
+                ? '🎲 ${l10n.composeBulkSent(totalSent, totalSent)}'
+                : l10n.composeBulkSent(totalSent, _bulkTargets.length),
           );
         }
       }
@@ -1550,33 +2037,13 @@ class _ComposeScreenState extends State<ComposeScreen>
     bool sent = false;
     await _refreshCurrentLocationIfAvailable(state);
 
-    // Build 281 (P0 Brand 약속 보장): 발송 직전 2차 거리 검증.
-    // _refreshCurrentLocationIfAvailable 가 위치를 갱신했으므로 picker 시점
-    // 보다 더 정확. 사용자가 picker 후 100m 이상 이동했어도 막힘.
-    if (_isExactDropped && !_isReply) {
-      final myLat = state.currentUser.latitude;
-      final myLng = state.currentUser.longitude;
-      if (myLat != 0 || myLng != 0) {
-        final distM = LatLng(
-          myLat,
-          myLng,
-        ).distanceTo(LatLng(_destLat, _destLng));
-        if (distM > 100.0) {
-          setState(() => _isSending = false);
-          _sendController.reset();
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(l10n.composeExactDropOutOfRange),
-                backgroundColor: AppColors.error,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          }
-          return;
-        }
-      }
-    }
+    // Build 445 (device): ExactDrop 발송 직전 100m 거리 가드 제거.
+    //   _selectExactDrop(Build 317)은 이미 "Brand 가 본사에서 매장 위치 같은
+    //   다른 좌표로 발송 가능"하도록 선택 단계 100m 강제를 해제했는데, 발송 단계의
+    //   2차 100m 가드(Build 281)가 남아 있어 '매장 위치 고정' 후 현재 위치가
+    //   매장에서 100m 넘으면 발송이 차단되던 모순(사용자 보고: 매장 위치 고정
+    //   안됨). ExactDrop 은 유료 '원하는 좌표 정밀 발송' 기능이므로 송신자 현재
+    //   위치와 무관하게 지정 좌표로 발송돼야 함 → 가드 제거.
 
     // ExactDrop 사용 편지는 1 크레딧 차감. 부족 시 발송 중단.
     if (_isExactDropped && !_isReply) {
@@ -1604,6 +2071,8 @@ class _ComposeScreenState extends State<ComposeScreen>
         sent = await state.replyToLetter(
           originalLetterId: widget.replyToId!,
           content: content,
+          // Build 453 (tier-sim P2): 답장 첨부 이미지 전달(이전엔 누락).
+          imageUrl: _imageFilePath,
         );
       } else {
         sent = await state.sendLetter(
@@ -1615,7 +2084,8 @@ class _ComposeScreenState extends State<ComposeScreen>
           // compose에서 이미 선택된 도시를 그대로 넘겨 재랜덤을 방지
           destCityName: _selectedCity.isNotEmpty ? _selectedCity : null,
           // Build 317: ExactDrop 발송 시 destCityName 미정이어도 핀 좌표 보존.
-          useExactCoordinates: _isExactDropped,
+          // Build 458: '내 매장 주변' 기본 목적지도 좌표 보존(무차감).
+          useExactCoordinates: _isExactDropped || _destIsMyStore,
           deliveryEmoji: _deliveryEmojiEncoded,
           socialLink: _attachSocial && _socialLinkController.text.isNotEmpty
               ? _socialLinkController.text.trim()
@@ -1627,12 +2097,17 @@ class _ComposeScreenState extends State<ComposeScreen>
           brandUniquePerUser: _brandUniquePerUser,
           brandAutoExpireHours: _brandAutoExpireHours,
           category: _brandCategory,
+            categoryTag: _brandBizCategory,
           acceptsReplies: _brandAcceptsReplies,
-          redemptionInfo: _redemptionInfoController.text.trim().isEmpty
+          redemptionInfo: _redemptionInfoSafe.isEmpty
               ? null
-              : _redemptionInfoController.text.trim(),
+              : _redemptionInfoSafe,
           redemptionExpiresAt: _computeRedemptionExpiresAt(),
           attachRedemptionCode: _attachRedemptionCode,
+          // Build 446: 미리보기 카드 코드 주입 → 발송 전후 일치(단건 24h 재사용
+          //   대신 작성 세션당 안정 코드 — 미리보기 정확성 우선).
+          explicitRedemptionCode:
+              _attachRedemptionCode ? _previewRedemptionCode : null,
         );
       }
     } catch (_) {
@@ -1669,6 +2144,24 @@ class _ComposeScreenState extends State<ComposeScreen>
         _showError(errMsg);
       }
       return;
+    }
+
+    // Build 475: 자동발송 모드면 즉시발송 성공 후 zone 등록(향후 손님 자동 드롭).
+    //   best-effort — 실패해도 즉시발송은 이미 성공했으므로 안내만 한다.
+    if (autoZone) {
+      final zoneOk = await _registerAutoZone(state);
+      if (!zoneOk && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.koEn(
+              '캠페인은 발송됐지만 자동발송 등록에 실패했어요. 다시 시도해 주세요.',
+              'Campaign sent, but auto-send setup failed. Please try again.',
+            )),
+            backgroundColor: AppColors.gold,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
 
     var shouldShowPremiumWelcome = false;
@@ -1710,7 +2203,12 @@ class _ComposeScreenState extends State<ComposeScreen>
           : estMin < 1440
           ? l10n.composeEstHours((estMin / 60).ceil())
           : l10n.composeEstDays((estMin / 1440).ceil());
-      final String mainMsg = _isReply
+      final String mainMsg = autoZone
+          ? l10n.koEn(
+              '캠페인 발송 + 자동발송이 시작됐어요',
+              'Campaign sent · auto-send is now active',
+            )
+          : _isReply
           ? l10n.composeReplySent(widget.replyToName ?? '')
           : useExpressSingle
           ? (_isRandom
@@ -1792,6 +2290,41 @@ class _ComposeScreenState extends State<ComposeScreen>
     }
   }
 
+  // Build 453 (tier-sim P2): 본문 글자수 헬퍼 최소치 — 버튼/검증 게이트(:7566,
+  //   isBrandPromo:1593)와 동일하게 답장·할인코드·브랜드 비-일반은 1자, 그 외 10자.
+  //   이전엔 헬퍼만 10자 고정이라 할인권/교환권에서 '10자 미만' 경고가 떠도 버튼은
+  //   활성인 불일치였음.
+  int _helperMinChars() {
+    final isBrand = context.read<AppState>().currentUser.isBrand;
+    final shortForm = _isReply ||
+        _attachRedemptionCode ||
+        (isBrand && _brandCategory != LetterCategory.general);
+    return shortForm ? 1 : 10;
+  }
+
+  // Build 451: 카테고리별 본문 placeholder. 비-브랜드/답장은 기존 generic.
+  String _brandBodyHint(AppL10n l10n) {
+    final isBrand = context.read<AppState>().currentUser.isBrand;
+    if (!isBrand || _isReply) return l10n.composeHint;
+    switch (_brandCategory) {
+      case LetterCategory.coupon:
+        return l10n.koEn(
+          '할인 내용을 한 줄로 적어주세요 (예: 전 메뉴 20% 할인)\n할인코드는 아래에서 자동 발급돼요',
+          'Describe the discount in a line (e.g. 20% off everything)\nThe code is auto-issued below',
+        );
+      case LetterCategory.voucher:
+        return l10n.koEn(
+          '교환권 내용을 적어주세요 (예: 아메리카노 1잔 무료 교환)\n아래에서 교환권 이미지를 첨부하세요',
+          'Describe the voucher (e.g. free Americano)\nAttach the voucher image below',
+        );
+      default:
+        return l10n.koEn(
+          '홍보 메시지를 적어주세요 — 신메뉴 · 오픈 · 이벤트 소식을 매력적으로!',
+          'Write your promo — new menu, opening, or event news!',
+        );
+    }
+  }
+
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -1803,14 +2336,69 @@ class _ComposeScreenState extends State<ComposeScreen>
     );
   }
 
+  // Build 449 (sim100 P1): 대량발송 결과 스낵바 — 성공/부분발송(warn) 공통.
+  //   compose 가 pop 된 뒤 하위 화면 ScaffoldMessenger 로 표시하므로 ctx 전달.
+  void _showBulkResultSnack(BuildContext ctx, String msg, {bool warn = false}) {
+    final messenger = ScaffoldMessenger.maybeOf(ctx);
+    if (messenger == null) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          msg,
+          style: TextStyle(color: warn ? Colors.white : Colors.white),
+        ),
+        backgroundColor:
+            warn ? AppColors.error.withValues(alpha: 0.92) : AppColors.bgCard,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: Duration(seconds: warn ? 5 : 3),
+      ),
+    );
+  }
+
   // Brand 전용 — 지도에서 정확한 좌표 핀을 찍어 편지를 떨어뜨린다.
   // Free / Premium 은 이 진입점을 볼 수 없다.
   // Build 106: 유료 크레딧 필요 (100통 = 10,000원). 크레딧 0 이면 "관리자 문의"
   // 다이얼로그 안내 후 진입 차단.
+  // Build 448: 고정 매장 위치 지정 — 지도 picker(ExactDropPicker 재사용)로 좌표를
+  //   골라 영속 저장. ExactDrop 크레딧과 무관(발송이 아니라 위치 설정).
+  Future<void> _pickFixedStoreLocation() async {
+    final state = context.read<AppState>();
+    if (!state.currentUser.isBrand) return;
+    final langCode = state.currentUser.languageCode;
+    final initial = ll.LatLng(
+      state.fixedStoreLat ??
+          (state.currentUser.latitude != 0.0
+              ? state.currentUser.latitude
+              : 37.5665),
+      state.fixedStoreLng ??
+          (state.currentUser.longitude != 0.0
+              ? state.currentUser.longitude
+              : 126.9780),
+    );
+    final picked = await Navigator.of(context).push<ll.LatLng>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => ExactDropPicker(
+          initial: initial,
+          langCode: langCode,
+          recommendations: const [],
+        ),
+      ),
+    );
+    if (!mounted || picked == null) return;
+    await state.setFixedStoreLocation(picked.latitude, picked.longitude);
+    if (mounted) setState(() => _useFixedStoreLocation = true);
+  }
+
   Future<void> _selectExactDrop() async {
+    _destIsMyStore = false;
     final state = context.read<AppState>();
     final langCode = state.currentUser.languageCode;
     final l = AppL10n.of(langCode);
+    // Build 426 (sim100 #26): ExactDrop 은 Brand 전용 — 비-Brand 진입 차단
+    //   (compose 자체가 Brand 전용이지만 다운그레이드 race 등 defense-in-depth).
+    if (!state.currentUser.isBrand) return;
 
     // Build 189 → 408 (QQ6): 디버그뿐 아니라 모든 beta/TestFlight 빌드에서
     //   크레딧 0 인 Brand 가 ExactDrop 진입 시 자동 충전 10통. 테스터가
@@ -1903,6 +2491,7 @@ class _ComposeScreenState extends State<ComposeScreen>
   }
 
   void _selectCountry() {
+    _destIsMyStore = false;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -1926,12 +2515,14 @@ class _ComposeScreenState extends State<ComposeScreen>
                 ? (cityData['lng'] as num).toDouble()
                 : lng;
             _isRandom = false;
+            _destinationTouched = true;
           });
           Navigator.pop(context);
         },
         onRandom: () {
           final state = context.read<AppState>();
           _pickRandomDestination(excludeCountry: state.currentUser.country);
+          setState(() => _destinationTouched = true);
           Navigator.pop(context);
         },
       ),
@@ -1957,106 +2548,139 @@ class _ComposeScreenState extends State<ComposeScreen>
                 child: Column(
                   children: [
                     _buildHeader(context, state),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 14),
-                            // Build 204 — 사용자 요청 재배치:
-                            //   1) 나라 선택
-                            //   2) 편지 종류 (일반/할인/교환) — 나라 바로 아래
-                            //   3) 대량 발송 (Brand)
-                            //   4) 특급 배송
-                            //   5) 오늘의 영감 (강조)
-                            //   6) 편지 꾸미기 (StyleBar)
-                            //   7) 더 많은 옵션 (접히는 섹션 — SNS/익명/이미지 등)
-                            //   8) 편지 본문 (가장 아래)
-                            //   9) 보내기 버튼
-                            if (!_isReply)
-                              _buildDestinationCard(state, hasPremium),
-                            if (!_isReply) const SizedBox(height: 8),
-
-                            // ── 편지 종류 (Brand 카테고리 / 일반에겐 안내 시트) ──
-                            if (!_isReply) _buildBrandCategoryPanel(state),
-                            if (!_isReply) const SizedBox(height: 8),
-
-                            // ── 대량 발송 (Brand) ──
-                            // Build 204: 활성 모드 배너 제거 — 토글 자체에 ON/OFF
-                            // 가 명확히 표시되어 두 곳에서 끄기 버튼이 중복.
-                            if (!_isReply && isBrand) ...[
-                              _buildBulkModeToggle(),
-                              const SizedBox(height: 8),
-                              if (_isBulkMode) ...[
-                                _buildBulkSendPanel(state),
-                                const SizedBox(height: 8),
-                              ],
-                            ],
-                            // ── 특급 배송 — 대량 밑 ──
-                            if (!_isReply) _buildExpressToggle(state, hasPremium),
-                            if (!_isReply) const SizedBox(height: 8),
-
-                            // ── 더 많은 옵션 (접히는 섹션) — 편지지 위쪽 ──
-                            // Build 238: Premium(비-Brand)는 홍보 배지 카드 CTA 의
-                            // 첨부 바텀시트가 사진/링크를 처리 — 옵션창에서 중복 제거.
-                            // Brand/Free 는 기존대로 노출 (Free=잠금 안내, Brand=사용).
-                            // Build 271: 오늘의 영감(Lucky Letter / Recall Last) +
-                            // StyleBar(편지 꾸미기) 도 collapsible 섹션 안으로 이동.
-                            // 작성 화면 1차 노출 항목을 줄여 "본문 작성" 1순위 액션을
-                            // 묻히지 않게.
-                            _ComposeOptionsSection(
-                              title: l10n.composeOptionsSectionTitle,
-                              children: [
-                                _buildStyleBar(),
-                                const SizedBox(height: 10),
-                                if (!_isReply) ...[
-                                  _buildLuckyLetterButton(),
-                                  const SizedBox(height: 10),
-                                  _buildRecallLastLetterButton(),
-                                  const SizedBox(height: 10),
-                                ],
-                                if (!_isReply && !(hasPremium && !isBrand))
-                                  _buildSocialToggle(hasPremium: hasPremium),
-                                if (!_isReply &&
-                                    _attachSocial &&
-                                    hasPremium &&
-                                    isBrand) ...[
-                                  const SizedBox(height: 10),
-                                  _buildSocialInput(),
-                                ],
-                                if (!_isReply && !(hasPremium && !isBrand))
-                                  const SizedBox(height: 10),
-                                if (!_isReply) _buildAnonymousToggle(state),
-                                if (!_isReply && isBrand) const SizedBox(height: 10),
-                                if (!_isReply && isBrand) _buildBrandOptions(state),
-                                if (!(hasPremium && !isBrand)) ...[
-                                  const SizedBox(height: 10),
-                                  Container(
-                                    key: _attachAreaKey,
-                                    child: _buildImageAttachButton(
-                                      state,
-                                      hasPremium: hasPremium,
-                                      purchase: purchase,
-                                    ),
-                                  ),
-                                  if (_imageFilePath != null) ...[
+                    if (_isReply) ...[
+                      // ── 답장: 기존 단일 스크롤 유지 (단계 미적용) ──
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 14),
+                              _ComposeOptionsSection(
+                                title: l10n.composeOptionsSectionTitle,
+                                children: [
+                                  _buildDeliveryEmojiButton(),
+                                  if (!(hasPremium && !isBrand)) ...[
                                     const SizedBox(height: 10),
-                                    _buildImagePreview(),
+                                    Container(
+                                      key: _attachAreaKey,
+                                      child: _buildImageAttachButton(
+                                        state,
+                                        hasPremium: hasPremium,
+                                        purchase: purchase,
+                                      ),
+                                    ),
+                                    if (_imageFilePath != null) ...[
+                                      const SizedBox(height: 10),
+                                      _buildImagePreview(),
+                                    ],
                                   ],
                                 ],
-                              ],
+                              ),
+                              const SizedBox(height: 16),
+                              _buildLetterBody(),
+                              const SizedBox(height: 40),
+                            ],
+                          ),
+                        ),
+                      ),
+                      _buildSendButton(state),
+                    ] else ...[
+                      // ── Build 470: 브랜드 신규 발송 3단계 마법사 ──
+                      //   ①혜택 ②대상 ③확인. IndexedStack 으로 입력값(TextField)
+                      //   상태 보존. 모든 섹션 위젯·발송 로직 재사용.
+                      _buildComposeStepBar(l10n),
+                      Expanded(
+                        child: IndexedStack(
+                          index: _composeStep,
+                          children: [
+                            // ── ① 혜택: 종류/업종/본문/AI/코드/유효기간/교환권이미지 ──
+                            SingleChildScrollView(
+                              padding:
+                                  const EdgeInsets.fromLTRB(20, 14, 20, 24),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildBrandCategoryPanel(state),
+                                  const SizedBox(height: 16),
+                                  _buildLetterBody(),
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 16),
-
-                            // ── 편지 본문 (가장 아래) ──
-                            _buildLetterBody(),
-                            const SizedBox(height: 40),
+                            // ── ② 대상: 목적지/자동발송/대량/정밀/특급/옵션 ──
+                            SingleChildScrollView(
+                              padding:
+                                  const EdgeInsets.fromLTRB(20, 14, 20, 24),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildDestinationCard(state, hasPremium),
+                                  const SizedBox(height: 8),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: [
+                                      if (isBrand) _buildBulkModeToggle(),
+                                      _buildExpressToggle(state, hasPremium),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  if (isBrand && _isBulkMode) ...[
+                                    _buildBulkSendPanel(state),
+                                    const SizedBox(height: 8),
+                                  ],
+                                  _ComposeOptionsSection(
+                                    title: l10n.composeOptionsSectionTitle,
+                                    children: [
+                                      _buildDeliveryEmojiButton(),
+                                      if (isBrand) ...[
+                                        const SizedBox(height: 10),
+                                        _buildBrandOptions(state),
+                                      ],
+                                      if (!(hasPremium && !isBrand) &&
+                                          _brandCategory ==
+                                              LetterCategory.general) ...[
+                                        const SizedBox(height: 10),
+                                        Container(
+                                          key: _attachAreaKey,
+                                          child: _buildImageAttachButton(
+                                            state,
+                                            hasPremium: hasPremium,
+                                            purchase: purchase,
+                                          ),
+                                        ),
+                                        if (_imageFilePath != null) ...[
+                                          const SizedBox(height: 10),
+                                          _buildImagePreview(),
+                                        ],
+                                      ],
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // ── ③ 확인: 요약 + 코드 미리보기 ──
+                            SingleChildScrollView(
+                              padding:
+                                  const EdgeInsets.fromLTRB(20, 14, 20, 24),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildComposeSummary(state, l10n),
+                                  if (_attachRedemptionCode &&
+                                      _previewRedemptionCode != null) ...[
+                                    const SizedBox(height: 14),
+                                    _buildRedemptionPreviewCard(l10n),
+                                  ],
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                    ),
-                    _buildSendButton(state),
+                      _buildComposeStepNav(state, l10n),
+                    ],
                   ],
                 ),
               ),
@@ -2072,6 +2696,219 @@ class _ComposeScreenState extends State<ComposeScreen>
           ),
         );
       },
+    );
+  }
+
+  // ── Build 470: 발송 마법사 단계 UI (혜택→대상→확인) ──────────────────────────
+  static const int _composeStepCount = 3;
+
+  Widget _buildComposeStepBar(AppL10n l10n) {
+    final labels = [
+      l10n.composeStepOffer,
+      l10n.composeStepTarget,
+      l10n.composeStepReview,
+    ];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+      child: Column(
+        children: [
+          Row(
+            children: List.generate(_composeStepCount, (i) {
+              return Expanded(
+                child: Container(
+                  height: 4,
+                  margin: EdgeInsets.only(right: i < _composeStepCount - 1 ? 6 : 0),
+                  decoration: BoxDecoration(
+                    color: i <= _composeStep
+                        ? AppColors.coupon
+                        : AppColors.bgSurface,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: List.generate(_composeStepCount, (i) {
+              return Expanded(
+                child: Text(
+                  '${i + 1}. ${labels[i]}',
+                  textAlign: i == 0
+                      ? TextAlign.start
+                      : (i == _composeStepCount - 1
+                          ? TextAlign.end
+                          : TextAlign.center),
+                  style: TextStyle(
+                    color: i == _composeStep
+                        ? AppColors.coupon
+                        : AppColors.textMuted,
+                    fontSize: 11,
+                    fontWeight:
+                        i == _composeStep ? FontWeight.w800 : FontWeight.w500,
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 단계 전환 전 검증. step0(혜택): 본문 최소 글자. 그 외 통과.
+  bool _validateComposeStep(int step, AppState state, AppL10n l10n) {
+    if (step == 0) {
+      final content = _contentController.text.trim();
+      final minChars = _brandCategory == LetterCategory.general ? 10 : 1;
+      if (content.length < minChars) {
+        _showError(l10n.composeEmptyError);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Widget _buildComposeStepNav(AppState state, AppL10n l10n) {
+    final isLast = _composeStep >= _composeStepCount - 1;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 6, 20, 12),
+      child: Row(
+        children: [
+          if (_composeStep > 0) ...[
+            OutlinedButton(
+              onPressed: () => setState(() => _composeStep -= 1),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.textSecondary,
+                side: BorderSide(
+                    color: AppColors.textMuted.withValues(alpha: 0.4)),
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(13)),
+              ),
+              child: Text(l10n.composeBack),
+            ),
+            const SizedBox(width: 10),
+          ],
+          // 마지막 단계는 기존 발송 버튼(_buildSendButton)이 전체 발송 디스패치 처리.
+          Expanded(
+            child: isLast
+                ? _buildSendButton(state)
+                : FilledButton(
+                    onPressed: () {
+                      if (_validateComposeStep(_composeStep, state, l10n)) {
+                        setState(() => _composeStep += 1);
+                      }
+                    },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.coupon,
+                      foregroundColor: AppColors.bgDeep,
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                    ),
+                    child: Text(
+                      l10n.next,
+                      style: const TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.w800),
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// ③ 확인 단계 요약 카드 — 혜택/대상/수량을 한눈에.
+  Widget _buildComposeSummary(AppState state, AppL10n l10n) {
+    final content = _contentController.text.trim();
+    final catLabel = switch (_brandCategory) {
+      LetterCategory.coupon => l10n.composeBrandCategoryCoupon,
+      LetterCategory.voucher => l10n.composeBrandCategoryVoucher,
+      _ => l10n.composeBrandCategoryGeneral,
+    };
+    // 대상 요약.
+    String target;
+    if (_isAutoZoneMode) {
+      final radius = _zoneRadius >= 1000
+          ? '${(_zoneRadius / 1000).toStringAsFixed(0)}km'
+          : '${_zoneRadius.round()}m';
+      target = '${l10n.composeModeAutoSend} · $radius';
+    } else if (_isBulkMode) {
+      final n = _isRandom
+          ? _sendPerCountry
+          : _bulkTargets.length * _sendPerCountry;
+      target = '${l10n.composeModeBulk} · ${l10n.composeCountUnit(n)}';
+    } else if (_isExactDropped) {
+      target = l10n.composeExactDropToggle;
+    } else if (_destIsMyStore) {
+      target = '${l10n.composeDestNearStore} · 1';
+    } else {
+      target = '${_selectedFlag} ${_selectedCountry}'.trim();
+    }
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.coupon.withValues(alpha: 0.35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(bizCategoryEmoji(_brandBizCategory),
+                  style: const TextStyle(fontSize: 20)),
+              const SizedBox(width: 8),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.coupon.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  catLabel,
+                  style: const TextStyle(
+                    color: AppColors.coupon,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            content.isEmpty ? l10n.composeEmptyError : content,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 14,
+              height: 1.45,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              const Icon(Icons.send_rounded,
+                  size: 15, color: AppColors.textSecondary),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  target,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -2379,11 +3216,13 @@ class _ComposeScreenState extends State<ComposeScreen>
             ),
             const SizedBox(height: 8),
             _ExactDropTierButton(
-              qty: 100,
-              priceLabel: priceFor(PurchaseProductIds.exactDrop100, '₩10,000'),
-              unitLabel: l.koEn('정밀 발송 100회', '100 ExactDrops'),
+              // Build 429 (device): 중간 티어 100→1000개. 전용 상품(exactDrop1000)
+              //   으로 등록. 가격 ₩10,000.
+              qty: 1000,
+              priceLabel: priceFor(PurchaseProductIds.exactDrop1000, '₩10,000'),
+              unitLabel: l.koEn('정밀 발송 1000회', '1000 ExactDrops'),
               best: true,
-              onTap: () => _purchaseExactDropTier(dCtx, 100),
+              onTap: () => _purchaseExactDropTier(dCtx, 1000),
             ),
             const SizedBox(height: 8),
             _ExactDropTierButton(
@@ -2448,7 +3287,7 @@ class _ComposeScreenState extends State<ComposeScreen>
         _isExpressMode ||
         _bulkTargets.isNotEmpty ||
         (_selectedCountry.isNotEmpty && !_isRandom) ||
-        (_redemptionInfoController.text.trim().isNotEmpty);
+        (_redemptionInfoSafe.isNotEmpty);
     if (!hasContent) {
       Navigator.pop(ctx);
       return;
@@ -2590,12 +3429,16 @@ class _ComposeScreenState extends State<ComposeScreen>
                 horizontal: 14,
               ),
               decoration: BoxDecoration(
-                color: !_isRandom
+                // Build 425 (device #3): 목적지 선택 전(_destinationTouched=false)
+                //   엔 활성 강조색 없이 중립. 나라를 고르면 gold 강조.
+                color: (_destinationTouched && !_isRandom)
                     ? AppColors.gold.withValues(alpha: 0.18)
                     : AppColors.bgSurface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: !_isRandom ? AppColors.gold : Colors.transparent,
+                  color: (_destinationTouched && !_isRandom)
+                      ? AppColors.gold
+                      : Colors.transparent,
                   width: 1.5,
                 ),
               ),
@@ -2612,9 +3455,11 @@ class _ComposeScreenState extends State<ComposeScreen>
                       children: [
                         Text(
                           !_isRandom
-                              ? CountryL10n.localizedName(
-                                  _selectedCountry, langCode,
-                                )
+                              ? (_destIsMyStore
+                                  ? '${CountryL10n.localizedName(_selectedCountry, langCode)} · ${l10n.composeDestNearStore}'
+                                  : CountryL10n.localizedName(
+                                      _selectedCountry, langCode,
+                                    ))
                               : l10n.selectCountry,
                           style: TextStyle(
                             color: !_isRandom
@@ -2661,7 +3506,14 @@ class _ComposeScreenState extends State<ComposeScreen>
                 child: GestureDetector(
                   onTap: () {
                     setState(() {
-                      _isRandom = true;
+                      // Build 429 (device): 랜덤이 이미 선택(활성)된 상태에서 다시
+                      //   누르면 해제(중립) — 토글 동작. 그 외엔 랜덤 선택.
+                      if (_destinationTouched && _isRandom) {
+                        _destinationTouched = false;
+                      } else {
+                        _isRandom = true;
+                        _destinationTouched = true;
+                      }
                       // Build 205.1: 랜덤으로 전환하면 대량 발송 타깃도 비움.
                       // 안 비우면 다시 country 모드로 전환했을 때 이전 나라가
                       // 살아 있어 사용자 의도와 어긋난다.
@@ -2671,13 +3523,14 @@ class _ComposeScreenState extends State<ComposeScreen>
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(vertical: 10),
+                    // Build 425 (device #3): 선택 전엔 랜덤도 활성 강조 없음.
                     decoration: BoxDecoration(
-                      color: _isRandom
+                      color: (_destinationTouched && _isRandom)
                           ? AppColors.gold.withValues(alpha: 0.14)
                           : AppColors.bgSurface,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: _isRandom
+                        color: (_destinationTouched && _isRandom)
                             ? AppColors.gold.withValues(alpha: 0.7)
                             : AppColors.textMuted.withValues(alpha: 0.25),
                         width: 1.2,
@@ -2689,7 +3542,9 @@ class _ComposeScreenState extends State<ComposeScreen>
                         Text(
                           '🎲',
                           style: TextStyle(
-                            fontSize: _isRandom ? 17 : 15,
+                            fontSize: (_destinationTouched && _isRandom)
+                                ? 17
+                                : 15,
                           ),
                         ),
                         const SizedBox(width: 6),
@@ -2697,7 +3552,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                           child: Text(
                             l10n.composeRandom,
                             style: TextStyle(
-                              color: _isRandom
+                              color: (_destinationTouched && _isRandom)
                                   ? AppColors.gold
                                   : AppColors.textSecondary,
                               fontSize: 12,
@@ -2720,13 +3575,19 @@ class _ComposeScreenState extends State<ComposeScreen>
                 Expanded(
                   child: GestureDetector(
                     onTap: _selectExactDrop,
+                    // Build 429 (device): ExactDrop 도 선택 전엔 중립색, 선택
+                    //   (_isExactDropped) 시에만 gold 활성 — 나라/랜덤 버튼과 일관.
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
-                        color: AppColors.gold.withValues(alpha: 0.1),
+                        color: _isExactDropped
+                            ? AppColors.gold.withValues(alpha: 0.1)
+                            : AppColors.bgSurface,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: AppColors.gold.withValues(alpha: 0.45),
+                          color: _isExactDropped
+                              ? AppColors.gold.withValues(alpha: 0.45)
+                              : AppColors.textMuted.withValues(alpha: 0.25),
                           width: 1.2,
                         ),
                       ),
@@ -2738,8 +3599,10 @@ class _ComposeScreenState extends State<ComposeScreen>
                           Flexible(
                             child: Text(
                               l10n.composeExactDropToggle,
-                              style: const TextStyle(
-                                color: AppColors.gold,
+                              style: TextStyle(
+                                color: _isExactDropped
+                                    ? AppColors.gold
+                                    : AppColors.textSecondary,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -2872,7 +3735,8 @@ class _ComposeScreenState extends State<ComposeScreen>
   Widget _buildCityOfMonthHint(AppState state) {
     final city = CityOfMonth.forThisMonth();
     final accent = Color(city.accentColor);
-    final l10n = AppL10n.of(state.currentUser.languageCode);
+    final lang = state.currentUser.languageCode;
+    final l10n = AppL10n.of(lang);
     // 이미 해당 국가로 설정되어 있으면 배너 숨김 (노이즈 방지)
     if (_selectedCountry == city.country) return const SizedBox.shrink();
     return GestureDetector(
@@ -2884,7 +3748,7 @@ class _ComposeScreenState extends State<ComposeScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${city.themeEmoji}  ${city.cityName} · ${city.country}',
+              '${city.themeEmoji}  ${city.cityNameL(lang)} · ${city.countryL(lang)}',
               style: const TextStyle(color: Colors.white),
             ),
             backgroundColor: accent.withValues(alpha: 0.9),
@@ -2930,7 +3794,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${city.cityName} · ${city.country}',
+                    '${city.cityNameL(lang)} · ${city.countryL(lang)}',
                     style: const TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 13,
@@ -3042,29 +3906,25 @@ class _ComposeScreenState extends State<ComposeScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        const Text('✉️', style: TextStyle(fontSize: 13)),
-                        const SizedBox(width: 8),
-                        Text(
-                          _isReply
-                              ? l10n.composeReplyTo(widget.replyToName ?? '')
-                              : l10n.composeLetterFlows,
-                          style: TextStyle(
-                            color: paper.inkColor.withValues(alpha: 0.5),
-                            fontSize: 12,
-                            fontStyle: FontStyle.italic,
-                          ),
+                    // Build 425 (device #4): 편지지 헤더 간소화 — 장식 태그라인
+                    //   (✉️ + 흘림체 문구) 제거. 답장 시엔 수신자 표기만 유지.
+                    if (_isReply) ...[
+                      Text(
+                        l10n.composeReplyTo(widget.replyToName ?? ''),
+                        style: TextStyle(
+                          color: paper.inkColor.withValues(alpha: 0.5),
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         AnimatedSwitcher(
                           duration: const Duration(milliseconds: 200),
-                          child: _charCount < 20
+                          child: _charCount < _helperMinChars()
                               ? Row(
                                   key: const ValueKey('under'),
                                   children: [
@@ -3073,7 +3933,8 @@ class _ComposeScreenState extends State<ComposeScreen>
                                       style: TextStyle(fontSize: 11),
                                     ),
                                     Text(
-                                      l10n.composeMinCharsNeeded(20 - _charCount),
+                                      l10n.composeMinCharsNeeded(
+                                          _helperMinChars() - _charCount),
                                       style: const TextStyle(
                                         color: AppColors.warning,
                                         fontSize: 11,
@@ -3114,8 +3975,13 @@ class _ComposeScreenState extends State<ComposeScreen>
                   ],
                 ),
               ),
-              if (_charCount == 0 && !_isReply)
-                _buildDailyPromptChip(paper.inkColor),
+              // Build 472: '오늘의 영감'(daily prompt chip) 제거 — 캠페인 작성에선
+              //   불필요한 영감 문구가 본문 입력 집중을 흐트림(사용자 요청).
+              // Build 414: AI 쿠폰 생성 (Brand + 함수 설정 시). 업종/타입 기반으로
+              //   LLM(Gemini)이 카피·혜택 초안을 채운다.
+              if (context.read<AppState>().currentUser.isBrand &&
+                  CouponAIService.isAvailable)
+                _buildAICouponButton(context),
               TextField(
                 controller: _contentController,
                 focusNode: _contentFocus,
@@ -3124,7 +3990,9 @@ class _ComposeScreenState extends State<ComposeScreen>
                 maxLength: _maxChars,
                 style: font.textStyle.copyWith(color: paper.inkColor),
                 decoration: InputDecoration(
-                  hintText: l10n.composeHint,
+                  // Build 451: 카테고리별 본문 힌트 — 일반=홍보 중심, 할인권=할인
+                  //   안내(코드는 자동), 교환권=교환권 안내. 사장이 무엇을 쓸지 즉시 안내.
+                  hintText: _brandBodyHint(l10n),
                   hintStyle: TextStyle(
                     color: paper.inkColor.withValues(alpha: 0.35),
                     fontSize: 15,
@@ -3153,149 +4021,73 @@ class _ComposeScreenState extends State<ComposeScreen>
   Widget _buildExpressToggle(AppState state, bool hasPremium) {
     final l10n = AppL10n.of(state.currentUser.languageCode);
     if (hasPremium) {
-      // Build 189.1: 특급 한도 0 일 때 토글 비활성 시각 상태 (Premium only).
-      // 이전엔 토글이 켜져 보이나 탭하면 에러 뜨고 원복 — 사용자에게 이유 불명확.
-      final expressExhausted = !state.currentUser.isBrand &&
+      final isBrand = state.currentUser.isBrand;
+      // Build 189.1: 특급 한도 0 일 때 비활성 시각 상태(opacity)로 표현.
+      final expressExhausted = !isBrand &&
           state.remainingPremiumExpressCount == 0 &&
           !_isExpressMode;
-      return GestureDetector(
+      final label = isBrand
+          ? (_isExpressMode
+              ? l10n.composeBrandExpressOn
+              : l10n.composeBrandExpress)
+          : (_isExpressMode
+              ? l10n.composePremiumExpressOn(
+                  state.todayPremiumExpressSentCount,
+                  state.premiumExpressDailyLimit,
+                )
+              : l10n.composePremiumExpress(state.premiumExpressDailyLimit));
+      return _modeToggleButton(
+        active: _isExpressMode,
+        emoji: '⚡',
+        label: label,
+        activeColor: AppColors.gold,
+        opacity: expressExhausted ? 0.55 : 1.0,
         onTap: () {
-          final canEnable =
-              state.currentUser.isBrand || state.canUsePremiumExpress;
+          if (expressExhausted) {
+            _showError(state.premiumExpressLimitExceededMessage);
+            return;
+          }
+          final canEnable = isBrand || state.canUsePremiumExpress;
           if (!canEnable && !_isExpressMode) {
             _showError(state.premiumExpressLimitExceededMessage);
             return;
           }
-          setState(() => _isExpressMode = !_isExpressMode);
+          setState(() {
+            _isExpressMode = !_isExpressMode;
+            // Build 437 (device #3): Brand 특급발송 선택 시 '나라당 발송 수 +
+            //   랜덤 국가' 설정 패널이 함께 노출되도록 대량 모드를 동반 토글한다
+            //   (사용자: 특급 켜도 국가/횟수 옵션이 안 보임). 검증된 express+bulk
+            //   발송 경로 재사용. 끌 때는 대량도 해제 + 타깃 정리.
+            if (isBrand) {
+              _isBulkMode = _isExpressMode;
+              if (_isExpressMode) {
+                if (_bulkTargets.isEmpty) _isRandom = true;
+              } else {
+                _bulkTargets.clear();
+              }
+            }
+          });
         },
-        child: Opacity(
-          opacity: expressExhausted ? 0.55 : 1.0,
-          child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: _isExpressMode
-                ? AppColors.gold.withValues(alpha: 0.12)
-                : AppColors.bgSurface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: _isExpressMode
-                  ? AppColors.gold.withValues(alpha: 0.65)
-                  : AppColors.textMuted.withValues(alpha: 0.24),
-              width: _isExpressMode ? 1.4 : 1.0,
-            ),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.bolt_rounded,
-                size: 18,
-                color: _isExpressMode ? AppColors.gold : AppColors.textMuted,
-              ),
-              const SizedBox(width: 8),
-              // Build 186: Premium 유저가 오늘 특급 배송을 모두 쓰면 "내일 00:00
-              // 리필" 보조 라인으로 리셋 시각을 명시. 기존엔 "X/3" 만 보여서
-              // "언제 리필?" 혼선.
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      state.currentUser.isBrand
-                          ? (_isExpressMode
-                                ? '⚡ ${l10n.composeBrandExpressOn}'
-                                : '⚡ ${l10n.composeBrandExpress}')
-                          : (_isExpressMode
-                                ? '⚡ ${l10n.composePremiumExpressOn(state.todayPremiumExpressSentCount, state.premiumExpressDailyLimit)}'
-                                : '⚡ ${l10n.composePremiumExpress(state.premiumExpressDailyLimit)}'),
-                      style: TextStyle(
-                        color: _isExpressMode
-                            ? AppColors.gold
-                            : AppColors.textSecondary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    if (!state.currentUser.isBrand &&
-                        state.remainingPremiumExpressCount == 0) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        l10n.composePremiumExpressResetAt,
-                        style: TextStyle(
-                          color: AppColors.textMuted,
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              Switch(
-                value: _isExpressMode,
-                onChanged: expressExhausted
-                    ? null
-                    : (v) {
-                        final canEnable = state.currentUser.isBrand ||
-                            state.canUsePremiumExpress;
-                        if (v && !canEnable) {
-                          _showError(state.premiumExpressLimitExceededMessage);
-                          return;
-                        }
-                        setState(() => _isExpressMode = v);
-                      },
-                activeColor: AppColors.gold,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-            ],
-          ),
-        ),
-        ),
       );
     }
-    return GestureDetector(
+    // Free — 잠금 업셀 pill (탭 시 페이월).
+    return _modeToggleButton(
+      active: false,
+      emoji: '⚡',
+      label: l10n.composeExpressLocked,
+      activeColor: AppColors.gold,
       onTap: () => PremiumGateSheet.show(
         context,
         featureName: '⚡ ${l10n.composeExpressDelivery}',
         featureEmoji: '⚡',
         description: l10n.composeExpressDeliveryDesc,
       ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: AppColors.bgSurface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: AppColors.textMuted.withValues(alpha: 0.24),
-          ),
-        ),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.lock_rounded,
-              size: 16,
-              color: AppColors.textMuted,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                '⚡ ${l10n.composeExpressLocked}',
-                style: const TextStyle(
-                  color: AppColors.textMuted,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const Text(
-              '👑 PRO',
-              style: TextStyle(
-                color: AppColors.gold,
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ],
+      trailing: const Text(
+        '👑 PRO',
+        style: TextStyle(
+          color: AppColors.gold,
+          fontSize: 10,
+          fontWeight: FontWeight.w800,
         ),
       ),
     );
@@ -4154,8 +4946,30 @@ class _ComposeScreenState extends State<ComposeScreen>
         'voucher_${DateTime.now().millisecondsSinceEpoch}',
       );
       // Build 305: uid 없으면 (로그인 안 됨 / Firebase off) 빈 path → 업로드 스킵.
+      // Build 414 (sim100 #12/P0-4): Storage 미활성 시 로컬 파일경로가 컨트롤러에
+      //   남아 그대로 Firestore 에 저장됨 → 발송자 외 모든 수신자에게 깨진 이미지
+      //   (소비자 기만). 업로드 불가 시 로컬 경로를 비워 broken 경로 저장 차단 +
+      //   사용자에게 안내.
       if (uploadPath.isEmpty) {
-        if (mounted) setState(() => _isUploadingVoucher = false);
+        if (mounted) {
+          setState(() {
+            _isUploadingVoucher = false;
+            _voucherImageLocalPath = null;
+            _redemptionInfoController.clear();
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(AppL10n.of(
+                      Provider.of<AppState>(context, listen: false)
+                          .currentUser
+                          .languageCode)
+                  .composeImageCompressWarning),
+              backgroundColor: AppColors.gold,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
         return;
       }
       final url = await StorageService.uploadImage(
@@ -4165,14 +4979,44 @@ class _ComposeScreenState extends State<ComposeScreen>
       if (!mounted) return;
       setState(() {
         _isUploadingVoucher = false;
-        if (url != null) {
+        // Build 422 (sim-fresh2 P1): 업로드 완료 시점에 사용자가 이미지를 제거/교체
+        //   했으면 (로컬 경로 불일치) URL 을 되살리지 않음 — 제거한 바우처 URL 이
+        //   redemptionInfo 로 부활하던 race 차단.
+        if (url != null && _voucherImageLocalPath == compressedPath) {
           // HTTPS URL 로 교체 — 미리보기는 여전히 로컬 경로에서 그려
           // (네트워크 왕복 생략). 발송 시점엔 redemptionInfo=URL.
           _redemptionInfoController.text = url;
+        } else if (url != null) {
+          // 업로드는 성공했지만 이미 제거/교체됨 — 무시(되살리지 않음).
+        } else {
+          // Build 414 (sim100 #12): 업로드 실패 시에도 로컬 경로 저장 차단.
+          _voucherImageLocalPath = null;
+          _redemptionInfoController.clear();
         }
       });
+      if (url == null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppL10n.of(
+                    Provider.of<AppState>(context, listen: false)
+                        .currentUser
+                        .languageCode)
+                .composeImageCompressWarning),
+            backgroundColor: AppColors.gold,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     } catch (_) {
-      if (mounted) setState(() => _isUploadingVoucher = false);
+      // Build 414 (sim100 #12): 예외 시에도 broken 로컬 경로 잔존 차단.
+      if (mounted) {
+        setState(() {
+          _isUploadingVoucher = false;
+          _voucherImageLocalPath = null;
+          _redemptionInfoController.clear();
+        });
+      }
     }
   }
 
@@ -4345,6 +5189,60 @@ class _ComposeScreenState extends State<ComposeScreen>
   // 단일 배지로 단순화. Premium 은 어차피 general 만 발송 가능하므로 칩
   // 선택 UI 가 의미 없고, "내 발송은 자동으로 홍보 편지" 라는 정체성을 더
   // 직관적으로 전달. 일반 편지 발송 경로 축소 + 홍보 가치 강조.
+  // Build 425 (device #2): 카테고리별 활성 강조색 구분 — 일반(teal)/할인권(gold)/
+  //   교환권(pink). 이전엔 셋 다 teal 이라 선택 종류가 색으로 구분 안 됐음.
+  Color _categoryAccent(LetterCategory c) {
+    switch (c) {
+      case LetterCategory.coupon:
+        return AppColors.gold;
+      case LetterCategory.voucher:
+        return const Color(0xFFFF6B9D);
+      default:
+        return AppColors.teal;
+    }
+  }
+
+  // Build 433 (device): 업종 카테고리 칩 — 이모지(공유 헬퍼) + 라벨(AI 카테고리
+  //   라벨 재사용). 선택 시 _brandBizCategory 설정 → 발송 letter.categoryTag.
+  Widget _bizCategoryChip(String key, AppL10n l10n) {
+    final selected = _brandBizCategory == key;
+    return GestureDetector(
+      onTap: () => setState(() =>
+          _brandBizCategory = selected ? null : key),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.teal.withValues(alpha: 0.16)
+              : AppColors.bgSurface,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: selected
+                ? AppColors.teal.withValues(alpha: 0.7)
+                : AppColors.textMuted.withValues(alpha: 0.2),
+            width: selected ? 1.3 : 1.0,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(bizCategoryEmoji(key), style: const TextStyle(fontSize: 13)),
+            const SizedBox(width: 5),
+            Text(
+              l10n.composeAICategoryLabel(key),
+              style: TextStyle(
+                color: selected ? AppColors.teal : AppColors.textSecondary,
+                fontSize: 11.5,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildBrandCategoryPanel(AppState state) {
     final l10n = AppL10n.of(state.currentUser.languageCode);
     final isBrand = state.currentUser.isBrand;
@@ -4397,7 +5295,35 @@ class _ComposeScreenState extends State<ComposeScreen>
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          // Build 433 (device): 업종 카테고리 선택(발송 종류와 별개 축).
+          //   도착 마커 이모지·인박스 필터에 반영. 음식/카페/뷰티/패션/행사/기타.
+          const SizedBox(height: 12),
+          Text(
+            l10n.koEn('업종 (도착 마커 표시)', 'Category (arrival marker)'),
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: _bizCategoryKeys
+                .map((k) => _bizCategoryChip(k, l10n))
+                .toList(),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            l10n.koEn('발송 종류', 'Send type'),
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 6),
           Row(
             children: [
               for (final c in LetterCategory.values) ...[
@@ -4411,7 +5337,33 @@ class _ComposeScreenState extends State<ComposeScreen>
                         _showBrandOnlyCategorySheet(context, l10n, c);
                         return;
                       }
-                      setState(() => _brandCategory = c);
+                      setState(() {
+                        _brandCategory = c;
+                        // Build 448: 할인코드는 할인권 전용 → 다른 카테고리로 바꾸면
+                        //   발급 옵션 해제 + 미리보기 코드 제거(stale 코드 발송 방지).
+                        if (c != LetterCategory.coupon &&
+                            _attachRedemptionCode) {
+                          _attachRedemptionCode = false;
+                          _previewRedemptionCode = null;
+                        }
+                        // Build 454: 자동 발급 기본 OFF (사용자 요청 — Build 451
+                        //   의 선택 즉시 ON 을 되돌림). 토글은 할인코드 입력란
+                        //   바로 아래에 노출돼 원할 때만 켠다.
+                        // Build 449 (sim100 P2): 본문 사진 첨부는 '일반홍보'에서만
+                        //   노출되는데, 일반→할인권/교환권 전환 시 숨겨진 첨부가
+                        //   그대로 발송되고 이미지 쿼터를 소진하던 회귀 → 전환 시 해제.
+                        if (c != LetterCategory.general &&
+                            _imageFilePath != null) {
+                          _imageFilePath = null;
+                        }
+                        // Build 453 (tier-sim P2): 교환권 이미지(_voucherImageLocalPath)
+                        //   도 할인권/일반으로 전환 시 해제 — 안 지우면 UI엔 첨부됐는데
+                        //   redemptionInfo 가 비워져 발송 안 되는 state desync.
+                        if (c != LetterCategory.voucher &&
+                            _voucherImageLocalPath != null) {
+                          _voucherImageLocalPath = null;
+                        }
+                      });
                     },
                     borderRadius: BorderRadius.circular(8),
                     child: Opacity(
@@ -4426,12 +5378,12 @@ class _ComposeScreenState extends State<ComposeScreen>
                         ),
                         decoration: BoxDecoration(
                           color: _brandCategory == c && isBrand
-                              ? AppColors.teal.withValues(alpha: 0.16)
+                              ? _categoryAccent(c).withValues(alpha: 0.16)
                               : AppColors.bgSurface,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
                             color: _brandCategory == c && isBrand
-                                ? AppColors.teal
+                                ? _categoryAccent(c)
                                 : AppColors.textMuted.withValues(alpha: 0.3),
                             width: _brandCategory == c && isBrand ? 1.3 : 1,
                           ),
@@ -4460,7 +5412,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     color: _brandCategory == c && isBrand
-                                        ? AppColors.teal
+                                        ? _categoryAccent(c)
                                         : AppColors.textSecondary,
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.w700,
@@ -4512,69 +5464,138 @@ class _ComposeScreenState extends State<ComposeScreen>
               ),
             ),
             const SizedBox(height: 4),
-            Text(
-              // Build 127: 카테고리별 설명 · 힌트 · 아이콘 분기.
-              //   할인권 → 코드 형식 설명 (예: LETTERGO20)
-              //   교환권 → 쿠폰 이미지 업로드 안내
-              _brandCategory == LetterCategory.coupon
-                  ? l10n.composeBrandCouponDesc
-                  : l10n.composeBrandVoucherDesc,
-              style: const TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 10,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _redemptionInfoController,
-              maxLength: 200,
-              minLines: 1,
-              maxLines: 3,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 13,
-              ),
-              onChanged: (_) {
-                // 유저가 텍스트를 직접 타이핑하면 이미지 선택 상태 해제.
-                if (_voucherImageLocalPath != null) {
-                  setState(() => _voucherImageLocalPath = null);
-                }
-              },
-              decoration: InputDecoration(
-                hintText: _brandCategory == LetterCategory.coupon
-                    ? l10n.composeBrandCouponHint
-                    : l10n.composeBrandVoucherHint,
-                hintStyle: const TextStyle(
-                  color: AppColors.textMuted,
-                  fontSize: 12,
+            // Build 446: 할인권 + '사용 코드 발급' 옵션 ON 이면 수동 코드 입력란을
+            //   숨기고 안내 노트로 대체 — 코드는 옵션 버튼이 자동 발급하므로 사장이
+            //   여기에 코드를 따로 입력할 필요가 없다(중복 입력 제거).
+            if (_brandCategory == LetterCategory.coupon &&
+                _attachRedemptionCode) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                decoration: BoxDecoration(
+                  color: AppColors.teal.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: AppColors.teal.withValues(alpha: 0.4),
+                  ),
                 ),
-                prefixIcon: Icon(
-                  _brandCategory == LetterCategory.coupon
-                      ? Icons.qr_code_2_rounded
-                      : Icons.image_rounded,
-                  color: AppColors.teal,
-                  size: 18,
+                child: Row(
+                  children: [
+                    const Icon(Icons.check_circle_rounded,
+                        size: 16, color: AppColors.teal),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        l10n.composeBrandCouponAutoCodeNote,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 11,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                filled: true,
-                fillColor: AppColors.bgSurface,
-                counterStyle: const TextStyle(
+              ),
+            ] else ...[
+              Text(
+                // Build 127: 카테고리별 설명 · 힌트 · 아이콘 분기.
+                //   할인권 → 코드 형식 설명 (예: LETTERGO20)
+                //   교환권 → 쿠폰 이미지 업로드 안내
+                _brandCategory == LetterCategory.coupon
+                    ? l10n.composeBrandCouponDesc
+                    : l10n.composeBrandVoucherDesc,
+                style: const TextStyle(
                   color: AppColors.textMuted,
                   fontSize: 10,
                 ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.bgSurface),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _redemptionInfoController,
+                maxLength: 200,
+                minLines: 1,
+                maxLines: 3,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 13,
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.teal, width: 1.4),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.bgSurface),
+                onChanged: (_) {
+                  // 유저가 텍스트를 직접 타이핑하면 이미지 선택 상태 해제.
+                  if (_voucherImageLocalPath != null) {
+                    setState(() => _voucherImageLocalPath = null);
+                  }
+                },
+                decoration: InputDecoration(
+                  hintText: _brandCategory == LetterCategory.coupon
+                      ? l10n.composeBrandCouponHint
+                      : l10n.composeBrandVoucherHint,
+                  hintStyle: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 12,
+                  ),
+                  prefixIcon: Icon(
+                    _brandCategory == LetterCategory.coupon
+                        ? Icons.qr_code_2_rounded
+                        : Icons.image_rounded,
+                    color: AppColors.teal,
+                    size: 18,
+                  ),
+                  filled: true,
+                  fillColor: AppColors.bgSurface,
+                  counterStyle: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 10,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppColors.bgSurface),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide:
+                        const BorderSide(color: AppColors.teal, width: 1.4),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppColors.bgSurface),
+                  ),
                 ),
               ),
-            ),
+            ],
+            // Build 454: 할인코드 자동 발급 토글 — 코드 입력란 바로 아래 노출
+            //   (사용자 요청: 한 시야에서 수동 입력 vs 자동 발급 선택). 기본 OFF.
+            //   ON 시 미리보기 카드가 토글 바로 아래에 뜨고 수동 입력란은 숨김.
+            if (_brandCategory == LetterCategory.coupon) ...[
+              const SizedBox(height: 10),
+              _optionToggleButton(
+                active: _attachRedemptionCode,
+                label: l10n.redemptionToggleLabel,
+                onTap: () async {
+                  if (!_attachRedemptionCode) {
+                    final ok = await _showRedemptionCodeGuide();
+                    if (ok != true) return;
+                  }
+                  setState(() {
+                    _attachRedemptionCode = !_attachRedemptionCode;
+                    if (_attachRedemptionCode) {
+                      // 토글 ON 즉시 코드 1개 발급 → 미리보기 카드 노출.
+                      _previewRedemptionCode ??= RedemptionCode.generate();
+                      // 옵션 버튼이 코드 발급을 담당 → 수동 코드 입력란 불필요.
+                      //   기존 입력 코드를 비워 중복 코드 노출 차단.
+                      _redemptionInfoController.clear();
+                    } else {
+                      _previewRedemptionCode = null;
+                    }
+                  });
+                },
+              ),
+              if (_attachRedemptionCode &&
+                  _previewRedemptionCode != null) ...[
+                const SizedBox(height: 10),
+                _buildRedemptionPreviewCard(l10n),
+              ],
+            ],
             // Build 130: 교환권일 때 이미지 선택 버튼 + 미리보기. 선택하면 로컬
             // 경로가 `_redemptionInfoController` 에 채워진다 (URL 자리를
             // 로컬 경로가 대신함). 수신자 렌더링은 Build 131 에서 경로 vs URL
@@ -4955,100 +5976,66 @@ class _ComposeScreenState extends State<ComposeScreen>
     );
   }
 
-  // Build 321: 자동 발송 zone 토글 + 옵션. compose 통합 — 작성 본문 + 옵션
-  // 동시 입력 후 한 번에 등록. inbox FAB 진입점 제거됨.
-  /// Build 324: compose 시나리오 칩 — Brand 사장이 "어떤 캠페인?" 한 번에 선택.
-  Widget _scenarioChip({
-    required String emoji,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: AppColors.bgSurface,
-      borderRadius: BorderRadius.circular(999),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(emoji, style: const TextStyle(fontSize: 13)),
-              const SizedBox(width: 4),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  // Build 425 (device #5·#6): compose 시나리오 칩(_scenarioChip /
+  //   _applyScenarioNearby / _applyScenarioExactDrop / _applyScenarioBulk)
+  //   제거 — ExactDrop·대량 진입점이 목적지 카드·상단 토글과 중복이라 삭제.
 
-  /// 시나리오 1 — 매장 반경 (자동 zone ON / 1인1회 ON / 단건 모드)
-  void _applyScenarioNearby() {
-    setState(() {
-      _isAutoZoneMode = true;
-      _isBulkMode = false;
-      _isExpressMode = false;
-      _isExactDropped = false;
-      _brandUniquePerUser = true;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('📍 매장 반경 모드 — 자동 zone + 1인1회 ON'),
-        backgroundColor: AppColors.bgCard,
-        behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
-
-  /// 시나리오 2 — 단건 정확 좌표 (ExactDrop ON / 1인1회 ON)
-  void _applyScenarioExactDrop() {
-    setState(() {
-      _isAutoZoneMode = false;
-      _isBulkMode = false;
-      _isExpressMode = false;
-      _brandUniquePerUser = true;
-    });
-    // ExactDrop 진입은 별도 호출 (paywall 검사 포함).
-    _selectExactDrop();
-  }
-
-  /// 시나리오 3 — 글로벌 대량 (Bulk ON / 1인1회 ON)
-  void _applyScenarioBulk() {
-    setState(() {
-      _isBulkMode = true;
-      _isAutoZoneMode = false;
-      _isExactDropped = false;
-      _isExpressMode = false;
-      _brandUniquePerUser = true;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('🌍 글로벌 대량 모드 — 선택 국가 N건 발송'),
-        backgroundColor: AppColors.bgCard,
-        behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
-
+  // Build 455: 가시성 재구성 — divider 뒤에 묻혀 있던 위치/자동발송을 골드 톤의
+  //   독립 카드 + 섹션 헤더 + 한 줄 설명으로 끌어올림. 카피도 좌표/zone 전문용어
+  //   대신 "매장 기준 발송 / 근처 손님 자동 발송" 평이한 설명으로 교체(l10n).
   Widget _buildAutoZoneSection(AppL10n l10n) {
-    return Column(
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.gold.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.gold.withValues(alpha: 0.35)),
+      ),
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 토글
+        // ── 섹션 헤더 + 설명 ──
+        Row(
+          children: [
+            const Text('📍', style: TextStyle(fontSize: 15)),
+            const SizedBox(width: 7),
+            Expanded(
+              child: Text(
+                l10n.koEn('매장 위치 · 자동 발송', 'Store location · Auto-send'),
+                style: const TextStyle(
+                  color: AppColors.gold,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          l10n.koEn(
+            '매장 위치를 한 번 고정해두면, 근처에 온 손님에게 이 혜택을 자동으로 보낼 수 있어요.',
+            'Lock your store location once, and this offer can be auto-sent to customers who come nearby.',
+          ),
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 11,
+            height: 1.45,
+          ),
+        ),
+        const SizedBox(height: 10),
+        // Build 449: 고정 매장 위치 카드를 자동발송 토글 밖으로 노출 — 사용자가
+        //   "위치 고정 활성화가 안 보인다" 피드백. 토글 ON/OFF 와 무관하게 항상
+        //   매장 좌표를 설정/사용할 수 있게 상단 고정.
+        _buildFixedLocationCard(l10n),
+        const SizedBox(height: 12),
+        // 토글 — 제목 + 무엇이 일어나는지 한 줄 설명.
         GestureDetector(
           onTap: () => setState(() => _isAutoZoneMode = !_isAutoZoneMode),
+          behavior: HitTestBehavior.opaque,
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(
                 _isAutoZoneMode ? Icons.check_circle : Icons.circle_outlined,
@@ -5056,12 +6043,34 @@ class _ComposeScreenState extends State<ComposeScreen>
                 size: 18,
               ),
               const SizedBox(width: 10),
-              Text(
-                '📍 ${l10n.zoneCampaignToggle}',
-                style: TextStyle(
-                  color: _isAutoZoneMode ? AppColors.gold : AppColors.textPrimary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      // Build 454: 발송 종류 표기 — 어떤 카테고리인지 구분.
+                      '${l10n.zoneCampaignToggle} · ${_categoryLabel(l10n)}',
+                      style: TextStyle(
+                        color: _isAutoZoneMode
+                            ? AppColors.gold
+                            : AppColors.textPrimary,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.koEn(
+                        '켜면 손님이 선택한 반경 안에 들어올 때 이 혜택이 자동으로 도착해요',
+                        'When on, this offer arrives automatically when customers enter the radius',
+                      ),
+                      style: const TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 10.5,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -5078,12 +6087,16 @@ class _ComposeScreenState extends State<ComposeScreen>
             ],
           ),
           const SizedBox(height: 8),
-          // 수량 선택
+          // 수량 선택 — Build 449 (sim100 P2): 하드코딩 한국어 i18n.
           Row(
             children: [
-              Expanded(child: _zoneQuantityChip(true, '상시')),
+              Expanded(
+                  child: _zoneQuantityChip(
+                      true, l10n.koEn('상시', 'Always'))),
               const SizedBox(width: 8),
-              Expanded(child: _zoneQuantityChip(false, '한정')),
+              Expanded(
+                  child: _zoneQuantityChip(
+                      false, l10n.koEn('한정', 'Limited'))),
             ],
           ),
           if (!_zoneUnlimited) ...[
@@ -5093,7 +6106,7 @@ class _ComposeScreenState extends State<ComposeScreen>
               keyboardType: TextInputType.number,
               style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
               decoration: InputDecoration(
-                hintText: '한정 수량 (예: 100)',
+                hintText: l10n.koEn('한정 수량 (예: 100)', 'Limit qty (e.g. 100)'),
                 hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 12),
                 filled: true,
                 fillColor: AppColors.bgSurface,
@@ -5108,6 +6121,136 @@ class _ComposeScreenState extends State<ComposeScreen>
           ],
         ],
       ],
+      ),
+    );
+  }
+
+  // Build 454: 현재 선택된 발송 종류 라벨 — 고정 위치 카드 제목에 표기해
+  //   일반홍보/할인권/교환권 캠페인을 구분(사용자 요청).
+  String _categoryLabel(AppL10n l10n) {
+    switch (_brandCategory) {
+      case LetterCategory.coupon:
+        return l10n.composeBrandCategoryCoupon;
+      case LetterCategory.voucher:
+        return l10n.composeBrandCategoryVoucher;
+      default:
+        return l10n.composeBrandCategoryGeneral;
+    }
+  }
+
+  // Build 448: 고정 매장 위치 카드 — 좌표 저장/변경/해제 + 사용 토글.
+  Widget _buildFixedLocationCard(AppL10n l10n) {
+    final state = context.watch<AppState>();
+    final hasFixed = state.hasFixedStoreLocation;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.bgSurface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: (hasFixed && _useFixedStoreLocation)
+              ? AppColors.gold.withValues(alpha: 0.5)
+              : AppColors.textMuted.withValues(alpha: 0.18),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.push_pin_rounded,
+                size: 16,
+                color: (hasFixed && _useFixedStoreLocation)
+                    ? AppColors.gold
+                    : AppColors.textMuted,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  // Build 454: 발송 종류 표기 — '고정 매장 위치 · 할인권' 처럼
+                  //   캠페인 종류별 자동발송을 구분.
+                  '${l10n.zoneFixedLocationTitle} · ${_categoryLabel(l10n)}',
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              if (hasFixed)
+                Transform.scale(
+                  scale: 0.8,
+                  child: Switch(
+                    value: _useFixedStoreLocation,
+                    activeColor: AppColors.gold,
+                    onChanged: (v) =>
+                        setState(() => _useFixedStoreLocation = v),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(
+            hasFixed
+                ? (_useFixedStoreLocation
+                    ? l10n.zoneFixedLocationOn(
+                        state.fixedStoreLat!.toStringAsFixed(5),
+                        state.fixedStoreLng!.toStringAsFixed(5),
+                      )
+                    : l10n.zoneFixedLocationOff)
+                : l10n.zoneFixedLocationNone,
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 10.5,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              OutlinedButton.icon(
+                onPressed: _pickFixedStoreLocation,
+                icon: const Icon(Icons.map_rounded, size: 14),
+                label: Text(
+                  hasFixed
+                      ? l10n.zoneFixedLocationChange
+                      : l10n.zoneFixedLocationSetBtn,
+                  style: const TextStyle(
+                      fontSize: 11.5, fontWeight: FontWeight.w700),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.gold,
+                  side: BorderSide(color: AppColors.gold.withValues(alpha: 0.5)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  minimumSize: const Size(0, 36),
+                ),
+              ),
+              if (hasFixed) ...[
+                const SizedBox(width: 8),
+                TextButton(
+                  onPressed: () async {
+                    await context.read<AppState>().clearFixedStoreLocation();
+                    if (mounted) {
+                      setState(() => _useFixedStoreLocation = false);
+                    }
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.textMuted,
+                    minimumSize: const Size(0, 36),
+                  ),
+                  child: Text(
+                    l10n.zoneFixedLocationClear,
+                    style: const TextStyle(
+                        fontSize: 11.5, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -5210,185 +6353,34 @@ class _ComposeScreenState extends State<ComposeScreen>
             ],
           ),
           const SizedBox(height: 12),
-          // Build 324: "어떤 캠페인?" 시나리오 칩 3개 — Brand 시뮬레이션의
-          //   "토글 4개 (대량/특송/zone/ExactDrop/1인1회) 중 어느 조합?" 인지
-          //   부하 해소. 칩 1개 탭으로 4개 토글 자동 세팅.
-          Text(
-            l10n.composeScenarioLabel,
-            style: const TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 10.5,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 6),
+          // Build 425 (device #5·#6): 시나리오 칩(🎯 정확좌표 / 🌍 글로벌 대량)
+          //   제거 — 🎯 ExactDrop 은 목적지 카드, 🌍 대량은 상단 발송모드 토글과
+          //   중복이라 사용자 혼선. 해당 진입점만 단일화.
+          // Build 415 (item 5·14): '오늘의 혜택 자동 발송' zone 섹션 제거 —
+          //   compose 는 즉시 발송만. (자동 발송은 별도 화면으로 분리 예정)
+          // Build 415 (item 7·8): 길게 늘어지던 3-행 토글(1인1회·답장·코드발급)을
+          //   컴팩트 버튼(Wrap)으로 — 한눈에 보이고 활성/비활성 색으로 구분.
           Wrap(
-            spacing: 6,
-            runSpacing: 6,
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              _scenarioChip(
-                emoji: '📍',
-                label: l10n.composeScenarioNearbyStore,
-                onTap: _applyScenarioNearby,
+              _optionToggleButton(
+                active: _brandUniquePerUser,
+                label: l10n.composeBrandUniquePerUser,
+                onTap: () =>
+                    setState(() => _brandUniquePerUser = !_brandUniquePerUser),
               ),
-              _scenarioChip(
-                emoji: '🎯',
-                label: l10n.composeScenarioExactDrop,
-                onTap: _applyScenarioExactDrop,
+              _optionToggleButton(
+                active: _brandAcceptsReplies,
+                label: l10n.composeBrandAcceptsReplies,
+                onTap: () =>
+                    setState(() => _brandAcceptsReplies = !_brandAcceptsReplies),
               ),
-              _scenarioChip(
-                emoji: '🌍',
-                label: l10n.composeScenarioBulk,
-                onTap: _applyScenarioBulk,
-              ),
+              // Build 454: 할인코드 발급 토글은 카테고리 패널의 코드 입력란 바로
+              //   아래로 이동(사용자 요청 — 입력란과 한 시야에서 선택).
             ],
           ),
-          const SizedBox(height: 12),
-          // Build 321: 자동 발송 zone 토글 + 옵션 ─ compose 통합
-          _buildAutoZoneSection(l10n),
-          const SizedBox(height: 10),
-          // ── 1 아이디당 1 편지 ──
-          GestureDetector(
-            onTap: () => setState(() => _brandUniquePerUser = !_brandUniquePerUser),
-            child: Row(
-              children: [
-                Icon(
-                  _brandUniquePerUser ? Icons.check_circle : Icons.circle_outlined,
-                  color: _brandUniquePerUser ? AppColors.teal : AppColors.textMuted,
-                  size: 18,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.composeBrandUniquePerUser,
-                        style: TextStyle(
-                          color: _brandUniquePerUser ? AppColors.teal : AppColors.textPrimary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      // Build 324: ON/OFF 상태별 desc 분기 — Brand 사장이
-                      //   토글 의미를 즉시 이해 (시뮬레이션 발견).
-                      Text(
-                        _brandUniquePerUser
-                            ? l10n.composeBrandUniquePerUserDesc
-                            : l10n.composeBrandUniquePerUserOffDesc,
-                        style: const TextStyle(
-                          color: AppColors.textMuted,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          // ── 답장 받기 (브랜드 전용 — 기본 on) ──
-          // 이 캠페인에 답장을 받을지 발신 시점에 결정. Off 면 수신자에게
-          // 답장 버튼이 숨겨지고 "답장 미수락" 안내 카드가 대신 뜬다.
-          GestureDetector(
-            onTap: () => setState(() => _brandAcceptsReplies = !_brandAcceptsReplies),
-            child: Row(
-              children: [
-                Icon(
-                  _brandAcceptsReplies ? Icons.check_circle : Icons.circle_outlined,
-                  color: _brandAcceptsReplies ? AppColors.teal : AppColors.textMuted,
-                  size: 18,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.composeBrandAcceptsReplies,
-                        style: TextStyle(
-                          color: _brandAcceptsReplies ? AppColors.teal : AppColors.textPrimary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        l10n.composeBrandAcceptsRepliesDesc,
-                        style: const TextStyle(
-                          color: AppColors.textMuted,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          // ── Build 331 (PR-S1): 사용 코드 발급 토글 ──
-          //   ON 시 letter 마다 (또는 bulk 캠페인마다) 8자 영숫자 코드 자동
-          //   발급. 손님이 "사용 진행" 탭 시 reveal → 매장 POS 가 바코드 스캔
-          //   또는 코드 수동 입력으로 할인 적용.
-          GestureDetector(
-            onTap: () async {
-              if (!_attachRedemptionCode) {
-                final ok = await _showRedemptionCodeGuide();
-                if (ok != true) return;
-              }
-              setState(() {
-                _attachRedemptionCode = !_attachRedemptionCode;
-                // Build 337 (PR-S8 시뮬레이션 P1 #13): general letter 에 코드 발급
-                //   은 매장 POS 흐름과 어울리지 않음. 토글 ON 시 category 가
-                //   general 이면 coupon 으로 자동 전환 → 가이드 dialog 메시지
-                //   ("쿠폰/할인") 와 일관성 + 손님 카테고리 필터 정확도 ↑.
-                if (_attachRedemptionCode &&
-                    _brandCategory == LetterCategory.general) {
-                  _brandCategory = LetterCategory.coupon;
-                }
-              });
-            },
-            child: Row(
-              children: [
-                Icon(
-                  _attachRedemptionCode
-                      ? Icons.check_circle
-                      : Icons.circle_outlined,
-                  color: _attachRedemptionCode
-                      ? AppColors.teal
-                      : AppColors.textMuted,
-                  size: 18,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.redemptionToggleLabel,
-                        style: TextStyle(
-                          color: _attachRedemptionCode
-                              ? AppColors.teal
-                              : AppColors.textPrimary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        l10n.redemptionToggleDesc,
-                        style: const TextStyle(
-                          color: AppColors.textMuted,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           // ── 자동 삭제 기간 ──
           Text(
             l10n.composeBrandAutoExpire,
@@ -5439,7 +6431,253 @@ class _ComposeScreenState extends State<ComposeScreen>
               );
             }).toList(),
           ),
+          // Build 448: 자동 발송(zone) 섹션 재노출. Build 455: divider 에 묻히지
+          //   않게 자체 골드 카드(헤더+설명 포함)로 — divider 제거.
+          const SizedBox(height: 14),
+          _buildAutoZoneSection(l10n),
         ],
+      ),
+    );
+  }
+
+  // Build 415 (item 7): 컴팩트 on/off 버튼 — 라벨이 버튼 안에 들어가고,
+  //   활성(채워진 teal)/비활성(외곽선 muted)이 명확히 구분된다. 긴 설명 줄 없이
+  //   한 줄 pill 로 Wrap 배치 가능.
+  Widget _optionToggleButton({
+    required bool active,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        decoration: BoxDecoration(
+          color: active
+              ? AppColors.teal.withValues(alpha: 0.16)
+              : AppColors.bgSurface,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: active
+                ? AppColors.teal.withValues(alpha: 0.7)
+                : AppColors.textMuted.withValues(alpha: 0.18),
+            width: active ? 1.4 : 1.0,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              active ? Icons.check_circle_rounded : Icons.add_circle_outline_rounded,
+              size: 15,
+              color: active ? AppColors.teal : AppColors.textMuted,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: active ? AppColors.teal : AppColors.textSecondary,
+                fontSize: 12,
+                fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Build 446: 발송 전 매장 코드 미리보기 카드. 토글 ON 시 발급될 실제 코드를
+  //   크게 노출 + 복사/재발급 + "본문에 따로 안 적어도 됨" 안내 + 매장 연동 가이드
+  //   링크. 여기 보이는 코드가 그대로 발송된다(explicitRedemptionCode 주입).
+  Widget _buildRedemptionPreviewCard(AppL10n l10n) {
+    final formatted = RedemptionCode.formatForDisplay(_previewRedemptionCode!);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.teal.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.teal.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('🔑', style: TextStyle(fontSize: 15)),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  l10n.redemptionPreviewHeader,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.bgSurface,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: AppColors.teal.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: Text(
+                    formatted,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      fontFamily: 'monospace',
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              IconButton(
+                onPressed: () async {
+                  await SecureClipboard.copyEphemeral(formatted);
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        l10n.redemptionCodeCopied,
+                        style: const TextStyle(color: AppColors.tealInk),
+                      ),
+                      backgroundColor: AppColors.teal,
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(seconds: 2),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.copy_rounded, size: 18),
+                color: AppColors.teal,
+                tooltip: l10n.redemptionCodeCopy,
+                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+              ),
+              IconButton(
+                onPressed: () => setState(
+                  () => _previewRedemptionCode = RedemptionCode.generate(),
+                ),
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                color: AppColors.textMuted,
+                tooltip: l10n.redemptionPreviewRegenerate,
+                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.redemptionPreviewBody,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 11,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: () => _showRedemptionCodeGuide(),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.storefront_rounded,
+                    size: 13, color: AppColors.teal),
+                const SizedBox(width: 4),
+                Text(
+                  l10n.redemptionPreviewGuideLink,
+                  style: const TextStyle(
+                    color: AppColors.teal,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Build 425 (device 보고 #2): 대량발송·특급배송 토글을 브랜드 옵션 pill 과
+  //   동일한 시각 언어로 통일. 이전엔 full-width Switch 행이라 brand 3종 토글
+  //   (1인1회·답장·코드발급) pill 과 따로 놀았다. emoji + 라벨 + 활성 체크로
+  //   Wrap 배치해 "한눈에" 구성. activeColor 로 bulk(coupon/gold)·express(gold)
+  //   를 구분.
+  Widget _modeToggleButton({
+    required bool active,
+    required String emoji,
+    required String label,
+    required Color activeColor,
+    required VoidCallback onTap,
+    double opacity = 1.0,
+    Widget? trailing,
+  }) {
+    return Opacity(
+      opacity: opacity,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+          decoration: BoxDecoration(
+            color: active
+                ? activeColor.withValues(alpha: 0.16)
+                : AppColors.bgSurface,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: active
+                  ? activeColor.withValues(alpha: 0.7)
+                  : AppColors.textMuted.withValues(alpha: 0.18),
+              width: active ? 1.4 : 1.0,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(emoji, style: const TextStyle(fontSize: 13)),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: active ? activeColor : AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              trailing ??
+                  Icon(
+                    active
+                        ? Icons.check_circle_rounded
+                        : Icons.circle_outlined,
+                    size: 15,
+                    color: active ? activeColor : AppColors.textMuted,
+                  ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -5447,11 +6685,15 @@ class _ComposeScreenState extends State<ComposeScreen>
   // ── 브랜드 대량 발송 토글 ────────────────────────────────────────────────
   Widget _buildBulkModeToggle() {
     final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
-    // 특송 ON이면 gold, 대량만 ON이면 orange, OFF면 기본
+    // 특송+대량 동시 ON 이면 gold, 대량만 ON 이면 coupon.
     final activeColor = (_isBulkMode && _isExpressMode)
         ? AppColors.gold
         : AppColors.coupon;
-    return GestureDetector(
+    return _modeToggleButton(
+      active: _isBulkMode,
+      emoji: '🌍',
+      label: _isBulkMode ? l10n.composeBulkOn : l10n.composeBulkBrandOnly,
+      activeColor: activeColor,
       onTap: () => setState(() {
         _isBulkMode = !_isBulkMode;
         if (!_isBulkMode) {
@@ -5459,80 +6701,6 @@ class _ComposeScreenState extends State<ComposeScreen>
           _isExpressMode = false;
         }
       }),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: _isBulkMode
-              ? activeColor.withValues(alpha: 0.12)
-              : AppColors.bgCard,
-          borderRadius: BorderRadius.circular(13),
-          border: Border.all(
-            color: _isBulkMode
-                ? activeColor.withValues(alpha: 0.5)
-                : AppColors.textMuted.withValues(alpha: 0.2),
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              _isBulkMode ? Icons.public_rounded : Icons.public_off_rounded,
-              color: _isBulkMode ? activeColor : AppColors.textMuted,
-              size: 18,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Row(
-                children: [
-                  Text(
-                    _isBulkMode ? '🌍 ${l10n.composeBulkOn}' : '🌍 ${l10n.composeBulkBrandOnly}',
-                    style: TextStyle(
-                      color: _isBulkMode ? activeColor : AppColors.textMuted,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  if (_isBulkMode && _isExpressMode) ...[
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.gold.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(
-                          color: AppColors.gold.withValues(alpha: 0.6),
-                        ),
-                      ),
-                      child: Text(
-                        '⚡ ${l10n.composeWithin5Min}',
-                        style: TextStyle(
-                          color: AppColors.gold,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            Switch(
-              value: _isBulkMode,
-              onChanged: (v) => setState(() {
-                _isBulkMode = v;
-                if (!v) {
-                  _bulkTargets.clear();
-                  _isExpressMode = false;
-                }
-              }),
-              activeColor: activeColor,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -5734,10 +6902,13 @@ class _ComposeScreenState extends State<ComposeScreen>
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
             setState(() {
-              // 사용자가 destination 카드에서 정확한 위치(예: 매장 좌표)
-              // 를 골랐다면 country 중심이 아닌 그 좌표 사용. 안 그러면
-              // 대량 발송 시 country 중심으로 풀어져 산포됨.
-              final isPrecise = _destLat != 0 && _destLng != 0;
+              // Build 449 (sim100 P0): precise 판정을 좌표 휴리스틱(_destLat!=0)
+              //   대신 명시 플래그 _isExactDropped 로 교체. 이전엔 일반 국가
+              //   선택도 도시 좌표(비-0)로 _destLat/_destLng 를 채워 precise=true
+              //   로 오인 → 출시 빌드에서 letter 마다 ExactDrop 크레딧 차감(0통
+              //   발송)/단일점 적재. 단건 발송(useExactCoordinates:_isExactDropped)
+              //   과 정책 일치. ExactDrop 을 실제로 고른 경우만 단일 좌표 발송.
+              final isPrecise = _isExactDropped;
               _bulkTargets.add({
                 'country': match['name'],
                 'flag': match['flag'],
@@ -6080,93 +7251,10 @@ class _ComposeScreenState extends State<ComposeScreen>
     );
   }
 
-  Widget _buildStyleBar() {
-    final _lc = context.read<AppState>().currentUser.languageCode;
-    final l10n = AppL10n.of(_lc);
-    final paper = LetterStyles.paper(_paperStyle);
-    final font = LetterStyles.font(_fontStyle);
-    return Row(
-      children: [
-        // Paper picker button
-        Expanded(
-          child: GestureDetector(
-            onTap: _showPaperPicker,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppColors.bgCard,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.gold.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Text(paper.emoji, style: const TextStyle(fontSize: 16)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      paper.localizedName(_lc),
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const Icon(
-                    Icons.expand_more_rounded,
-                    color: AppColors.gold,
-                    size: 16,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        // Font picker button
-        Expanded(
-          child: GestureDetector(
-            onTap: _showFontPicker,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppColors.bgCard,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.teal.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Text(font.emoji, style: const TextStyle(fontSize: 16)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      font.localizedName(_lc),
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const Icon(
-                    Icons.expand_more_rounded,
-                    color: AppColors.teal,
-                    size: 16,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        // ── 배송 이모티콘 꾸미기 버튼 ─────────────────────────────────────────
-        GestureDetector(
+  // Build 415 (item 13): 종이/폰트 꾸미기 제거 — 발송 이모티콘 선택만 유지.
+  Widget _buildDeliveryEmojiButton() {
+    final l10n = AppL10n.of(context.read<AppState>().currentUser.languageCode);
+    return GestureDetector(
           onTap: _showEmojiPicker,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -6242,9 +7330,7 @@ class _ComposeScreenState extends State<ComposeScreen>
               ],
             ),
           ),
-        ),
-      ],
-    );
+        );
   }
 
   // ── 배송 이모티콘 피커 ────────────────────────────────────────────────────
@@ -6987,13 +8073,24 @@ class _ComposeScreenState extends State<ComposeScreen>
     //   composeMinLengthError SnackBar 매번 → friction. coupon 토글 분기
     //   (_attachRedemptionCode) 는 매장 코드 발급 letter 라 1자 OK 유지.
     //   Brand 일반 letter 도 20자 enforce — UI 일관성.
-    final isReplyOrCoupon = _isReply || _attachRedemptionCode;
-    final minChars = isReplyOrCoupon ? 1 : 20;
+    // Build 449 (sim100 P2): 할인권/교환권(브랜드 비-일반) 도 발송 검증(isBrandPromo,
+    //   :1593)이 최소 1자만 요구하는데 버튼은 10자를 요구해 짧은 할인권이 데드락
+    //   (버튼 비활성 + 검증은 통과)이던 불일치 해소. 검증과 동일 게이트로 통일.
+    final isBrandPromoBtn = state.currentUser.isBrand &&
+        _brandCategory != LetterCategory.general;
+    final isReplyOrCoupon = _isReply || _attachRedemptionCode || isBrandPromoBtn;
+    final minChars = isReplyOrCoupon ? 1 : 10; // Build 415 (item 6): 20→10
     // Build 409 (sim P1.8): 일간뿐 아니라 월간 한도까지 본 canSendByQuota 사용.
     //   이전엔 hasRemainingDailyQuota 만 봐서 월간 소진 시 버튼 활성 → 발송
     //   실패 friction.
-    final canSend =
-        !_isSending && _charCount >= minChars && state.canSendByQuota;
+    // Build 422 (sim-fresh2 P1): 이미지/바우처 업로드·압축 중에는 발송 차단 —
+    //   이전엔 in-flight 중 로컬 /data 경로가 redemptionInfo/imageUrl 로 발송될 수
+    //   있었음(HTTPS URL 은 업로드 완료 후 swap).
+    final canSend = !_isSending &&
+        !_isUploadingVoucher &&
+        !_isCompressingImage &&
+        _charCount >= minChars &&
+        state.canSendByQuota;
     final expressQuotaSuffix =
         (!_isReply &&
             _isExpressMode &&
@@ -7032,7 +8129,9 @@ class _ComposeScreenState extends State<ComposeScreen>
           Text(
             quotaText,
             style: TextStyle(
-              color: state.hasRemainingDailyQuota
+              // Build 414 (sim100 #55): 월간 소진 시에도 경고색 — 이전엔 일간
+              //   잔여만 봐서 버튼 비활성(canSendByQuota) 사유가 색으로 안 드러남.
+              color: state.canSendByQuota
                   ? AppColors.textMuted
                   : AppColors.coupon,
               fontSize: 11,
@@ -7045,22 +8144,41 @@ class _ComposeScreenState extends State<ComposeScreen>
             height: 54,
             child: ElevatedButton(
               onPressed: canSend ? () => _onSend(state) : null,
+              // Build 425 (device 보고 #3): 활성/비활성 시각 구분 강화.
+              //   이전엔 onPressed==null 일 때 Flutter 가 backgroundColor 대신
+              //   테마 기본 disabled 색(흐린 회색)을 써서 의도한 muted 색이 적용
+              //   안 됐다 → 활성/비활성 구분이 약함. disabled* 색을 명시 + 비활성
+              //   외곽선 + 활성 그림자(elevation)로 또렷하게.
               style: ElevatedButton.styleFrom(
-                backgroundColor: canSend ? AppColors.gold : AppColors.bgSurface,
-                foregroundColor: canSend
-                    ? AppColors.bgDeep
-                    : AppColors.textMuted,
+                backgroundColor: AppColors.gold,
+                foregroundColor: AppColors.bgDeep,
+                disabledBackgroundColor: AppColors.bgSurface.withValues(
+                  alpha: 0.55,
+                ),
+                disabledForegroundColor: AppColors.textMuted.withValues(
+                  alpha: 0.7,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
+                  side: canSend
+                      ? BorderSide.none
+                      : BorderSide(
+                          color: AppColors.textMuted.withValues(alpha: 0.3),
+                          width: 1.2,
+                        ),
                 ),
-                elevation: 0,
+                elevation: canSend ? 3 : 0,
+                shadowColor: AppColors.gold.withValues(alpha: 0.5),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    _isReply ? '💌' : '✈️',
-                    style: const TextStyle(fontSize: 20),
+                  Opacity(
+                    opacity: canSend ? 1.0 : 0.45,
+                    child: Text(
+                      _isReply ? '💌' : '✈️',
+                      style: const TextStyle(fontSize: 20),
+                    ),
                   ),
                   const SizedBox(width: 10),
                   Text(
@@ -7182,7 +8300,9 @@ class _ComposeOptionsSection extends StatefulWidget {
 }
 
 class _ComposeOptionsSectionState extends State<_ComposeOptionsSection> {
-  bool _expanded = false;
+  // Build 429 (device): '더 많은 옵션' 기본 펼침 — 사용자가 접힌 줄 모르고
+  //   사진/브랜드옵션을 못 찾던 문제 해소.
+  bool _expanded = true;
 
   @override
   Widget build(BuildContext context) {

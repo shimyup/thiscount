@@ -1,0 +1,60 @@
+/* Thiscount — Trendy Dark UI mockup design tokens */
+:root{
+  --bg:#0A0A0C;
+  --bg2:#0D0D11;
+  --surface:#17171E;       /* one tone brighter card */
+  --surface2:#1E1E27;      /* elevated */
+  --surface3:#262631;
+  --line:rgba(255,255,255,.07);
+  --line2:rgba(255,255,255,.12);
+  --txt:#F4F4F7;
+  --muted:#9A9AA6;
+  --faint:#62626E;
+  --gold:#F3C44C;          /* Premium */
+  --gold-dim:#5a4a1e;
+  --teal:#2FD9C4;          /* Free / positive */
+  --teal-dim:#16463f;
+  --coupon:#FF7A45;        /* Brand / urgent / expiry */
+  --coupon-dim:#52271a;
+  --radius:20px;
+  --shadow:0 4px 16px rgba(0,0,0,.25);
+  --shadow-lg:0 10px 34px rgba(0,0,0,.4);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
+html,body{width:393px;height:852px}
+body{
+  font-family:"Apple SD Gothic Neo","SF Pro Display",-apple-system,sans-serif;
+  background:var(--bg);color:var(--txt);
+  overflow:hidden;position:relative;
+}
+.screen{width:393px;height:852px;position:relative;overflow:hidden;background:
+  radial-gradient(120% 80% at 50% -10%, #131319 0%, var(--bg) 55%);}
+
+/* iOS status bar */
+.statusbar{height:54px;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 24px 8px;font-weight:600;font-size:15px;letter-spacing:.2px;position:relative;z-index:5}
+.statusbar .time{font-variant-numeric:tabular-nums;font-weight:700}
+.statusbar .icons{display:flex;align-items:center;gap:6px}
+.statusbar .icons svg{display:block}
+
+/* home indicator */
+.home-ind{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+  width:134px;height:5px;border-radius:3px;background:rgba(255,255,255,.32);z-index:20}
+
+/* bottom tab bar */
+.tabbar{position:absolute;bottom:0;left:0;right:0;height:92px;
+  background:linear-gradient(180deg,rgba(10,10,12,0) 0%,var(--bg) 36%);
+  display:flex;align-items:flex-start;justify-content:space-around;padding:14px 28px 0;z-index:15}
+.tab{display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--faint);font-size:11px;font-weight:600;position:relative}
+.tab .ic{width:26px;height:26px;display:flex;align-items:center;justify-content:center}
+.tab.active{color:var(--gold)}
+.tab.active.teal{color:var(--teal)}
+.tab .badge{position:absolute;top:-5px;right:-9px;min-width:17px;height:17px;border-radius:9px;
+  background:var(--coupon);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--bg)}
+
+/* reusable */
+.label{font-size:11px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}
+.bignum{font-size:32px;font-weight:800;letter-spacing:-1px;line-height:1}
+.chip{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 11px;border-radius:13px;
+  font-size:12px;font-weight:700;background:var(--surface2);color:var(--muted)}
+.emoji-thumb{width:60px;height:60px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:30px;flex-shrink:0}
