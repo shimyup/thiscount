@@ -12,6 +12,8 @@ Letter _brandLetter({
   bool brandUniquePerUser = false,
   String? campaignId,
   LetterRarity rarity = LetterRarity.normal,
+  int? campaignTotalCount,
+  bool isMystery = false,
 }) {
   final now = DateTime.now();
   return Letter(
@@ -38,6 +40,8 @@ Letter _brandLetter({
     acceptsReplies: false,
     brandUniquePerUser: brandUniquePerUser,
     campaignId: campaignId,
+    campaignTotalCount: campaignTotalCount,
+    isMystery: isMystery,
   );
 }
 
@@ -104,6 +108,34 @@ void main() {
       final restored = Letter.fromJson(original.toJson());
       expect(restored.brandUniquePerUser, isTrue);
       expect(restored.campaignId, 'cmp_test_123');
+    });
+
+    test('Build 490: campaignTotalCount + isMystery 라운드트립 + clone 보존', () {
+      final original = _brandLetter(
+        brandUniquePerUser: true,
+        campaignId: 'cmp_hunt_1',
+        campaignTotalCount: 300,
+        isMystery: true,
+      );
+      final restored = Letter.fromJson(original.toJson());
+      expect(restored.campaignTotalCount, 300);
+      expect(restored.isMystery, isTrue);
+      // 픽업 clone 도 헌트 필드 유지 (world → inbox 전이 시 마스킹 게이트 보존).
+      final cloned = original.clone();
+      expect(cloned.campaignTotalCount, 300);
+      expect(cloned.isMystery, isTrue);
+      // 마커: 밀봉 드롭은 카테고리 이모지 대신 ❓.
+      expect(original.markerBrandEmoji, '❓');
+      expect(_brandLetter().markerBrandEmoji, isNot('❓'));
+    });
+
+    test('Build 490: legacy letter (헌트 키 없음) → null/false 복원', () {
+      final json = _brandLetter().toJson();
+      expect(json.containsKey('campaignTotalCount'), isFalse);
+      expect(json.containsKey('isMystery'), isFalse);
+      final restored = Letter.fromJson(json);
+      expect(restored.campaignTotalCount, isNull);
+      expect(restored.isMystery, isFalse);
     });
 
     test('Build 324: legacy letter (campaignId 키 없음) → null 복원', () {

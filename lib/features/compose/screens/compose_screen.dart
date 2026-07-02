@@ -469,6 +469,9 @@ class _ComposeScreenState extends State<ComposeScreen>
 
   // ── 브랜드 고급 옵션 ──────────────────────────────────────────────────────
   bool _brandUniquePerUser = false; // 1 아이디당 1 편지
+  // Build 490 (드롭 헌트 P1-N2): 미스터리(밀봉) 드롭 — 픽업 시트에서 내용
+  // 비공개, 개봉 후 공개. Brand 전용 토글.
+  bool _isMysteryDrop = false;
   bool _brandAcceptsReplies = true; // 답장 수락 여부 (기본 on)
   bool _isExactDropped = false; // ExactDrop 로 좌표 선택됨 → 발송 시 크레딧 차감
   int? _brandAutoExpireHours; // 자동 삭제 시간 (null=없음)
@@ -770,6 +773,8 @@ class _ComposeScreenState extends State<ComposeScreen>
         //   캠페인 dedup 깨짐.
         'attachRedemptionCode': _attachRedemptionCode,
         'brandUniquePerUser': _brandUniquePerUser,
+        // Build 490: 밀봉 드롭 토글도 draft 보존 (코드발급 토글과 동일 사유).
+        'isMysteryDrop': _isMysteryDrop,
       };
       // Build 418 (사용자 device): 기본 선택 국가(_selectedCountry 는 거의 항상
       //   비어있지 않음)만으로 brand draft 를 저장하면, 빈 메세지에도 다음 진입
@@ -885,6 +890,8 @@ class _ComposeScreenState extends State<ComposeScreen>
                     }
                     _brandUniquePerUser =
                         snap['brandUniquePerUser'] as bool? ?? false;
+                    _isMysteryDrop =
+                        snap['isMysteryDrop'] as bool? ?? false;
                     // Build 425 (device #3): draft 복원 = 목적지 선택 이력 있음.
                     _destinationTouched = true;
                     // Build 428 (sim100 #25): 발송은 Brand 전용 → 비-Brand 가
@@ -898,6 +905,7 @@ class _ComposeScreenState extends State<ComposeScreen>
                       _attachRedemptionCode = false;
                       _previewRedemptionCode = null;
                       _brandUniquePerUser = false;
+                      _isMysteryDrop = false;
                       _brandCategory = LetterCategory.general;
                     }
                   } catch (_) {}
@@ -938,6 +946,7 @@ class _ComposeScreenState extends State<ComposeScreen>
     _attachRedemptionCode = false;
     _previewRedemptionCode = null;
     _brandUniquePerUser = false;
+    _isMysteryDrop = false;
     SharedPreferences.getInstance().then((prefs) {
       prefs.remove('compose_draft');
       prefs.remove('compose_draft_brand');
@@ -1805,6 +1814,13 @@ class _ComposeScreenState extends State<ComposeScreen>
       final sharedRedemptionCode = _attachRedemptionCode
           ? (_previewRedemptionCode ?? RedemptionCode.generate())
           : null;
+      // Build 490 (드롭 헌트 P1-N1): 이 발송 액션의 계획 총 투하 수 — 멀티콜
+      //   blast 전체가 공유(헌트 배너 "잔여 n/전체" 분모). 캠페인 발송만 유효.
+      final huntPlannedTotal = sharedCampaignId == null
+          ? null
+          : (_isBulkRandom
+              ? _sendPerCountry
+              : _bulkTargets.length * _sendPerCountry);
       try {
       if (_isBulkRandom) {
         // 랜덤 국가 특송: 매 편지마다 랜덤 국가 선택
@@ -1836,6 +1852,8 @@ class _ComposeScreenState extends State<ComposeScreen>
             campaignId: sharedCampaignId,
             attachRedemptionCode: _attachRedemptionCode,
             explicitRedemptionCode: sharedRedemptionCode,
+            campaignTotalCount: huntPlannedTotal,
+            isMystery: _isMysteryDrop,
           );
           totalSent += sent;
           if (sent == 0) break; // 한도 초과 시 중단
@@ -1875,6 +1893,8 @@ class _ComposeScreenState extends State<ComposeScreen>
             campaignId: sharedCampaignId,
             attachRedemptionCode: _attachRedemptionCode,
             explicitRedemptionCode: sharedRedemptionCode,
+            campaignTotalCount: huntPlannedTotal,
+            isMystery: _isMysteryDrop,
             preciseLat: preciseLat,
             preciseLng: preciseLng,
           );
@@ -1977,6 +1997,8 @@ class _ComposeScreenState extends State<ComposeScreen>
           // Build 446: 미리보기 카드 코드 주입 → 발송 전후 일치.
           explicitRedemptionCode:
               _attachRedemptionCode ? _previewRedemptionCode : null,
+          // Build 490: 밀봉 드롭 (총량은 sendBulkLetter 내부 계산).
+          isMystery: _isMysteryDrop,
         );
       } catch (_) {
         if (mounted) {
@@ -6375,6 +6397,13 @@ class _ComposeScreenState extends State<ComposeScreen>
                 label: l10n.composeBrandAcceptsReplies,
                 onTap: () =>
                     setState(() => _brandAcceptsReplies = !_brandAcceptsReplies),
+              ),
+              // Build 490 (드롭 헌트 P1-N2): 밀봉 드롭 토글.
+              _optionToggleButton(
+                active: _isMysteryDrop,
+                label: l10n.composeMysteryToggle,
+                onTap: () =>
+                    setState(() => _isMysteryDrop = !_isMysteryDrop),
               ),
               // Build 454: 할인코드 발급 토글은 카테고리 패널의 코드 입력란 바로
               //   아래로 이동(사용자 요청 — 입력란과 한 시야에서 선택).

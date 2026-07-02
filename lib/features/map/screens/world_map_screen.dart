@@ -16,6 +16,7 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../widgets/app_snack.dart';
 import '../../../core/localization/country_names.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/hunt_palette.dart';
 import '../../../core/utils/person_emoji.dart';
 import '../../../models/letter.dart';
 import '../../inbox/widgets/letter_read_screen.dart';
@@ -596,7 +597,10 @@ class _WorldMapScreenState extends State<WorldMapScreen>
             // Build 142: 헤더·국가 바 아래로 슬라이드-다운 브랜드 홍보 배너.
             // Build 176: 국가 바 높이 42→32 로 축소, 배너 top 104→94.
             // Build 404 (PR-MM2): newcomer hide — 위 country bar 와 동일 사유.
-            if (widget.showChrome && !state.currentUser.isNewcomer)
+            // Build 490: 헌트 배너 활성 시 숨김 (상호 배타 — 오버레이 과밀 방지).
+            if (widget.showChrome &&
+                !state.currentUser.isNewcomer &&
+                state.activeHuntCampaign == null)
               Positioned(
                 top: _showCountryBar ? 94 : 56,
                 left: 0,
@@ -610,6 +614,31 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                           letter.destinationLocation.latitude,
                           letter.destinationLocation.longitude,
                         ),
+                        14.0,
+                      );
+                    },
+                  ),
+                ),
+              ),
+            // ── Build 490 (드롭 헌트 P1-N1): 캠페인 헌트 배너 ─────────────
+            // 프로모 배너와 상호 배타(핸드오프 스펙 — 유료 캠페인 우선):
+            // 헌트 캠페인 활성 시 이 배너만, 없으면 기존 프로모 배너.
+            // 위치: 프로모 배너(위치3)와 도착 배너(위치4) 사이 top 130.
+            if (widget.showChrome && state.activeHuntCampaign != null)
+              Positioned(
+                top: _showCountryBar ? 130 : 94,
+                left: 16,
+                right: 16,
+                child: SafeArea(
+                  bottom: false,
+                  child: _CampaignHuntBanner(
+                    l10n: l10n,
+                    summary: state.activeHuntCampaign!,
+                    onTap: () {
+                      final s = state.activeHuntCampaign;
+                      if (s == null) return;
+                      _mapController.move(
+                        ll.LatLng(s.anchor.latitude, s.anchor.longitude),
                         14.0,
                       );
                     },
@@ -1942,7 +1971,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 padding: const EdgeInsets.only(bottom: 8),
                 child: _DisambiguationTile(
                   // 브랜드 편지는 카테고리 맞춤 이모지 (할인권 🎟 / 교환권 🎁 / 일반 📪)
-                  icon: l.senderIsBrand ? l.category.brandEmoji : '📮',
+                  icon: l.senderIsBrand ? l.markerBrandEmoji : '📮',
                   title: '${l.senderCountryFlag} ${l10n.mapLetterFrom(CountryL10n.localizedName(l.senderCountry, langCode))}',
                   subtitle: l10n.mapReadCountTapToPickUp(l.readCount, l.maxReaders),
                   onTap: () {
@@ -2392,7 +2421,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     // 브랜드 편지는 카테고리 맞춤 이모지로 도착 상태를 알림.
     // Build 223: Premium 발신 편지는 📣 (홍보) 로 직관 구분
     final arrivalEmoji = letter.senderIsBrand
-        ? letter.category.brandEmoji
+        ? letter.markerBrandEmoji
         : letter.senderTier == LetterSenderTier.premium
             ? '📣'
             : '📬';
@@ -2740,7 +2769,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
 
     // 카테고리 이모지 (브랜드 편지만 맞춤, 아니면 📬)
     final catEmoji = nearest.senderIsBrand
-        ? nearest.category.brandEmoji
+        ? nearest.markerBrandEmoji
         : '📬';
 
     return (
@@ -3329,7 +3358,7 @@ class _TransportMarker extends StatelessWidget {
         // 맞춤), inTransit: 운송수단 이모티콘
         final isBrandArrival = letter.senderIsBrand && (isNearby || isDeliveredFar);
         final emoji = isBrandArrival
-            ? letter.category.brandEmoji
+            ? letter.markerBrandEmoji
             : isNearby
             ? '📩'
             : isDeliveredFar
@@ -3597,7 +3626,7 @@ class _UnreadDeliveredMarker extends StatelessWidget {
         // 이모지: 브랜드(프리미엄 뷰어)=카테고리 맞춤(🎟/🎁/📪),
         //         프리미엄/브랜드(무료뷰어)=💌, 일반=📮
         final mailEmoji = showAsBrand
-            ? letter.category.brandEmoji
+            ? letter.markerBrandEmoji
             : showAsPremium
             ? '💌'
             : '📮';
@@ -4659,26 +4688,82 @@ class _PickupSheet extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 5),
-                  Text(
-                    letter.content,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: ink.withValues(alpha: 0.9),
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w700,
-                      height: 1.35,
+                  // Build 490 (드롭 헌트 P1-N2): 미스터리 드롭은 본문 미리보기
+                  // 마스킹 — "내용은 개봉 전까지 비밀" + 소셜프루프. 브랜드명·
+                  // 카테고리는 유지(신뢰·법적 표시, 핸드오프 스펙 B-1).
+                  if (letter.isMystery)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: HuntPalette.ink,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: HuntPalette.lav.withValues(alpha: 0.5),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          // 장식 문자열 — 스크린리더 제외 (스펙 A11y).
+                          const ExcludeSemantics(
+                            child: Text(
+                              '?  ?  ?  ?  ?  ?',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: HuntPalette.lav,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 3,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            l10n.mysterySealedHint,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: HuntPalette.cream,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            l10n.mysteryProofOpened(letter.readCount),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: HuntPalette.mut,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    Text(
+                      letter.content,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: ink.withValues(alpha: 0.9),
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                        height: 1.35,
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
           ],
           const SizedBox(height: 20),
           // Build 304 (a11y): VoiceOver/TalkBack — 픽업 버튼임을 명시.
+          // Build 490: 미스터리 드롭은 "여기서 개봉하기" lime CTA (스펙 B-1).
           Semantics(
             button: true,
-            label: l10n.mapPickUpLetter,
+            label: letter.isMystery ? l10n.mysteryOpenCta : l10n.mapPickUpLetter,
             child: GestureDetector(
               onTap: onPickup,
               child: Container(
@@ -4686,13 +4771,17 @@ class _PickupSheet extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: AppColors.bgDeep,
+                  color: letter.isMystery
+                      ? HuntPalette.lime
+                      : AppColors.bgDeep,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Text(
-                  l10n.mapPickUpLetter,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  letter.isMystery ? l10n.mysteryOpenCta : l10n.mapPickUpLetter,
+                  style: TextStyle(
+                    color: letter.isMystery
+                        ? HuntPalette.limeInk
+                        : Colors.white,
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.2,
@@ -5881,6 +5970,119 @@ class _InterestFilterSheetState extends State<_InterestFilterSheet> {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── Build 490 (드롭 헌트 P1-N1): 캠페인 헌트 배너 ──────────────────────────
+// Figma v3 스펙(docs/HANDOFF_DROP_HUNT_P1.md): HuntPalette 서브 팔레트,
+// elev 표면 + lime 1px 보더 pill, 좌 lime 도트 + 캠페인명, 우 잔여 카운터,
+// 하단 진행바. 소진 시 카운터 "마감" + 보더 강등. 탭 → 캠페인 위치로 카메라.
+class _CampaignHuntBanner extends StatelessWidget {
+  final AppL10n l10n;
+  final HuntCampaignSummary summary;
+  final VoidCallback onTap;
+
+  const _CampaignHuntBanner({
+    required this.l10n,
+    required this.summary,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final s = summary;
+    final title = l10n.huntBannerTitle(s.brandName);
+    final progress = s.total <= 0
+        ? 0.0
+        : ((s.total - s.remaining) / s.total).clamp(0.0, 1.0);
+    return Semantics(
+      button: true,
+      label:
+          '$title, ${s.soldOut ? l10n.huntSoldOut : l10n.huntRemaining(s.remaining, s.total)}',
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          height: 54,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: HuntPalette.elev.withValues(alpha: 0.94),
+            borderRadius: BorderRadius.circular(27),
+            border: Border.all(
+              // 소진 시 보더 강등 (스펙 States).
+              color: s.soldOut
+                  ? HuntPalette.mut.withValues(alpha: 0.4)
+                  : HuntPalette.lime,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: s.isMystery ? HuntPalette.lav : HuntPalette.lime,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      s.othersCount > 0
+                          ? '$title · ${l10n.huntOthersSuffix(s.othersCount)}'
+                          : title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: HuntPalette.cream,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    s.soldOut
+                        ? l10n.huntSoldOut
+                        : l10n.huntRemaining(s.remaining, s.total),
+                    style: TextStyle(
+                      color: s.soldOut ? HuntPalette.mut : HuntPalette.lime,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 7),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(2),
+                child: SizedBox(
+                  height: 3,
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    backgroundColor:
+                        HuntPalette.cream.withValues(alpha: 0.12),
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      HuntPalette.lime,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

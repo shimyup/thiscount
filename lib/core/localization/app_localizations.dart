@@ -9179,6 +9179,204 @@ class AppL10n {
     'th': 'ใช้แล้ว',
   });
 
+  // ── Build 490: 드롭 헌트 P1 (헌트 배너 + 미스터리 봉투) ───────────────────
+
+  /// 헌트 배너 제목. [brand] 비면 일반 라벨.
+  String huntBannerTitle(String brand) => brand.isEmpty
+      ? _t({
+          'ko': '드롭 헌트',
+          'en': 'Drop hunt',
+          'ja': 'ドロップハント',
+          'zh': '掉落狩猎',
+          'fr': 'Chasse aux drops',
+          'de': 'Drop-Jagd',
+          'es': 'Caza de drops',
+          'pt': 'Caça aos drops',
+          'ru': 'Охота за дропами',
+          'tr': 'Drop avı',
+          'ar': 'مطاردة الإسقاطات',
+          'it': 'Caccia ai drop',
+          'hi': 'ड्रॉप हंट',
+          'th': 'ล่าดรอป',
+        })
+      : _t({
+          'ko': '$brand 드롭 헌트',
+          'en': '$brand drop hunt',
+          'ja': '$brand ドロップハント',
+          'zh': '$brand 掉落狩猎',
+          'fr': 'Chasse aux drops $brand',
+          'de': '$brand Drop-Jagd',
+          'es': 'Caza de drops de $brand',
+          'pt': 'Caça aos drops $brand',
+          'ru': 'Охота за дропами $brand',
+          'tr': '$brand drop avı',
+          'ar': 'مطاردة إسقاطات $brand',
+          'it': 'Caccia ai drop $brand',
+          'hi': '$brand ड्रॉप हंट',
+          'th': 'ล่าดรอป $brand',
+        });
+
+  /// 헌트 배너 잔여 카운터.
+  String huntRemaining(int n, int total) => _t({
+    'ko': '잔여 $n/$total',
+    'en': '$n/$total left',
+    'ja': '残り $n/$total',
+    'zh': '剩余 $n/$total',
+    'fr': '$n/$total restants',
+    'de': '$n/$total übrig',
+    'es': 'Quedan $n/$total',
+    'pt': 'Restam $n/$total',
+    'ru': 'Осталось $n/$total',
+    'tr': '$n/$total kaldı',
+    'ar': 'المتبقي $n/$total',
+    'it': '$n/$total rimasti',
+    'hi': '$n/$total शेष',
+    'th': 'เหลือ $n/$total',
+  });
+
+  /// 헌트 배너 — 잔여 0 (소진).
+  String get huntSoldOut => _t({
+    'ko': '마감',
+    'en': 'All gone',
+    'ja': '終了',
+    'zh': '已抢完',
+    'fr': 'Épuisé',
+    'de': 'Vergriffen',
+    'es': 'Agotado',
+    'pt': 'Esgotado',
+    'ru': 'Разобрано',
+    'tr': 'Tükendi',
+    'ar': 'نفدت',
+    'it': 'Esaurito',
+    'hi': 'समाप्त',
+    'th': 'หมดแล้ว',
+  });
+
+  /// 헌트 배너 — 다른 활성 캠페인 suffix.
+  String huntOthersSuffix(int n) => _t({
+    'ko': '외 $n개',
+    'en': '+$n more',
+    'ja': '他$n件',
+    'zh': '另有$n个',
+    'fr': '+$n autres',
+    'de': '+$n weitere',
+    'es': '+$n más',
+    'pt': '+$n mais',
+    'ru': 'ещё $n',
+    'tr': '+$n daha',
+    'ar': '+$n أخرى',
+    'it': '+$n altri',
+    'hi': '+$n और',
+    'th': 'อีก $n',
+  });
+
+  /// 미스터리 봉투 — 픽업 시트 마스킹 안내.
+  String get mysterySealedHint => _t({
+    'ko': '내용은 개봉 전까지 비밀',
+    'en': 'Contents secret until opened',
+    'ja': '中身は開封まで秘密',
+    'zh': '内容开启前保密',
+    'fr': 'Contenu secret jusqu\'à l\'ouverture',
+    'de': 'Inhalt bis zum Öffnen geheim',
+    'es': 'Contenido secreto hasta abrir',
+    'pt': 'Conteúdo secreto até abrir',
+    'ru': 'Содержимое — секрет до вскрытия',
+    'tr': 'İçerik açılana dek gizli',
+    'ar': 'المحتوى سري حتى الفتح',
+    'it': 'Contenuto segreto fino all\'apertura',
+    'hi': 'खोलने तक सामग्री गुप्त',
+    'th': 'เนื้อหาเป็นความลับจนกว่าจะเปิด',
+  });
+
+  /// 미스터리 봉투 — 개봉 CTA.
+  String get mysteryOpenCta => _t({
+    'ko': '여기서 개봉하기',
+    'en': 'Open it here',
+    'ja': 'ここで開封する',
+    'zh': '在这里开启',
+    'fr': 'Ouvrir ici',
+    'de': 'Hier öffnen',
+    'es': 'Abrir aquí',
+    'pt': 'Abrir aqui',
+    'ru': 'Вскрыть здесь',
+    'tr': 'Burada aç',
+    'ar': 'افتحه هنا',
+    'it': 'Apri qui',
+    'hi': 'यहाँ खोलें',
+    'th': 'เปิดที่นี่',
+  });
+
+  /// 미스터리 봉투 — 소셜프루프. n==0 이면 "첫 번째" 변형.
+  String mysteryProofOpened(int n) => n <= 0
+      ? _t({
+          'ko': '첫 번째로 열어보세요',
+          'en': 'Be the first to open it',
+          'ja': '最初に開けてみよう',
+          'zh': '成为第一个开启的人',
+          'fr': 'Soyez le premier à l\'ouvrir',
+          'de': 'Öffne ihn als Erster',
+          'es': 'Sé el primero en abrirlo',
+          'pt': 'Seja o primeiro a abrir',
+          'ru': 'Откройте первым',
+          'tr': 'İlk açan sen ol',
+          'ar': 'كن أول من يفتحه',
+          'it': 'Aprilo per primo',
+          'hi': 'सबसे पहले खोलें',
+          'th': 'เป็นคนแรกที่เปิด',
+        })
+      : _t({
+          'ko': '$n명이 이미 열었어요',
+          'en': '$n people already opened it',
+          'ja': '$n人がすでに開封しました',
+          'zh': '已有$n人开启',
+          'fr': '$n personnes l\'ont déjà ouvert',
+          'de': '$n haben ihn schon geöffnet',
+          'es': '$n ya lo abrieron',
+          'pt': '$n já abriram',
+          'ru': 'Уже вскрыли: $n',
+          'tr': '$n kişi çoktan açtı',
+          'ar': 'فتحه $n بالفعل',
+          'it': '$n l\'hanno già aperto',
+          'hi': '$n लोगों ने खोल लिया',
+          'th': 'มี $n คนเปิดแล้ว',
+        });
+
+  /// compose Brand 옵션 — 밀봉 드롭 토글 라벨.
+  String get composeMysteryToggle => _t({
+    'ko': '🔒 밀봉 드롭',
+    'en': '🔒 Mystery drop',
+    'ja': '🔒 ミステリードロップ',
+    'zh': '🔒 神秘掉落',
+    'fr': '🔒 Drop mystère',
+    'de': '🔒 Mystery-Drop',
+    'es': '🔒 Drop misterioso',
+    'pt': '🔒 Drop misterioso',
+    'ru': '🔒 Тайный дроп',
+    'tr': '🔒 Gizemli drop',
+    'ar': '🔒 إسقاط غامض',
+    'it': '🔒 Drop misterioso',
+    'hi': '🔒 रहस्य ड्रॉप',
+    'th': '🔒 ดรอปลึกลับ',
+  });
+
+  /// 미스터리 봉투 — 개봉 완료 밴드 (리드 화면).
+  String get mysteryOpenedBand => _t({
+    'ko': '개봉 완료',
+    'en': 'Opened',
+    'ja': '開封済み',
+    'zh': '已开启',
+    'fr': 'Ouvert',
+    'de': 'Geöffnet',
+    'es': 'Abierto',
+    'pt': 'Aberto',
+    'ru': 'Вскрыто',
+    'tr': 'Açıldı',
+    'ar': 'تم الفتح',
+    'it': 'Aperto',
+    'hi': 'खुल गया',
+    'th': 'เปิดแล้ว',
+  });
+
   String get inboxMarkedUsed => _t({
     'ko': '✅ 사용 완료로 표시했어요',
     'en': '✅ Marked as used',
