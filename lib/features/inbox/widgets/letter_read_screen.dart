@@ -21,6 +21,7 @@ import '../../../core/utils/redemption_code.dart';
 import '../../../core/utils/secure_clipboard.dart';
 import '../../../core/theme/letter_style.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/theme/hunt_palette.dart';
 import '../../../core/localization/country_names.dart';
 import '../../../core/localization/language_config.dart';
 import '../../../models/letter.dart';
@@ -328,6 +329,50 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                             // 발신자 정보 카드
                             _buildSenderCard(letter),
                             const SizedBox(height: 20),
+                            // Build 490 (드롭 헌트 P1-N2): 미스터리 드롭 개봉
+                            // 완료 밴드 — lime 틴트 (핸드오프 스펙 B-2). 개봉
+                            // 연출 자체는 기존 _openAnimation 3단계 재사용.
+                            if (letter.isMystery) ...[
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: HuntPalette.lime
+                                      .withValues(alpha: 0.14),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: HuntPalette.lime
+                                        .withValues(alpha: 0.4),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Text(
+                                      '🎉',
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      AppL10n.of(context
+                                              .read<AppState>()
+                                              .currentUser
+                                              .languageCode)
+                                          .mysteryOpenedBand,
+                                      style: const TextStyle(
+                                        color: HuntPalette.limeDeep,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                            ],
                             // 편지 본문 — 3단계 개봉 연출
                             //  0.0-0.3: 봉투가 바닥에서 떠오름 (translateY + fade)
                             //  0.3-0.6: 봉인 터짐 (가벼운 흔들림 + 점진 노출)

@@ -173,6 +173,46 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   final List<Letter> _worldLetters = [];
   List<Letter> get worldLetters => List.unmodifiable(_worldLetters);
 
+  /// Build 490 (드롭 헌트 P1-N1): 지도 헌트 배너용 활성 캠페인 요약.
+  /// 잔여 ≈ 아직 지도에 남은 같은 campaignId letter 수 (픽업/소진 letter 는
+  /// world fetch 에서 빠지므로 근사 정확 — fetch 반경/cap 한계는 수용, P2 에서
+  /// campaigns 서버 집계로 정밀화). 캠페인 여러 개면 최신(sentAt) 1개 + 나머지
+  /// 수(othersCount). 없으면 null → 배너 미표시.
+  HuntCampaignSummary? get activeHuntCampaign {
+    final byCampaign = <String, List<Letter>>{};
+    for (final l in _worldLetters) {
+      if (l.campaignTotalCount == null || l.campaignId == null) continue;
+      if (!l.senderIsBrand || l.isExpired) continue;
+      byCampaign.putIfAbsent(l.campaignId!, () => []).add(l);
+    }
+    if (byCampaign.isEmpty) return null;
+    String? bestId;
+    DateTime? bestAt;
+    byCampaign.forEach((id, letters) {
+      final latest = letters
+          .map((l) => l.sentAt)
+          .reduce((a, b) => a.isAfter(b) ? a : b);
+      if (bestAt == null || latest.isAfter(bestAt!)) {
+        bestAt = latest;
+        bestId = id;
+      }
+    });
+    final letters = byCampaign[bestId]!;
+    final total = letters.first.campaignTotalCount!;
+    return HuntCampaignSummary(
+      campaignId: bestId!,
+      brandName: letters.first.isAnonymous
+          ? ''
+          : letters.first.senderName,
+      total: total,
+      // 동시 픽업 경합 등으로 음수/초과 방지 clamp (핸드오프 edge case).
+      remaining: letters.length.clamp(0, total),
+      isMystery: letters.first.isMystery,
+      othersCount: byCampaign.length - 1,
+      anchor: letters.first.destinationLocation,
+    );
+  }
+
   // ── 서버 동기화 타이머 (편지 수신 + 다른 사용자) ──────────────────────────
   //
   // 비용/성능 최적화 설계:
@@ -4444,6 +4484,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         brandUniquePerUser: data['brandUniquePerUser'] as bool? ?? false,
         // Build 324: brandUniquePerUser 캠페인의 묶음 식별자. legacy letter 는 null.
         campaignId: data['campaignId'] as String?,
+        // Build 490 (드롭 헌트 P1): 헌트 캠페인 필드 복원.
+        campaignTotalCount: (data['campaignTotalCount'] as num?)?.toInt(),
+        isMystery: data['isMystery'] as bool? ?? false,
         expiresAt: expAt,
         // Build 408 (QQ4): 소진 판정용 카운터 복원.
         readCount: (data['readCount'] as num?)?.toInt() ?? 0,
@@ -4546,6 +4589,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         'brandUniquePerUser': letter.brandUniquePerUser,
         // Build 324: 캠페인 dedup 식별자. 픽업 시 같은 campaignId 이미 받은 경우 차단.
         if (letter.campaignId != null) 'campaignId': letter.campaignId,
+        // Build 490 (드롭 헌트 P1): 헌트 배너 총량 + 미스터리 플래그 동기화 —
+        //   수기 맵 누락 시 cross-user 무효(레어드롭/코드 전례) 재발 주의.
+        if (letter.campaignTotalCount != null)
+          'campaignTotalCount': letter.campaignTotalCount,
+        if (letter.isMystery) 'isMystery': true,
         if (letter.expiresAt != null)
           'expiresAt': letter.expiresAt!.toIso8601String(),
         'isAnonymous': letter.isAnonymous,
@@ -9024,6 +9072,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     //   (food/cafe/beauty/fashion/event/it/other). 도착 마커 이모지·인박스
     //   필터에 사용. 미지정 시 픽업 때 inferCategoryTag 로 자동 추론(기존 호환).
     String? categoryTag,
+    // Build 490 (드롭 헌트 P1-N1): 캠페인 총 투하 수 — bulk/express 호출자가
+    //   모든 letter 에 동일 값 전달. 지도 헌트 배너 "잔여 n/전체" 원천.
+    int? campaignTotalCount,
+    // Build 490 (드롭 헌트 P1-N2): 미스터리(밀봉) 드롭 — Brand 만 효과.
+    bool isMystery = false,
   }) async {
     // Build 324 (positioning): Free 사용자는 "줍기 전용". 발송 기능은
     //   Premium/Brand 만 가능. UI 측 가드 (main_scaffold compose 진입,
@@ -9255,6 +9308,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       //   (letter.id 가 dedup set 에 쌓이는 의미 없는 entry) 차단.
       campaignId:
           (_currentUser.isBrand && brandUniquePerUser) ? campaignId : null,
+      // Build 490 (드롭 헌트 P1): 헌트 캠페인 필드 — Brand + campaignId 있는
+      //   묶음 발송만 유효. 단건/비브랜드는 null/false 강제(서버 오염 차단).
+      campaignTotalCount:
+          (_currentUser.isBrand && brandUniquePerUser && campaignId != null)
+          ? campaignTotalCount
+          : null,
+      isMystery: _currentUser.isBrand && isMystery,
       expiresAt: (_currentUser.isBrand && brandAutoExpireHours != null)
           ? now.add(Duration(minutes: totalMin) + Duration(hours: brandAutoExpireHours))
           : null,
@@ -9363,6 +9423,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     String? explicitRedemptionCode,
     // Build 433 (device): 업종 카테고리 — bulk 의 모든 letter 에 동일 적용.
     String? categoryTag,
+    // Build 490 (드롭 헌트 P1-N2): 미스터리(밀봉) 드롭 — bulk 전체 동일 적용.
+    bool isMystery = false,
   }) async {
     if (!_currentUser.isBrand) return 0;
     int sent = 0;
@@ -9370,6 +9432,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // Build 324: brandUniquePerUser=true 면 이번 bulk 호출 전체에 공통 캠페인
     //   ID 부여 → 사용자당 1 letter 만 픽업. false 면 null (dedup 미적용).
     final campaignId = brandUniquePerUser ? _newCampaignId() : null;
+
+    // Build 490 (드롭 헌트 P1-N1): 이번 bulk 의 계획 총 투하 수 — 모든 letter
+    //   에 동일 기록(헌트 배너 "잔여 n/전체" 원천). 일일 한도/크레딧 부족으로
+    //   부분 발송되면 전체값이 실제보다 클 수 있으나, 배너는 잔여를 지도 잔존
+    //   letter 수로 계산하므로 과대 표기는 전체 분모뿐(수용 — P2 서버 집계로
+    //   정밀화 예정). 캠페인(dedup) 발송일 때만 유효.
+    final plannedTotal = campaignId == null
+        ? null
+        : (randomMode ? sendCount : targets.length * sendCount);
 
     // Build 331 (PR-S1): bulk 전체 공통 코드 — 1회 생성 후 sendLetter 마다
     //   explicit override 로 전달. 100통 = 동일 코드 → 매장 1회 셋업.
@@ -9404,6 +9475,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           attachRedemptionCode: attachRedemptionCode,
           explicitRedemptionCode: bulkRedemptionCode,
           categoryTag: categoryTag,
+          campaignTotalCount: plannedTotal,
+          isMystery: isMystery,
         );
         if (ok) sent++;
       }
@@ -9446,6 +9519,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             attachRedemptionCode: attachRedemptionCode,
             explicitRedemptionCode: bulkRedemptionCode,
             categoryTag: categoryTag,
+            campaignTotalCount: plannedTotal,
+            isMystery: isMystery,
           );
           if (ok) sent++;
         }
@@ -9723,6 +9798,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     String? explicitRedemptionCode,
     // Build 433 (device): 업종 카테고리 — blast 의 모든 letter 에 동일 적용.
     String? categoryTag,
+    // Build 490 (드롭 헌트 P1): 캠페인 총 투하 수(멀티콜 blast 는 호출자가
+    //   캠페인 전체 계획 수를 주입) + 미스터리 드롭 플래그.
+    int? campaignTotalCount,
+    bool isMystery = false,
   }) async {
     if (!_currentUser.isBrand) return 0;
     // Build 409 (sim P2 보안 L7948): 차단된 Brand 도 express+bulk 발송 차단.
@@ -9862,6 +9941,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         brandUniquePerUser: brandUniquePerUser,
         // Build 324: 캠페인 dedup — 같은 blast 의 모든 letter 가 동일 campaignId.
         campaignId: blastCampaignId,
+        // Build 490 (드롭 헌트 P1): 헌트 배너 총량(캠페인 발송만) + 밀봉 플래그.
+        campaignTotalCount:
+            blastCampaignId != null ? (campaignTotalCount ?? count) : null,
+        isMystery: isMystery,
         expiresAt: brandAutoExpireHours != null
             ? now.add(Duration(minutes: expressTotalMin) + Duration(hours: brandAutoExpireHours))
             : null,
@@ -11150,4 +11233,34 @@ class _InsightAgg {
   int revealed = 0;
   int redeemed = 0;
   _InsightAgg({required this.rep});
+}
+
+/// Build 490 (드롭 헌트 P1): 지도 헌트 배너에 표시할 활성 캠페인 요약.
+/// AppState.activeHuntCampaign 이 생성 — UI 전용 read model.
+class HuntCampaignSummary {
+  final String campaignId;
+
+  /// 익명 캠페인이면 ''(빈 문자열) — UI 는 일반 라벨로 대체.
+  final String brandName;
+  final int total;
+  final int remaining;
+  final bool isMystery;
+
+  /// 이 캠페인 외에 지도에 활성인 다른 헌트 캠페인 수 ("외 N개" 표기).
+  final int othersCount;
+
+  /// 배너 탭 시 카메라 이동 목적지 (캠페인 letter 중 하나의 도착 좌표).
+  final LatLng anchor;
+
+  const HuntCampaignSummary({
+    required this.campaignId,
+    required this.brandName,
+    required this.total,
+    required this.remaining,
+    required this.isMystery,
+    required this.othersCount,
+    required this.anchor,
+  });
+
+  bool get soldOut => remaining <= 0;
 }

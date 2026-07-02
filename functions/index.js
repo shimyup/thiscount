@@ -166,7 +166,10 @@ exports.sendAuthEmail = onRequest(
         text.replace(/\n/g, "<br>"));
     } else if (type === "tempPassword") {
       if (!TEMP_PW_RE.test(code || "")) return bad(res, 400, "bad code");
-      const mins = Number.isFinite(+expiresInMinutes) ? +expiresInMinutes : 30;
+      // clamp 1..120분 — client 가 임의 큰 값을 보내 메일 본문의 유효시간
+      // 표기를 오도(social engineering)하지 못하게 서버에서 상한.
+      const rawMins = Number.isFinite(+expiresInMinutes) ? +expiresInMinutes : 30;
+      const mins = Math.min(120, Math.max(1, Math.round(rawMins)));
       subject = tempSubject(lang);
       text = tempText(code, mins, lang);
       html = htmlWrap(subject,
@@ -481,7 +484,11 @@ exports.revenueCatWebhook = onRequest(
     const eventId = event.id;
 
     // uid/event id 가드 (공통).
+    // 주의: appUserId 는 userId 또는 이메일 fallback (_normalizeAppUserId) —
+    //   엄격한 charset regex 는 정상 결제 grant 를 스킵시키므로 금지.
+    //   Firestore doc id 로 쓰이므로 '/' 와 비정상 길이만 차단.
     if (typeof appUserId !== "string" || appUserId.length < 3 ||
+        appUserId.length > 200 || appUserId.includes("/") ||
         appUserId.startsWith("$RCAnonymousID")) {
       return res.json({ ok: true, skipped: "anon-or-bad-uid" });
     }

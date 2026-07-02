@@ -463,6 +463,18 @@ class Letter {
   /// 루프의 최종 전환이 Brand 인사이트에 잡히게 한다. 일반 letter 는 null.
   final String? sourceLetterId;
 
+  /// Build 490 (드롭 헌트 P1-N1): 이 letter 가 속한 캠페인의 총 투하 수.
+  /// bulk/express 발송 시 1회 기록 — 지도 헌트 배너 "잔여 n/전체" 계산용
+  /// (잔여 ≈ 아직 지도에 남은 같은 campaignId letter 수, 전체 = 이 값).
+  /// null = 헌트 캠페인 아님(구버전 포함) → 배너 미표시로 graceful degrade.
+  final int? campaignTotalCount;
+
+  /// Build 490 (드롭 헌트 P1-N2): 미스터리(밀봉) 드롭. true 면 픽업 시트에서
+  /// 본문 미리보기를 마스킹("내용은 개봉 전까지 비밀")하고 픽업(개봉) 후에만
+  /// 내용 공개. 브랜드명은 항상 공개(신뢰·법적 표시). 리딤코드는 기존
+  /// codeRevealedAt 게이트 그대로 — 티저→개봉→매장공개 3중 구조.
+  final bool isMystery;
+
   Letter({
     required this.id,
     required this.senderId,
@@ -516,6 +528,8 @@ class Letter {
     this.redemptionCode,
     this.codeRevealedAt,
     this.sourceLetterId,
+    this.campaignTotalCount,
+    this.isMystery = false,
   }) : reportedBy = reportedBy ?? {};
 
   /// 인박스용 독립 복사본 (worldLetters에서 제거 전 inbox에 추가할 때 사용)
@@ -575,12 +589,18 @@ class Letter {
     redemptionCode: redemptionCode,
     codeRevealedAt: null,
     sourceLetterId: sourceLetterId,
+    campaignTotalCount: campaignTotalCount,
+    isMystery: isMystery,
     readCount: readCount,
     maxReaders: maxReaders,
   );
 
   double get avgRating => ratingCount > 0 ? ratingTotal / ratingCount : 0.0;
   bool get isBlocked => reportCount >= 3;
+
+  /// Build 490 (드롭 헌트 P1): 지도 마커용 브랜드 이모지 — 미스터리(밀봉)
+  /// 드롭은 카테고리를 숨기고 ❓ 로 표시 (내용 비공개 = 카테고리도 티저).
+  String get markerBrandEmoji => isMystery ? '❓' : category.brandEmoji;
   // Build 409 (sim P2 보안): 시계 되돌리기 우회 차단 — SecureClock 사용.
   bool get isExpired =>
       expiresAt != null && SecureClock.now().isAfter(expiresAt!);
@@ -809,6 +829,9 @@ class Letter {
     if (codeRevealedAt != null)
       'codeRevealedAt': codeRevealedAt!.millisecondsSinceEpoch,
     if (sourceLetterId != null) 'sourceLetterId': sourceLetterId,
+    // Build 490 (드롭 헌트 P1): 헌트 캠페인 필드 — 미설정 시 생략(legacy 호환).
+    if (campaignTotalCount != null) 'campaignTotalCount': campaignTotalCount,
+    if (isMystery) 'isMystery': true,
     'readCount': readCount,
     'maxReaders': maxReaders,
   };
@@ -925,6 +948,9 @@ class Letter {
     redemptionCode: _sanitizeRedemptionCode(j['redemptionCode']),
     codeRevealedAt: _parseDateTime(j['codeRevealedAt']),
     sourceLetterId: j['sourceLetterId'] as String?,
+    // Build 490 (드롭 헌트 P1): 헌트 캠페인 필드 복원 (legacy null 안전).
+    campaignTotalCount: (j['campaignTotalCount'] as num?)?.toInt(),
+    isMystery: j['isMystery'] as bool? ?? false,
     expiresAt: _parseDateTime(j['expiresAt']),
     readCount: j['readCount'] as int? ?? 0,
     maxReaders: j['maxReaders'] as int? ?? Letter.maxReadersDefault,
