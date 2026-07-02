@@ -49,13 +49,20 @@ class SecureClock {
     final sysMs = DateTime.now().millisecondsSinceEpoch;
     if (sysMs > _watermarkMs) {
       _watermarkMs = sysMs;
-      // 잦은 write 를 피하기 위해 throttle: 1분 단위 변화일 때만 persist.
-      // 이전 persist 와 비교는 어차피 단조 증가이므로 always-write 도 안전.
-      _persist();
+      // 잦은 write 를 피하기 위해 throttle: 마지막 persist 에서 1분 이상
+      // 지났을 때만 secure storage 에 기록. 디스크 watermark 가 최대 60초
+      // 뒤처질 수 있으나, 보안 검증 대상(trial 만료/lockout/OTP)은 분 단위
+      // 이상 스케일이라 위협 모델상 무해. touch() 는 항상 즉시 persist.
+      if (sysMs - _lastPersistedMs >= 60000) {
+        _lastPersistedMs = sysMs;
+        _persist();
+      }
       return DateTime.fromMillisecondsSinceEpoch(sysMs);
     }
     return DateTime.fromMillisecondsSinceEpoch(_watermarkMs);
   }
+
+  static int _lastPersistedMs = 0;
 
   /// 명시적으로 watermark 를 [at] (기본: 현재 시스템 시각) 까지 advance.
   /// OTP 발급 / lockout 셋팅 / trial 부여 시점에 호출하여 그 시각을 박는다.
@@ -63,6 +70,7 @@ class SecureClock {
     final ms = (at ?? DateTime.now()).millisecondsSinceEpoch;
     if (ms > _watermarkMs) {
       _watermarkMs = ms;
+      _lastPersistedMs = ms; // 명시 anchor 는 즉시 persist (throttle 무시)
       _persist();
     }
   }
