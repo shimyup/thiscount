@@ -2158,6 +2158,27 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     unawaited(_saveStampCards());
   }
 
+  /// Build 491 (단골 티어): 브랜드 letter **픽업** 시 티어 진행 기록.
+  /// 리딤 스탬프(_recordStampOnRedeem)와 별도 축 — 픽업=관심(가벼운 진행),
+  /// 리딤=매출(보상 수확). 보상형 플랫폼 프레임의 "브랜드 충성도" 레버.
+  void _recordBrandPickupTier(Letter letter) {
+    if (!letter.senderIsBrand) return;
+    if (letter.id.startsWith(_stampRewardIdPrefix)) return;
+    if (letter.senderId == _currentUser.id) return;
+    final card = _stampCards.putIfAbsent(
+      letter.senderId,
+      () => BrandStampCard(
+        brandId: letter.senderId,
+        brandName: letter.senderName,
+      ),
+    );
+    if (letter.senderName.isNotEmpty && !letter.isAnonymous) {
+      card.brandName = letter.senderName;
+    }
+    card.pickupCount += 1;
+    unawaited(_saveStampCards());
+  }
+
   /// 스탬프 완성 보상 쿠폰 — 픽업자 인박스에 로컬 발급(zone auto-drop 패턴).
   /// 코드는 같은 매장의 최근 코드를 재사용(POS 추가 등록 0). 없으면 화면 제시형.
   void _issueStampRewardLetter(
@@ -10093,6 +10114,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // ⑥ 수령 처리: readCount 증가 후 inbox에 복사본 추가
     letter.readCount++;
     _myPickedUpLetterIds.add(letterId);
+    // Build 491 (단골 티어): 브랜드 letter 픽업 누적 → 티어 진행.
+    //   스탬프(리딤 기준)와 분리 — 진행은 픽업, 수확은 방문(리딤).
+    _recordBrandPickupTier(letter);
     // Build 324: 캠페인 dedup — 같은 campaignId 의 다른 letter 픽업 차단을 위해 기록.
     //   _pickedCampaignIdsCap 초과 시 가장 오래된 entry 부터 drop (LinkedHashSet 의
     //   insertion order 보존 — first 가 가장 오래된 것).

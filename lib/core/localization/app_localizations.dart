@@ -9179,6 +9179,136 @@ class AppL10n {
     'th': 'ใช้แล้ว',
   });
 
+  // ── Build 491: 줍기 코스 + 단골 티어 ─────────────────────────────────────
+
+  /// 지도 하단 줍기 코스 칩: "코스 N개 · 도보 M분".
+  String mapCourseChip(int n, int m) => _t({
+    'ko': '줍기 코스 $n개 · 도보 $m분',
+    'en': 'Pickup route $n stops · $m min walk',
+    'ja': '回収コース$n件 · 徒歩$m分',
+    'zh': '拾取路线$n站 · 步行$m分钟',
+    'fr': 'Parcours $n arrêts · $m min à pied',
+    'de': 'Route $n Stopps · $m Min. zu Fuß',
+    'es': 'Ruta $n paradas · $m min a pie',
+    'pt': 'Rota $n paradas · $m min a pé',
+    'ru': 'Маршрут $n точек · $m мин пешком',
+    'tr': 'Rota $n durak · $m dk yürüme',
+    'ar': 'مسار $n محطات · $m دقيقة مشيًا',
+    'it': 'Percorso $n tappe · $m min a piedi',
+    'hi': 'रूट $n स्टॉप · $m मिनट पैदल',
+    'th': 'เส้นทาง $n จุด · เดิน $m นาที',
+  });
+
+  /// 코스 칩 길안내 버튼 (외부 지도 열기).
+  String get mapCourseGuide => _t({
+    'ko': '길안내',
+    'en': 'Directions',
+    'ja': '道案内',
+    'zh': '导航',
+    'fr': 'Itinéraire',
+    'de': 'Route',
+    'es': 'Cómo llegar',
+    'pt': 'Rotas',
+    'ru': 'Маршрут',
+    'tr': 'Yol tarifi',
+    'ar': 'الاتجاهات',
+    'it': 'Indicazioni',
+    'hi': 'दिशा-निर्देश',
+    'th': 'นำทาง',
+  });
+
+  /// 단골 티어 이름 (0=일반은 미표시, 1~3).
+  String stampTierName(int level) => _t({
+    'ko': level >= 3
+        ? '골드 단골'
+        : level >= 2
+            ? '실버 단골'
+            : '브론즈 단골',
+    'en': level >= 3
+        ? 'Gold regular'
+        : level >= 2
+            ? 'Silver regular'
+            : 'Bronze regular',
+    'ja': level >= 3
+        ? 'ゴールド常連'
+        : level >= 2
+            ? 'シルバー常連'
+            : 'ブロンズ常連',
+    'zh': level >= 3
+        ? '金牌熟客'
+        : level >= 2
+            ? '银牌熟客'
+            : '铜牌熟客',
+    'fr': level >= 3
+        ? 'Habitué or'
+        : level >= 2
+            ? 'Habitué argent'
+            : 'Habitué bronze',
+    'de': level >= 3
+        ? 'Gold-Stammgast'
+        : level >= 2
+            ? 'Silber-Stammgast'
+            : 'Bronze-Stammgast',
+    'es': level >= 3
+        ? 'Cliente oro'
+        : level >= 2
+            ? 'Cliente plata'
+            : 'Cliente bronce',
+    'pt': level >= 3
+        ? 'Cliente ouro'
+        : level >= 2
+            ? 'Cliente prata'
+            : 'Cliente bronze',
+    'ru': level >= 3
+        ? 'Золотой завсегдатай'
+        : level >= 2
+            ? 'Серебряный завсегдатай'
+            : 'Бронзовый завсегдатай',
+    'tr': level >= 3
+        ? 'Altın müdavim'
+        : level >= 2
+            ? 'Gümüş müdavim'
+            : 'Bronz müdavim',
+    'ar': level >= 3
+        ? 'زبون ذهبي'
+        : level >= 2
+            ? 'زبون فضي'
+            : 'زبون برونزي',
+    'it': level >= 3
+        ? 'Cliente oro'
+        : level >= 2
+            ? 'Cliente argento'
+            : 'Cliente bronzo',
+    'hi': level >= 3
+        ? 'गोल्ड नियमित'
+        : level >= 2
+            ? 'सिल्वर नियमित'
+            : 'ब्रॉन्ज़ नियमित',
+    'th': level >= 3
+        ? 'ขาประจำโกลด์'
+        : level >= 2
+            ? 'ขาประจำซิลเวอร์'
+            : 'ขาประจำบรอนซ์',
+  });
+
+  /// 다음 티어까지: "N번 더 주우면 {티어}".
+  String stampTierNext(int n) => _t({
+    'ko': '$n번 더 주우면 승급',
+    'en': '$n more pickups to rank up',
+    'ja': 'あと$n回でランクアップ',
+    'zh': '再拾取$n次即可升级',
+    'fr': 'Encore $n pour monter',
+    'de': 'Noch $n bis zum Aufstieg',
+    'es': '$n más para subir',
+    'pt': 'Mais $n para subir',
+    'ru': 'Ещё $n до повышения',
+    'tr': 'Yükselmeye $n kaldı',
+    'ar': 'باقي $n للترقية',
+    'it': 'Ancora $n per salire',
+    'hi': 'रैंक अप के लिए $n और',
+    'th': 'อีก $n ครั้งเพื่อเลื่อนขั้น',
+  });
+
   // ── Build 490: 드롭 헌트 P1 (헌트 배너 + 미스터리 봉투) ───────────────────
 
   /// 헌트 배너 제목. [brand] 비면 일반 라벨.

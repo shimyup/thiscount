@@ -10,6 +10,7 @@ import '../../../core/services/secure_location.dart';
 import 'package:latlong2/latlong.dart' as ll;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/config/map_config.dart';
 import '../../progression/user_level.dart';
 import '../../../core/localization/app_localizations.dart';
@@ -69,6 +70,8 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   final bool _showRouteLines = true;
   bool _showNearbyOnly = false;
   final bool _showTowers = true;
+  // Build 491 (줍기 코스): 코스 점선 표시 토글 (칩 탭).
+  bool _showCourse = false;
   // Build 271: 위치 권한 거부 상태 — 상단 영구 배너 표시용.
   bool _locationPermissionDenied = false;
   // Build 250: 국가 점프 바 리셋 트리거 — "내 위치" 버튼 탭 시 증가시켜
@@ -401,6 +404,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 // ── 배송 경로선 ────────────────────────────────────────────
                 if (_showRouteLines)
                   PolylineLayer(polylines: _buildRoutePolylines(filteredLetters)),
+                // ── Build 491 (줍기 코스): 유저→쿠폰들 최근접 순회 점선 ──
+                if (_showCourse)
+                  PolylineLayer(polylines: _buildCoursePolylines(state)),
                 // ── 허브 마커 ─────────────────────────────────────────────
                 MarkerLayer(markers: _buildHubMarkers(filteredLetters)),
                 // ── 2km 반경 원 (마커 아래에 배치 → 탭 차단 방지) ──────
@@ -645,6 +651,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   ),
                 ),
               ),
+            // ── Build 491 (줍기 코스): 하단 코스 칩 ──────────────────────
+            if (widget.showChrome && !state.currentUser.isBrand)
+              _buildCourseChip(state, l10n),
             // ── 근처 도착 배너 (experienced 레벨 이상에서만) ─────────────
             // 브랜드도 줍기 가능해져서 `!isBrand` 조건 제거.
             if (state.hasNearbyAlert &&
@@ -997,6 +1006,176 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   }
 
   // ── 경로선 ──────────────────────────────────────────────────────────────────
+  // ── Build 491: 줍기 코스 ──────────────────────────────────────────────
+  // 반경 내 도착 쿠폰(nearYou/deliveredFar)을 최근접 이웃 순서로 잇는 도보
+  // 코스. 보상형(앱테크) 프레임의 핵심: "이 코스 N개 · 도보 M분" 시급 가시화.
+  static const double _courseRadiusM = 2500;
+  static const int _courseMaxStops = 5;
+  static const double _walkMetersPerMin = 67; // 4km/h
+
+  List<Letter> _computePickupCourse(AppState state) {
+    final uLat = state.currentUser.latitude;
+    final uLng = state.currentUser.longitude;
+    if (uLat == 0 || uLng == 0) return const [];
+    final me = LatLng(uLat, uLng);
+    // nearbyLetters 와 동일한 소진/만료/캠페인 dedup 기준 + 도착 상태 확장.
+    final candidates = state.worldLetters
+        .where((l) =>
+            (l.status == DeliveryStatus.nearYou ||
+                l.status == DeliveryStatus.deliveredFar) &&
+            !l.isExpired &&
+            l.readCount < l.maxReaders &&
+            !l.isBlocked &&
+            l.destinationLocation.distanceTo(me) <= _courseRadiusM)
+        .toList();
+    // 최근접 이웃 순회 (N≤수십이라 그리디로 충분).
+    final course = <Letter>[];
+    var cur = me;
+    while (candidates.isNotEmpty && course.length < _courseMaxStops) {
+      Letter? best;
+      var bestD = double.infinity;
+      for (final l in candidates) {
+        final d = l.destinationLocation.distanceTo(cur);
+        if (d < bestD) {
+          bestD = d;
+          best = l;
+        }
+      }
+      course.add(best!);
+      candidates.remove(best);
+      cur = best.destinationLocation;
+    }
+    return course;
+  }
+
+  double _courseDistanceM(AppState state, List<Letter> stops) {
+    var cur = LatLng(
+      state.currentUser.latitude,
+      state.currentUser.longitude,
+    );
+    var total = 0.0;
+    for (final l in stops) {
+      total += l.destinationLocation.distanceTo(cur);
+      cur = l.destinationLocation;
+    }
+    return total;
+  }
+
+  List<Polyline> _buildCoursePolylines(AppState state) {
+    final stops = _computePickupCourse(state);
+    if (stops.length < 2) return const [];
+    final pts = <ll.LatLng>[
+      ll.LatLng(state.currentUser.latitude, state.currentUser.longitude),
+      for (final l in stops)
+        ll.LatLng(
+          l.destinationLocation.latitude,
+          l.destinationLocation.longitude,
+        ),
+    ];
+    return [
+      Polyline(
+        points: pts,
+        color: HuntPalette.lime.withValues(alpha: 0.9),
+        strokeWidth: 3,
+        pattern: const StrokePattern.dotted(),
+      ),
+    ];
+  }
+
+  Widget _buildCourseChip(AppState state, AppL10n l10n) {
+    final stops = _computePickupCourse(state);
+    if (stops.length < 2) return const SizedBox.shrink();
+    final distM = _courseDistanceM(state, stops);
+    final mins = (distM / _walkMetersPerMin).ceil();
+    final first = stops.first;
+    return Positioned(
+      bottom: 18,
+      left: 16,
+      right: 16,
+      child: SafeArea(
+        top: false,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Semantics(
+              button: true,
+              label: l10n.mapCourseChip(stops.length, mins),
+              child: GestureDetector(
+                onTap: () => setState(() => _showCourse = !_showCourse),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _showCourse
+                        ? HuntPalette.lime
+                        : AppColors.bgCard.withValues(alpha: 0.94),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: _showCourse
+                          ? HuntPalette.lime
+                          : HuntPalette.lime.withValues(alpha: 0.6),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('🧺', style: TextStyle(fontSize: 14)),
+                      const SizedBox(width: 6),
+                      Text(
+                        l10n.mapCourseChip(stops.length, mins),
+                        style: TextStyle(
+                          color: _showCourse
+                              ? HuntPalette.limeInk
+                              : AppColors.textPrimary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      // 길안내: 첫 목적지를 카카오맵 웹 링크로 (앱 스킴
+                      // 화이트리스트 불필요 — universal link 가 앱/웹 자동 분기).
+                      Semantics(
+                        button: true,
+                        label: l10n.mapCourseGuide,
+                        child: GestureDetector(
+                          onTap: () => launchUrl(
+                            Uri.parse(
+                              'https://map.kakao.com/link/to/'
+                              '${Uri.encodeComponent(l10n.mapCourseGuide)},'
+                              '${first.destinationLocation.latitude},'
+                              '${first.destinationLocation.longitude}',
+                            ),
+                            mode: LaunchMode.externalApplication,
+                          ),
+                          child: Icon(
+                            Icons.navigation_rounded,
+                            size: 18,
+                            color: _showCourse
+                                ? HuntPalette.limeInk
+                                : HuntPalette.lime,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   List<Polyline> _buildRoutePolylines(List<Letter> letters) {
     final polylines = <Polyline>[];
     for (final letter in letters) {
