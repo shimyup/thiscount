@@ -9199,6 +9199,24 @@ class AppL10n {
     'th': 'เส้นทาง $n จุด · เดิน $m นาที',
   });
 
+  /// 코스 시간 프리셋 변경 안내 (칩 롱프레스).
+  String mapCoursePreset(int m) => _t({
+    'ko': '$m분 코스로 변경',
+    'en': 'Switched to $m-min route',
+    'ja': '$m分コースに変更',
+    'zh': '已切换为$m分钟路线',
+    'fr': 'Parcours $m min',
+    'de': '$m-Min.-Route',
+    'es': 'Ruta de $m min',
+    'pt': 'Rota de $m min',
+    'ru': 'Маршрут на $m мин',
+    'tr': '$m dk rotaya geçildi',
+    'ar': 'التبديل إلى مسار $m دقيقة',
+    'it': 'Percorso da $m min',
+    'hi': '$m मिनट रूट पर स्विच',
+    'th': 'เปลี่ยนเป็นเส้นทาง $m นาที',
+  });
+
   /// 코스 칩 길안내 버튼 (외부 지도 열기).
   String get mapCourseGuide => _t({
     'ko': '길안내',

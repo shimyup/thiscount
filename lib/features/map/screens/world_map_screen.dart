@@ -1006,12 +1006,32 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   }
 
   // ── 경로선 ──────────────────────────────────────────────────────────────────
-  // ── Build 491: 줍기 코스 ──────────────────────────────────────────────
-  // 반경 내 도착 쿠폰(nearYou/deliveredFar)을 최근접 이웃 순서로 잇는 도보
-  // 코스. 보상형(앱테크) 프레임의 핵심: "이 코스 N개 · 도보 M분" 시급 가시화.
+  // ── Build 491: 줍기 코스 v2 ───────────────────────────────────────────
+  // 반경 내 도착 쿠폰을 **점수 = 혜택 가중 ÷ 보정 도보거리** 로 선별해 시간
+  // 프리셋(20/40분) 안에서 순회. 검증(4역할) 반영:
+  //  · 거리 단독 최적화 → 낮은 가치 쿠폰 낭비 (기획) → 카테고리·티어·만료 가중
+  //  · greedy 순서 손실 (수학) → 2-opt 개선 패스 (스톱≤6 이라 사실상 최적)
+  //  · 직선≠보행 (하천/철길) → ×1.35 맨해튼 보정 + '예상' 표기, 실안내 외부 위임
   static const double _courseRadiusM = 2500;
-  static const int _courseMaxStops = 5;
+  static const int _courseMaxStops = 6;
   static const double _walkMetersPerMin = 67; // 4km/h
+  static const double _walkCorrection = 1.35; // 직선→보행 맨해튼 보정
+  // 시간 프리셋 (칩 롱프레스 토글).
+  int _courseBudgetMin = 20;
+
+  double _courseWeight(AppState state, Letter l) {
+    // 카테고리: 할인권/교환권 > 일반 홍보.
+    var w = l.category == LetterCategory.general ? 0.8 : 1.2;
+    // 티어 기여: "이 브랜드 2장 이내 승급"이면 가중 — 티어와 코스의 상호 견인.
+    final card = state.stampCardFor(l.senderId);
+    if (card != null && card.tierLevel < 3 && card.pickupsToNextTier <= 2) {
+      w *= 1.3;
+    }
+    // 만료 임박(3시간 이내) 보너스 — 놓치기 전에 코스에 태움.
+    final exp = l.expiresAt;
+    if (exp != null && exp.difference(DateTime.now()).inHours < 3) w *= 1.4;
+    return w;
+  }
 
   List<Letter> _computePickupCourse(AppState state) {
     final uLat = state.currentUser.latitude;
@@ -1028,24 +1048,67 @@ class _WorldMapScreenState extends State<WorldMapScreen>
             !l.isBlocked &&
             l.destinationLocation.distanceTo(me) <= _courseRadiusM)
         .toList();
-    // 최근접 이웃 순회 (N≤수십이라 그리디로 충분).
     final course = <Letter>[];
     var cur = me;
+    var totalM = 0.0;
+    final budgetM = _courseBudgetMin * _walkMetersPerMin;
     while (candidates.isNotEmpty && course.length < _courseMaxStops) {
       Letter? best;
-      var bestD = double.infinity;
+      var bestScore = -1.0;
+      var bestD = 0.0;
       for (final l in candidates) {
-        final d = l.destinationLocation.distanceTo(cur);
-        if (d < bestD) {
-          bestD = d;
+        final d = l.destinationLocation.distanceTo(cur) * _walkCorrection;
+        // +50m 상수: 초근접 후보의 점수 폭주(0 나눗셈 근접) 방지.
+        final s = _courseWeight(state, l) / (d + 50);
+        if (s > bestScore) {
+          bestScore = s;
           best = l;
+          bestD = d;
         }
       }
-      course.add(best!);
+      if (best == null) break;
       candidates.remove(best);
+      // 시간 예산 초과 스톱은 건너뛰고 다음 후보 탐색 (더 가까운 게 남을 수 있음).
+      if (totalM + bestD > budgetM) continue;
+      course.add(best);
+      totalM += bestD;
       cur = best.destinationLocation;
     }
+    _twoOptImprove(me, course);
     return course;
+  }
+
+  /// 2-opt: 선택된 스톱 집합의 방문 순서를 구간 뒤집기로 개선.
+  /// 스톱 ≤6 → 반복 수 무시 가능, greedy 대비 최대 ~25% 거리 손실 제거.
+  void _twoOptImprove(LatLng me, List<Letter> course) {
+    if (course.length < 3) return;
+    double len(List<Letter> c) {
+      var cur = me;
+      var t = 0.0;
+      for (final l in c) {
+        t += l.destinationLocation.distanceTo(cur);
+        cur = l.destinationLocation;
+      }
+      return t;
+    }
+
+    var improved = true;
+    while (improved) {
+      improved = false;
+      for (var i = 0; i < course.length - 1; i++) {
+        for (var j = i + 1; j < course.length; j++) {
+          final cand = [...course];
+          final seg = cand.sublist(i, j + 1).reversed.toList();
+          cand.replaceRange(i, j + 1, seg);
+          if (len(cand) + 1e-9 < len(course)) {
+            course
+              ..clear()
+              ..addAll(cand);
+            improved = true;
+          }
+        }
+      }
+    }
   }
 
   double _courseDistanceM(AppState state, List<Letter> stops) {
@@ -1055,7 +1118,7 @@ class _WorldMapScreenState extends State<WorldMapScreen>
     );
     var total = 0.0;
     for (final l in stops) {
-      total += l.destinationLocation.distanceTo(cur);
+      total += l.destinationLocation.distanceTo(cur) * _walkCorrection;
       cur = l.destinationLocation;
     }
     return total;
@@ -1102,6 +1165,16 @@ class _WorldMapScreenState extends State<WorldMapScreen>
               label: l10n.mapCourseChip(stops.length, mins),
               child: GestureDetector(
                 onTap: () => setState(() => _showCourse = !_showCourse),
+                // Build 491 v2: 롱프레스 = 시간 프리셋 20↔40분 토글.
+                onLongPress: () {
+                  setState(() {
+                    _courseBudgetMin = _courseBudgetMin == 20 ? 40 : 20;
+                  });
+                  AppSnack.info(
+                    context,
+                    l10n.mapCoursePreset(_courseBudgetMin),
+                  );
+                },
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,

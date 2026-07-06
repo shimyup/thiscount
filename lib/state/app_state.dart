@@ -2158,6 +2158,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     unawaited(_saveStampCards());
   }
 
+  /// Build 491 (코스 v2): 코스 점수함수가 티어 기여를 반영하기 위한 조회.
+  BrandStampCard? stampCardFor(String brandId) => _stampCards[brandId];
+
   /// Build 491 (단골 티어): 브랜드 letter **픽업** 시 티어 진행 기록.
   /// 리딤 스탬프(_recordStampOnRedeem)와 별도 축 — 픽업=관심(가벼운 진행),
   /// 리딤=매출(보상 수확). 보상형 플랫폼 프레임의 "브랜드 충성도" 레버.
