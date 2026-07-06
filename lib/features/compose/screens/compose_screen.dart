@@ -790,6 +790,11 @@ class _ComposeScreenState extends State<ComposeScreen>
         'brandUniquePerUser': _brandUniquePerUser,
         // Build 490: 밀봉 드롭 토글도 draft 보존 (코드발급 토글과 동일 사유).
         'isMysteryDrop': _isMysteryDrop,
+        // Build 491 (P2): 티어 혜택 3칸 + 매장위치 토글도 draft 보존.
+        'tierReward3': _tierReward3Controller.text,
+        'tierReward5': _tierReward5Controller.text,
+        'tierReward10': _tierReward10Controller.text,
+        'attachStoreLocation': _attachStoreLocation,
       };
       // Build 418 (사용자 device): 기본 선택 국가(_selectedCountry 는 거의 항상
       //   비어있지 않음)만으로 brand draft 를 저장하면, 빈 메세지에도 다음 진입
@@ -907,6 +912,15 @@ class _ComposeScreenState extends State<ComposeScreen>
                         snap['brandUniquePerUser'] as bool? ?? false;
                     _isMysteryDrop =
                         snap['isMysteryDrop'] as bool? ?? false;
+                    // Build 491 (P2): 티어 혜택·매장위치 복원.
+                    _tierReward3Controller.text =
+                        snap['tierReward3'] as String? ?? '';
+                    _tierReward5Controller.text =
+                        snap['tierReward5'] as String? ?? '';
+                    _tierReward10Controller.text =
+                        snap['tierReward10'] as String? ?? '';
+                    _attachStoreLocation =
+                        snap['attachStoreLocation'] as bool? ?? true;
                     // Build 425 (device #3): draft 복원 = 목적지 선택 이력 있음.
                     _destinationTouched = true;
                     // Build 428 (sim100 #25): 발송은 Brand 전용 → 비-Brand 가
@@ -921,6 +935,9 @@ class _ComposeScreenState extends State<ComposeScreen>
                       _previewRedemptionCode = null;
                       _brandUniquePerUser = false;
                       _isMysteryDrop = false;
+                      _tierReward3Controller.clear();
+                      _tierReward5Controller.clear();
+                      _tierReward10Controller.clear();
                       _brandCategory = LetterCategory.general;
                     }
                   } catch (_) {}
@@ -962,6 +979,10 @@ class _ComposeScreenState extends State<ComposeScreen>
     _previewRedemptionCode = null;
     _brandUniquePerUser = false;
     _isMysteryDrop = false;
+    _tierReward3Controller.clear();
+    _tierReward5Controller.clear();
+    _tierReward10Controller.clear();
+    _attachStoreLocation = true;
     SharedPreferences.getInstance().then((prefs) {
       prefs.remove('compose_draft');
       prefs.remove('compose_draft_brand');
