@@ -48,5 +48,35 @@ void main() {
       card.stamps = 5;
       expect(card.isComplete, true);
     });
+
+    // Build 491: 단골 티어 — 픽업 누적 3/5/10 경계.
+    test('tierLevel — 픽업 누적 경계값', () {
+      final card = BrandStampCard(brandId: 'b', brandName: 'n');
+      expect(card.tierLevel, 0);
+      expect(card.pickupsToNextTier, 3);
+      card.pickupCount = 3;
+      expect(card.tierLevel, 1); // 브론즈
+      expect(card.pickupsToNextTier, 2);
+      card.pickupCount = 5;
+      expect(card.tierLevel, 2); // 실버
+      expect(card.pickupsToNextTier, 5);
+      card.pickupCount = 10;
+      expect(card.tierLevel, 3); // 골드
+      expect(card.pickupsToNextTier, 0);
+    });
+
+    test('pickupCount 직렬화 라운드트립 + legacy(키 없음) 0 복원', () {
+      final card = BrandStampCard(
+        brandId: 'b',
+        brandName: 'n',
+        pickupCount: 7,
+      );
+      final restored = BrandStampCard.fromJson(card.toJson());
+      expect(restored.pickupCount, 7);
+      expect(restored.tierLevel, 2);
+      final legacy = BrandStampCard.fromJson({'brandId': 'b'});
+      expect(legacy.pickupCount, 0);
+      expect(legacy.tierLevel, 0);
+    });
   });
 }

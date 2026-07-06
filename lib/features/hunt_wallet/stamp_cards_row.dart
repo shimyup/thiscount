@@ -80,9 +80,17 @@ class _StampCardChip extends StatelessWidget {
   final AppL10n l10n;
   const _StampCardChip({required this.card, required this.l10n});
 
+  // Build 491 (단골 티어): 픽업 누적 티어 색 — 브론즈/실버/골드.
+  static const _tierColors = [
+    Color(0xFFCD7F32), // bronze
+    Color(0xFFB8BEC9), // silver
+    Color(0xFFFFD60A), // gold
+  ];
+
   @override
   Widget build(BuildContext context) {
     final remaining = card.rewardThreshold - card.stamps;
+    final tier = card.tierLevel;
     return Container(
       width: 168,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -90,9 +98,11 @@ class _StampCardChip extends StatelessWidget {
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: card.stamps > 0
-              ? AppColors.gold.withValues(alpha: 0.45)
-              : AppColors.bgSurface,
+          color: tier > 0
+              ? _tierColors[tier - 1].withValues(alpha: 0.7)
+              : card.stamps > 0
+                  ? AppColors.gold.withValues(alpha: 0.45)
+                  : AppColors.bgSurface,
         ),
       ),
       child: Column(
@@ -112,6 +122,25 @@ class _StampCardChip extends StatelessWidget {
                   ),
                 ),
               ),
+              // Build 491: 단골 티어 배지 (픽업 누적 3/5/10).
+              if (tier > 0)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  margin: const EdgeInsetsDirectional.only(end: 4),
+                  decoration: BoxDecoration(
+                    color: _tierColors[tier - 1].withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    l10n.stampTierName(tier),
+                    style: TextStyle(
+                      color: _tierColors[tier - 1],
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
               if (card.completedCount > 0)
                 Container(
                   padding:
@@ -162,7 +191,14 @@ class _StampCardChip extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            l10n.koEn('$remaining개 더 모으면 보상 🎁', '$remaining more to reward 🎁'),
+            // Build 491: 골드 미만이면 다음 티어까지 남은 픽업 안내가 우선 —
+            // 줍기(픽업) 루프를 앞으로. 골드면 기존 리딤 보상 안내.
+            card.pickupsToNextTier > 0 && card.tierLevel < 3
+                ? l10n.stampTierNext(card.pickupsToNextTier)
+                : l10n.koEn(
+                    '$remaining개 더 모으면 보상 🎁',
+                    '$remaining more to reward 🎁',
+                  ),
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 10,

@@ -9179,6 +9179,316 @@ class AppL10n {
     'th': 'ใช้แล้ว',
   });
 
+  // ── Build 491: 줍기 코스 + 단골 티어 ─────────────────────────────────────
+
+  /// 지도 하단 줍기 코스 칩: "코스 N개 · 도보 M분".
+  String mapCourseChip(int n, int m) => _t({
+    'ko': '줍기 코스 $n개 · 도보 $m분',
+    'en': 'Pickup route $n stops · $m min walk',
+    'ja': '回収コース$n件 · 徒歩$m分',
+    'zh': '拾取路线$n站 · 步行$m分钟',
+    'fr': 'Parcours $n arrêts · $m min à pied',
+    'de': 'Route $n Stopps · $m Min. zu Fuß',
+    'es': 'Ruta $n paradas · $m min a pie',
+    'pt': 'Rota $n paradas · $m min a pé',
+    'ru': 'Маршрут $n точек · $m мин пешком',
+    'tr': 'Rota $n durak · $m dk yürüme',
+    'ar': 'مسار $n محطات · $m دقيقة مشيًا',
+    'it': 'Percorso $n tappe · $m min a piedi',
+    'hi': 'रूट $n स्टॉप · $m मिनट पैदल',
+    'th': 'เส้นทาง $n จุด · เดิน $m นาที',
+  });
+
+  /// compose — 매장 위치 첨부 토글.
+  String get composeStoreAttach => _t({
+    'ko': '📍 매장 위치',
+    'en': '📍 Store location',
+    'ja': '📍 店舗位置',
+    'zh': '📍 门店位置',
+    'fr': '📍 Emplacement',
+    'de': '📍 Standort',
+    'es': '📍 Ubicación',
+    'pt': '📍 Localização',
+    'ru': '📍 Адрес магазина',
+    'tr': '📍 Mağaza konumu',
+    'ar': '📍 موقع المتجر',
+    'it': '📍 Posizione negozio',
+    'hi': '📍 स्टोर स्थान',
+    'th': '📍 ตำแหน่งร้าน',
+  });
+
+  /// 리드 화면 — 매장까지 거리 칩.
+  String readStoreDistance(String dist, int mins) => _t({
+    'ko': '매장까지 $dist · 도보 $mins분',
+    'en': '$dist to store · $mins min walk',
+    'ja': '店舗まで$dist · 徒歩$mins分',
+    'zh': '距门店$dist · 步行$mins分钟',
+    'fr': '$dist · $mins min à pied',
+    'de': '$dist · $mins Min. zu Fuß',
+    'es': '$dist · $mins min a pie',
+    'pt': '$dist · $mins min a pé',
+    'ru': '$dist до магазина · $mins мин',
+    'tr': 'Mağazaya $dist · $mins dk',
+    'ar': '$dist للمتجر · $mins دقيقة',
+    'it': '$dist · $mins min a piedi',
+    'hi': 'स्टोर तक $dist · $mins मिनट',
+    'th': 'ถึงร้าน $dist · เดิน $mins นาที',
+  });
+
+  /// 리드 화면 — origin 폴백일 때 대략적 위치 라벨.
+  String get readStoreApprox => _t({
+    'ko': '(대략)',
+    'en': '(approx.)',
+    'ja': '（およそ）',
+    'zh': '（大约）',
+    'fr': '(approx.)',
+    'de': '(ca.)',
+    'es': '(aprox.)',
+    'pt': '(aprox.)',
+    'ru': '(прибл.)',
+    'tr': '(yaklaşık)',
+    'ar': '(تقريبًا)',
+    'it': '(circa)',
+    'hi': '(लगभग)',
+    'th': '(โดยประมาณ)',
+  });
+
+  /// 지도 히어로 — 주울 수 있는 혜택 수.
+  String mapBenefitsHero(int n) => _t({
+    'ko': '주울 수 있는 혜택 $n장',
+    'en': '$n deals to pick up',
+    'ja': '拾える特典$n枚',
+    'zh': '可拾取优惠$n张',
+    'fr': '$n offres à ramasser',
+    'de': '$n Deals zum Aufsammeln',
+    'es': '$n ofertas para recoger',
+    'pt': '$n ofertas para pegar',
+    'ru': 'Купонов рядом: $n',
+    'tr': 'Toplanacak $n fırsat',
+    'ar': '$n عروض للالتقاط',
+    'it': '$n offerte da raccogliere',
+    'hi': 'उठाने के लिए $n डील',
+    'th': 'ดีลให้เก็บ $n ใบ',
+  });
+
+  /// 지도 히어로 — 최대 할인율 suffix.
+  String mapBenefitsHeroMax(int pct) => _t({
+    'ko': '최대 $pct%',
+    'en': 'up to $pct%',
+    'ja': '最大$pct%',
+    'zh': '最高$pct%',
+    'fr': "jusqu'à $pct%",
+    'de': 'bis zu $pct%',
+    'es': 'hasta $pct%',
+    'pt': 'até $pct%',
+    'ru': 'до $pct%',
+    'tr': "%$pct'e kadar",
+    'ar': 'حتى $pct%',
+    'it': 'fino al $pct%',
+    'hi': '$pct% तक',
+    'th': 'สูงสุด $pct%',
+  });
+
+  /// compose — 단골 티어 혜택 섹션 제목.
+  String get composeTierTitle => _t({
+    'ko': '단골 혜택 (선택)',
+    'en': 'Regular rewards (optional)',
+    'ja': '常連特典（任意）',
+    'zh': '熟客福利（可选）',
+    'fr': 'Récompenses fidélité (option)',
+    'de': 'Stammgast-Prämien (optional)',
+    'es': 'Premios de cliente (opcional)',
+    'pt': 'Prêmios de cliente (opcional)',
+    'ru': 'Награды завсегдатаям (необяз.)',
+    'tr': 'Müdavim ödülleri (isteğe bağlı)',
+    'ar': 'مكافآت الزبائن (اختياري)',
+    'it': 'Premi fedeltà (opzionale)',
+    'hi': 'नियमित इनाम (वैकल्पिक)',
+    'th': 'รางวัลขาประจำ (ไม่บังคับ)',
+  });
+
+  /// compose — 티어 혜택 설명.
+  String get composeTierDesc => _t({
+    'ko': '내 쿠폰을 N번 주운 손님에게 자동 발급되는 보상 — 사용은 매장 방문 시',
+    'en': 'Auto-issued when a customer picks up your coupons N times — redeemed in store',
+    'ja': 'クーポンをN回拾った客に自動発行 — 使用は来店時',
+    'zh': '顾客拾取N次后自动发放 — 到店使用',
+    'fr': 'Émis auto après N collectes — utilisable en magasin',
+    'de': 'Automatisch nach N Pickups — Einlösung im Laden',
+    'es': 'Se emite tras N recogidas — canje en tienda',
+    'pt': 'Emitido após N coletas — resgate na loja',
+    'ru': 'Выдаётся после N подборов — погашение в магазине',
+    'tr': 'N toplayışta otomatik verilir — mağazada kullanılır',
+    'ar': 'يصدر تلقائيًا بعد N التقاطات — يُستخدم في المتجر',
+    'it': 'Emesso dopo N raccolte — riscatto in negozio',
+    'hi': 'N बार उठाने पर स्वतः जारी — स्टोर में भुनाएँ',
+    'th': 'ออกอัตโนมัติเมื่อเก็บครบ N ครั้ง — ใช้ที่ร้าน',
+  });
+
+  /// compose — 티어 칸 라벨 ("N회").
+  String composeTierLabel(int n) => _t({
+    'ko': '$n회 →',
+    'en': '$n picks →',
+    'ja': '$n回 →',
+    'zh': '$n次 →',
+    'fr': '$n →',
+    'de': '$n× →',
+    'es': '$n →',
+    'pt': '$n →',
+    'ru': '$n →',
+    'tr': '$n →',
+    'ar': '$n →',
+    'it': '$n →',
+    'hi': '$n →',
+    'th': '$n →',
+  });
+
+  /// compose — 티어 혜택 입력 힌트.
+  String get composeTierHint => _t({
+    'ko': '예: 사이즈업 무료',
+    'en': 'e.g. Free size-up',
+    'ja': '例: サイズアップ無料',
+    'zh': '例：免费升杯',
+    'fr': 'ex : upgrade offert',
+    'de': 'z. B. Gratis-Upgrade',
+    'es': 'ej.: mejora gratis',
+    'pt': 'ex.: upgrade grátis',
+    'ru': 'напр.: апгрейд бесплатно',
+    'tr': 'örn: bedava boy büyütme',
+    'ar': 'مثال: ترقية مجانية',
+    'it': 'es.: upgrade gratis',
+    'hi': 'जैसे: फ्री साइज़-अप',
+    'th': 'เช่น อัปไซซ์ฟรี',
+  });
+
+  /// 코스 시간 프리셋 변경 안내 (칩 롱프레스).
+  String mapCoursePreset(int m) => _t({
+    'ko': '$m분 코스로 변경',
+    'en': 'Switched to $m-min route',
+    'ja': '$m分コースに変更',
+    'zh': '已切换为$m分钟路线',
+    'fr': 'Parcours $m min',
+    'de': '$m-Min.-Route',
+    'es': 'Ruta de $m min',
+    'pt': 'Rota de $m min',
+    'ru': 'Маршрут на $m мин',
+    'tr': '$m dk rotaya geçildi',
+    'ar': 'التبديل إلى مسار $m دقيقة',
+    'it': 'Percorso da $m min',
+    'hi': '$m मिनट रूट पर स्विच',
+    'th': 'เปลี่ยนเป็นเส้นทาง $m นาที',
+  });
+
+  /// 코스 칩 길안내 버튼 (외부 지도 열기).
+  String get mapCourseGuide => _t({
+    'ko': '길안내',
+    'en': 'Directions',
+    'ja': '道案内',
+    'zh': '导航',
+    'fr': 'Itinéraire',
+    'de': 'Route',
+    'es': 'Cómo llegar',
+    'pt': 'Rotas',
+    'ru': 'Маршрут',
+    'tr': 'Yol tarifi',
+    'ar': 'الاتجاهات',
+    'it': 'Indicazioni',
+    'hi': 'दिशा-निर्देश',
+    'th': 'นำทาง',
+  });
+
+  /// 단골 티어 이름 (0=일반은 미표시, 1~3).
+  String stampTierName(int level) => _t({
+    'ko': level >= 3
+        ? '골드 단골'
+        : level >= 2
+            ? '실버 단골'
+            : '브론즈 단골',
+    'en': level >= 3
+        ? 'Gold regular'
+        : level >= 2
+            ? 'Silver regular'
+            : 'Bronze regular',
+    'ja': level >= 3
+        ? 'ゴールド常連'
+        : level >= 2
+            ? 'シルバー常連'
+            : 'ブロンズ常連',
+    'zh': level >= 3
+        ? '金牌熟客'
+        : level >= 2
+            ? '银牌熟客'
+            : '铜牌熟客',
+    'fr': level >= 3
+        ? 'Habitué or'
+        : level >= 2
+            ? 'Habitué argent'
+            : 'Habitué bronze',
+    'de': level >= 3
+        ? 'Gold-Stammgast'
+        : level >= 2
+            ? 'Silber-Stammgast'
+            : 'Bronze-Stammgast',
+    'es': level >= 3
+        ? 'Cliente oro'
+        : level >= 2
+            ? 'Cliente plata'
+            : 'Cliente bronce',
+    'pt': level >= 3
+        ? 'Cliente ouro'
+        : level >= 2
+            ? 'Cliente prata'
+            : 'Cliente bronze',
+    'ru': level >= 3
+        ? 'Золотой завсегдатай'
+        : level >= 2
+            ? 'Серебряный завсегдатай'
+            : 'Бронзовый завсегдатай',
+    'tr': level >= 3
+        ? 'Altın müdavim'
+        : level >= 2
+            ? 'Gümüş müdavim'
+            : 'Bronz müdavim',
+    'ar': level >= 3
+        ? 'زبون ذهبي'
+        : level >= 2
+            ? 'زبون فضي'
+            : 'زبون برونزي',
+    'it': level >= 3
+        ? 'Cliente oro'
+        : level >= 2
+            ? 'Cliente argento'
+            : 'Cliente bronzo',
+    'hi': level >= 3
+        ? 'गोल्ड नियमित'
+        : level >= 2
+            ? 'सिल्वर नियमित'
+            : 'ब्रॉन्ज़ नियमित',
+    'th': level >= 3
+        ? 'ขาประจำโกลด์'
+        : level >= 2
+            ? 'ขาประจำซิลเวอร์'
+            : 'ขาประจำบรอนซ์',
+  });
+
+  /// 다음 티어까지: "N번 더 주우면 {티어}".
+  String stampTierNext(int n) => _t({
+    'ko': '$n번 더 주우면 승급',
+    'en': '$n more pickups to rank up',
+    'ja': 'あと$n回でランクアップ',
+    'zh': '再拾取$n次即可升级',
+    'fr': 'Encore $n pour monter',
+    'de': 'Noch $n bis zum Aufstieg',
+    'es': '$n más para subir',
+    'pt': 'Mais $n para subir',
+    'ru': 'Ещё $n до повышения',
+    'tr': 'Yükselmeye $n kaldı',
+    'ar': 'باقي $n للترقية',
+    'it': 'Ancora $n per salire',
+    'hi': 'रैंक अप के लिए $n और',
+    'th': 'อีก $n ครั้งเพื่อเลื่อนขั้น',
+  });
+
   // ── Build 490: 드롭 헌트 P1 (헌트 배너 + 미스터리 봉투) ───────────────────
 
   /// 헌트 배너 제목. [brand] 비면 일반 라벨.

@@ -14,6 +14,11 @@ class BrandStampCard {
   int completedCount;
   DateTime? lastStampAt;
 
+  /// Build 491 (단골 티어): 이 브랜드 쿠폰을 **주운(픽업)** 누적 횟수.
+  /// 스탬프([stamps])는 사용(리딤) 기준 — 티어는 픽업 기준으로 분리:
+  /// "진행은 픽업으로(가볍게), 수확(티어 보상 수령)은 방문 리딤으로(매출 보장)".
+  int pickupCount;
+
   BrandStampCard({
     required this.brandId,
     required this.brandName,
@@ -21,12 +26,35 @@ class BrandStampCard {
     this.rewardThreshold = defaultThreshold,
     this.completedCount = 0,
     this.lastStampAt,
+    this.pickupCount = 0,
   });
 
   /// 커피 스탬프 통념(5/10) 중 모바일 루프에 맞는 짧은 쪽.
   static const int defaultThreshold = 5;
 
   bool get isComplete => stamps >= rewardThreshold;
+
+  // ── Build 491: 단골 티어 (픽업 누적 기준) ──────────────────────────────
+  static const int tierBronzeAt = 3;
+  static const int tierSilverAt = 5;
+  static const int tierGoldAt = 10;
+
+  /// 0=일반, 1=브론즈(3+), 2=실버(5+), 3=골드(10+).
+  int get tierLevel => pickupCount >= tierGoldAt
+      ? 3
+      : pickupCount >= tierSilverAt
+          ? 2
+          : pickupCount >= tierBronzeAt
+              ? 1
+              : 0;
+
+  /// 다음 티어까지 남은 픽업 수 (골드면 0).
+  int get pickupsToNextTier {
+    if (pickupCount >= tierGoldAt) return 0;
+    if (pickupCount >= tierSilverAt) return tierGoldAt - pickupCount;
+    if (pickupCount >= tierBronzeAt) return tierSilverAt - pickupCount;
+    return tierBronzeAt - pickupCount;
+  }
 
   Map<String, dynamic> toJson() => {
         'brandId': brandId,
@@ -36,6 +64,7 @@ class BrandStampCard {
         'completedCount': completedCount,
         if (lastStampAt != null)
           'lastStampAt': lastStampAt!.millisecondsSinceEpoch,
+        if (pickupCount > 0) 'pickupCount': pickupCount,
       };
 
   factory BrandStampCard.fromJson(Map<String, dynamic> j) {
@@ -52,6 +81,7 @@ class BrandStampCard {
       lastStampAt: j['lastStampAt'] is int
           ? DateTime.fromMillisecondsSinceEpoch(j['lastStampAt'] as int)
           : null,
+      pickupCount: asInt(j['pickupCount'], 0).clamp(0, 100000),
     );
   }
 }

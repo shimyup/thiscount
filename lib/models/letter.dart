@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 import 'package:intl/intl.dart';
 import '../core/data/country_cities.dart';
@@ -475,6 +476,42 @@ class Letter {
   /// codeRevealedAt 게이트 그대로 — 티저→개봉→매장공개 3중 구조.
   final bool isMystery;
 
+  /// Build 491 (단골 티어 혜택): 브랜드가 발송 시 정의한 픽업 누적 보상.
+  /// key = 누적 픽업 수(3/5/10), value = 혜택 문구("사이즈업 무료" 등).
+  /// letter 에 스냅샷으로 실려 배포 — 브랜드가 나중에 바꿔도 기존 발송분은
+  /// 약속 유지(신뢰 보호). null/빈 맵 = 티어 배지·진행만(보상 없음, 비용 0).
+  final Map<int, String>? tierRewards;
+
+  /// Build 491 (#5 매장까지): 이 쿠폰을 사용할 매장 위치 (Brand 발송 시 첨부).
+  /// 공개 사업장 정보라 개인위치정보 아님 — 단 익명 발송과는 상호 배타
+  /// (직렬화/표시 게이트에서 !isAnonymous 강제). null = 미첨부(legacy 포함)
+  /// → UI 는 brandZoneId 의 zone 좌표 → origin('대략' 라벨) 순 폴백.
+  final double? storeLat;
+  final double? storeLng;
+  final String? storeName;
+
+  /// tierRewards 방어적 파싱 — prefs(Map)·Firestore(JSON string) 양쪽 수용.
+  static Map<int, String>? parseTierRewards(dynamic v) {
+    try {
+      dynamic m = v;
+      if (m is String) {
+        if (m.isEmpty) return null;
+        m = jsonDecode(m);
+      }
+      if (m is! Map) return null;
+      final out = <int, String>{};
+      m.forEach((k, val) {
+        final key = int.tryParse('$k');
+        if (key != null && val is String && val.trim().isNotEmpty) {
+          out[key] = val;
+        }
+      });
+      return out.isEmpty ? null : out;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Letter({
     required this.id,
     required this.senderId,
@@ -530,6 +567,10 @@ class Letter {
     this.sourceLetterId,
     this.campaignTotalCount,
     this.isMystery = false,
+    this.tierRewards,
+    this.storeLat,
+    this.storeLng,
+    this.storeName,
   }) : reportedBy = reportedBy ?? {};
 
   /// 인박스용 독립 복사본 (worldLetters에서 제거 전 inbox에 추가할 때 사용)
@@ -591,6 +632,10 @@ class Letter {
     sourceLetterId: sourceLetterId,
     campaignTotalCount: campaignTotalCount,
     isMystery: isMystery,
+    tierRewards: tierRewards,
+    storeLat: storeLat,
+    storeLng: storeLng,
+    storeName: storeName,
     readCount: readCount,
     maxReaders: maxReaders,
   );
@@ -601,6 +646,28 @@ class Letter {
   /// Build 490 (드롭 헌트 P1): 지도 마커용 브랜드 이모지 — 미스터리(밀봉)
   /// 드롭은 카테고리를 숨기고 ❓ 로 표시 (내용 비공개 = 카테고리도 티저).
   String get markerBrandEmoji => isMystery ? '❓' : category.brandEmoji;
+
+  /// Build 491 (프라이스태그 마커): 본문/사용안내에서 할인율 추출 ("30%").
+  /// 1~99 범위만 유효 — 그 외/미검출은 null.
+  String? get percentLabel {
+    final m =
+        RegExp(r'(\d{1,3})\s*%').firstMatch('$content ${redemptionInfo ?? ''}');
+    if (m == null) return null;
+    final v = int.tryParse(m.group(1)!) ?? 0;
+    if (v <= 0 || v > 99) return null;
+    return '$v%';
+  }
+
+  /// Build 491: 지도 프라이스태그 라벨. null = 태그 아님(일반 홍보) →
+  /// 기존 이모지 마커 유지 (홍보를 세일 태그로 위장하지 않음 — 정직 표기).
+  String? get priceTagLabel {
+    if (isMystery) return '?';
+    final pct = percentLabel;
+    if (pct != null) return pct;
+    if (category == LetterCategory.voucher) return '🎁';
+    if (category == LetterCategory.coupon) return 'SALE';
+    return null;
+  }
   // Build 409 (sim P2 보안): 시계 되돌리기 우회 차단 — SecureClock 사용.
   bool get isExpired =>
       expiresAt != null && SecureClock.now().isAfter(expiresAt!);
@@ -832,6 +899,13 @@ class Letter {
     // Build 490 (드롭 헌트 P1): 헌트 캠페인 필드 — 미설정 시 생략(legacy 호환).
     if (campaignTotalCount != null) 'campaignTotalCount': campaignTotalCount,
     if (isMystery) 'isMystery': true,
+    // Build 491: 단골 티어 혜택 스냅샷 (string key — JSON 안전).
+    if (tierRewards != null && tierRewards!.isNotEmpty)
+      'tierRewards': tierRewards!.map((k, v) => MapEntry('$k', v)),
+    // Build 491 (#5): 매장 위치 — 익명이면 게이트(상호 배타).
+    if (!isAnonymous && storeLat != null) 'storeLat': storeLat,
+    if (!isAnonymous && storeLng != null) 'storeLng': storeLng,
+    if (!isAnonymous && storeName != null) 'storeName': storeName,
     'readCount': readCount,
     'maxReaders': maxReaders,
   };
@@ -951,6 +1025,10 @@ class Letter {
     // Build 490 (드롭 헌트 P1): 헌트 캠페인 필드 복원 (legacy null 안전).
     campaignTotalCount: (j['campaignTotalCount'] as num?)?.toInt(),
     isMystery: j['isMystery'] as bool? ?? false,
+    tierRewards: parseTierRewards(j['tierRewards']),
+    storeLat: (j['storeLat'] as num?)?.toDouble(),
+    storeLng: (j['storeLng'] as num?)?.toDouble(),
+    storeName: j['storeName'] as String?,
     expiresAt: _parseDateTime(j['expiresAt']),
     readCount: j['readCount'] as int? ?? 0,
     maxReaders: j['maxReaders'] as int? ?? Letter.maxReadersDefault,

@@ -10,6 +10,7 @@ import '../../../core/services/secure_location.dart';
 import 'package:latlong2/latlong.dart' as ll;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/config/map_config.dart';
 import '../../progression/user_level.dart';
 import '../../../core/localization/app_localizations.dart';
@@ -69,6 +70,8 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   final bool _showRouteLines = true;
   bool _showNearbyOnly = false;
   final bool _showTowers = true;
+  // Build 491 (줍기 코스): 코스 점선 표시 토글 (칩 탭).
+  bool _showCourse = false;
   // Build 271: 위치 권한 거부 상태 — 상단 영구 배너 표시용.
   bool _locationPermissionDenied = false;
   // Build 250: 국가 점프 바 리셋 트리거 — "내 위치" 버튼 탭 시 증가시켜
@@ -401,6 +404,9 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                 // ── 배송 경로선 ────────────────────────────────────────────
                 if (_showRouteLines)
                   PolylineLayer(polylines: _buildRoutePolylines(filteredLetters)),
+                // ── Build 491 (줍기 코스): 유저→쿠폰들 최근접 순회 점선 ──
+                if (_showCourse)
+                  PolylineLayer(polylines: _buildCoursePolylines(state)),
                 // ── 허브 마커 ─────────────────────────────────────────────
                 MarkerLayer(markers: _buildHubMarkers(filteredLetters)),
                 // ── 2km 반경 원 (마커 아래에 배치 → 탭 차단 방지) ──────
@@ -645,6 +651,16 @@ class _WorldMapScreenState extends State<WorldMapScreen>
                   ),
                 ),
               ),
+            // ── Build 491 (줍기 코스): 하단 코스 칩 ──────────────────────
+            if (widget.showChrome && !state.currentUser.isBrand)
+              _buildCourseChip(state, l10n),
+            // ── Build 491 (#4 홈 히어로): "혜택 N장 · 최대 M%" ────────────
+            // 헌트 캠페인 없을 때 같은 슬롯 재사용(오버레이 과밀 방지 — 상호
+            // 배타). 앱의 3초 정체성: 주변에 주울 혜택이 몇 장인지 즉답.
+            if (widget.showChrome &&
+                state.activeHuntCampaign == null &&
+                !state.currentUser.isBrand)
+              _buildBenefitsHero(state, l10n),
             // ── 근처 도착 배너 (experienced 레벨 이상에서만) ─────────────
             // 브랜드도 줍기 가능해져서 `!isBrand` 조건 제거.
             if (state.hasNearbyAlert &&
@@ -997,6 +1013,332 @@ class _WorldMapScreenState extends State<WorldMapScreen>
   }
 
   // ── 경로선 ──────────────────────────────────────────────────────────────────
+  // ── Build 491: 줍기 코스 v2 ───────────────────────────────────────────
+  // 반경 내 도착 쿠폰을 **점수 = 혜택 가중 ÷ 보정 도보거리** 로 선별해 시간
+  // 프리셋(20/40분) 안에서 순회. 검증(4역할) 반영:
+  //  · 거리 단독 최적화 → 낮은 가치 쿠폰 낭비 (기획) → 카테고리·티어·만료 가중
+  //  · greedy 순서 손실 (수학) → 2-opt 개선 패스 (스톱≤6 이라 사실상 최적)
+  //  · 직선≠보행 (하천/철길) → ×1.35 맨해튼 보정 + '예상' 표기, 실안내 외부 위임
+  static const double _courseRadiusM = 2500;
+  static const int _courseMaxStops = 6;
+  static const double _walkMetersPerMin = 67; // 4km/h
+  static const double _walkCorrection = 1.35; // 직선→보행 맨해튼 보정
+  // 시간 프리셋 (칩 롱프레스 토글).
+  int _courseBudgetMin = 20;
+
+  double _courseWeight(AppState state, Letter l) {
+    // 카테고리: 할인권/교환권 > 일반 홍보.
+    var w = l.category == LetterCategory.general ? 0.8 : 1.2;
+    // 티어 기여: "이 브랜드 2장 이내 승급"이면 가중 — 티어와 코스의 상호 견인.
+    final card = state.stampCardFor(l.senderId);
+    if (card != null && card.tierLevel < 3 && card.pickupsToNextTier <= 2) {
+      w *= 1.3;
+    }
+    // 만료 임박(3시간 이내) 보너스 — 놓치기 전에 코스에 태움.
+    final exp = l.expiresAt;
+    if (exp != null && exp.difference(DateTime.now()).inHours < 3) w *= 1.4;
+    return w;
+  }
+
+  List<Letter> _computePickupCourse(AppState state) {
+    final uLat = state.currentUser.latitude;
+    final uLng = state.currentUser.longitude;
+    if (uLat == 0 || uLng == 0) return const [];
+    final me = LatLng(uLat, uLng);
+    // nearbyLetters 와 동일한 소진/만료/캠페인 dedup 기준 + 도착 상태 확장.
+    final candidates = state.worldLetters
+        .where((l) =>
+            (l.status == DeliveryStatus.nearYou ||
+                l.status == DeliveryStatus.deliveredFar) &&
+            !l.isExpired &&
+            l.readCount < l.maxReaders &&
+            !l.isBlocked &&
+            l.destinationLocation.distanceTo(me) <= _courseRadiusM)
+        .toList();
+    final course = <Letter>[];
+    var cur = me;
+    var totalM = 0.0;
+    final budgetM = _courseBudgetMin * _walkMetersPerMin;
+    while (candidates.isNotEmpty && course.length < _courseMaxStops) {
+      Letter? best;
+      var bestScore = -1.0;
+      var bestD = 0.0;
+      for (final l in candidates) {
+        final d = l.destinationLocation.distanceTo(cur) * _walkCorrection;
+        // +50m 상수: 초근접 후보의 점수 폭주(0 나눗셈 근접) 방지.
+        final s = _courseWeight(state, l) / (d + 50);
+        if (s > bestScore) {
+          bestScore = s;
+          best = l;
+          bestD = d;
+        }
+      }
+      if (best == null) break;
+      candidates.remove(best);
+      // 시간 예산 초과 스톱은 건너뛰고 다음 후보 탐색 (더 가까운 게 남을 수 있음).
+      if (totalM + bestD > budgetM) continue;
+      course.add(best);
+      totalM += bestD;
+      cur = best.destinationLocation;
+    }
+    _twoOptImprove(me, course);
+    return course;
+  }
+
+  /// 2-opt: 선택된 스톱 집합의 방문 순서를 구간 뒤집기로 개선.
+  /// 스톱 ≤6 → 반복 수 무시 가능, greedy 대비 최대 ~25% 거리 손실 제거.
+  void _twoOptImprove(LatLng me, List<Letter> course) {
+    if (course.length < 3) return;
+    double len(List<Letter> c) {
+      var cur = me;
+      var t = 0.0;
+      for (final l in c) {
+        t += l.destinationLocation.distanceTo(cur);
+        cur = l.destinationLocation;
+      }
+      return t;
+    }
+
+    var improved = true;
+    while (improved) {
+      improved = false;
+      for (var i = 0; i < course.length - 1; i++) {
+        for (var j = i + 1; j < course.length; j++) {
+          final cand = [...course];
+          final seg = cand.sublist(i, j + 1).reversed.toList();
+          cand.replaceRange(i, j + 1, seg);
+          if (len(cand) + 1e-9 < len(course)) {
+            course
+              ..clear()
+              ..addAll(cand);
+            improved = true;
+          }
+        }
+      }
+    }
+  }
+
+  double _courseDistanceM(AppState state, List<Letter> stops) {
+    var cur = LatLng(
+      state.currentUser.latitude,
+      state.currentUser.longitude,
+    );
+    var total = 0.0;
+    for (final l in stops) {
+      total += l.destinationLocation.distanceTo(cur) * _walkCorrection;
+      cur = l.destinationLocation;
+    }
+    return total;
+  }
+
+  List<Polyline> _buildCoursePolylines(AppState state) {
+    final stops = _computePickupCourse(state);
+    if (stops.length < 2) return const [];
+    final pts = <ll.LatLng>[
+      ll.LatLng(state.currentUser.latitude, state.currentUser.longitude),
+      for (final l in stops)
+        ll.LatLng(
+          l.destinationLocation.latitude,
+          l.destinationLocation.longitude,
+        ),
+    ];
+    return [
+      Polyline(
+        points: pts,
+        color: HuntPalette.lime.withValues(alpha: 0.9),
+        strokeWidth: 3,
+        pattern: const StrokePattern.dotted(),
+      ),
+    ];
+  }
+
+  // Build 491 (#4): 주변 혜택 히어로 — 코스와 동일 후보 기준(2.5km 도착 딜).
+  Widget _buildBenefitsHero(AppState state, AppL10n l10n) {
+    final uLat = state.currentUser.latitude;
+    final uLng = state.currentUser.longitude;
+    if (uLat == 0 || uLng == 0) return const SizedBox.shrink();
+    final me = LatLng(uLat, uLng);
+    var count = 0;
+    var maxPct = 0;
+    for (final l in state.worldLetters) {
+      if (l.status != DeliveryStatus.nearYou &&
+          l.status != DeliveryStatus.deliveredFar) {
+        continue;
+      }
+      if (l.isExpired || l.isBlocked || l.readCount >= l.maxReaders) continue;
+      if (l.destinationLocation.distanceTo(me) > _courseRadiusM) continue;
+      count++;
+      final pct = l.percentLabel;
+      if (pct != null) {
+        final v = int.tryParse(pct.replaceAll('%', '')) ?? 0;
+        if (v > maxPct) maxPct = v;
+      }
+    }
+    if (count == 0) return const SizedBox.shrink();
+    final label = maxPct > 0
+        ? '${l10n.mapBenefitsHero(count)} · ${l10n.mapBenefitsHeroMax(maxPct)}'
+        : l10n.mapBenefitsHero(count);
+    return Positioned(
+      top: _showCountryBar ? 130 : 94,
+      left: 16,
+      right: 16,
+      child: SafeArea(
+        bottom: false,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Semantics(
+              button: true,
+              label: label,
+              child: GestureDetector(
+                onTap: () => _mapController.move(ll.LatLng(uLat, uLng), 15.0),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.bgCard.withValues(alpha: 0.94),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: HuntPalette.lime.withValues(alpha: 0.55),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.25),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('🏷', style: TextStyle(fontSize: 13)),
+                      const SizedBox(width: 6),
+                      Text(
+                        label,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCourseChip(AppState state, AppL10n l10n) {
+    final stops = _computePickupCourse(state);
+    if (stops.length < 2) return const SizedBox.shrink();
+    final distM = _courseDistanceM(state, stops);
+    final mins = (distM / _walkMetersPerMin).ceil();
+    final first = stops.first;
+    return Positioned(
+      bottom: 18,
+      left: 16,
+      right: 16,
+      child: SafeArea(
+        top: false,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Semantics(
+              button: true,
+              label: l10n.mapCourseChip(stops.length, mins),
+              child: GestureDetector(
+                onTap: () => setState(() => _showCourse = !_showCourse),
+                // Build 491 v2: 롱프레스 = 시간 프리셋 20↔40분 토글.
+                onLongPress: () {
+                  setState(() {
+                    _courseBudgetMin = _courseBudgetMin == 20 ? 40 : 20;
+                  });
+                  AppSnack.info(
+                    context,
+                    l10n.mapCoursePreset(_courseBudgetMin),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _showCourse
+                        ? HuntPalette.lime
+                        : AppColors.bgCard.withValues(alpha: 0.94),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: _showCourse
+                          ? HuntPalette.lime
+                          : HuntPalette.lime.withValues(alpha: 0.6),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('🧺', style: TextStyle(fontSize: 14)),
+                      const SizedBox(width: 6),
+                      Text(
+                        l10n.mapCourseChip(stops.length, mins),
+                        style: TextStyle(
+                          color: _showCourse
+                              ? HuntPalette.limeInk
+                              : AppColors.textPrimary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      // 길안내: 첫 목적지를 카카오맵 웹 링크로 (앱 스킴
+                      // 화이트리스트 불필요 — universal link 가 앱/웹 자동 분기).
+                      Semantics(
+                        button: true,
+                        label: l10n.mapCourseGuide,
+                        child: GestureDetector(
+                          onTap: () => launchUrl(
+                            Uri.parse(
+                              'https://map.kakao.com/link/to/'
+                              '${Uri.encodeComponent(l10n.mapCourseGuide)},'
+                              '${first.destinationLocation.latitude},'
+                              '${first.destinationLocation.longitude}',
+                            ),
+                            mode: LaunchMode.externalApplication,
+                          ),
+                          child: Icon(
+                            Icons.navigation_rounded,
+                            size: 18,
+                            color: _showCourse
+                                ? HuntPalette.limeInk
+                                : HuntPalette.lime,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   List<Polyline> _buildRoutePolylines(List<Letter> letters) {
     final polylines = <Polyline>[];
     for (final letter in letters) {
@@ -3120,6 +3462,80 @@ class _MyLocationButtonState extends State<_MyLocationButton> {
 // ── 운송수단 마커 ──────────────────────────────────────────────────────────────
 /// 도착 대기 중 마커 (inTransit → 실제 도착했지만 아직 상태 전환 전)
 /// 비행기 대신 📬로 표시
+// ── Build 491 (프라이스태그 마커): 브랜드 딜 마커 공용 태그 pill ────────────
+// "동네 세일이 길에 떨어져 있다" 정체성 — 구멍 뚫린 가격표 모양.
+// 일반 홍보(priceTagLabel==null)는 기존 이모지 마커 유지(세일 위장 금지).
+class _PriceTagPill extends StatelessWidget {
+  final String label;
+  final bool mystery;
+  final double pulse;
+  final double height;
+  const _PriceTagPill({
+    required this.label,
+    required this.mystery,
+    required this.pulse,
+    this.height = 26,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = mystery ? HuntPalette.ink : HuntPalette.lime;
+    final fg = mystery ? HuntPalette.lav : HuntPalette.limeInk;
+    return Container(
+      height: height,
+      padding: const EdgeInsetsDirectional.only(start: 7, end: 9),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(height / 2),
+          bottomLeft: Radius.circular(height / 2),
+          topRight: const Radius.circular(7),
+          bottomRight: const Radius.circular(7),
+        ),
+        border: mystery
+            ? Border.all(color: HuntPalette.lav, width: 1.5)
+            : null,
+        boxShadow: [
+          BoxShadow(
+            color: (mystery ? HuntPalette.lav : HuntPalette.lime)
+                .withValues(alpha: 0.35 + pulse * 0.25),
+            blurRadius: 10,
+          ),
+          const BoxShadow(
+            color: Color(0x66000000),
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 태그 구멍.
+          Container(
+            width: 5,
+            height: 5,
+            decoration: BoxDecoration(
+              color: mystery ? HuntPalette.lav : HuntPalette.ink,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              color: fg,
+              fontSize: height * 0.5,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ArrivedWaitingMarker extends StatelessWidget {
   final Letter letter;
   final AnimationController pulseController;
@@ -3265,24 +3681,34 @@ class _ArrivedWaitingMarker extends StatelessWidget {
                 ),
               ),
             ),
-            Text(
-              emoji,
-              style: TextStyle(
-                fontSize: 30,
-                shadows: [
-                  Shadow(
-                    color: (fomoColor ?? baseColor)
-                        .withValues(alpha: 0.6 + pulse * 0.3),
-                    blurRadius: 12,
-                  ),
-                  const Shadow(
-                    color: Color(0x88000000),
-                    blurRadius: 3,
-                    offset: Offset(0, 1),
-                  ),
-                ],
+            // Build 491: 브랜드 딜은 프라이스태그 pill, 그 외/일반 홍보는
+            // 기존 카테고리 이모지 유지.
+            if (letter.senderIsBrand && letter.priceTagLabel != null)
+              _PriceTagPill(
+                label: letter.priceTagLabel!,
+                mystery: letter.isMystery,
+                pulse: pulse,
+                height: 28,
+              )
+            else
+              Text(
+                emoji,
+                style: TextStyle(
+                  fontSize: 30,
+                  shadows: [
+                    Shadow(
+                      color: (fomoColor ?? baseColor)
+                          .withValues(alpha: 0.6 + pulse * 0.3),
+                      blurRadius: 12,
+                    ),
+                    const Shadow(
+                      color: Color(0x88000000),
+                      blurRadius: 3,
+                      offset: Offset(0, 1),
+                    ),
+                  ],
+                ),
               ),
-            ),
             // Build 415 (#5, sim50 P2): rare/epic 배지 — 우상단 ✨/💎.
             //   만료 임박(FOMO)으로 glow ring 이 빨강 우선되어도 배지는 항상 노출
             //   (희소성 신호 소실 방지). 배지 색은 항상 희귀도 색.
@@ -3711,45 +4137,55 @@ class _UnreadDeliveredMarker extends StatelessWidget {
                 ),
                 // 편지함 아이콘 컨테이너 (Build 147: 내부 테두리 = 카테고리 색)
                 // Build 476 (마커 다듬기): 30→34, 이모지 가독성·터치 시인성 상향.
-                Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    color: boxBg,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: innerBorderColor.withValues(
-                        alpha: 0.55 + pulse * 0.3,
-                      ),
-                      width: showAsBrand ? 2.0 : 1.5,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: glowColor.withValues(
-                          alpha: showAsBrand
-                              ? 0.35 + pulse * 0.2
-                              : 0.25 + pulse * 0.15,
+                // Build 491: 브랜드 딜(할인/교환/밀봉)은 프라이스태그 pill —
+                //   "떨어진 가격표" 정체성. 일반 홍보·비브랜드는 기존 원형 유지.
+                if (showAsBrand && letter.priceTagLabel != null)
+                  _PriceTagPill(
+                    label: letter.priceTagLabel!,
+                    mystery: letter.isMystery,
+                    pulse: pulse,
+                    height: 24,
+                  )
+                else
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: boxBg,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: innerBorderColor.withValues(
+                          alpha: 0.55 + pulse * 0.3,
                         ),
-                        blurRadius: showAsBrand ? 10 : 8,
+                        width: showAsBrand ? 2.0 : 1.5,
                       ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Text(
-                      mailEmoji,
-                      // Build 476 (마커 다듬기): 14→16 — 카테고리 이모지 가독성.
-                      style: TextStyle(
-                        fontSize: 16,
-                        shadows: [
-                          Shadow(
-                            color: ringColor.withValues(alpha: 0.5),
-                            blurRadius: 6,
+                      boxShadow: [
+                        BoxShadow(
+                          color: glowColor.withValues(
+                            alpha: showAsBrand
+                                ? 0.35 + pulse * 0.2
+                                : 0.25 + pulse * 0.15,
                           ),
-                        ],
+                          blurRadius: showAsBrand ? 10 : 8,
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        mailEmoji,
+                        // Build 476 (마커 다듬기): 14→16 — 카테고리 이모지 가독성.
+                        style: TextStyle(
+                          fontSize: 16,
+                          shadows: [
+                            Shadow(
+                              color: ringColor.withValues(alpha: 0.5),
+                              blurRadius: 6,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
                 // Build 415 (#5 레어 드롭, sim50 P1): rare/epic 배지(✨/💎).
                 //   Positioned 라 Column 높이에 영향 없음(오버플로우 무관).
                 if (rarityColor != null && rarityBadge.isNotEmpty)

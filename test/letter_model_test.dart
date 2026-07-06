@@ -129,6 +129,82 @@ void main() {
       expect(_brandLetter().markerBrandEmoji, isNot('❓'));
     });
 
+    test('Build 491: tierRewards 라운드트립 + JSON string/corrupt 방어', () {
+      final original = _brandLetter();
+      final json = original.toJson();
+      expect(json.containsKey('tierRewards'), isFalse); // 미설정 생략
+      // Map 형태(prefs)
+      final withMap = Letter.fromJson({
+        ...json,
+        'tierRewards': {'3': '사이즈업 무료', '10': '음료 1잔'},
+      });
+      expect(withMap.tierRewards, {3: '사이즈업 무료', 10: '음료 1잔'});
+      // JSON string 형태(Firestore)
+      expect(
+        Letter.parseTierRewards('{"5":"쿠키 증정"}'),
+        {5: '쿠키 증정'},
+      );
+      // corrupt → null (crash 없이)
+      expect(Letter.parseTierRewards('not-json'), isNull);
+      expect(Letter.parseTierRewards({'x': 1}), isNull);
+      // 라운드트립 보존 + clone 보존
+      final l2 = Letter.fromJson(withMap.toJson());
+      expect(l2.tierRewards?[3], '사이즈업 무료');
+      expect(withMap.clone().tierRewards?[10], '음료 1잔');
+    });
+
+    test('Build 491: storeLat/Lng/Name 라운드트립 + 익명 게이트', () {
+      final now = DateTime.now();
+      final withStore = Letter(
+        id: 's1',
+        senderId: 'brand1',
+        senderName: 'Test Brand',
+        senderCountry: '대한민국',
+        senderCountryFlag: '🇰🇷',
+        content: 'hello 30% off',
+        originLocation: LatLng(37.5, 127.0),
+        destinationLocation: LatLng(37.5, 127.0),
+        destinationCountry: '대한민국',
+        destinationCountryFlag: '🇰🇷',
+        segments: const [],
+        sentAt: now,
+        estimatedTotalMinutes: 60,
+        senderIsBrand: true,
+        isAnonymous: false,
+        category: LetterCategory.coupon,
+        storeLat: 37.5445,
+        storeLng: 127.0567,
+        storeName: 'A카페 성수점',
+      );
+      final restored = Letter.fromJson(withStore.toJson());
+      expect(restored.storeLat, 37.5445);
+      expect(restored.storeName, 'A카페 성수점');
+      expect(restored.clone().storeLng, 127.0567);
+      // 익명이면 직렬화 게이트 — 필드 누락 (익명·매장위치 상호 배타).
+      final anonJson = Letter(
+        id: 's2',
+        senderId: 'brand1',
+        senderName: 'x',
+        senderCountry: 'k',
+        senderCountryFlag: '🇰🇷',
+        content: 'c',
+        originLocation: LatLng(1, 1),
+        destinationLocation: LatLng(1, 1),
+        destinationCountry: 'k',
+        destinationCountryFlag: '🇰🇷',
+        segments: const [],
+        sentAt: now,
+        estimatedTotalMinutes: 1,
+        isAnonymous: true,
+        storeLat: 37.0,
+        storeLng: 127.0,
+      ).toJson();
+      expect(anonJson.containsKey('storeLat'), isFalse);
+      // 프라이스태그 라벨: % 추출 / 미스터리 ? / 범위 밖 무시.
+      expect(withStore.priceTagLabel, '30%');
+      expect(withStore.percentLabel, '30%');
+    });
+
     test('Build 490: legacy letter (헌트 키 없음) → null/false 복원', () {
       final json = _brandLetter().toJson();
       expect(json.containsKey('campaignTotalCount'), isFalse);
