@@ -9199,6 +9199,78 @@ class AppL10n {
     'th': 'เส้นทาง $n จุด · เดิน $m นาที',
   });
 
+  /// compose — 단골 티어 혜택 섹션 제목.
+  String get composeTierTitle => _t({
+    'ko': '단골 혜택 (선택)',
+    'en': 'Regular rewards (optional)',
+    'ja': '常連特典（任意）',
+    'zh': '熟客福利（可选）',
+    'fr': 'Récompenses fidélité (option)',
+    'de': 'Stammgast-Prämien (optional)',
+    'es': 'Premios de cliente (opcional)',
+    'pt': 'Prêmios de cliente (opcional)',
+    'ru': 'Награды завсегдатаям (необяз.)',
+    'tr': 'Müdavim ödülleri (isteğe bağlı)',
+    'ar': 'مكافآت الزبائن (اختياري)',
+    'it': 'Premi fedeltà (opzionale)',
+    'hi': 'नियमित इनाम (वैकल्पिक)',
+    'th': 'รางวัลขาประจำ (ไม่บังคับ)',
+  });
+
+  /// compose — 티어 혜택 설명.
+  String get composeTierDesc => _t({
+    'ko': '내 쿠폰을 N번 주운 손님에게 자동 발급되는 보상 — 사용은 매장 방문 시',
+    'en': 'Auto-issued when a customer picks up your coupons N times — redeemed in store',
+    'ja': 'クーポンをN回拾った客に自動発行 — 使用は来店時',
+    'zh': '顾客拾取N次后自动发放 — 到店使用',
+    'fr': 'Émis auto après N collectes — utilisable en magasin',
+    'de': 'Automatisch nach N Pickups — Einlösung im Laden',
+    'es': 'Se emite tras N recogidas — canje en tienda',
+    'pt': 'Emitido após N coletas — resgate na loja',
+    'ru': 'Выдаётся после N подборов — погашение в магазине',
+    'tr': 'N toplayışta otomatik verilir — mağazada kullanılır',
+    'ar': 'يصدر تلقائيًا بعد N التقاطات — يُستخدم في المتجر',
+    'it': 'Emesso dopo N raccolte — riscatto in negozio',
+    'hi': 'N बार उठाने पर स्वतः जारी — स्टोर में भुनाएँ',
+    'th': 'ออกอัตโนมัติเมื่อเก็บครบ N ครั้ง — ใช้ที่ร้าน',
+  });
+
+  /// compose — 티어 칸 라벨 ("N회").
+  String composeTierLabel(int n) => _t({
+    'ko': '$n회 →',
+    'en': '$n picks →',
+    'ja': '$n回 →',
+    'zh': '$n次 →',
+    'fr': '$n →',
+    'de': '$n× →',
+    'es': '$n →',
+    'pt': '$n →',
+    'ru': '$n →',
+    'tr': '$n →',
+    'ar': '$n →',
+    'it': '$n →',
+    'hi': '$n →',
+    'th': '$n →',
+  });
+
+  /// compose — 티어 혜택 입력 힌트.
+  String get composeTierHint => _t({
+    'ko': '예: 사이즈업 무료',
+    'en': 'e.g. Free size-up',
+    'ja': '例: サイズアップ無料',
+    'zh': '例：免费升杯',
+    'fr': 'ex : upgrade offert',
+    'de': 'z. B. Gratis-Upgrade',
+    'es': 'ej.: mejora gratis',
+    'pt': 'ex.: upgrade grátis',
+    'ru': 'напр.: апгрейд бесплатно',
+    'tr': 'örn: bedava boy büyütme',
+    'ar': 'مثال: ترقية مجانية',
+    'it': 'es.: upgrade gratis',
+    'hi': 'जैसे: फ्री साइज़-अप',
+    'th': 'เช่น อัปไซซ์ฟรี',
+  });
+
   /// 코스 시간 프리셋 변경 안내 (칩 롱프레스).
   String mapCoursePreset(int m) => _t({
     'ko': '$m분 코스로 변경',

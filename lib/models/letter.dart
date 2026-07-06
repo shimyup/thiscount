@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 import 'package:intl/intl.dart';
 import '../core/data/country_cities.dart';
@@ -475,6 +476,34 @@ class Letter {
   /// codeRevealedAt 게이트 그대로 — 티저→개봉→매장공개 3중 구조.
   final bool isMystery;
 
+  /// Build 491 (단골 티어 혜택): 브랜드가 발송 시 정의한 픽업 누적 보상.
+  /// key = 누적 픽업 수(3/5/10), value = 혜택 문구("사이즈업 무료" 등).
+  /// letter 에 스냅샷으로 실려 배포 — 브랜드가 나중에 바꿔도 기존 발송분은
+  /// 약속 유지(신뢰 보호). null/빈 맵 = 티어 배지·진행만(보상 없음, 비용 0).
+  final Map<int, String>? tierRewards;
+
+  /// tierRewards 방어적 파싱 — prefs(Map)·Firestore(JSON string) 양쪽 수용.
+  static Map<int, String>? parseTierRewards(dynamic v) {
+    try {
+      dynamic m = v;
+      if (m is String) {
+        if (m.isEmpty) return null;
+        m = jsonDecode(m);
+      }
+      if (m is! Map) return null;
+      final out = <int, String>{};
+      m.forEach((k, val) {
+        final key = int.tryParse('$k');
+        if (key != null && val is String && val.trim().isNotEmpty) {
+          out[key] = val;
+        }
+      });
+      return out.isEmpty ? null : out;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Letter({
     required this.id,
     required this.senderId,
@@ -530,6 +559,7 @@ class Letter {
     this.sourceLetterId,
     this.campaignTotalCount,
     this.isMystery = false,
+    this.tierRewards,
   }) : reportedBy = reportedBy ?? {};
 
   /// 인박스용 독립 복사본 (worldLetters에서 제거 전 inbox에 추가할 때 사용)
@@ -591,6 +621,7 @@ class Letter {
     sourceLetterId: sourceLetterId,
     campaignTotalCount: campaignTotalCount,
     isMystery: isMystery,
+    tierRewards: tierRewards,
     readCount: readCount,
     maxReaders: maxReaders,
   );
@@ -832,6 +863,9 @@ class Letter {
     // Build 490 (드롭 헌트 P1): 헌트 캠페인 필드 — 미설정 시 생략(legacy 호환).
     if (campaignTotalCount != null) 'campaignTotalCount': campaignTotalCount,
     if (isMystery) 'isMystery': true,
+    // Build 491: 단골 티어 혜택 스냅샷 (string key — JSON 안전).
+    if (tierRewards != null && tierRewards!.isNotEmpty)
+      'tierRewards': tierRewards!.map((k, v) => MapEntry('$k', v)),
     'readCount': readCount,
     'maxReaders': maxReaders,
   };
@@ -951,6 +985,7 @@ class Letter {
     // Build 490 (드롭 헌트 P1): 헌트 캠페인 필드 복원 (legacy null 안전).
     campaignTotalCount: (j['campaignTotalCount'] as num?)?.toInt(),
     isMystery: j['isMystery'] as bool? ?? false,
+    tierRewards: parseTierRewards(j['tierRewards']),
     expiresAt: _parseDateTime(j['expiresAt']),
     readCount: j['readCount'] as int? ?? 0,
     maxReaders: j['maxReaders'] as int? ?? Letter.maxReadersDefault,

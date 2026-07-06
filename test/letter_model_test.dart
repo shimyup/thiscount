@@ -129,6 +129,30 @@ void main() {
       expect(_brandLetter().markerBrandEmoji, isNot('❓'));
     });
 
+    test('Build 491: tierRewards 라운드트립 + JSON string/corrupt 방어', () {
+      final original = _brandLetter();
+      final json = original.toJson();
+      expect(json.containsKey('tierRewards'), isFalse); // 미설정 생략
+      // Map 형태(prefs)
+      final withMap = Letter.fromJson({
+        ...json,
+        'tierRewards': {'3': '사이즈업 무료', '10': '음료 1잔'},
+      });
+      expect(withMap.tierRewards, {3: '사이즈업 무료', 10: '음료 1잔'});
+      // JSON string 형태(Firestore)
+      expect(
+        Letter.parseTierRewards('{"5":"쿠키 증정"}'),
+        {5: '쿠키 증정'},
+      );
+      // corrupt → null (crash 없이)
+      expect(Letter.parseTierRewards('not-json'), isNull);
+      expect(Letter.parseTierRewards({'x': 1}), isNull);
+      // 라운드트립 보존 + clone 보존
+      final l2 = Letter.fromJson(withMap.toJson());
+      expect(l2.tierRewards?[3], '사이즈업 무료');
+      expect(withMap.clone().tierRewards?[10], '음료 1잔');
+    });
+
     test('Build 490: legacy letter (헌트 키 없음) → null/false 복원', () {
       final json = _brandLetter().toJson();
       expect(json.containsKey('campaignTotalCount'), isFalse);

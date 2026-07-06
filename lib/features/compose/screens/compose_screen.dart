@@ -76,6 +76,10 @@ class _ComposeScreenState extends State<ComposeScreen>
   final _socialLinkController = TextEditingController();
   // 브랜드 쿠폰/교환권 사용 안내 (자유 텍스트, 최대 200자)
   final _redemptionInfoController = TextEditingController();
+  // Build 491 (단골 티어 혜택): 브랜드 정의 픽업 누적 보상 3칸 (전부 선택).
+  final _tierReward3Controller = TextEditingController();
+  final _tierReward5Controller = TextEditingController();
+  final _tierReward10Controller = TextEditingController();
   final _contentFocus = FocusNode();
 
   late AnimationController _sendController;
@@ -1120,6 +1124,9 @@ class _ComposeScreenState extends State<ComposeScreen>
     _contentController.dispose();
     _socialLinkController.dispose();
     _redemptionInfoController.dispose();
+    _tierReward3Controller.dispose();
+    _tierReward5Controller.dispose();
+    _tierReward10Controller.dispose();
     _zoneMaxRedeemsCtrl.dispose();
     _contentFocus.dispose();
     _sendController.dispose();
@@ -1394,6 +1401,20 @@ class _ComposeScreenState extends State<ComposeScreen>
   ///   거쳐 방향 스푸핑/금칙어 우회 여지가 있었음.
   String get _redemptionInfoSafe =>
       _stripBidiControls(_redemptionInfoController.text.trim());
+
+  /// Build 491: 티어 혜택 맵 — 빈 칸 제외, BIDI 정화, 전부 비면 null.
+  Map<int, String>? get _tierRewardsSafe {
+    final out = <int, String>{};
+    void put(int n, TextEditingController c) {
+      final v = _stripBidiControls(c.text.trim());
+      if (v.isNotEmpty) out[n] = v;
+    }
+
+    put(3, _tierReward3Controller);
+    put(5, _tierReward5Controller);
+    put(10, _tierReward10Controller);
+    return out.isEmpty ? null : out;
+  }
 
   // Build 414: AI 쿠폰 생성 버튼 (Brand 전용, 함수 설정 시).
   Widget _buildAICouponButton(BuildContext context) {
@@ -1854,6 +1875,7 @@ class _ComposeScreenState extends State<ComposeScreen>
             explicitRedemptionCode: sharedRedemptionCode,
             campaignTotalCount: huntPlannedTotal,
             isMystery: _isMysteryDrop,
+            tierRewards: _tierRewardsSafe,
           );
           totalSent += sent;
           if (sent == 0) break; // 한도 초과 시 중단
@@ -1895,6 +1917,7 @@ class _ComposeScreenState extends State<ComposeScreen>
             explicitRedemptionCode: sharedRedemptionCode,
             campaignTotalCount: huntPlannedTotal,
             isMystery: _isMysteryDrop,
+            tierRewards: _tierRewardsSafe,
             preciseLat: preciseLat,
             preciseLng: preciseLng,
           );
@@ -1998,6 +2021,7 @@ class _ComposeScreenState extends State<ComposeScreen>
           explicitRedemptionCode:
               _attachRedemptionCode ? _previewRedemptionCode : null,
           // Build 490: 밀봉 드롭 (총량은 sendBulkLetter 내부 계산).
+          tierRewards: _tierRewardsSafe,
           isMystery: _isMysteryDrop,
         );
       } catch (_) {
@@ -2130,6 +2154,10 @@ class _ComposeScreenState extends State<ComposeScreen>
           //   대신 작성 세션당 안정 코드 — 미리보기 정확성 우선).
           explicitRedemptionCode:
               _attachRedemptionCode ? _previewRedemptionCode : null,
+          // Build 491: 단건 발송도 밀봉·티어 혜택 적용 (티어는 캠페인 무관 —
+          //   브랜드 픽업 누적이므로 단건에도 유효).
+          isMystery: _isMysteryDrop,
+          tierRewards: _tierRewardsSafe,
         );
       }
     } catch (_) {
@@ -6410,6 +6438,77 @@ class _ComposeScreenState extends State<ComposeScreen>
             ],
           ),
           const SizedBox(height: 14),
+          // ── Build 491: 단골 티어 혜택 (선택) — 브랜드가 픽업 누적 보상 정의 ──
+          Text(
+            l10n.composeTierTitle,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            l10n.composeTierDesc,
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 10.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+          for (final e in [
+            (3, _tierReward3Controller),
+            (5, _tierReward5Controller),
+            (10, _tierReward10Controller),
+          ])
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 58,
+                    child: Text(
+                      l10n.composeTierLabel(e.$1),
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: TextField(
+                      controller: e.$2,
+                      maxLength: 60,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 12.5,
+                      ),
+                      decoration: InputDecoration(
+                        counterText: '',
+                        isDense: true,
+                        hintText: l10n.composeTierHint,
+                        hintStyle: const TextStyle(
+                          color: AppColors.textMuted,
+                          fontSize: 11.5,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 9,
+                        ),
+                        filled: true,
+                        fillColor: AppColors.bgSurface,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 8),
           // ── 자동 삭제 기간 ──
           Text(
             l10n.composeBrandAutoExpire,
