@@ -476,6 +476,17 @@ class _ComposeScreenState extends State<ComposeScreen>
   // Build 490 (드롭 헌트 P1-N2): 미스터리(밀봉) 드롭 — 픽업 시트에서 내용
   // 비공개, 개봉 후 공개. Brand 전용 토글.
   bool _isMysteryDrop = false;
+
+  // Build 491 (#5 매장까지): 발송 쿠폰에 매장 위치 첨부 (기본 ON).
+  bool _attachStoreLocation = true;
+
+  /// 첨부할 매장 좌표 — GPS 미가용(0,0)이면 null (첨부 생략).
+  ({double lat, double lng, String name})? _storeAttachment(AppState state) {
+    if (!_attachStoreLocation || !state.currentUser.isBrand) return null;
+    final u = state.currentUser;
+    if (u.latitude == 0 || u.longitude == 0) return null;
+    return (lat: u.latitude, lng: u.longitude, name: u.username);
+  }
   bool _brandAcceptsReplies = true; // 답장 수락 여부 (기본 on)
   bool _isExactDropped = false; // ExactDrop 로 좌표 선택됨 → 발송 시 크레딧 차감
   int? _brandAutoExpireHours; // 자동 삭제 시간 (null=없음)
@@ -1876,6 +1887,9 @@ class _ComposeScreenState extends State<ComposeScreen>
             campaignTotalCount: huntPlannedTotal,
             isMystery: _isMysteryDrop,
             tierRewards: _tierRewardsSafe,
+            storeLat: _storeAttachment(state)?.lat,
+            storeLng: _storeAttachment(state)?.lng,
+            storeName: _storeAttachment(state)?.name,
           );
           totalSent += sent;
           if (sent == 0) break; // 한도 초과 시 중단
@@ -1918,6 +1932,9 @@ class _ComposeScreenState extends State<ComposeScreen>
             campaignTotalCount: huntPlannedTotal,
             isMystery: _isMysteryDrop,
             tierRewards: _tierRewardsSafe,
+            storeLat: _storeAttachment(state)?.lat,
+            storeLng: _storeAttachment(state)?.lng,
+            storeName: _storeAttachment(state)?.name,
             preciseLat: preciseLat,
             preciseLng: preciseLng,
           );
@@ -2023,6 +2040,9 @@ class _ComposeScreenState extends State<ComposeScreen>
           // Build 490: 밀봉 드롭 (총량은 sendBulkLetter 내부 계산).
           tierRewards: _tierRewardsSafe,
           isMystery: _isMysteryDrop,
+          storeLat: _storeAttachment(state)?.lat,
+          storeLng: _storeAttachment(state)?.lng,
+          storeName: _storeAttachment(state)?.name,
         );
       } catch (_) {
         if (mounted) {
@@ -2158,6 +2178,9 @@ class _ComposeScreenState extends State<ComposeScreen>
           //   브랜드 픽업 누적이므로 단건에도 유효).
           isMystery: _isMysteryDrop,
           tierRewards: _tierRewardsSafe,
+          storeLat: _storeAttachment(state)?.lat,
+          storeLng: _storeAttachment(state)?.lng,
+          storeName: _storeAttachment(state)?.name,
         );
       }
     } catch (_) {
@@ -6432,6 +6455,15 @@ class _ComposeScreenState extends State<ComposeScreen>
                 label: l10n.composeMysteryToggle,
                 onTap: () =>
                     setState(() => _isMysteryDrop = !_isMysteryDrop),
+              ),
+              // Build 491 (#5): 매장 위치 첨부 토글 — 수신자가 쿠폰에서
+              // "매장까지 거리"를 볼 수 있게 (기본 ON).
+              _optionToggleButton(
+                active: _attachStoreLocation,
+                label: l10n.composeStoreAttach,
+                onTap: () => setState(
+                  () => _attachStoreLocation = !_attachStoreLocation,
+                ),
               ),
               // Build 454: 할인코드 발급 토글은 카테고리 패널의 코드 입력란 바로
               //   아래로 이동(사용자 요청 — 입력란과 한 시야에서 선택).

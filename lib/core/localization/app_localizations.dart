@@ -9199,6 +9199,60 @@ class AppL10n {
     'th': 'เส้นทาง $n จุด · เดิน $m นาที',
   });
 
+  /// compose — 매장 위치 첨부 토글.
+  String get composeStoreAttach => _t({
+    'ko': '📍 매장 위치',
+    'en': '📍 Store location',
+    'ja': '📍 店舗位置',
+    'zh': '📍 门店位置',
+    'fr': '📍 Emplacement',
+    'de': '📍 Standort',
+    'es': '📍 Ubicación',
+    'pt': '📍 Localização',
+    'ru': '📍 Адрес магазина',
+    'tr': '📍 Mağaza konumu',
+    'ar': '📍 موقع المتجر',
+    'it': '📍 Posizione negozio',
+    'hi': '📍 स्टोर स्थान',
+    'th': '📍 ตำแหน่งร้าน',
+  });
+
+  /// 리드 화면 — 매장까지 거리 칩.
+  String readStoreDistance(String dist, int mins) => _t({
+    'ko': '매장까지 $dist · 도보 $mins분',
+    'en': '$dist to store · $mins min walk',
+    'ja': '店舗まで$dist · 徒歩$mins分',
+    'zh': '距门店$dist · 步行$mins分钟',
+    'fr': '$dist · $mins min à pied',
+    'de': '$dist · $mins Min. zu Fuß',
+    'es': '$dist · $mins min a pie',
+    'pt': '$dist · $mins min a pé',
+    'ru': '$dist до магазина · $mins мин',
+    'tr': 'Mağazaya $dist · $mins dk',
+    'ar': '$dist للمتجر · $mins دقيقة',
+    'it': '$dist · $mins min a piedi',
+    'hi': 'स्टोर तक $dist · $mins मिनट',
+    'th': 'ถึงร้าน $dist · เดิน $mins นาที',
+  });
+
+  /// 리드 화면 — origin 폴백일 때 대략적 위치 라벨.
+  String get readStoreApprox => _t({
+    'ko': '(대략)',
+    'en': '(approx.)',
+    'ja': '（およそ）',
+    'zh': '（大约）',
+    'fr': '(approx.)',
+    'de': '(ca.)',
+    'es': '(aprox.)',
+    'pt': '(aprox.)',
+    'ru': '(прибл.)',
+    'tr': '(yaklaşık)',
+    'ar': '(تقريبًا)',
+    'it': '(circa)',
+    'hi': '(लगभग)',
+    'th': '(โดยประมาณ)',
+  });
+
   /// 지도 히어로 — 주울 수 있는 혜택 수.
   String mapBenefitsHero(int n) => _t({
     'ko': '주울 수 있는 혜택 $n장',

@@ -4582,6 +4582,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         isMystery: data['isMystery'] as bool? ?? false,
         // Build 491: 티어 혜택 (JSON string/Map 양쪽 방어 파싱).
         tierRewards: Letter.parseTierRewards(data['tierRewards']),
+        storeLat: (data['storeLat'] as num?)?.toDouble(),
+        storeLng: (data['storeLng'] as num?)?.toDouble(),
+        storeName: data['storeName'] as String?,
         expiresAt: expAt,
         // Build 408 (QQ4): 소진 판정용 카운터 복원.
         readCount: (data['readCount'] as num?)?.toInt() ?? 0,
@@ -4694,6 +4697,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           'tierRewards': jsonEncode(
             letter.tierRewards!.map((k, v) => MapEntry('$k', v)),
           ),
+        // Build 491 (#5): 매장 위치 — 익명 발송이면 게이트 (상호 배타).
+        if (!isAnon && letter.storeLat != null) 'storeLat': letter.storeLat,
+        if (!isAnon && letter.storeLng != null) 'storeLng': letter.storeLng,
+        if (!isAnon && letter.storeName != null)
+          'storeName': letter.storeName,
         if (letter.expiresAt != null)
           'expiresAt': letter.expiresAt!.toIso8601String(),
         'isAnonymous': letter.isAnonymous,
@@ -9179,6 +9187,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     bool isMystery = false,
     // Build 491 (단골 티어 혜택): 브랜드 정의 픽업 누적 보상 (3/5/10회 → 문구).
     Map<int, String>? tierRewards,
+    // Build 491 (#5 매장까지): 쿠폰 사용 매장 위치 (Brand 발송 시 첨부).
+    double? storeLat,
+    double? storeLng,
+    String? storeName,
   }) async {
     // Build 324 (positioning): Free 사용자는 "줍기 전용". 발송 기능은
     //   Premium/Brand 만 가능. UI 측 가드 (main_scaffold compose 진입,
@@ -9419,6 +9431,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       isMystery: _currentUser.isBrand && isMystery,
       // Build 491: 티어 혜택도 Brand 전용 (문구는 compose 에서 BIDI 정화됨).
       tierRewards: _currentUser.isBrand ? tierRewards : null,
+      // Build 491 (#5): 매장 위치 — Brand 전용 (익명 게이트는 직렬화/표시에서).
+      storeLat: _currentUser.isBrand ? storeLat : null,
+      storeLng: _currentUser.isBrand ? storeLng : null,
+      storeName: _currentUser.isBrand ? storeName : null,
       expiresAt: (_currentUser.isBrand && brandAutoExpireHours != null)
           ? now.add(Duration(minutes: totalMin) + Duration(hours: brandAutoExpireHours))
           : null,
@@ -9531,6 +9547,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     bool isMystery = false,
     // Build 491: 단골 티어 혜택 — bulk 전체 동일 스냅샷.
     Map<int, String>? tierRewards,
+    // Build 491 (#5): 매장 위치.
+    double? storeLat,
+    double? storeLng,
+    String? storeName,
   }) async {
     if (!_currentUser.isBrand) return 0;
     int sent = 0;
@@ -9584,6 +9604,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           campaignTotalCount: plannedTotal,
           isMystery: isMystery,
           tierRewards: tierRewards,
+          storeLat: storeLat,
+          storeLng: storeLng,
+          storeName: storeName,
         );
         if (ok) sent++;
       }
@@ -9629,6 +9652,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             campaignTotalCount: plannedTotal,
             isMystery: isMystery,
             tierRewards: tierRewards,
+            storeLat: storeLat,
+            storeLng: storeLng,
+            storeName: storeName,
           );
           if (ok) sent++;
         }
@@ -9912,6 +9938,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     bool isMystery = false,
     // Build 491: 단골 티어 혜택 스냅샷.
     Map<int, String>? tierRewards,
+    // Build 491 (#5): 매장 위치.
+    double? storeLat,
+    double? storeLng,
+    String? storeName,
   }) async {
     if (!_currentUser.isBrand) return 0;
     // Build 409 (sim P2 보안 L7948): 차단된 Brand 도 express+bulk 발송 차단.
@@ -10056,6 +10086,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
             blastCampaignId != null ? (campaignTotalCount ?? count) : null,
         isMystery: isMystery,
         tierRewards: tierRewards,
+        storeLat: storeLat,
+        storeLng: storeLng,
+        storeName: storeName,
         expiresAt: brandAutoExpireHours != null
             ? now.add(Duration(minutes: expressTotalMin) + Duration(hours: brandAutoExpireHours))
             : null,

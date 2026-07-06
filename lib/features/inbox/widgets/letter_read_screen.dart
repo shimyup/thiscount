@@ -21,6 +21,7 @@ import '../../../core/utils/redemption_code.dart';
 import '../../../core/utils/secure_clipboard.dart';
 import '../../../core/theme/letter_style.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/services/brand_zone_service.dart';
 import '../../../core/theme/hunt_palette.dart';
 import '../../../core/localization/country_names.dart';
 import '../../../core/localization/language_config.dart';
@@ -448,6 +449,11 @@ class _LetterReadScreenState extends State<LetterReadScreen>
                                 key: _redemptionBoxKey,
                                 child: _buildRedemptionBox(context, letter),
                               ),
+                            // Build 491 (#5 매장까지): 방문형 쿠폰의 매장 거리
+                            // 칩 — 탭하면 카카오맵 길안내. 리딤 퍼널의 '방문'
+                            // 단계 마찰 제거.
+                            if (_isOpened && letter.senderIsBrand)
+                              _buildStoreDistanceChip(context, letter),
                             // 답장 버튼 (AI 편지는 "닿지 않음" 카드로 대체)
                             if (_isOpened) _buildAiLetterNotice(context, letter),
                             // 브랜드 발송인이 답장 미수락으로 설정한 편지는 답장
@@ -2388,6 +2394,98 @@ class _LetterReadScreenState extends State<LetterReadScreen>
   /// 하단에 "🎫 사용 완료" 버튼 추가 (Build 108) — 수신자가 혜택을 실제로
   /// 쓰고 나면 탭해서 영구적으로 "사용됨" 으로 표시. 브랜드 측에서 전환율
   /// 집계에 활용 가능 (같은 디바이스 기준 로컬, 서버 집계는 후속).
+  // Build 491 (#5 매장까지): 매장 위치 소스 3단 폴백 —
+  //   ① letter.storeLat/Lng (발송 시 첨부, 정확) → ② brandZoneId 의 zone
+  //   중심(자동발송분) → ③ 비익명 origin(~110m 좌표화라 '대략' 라벨).
+  //   익명 letter 는 ①③ 게이트 (익명·매장위치 상호 배타).
+  Widget _buildStoreDistanceChip(BuildContext ctx, Letter letter) {
+    final state = ctx.read<AppState>();
+    final u = state.currentUser;
+    if (u.latitude == 0 || u.longitude == 0) return const SizedBox.shrink();
+    double? lat;
+    double? lng;
+    var approx = false;
+    if (!letter.isAnonymous &&
+        letter.storeLat != null &&
+        letter.storeLng != null) {
+      lat = letter.storeLat;
+      lng = letter.storeLng;
+    } else if (letter.brandZoneId != null) {
+      for (final z in BrandZoneService.instance.allCached) {
+        if (z.id == letter.brandZoneId) {
+          lat = z.center.latitude;
+          lng = z.center.longitude;
+          break;
+        }
+      }
+    } else if (!letter.isAnonymous) {
+      lat = letter.originLocation.latitude;
+      lng = letter.originLocation.longitude;
+      approx = true;
+    }
+    if (lat == null || lng == null) return const SizedBox.shrink();
+    // 코스와 동일한 ×1.35 맨해튼 보정 (직선≠보행).
+    final distM =
+        LatLng(u.latitude, u.longitude).distanceTo(LatLng(lat, lng)) * 1.35;
+    final mins = (distM / 67).ceil();
+    final l10n = AppL10n.of(u.languageCode);
+    final distLabel = distM >= 1000
+        ? '${(distM / 1000).toStringAsFixed(1)}km'
+        : '${distM.round()}m';
+    final label =
+        '${l10n.readStoreDistance(distLabel, mins)}${approx ? ' ${l10n.readStoreApprox}' : ''}';
+    final storeName =
+        (letter.storeName?.isNotEmpty ?? false) ? letter.storeName! : letter.senderName;
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Semantics(
+        button: true,
+        label: label,
+        child: GestureDetector(
+          onTap: () => launchUrl(
+            Uri.parse(
+              'https://map.kakao.com/link/to/'
+              '${Uri.encodeComponent(storeName)},$lat,$lng',
+            ),
+            mode: LaunchMode.externalApplication,
+          ),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: HuntPalette.lime.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: HuntPalette.lime.withValues(alpha: 0.4),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Text('📍', style: TextStyle(fontSize: 14)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      color: HuntPalette.limeDeep,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                const Icon(
+                  Icons.navigation_rounded,
+                  size: 16,
+                  color: HuntPalette.limeDeep,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildRedemptionBox(BuildContext ctx, Letter letter) {
     final l10n = AppL10n.of(ctx.read<AppState>().currentUser.languageCode);
     return Builder(builder: (inner) {

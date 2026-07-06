@@ -482,6 +482,14 @@ class Letter {
   /// 약속 유지(신뢰 보호). null/빈 맵 = 티어 배지·진행만(보상 없음, 비용 0).
   final Map<int, String>? tierRewards;
 
+  /// Build 491 (#5 매장까지): 이 쿠폰을 사용할 매장 위치 (Brand 발송 시 첨부).
+  /// 공개 사업장 정보라 개인위치정보 아님 — 단 익명 발송과는 상호 배타
+  /// (직렬화/표시 게이트에서 !isAnonymous 강제). null = 미첨부(legacy 포함)
+  /// → UI 는 brandZoneId 의 zone 좌표 → origin('대략' 라벨) 순 폴백.
+  final double? storeLat;
+  final double? storeLng;
+  final String? storeName;
+
   /// tierRewards 방어적 파싱 — prefs(Map)·Firestore(JSON string) 양쪽 수용.
   static Map<int, String>? parseTierRewards(dynamic v) {
     try {
@@ -560,6 +568,9 @@ class Letter {
     this.campaignTotalCount,
     this.isMystery = false,
     this.tierRewards,
+    this.storeLat,
+    this.storeLng,
+    this.storeName,
   }) : reportedBy = reportedBy ?? {};
 
   /// 인박스용 독립 복사본 (worldLetters에서 제거 전 inbox에 추가할 때 사용)
@@ -622,6 +633,9 @@ class Letter {
     campaignTotalCount: campaignTotalCount,
     isMystery: isMystery,
     tierRewards: tierRewards,
+    storeLat: storeLat,
+    storeLng: storeLng,
+    storeName: storeName,
     readCount: readCount,
     maxReaders: maxReaders,
   );
@@ -888,6 +902,10 @@ class Letter {
     // Build 491: 단골 티어 혜택 스냅샷 (string key — JSON 안전).
     if (tierRewards != null && tierRewards!.isNotEmpty)
       'tierRewards': tierRewards!.map((k, v) => MapEntry('$k', v)),
+    // Build 491 (#5): 매장 위치 — 익명이면 게이트(상호 배타).
+    if (!isAnonymous && storeLat != null) 'storeLat': storeLat,
+    if (!isAnonymous && storeLng != null) 'storeLng': storeLng,
+    if (!isAnonymous && storeName != null) 'storeName': storeName,
     'readCount': readCount,
     'maxReaders': maxReaders,
   };
@@ -1008,6 +1026,9 @@ class Letter {
     campaignTotalCount: (j['campaignTotalCount'] as num?)?.toInt(),
     isMystery: j['isMystery'] as bool? ?? false,
     tierRewards: parseTierRewards(j['tierRewards']),
+    storeLat: (j['storeLat'] as num?)?.toDouble(),
+    storeLng: (j['storeLng'] as num?)?.toDouble(),
+    storeName: j['storeName'] as String?,
     expiresAt: _parseDateTime(j['expiresAt']),
     readCount: j['readCount'] as int? ?? 0,
     maxReaders: j['maxReaders'] as int? ?? Letter.maxReadersDefault,
