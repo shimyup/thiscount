@@ -3372,6 +3372,80 @@ class _MyLocationButtonState extends State<_MyLocationButton> {
 // ── 운송수단 마커 ──────────────────────────────────────────────────────────────
 /// 도착 대기 중 마커 (inTransit → 실제 도착했지만 아직 상태 전환 전)
 /// 비행기 대신 📬로 표시
+// ── Build 491 (프라이스태그 마커): 브랜드 딜 마커 공용 태그 pill ────────────
+// "동네 세일이 길에 떨어져 있다" 정체성 — 구멍 뚫린 가격표 모양.
+// 일반 홍보(priceTagLabel==null)는 기존 이모지 마커 유지(세일 위장 금지).
+class _PriceTagPill extends StatelessWidget {
+  final String label;
+  final bool mystery;
+  final double pulse;
+  final double height;
+  const _PriceTagPill({
+    required this.label,
+    required this.mystery,
+    required this.pulse,
+    this.height = 26,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = mystery ? HuntPalette.ink : HuntPalette.lime;
+    final fg = mystery ? HuntPalette.lav : HuntPalette.limeInk;
+    return Container(
+      height: height,
+      padding: const EdgeInsetsDirectional.only(start: 7, end: 9),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(height / 2),
+          bottomLeft: Radius.circular(height / 2),
+          topRight: const Radius.circular(7),
+          bottomRight: const Radius.circular(7),
+        ),
+        border: mystery
+            ? Border.all(color: HuntPalette.lav, width: 1.5)
+            : null,
+        boxShadow: [
+          BoxShadow(
+            color: (mystery ? HuntPalette.lav : HuntPalette.lime)
+                .withValues(alpha: 0.35 + pulse * 0.25),
+            blurRadius: 10,
+          ),
+          const BoxShadow(
+            color: Color(0x66000000),
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 태그 구멍.
+          Container(
+            width: 5,
+            height: 5,
+            decoration: BoxDecoration(
+              color: mystery ? HuntPalette.lav : HuntPalette.ink,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              color: fg,
+              fontSize: height * 0.5,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ArrivedWaitingMarker extends StatelessWidget {
   final Letter letter;
   final AnimationController pulseController;
@@ -3517,24 +3591,34 @@ class _ArrivedWaitingMarker extends StatelessWidget {
                 ),
               ),
             ),
-            Text(
-              emoji,
-              style: TextStyle(
-                fontSize: 30,
-                shadows: [
-                  Shadow(
-                    color: (fomoColor ?? baseColor)
-                        .withValues(alpha: 0.6 + pulse * 0.3),
-                    blurRadius: 12,
-                  ),
-                  const Shadow(
-                    color: Color(0x88000000),
-                    blurRadius: 3,
-                    offset: Offset(0, 1),
-                  ),
-                ],
+            // Build 491: 브랜드 딜은 프라이스태그 pill, 그 외/일반 홍보는
+            // 기존 카테고리 이모지 유지.
+            if (letter.senderIsBrand && letter.priceTagLabel != null)
+              _PriceTagPill(
+                label: letter.priceTagLabel!,
+                mystery: letter.isMystery,
+                pulse: pulse,
+                height: 28,
+              )
+            else
+              Text(
+                emoji,
+                style: TextStyle(
+                  fontSize: 30,
+                  shadows: [
+                    Shadow(
+                      color: (fomoColor ?? baseColor)
+                          .withValues(alpha: 0.6 + pulse * 0.3),
+                      blurRadius: 12,
+                    ),
+                    const Shadow(
+                      color: Color(0x88000000),
+                      blurRadius: 3,
+                      offset: Offset(0, 1),
+                    ),
+                  ],
+                ),
               ),
-            ),
             // Build 415 (#5, sim50 P2): rare/epic 배지 — 우상단 ✨/💎.
             //   만료 임박(FOMO)으로 glow ring 이 빨강 우선되어도 배지는 항상 노출
             //   (희소성 신호 소실 방지). 배지 색은 항상 희귀도 색.
@@ -3963,45 +4047,55 @@ class _UnreadDeliveredMarker extends StatelessWidget {
                 ),
                 // 편지함 아이콘 컨테이너 (Build 147: 내부 테두리 = 카테고리 색)
                 // Build 476 (마커 다듬기): 30→34, 이모지 가독성·터치 시인성 상향.
-                Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    color: boxBg,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: innerBorderColor.withValues(
-                        alpha: 0.55 + pulse * 0.3,
-                      ),
-                      width: showAsBrand ? 2.0 : 1.5,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: glowColor.withValues(
-                          alpha: showAsBrand
-                              ? 0.35 + pulse * 0.2
-                              : 0.25 + pulse * 0.15,
+                // Build 491: 브랜드 딜(할인/교환/밀봉)은 프라이스태그 pill —
+                //   "떨어진 가격표" 정체성. 일반 홍보·비브랜드는 기존 원형 유지.
+                if (showAsBrand && letter.priceTagLabel != null)
+                  _PriceTagPill(
+                    label: letter.priceTagLabel!,
+                    mystery: letter.isMystery,
+                    pulse: pulse,
+                    height: 24,
+                  )
+                else
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: boxBg,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: innerBorderColor.withValues(
+                          alpha: 0.55 + pulse * 0.3,
                         ),
-                        blurRadius: showAsBrand ? 10 : 8,
+                        width: showAsBrand ? 2.0 : 1.5,
                       ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Text(
-                      mailEmoji,
-                      // Build 476 (마커 다듬기): 14→16 — 카테고리 이모지 가독성.
-                      style: TextStyle(
-                        fontSize: 16,
-                        shadows: [
-                          Shadow(
-                            color: ringColor.withValues(alpha: 0.5),
-                            blurRadius: 6,
+                      boxShadow: [
+                        BoxShadow(
+                          color: glowColor.withValues(
+                            alpha: showAsBrand
+                                ? 0.35 + pulse * 0.2
+                                : 0.25 + pulse * 0.15,
                           ),
-                        ],
+                          blurRadius: showAsBrand ? 10 : 8,
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        mailEmoji,
+                        // Build 476 (마커 다듬기): 14→16 — 카테고리 이모지 가독성.
+                        style: TextStyle(
+                          fontSize: 16,
+                          shadows: [
+                            Shadow(
+                              color: ringColor.withValues(alpha: 0.5),
+                              blurRadius: 6,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
                 // Build 415 (#5 레어 드롭, sim50 P1): rare/epic 배지(✨/💎).
                 //   Positioned 라 Column 높이에 영향 없음(오버플로우 무관).
                 if (rarityColor != null && rarityBadge.isNotEmpty)

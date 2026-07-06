@@ -632,6 +632,28 @@ class Letter {
   /// Build 490 (드롭 헌트 P1): 지도 마커용 브랜드 이모지 — 미스터리(밀봉)
   /// 드롭은 카테고리를 숨기고 ❓ 로 표시 (내용 비공개 = 카테고리도 티저).
   String get markerBrandEmoji => isMystery ? '❓' : category.brandEmoji;
+
+  /// Build 491 (프라이스태그 마커): 본문/사용안내에서 할인율 추출 ("30%").
+  /// 1~99 범위만 유효 — 그 외/미검출은 null.
+  String? get percentLabel {
+    final m =
+        RegExp(r'(\d{1,3})\s*%').firstMatch('$content ${redemptionInfo ?? ''}');
+    if (m == null) return null;
+    final v = int.tryParse(m.group(1)!) ?? 0;
+    if (v <= 0 || v > 99) return null;
+    return '$v%';
+  }
+
+  /// Build 491: 지도 프라이스태그 라벨. null = 태그 아님(일반 홍보) →
+  /// 기존 이모지 마커 유지 (홍보를 세일 태그로 위장하지 않음 — 정직 표기).
+  String? get priceTagLabel {
+    if (isMystery) return '?';
+    final pct = percentLabel;
+    if (pct != null) return pct;
+    if (category == LetterCategory.voucher) return '🎁';
+    if (category == LetterCategory.coupon) return 'SALE';
+    return null;
+  }
   // Build 409 (sim P2 보안): 시계 되돌리기 우회 차단 — SecureClock 사용.
   bool get isExpired =>
       expiresAt != null && SecureClock.now().isAfter(expiresAt!);
