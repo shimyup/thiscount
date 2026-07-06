@@ -9199,6 +9199,42 @@ class AppL10n {
     'th': 'เส้นทาง $n จุด · เดิน $m นาที',
   });
 
+  /// 지도 히어로 — 주울 수 있는 혜택 수.
+  String mapBenefitsHero(int n) => _t({
+    'ko': '주울 수 있는 혜택 $n장',
+    'en': '$n deals to pick up',
+    'ja': '拾える特典$n枚',
+    'zh': '可拾取优惠$n张',
+    'fr': '$n offres à ramasser',
+    'de': '$n Deals zum Aufsammeln',
+    'es': '$n ofertas para recoger',
+    'pt': '$n ofertas para pegar',
+    'ru': 'Купонов рядом: $n',
+    'tr': 'Toplanacak $n fırsat',
+    'ar': '$n عروض للالتقاط',
+    'it': '$n offerte da raccogliere',
+    'hi': 'उठाने के लिए $n डील',
+    'th': 'ดีลให้เก็บ $n ใบ',
+  });
+
+  /// 지도 히어로 — 최대 할인율 suffix.
+  String mapBenefitsHeroMax(int pct) => _t({
+    'ko': '최대 $pct%',
+    'en': 'up to $pct%',
+    'ja': '最大$pct%',
+    'zh': '最高$pct%',
+    'fr': "jusqu'à $pct%",
+    'de': 'bis zu $pct%',
+    'es': 'hasta $pct%',
+    'pt': 'até $pct%',
+    'ru': 'до $pct%',
+    'tr': "%$pct'e kadar",
+    'ar': 'حتى $pct%',
+    'it': 'fino al $pct%',
+    'hi': '$pct% तक',
+    'th': 'สูงสุด $pct%',
+  });
+
   /// compose — 단골 티어 혜택 섹션 제목.
   String get composeTierTitle => _t({
     'ko': '단골 혜택 (선택)',

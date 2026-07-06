@@ -654,6 +654,13 @@ class _WorldMapScreenState extends State<WorldMapScreen>
             // ── Build 491 (줍기 코스): 하단 코스 칩 ──────────────────────
             if (widget.showChrome && !state.currentUser.isBrand)
               _buildCourseChip(state, l10n),
+            // ── Build 491 (#4 홈 히어로): "혜택 N장 · 최대 M%" ────────────
+            // 헌트 캠페인 없을 때 같은 슬롯 재사용(오버레이 과밀 방지 — 상호
+            // 배타). 앱의 3초 정체성: 주변에 주울 혜택이 몇 장인지 즉답.
+            if (widget.showChrome &&
+                state.activeHuntCampaign == null &&
+                !state.currentUser.isBrand)
+              _buildBenefitsHero(state, l10n),
             // ── 근처 도착 배너 (experienced 레벨 이상에서만) ─────────────
             // 브랜드도 줍기 가능해져서 `!isBrand` 조건 제거.
             if (state.hasNearbyAlert &&
@@ -1143,6 +1150,89 @@ class _WorldMapScreenState extends State<WorldMapScreen>
         pattern: const StrokePattern.dotted(),
       ),
     ];
+  }
+
+  // Build 491 (#4): 주변 혜택 히어로 — 코스와 동일 후보 기준(2.5km 도착 딜).
+  Widget _buildBenefitsHero(AppState state, AppL10n l10n) {
+    final uLat = state.currentUser.latitude;
+    final uLng = state.currentUser.longitude;
+    if (uLat == 0 || uLng == 0) return const SizedBox.shrink();
+    final me = LatLng(uLat, uLng);
+    var count = 0;
+    var maxPct = 0;
+    for (final l in state.worldLetters) {
+      if (l.status != DeliveryStatus.nearYou &&
+          l.status != DeliveryStatus.deliveredFar) {
+        continue;
+      }
+      if (l.isExpired || l.isBlocked || l.readCount >= l.maxReaders) continue;
+      if (l.destinationLocation.distanceTo(me) > _courseRadiusM) continue;
+      count++;
+      final pct = l.percentLabel;
+      if (pct != null) {
+        final v = int.tryParse(pct.replaceAll('%', '')) ?? 0;
+        if (v > maxPct) maxPct = v;
+      }
+    }
+    if (count == 0) return const SizedBox.shrink();
+    final label = maxPct > 0
+        ? '${l10n.mapBenefitsHero(count)} · ${l10n.mapBenefitsHeroMax(maxPct)}'
+        : l10n.mapBenefitsHero(count);
+    return Positioned(
+      top: _showCountryBar ? 130 : 94,
+      left: 16,
+      right: 16,
+      child: SafeArea(
+        bottom: false,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Semantics(
+              button: true,
+              label: label,
+              child: GestureDetector(
+                onTap: () => _mapController.move(ll.LatLng(uLat, uLng), 15.0),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.bgCard.withValues(alpha: 0.94),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: HuntPalette.lime.withValues(alpha: 0.55),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.25),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('🏷', style: TextStyle(fontSize: 13)),
+                      const SizedBox(width: 6),
+                      Text(
+                        label,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildCourseChip(AppState state, AppL10n l10n) {
